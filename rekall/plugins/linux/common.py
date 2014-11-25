@@ -46,6 +46,15 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(session))
 
 
+class LinuxTestMixin(object):
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is linux."""
+        return (session.profile.metadata("os") == 'linux' and
+                plugin.Command.is_active(session))
+
+
 class SlideScanner(scan.BaseScanner):
     checks = [
         # Ref: http://lxr.free-electrons.com/source/init/version.c#L48

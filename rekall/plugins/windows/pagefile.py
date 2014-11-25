@@ -276,6 +276,7 @@ class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
         The function should return either None (no valid mapping) or the offset
         in physical memory where the address maps.
         '''
+        vaddr = int(vaddr)
         try:
             return self._tlb.Get(vaddr)
         except KeyError:

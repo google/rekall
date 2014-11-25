@@ -32,6 +32,8 @@ http://www.codemachine.com/article_kernelstruct.html
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+from rekall import testlib
+
 from rekall.plugins import core
 from rekall.plugins.windows import common
 
@@ -115,7 +117,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
         super(DumpFiles, cls).args(parser)
 
         parser.add_argument(
-            "--file_object",
+            "--file_objects",
             type="ArrayIntParser", default=[],
             help="Kernel addresses of _FILE_OBJECT structs.")
 
@@ -246,3 +248,9 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                             out_fd.seek(file_offset + offset)
                             out_fd.write(self.physical_address_space.read(
                                 phys_address, 0x1000))
+
+
+class TestDumpFiles(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="dumpfiles --dump_dir %(tempdir)s"
+    )

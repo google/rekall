@@ -49,11 +49,15 @@ class TestVADMap(testlib.SimpleTestCase):
         )
 
 
-class TestVad(testlib.RekallBaseUnitTestCase):
+class TestVad(testlib.SimpleTestCase):
     """Test the vad module."""
 
-    PARAMETERS = dict(commandline="vad --pid 2624")
+    PARAMETERS = dict(commandline="vad --pid %(pid)s")
 
-    def testVad(self):
-        for x, y in zip(self.baseline['output'], self.current['output']):
-            self.assertTableRowsEqual(x, y)
+
+class TestVADDump(testlib.SimpleTestCase):
+    """Test the vad module."""
+
+    PARAMETERS = dict(
+        commandline="vaddump --pid %(pid)s --dump_dir %(tempdir)s"
+    )

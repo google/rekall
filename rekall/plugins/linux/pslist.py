@@ -147,7 +147,7 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
                     self.write_index(temp_renderer, maps)
 
 
-class TestLinMemDump(testlib.HashChecker):
+class TestLinMemDump(common.LinuxTestMixin, testlib.HashChecker):
     PARAMETERS = dict(
         commandline="memdump --proc_regex bash --dump_dir %(tempdir)s"
         )

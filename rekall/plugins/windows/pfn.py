@@ -318,6 +318,12 @@ class PFNInfo(common.WindowsCommandPlugin):
     PAGE_SIZE = 0x1000
     PAGE_BITS = 12
 
+    @classmethod
+    def args(cls, parser):
+        super(PFNInfo, cls).args(parser)
+        parser.add_argument("pfn", type="IntParser",
+                            help="The PFN to examine.")
+
     def __init__(self, pfn=None, physical_address=None, **kwargs):
         """Prints information about the physical PFN entry.
 
@@ -590,6 +596,12 @@ class PtoV(common.WinProcessFilter):
 
     PAGE_SIZE = 0x1000
     PAGE_BITS = 12
+
+    @classmethod
+    def args(cls, parser):
+        super(PtoV, cls).args(parser)
+        parser.add_argument("physical_address", type="IntParser",
+                            help="The Virtual Address to examine.")
 
     def __init__(self, physical_address=None, **kwargs):
         """Converts a physical address to a virtual address."""

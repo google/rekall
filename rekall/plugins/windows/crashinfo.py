@@ -24,6 +24,7 @@
 # pylint: disable=protected-access
 
 from rekall import plugin
+from rekall import testlib
 from rekall.plugins.windows import common
 from rekall.plugins.addrspaces import crash
 from rekall.plugins.addrspaces import standard
@@ -107,6 +108,12 @@ class Raw2Dump(common.WindowsCommandPlugin):
             raise plugin.PluginError(
                 "A destination filename must be provided.")
 
+    def _pointer_to_int(self, ptr):
+        if self.profile.metadata("arch") == "I386":
+            return ptr
+
+        return ptr | 0xFFFFF00000000000
+
     def _SetKDBG(self, kdbg, member, symbol=None):
         if symbol is None:
             symbol = "nt!%s" % member
@@ -117,13 +124,17 @@ class Raw2Dump(common.WindowsCommandPlugin):
         if symbol == None:
             return
 
-        kdbg.SetMember(member, symbol | 0xFFFFF00000000000)
+        kdbg.SetMember(member, self._pointer_to_int(symbol))
 
     def RebuildKDBG(self, out_fd):
         """Modify the destination image to rebuild the KDBG."""
+        if self.profile.metadata("arch") == "I386":
+            crash_as_cls = crash.WindowsCrashDumpSpace32
+        else:
+            crash_as_cls = crash.WindowsCrashDumpSpace64
+
         # Open the crash file for writing.
-        crash_as = crash.WindowsCrashDumpSpace64(
-            base=out_fd, session=self.session)
+        crash_as = crash_as_cls(base=out_fd, session=self.session)
 
         kdbg_virtual_address = self.session.GetParameter("kdbg")
         kdbg_physical_address = self.kernel_address_space.vtop(
@@ -141,7 +152,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         kdbg.Header.OwnerTag = "KDBG"
         kdbg.Header.Size = kdbg.obj_size
         kdbg.Header.List.Flink = kdbg.Header.List.Blink = (
-            kdbg_virtual_address | 0xFFFFF00000000000)
+            self._pointer_to_int(kdbg_virtual_address))
 
         kdbg.MmPageSize = 0x1000
 
@@ -182,14 +193,23 @@ class Raw2Dump(common.WindowsCommandPlugin):
             prcb.ProcessorState.ContextFrame.obj_offset)
 
         kdbg.OffsetPrcbNumber = prcb.Number.obj_offset
-        kdbg.OffsetPrcbContext = prcb.Context.obj_offset
 
         # _KPCR offsets.
         pcr = self.profile._KPCR()
         kdbg.SizePcr = pcr.obj_size
-        kdbg.OffsetPcrSelfPcr = pcr.Self.obj_offset
-        kdbg.OffsetPcrCurrentPrcb = pcr.CurrentPrcb.obj_offset
-        kdbg.OffsetPcrContainedPrcb = pcr.Prcb.obj_offset
+
+        if self.profile.metadata("arch") == "AMD64":
+            kdbg.OffsetPrcbContext = prcb.Context.obj_offset
+            kdbg.OffsetPcrSelfPcr = pcr.Self.obj_offset
+            kdbg.OffsetPcrCurrentPrcb = pcr.CurrentPrcb.obj_offset
+            kdbg.OffsetPcrContainedPrcb = pcr.Prcb.obj_offset
+
+            # Clear the KdpDataBlockEncoded flag from the image.
+            flag = self.profile.get_constant_object(
+                "KdpDataBlockEncoded", "byte")
+
+            crash_as.write(
+                self.kernel_address_space.vtop(flag.obj_offset), "\x01")
 
         # Global constants.
         self._SetKDBG(kdbg, "CmNtCSDVersion")
@@ -244,11 +264,6 @@ class Raw2Dump(common.WindowsCommandPlugin):
         self._SetKDBG(kdbg, "PsLoadedModuleList")
         self._SetKDBG(kdbg, "PspCidTable")
 
-        # Clear the KdpDataBlockEncoded flag from the image.
-        flag = self.profile.get_constant_object(
-            "KdpDataBlockEncoded", "byte")
-        crash_as.write(self.kernel_address_space.vtop(flag.obj_offset), "\x01")
-
     def render(self, renderer):
         PAGE_SIZE = 0x1000
 
@@ -277,7 +292,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         i = None
 
         for i, (start, _, length) in enumerate(
-            self.physical_address_space.get_available_addresses()):
+                self.physical_address_space.get_available_addresses()):
             # Convert to pages
             start = start / PAGE_SIZE
             length = length / PAGE_SIZE
@@ -300,17 +315,17 @@ class Raw2Dump(common.WindowsCommandPlugin):
         header.MajorVersion = 0xf
         header.MinorVersion = 0x1db1
         header.DirectoryTableBase = self.session.GetParameter("dtb")
-        header.PfnDataBase = resolver.get_address_by_name(
-            "nt!MmPfnDatabase") | 0xFFFFF00000000000
+        header.PfnDataBase = self._pointer_to_int(
+            resolver.get_address_by_name("nt!MmPfnDatabase"))
 
-        header.PsLoadedModuleList = resolver.get_address_by_name(
-            "nt!PsLoadedModuleList") | 0xFFFFF00000000000
+        header.PsLoadedModuleList = self._pointer_to_int(
+            resolver.get_address_by_name("nt!PsLoadedModuleList"))
 
-        header.PsActiveProcessHead = resolver.get_address_by_name(
-            "nt!PsActiveProcessHead") | 0xFFFFF00000000000
+        header.PsActiveProcessHead = self._pointer_to_int(
+            resolver.get_address_by_name("nt!PsActiveProcessHead"))
 
-        header.KdDebuggerDataBlock = resolver.get_address_by_name(
-            "nt!KdDebuggerDataBlock") | 0xFFFFF00000000000
+        header.KdDebuggerDataBlock = self._pointer_to_int(
+            resolver.get_address_by_name("nt!KdDebuggerDataBlock"))
 
         header.MachineImageType = 0x8664
 
@@ -352,7 +367,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # Now copy the physical address space to the output file.
         output_offset = header.obj_size
         for start, _, length in (
-            self.physical_address_space.get_available_addresses()):
+                self.physical_address_space.get_available_addresses()):
 
             # Convert to pages
             start = start / PAGE_SIZE
@@ -390,3 +405,9 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 "KdpDataBlockEncoded", "byte") > 0:
             renderer.format("Rebuilding KDBG data block.\n")
             self.RebuildKDBG(out_as)
+
+
+class TestRaw2Dump(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline="raw2dmp --rebuild --destination %(tempdir)s/output.dmp "
+    )

@@ -33,8 +33,10 @@ from rekall.entities.query import query as entity_query
 
 
 class TestEntityFind(testlib.SimpleTestCase):
-    PARAMETERS = dict(commandline='find "Process/command =~ %(process)s"',
-                      process="lsass")
+    PARAMETERS = dict(
+        commandline='find "Process/command =~ %(process)s"',
+        process="lsass"
+    )
 
 
 class TestEntityAnalyze(testlib.SortedComparison):
@@ -152,7 +154,7 @@ class EntityFind(plugin.ProfileCommand):
     This class is designed to be subclasses by saved searches. Subclasses may
     override the defaults for the following properties:
 
-    --query, search: The query that'll be run.
+    query, search: The query that'll be run.
     (--)display_filter: Another query that'll be used to filter out unwanted
                         results.
     (--)columns: A list of attributes to render in the output. Format as
@@ -188,7 +190,7 @@ class EntityFind(plugin.ProfileCommand):
     @classmethod
     def args(cls, parser):
         super(EntityFind, cls).args(parser)
-        parser.add_argument("--query", required=False,
+        parser.add_argument("query", required=False,
                             help="The filter query to use.")
         parser.add_argument("--columns", default=None, nargs="+", type="str")
         parser.add_argument("--sort", default=None, nargs="+", type="str")

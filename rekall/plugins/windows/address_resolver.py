@@ -24,6 +24,7 @@ import re
 
 from rekall import obj
 from rekall import plugin
+from rekall import testlib
 from rekall import utils
 from rekall.plugins.common import address_resolver
 from rekall.plugins.windows import common
@@ -559,3 +560,7 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
         self._EnsureInitialized()
         return "<%s: %s@%#x>" % (self.__class__.__name__, self.pe_profile.name,
                                  self.image_base)
+
+
+class TestWindowsAddressResolver(testlib.DisabledTest):
+    PLUGIN = "address_resolver"
