@@ -188,7 +188,7 @@ class Info(plugin.Command):
             renderer.write(doc_string)
 
             renderer.table_header([('Parameter', 'parameter', '30'),
-                                   (' Documentation', 'doc', '70')])
+                                   ('Documentation', 'doc', '70')])
             for parameter, doc in self.get_default_args(item):
                 renderer.table_row(parameter, doc)
 
@@ -215,7 +215,7 @@ class Info(plugin.Command):
         renderer.section()
         renderer.table_header([('Command', 'function', "20"),
                                ('Provider Class', 'provider', '20'),
-                               ('Docs', 'docs', '[wrap:50]'),
+                               ('Docs', 'docs', '50'),
                               ])
 
         for cls, name, doc in sorted(self.plugins(), key=lambda x: x[1]):
@@ -724,9 +724,9 @@ class DT(plugin.ProfileCommand):
 
         renderer.table_header([
             dict(name="Offset", type="TreeNode", max_depth=5,
-                 child=dict(formatstring="[addr]")),
+                 child=dict(style="address"), width=20),
             ("Field", "field", "30"),
-            dict(name="Content", cname="content", details=True)])
+            dict(name="Content", cname="content")])
 
         self._render_Struct(renderer, struct)
 
@@ -741,7 +741,7 @@ class DT(plugin.ProfileCommand):
                 base_member.obj_offset - struct.obj_offset, k, member))
 
         for offset, k, v in sorted(fields):
-            renderer.table_row(offset, k, v, depth=depth)
+            renderer.table_row(offset, k, repr(v), depth=depth)
             if isinstance(v, obj.Struct):
                 self._render_Struct(renderer, v, depth=depth+1)
 
@@ -833,7 +833,7 @@ class Dump(plugin.Command):
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Hex", "hex", "^" + str(3 * self.width)),
                                ("Data", "data", "^" + str(self.width)),
-                               ("Comment", "comment", "")],
+                               ("Comment", "comment", "40")],
                               suppress_headers=self.suppress_headers)
 
         offset = 0
@@ -903,9 +903,9 @@ class Grep(plugin.Command):
 
     def render(self, renderer):
         renderer.table_header([("Offset", "offset", "[addr]"),
-                               ("Hex", "hex", "^" + str(3 * self.context)),
-                               ("Data", "data", "^" + str(self.context)),
-                               ("Comment", "comment", "")]
+                               ("Hex", "hex", str(3 * self.context)),
+                               ("Data", "data", str(self.context)),
+                               ("Comment", "comment", "40")]
                              )
 
         resolver = self.session.address_resolver

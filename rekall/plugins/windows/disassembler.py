@@ -320,7 +320,7 @@ class Disassemble(plugin.Command):
 
         renderer.table_header(
             [dict(type="TreeNode", name="Address", cname="cmd_address",
-                  child=dict(formatstring='[addrpad]')),
+                  child=dict(style="address")),
              ('Rel', "relative_address", '>4'),
              ('Op Codes', "opcode", '<20'),
              ('Instruction', "instruction", '<30'),

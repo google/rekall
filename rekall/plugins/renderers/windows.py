@@ -58,7 +58,7 @@ class UNICODE_STRING_Text(text.TextObjectRenderer):
     renderers = ["TextRenderer", "TestRenderer", "WideTextRenderer"]
 
     def render_row(self, target, **options):
-        return text.Cell.FromString(unicode(target))
+        return text.Cell(unicode(target))
 
 
 class SID_Text(UNICODE_STRING_Text):
@@ -77,7 +77,6 @@ class STRINGDataExport(UNICODE_STRINGDataExport):
 
     def EncodeToJsonSafe(self, item, **_):
         return utils.SmartStr(item)
-
 
 
 class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
@@ -103,23 +102,20 @@ class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
         if self.style == "full":
             return self.table.render_header()
         else:
-            result = text.Cell.FromString(
-                self.formatter.format_field(self.name, "^40s"))
-            result.append("-" * result.width)
+            result = text.Cell(self.name, width=40)
+            result.append_line("-" * result.width)
 
             return result
 
     def render_row(self, target, **options):
         if self.style == "full":
-            cells = self.table.get_row(target.obj_offset, target.name,
-                                       target.pid)
-            return text.Cell.Join(cells)
+            return self.table.get_row(target.obj_offset, target.name,
+                                      target.pid)
 
         else:
-            return text.Cell.FromString(
-                self.formatter.format(
-                    "{0:#x} {1} ({2})", target.obj_offset,
-                    target.name, target.pid))
+            return text.Cell("%s %s (%d)" % (
+                self.format_address(target.obj_offset),
+                target.name, target.pid))
 
 
 class EPROCESS_WideTextObjectRenderer(EPROCESS_TextObjectRenderer):
@@ -127,49 +123,6 @@ class EPROCESS_WideTextObjectRenderer(EPROCESS_TextObjectRenderer):
     renderers = ["WideTextRenderer"]
 
     def render_row(self, target, **_):
-        return text.Cell.FromString(
+        return text.Cell(
             self.formatter.format("{0:s} Pid: {1:s} (@{2:#x})",
                                   target.name, target.pid, target))
-
-
-class BoolRenderer(text.TextObjectRenderer):
-    renders_type = "bool"
-    renderers = ["TextRenderer", "WideTextRenderer", "TestRenderer"]
-
-    def render_row(self, target, **options):
-        color = "GREEN" if target else "RED"
-        base_result = super(BoolRenderer, self).render_row(target, **options)
-        result = text.Cell()
-        for line in base_result:
-            result.append(self.renderer.colorizer.Render(
-                line, foreground=color))
-
-        return result
-
-
-class UnixTimestampObjectRenderer(renderer.ObjectRenderer):
-    renders_type = "UnixTimeStamp"
-    renderers = ["TextRenderer"]
-
-    def render_row(self, target, details=False, **options):
-        if details:
-            return text.Cell.FromString(repr(target))
-
-        if target:
-            dt = target.as_datetime()
-            if dt:
-                return text.Cell.FromString(target.display_datetime(dt))
-
-        return text.Cell.FromString(
-            self.renderer.formatter.format_field("-", **options))
-
-
-class NoneRendererText(renderer.ObjectRenderer):
-    renders_type = "NoneType"
-    renderers = ["TextRenderer"]
-
-    def render_header(self, **options):
-        return text.Cell.FromString("-", **options)
-
-    def render_row(self, _, **options):
-        return text.Cell.FromString("-", **options)

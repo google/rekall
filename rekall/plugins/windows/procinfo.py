@@ -93,7 +93,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
         """Print information about a PE file from memory."""
         # Get our helper object to parse the PE file.
         renderer.table_header([('Attribute', 'attribute', '<20'),
-                               ('Value', 'value', '[wrap:60]')])
+                               ('Value', 'value', '60')])
 
         for field in ["Machine", "TimeDateStamp", "Characteristics"]:
             renderer.table_row(
@@ -161,7 +161,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
                 renderer.table_header(
                     [('Name', 'name', '<20'),
                      ('Address', 'address', '[addrpad]'),
-                     ('Disassembly', 'disassembly', '[wrap:30]')])
+                     ('Disassembly', 'disassembly', '30')])
 
                 for name, function, ordinal in self.pe_helper.IAT():
                     disassembly = []
@@ -175,7 +175,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
             renderer.table_header([('Entry', 'entry', '[addrpad]'),
                                    ('Stat', 'status', '4'),
                                    ('Ord', 'ord', '5'),
-                                   ('Name', 'name', '<50')])
+                                   ('Name', 'name', '')])
 
             resolver = self.session.address_resolver
 

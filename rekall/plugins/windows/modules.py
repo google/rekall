@@ -154,8 +154,8 @@ class ModVersions(Modules):
         renderer.table_header(
             [("Offset (V)", "offset_v", "[addrpad]"),
              ("Name", "file_name", "20"),
-             ('GUID/Version', "guid", "32"),
-             ("PDB", "pdb", "30")])
+             ('GUID/Version', "guid", "33"),
+             ("PDB", "pdb", "")])
 
         for module, rsds, guid in self.ScanVersions():
             renderer.table_row(
@@ -217,7 +217,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
     def render(self, renderer):
         renderer.table_header(
             [("Offset (P)", "offset_p", "[addrpad]"),
-             ('GUID/Version', "guid", "32"),
+             ('GUID/Version', "guid", "33"),
              ("PDB", "pdb", "30")])
 
         for rsds, guid in self.ScanVersions():

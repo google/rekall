@@ -120,21 +120,20 @@ class VirtualizationNode_TextObjectRenderer(text.TextObjectRenderer):
             session=self.session)
 
     def render_header(self, **options):
-        result = text.Cell.FromString(
-            self.formatter.format_field("Description", "^40s"))
-        result.append("-" * result.width)
+        result = text.Cell("Description", width=40)
+        result.append_line("-" * result.width)
 
         return result
 
     def render_row(self, target, **options):
         if isinstance(target, hypervisors.VirtualMachine):
-            return text.Cell.FromString(
+            return text.Cell(
                 self.formatter.format(
                     "VM [{0:s} vCORE(s), {1:s}]",
                     (self.quick and "??") or target.num_cores,
                     target.guest_arch))
         elif "VMCS" in target.__class__.__name__:
-            return text.Cell.FromString(
+            return text.Cell(
                 self.formatter.format(
                     "VMCS @ {0:[[addrpad]]} vCORE {1:x}", target.obj_offset,
                     target.m("VPID")))

@@ -309,13 +309,13 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
 
     def render(self, renderer):
         renderer.table_header(
-            [("tagHOOK(V)", "offset", "[addrpad]"),
-             ("Sess", "session", "<3"),
-             ("Owner", "owner", "20"),
+            [dict(name="tagHOOK(V)", cname="offset", style="address"),
+             ("Sess", "session", ""),
+             ("Owner", "owner", "30"),
              ("Thread", "thread", "30"),
              ("Filter", "filter", "15"),
              ("Flags", "flags", "10"),
-             ("Function", "function", "[addrpad]"),
+             dict(name="Function", cname="function", style="address"),
              ("Module", "module", ""),
             ])
 

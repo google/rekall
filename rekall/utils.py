@@ -53,7 +53,7 @@ def SmartUnicode(string, encoding="utf8"):
 
 
 def Hexdump(data, width=16):
-    """ Hexdump function shared by various plugins """
+    """Hexdump function shared by various plugins """
     for offset in xrange(0, len(data), width):
         row_data = data[offset:offset + width]
         translated_data = [
@@ -65,9 +65,9 @@ def Hexdump(data, width=16):
 
 def WriteHexdump(renderer, data, base=0, width=16):
     """Write the hexdump to the fd."""
-    renderer.table_header([('Offset', 'offset', '[addrpad]'),
-                           ('Hex', 'hex', '^' + str(width * 3)),
-                           ('Data', 'data', '^' + str(width))])
+    renderer.table_header([dict(name='Offset', cname="offset", style="address"),
+                           dict(name='Hex', cname="hex", width=width * 3),
+                           dict(name='Data', cname='data', width=width)])
 
     for offset, hexdata, translated_data in Hexdump(data):
         renderer.table_row(base + offset, hexdata, "".join(translated_data))
@@ -414,6 +414,25 @@ class FileLock(object):
     def __exit__(self, exc_type, exc_value, traceback):
         if fcntl:
             fcntl.flock(self.fd.fileno(), fcntl.LOCK_UN)
+
+
+class AttributedString(object):
+    """This is just a container for a string and some metadata."""
+    highlights = None
+    
+    def __init__(self, value, highlights=None):
+        self.highlights = highlights
+        self.value = unicode(value)
+    
+    def __unicode__(self):
+        return self.value
+    
+    def __str__(self):
+        return str(self.value)
+    
+    def __repr__(self):
+        return "AttributedString(%s, highlights=%s)" % (repr(self.value),
+                                                        repr(self.highlights))
 
 
 class AttributeDict(dict):

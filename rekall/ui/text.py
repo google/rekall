@@ -41,7 +41,7 @@ from rekall import config
 from rekall import registry
 from rekall import utils
 
-from rekall.ui import renderer
+from rekall.ui import renderer as renderer_module
 
 
 config.DeclareOption(
@@ -60,8 +60,53 @@ config.DeclareOption(
 HIGHLIGHT_SCHEME = dict(
     important=("WHITE", "RED"),
     good=("GREEN", None),
-    neutral=(None, None),
-)
+    neutral=(None, None))
+
+
+StyleEnum = utils.AttributeDict(
+    address="address",
+    value="value",
+    compact="compact",
+    full="full",
+    cow="cow")
+
+
+# This comes from http://docs.python.org/library/string.html
+# 7.1.3.1. Format Specification Mini-Language
+FORMAT_SPECIFIER_RE = re.compile(r"""
+(?P<fill>[^{}<>=^bcdeEfFgGnLorsxX0-9])?  # The fill parameter. This can not be a
+                                        # format string or it is ambiguous.
+(?P<align>[<>=^])?     # The alignment.
+(?P<sign>[+\- ])?      # Sign extension.
+(?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
+(?P<zerofill>0)?       # Should numbers be zero filled.
+(?P<width>\d+)?        # The minimum width.
+(?P<comma>,)?
+(?P<precision>.\d+)?   # Precision
+(?P<type>[bcdeEfFgGnorsxXL%])?  # The format string (Not all are supported).
+""", re.X)
+
+
+def ParseFormatSpec(formatstring):
+    if formatstring in ("[addr]", "[addrpad]"):
+        return {"style": "address"}
+
+    match = FORMAT_SPECIFIER_RE.match(formatstring)
+    result = {}
+
+    width = match.group("width")
+    if width:
+        result["width"] = int(width)
+
+    align = match.group("align")
+    if align == "<":
+        result["align"] = "l"
+    elif align == ">":
+        result["align"] = "r"
+    elif align == "^":
+        result["align"] = "c"
+
+    return result
 
 
 class Formatter(string.Formatter):
@@ -144,8 +189,7 @@ class Formatter(string.Formatter):
                 return Cell.wrap(utils.SmartUnicode(value), width)
 
         if extended_format is not None:
-            return Cell.FromString(
-                self.format_field(value, extended_format))
+            return Cell(self.format_field(value, extended_format))
 
     def format_cell(self, value, formatstring="s", header=False, **options):
         """Format the value into a Cell instance.
@@ -169,8 +213,9 @@ class Formatter(string.Formatter):
             if not formatstring.startswith("^"):
                 formatstring = "^" + formatstring
 
-        return Cell.FromString(
-            self.format_field(value, formatstring=formatstring), **options)
+        return Cell(self.format_field(value, formatstring=formatstring),
+                    align=options.get("align", None),
+                    width=options.get("width", None))
 
     def format_field(self, value, formatstring="", header=False, **_):
         """Format the value using the format_spec.
@@ -296,7 +341,7 @@ class Pager(object):
         self.colorizer = Colorizer(
             self.term_fd,
             nocolor=self.session.GetParameter("nocolors"),
-            )
+        )
 
     def __enter__(self):
         return self
@@ -393,7 +438,7 @@ class Pager(object):
 class Colorizer(object):
     """An object which makes its target colorful."""
 
-    COLORS = "BLACK BLUE GREEN CYAN RED MAGENTA YELLOW WHITE"
+    COLORS = "BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE"
     COLOR_MAP = dict([(x, i) for i, x in enumerate(COLORS.split())])
 
     terminal_capable = False
@@ -455,7 +500,7 @@ class Colorizer(object):
                 self.tparm(["sgr0"]))
 
 
-class TextObjectRenderer(renderer.ObjectRenderer):
+class TextObjectRenderer(renderer_module.ObjectRenderer):
     """Baseclass for all TextRenderer object renderers."""
 
     # Fall back renderer for all objects.
@@ -463,10 +508,7 @@ class TextObjectRenderer(renderer.ObjectRenderer):
     renderers = ["TextRenderer", "WideTextRenderer", "TestRenderer"]
 
     __metaclass__ = registry.MetaclassRegistry
-
-    def __init__(self, *args, **kwargs):
-        super(TextObjectRenderer, self).__init__(*args, **kwargs)
-        self.formatter = Formatter(session=self.session)
+    DEFAULT_STYLE = "full"
 
     @property
     def address_size(self):
@@ -479,7 +521,11 @@ class TextObjectRenderer(renderer.ObjectRenderer):
 
         return address_size
 
-    def render_header(self, name=None, **options):
+    def format_address(self, address):
+        fmtstring = "%%#0%sx" % self.address_size
+        return fmtstring % address
+
+    def render_header(self, name=None, style=StyleEnum.full, **options):
         """This should be overloaded to return the header Cell.
 
         Note that typically the same ObjectRenderer instance will be used to
@@ -493,23 +539,38 @@ class TextObjectRenderer(renderer.ObjectRenderer):
         Return:
           A Cell instance containing the formatted Column header.
         """
-        header_cell = self.formatter.format_cell(name, header=True, **options)
+        header_cell = Cell(name, width=options.get("width", None))
+
+        if style == "address" and header_cell.width < self.address_size:
+            header_cell.rewrap(width=self.address_size, align="c")
 
         self.header_width = header_cell.width
 
         # Append a dashed line as a table header separator.
-        header_cell.append("-" * self.header_width)
+        header_cell.append_line("-" * self.header_width)
 
         return header_cell
 
-    def render_row(self, target, details=False, **options):
+    def render_full(self, target, **_):
+        return Cell(unicode(target))
+
+    def render_address(self, target, **_):
+        return Cell(self.format_address(int(target)))
+
+    render_compact = render_full
+    render_value = render_full
+
+    def render_row(self, target, style=None, **options):
         """Render the target suitably.
+
+        The default implementation calls a render_STYLE method based on the
+        style keyword arg.
 
         Args:
           target: The object to be rendered.
 
-          details: If specified, renders a detailed form of the object (by
-             default calls the object's repr() method.).
+          style: A value from StyleEnum, specifying how the object should
+              be renderered.
 
           options: A dict containing rendering options. The options are created
             from the column options, overriden by the row options and finally
@@ -520,10 +581,74 @@ class TextObjectRenderer(renderer.ObjectRenderer):
         Returns:
           A Cell instance containing the rendering of target.
         """
-        if details:
-            options["formatstring"] = "r"
+        if not style:
+            style = self.DEFAULT_STYLE
 
-        return self.formatter.format_cell(target, **options)
+        method = getattr(self, "render_%s" % style, None)
+        if not callable(method):
+            raise NotImplementedError(
+                "%s doesn't know how to render style %s." % (
+                    type(self).__name__, style))
+
+        cell = method(target, **options)
+        return cell
+
+    def render_cow(self, *_, **__):
+        """Renders a proud Swiss cow."""
+        cow = (
+            "                                |############          \n"
+            "                                |#####  #####          \n"
+            "                                |##        ##          \n"
+            "              _                 |#####  #####          \n"
+            "             / \\_               |############          \n"
+            "            /    \\              |                      \n"
+            "           /\\/\\  /\\  _          |       /;    ;\\       \n"
+            "          /    \\/  \\/ \\         |   __  \\____//        \n"
+            "        /\\  .-   `. \\  \\        |  /{_\\_/   `'\\____    \n"
+            "       /  `-.__ ^   /\\  \\       |  \\___ (o)  (o)   }   \n"
+            "      / _____________________________/          :--'   \n"
+            "    ,-,'`@@@@@@@@       @@@@@@         \\_    `__\\      \n"
+            "   ;:(  @@@@@@@@@        @@@             \\___(o'o)     \n"
+            "   :: )  @@@@          @@@@@@        ,'@@(  `===='     \n"
+            "   :: : @@@@@:          @@@@         `@@@:             \n"
+            "   :: \\  @@@@@:       @@@@@@@)    (  '@@@'             \n"
+            "   :; /\\      /      @@@@@@@@@\\   :@@@@@)              \n"
+            "   ::/  )    {_----------------:  :~`,~~;              \n"
+            "  ;; `; :   )                  :  / `; ;               \n"
+            " ;;;  : :   ;                  :  ;  ; :               \n"
+            " `'`  / :  :                   :  :  : :               \n"
+            "     )_ \\__;                   :_ ;  \\_\\               \n"
+            "     :__\\  \\                   \\  \\  :  \\              \n"
+            "         `^'                    `^'  `-^-'             \n")
+
+        cell = Cell(value=cow,
+                    highlights=[(33, 45, "RED", "RED"),
+                                (88, 93, "RED", "RED"),
+                                (93, 95, "WHITE", "WHITE"),
+                                (95, 100, "RED", "RED"),
+                                (143, 145, "RED", "RED"),
+                                (145, 153, "WHITE", "WHITE"),
+                                (153, 155, "RED", "RED"),
+                                (198, 203, "RED", "RED"),
+                                (203, 205, "WHITE", "WHITE"),
+                                (205, 210, "RED", "RED"),
+                                (253, 265, "RED", "RED")])
+        return cell
+
+
+class AttributedStringRenderer(TextObjectRenderer):
+    renders_type = "AttributedString"
+
+    def render_address(self, *_, **__):
+        raise NotImplementedError("This doesn't make any sense.")
+
+    def render_full(self, target, **_):
+        return Cell(value=target.value, highlights=target.highlights)
+
+    render_compact = render_full
+
+    def render_value(self, target, **_):
+        return Cell(value=target.value)
 
 
 class CellRenderer(TextObjectRenderer):
@@ -538,77 +663,7 @@ class CellRenderer(TextObjectRenderer):
         return Cell.Strip(target)
 
 
-class NoneObjectTextRenderer(TextObjectRenderer):
-    """NoneObjects will be rendered with a single dash '-'."""
-    renders_type = "NoneObject"
-
-    def render_row(self, target, **_):
-        return Cell.FromString("-")
-
-
-class DatetimeTextRenderer(TextObjectRenderer):
-    renders_type = "datetime"
-
-    def render_row(self, target, **_):
-        return Cell.FromString(target.strftime("%Y-%m-%d %H:%M:%S%z"))
-
-
-class StructTextRenderer(TextObjectRenderer):
-    renders_type = "Struct"
-
-    def render_row(self, target, style="short", formatstring=None, **_):
-        if formatstring == "[addrpad]":
-            style = "address"
-
-        if style == "address":
-            fmtstring = "%%#0%sx" % self.address_size
-            return Cell.FromString(fmtstring % target.obj_offset)
-
-        if style == "short":
-            return Cell.FromString(repr(target))
-
-        if style == "full":
-            return Cell.FromString(unicode(target))
-
-
-class PointerTextRenderer(TextObjectRenderer):
-    renders_type = "Pointer"
-
-    def render_row(self, target, style="short", formatstring=None, **_):
-        if formatstring == "[addrpad]":
-            style = "address"
-
-        if style == "address" or style == "short" and target.target == "void":
-            fmtstring = "%%#0%sx" % self.address_size
-            return Cell.FromString(fmtstring % target.v())
-
-        if style == "short":
-            fmtstring = "(%%s *) %%#0%sx" % self.address_size
-
-            return Cell.FromString(
-                fmtstring % (target.target, target.v()))
-
-        if style == "full":
-            return Cell.FromString(unicode(target))
-
-
-class VoidTextRenderer(TextObjectRenderer):
-    renders_type = "Void"
-
-    def render_row(self, target, style="address", **_):
-        if style == "address":
-            fmtstring = "%%#0%sx" % self.address_size
-            return Cell.FromString(fmtstring % target.v())
-
-        if style in ("short", "full"):
-            return Cell.FromString(repr(target))
-
-
-class NoneTextRenderer(NoneObjectTextRenderer):
-    renders_type = "NoneType"
-
-
-class Cell(object):
+class BaseCell(object):
     """A Cell represents a single entry in a table.
 
     Cells always have a fixed number of characters in width and may have
@@ -623,111 +678,195 @@ class Cell(object):
     Cell object.
     """
 
-    def __init__(self):
+    def __iter__(self):
+        return iter(self.lines)
+
+    def __unicode__(self):
+        return u"\n".join(self.lines)
+
+
+class NestedCell(BaseCell):
+    def __init__(self, *cells, **kwargs):
+        super(NestedCell, self).__init__()
+        self.tablesep = kwargs.pop("tablesep", " ")
+        if kwargs:
+            raise AttributeError("Unsupported args %s" % kwargs)
+
+        self.cells = []
+        for cell in cells:
+            if isinstance(cell, NestedCell):
+                self.cells.extend(cell.cells)
+            else:
+                self.cells.append(cell)
+
+        self.rebuild()
+
+    def rebuild(self):
+        self.height = 0
+        self.width = 0
+        for cell in self.cells:
+            self.width += cell.width + len(self.tablesep)
+            self.height = max(self.height, cell.height)
+
+        self.width -= len(self.tablesep)
+
         self.lines = []
+        for line_no in xrange(self.height):
+            parts = []
+            for cell in self.cells:
+                try:
+                    parts.append(cell.lines[line_no])
+                except IndexError:
+                    parts.append(" " * cell.width)
 
-    def Justify(self, width=None, align="l"):
-        """Fix up the width of all lines so they are the same."""
-        if width is None:
-            width = self.width
+            self.lines.append(self.tablesep.join(parts))
 
-        for i in range(len(self.lines)):
-            line = self.lines[i]
-            if align == "l":
-                self.lines[i] = line + " " * (width - len(line))
-            elif align == "r":
-                self.lines[i] = " " * (width - len(line)) + line
-            elif align == "c":
-                spacing = " " * (width - len(line))/2
-                line = spacing + line + spacing
-                self.lines[i] = line + " " * (width - len(line))
+    def rewrap(self, width=None, align="l"):
+        """Rewraps a child cell to make up for the difference in width."""
+        if not width:
+            return
+
+        if align == "l":
+            child_cell = self.cells[-1]
+            child_cell.rewrap(width=(width - self.width) + child_cell.width)
+        elif align == "r":
+            child_cell = self.cells[0]
+            child_cell.rewrap(width=(width - self.width) + child_cell.width)
+        elif align == "c":
+            adjust = width - self.width
+            self.cells[-1].rewrap(
+                width=(adjust / 2) + self.cells[-1].width + adjust % 2)
+            self.cells[0].rewrap(
+                width=(adjust / 2) + self.cells[0].width)
+        else:
+            raise ValueError("Invalid alignment %s for NestedCell." % align)
+
+        self.width = width
+
+
+class Cell(BaseCell):
+    _lines = None
+
+    def __init__(self, value="", width=None, align=None, highlights=None,
+                 colorizer=None):
+        super(Cell, self).__init__()
+
+        self.paragraphs = value.splitlines()
+        self.align = align or "l"
+        self.colorizer = colorizer
+        self.highlights = highlights or []
+
+        if width:
+            self.width = width
+        elif self.paragraphs:
+            self.width = max([len(x) for x in self.paragraphs]) or 1
+        else:
+            self.width = 1
+
+    @property
+    def lines(self):
+        if not self._lines:
+            self.rebuild()
+
+        return self._lines
+
+    def justify_line(self, line):
+        adjust = self.width - len(line)
+
+        if self.align == "l":
+            return line + " " * adjust, 0
+        elif self.align == "r":
+            return " " * adjust + line, adjust
+        elif self.align == "c":
+            remainder = adjust % 2
+            adjust /= 2
+            return " " * adjust + line + " " * (adjust + remainder), adjust
+        else:
+            raise ValueError("Invalid cell alignment: %s." % self.align)
+
+    def highlight_line(self, line, offset, last_highlight):
+        if last_highlight:
+            line = last_highlight + line
+        limit = offset + len(line)
+        adjust = 0
+
+        for start, end, fg, bg in self.highlights:
+            if offset <= start <= limit + adjust:
+                escape_seq = ""
+                if fg:
+                    fg = self.colorizer.COLOR_MAP[fg]
+                    escape_seq += self.colorizer.tparm(["setf", "setaf"], fg)
+
+                if bg:
+                    bg = self.colorizer.COLOR_MAP[bg]
+                    escape_seq += self.colorizer.tparm(["setb", "setab"], bg)
+
+                insert_at = start - offset + adjust
+                line = line[:insert_at] + escape_seq + line[insert_at:]
+
+                adjust += len(escape_seq)
+                last_highlight = escape_seq
+
+            if offset <= end <= limit + adjust:
+                escape_seq = self.colorizer.tparm(["sgr0"])
+
+                insert_at = end - offset + adjust
+                line = line[:insert_at] + escape_seq + line[insert_at:]
+
+                adjust += len(escape_seq)
+                last_highlight = None
+
+        # Always terminate active highlight at the linebreak because we don't
+        # know what's being rendered to our right. We will resume
+        # last_highlight on next line.
+        if last_highlight:
+            line += self.colorizer.tparm(["sgr0"])
+        return line, last_highlight
+
+    def rebuild(self):
+        self._lines = []
+        last_highlight = None
+        if self.highlights:
+            self.highlights.sort()
+        offset = 0
+        for paragraph in self.paragraphs:
+            for line in textwrap.wrap(paragraph, self.width):
+                line, adjust = self.justify_line(line)
+                offset += adjust
+
+                if self.colorizer and self.colorizer.terminal_capable:
+                    line, last_highlight = self.highlight_line(
+                        line=line, offset=offset, last_highlight=last_highlight)
+
+                self._lines.append(line)
+
+            offset += len(paragraph)
+
+    def dirty(self):
+        self._lines = None
+
+    def rewrap(self, width=None, align=None):
+        width = width or self.width or max(0, 0, *[len(line)
+                                                   for line in self.lines])
+        align = align or self.align or "l"
+
+        if (width, align) == (self.width, self.align):
+            return self
+
+        self.width = width
+        self.align = align
+        self.dirty()
 
         return self
 
-    @property
-    def width(self):
-        """Return the maximum width of this Cell in characters."""
-        return max(0, 0, *[len(x) for x in self.lines])
+    def append_line(self, line):
+        self.paragraphs.append(line)
+        self.dirty()
 
     @property
     def height(self):
         """The number of chars this Cell takes in height."""
         return len(self.lines)
-
-    @classmethod
-    def wrap(cls, value, width):
-        """A constructor which creates a Cell by wrapping a long string."""
-        result = cls()
-
-        # Expand the line into a list of lines wrapped at the width.
-        for wrapped_line in textwrap.wrap(value, width=width):
-            # Pad the line to the required width.
-            result.lines.append(
-                wrapped_line + " " * (width - len(wrapped_line)))
-
-        if not result.lines:
-            result.lines = [""]
-
-        result.Justify()
-        return result
-
-    @classmethod
-    def Strip(cls, cell):
-        result = cls()
-        for line in cell:
-            result.append(line.strip())
-
-        result.Justify()
-        return result
-
-    @classmethod
-    def FromString(cls, value, width=0, align="l", **_):
-        result = cls()
-        for line in value.splitlines():
-            result.lines.append(line)
-
-        return result.Justify(width=width, align=align)
-
-    @classmethod
-    def Join(cls, *cells, **kwargs):
-        """Construct a new Cell which is the result of combining Cells."""
-        tablesep = kwargs.pop("tablesep", " ")
-        if kwargs:
-            raise AttributeError("Unsupported args %s" % kwargs)
-
-        # Ensure that all the cells are the same width.
-        cell_widths = []
-        max_height = 0
-        for cell in cells:
-            cell.Justify()
-            cell_widths.append(cell.width)
-            max_height = max(max_height, cell.height)
-
-        # Make a new cell to receive the output.
-        result = cls()
-        for line in range(max_height):
-            line_components = []
-            for i in range(len(cells)):
-                try:
-                    line_components.append(cells[i].lines[line])
-                except IndexError:
-                    line_components.append(" " * cell_widths[i])
-
-            result.lines.append(tablesep.join(line_components))
-
-        return result
-
-    def __iter__(self):
-        self.Justify()
-        return iter(self.lines)
-
-    def append(self, value):
-        self.lines.append(value)
-        return self
-
-    def __unicode__(self):
-        self.Justify()
-        return u"\n".join(self.lines)
 
 
 class TextColumn(object):
@@ -737,20 +876,21 @@ class TextColumn(object):
     object_renderer = None
 
     def __init__(self, table=None, renderer=None, session=None, type=None,
-                 **options):
+                 formatstring=None, **options):
         if session is None:
             raise RuntimeError("A session must be provided.")
 
         self.session = session
         self.table = table
-        self.wrap = None
         self.renderer = renderer
         self.header_width = 0
 
         # Arbitrary column options to be passed to ObjectRenderer() instances.
         # This allows a plugin to influence the output somewhat in different
         # output contexts.
-        self.options = options
+        self.options = ParseFormatSpec(formatstring) if formatstring else {}
+        # Explicit keyword arguments override formatstring.
+        self.options.update(options)
 
         # For columns which do not explicitly set their type, we can not
         # determine the type until the first row has been written. NOTE: It is
@@ -763,24 +903,25 @@ class TextColumn(object):
     def render_header(self):
         """Renders the cell header.
 
-        Returns a Cell instance for this column header.
-        """
+        Returns a Cell instance for this column header."""
         # If there is a customized object renderer for this column we use that.
         if self.object_renderer:
             header = self.object_renderer.render_header(**self.options)
-
         else:
             # Otherwise we just use the default.
             object_renderer = TextObjectRenderer(self.renderer, self.session)
-
             header = object_renderer.render_header(**self.options)
 
+        header.rewrap(
+            align="c",
+            width=max(header.width, len(self.options.get("name", ""))))
+
         self.header_width = header.width
+
         return header
 
     def render_row(self, target, **options):
-        """Renders the current row for the target.
-        """
+        """Renders the current row for the target."""
         # We merge the row options and the column options. This allows a call to
         # table_row() to override options.
         merged_opts = self.options.copy()
@@ -794,8 +935,16 @@ class TextColumn(object):
                 target_renderer="TextRenderer", **options)
 
         result = object_renderer.render_row(target, **merged_opts)
-        if result.width < self.header_width:
-            result.Justify(width=self.header_width)
+        result.colorizer = self.renderer.colorizer
+
+        if ("width" in self.options and not merged_opts.get("nowrap", False)
+                or self.header_width > result.width):
+            # Rewrap if we have an explicit width (and wrap wasn't turned off).
+            # Also wrap to pad if the result is actually narrower than the
+            # header, otherwise it messes up the columns to the right.
+            result.rewrap(width=self.header_width,
+                          align=options.get("align", "l"))
+
         return result
 
     @property
@@ -803,7 +952,7 @@ class TextColumn(object):
         return self.options.get("name") or self.options.get("cname", "")
 
 
-class TextTable(renderer.BaseTable):
+class TextTable(renderer_module.BaseTable):
     """A table is a collection of columns.
 
     This table formats all its cells using proportional text font.
@@ -815,13 +964,16 @@ class TextTable(renderer.BaseTable):
     def __init__(self, **options):
         super(TextTable, self).__init__(**options)
 
+        # Respect the renderer's table separator preference.
+        self.options.setdefault("tablesep", self.renderer.tablesep)
+
         # Parse the column specs into column class implementations.
         self.columns = []
 
         for column_specs in self.column_specs:
-            self.columns.append(self.column_class(
-                session=self.session, table=self, renderer=self.renderer,
-                **column_specs))
+            column = self.column_class(session=self.session, table=self,
+                                       renderer=self.renderer, **column_specs)
+            self.columns.append(column)
 
         self.sort_key_func = options.get(
             "sort_key_func",
@@ -844,18 +996,19 @@ class TextTable(renderer.BaseTable):
         # Row is a tuple of (values, kwargs) - hence row[0][index].
         return lambda row: [row[0][index] for index in sort_indices]
 
-    def write_row(self, cells, highlight=False):
+    def write_row(self, *cells, **kwargs):
         """Writes a row of the table.
 
         Args:
           cells: A list of cell contents. Each cell content is a list of lines
             in the cell.
         """
+        highlight = kwargs.pop("highlight", None)
         foreground, background = HIGHLIGHT_SCHEME.get(
             highlight, (None, None))
 
         # Iterate over all lines in the row and write it out.
-        for line in Cell.Join(cells, tablesep=self.options.get("tablesep")):
+        for line in NestedCell(tablesep=self.options.get("tablesep"), *cells):
             self.renderer.write(
                 self.renderer.colorizer.Render(
                     line, foreground=foreground, background=background) + "\n")
@@ -863,8 +1016,8 @@ class TextTable(renderer.BaseTable):
     def render_header(self):
         """Returns a Cell formed by joining all the column headers."""
         # Get each column to write its own header and then we join them all up.
-        return Cell.Join(*[c.render_header() for c in self.columns],
-                         tablesep=self.options.get("tablesep", " "))
+        return NestedCell(*[c.render_header() for c in self.columns],
+                          tablesep=self.options.get("tablesep", " "))
 
     def get_row(self, *row, **options):
         """Format the row into a single Cell spanning all output columns.
@@ -876,7 +1029,7 @@ class TextTable(renderer.BaseTable):
         Returns:
           A single Cell object spanning the entire row.
         """
-        return Cell.Join(
+        return NestedCell(
             *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
             tablesep=self.options.get("tablesep", " "))
 
@@ -925,7 +1078,7 @@ class UnicodeWrapper(object):
         return self._isatty
 
 
-class TextRenderer(renderer.BaseRenderer):
+class TextRenderer(renderer_module.BaseRenderer):
     """Renderer for the command line that supports paging, colors and progress.
     """
     name = "text"
@@ -980,8 +1133,16 @@ class TextRenderer(renderer.BaseRenderer):
 
         self.colorizer = Colorizer(
             self.fd,
-            nocolor=self.session.GetParameter("nocolors"),
-        )
+            nocolor=self.session.GetParameter("nocolors"))
+
+    def section(self, name=None, width=50):
+        if name is None:
+            self.write("*" * width + "\n")
+        else:
+            pad_len = width - len(name) - 2  # 1 space on each side.
+            padding = "*" * (pad_len / 2)  # Name is centered.
+
+            self.write("\n{0} {1} {2}\n".format(padding, name, padding))
 
     def format(self, formatstring, *data):
         super(TextRenderer, self).format(formatstring, *data)
@@ -1124,7 +1285,7 @@ class WideTextRenderer(TextRenderer):
         self.delegate_renderer.table_header(
             [("Key", "key", "[wrap:15]"),
              ("Value", "Value", "[wrap:80]")],
-            )
+        )
 
         return super(WideTextRenderer, self).__enter__()
 
@@ -1169,8 +1330,7 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
 
     def render_header(self, **options):
         if self.child:
-            padding = Cell.FromString(" " * self.max_depth)
-            heading = Cell.Join(self.child.render_header(**options), padding)
+            heading = NestedCell(self.child.render_header(**options))
         else:
             heading = super(TreeNodeObjectRenderer, self).render_header(
                 **options)
@@ -1188,8 +1348,7 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
             child_cell = super(TreeNodeObjectRenderer, self).render_row(
                 target, **child)
 
-        padding = Cell.FromString("." * depth)
-        result = Cell.Join(padding, child_cell)
-        result.Justify(width=self.heading_width)
+        padding = Cell("." * depth)
+        result = NestedCell(padding, child_cell)
 
         return result

@@ -48,7 +48,7 @@ class Query(object):
         elif isinstance(source, expr.Expression):
             self.expression = source
 
-    def expression_source(self, expression):
+    def locate_expression(self, expression):
         """Returns the original source of the expression with context.
 
         Returns tuple of:
@@ -56,15 +56,7 @@ class Query(object):
             - source of the expression
             - the rest of the query
         """
-        if not self.source:
-            return None
-
-        if expression.start is None or expression.end is None:
-            return "", self.source, ""
-
-        return (self.source[0:expression.start],
-                self.source[expression.start:expression.end],
-                self.source[expression.end:])
+        return expression.start, expression.end
 
     def execute(self, visitor_name, method="run", **kwargs):
         visitor_ = visitor.QueryVisitor.classes[visitor_name](self)

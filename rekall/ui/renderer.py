@@ -371,14 +371,8 @@ class BaseRenderer(object):
         Sections are used to separate distinct entries (e.g. reports of
         different files).
         """
-        if name is None:
-            self.format("*" * width + "\n")
-        else:
-            pad_len = width - len(name) - 2  # 1 space on each side.
-            padding = "*" * (pad_len / 2)  # Name is centered.
-
-            self.format("{0}", "\n{0} {1} {2}\n".format(
-                padding, name, padding))
+        _ = name
+        _ = width
 
     def format(self, formatstring, *data):
         """Write formatted data.
@@ -404,7 +398,7 @@ class BaseRenderer(object):
         """Table header renders the title row of a table.
 
         This also stores the header types to ensure everything is formatted
-        appropriately.  It must be a list of tuples rather than a dict for
+        appropriately.  It must be a list of specs rather than a dict for
         ordering purposes.
         """
         if not self._started:

@@ -161,7 +161,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         renderer.table_header(
             [("_EPROCESS (P)", "physical_eprocess", "[addrpad]"),
              ("DTB", "dtv", "[addrpad]"),
-             ("Valid", "valid", "")])
+             ("Valid", "valid", "10")])
 
         for dtb, eprocess in self.dtb_hits():
             renderer.table_row(

@@ -35,7 +35,7 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
         renderer.table_header([
             ("Phys Start", "phys", "[addrpad]"),
             ("Phys End", "phys", "[addrpad]"),
-            ("Number of Pages", "pages", "10"),
+            ("Number of Pages", "pages", ""),
             ])
 
         descriptor = self.profile.get_constant_object(
@@ -247,7 +247,7 @@ class ImageInfo(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([("Fact", "key", "20"),
-                               ("Value", "value", "")])
+                               ("Value", "value", "30")])
 
         renderer.table_row(
             "Kernel DTB", "%#x" % self.kernel_address_space.dtb)

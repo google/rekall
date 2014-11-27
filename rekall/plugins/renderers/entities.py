@@ -40,10 +40,10 @@ class Dependency_TextObjectRenderer(text.TextObjectRenderer):
         if target.value:
             template += "={value}"
 
-        return text.Cell.FromString(
-            self.formatter.format(template, component=target.component,
-                                  prefix=prefix, attribute=target.attribute,
-                                  value=target.value))
+        return text.Cell(template.format(component=target.component,
+                                         prefix=prefix,
+                                         attribute=target.attribute,
+                                         value=target.value))
 
 
 class Query_TextObjectRenderer(text.TextObjectRenderer):
@@ -52,11 +52,12 @@ class Query_TextObjectRenderer(text.TextObjectRenderer):
 
     def render_row(self, target, query_highlight=None, **_):
         if query_highlight is None:
-            return text.Cell.FromString(unicode(target))
+            return text.Cell(unicode(target))
 
-        return text.Cell.FromString(
-            self.formatter.format("{0} >>> {1} <<< {2}",
-                                  *target.expression_source(query_highlight)))
+        start, end = target.locate_expression(query_highlight)
+        highlights = [(start, end, "RED", None)]
+
+        return text.Cell(value=target.source, highlights=highlights)
 
 
 class Identity_TextObjectRenderer(text.TextObjectRenderer):
@@ -64,10 +65,8 @@ class Identity_TextObjectRenderer(text.TextObjectRenderer):
     renderers = ["TextRenderer", "TestRenderer"]
 
     def render_row(self, target, **_):
-        return text.Cell.FromString(
-            self.formatter.format("({0}: {1})",
-                                  target.first_index[1],
-                                  target.first_index[2]))
+        return text.Cell(
+            "%s: %s" % (target.first_index[1], target.first_index[2]))
 
 
 class Entity_TextObjectRenderer(text.TextObjectRenderer):
@@ -75,7 +74,7 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
     renderers = ["TextRenderer", "TestRenderer"]
 
     def __init__(self, *args, **kwargs):
-        self.style = kwargs.pop("style", "name")
+        self.style = kwargs.pop("style", "value")
         self.name = kwargs.pop("name", "Entity")
 
         # Build up the list of columns we want to display.
@@ -107,6 +106,7 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
         renderer_columns = []
         for attribute in self.attributes:
             renderer_columns.append(dict(name=attribute.name,
+                                         style=attribute.style,
                                          # type=attribute.typedesc.type_name,
                                          width=attribute.width))
 
@@ -118,19 +118,15 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
         if self.style == "full":
             return self.table.render_header()
         else:
-            result = text.Cell.FromString(
-                self.formatter.format_field(self.name, "^40s"))
-            result.append("-" * result.width)
+            result = text.Cell(self.name, width=40)
 
             return result
 
     def render_row(self, target, **options):
         if self.style == "full":
             values = [target[a.path] for a in self.attributes]
-            cells = self.table.get_row(*values)
-            return text.Cell.Join(cells)
-        elif self.style == "short":
-            return text.Cell.FromString(
-                self.formatter.format("{0}: {1}", target.kind, target.name))
-        elif self.style == "name":
-            return text.Cell.FromString(target.name)
+            return self.table.get_row(*values)
+        elif self.style == "compact":
+            return text.Cell("%s: %s" % (target.kind, target.name))
+        elif self.style == "value":
+            return text.Cell(target.name)

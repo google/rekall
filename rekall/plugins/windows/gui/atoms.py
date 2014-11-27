@@ -202,12 +202,12 @@ class Atoms(win32k_core.Win32kPluginMixin,
     def render(self, renderer):
         renderer.table_header(
             [("Offset(P)", "physical_offset", "[addrpad]"),
-             ("Session", "session", "<10"),
-             ("WindowStation", "windows_station", "<18"),
+             ("Session", "session", "10"),
+             ("WindowStation", "windows_station", "18"),
              ("Atom", "atom", "[addr]"),
-             ("RefCount", "ref_count", "<10"),
-             ("HIndex", "hindex", "<10"),
-             ("Pinned", "pinned", "<10"),
+             ("RefCount", "ref_count", "10"),
+             ("HIndex", "hindex", "10"),
+             ("Pinned", "pinned", "10"),
              ("Name", "name", ""),
              ])
 

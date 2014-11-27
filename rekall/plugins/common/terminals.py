@@ -32,11 +32,11 @@ class ListTerminals(plugin.Command):
 
     def render(self, renderer):
         renderer.table_header([
-            ("User", "user", "10"),
-            ("Session", "session", "8"),
+            ("User", "user", "15"),
+            ("Session", "session", "15"),
             ("Terminal vnode", "vnode", "30"),
-            ("Recovered input (first 50 chars)", "input", "50"),
-            ("Recovered output (first 125 chars)", "output", "125")])
+            ("Recovered input", "input", "75"),
+            ("Recovered output", "output", "75")])
 
         for terminal in self.session.entities.find("has component Terminal"):
 
@@ -63,6 +63,6 @@ class ListTerminals(plugin.Command):
                 terminal["Terminal/session"]["Session/sid"],
                 terminal.get("Terminal/file", complete=True)["File/path"],
                 repr(self.SHORTENER.sub("<whitespace>",
-                                        buffer_in["Buffer/contents"]))[0:50],
+                                        buffer_in["Buffer/contents"])),
                 repr(self.SHORTENER.sub("<whitespace>",
-                                        buffer_out["Buffer/contents"]))[0:125])
+                                        buffer_out["Buffer/contents"])))

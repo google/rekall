@@ -286,8 +286,8 @@ class MutantScan(plugin.VerbosityMixIn, FileScan):
         renderer.table_header([(' ', 'allocated', '1'),
                                ('Offset(P)', "offset_p", '[addrpad]'),
                                ('#Ptr', "ptr_count", '>6'),
-                               ('#Hnd', "hnd_count", '>2'),
-                               ('Signal', "mutant_signal", '4'),
+                               ('#Hnd', "hnd_count", '>4'),
+                               ('Signal', "mutant_signal", '6'),
                                ('Thread', "mutant_thread", '[addrpad]'),
                                ('CID', "cid", '>9'),
                                ('Name', "mutant_name", '')

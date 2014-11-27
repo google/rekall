@@ -56,13 +56,14 @@ class Attribute(object):
     """
 
     def __init__(self, name, typedesc, docstring, component=None,
-                 hidden=False, width=20):
+                 hidden=False, width=20, style="compact"):
         self.name = name
         self.typedesc = types.TypeFactory(typedesc)
         self.docstring = docstring
         self.component = component
         self.hidden = hidden
         self.width = width
+        self.style = style
 
     @property
     def path(self):

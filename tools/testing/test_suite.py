@@ -398,11 +398,11 @@ exit 0
         if self.FLAGS.verbose:
             config_options["--verbose"] = True
 
-        self.renderer.table_header([("Test", "test", "<30s"),
-                                    ("Status", "status", "^10s"),
-                                    ("Time", "time", "^ 7.2f"),
-                                    ("Expected Time", "expected", "^ 7.2f"),
-                                    ("Error File", 'error', "")])
+        self.renderer.table_header([("Test", "test", "30"),
+                                    ("Status", "status", "15"),
+                                    ("Time", "time", "20"),
+                                    ("Expected Time", "expected", "20"),
+                                    ("Error File", "error", "")])
 
         for plugin_cls in self.GenerateTests(config_options):
             # Allow the user to specify only some tests to run.
@@ -503,7 +503,7 @@ exit 0
             if result.wasSuccessful():
                 self.renderer.table_row(
                     plugin_cls.__name__,
-                    self.renderer.colorizer.Render("PASS", foreground="GREEN"),
+                    utils.AttributedString("PASS", [(0, -1, "GREEN", None)]),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0))
                 self.successes.append(plugin_cls.__name__)
@@ -521,7 +521,7 @@ exit 0
 
                 self.renderer.table_row(
                     plugin_cls.__name__,
-                    self.renderer.colorizer.Render("FAIL", foreground="RED"),
+                    utils.AttributedString("FAIL", [(0, -1, "RED", None)]),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0),
                     fd.name)

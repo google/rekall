@@ -457,11 +457,15 @@ class BaseObject(object):
         _ = vm
         return NoneObject("No value for {0}", self.obj_name)
 
+    def get_text_renderer(self):
+        return self.obj_session.GetRenderer().get_object_renderer(
+            self, target_renderer="TextRenderer")
+
     def __str__(self):
-        return utils.SmartStr(self)
+        return utils.SmartStr(unicode(self))
 
     def __unicode__(self):
-        return utils.SmartUnicode(self.v())
+        return "\n".join(self.get_text_renderer().render_row(self).lines)
 
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(
@@ -603,9 +607,7 @@ class NativeType(NumericProxyMixIn, BaseObject):
 
 
 class Bool(NativeType):
-    def __unicode__(self):
-        """Format boolean values nicely."""
-        return unicode(bool(self))
+    pass
 
 
 class BitField(NativeType):

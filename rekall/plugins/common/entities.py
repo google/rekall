@@ -35,8 +35,7 @@ from rekall.entities.query import query as entity_query
 class TestEntityFind(testlib.SimpleTestCase):
     PARAMETERS = dict(
         commandline='find "Process/command =~ %(process)s"',
-        process="lsass"
-    )
+        process="lsass")
 
 
 class TestEntityAnalyze(testlib.SortedComparison):

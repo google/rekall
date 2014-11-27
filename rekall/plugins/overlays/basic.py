@@ -228,21 +228,21 @@ class Flags(obj.NativeType):
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
 
-    def __unicode__(self):
-        result = []
+    def __repr__(self):
+        flags = []
+        length = 0
         value = self.v()
+        
         for k, v in sorted(self.maskmap.items()):
             if value & v:
-                result.append(k)
+                length += len(k)
+                if length >= 40:
+                    flags.append(u'...')
+                    break
 
-        return u', '.join(result)
-
-    def __repr__(self):
-        abridged = str(self)
-        if len(abridged) > 40:
-            abridged = abridged[:40] + " ..."
-
-        return "%s (%s)" % (super(Flags, self).__repr__(), abridged)
+                flags.append(k)
+        
+        return "%s (%s)" % (super(Flags, self).__repr__(), ", ".join(flags))
 
     def write(self, data):
         if isinstance(data, basestring):
