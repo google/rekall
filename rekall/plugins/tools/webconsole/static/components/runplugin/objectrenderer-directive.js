@@ -51,7 +51,7 @@
           var position = links.length;
 
           links.push({
-            mro: ["Address"],
+            mro: "Address",
             value: match
           });
           return "{" + position + "}";
@@ -90,6 +90,7 @@
     '_EPROCESS': true,
     'bool': true,
     'VirtualMachine': true,
+    'str': true,
   };
 
   var getTemplate = function(item) {
@@ -114,9 +115,10 @@
     }
 
     if (item.mro != null) {
-      for (var i = 0; i < item.mro.length; ++i) {
-        if (templates[item.mro[i]]) {
-          return item.mro[i];
+      var mro = item.mro.split(":");
+      for (var i = 0; i < mro.length; ++i) {
+        if (templates[mro[i]]) {
+          return mro[i];
         }
       }
     }

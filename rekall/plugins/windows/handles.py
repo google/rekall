@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+from rekall import testlib
 
 from rekall import utils
 from rekall.plugins.windows import common
@@ -114,3 +115,9 @@ class Handles(common.WinProcessFilter):
                     handle.HandleValue,
                     handle.GrantedAccess,
                     object_type, name)
+
+
+class TestHandles(testlib.SimpleTestCase):
+    """Test the Handler module."""
+
+    PARAMETERS = dict(commandline="handles --pid %(pid)s")

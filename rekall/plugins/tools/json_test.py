@@ -38,15 +38,26 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
 
     def testObjectRenderer(self):
         cases = [
-            ('\xff\xff\x00\x00', ['+', u'//8AAA==']),
-            ("hello", ['*', u'hello']),  # A string is converted into base64
-                                         # encoding.
+            ('\xff\xff\x00\x00', {'mro': u'str:basestring:object',
+                                  'b64': u'//8AAA=='}),
+
+            ("hello", {'mro': u'str:basestring:object',
+                       'str': u'hello'}),  # A string is converted into base64
+                                           # encoding.
+
             (1, 1),     # Ints are already JSON serializable.
             (dict(foo=2), {'foo': 2}),
+            (set([1, 2, 3]), {'mro': u'set:object', 'data': [1, 2, 3]}),
+            ([1, 2, 3], [1, 2, 3]),
+
+            ([1, "hello", 3], [1, {'mro': u'str:basestring:object',
+                                   'str': u'hello'}, 3]),
+
             ]
 
         for case in cases:
-            self.assertEqual(self.encoder.Encode(case[0]), case[1])
+            encoded = self.encoder.Encode(case[0])
+            self.assertEqual(encoded, case[1])
 
     def testProperSerialization(self):
         """Test that serializing simple python objects with json works.
@@ -57,14 +68,14 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         json format allows the correct serialization of python primitives.
         """
         for case in [
-            [1, 2],
-            [1, "hello"],
-            ["1", "2"],
-            ["hello", u'Gr\xfcetzi'],
-            "hello",
-            u'Gr\xfcetzi',
-            dict(a="hello"),
-            dict(b=dict(a="hello")), # Nested dict.
+                [1, 2],
+                [1, "hello"],
+                ["1", "2"],
+                ["hello", u'Gr\xfcetzi'],
+                "hello",
+                u'Gr\xfcetzi',
+                dict(a="hello"),
+                dict(b=dict(a="hello")), # Nested dict.
             ]:
             self.encoder.flush()
             data = self.encoder.Encode(case)
@@ -72,7 +83,6 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
 
             # Make sure the data is JSON serializable.
             self.assertEqual(data, json.loads(json.dumps(data)))
-
             self.decoder.SetLexicon(self.encoder.GetLexicon())
             self.assertEqual(case, self.decoder.Decode(data))
 

@@ -264,5 +264,5 @@ class InteractiveShell(plugin.PhysicalASMixin, plugin.ProfileCommand):
             NativePythonSupport(self.session)
 
 
-class InteractiveShellTest(testlib.DisabledTest):
+class TestInteractiveShell(testlib.DisabledTest):
     PARAMETERS = dict(commandline="shell")

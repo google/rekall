@@ -1,11 +1,12 @@
 import logging
 import unittest
 
+from rekall import testlib
 from rekall.entities.query import efilter
 from rekall.entities.query import expression
 
 
-class TokenizerTest(unittest.TestCase):
+class TokenizerTest(testlib.RekallBaseUnitTestCase):
     def assertQueryMatches(self, query, expected):
         tokenizer = efilter.Tokenizer(query)
         actual = [(token.name, token.value) for token in tokenizer.parse()]

@@ -40,53 +40,12 @@ class TestPTE(testlib.SimpleTestCase):
     )
 
 
-class TestPFN(testlib.RekallBaseUnitTestCase):
+class TestPFN(testlib.SimpleTestCase):
     """Test the pfn module."""
 
     # This is the test data in json format. Keys are _EPROCESS and values is a
     # list of private addresses.
-    PARAMETERS = dict(test_data="""{ "0x81faf280": ["0x320010", "0x7ffdf043"],
-                  "0x81ed84e8":  ["0x240200", "0x360012"]
-                }""")
-
-    def BuildBaselineData(self, config_options):
-        return {}
-
-    def testPFN(self):
-        """Test the vtop function."""
-        config_options = self.baseline['options']
-
-        session = self.MakeUserSession(config_options)
-
-        # Instantiate the pfn plugin.
-        vtop = session.vol("vtop")
-        ptov = session.vol("ptov")
-
-        # Get the image metadata.
-        for task_offset, virtual_addresses in json.loads(
-            config_options['test_data']).items():
-
-            task = session.profile._EPROCESS(
-                vm=session.kernel_address_space,
-                offset=int(task_offset, 16))
-
-            process_space = task.get_process_address_space()
-
-            for virtual_address in virtual_addresses:
-                virtual_address = int(virtual_address, 16)
-                for level, value, address in vtop.vtop(
-                    virtual_address, process_space):
-                    if "mapped" in level:
-                        self.assertEqual(value, process_space.vtop(
-                                virtual_address))
-
-                        # Check that ptov works. This only works with private
-                        # process pages (process mapped pages will not
-                        # work). When adding numbers to the pfn json file, check
-                        # with the plugins.vad module that the address is a
-                        # private page:
-                        vaddr, metadata = ptov.ptov(value)
-                        metadata = dict(metadata)
-
-                        self.assertEqual(vaddr, virtual_address)
-                        self.assertEqual(metadata['DTB'], process_space.dtb)
+    PARAMETERS = dict(
+        commandline="pfn %(pfn)s",
+        pfn=0
+    )

@@ -80,7 +80,7 @@ class FileAddressSpaceObjectRenderer(
     def GetState(self, item, **options):
         state = super(FileAddressSpaceObjectRenderer, self).GetState(
             item, **options)
-        state["filename"] = item.name
+        state["filename"] = utils.SmartUnicode(item.name)
 
         return state
 
@@ -109,16 +109,9 @@ class IA32PagedMemoryObjectRenderer(
 
         return state
 
-class MIPSPagedMemoryObjectRenderer(
-        json_renderer.BaseAddressSpaceObjectRenderer):
+
+class MIPSPagedMemoryObjectRenderer(IA32PagedMemoryObjectRenderer):
     renders_type = "MIPS32PagedMemory"
-
-    def GetState(self, item, **options):
-        state = super(MIPSPagedMemoryObjectRenderer, self).GetState(
-            item, **options)
-        state["dtb"] = item.dtb
-
-        return state
 
 
 class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):

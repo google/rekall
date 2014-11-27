@@ -1,11 +1,10 @@
-import logging
-import unittest
+from rekall import testlib
 
 from rekall.entities.query import analyzer
 from rekall.entities.query import query as entity_query
 
 
-class AnalyzerTest(unittest.TestCase):
+class AnalyzerTest(testlib.RekallBaseUnitTestCase):
     def analyze(self, query):
         return entity_query.Query(query).execute("QueryAnalyzer")
 
@@ -43,7 +42,3 @@ class AnalyzerTest(unittest.TestCase):
                  "MemoryObject/type is not socket")
         self.assertDepends(query, ["MemoryObject"], [],
                            ["MemoryObject/type=socket"])
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()

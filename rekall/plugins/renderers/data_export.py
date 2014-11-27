@@ -92,6 +92,10 @@ class DataExportInstructionRenderer(DataExportObjectRenderer):
         return dict(value=unicode(item))
 
 
+class DataExportStringRenderer(json_renderer.StringRenderer):
+    renderers = ["DataExportRenderer"]
+
+
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):
     renders_type = "BaseObject"
 

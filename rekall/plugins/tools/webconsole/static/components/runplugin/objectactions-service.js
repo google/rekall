@@ -35,9 +35,11 @@
     // Returns a list of context menu entries for this object.
     this.menuItemsForObject = function(obj) {
       if (obj.mro) {
-        for (var i = 0; i < obj.mro.length; ++i) {
-          if (registeredHandlers[obj.mro[i]]) {
-            return registeredHandlers[obj.mro[i]](obj);
+        var mro = obj.mro.split(":");
+
+        for (var i = 0; i < mro.length; ++i) {
+          if (registeredHandlers[mro[i]]) {
+            return registeredHandlers[mro[i]](obj);
           }
         };
       }
@@ -64,6 +66,7 @@
           templateUrl: '/rekall-webconsole/components/runplugin/runplugin.html',
           scope: $scope,
           size: 'lg',
+          windowClass: "wide-modal"
         });
 
       });

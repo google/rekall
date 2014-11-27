@@ -77,6 +77,10 @@
               bo-class="{'glyphicon-ok': object, 'glyphicon-remove': !object}"/>
       </span>
 
+      <span bo-switch-when="str">
+        <samp bo-bind="object.str" />
+      </span>
+
       <span bo-switch-default>
         <samp bo-bind="object"/>
       </span>

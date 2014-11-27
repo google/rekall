@@ -118,10 +118,10 @@
         // TODO(mbushkov): Ideally, all elements should have mro set and we
         // should be able to render them based solely on their type.
         if (column.formatstring === '[addr]' && columnData.mro === undefined) {
-          columnData = {mro: ['Address'],
+          columnData = {mro: 'Address',
                         value: columnData};
         } else if (column.formatstring === '[addrpad]' && columnData.mro === undefined) {
-          columnData = {mro: ['PaddedAddress'],
+          columnData = {mro: 'PaddedAddress',
                         value: columnData};
         }
 

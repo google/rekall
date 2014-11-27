@@ -81,7 +81,7 @@ class Modules(common.WindowsCommandPlugin):
     def _make_cache(self):
         self.mod_lookup = {}
         for l in self.session.GetParameter("PsLoadedModuleList").list_of_type(
-            "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
+                "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
             self.mod_lookup[l.DllBase.v()] = l
 
         self.modlist = sorted(self.mod_lookup.keys())
@@ -102,7 +102,7 @@ class Modules(common.WindowsCommandPlugin):
         mod = self.mod_lookup[self.modlist[pos]]
 
         if (addr >= mod.DllBase.v() and
-            addr < mod.DllBase.v() + mod.SizeOfImage.v()):
+                addr < mod.DllBase.v() + mod.SizeOfImage.v()):
             return mod
 
         return obj.NoneObject("Unknown")
@@ -113,7 +113,7 @@ class Modules(common.WindowsCommandPlugin):
                                ('Base', "module_base", "[addrpad]"),
                                ('Size', "module_size", "[addr]"),
                                ('File', "path", "")
-                               ])
+                              ])
 
         for module in self.lsmod():
             renderer.table_row(module.obj_offset,

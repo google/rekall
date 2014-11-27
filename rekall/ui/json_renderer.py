@@ -62,11 +62,12 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
     def FromEncoded(cls, item, renderer):
         """Get an JsonObjectRenderer class to parse the encoded item."""
         if isinstance(item, dict):
-            if "obj_renderer" in item:
-                return cls.ImplementationByClass(item["obj_renderer"])
+            obj_renderer = item.get("obj_renderer")
+            if obj_renderer is not None:
+                return cls.ImplementationByClass(obj_renderer)
 
-            elif "mro" in item:
-                mro = item["mro"]
+            mro = item.get("mro")
+            if mro is not None:
                 return cls.FromMRO(mro, renderer)
 
         return cls.ForTarget(item, renderer)
@@ -133,27 +134,6 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         if isinstance(item, (unicode, int, long, float)):
             return item
 
-        # JSON can not encode raw strings so we must base64 escape them. We
-        # encode a bare string as a list starting with "+".
-        elif isinstance(item, str):
-            try:
-                # If the string happens to be unicode safe we dont need to
-                # encode it, but we still must mark it with a "*" to ensure the
-                # decoder replaces it with a plain string.
-                return ["*", unicode(item, "utf8")]
-            except UnicodeError:
-                # If we failed to encode it into utf8 we must base64 encode it.
-                b64 = unicode(item.encode("base64")).rstrip("\n")
-
-                # A leading "+" indicates base64 encoded content.
-                return ["+", self._encode_value(b64)]
-
-        # Special encoding for sets.
-        elif item.__class__ is set:
-            return dict(
-                type="set",
-                data=self.EncodeToJsonSafe(list(item)))
-
         # This will encode unknown objects as None. We do not raise an error
         # here in order to succeed in the encoding of arbitrary data. For
         # example, the session object may contain all kinds of unserializable
@@ -188,18 +168,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
             return result
 
         if value.__class__ in (list, tuple):
-            if not value:
-                return []
-
-            # Decode marked lists.
-            if value[0] == "+":
-                return self.lexicon[value[1]].decode("base64")
-
-            elif value[0] == "*":
-                return str(value[1])
-
-            else:
-                return list(self._decode_value(x, options) for x in value)
+            return list(self._decode_value(x, options) for x in value)
 
         # Decode json safe items literally.
         if isinstance(value, (unicode, int, long, float)):
@@ -233,7 +202,7 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
                 self.__class__.__name__)
 
         # Store the mro of the item.
-        state["mro"] = self.get_mro(item)
+        state["mro"] = ":".join(self.get_mro(item))
 
         # Store an object ID for this item to ensure that the decoder can re-use
         # objects if possible. The ID is globally unique for this object and
@@ -246,10 +215,35 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
 
         # Add the details view if required.
         if details:
-            state["details"] = repr(item)
+            state["details"] = unicode(repr(item))
 
         return super(StateBasedObjectRenderer, self).EncodeToJsonSafe(
             state, **options)
+
+
+class StringRenderer(StateBasedObjectRenderer):
+    # Json is not able to encode strings, we therefore must implement a proper
+    # encoder/decoder.
+    renders_type = "str"
+
+    def DecodeFromJsonSafe(self, value, options):
+        result = value.get("str")
+        if result is None:
+            result = value.get("b64").decode("base64")
+        else:
+            return result.encode("utf8")
+
+        return result
+
+    def GetState(self, item, **_):
+        try:
+            # If the string happens to be unicode safe we dont need to
+            # encode it, but we still must mark it with a "*" to ensure the
+            # decoder replaces it with a plain string.
+            return dict(str=unicode(item, "utf8"))
+        except UnicodeError:
+            # If we failed to encode it into utf8 we must base64 encode it.
+            return dict(b64=unicode(item.encode("base64")).rstrip("\n"))
 
 
 class BaseObjectRenderer(StateBasedObjectRenderer):
@@ -438,14 +432,16 @@ class JsonDecoder(object):
         # Find the correct ObjectRenderer that we can use to decode this item.
         object_renderer_cls = None
         if isinstance(item, dict):
-            if "obj_renderer" in item:
+            obj_renderer = item.get("obj_renderer")
+            if obj_renderer is not None:
                 object_renderer_cls = JsonObjectRenderer.ImplementationByClass(
-                    item["obj_renderer"])
+                    obj_renderer)
 
-            elif "mro" in item:
+            else:
                 mro = item.get("mro")
-                object_renderer_cls = JsonObjectRenderer.FromMRO(
-                    mro, self.renderer)
+                if mro is not None:
+                    object_renderer_cls = JsonObjectRenderer.FromMRO(
+                        mro, self.renderer)
 
         if object_renderer_cls is None:
             object_renderer_cls = JsonObjectRenderer.ForTarget(
@@ -566,7 +562,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
         self.data.append(statement)
 
     def format(self, formatstring, *args):
-        statement = ["f", self.encoder.Encode(formatstring)]
+        statement = ["f", unicode(formatstring)]
         for arg in args:
             # Just store the statement in the output.
             statement.append(self.encoder.Encode(arg))
@@ -619,11 +615,24 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if super(JsonRenderer, self).RenderProgress(**kwargs):
-            args = list(args)
-            for i in range(len(args)):
-                if callable(args[i]):
-                    args[i] = args[i]()
+            self.last_spin += 1
+            if not message:
+                return
 
-            self.SendMessage(["p", message,
-                              self.encoder.Encode(args),
-                              self.encoder.Encode(kwargs)])
+            # Only expand variables when we need to.
+            if "%(" in message:
+                kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
+
+                message = message % kwargs
+            elif args:
+                format_args = []
+                for arg in args:
+                    if callable(arg):
+                        format_args.append(arg())
+                    else:
+                        format_args.append(arg)
+
+                message = message % tuple(format_args)
+
+            self.SendMessage(["p", message])

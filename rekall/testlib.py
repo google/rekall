@@ -50,7 +50,6 @@ in a specific way.
 """
 import hashlib
 import logging
-import re
 import subprocess
 import pdb
 import os
@@ -84,13 +83,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
     disabled = False
 
     @classmethod
-    def is_active(cls, session):
-        delegate_plugin = (
-            plugin.Command.ImplementationByClass(cls.PLUGIN) or
-            getattr(session.plugins, cls.CommandName() or "", None))
-
-        if delegate_plugin:
-            return delegate_plugin.is_active(session)
+    def is_active(cls, _):
+        return True
 
     @classmethod
     def CommandName(cls):
@@ -110,42 +104,6 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         self.debug = debug
         self.temp_directory = temp_directory
         super(RekallBaseUnitTestCase, self).__init__(method_name)
-
-    def TransformOutput(self, config_options, output):
-        # Force the output to be unicode by default. Overridable by a specific
-        # test.
-        if not config_options.get("binary"):
-            output = output.decode("utf8", "ignore")
-
-        # Apply this transformation to the data.
-        regexes = config_options.get("replace_regex")
-        if regexes:
-            for regex in regexes.splitlines():
-                if not regex:
-                    continue
-
-                separator = regex[1]
-                parts = regex.split(separator)
-                if parts[0] != "s" or len(parts) != 4:
-                    raise RuntimeError("Regex transform invalid: %s" % regex)
-
-                output = re.sub(parts[1], parts[2], output)
-
-        return output
-
-    def ApplyPatch(self, patch, data):
-        for k, v in patch.items():
-            item = data[k]
-            for patch_action in v:
-                operation, line_number, new_values = patch_action[:3]
-                if operation == "insert":
-                    item.insert(line_number, new_values)
-                elif operation == "delete":
-                    item.pop(line_number)
-                elif operation == "replace":
-                    item[line_number] = new_values
-                else:
-                    logging.warn("Unknown patch action %s" % operation)
 
     def LaunchExecutable(self, config_options):
         """Launches the rekall executable with the config specified.
@@ -177,8 +135,13 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             for k, v in config_options.items():
                 # prepend all global options to the command line.
                 if k.startswith("-"):
-                    baseline_commandline = "%s '%s' %s" % (
-                        k, v, baseline_commandline)
+                    # This is a boolean flag.
+                    if v is True:
+                        baseline_commandline = "%s %s" % (
+                            k, baseline_commandline)
+                    else:
+                        baseline_commandline = "%s '%s' %s" % (
+                            k, v, baseline_commandline)
 
             cmdline = config_options["executable"] + " " + baseline_commandline
             logging.debug("%s: Launching %s", self.__class__.__name__, cmdline)
@@ -194,8 +157,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                 # Done running the command, now prepare the json baseline file.
                 output_fd.flush()
 
-                output = self.TransformOutput(
-                    config_options, open(tmp_filename).read(10 * 1024 * 1024))
+                output = open(tmp_filename).read(10 * 1024 * 1024)
+                output = output.decode("utf8", "ignore")
 
                 baseline_data = dict(output=output.splitlines(),
                                      return_code=pipe.returncode)
@@ -215,7 +178,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         if config_options is None:
             config_options = self.config_options
 
-        user_session = rekall_session.Session()
+        user_session = rekall_session.InteractiveSession()
         with user_session.state as state:
             config.MergeConfigOptions(state)
             for k, v in config_options.items():
@@ -223,36 +186,6 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                     state.Set(k[2:], v)
 
         return user_session
-
-
-    def ExtractColumn(self, lines, column, skip_headers=0, seperator=r"\|\|"):
-        """Iterates over the lines and extracts the column number specified.
-
-        Args:
-           lines: The output lines.
-           column: The column to split off.
-           skip_headers: Any header lines to skip.
-        """
-        for i, line in enumerate(lines):
-            if i < skip_headers:
-                continue
-
-            try:
-                yield re.split(seperator, line)[column].strip()
-            except IndexError:
-                pass
-
-    def CompareColumns(self, previous, previous_column, current, current_column,
-                       skip_headers=0):
-        current_column = sorted(
-            self.ExtractColumn(
-                current['output'], current_column, skip_headers=skip_headers))
-
-        previous_column = sorted(
-            self.ExtractColumn(
-                previous['output'], previous_column, skip_headers=skip_headers))
-
-        self.assertEqual(current_column, previous_column)
 
     def assertListEqual(self, a, b, msg=None):
         a = list(a)
@@ -262,59 +195,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         for x, y in zip(a, b):
             self.assertEqual(x, y)
 
-    def assertTableRowsEqual(self, a, b):
-        a = [x.strip() for x in a.split("||")]
-        b = [x.strip() for x in b.split("||")]
-        self.assertEqual(a, b)
-
-    def assertIntegerListEqual(self, a, b, base=16):
-        """Compares two list of printed integers."""
-        a = [int(x, base) for x in a]
-        b = [int(x, base) for x in b]
-        self.assertEqual(len(a), len(b))
-
-        for x, y in zip(a, b):
-            self.assertEqual(x, y)
-
-    def SplitLines(self, output, seperator="********"):
-        section = []
-        for line in output:
-            if seperator in line:
-                if section:
-                    yield section
-                    section = []
-
-            section.append(line)
-        yield section
-
-    def ReplaceOutput(self, search_regex, replace, output):
-        return [re.sub(search_regex, replace, x) for x in output]
-
-    def FilterOutput(self, output, regex, exclude=False):
-        """Filter the output lines using a regex."""
-        regex_c = re.compile(regex)
-        result = []
-        for line in output:
-            m = regex_c.search(line)
-
-            if exclude:  # Remove lines that match.
-                if m is None:
-                    result.append(line)
-
-            else:  # Only include lines that match
-                if m:
-                    result.append(line)
-
-        return result
-
-    def MatchOutput(self, output, regex, group=0):
-        regex_c = re.compile(regex)
-
-        for line in output:
-            m = regex_c.search(line)
-            if m:
-                yield m.group(group)
-
+    def __unicode__(self):
+        return "%s %s" % (self.__class__.__name__, self._testMethodName)
 
     def run(self, result=None):
         if result is None:
@@ -372,6 +254,15 @@ class SimpleTestCase(RekallBaseUnitTestCase):
 
     __abstract = True
 
+    @classmethod
+    def is_active(cls, session):
+        delegate_plugin = (
+            plugin.Command.ImplementationByClass(cls.PLUGIN) or
+            getattr(session.plugins, cls.CommandName() or "", None))
+
+        if delegate_plugin:
+            return delegate_plugin.is_active(session)
+
     def testCase(self):
         previous = self.baseline['output']
         current = self.current['output']
@@ -396,6 +287,10 @@ class DisabledTest(RekallBaseUnitTestCase):
     """Disable a test."""
     disabled = True
 
+    @classmethod
+    def is_active(cls, _):
+        return False
+
 
 class TempDirectory(object):
     """A self cleaning temporary directory."""
@@ -409,7 +304,7 @@ class TempDirectory(object):
         shutil.rmtree(self.name, True)
 
 
-class HashChecker(RekallBaseUnitTestCase):
+class HashChecker(SimpleTestCase):
     """A test comparing the hashes of all the files dumped in the tempdir."""
 
     def BuildBaselineData(self, config_options):
@@ -424,5 +319,5 @@ class HashChecker(RekallBaseUnitTestCase):
 
         return baseline
 
-    def testHashes(self):
+    def testCase(self):
         self.assertEqual(self.baseline['hashes'], self.current['hashes'])

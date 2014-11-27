@@ -92,6 +92,7 @@ import time
 
 from rekall import config
 from rekall import registry
+from rekall import utils
 
 
 config.DeclareOption(
@@ -105,6 +106,9 @@ config.DeclareOption(
 config.DeclareOption(
     "--debug", default=False, type="Boolean",
     help="If set we break into the debugger on error conditions.")
+
+
+MRO_CACHE = utils.FastStore(100)
 
 
 class ObjectRenderer(object):
@@ -132,20 +136,20 @@ class ObjectRenderer(object):
     @staticmethod
     def get_mro(item):
         """Return the MRO of an item."""
-        # Allow the item to override its MRO. This is useful for objects which
-        # want to be a standin replacement for another object.
-        get_mro = getattr(item, "get_mro", None)
-        if get_mro:
-            return item.get_mro()
-
         if not inspect.isclass(item):
             item = item.__class__
 
-        # Remove duplicated class names from the MRO (The current implementation
-        # uses the flat class name to select the ObjectRenderer so we can get
-        # duplicates but they dont matter).
-        return list(collections.OrderedDict.fromkeys(
-            [unicode(x.__name__) for x in item.__mro__]))
+        try:
+            return MRO_CACHE.Get(item)
+        except KeyError:
+            # Remove duplicated class names from the MRO (The current
+            # implementation uses the flat class name to select the
+            # ObjectRenderer so we can get duplicates but they dont matter).
+            result = tuple(collections.OrderedDict.fromkeys(
+                [unicode(x.__name__) for x in item.__mro__]))
+
+            MRO_CACHE.Put(item, result)
+            return result
 
     @classmethod
     def ByName(cls, name, renderer):
@@ -161,21 +165,28 @@ class ObjectRenderer(object):
     @classmethod
     def FromMRO(cls, mro, renderer):
         """Get the best object renderer class from the MRO."""
-        cls._BuildRendererCache()
+        try:
+            return MRO_CACHE[mro]
+        except KeyError:
+            cls._BuildRendererCache()
 
-        if not isinstance(renderer, basestring):
-            renderer = renderer.__class__.__name__
+            if not isinstance(renderer, basestring):
+                renderer = renderer.__class__.__name__
 
-        # MRO is the list of object inheritance for each type. For example:
-        # FileAddressSpace,FDAddressSpace,BaseAddressSpace.  We try to match the
-        # object renderer from most specific to least specific (or more
-        # general).
-        for class_name in mro:
-            object_renderer_cls = cls._RENDERER_CACHE.get(
-                (class_name, renderer))
+            if isinstance(mro, basestring):
+                mro = mro.split(":")
 
-            if object_renderer_cls:
-                return object_renderer_cls
+            # MRO is the list of object inheritance for each type. For example:
+            # FileAddressSpace,FDAddressSpace,BaseAddressSpace.  We try to match
+            # the object renderer from most specific to least specific (or more
+            # general).
+            for class_name in mro:
+                object_renderer_cls = cls._RENDERER_CACHE.get(
+                    (class_name, renderer))
+
+                if object_renderer_cls:
+                    MRO_CACHE.Put(":".join(mro), object_renderer_cls)
+                    return object_renderer_cls
 
     @classmethod
     def _BuildRendererCache(cls):

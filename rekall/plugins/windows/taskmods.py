@@ -23,6 +23,8 @@
 
 # pylint: disable=protected-access
 
+from rekall import testlib
+
 from rekall.plugins import core
 from rekall.plugins.windows import common
 from rekall import plugin
@@ -65,7 +67,7 @@ class WinPsList(common.WinProcessFilter):
             dict(name="Thds", cname="thread_count", width=6, align="r"),
             dict(name="Hnds", cname="handle_count", width=8, align="r"),
             dict(name="Sess", cname="session_id", width=6, align="r"),
-            dict(name="Wow64", cname="wow64", width=6, align="r"),
+            dict(name="Wow64", cname="wow64", width=6),
             dict(name="Start", cname="process_create_time", width=24),
             dict(name="Exit", cname="process_exit_time", width=24)])
 
@@ -204,3 +206,28 @@ class Threads(common.WinProcessFilter):
                             thread.Win32StartAddress,
                             max_distance=0xffffffff),
                     )
+
+
+
+
+class TestWinMemDump(testlib.HashChecker):
+    """Test the pslist module."""
+
+    PARAMETERS = dict(
+        commandline="memdump --pid=%(pid)s --dump_dir %(tempdir)s",
+        pid=2624)
+
+
+class TestMemmap(testlib.SimpleTestCase):
+    """Test the pslist module."""
+
+    PARAMETERS = dict(
+        commandline="memmap --pid=%(pid)s",
+        pid=2624)
+
+
+class TestMemmapCoalesce(testlib.SimpleTestCase):
+    """Make sure that memmaps are coalesced properly."""
+
+    PARAMETERS = dict(commandline="memmap --pid=%(pid)s --coalesce",
+                      pid=2624)

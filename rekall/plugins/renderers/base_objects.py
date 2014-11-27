@@ -28,11 +28,15 @@ from rekall.ui import text
 class BaseObjectTextRenderer(text.TextObjectRenderer):
     renders_type = "BaseObject"
 
-    def render_address(self, target, **_):
-        return text.Cell(self.format_address(target.obj_offset))
+    def render_address(self, target, **options):
+        return text.Cell(
+            self.format_address(target.obj_offset, **options)
+        )
 
-    def render_full(self, target, **_):
-        return text.Cell(unicode(target.v()))
+    def render_full(self, target, **options):
+        result = text.Cell(unicode(target.v()), **options)
+        return result
+
 
     def render_value(self, target, **_):
         return text.Cell(unicode(target.v()))
@@ -93,8 +97,10 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
 class NativeTypeTextRenderer(BaseObjectTextRenderer):
     renders_type = "NativeType"
 
-    def render_address(self, target, **_):
-        return text.Cell(self.format_address(target.v()))
+    def render_address(self, target, **options):
+        return text.Cell(
+            self.format_address(target.v(), **options)
+        )
 
 
 class BaseBoolTextRenderer(PythonBoolTextRenderer):
@@ -158,17 +164,21 @@ class PointerTextRenderer(NativeTypeTextRenderer):
         target_obj = target.deref()
         return target_obj.get_text_renderer().render_full(target_obj)
 
-    def render_compact(self, target, **_):
+    def render_compact(self, target, **options):
         return text.Cell(
-            "(%s *) %s" % (target.target, self.format_address(target.v())))
+            "(%s *) %s" % (
+                target.target,
+                self.format_address(target.v(), **options))
+        )
 
 
 class VoidTextRenderer(PointerTextRenderer):
     renders_type = "Void"
 
-    def render_full(self, target, **_):
+    def render_full(self, target, **options):
         return text.Cell(
-            "(void) %s" % self.format_address(target.v()))
+            "(void) %s" % self.format_address(target.v(), **options)
+        )
 
     render_compact = render_full
 
@@ -188,8 +198,8 @@ class FunctionTextRenderer(BaseObjectTextRenderer):
 
         return text.Cell("\n".join(result))
 
-    def render_compact(self, target, **_):
-        return text.Cell(self.format_address(target.obj_offset))
+    def render_compact(self, target, **options):
+        return text.Cell(self.format_address(target.obj_offset, **options))
 
     render_value = render_compact
 

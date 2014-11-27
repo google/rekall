@@ -18,6 +18,8 @@
 
 # pylint: disable=unused-import
 
+from rekall.entities import tests
+
 from rekall.plugins import core_test
 from rekall.plugins.windows import tests
 from rekall.plugins.linux import tests

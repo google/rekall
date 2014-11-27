@@ -88,7 +88,13 @@ FORMAT_SPECIFIER_RE = re.compile(r"""
 
 
 def ParseFormatSpec(formatstring):
-    if formatstring in ("[addr]", "[addrpad]"):
+    if formatstring == "[addrpad]":
+        return dict(
+            style="address",
+            padding="0"
+        )
+
+    elif formatstring == "[addr]":
         return {"style": "address"}
 
     match = FORMAT_SPECIFIER_RE.match(formatstring)
@@ -439,6 +445,7 @@ class Colorizer(object):
     """An object which makes its target colorful."""
 
     COLORS = "BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE"
+    #COLORS = "BLACK BLUE CYAN GREEN MAGENTA RED WHITE YELLOW"
     COLOR_MAP = dict([(x, i) for i, x in enumerate(COLORS.split())])
 
     terminal_capable = False
@@ -462,6 +469,7 @@ class Colorizer(object):
         try:
             if curses and stream.isatty():
                 curses.setupterm()
+
                 self.terminal_capable = True
         except AttributeError:
             pass
@@ -490,11 +498,11 @@ class Colorizer(object):
         escape_seq = ""
         if background:
             escape_seq += self.tparm(
-                ["setb", "setab"], self.COLOR_MAP[background])
+                ["setab", "setb"], self.COLOR_MAP[background])
 
         if foreground:
             escape_seq += self.tparm(
-                ["setf", "setaf"], self.COLOR_MAP[foreground])
+                ["setaf", "setf"], self.COLOR_MAP[foreground])
 
         return (escape_seq + utils.SmartUnicode(target) +
                 self.tparm(["sgr0"]))
@@ -521,9 +529,12 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
 
         return address_size
 
-    def format_address(self, address):
-        fmtstring = "%%#0%sx" % self.address_size
-        return fmtstring % address
+    def format_address(self, address, **options):
+        result = "%x" % address
+        if options.get("padding") == "0":
+            return "0x" + "0" * max(0, self.address_size-2-len(result)) + result
+
+        return " " * max(0, self.address_size-2-len(result)) + "0x" + result
 
     def render_header(self, name=None, style=StyleEnum.full, **options):
         """This should be overloaded to return the header Cell.
@@ -554,8 +565,10 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
     def render_full(self, target, **_):
         return Cell(unicode(target))
 
-    def render_address(self, target, **_):
-        return Cell(self.format_address(int(target)))
+    def render_address(self, target, **options):
+        return Cell(
+            self.format_address(int(target), **options)
+        )
 
     render_compact = render_full
     render_value = render_full
@@ -748,7 +761,7 @@ class Cell(BaseCell):
     _lines = None
 
     def __init__(self, value="", width=None, align=None, highlights=None,
-                 colorizer=None):
+                 colorizer=None, **_):
         super(Cell, self).__init__()
 
         self.paragraphs = value.splitlines()
@@ -785,8 +798,12 @@ class Cell(BaseCell):
             raise ValueError("Invalid cell alignment: %s." % self.align)
 
     def highlight_line(self, line, offset, last_highlight):
+        if not self.colorizer.terminal_capable:
+            return line
+
         if last_highlight:
             line = last_highlight + line
+
         limit = offset + len(line)
         adjust = 0
 
@@ -794,12 +811,12 @@ class Cell(BaseCell):
             if offset <= start <= limit + adjust:
                 escape_seq = ""
                 if fg:
-                    fg = self.colorizer.COLOR_MAP[fg]
-                    escape_seq += self.colorizer.tparm(["setf", "setaf"], fg)
+                    fg_id = self.colorizer.COLOR_MAP[fg]
+                    escape_seq += self.colorizer.tparm(["setaf", "setf"], fg_id)
 
                 if bg:
-                    bg = self.colorizer.COLOR_MAP[bg]
-                    escape_seq += self.colorizer.tparm(["setb", "setab"], bg)
+                    bg_id = self.colorizer.COLOR_MAP[bg]
+                    escape_seq += self.colorizer.tparm(["setab", "setb"], bg_id)
 
                 insert_at = start - offset + adjust
                 line = line[:insert_at] + escape_seq + line[insert_at:]
@@ -943,7 +960,7 @@ class TextColumn(object):
             # Also wrap to pad if the result is actually narrower than the
             # header, otherwise it messes up the columns to the right.
             result.rewrap(width=self.header_width,
-                          align=options.get("align", "l"))
+                          align=merged_opts.get("align", "l"))
 
         return result
 

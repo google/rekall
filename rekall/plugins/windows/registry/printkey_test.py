@@ -24,26 +24,6 @@
 from rekall import testlib
 
 
-class TestPrintkey(testlib.RekallBaseUnitTestCase):
-    """Test the printkey module."""
-
-    PARAMETERS = dict(commandline="printkey")
-
-    def testPrintkey(self):
-        """Tests the printkey module."""
-        previous = self.baseline['output']
-        current = self.current['output']
-
-        previous_blocks = sorted(
-            self.SplitLines(previous, "----------"))
-
-        current_blocks = sorted(
-            self.SplitLines(current, "----------"))
-
-        for x, y in zip(previous_blocks, current_blocks):
-            self.assertEqual(x, y)
-
-
 class TestRegDump(testlib.HashChecker):
     """Test dumping of registry hives."""
 

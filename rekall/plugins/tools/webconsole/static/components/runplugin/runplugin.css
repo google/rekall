@@ -122,4 +122,8 @@ addrpad {
 
 .rekall-tree {
 
-};
+}
+
+.wide-modal .modal-dialog {
+    width: 90%;
+}

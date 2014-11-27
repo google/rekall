@@ -310,7 +310,7 @@ exit 0
             baseline_fd.write(json.dumps(baseline_data, indent=4))
             self.renderer.table_row(
                 plugin_cls.__name__,
-                self.renderer.colorizer.Render("REBUILT", foreground="YELLOW"),
+                utils.AttributedString("REBUILD", [(0, -1, "YELLOW", None)]),
                 baseline_data["time_used"])
 
             self.rebuilt += 1
@@ -354,10 +354,11 @@ exit 0
         plugins_with_test = set()
         for _, cls in testlib.RekallBaseUnitTestCase.classes.items():
             if cls.is_active(s):
+                result.append(cls)
+
                 plugin_name = cls.CommandName()
                 if plugin_name:
                     plugins_with_test.add(plugin_name)
-                    result.append(cls)
 
         # Now generate tests automatically for all other plugins.
         for cls in plugin.Command.classes.values():
@@ -398,7 +399,7 @@ exit 0
         if self.FLAGS.verbose:
             config_options["--verbose"] = True
 
-        self.renderer.table_header([("Test", "test", "30"),
+        self.renderer.table_header([("Test", "test", "60"),
                                     ("Status", "status", "15"),
                                     ("Time", "time", "20"),
                                     ("Expected Time", "expected", "20"),
@@ -432,7 +433,7 @@ exit 0
                 # Strip possible preamble:
                 data = data[data.find("{"):]
                 baseline_data = json.loads(data)
-            except IOError:
+            except Exception:
                 baseline_data = None
 
             # Should we build the baseline or test against it?
@@ -484,6 +485,9 @@ exit 0
             current_run["errors"] = dict(
                 (str(x), y) for x, y in result.errors)
 
+            current_run["failures"] = dict(
+                (str(x), y) for x, y in result.failures)
+
             # Store the current run someplace for closer inspection.
             output_path = os.path.join(self.output_dir, plugin_cls.__name__)
             with open(output_path, "wb") as fd:
@@ -502,7 +506,7 @@ exit 0
 
             if result.wasSuccessful():
                 self.renderer.table_row(
-                    plugin_cls.__name__,
+                    test_case,
                     utils.AttributedString("PASS", [(0, -1, "GREEN", None)]),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0))
@@ -520,7 +524,7 @@ exit 0
                     print open(output_path).read()
 
                 self.renderer.table_row(
-                    plugin_cls.__name__,
+                    test_case,
                     utils.AttributedString("FAIL", [(0, -1, "RED", None)]),
                     current_run.get("time_used", 0),
                     baseline_data.get("time_used", 0),

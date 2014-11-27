@@ -62,6 +62,9 @@ class FileScan(common.PoolScannerPlugin):
         for pool_obj in scanner.scan():
             object_obj = pool_obj.GetObject("File")
 
+            if object_obj == None:
+                continue
+
             ## If the string is not reachable we skip it
             file_obj = self.session.profile._FILE_OBJECT(
                 offset=object_obj.obj_end, vm=self.address_space)
@@ -81,7 +84,7 @@ class FileScan(common.PoolScannerPlugin):
                                ('Access', "access", '6'),
                                dict(name='Owner', type="_EPROCESS"),
                                ('Name', "path", '')
-                               ])
+                              ])
 
         for pool_obj, object_obj, file_obj in self.generate_hits():
             # The Process member in the HandleInfo sometimes points at the
