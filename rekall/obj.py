@@ -465,7 +465,10 @@ class BaseObject(object):
         return utils.SmartStr(unicode(self))
 
     def __unicode__(self):
-        return "\n".join(self.get_text_renderer().render_row(self).lines)
+        try:
+            return "\n".join(self.get_text_renderer().render_row(self).lines)
+        except Exception as e:
+            return "%s (string conversion raised %s)" % repr(self), e
 
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(

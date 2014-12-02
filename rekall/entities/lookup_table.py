@@ -22,6 +22,8 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import logging
+
 from rekall.entities import entity as entity_module
 from rekall.entities import identity as entity_id
 
@@ -122,13 +124,46 @@ class EntityQuerySearch(visitor.QueryVisitor):
         return self._slow_solve(expr, self.entities.itervalues())
 
     def visit_Expression(self, expr):
+        logging.debug("Fallthrough to filter-based search (%s).", expr)
         return self._slow_solve(expr, self.entities.itervalues())
 
-    def visit_Let(self, expr):
+    def _slow_Let(self, expr):
+        logging.debug("Fallthrough to filter-based search (%s).", expr)
         # Prefiltering the slow solve to just entities that actually have the
         # relevant attribute usually shaves off about 200 ms.
         seed = self.visit(expr.context)
         return self._slow_solve(expr, seed)
+
+    def visit_LetAll(self, expr):
+        return self._slow_Let(expr)
+
+    def visit_LetAny(self, expr):
+        return self._slow_Let(expr)
+
+    def visit_Let(self, expr):
+        # Do we have an index for the context attribute?
+        table = self.lookup_tables.get(expr.context.value)
+
+        if not table:
+            return self._slow_Let(expr)
+
+        # We have an index - this means we can run the subquery, get the
+        # identities that match and then get their intersection with the
+        # index we just found.
+        results = set()
+        subquery_hits = self.visit(expr.expression)
+        for subquery_result in subquery_hits:
+            for index in subquery_result.indices:
+                # Need to check every index in case the lookup table is
+                # stale.
+                matching_entities = table.table.get(index)
+                if not matching_entities:
+                    continue
+
+                for matching_entity in matching_entities:
+                    results.add(matching_entity)
+
+        return self._as_entities(results)
 
 
 class EntityLookupTable(object):

@@ -84,6 +84,13 @@ class EntityAnalyze(plugin.ProfileCommand):
             renderer.table_row(dependency, self.query,
                                query_highlight=dependency.expression)
 
+    def render_indexing(self, renderer):
+        renderer.section("Suggested indexing (created automatically).")
+        renderer.table_header([
+            dict(name="Indexed attribute", width=40)])
+        for lookup in self.analysis["lookups"]:
+            renderer.table_row(lookup)
+
     def render_collectors(self, renderer):
         manager = self.session.entities
         renderer.section("Dependencies on collectors:", width=140)
@@ -145,6 +152,7 @@ class EntityAnalyze(plugin.ProfileCommand):
         self.render_dependencies(renderer)
         self.render_components(renderer)
         self.render_collectors(renderer)
+        self.render_indexing(renderer)
 
 
 class EntityFind(plugin.ProfileCommand):

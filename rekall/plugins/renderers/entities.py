@@ -93,7 +93,7 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
             column_width = None
             column_getter = None
 
-            if isinstance(column, str):
+            if isinstance(column, basestring):
                 column_attr = column
             elif isinstance(column, dict):
                 column_name = column.get("name")
@@ -101,6 +101,10 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
                 column_attr = column.get("attribute")
                 column_style = column.get("style")
                 column_width = column.get("width")
+            else:
+                raise ValueError(
+                    "Column must be dict or a basestring. Got %s." % (
+                    type(column)))
 
             if not column_getter:
                 if not column_attr:

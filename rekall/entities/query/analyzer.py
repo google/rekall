@@ -289,6 +289,8 @@ class QueryAnalyzer(visitor.QueryVisitor):
         if isinstance(value, Dependency):
             dependency = DependencySet(dependency, *value.dependencies)
 
+        self.latest_indices.add(context)
+
         return dependency
 
     def visit_Complement(self, expr):
