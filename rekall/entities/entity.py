@@ -504,7 +504,15 @@ class IdentityDescriptor(types.TypeDescriptor):
         if isinstance(value, identity.Identity):
             return value
 
-        raise TypeError("%s is not an Entity." % value)
+        value_repr = None
+        try:
+            value_repr = repr(value)
+        except Exception as e:
+            raise TypeError(
+                ("Object passed to coerce is not an entity. Additionally, "
+                 "calling repr(object) raised %s.") % e)
+        
+        raise TypeError("%s is not an Entity." % value_repr)
 
     def __repr__(self):
         return "Entity type"

@@ -73,44 +73,61 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
     renders_type = "Entity"
     renderers = ["TextRenderer", "TestRenderer"]
 
+    @staticmethod
+    def _column_getter(path):
+        return lambda e: e[path]
+
     def __init__(self, *args, **kwargs):
         self.style = kwargs.pop("style", "value")
         self.name = kwargs.pop("name", "Entity")
 
         # Build up the list of columns we want to display.
         columns = kwargs.pop("columns", [])
-        self.attributes = []
+        self.column_getters = []
+        renderer_headers = []
+
         for column in columns:
-            if "/" in column:
-                attribute_obj = entity.Entity.reflect_attribute(column)
+            column_attr = None
+            column_name = None
+            column_style = None
+            column_width = None
+            column_getter = None
+
+            if isinstance(column, str):
+                column_attr = column
+            elif isinstance(column, dict):
+                column_name = column.get("name")
+                column_getter = column.get("fn")
+                column_attr = column.get("attribute")
+                column_style = column.get("style")
+                column_width = column.get("width")
+
+            if not column_getter:
+                if not column_attr:
+                    raise ValueError(
+                        "Must specify either 'attribute' or 'fn'.")
+                attribute_obj = entity.Entity.reflect_attribute(column_attr)
                 if not attribute_obj:
-                    raise ValueError("Attribute %s doesn't exist." % column)
-                self.attributes.append(attribute_obj)
-            else:
-                component_cls = entity.Entity.reflect_component(column)
-                if not component_cls:
-                    raise ValueError("Component %s doesn't exist." % column)
+                    raise ValueError(
+                        "Attribute %s doesn't exist." % column_attr)
+                column_getter = self._column_getter(attribute_obj.path)
+                column_width = column_width or attribute_obj.width
+                column_style = column_style or attribute_obj.style
 
-                for attribute in component_cls.component_fields:
-                    if attribute.hidden:
-                        continue
+            if not column_name:
+                if column_attr:
+                    column_name = column_attr.split("/")[-1]
+                else:
+                    column_attr = "untitled column"
 
-                    self.attributes.append(attribute)
-
-        if not self.attributes:
-            self.attributes = [entity.Entity.reflect_attribute("Named/name"),
-                               entity.Entity.reflect_attribute("Named/kind")]
+            renderer_headers.append(dict(name=column_name,
+                                         width=column_width,
+                                         style=column_style))
+            self.column_getters.append(column_getter)
 
         super(Entity_TextObjectRenderer, self).__init__(*args, **kwargs)
 
-        renderer_columns = []
-        for attribute in self.attributes:
-            renderer_columns.append(dict(name=attribute.name,
-                                         style=attribute.style,
-                                         # type=attribute.typedesc.type_name,
-                                         width=attribute.width))
-
-        self.table = text.TextTable(columns=renderer_columns,
+        self.table = text.TextTable(columns=renderer_headers,
                                     renderer=self.renderer,
                                     session=self.session)
 
@@ -124,7 +141,7 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
 
     def render_row(self, target, **options):
         if self.style == "full":
-            values = [target[a.path] for a in self.attributes]
+            values = [getter(target) for getter in self.column_getters]
             return self.table.get_row(*values)
         elif self.style == "compact":
             return text.Cell("%s: %s" % (target.kind, target.name))

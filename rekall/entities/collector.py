@@ -186,6 +186,41 @@ class EntityCollector(object):
 
             self._indices_seen |= entity.indices
 
+    def prebuild(self, components, keys):
+        """Prebuilds identity based on data in components.
+        
+        In the olden days, identities could be arbitrary and were not tied
+        to data in the entity. The current API (Manager.identify) theoretically
+        still allows creation of identities with arbitrary indices, but that's
+        slow, as the data in the entity and the identity then has to be
+        type-coerced separately. This method is the new API and only coerces
+        data once.
+        
+        Arguments:
+            components: Instances of Component that the collector is going to
+                        yield.
+            keys: List of attributes that will be used to build the identity.
+        
+        Returns tuple of:
+        - The identity.
+        - List that can be yielded from Collector.collect, which includes the
+          identity.
+        """
+        keys
+        index_values = []
+        for key in keys:
+            component_name, field_name = key.split("/", 1)
+
+            # Find the component.
+            for component in components:
+                if component.component_name == component_name:
+                    index_values.append(component[field_name])
+                    break
+
+        identity = self.manager.identify_no_cast(
+            {tuple(keys): tuple(index_values)})
+        return identity, [identity] + list(components)
+
     def collect(self, hint):
         """Override to yield components - analogous to 'calculate', but typed.
 

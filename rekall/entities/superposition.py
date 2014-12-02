@@ -119,7 +119,7 @@ class Superposition(object):
 
     def __getitem__(self, key):
         values = [variant[key] for variant in self.variants]
-        return Superposition(variants=values)
+        return self.merge_scalars(*values)
 
     def __iter__(self):
         return self.variants.__iter__()

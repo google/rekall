@@ -267,9 +267,21 @@ class EntityFind(plugin.ProfileCommand):
             self.session.RunPlugin("analyze", self.query)
             renderer.section("Results:", width=self.width)
 
+        # If no columns were specified, try to guess from the list of
+        # components we think will appear in results.
         if not self.columns:
-            self.columns = self.session.entities.analyze(self.query).get(
-                "guaranteed_components")
+            self.columns = []
+            for component in self.session.entities.analyze(self.query).get(
+                    "guaranteed_components"):
+                component_cls = entity_module.Entity.reflect_component(
+                    component)
+                for attribute in component_cls.component_attributes.values():
+                    if attribute.hidden:
+                        continue
+
+                    self.columns.append(attribute.path)
+
+            self.columns.sort()
 
         columns = [dict(name="Entity", cname="entity", type="Entity",
                         width=self.width, style="full", columns=self.columns)]

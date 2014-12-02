@@ -175,33 +175,6 @@ class DarwinRoute(common.DarwinPlugin):
                 rentry.delta)
 
 
-class DarwinIFConfig(common.DarwinPlugin):
-    """List network interface information."""
-
-    __name = "ifconfig"
-
-    def render(self, renderer):
-        renderer.table_header([("Interface", "interface", "10"),
-                               ("Address", "address", "20")])
-
-        ifnet_head = self.profile.get_constant_object(
-            "_dlil_ifnet_head",
-            target="Pointer",
-            target_args=dict(
-                target="ifnet"
-                )
-            )
-
-        for interface in ifnet_head.walk_list("if_link.tqe_next"):
-            for address in interface.if_addrhead.tqh_first.walk_list(
-                "ifa_link.tqe_next"):
-                name = "%s%d" % (interface.if_name.deref(),
-                                 interface.if_unit)
-
-                renderer.table_row(
-                    name, address.ifa_addr.deref())
-
-
 class DarwinIPFilters(common.DarwinPlugin):
     """Check IP Filters for hooks."""
 

@@ -26,7 +26,6 @@ from rekall.entities import collector
 from rekall.entities import definitions
 
 from rekall.plugins.collectors.darwin import common
-from rekall.plugins.collectors.darwin import zones
 
 
 class DarwinHandleCollector(common.DarwinEntityCollector):
@@ -83,129 +82,6 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                         type="fileproc")]
 
 
-class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
-    outputs = ["MemoryObject/type=socket"]
-    zone_name = "socket"
-    type_name = "socket"
-
-    def validate_element(self, socket):
-        return socket == socket.so_rcv.sb_so
-
-
-class DarwinSocketLastAccess(common.DarwinEntityCollector):
-    outputs = ["Event"]
-    collect_args = dict(processes="has component Process",
-                        sockets="MemoryObject/type is 'socket'")
-    complete_input = True
-
-    def collect(self, hint, processes, sockets):
-        by_pid = {}
-        for process in processes:
-            by_pid[process["Process/pid"]] = process
-
-        for socket in sockets:
-            base_socket = socket["MemoryObject/base_object"]
-            process = by_pid[base_socket.last_pid]
-            if not process:
-                continue
-
-            event_identity = self.manager.identify({
-                ("Event/actor", "Event/action", "Event/target",
-                 "Event/category"):
-                (process.identity, "accessed", socket.identity, "latest")})
-            yield [
-                event_identity,
-                definitions.Event(
-                    actor=process.identity,
-                    action="accessed",
-                    target=socket.identity,
-                    category="latest")]
-
-
-class DarwinSocketCollector(common.DarwinEntityCollector):
-    """Searches for all memory objects that are sockets and parses them."""
-
-    _name = "sockets"
-    outputs = [
-        "Connection",
-        "OSILayer3",
-        "OSILayer4",
-        "Socket",
-        "Handle",
-        "Event",
-        "Timestamps",
-        "File/type=socket",
-        "MemoryObject/type=vnode"]
-
-    collect_args = dict(sockets="MemoryObject/type is 'socket'")
-
-    filter_input = True
-
-    def collect(self, hint, sockets):
-        for entity in sockets:
-            socket = entity["MemoryObject/base_object"]
-            family = str(socket.addressing_family)
-
-            if family in ("AF_INET", "AF_INET6"):
-                yield [
-                    entity.identity,
-                    definitions.Named(
-                        name=socket.human_name,
-                        kind="IP Connection"),
-                    definitions.Connection(
-                        protocol_family=family.replace("AF_", "")),
-                    definitions.OSILayer3(
-                        src_addr=socket.src_addr,
-                        dst_addr=socket.dst_addr,
-                        protocol="IPv4" if family == "AF_INET" else "IPv6"),
-                    definitions.OSILayer4(
-                        src_port=socket.src_port,
-                        dst_port=socket.dst_port,
-                        protocol=socket.l4_protocol,
-                        state=socket.tcp_state)]
-            elif family == "AF_UNIX":
-                if socket.vnode:
-                    path = socket.vnode.full_path
-                    file_identity = self.session.entities.identify({
-                        "File/path": path})
-                else:
-                    path = None
-                    file_identity = None
-
-                yield [
-                    entity.identity,
-                    definitions.Named(
-                        name=socket.human_name,
-                        kind="Unix Socket"),
-                    definitions.Connection(
-                        protocol_family="UNIX"),
-                    definitions.Socket(
-                        type=socket.unix_type,
-                        file=file_identity,
-                        address="0x%x" % int(socket.so_pcb),
-                        connected="0x%x" % int(socket.unp_conn))]
-
-                # There may be a vnode here - if so, yield it.
-                if path:
-                    yield [
-                        definitions.File(
-                            path=path,
-                            type="socket"),
-                        definitions.Named(
-                            name=path,
-                            kind="Socket"),
-                        definitions.MemoryObject(
-                            base_object=socket.vnode.deref(),
-                            type="vnode")]
-            else:
-                yield [
-                    entity.identity,
-                    definitions.Named(
-                        kind="Unknown Socket"),
-                    definitions.Connection(
-                        protocol_family=family.replace("AF_", ""))]
-
-
 class DarwinFileCollector(common.DarwinEntityCollector):
     """Collects files based on vnodes."""
 
@@ -249,27 +125,3 @@ class DarwinFileCollector(common.DarwinEntityCollector):
                         "User/uid": posix_uid})))
 
             yield components
-
-
-class UnpListCollector(common.DarwinEntityCollector):
-    """Walks the global unpcb lists and returns the unix sockets.
-
-    See here:
-        github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
-    """
-
-    outputs = ["MemoryObject/type=socket", "Named/kind=Unix Socket"]
-
-    def collect(self, hint):
-        for head_const in ["_unp_dhead", "_unp_shead"]:
-            lhead = self.session.get_constant_object(
-                head_const,
-                target="unp_head")
-
-            for unp in lhead.lh_first.walk_list("unp_link.le_next"):
-                yield [
-                    definitions.MemoryObject(
-                        base_object=unp.unp_socket,
-                        type="socket"),
-                    definitions.Named(
-                        kind="Unix Socket")]

@@ -222,6 +222,10 @@ class EntityManager(object):
         return entity_id.Identity.from_dict(global_prefix=self.identity_prefix,
                                             identity_dict=cast_dict)
 
+    def identify_no_cast(self, identity_dict):
+        return entity_id.Identity.from_dict(global_prefix=self.identity_prefix,
+                                            identity_dict=identity_dict)
+
     # pylint: disable=protected-access
     def register_components(self, identity, components, source_collector):
         """Find or create an entity for identity and add components to it.

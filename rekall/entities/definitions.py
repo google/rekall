@@ -91,13 +91,6 @@ SignatureMatch = component.DeclareComponent(
                     "How was the scan done?"))
 
 
-NetworkInterface = component.DeclareComponent(
-    "NetworkInterface", "A network interface.",
-    component.Field("name", str, "E.g. en01, tunnel, etc."),
-    component.Field("addresses", [(str, str)],
-                    "List of (protocol family, address)."))
-
-
 Process = component.DeclareComponent(
     "Process", "A process.",
     component.Field("pid", int, "PID, on systems that have one.", width=6),
@@ -144,38 +137,65 @@ Session = component.DeclareComponent(
     component.Field("sid", int, "Session ID."))
 
 
-Connection = component.DeclareComponent(
-    "Connection", "A connection or socket.",
-    component.Field("protocol_family", str,
-                    "Protocol family determines addressing."),
-    component.Field("active", bool, "Human-readable state."),
-    component.Field("bytes_received", int, "Bytes in."),
-    component.Field("bytes_sent", int, "Bytes out."),
-    component.Field("packets_received", int, "Packets in."),
-    component.Field("packets_sent", int, "Packets out."),
-    component.Alias("handles", alias="&Handle/resource",
-                    docstring="Handles by processes on this file."))
+OSILayer2 = component.DeclareComponent(
+    "OSILayer2", "MAC-layer endpoint.",
+    component.Field("address", str, "Address at layer 2."),
+    component.Field("protocol", str, "Layer 2 protocol.", width=18))
 
 
 OSILayer3 = component.DeclareComponent(
-    "OSILayer3", "Network-layer connection.",
-    component.Field("src_addr", str, "Address of source."),
-    component.Field("dst_addr", str, "Address of destination"),
-    component.Field("protocol", str, "Layer 3 protocol."))
+    "OSILayer3", "Network-layer endpoint.",
+    component.Field("address", str, "Address at layer 3.", width=48),
+    component.Field("protocol", str, "Layer 3 protocol.", width=10))
 
 
 OSILayer4 = component.DeclareComponent(
-    "OSILayer4", "Transport-layer connection.",
-    component.Field("src_port", int, "Port at source."),
-    component.Field("dst_port", int, "Port at destination."),
-    component.Field("state", str, "State of the connection, if stateful."),
-    component.Field("protocol", str, "Layer 4 protocol."))
+    "OSILayer4", "Transport-layer endpoint.",
+    component.Field("port", int, "TCP/UDP port.", width=10),
+    component.Field("protocol", str, "Layer 4 protocol.", width=10),
+    component.Field("state", str, "State if stateful."))
 
 
 OSIDataLayer = component.DeclareComponent(
     "OSIDataLayer", "OSI layers 5-7 constitute the data layer.",
     component.Field("protocol", str,
                     "Highest-layer protocol (usually layer 7)."))
+
+
+Endpoint = component.DeclareComponent(
+    "Endpoint",
+    "One side of a connection - source/client or server/destination.",
+    component.Field("local", bool, "Is this endpoint on this system."),
+    component.Alias("inbound", alias="&Connection/destination",
+                    docstring="Connections that have this endpoint as dest."),
+    component.Alias("outbound", alias="&Connection/source",
+                    docstring="Connection from this endpoint to others."),
+    component.Field("interface", entity.IdentityDescriptor(),
+                    "Associated network interface, if known."))
+
+
+Connection = component.DeclareComponent(
+    "Connection",
+    "Connection (TCP) or datagram, if connectionless (UDP).",
+    component.Field("protocol_family", str,
+                    "Protocol family determines addressing."),
+    component.Field("source", entity.IdentityDescriptor(),
+                    "Source of TCP connection or of UDP datagram."),
+    component.Field("destination", entity.IdentityDescriptor(),
+                    "Destination of TCP connection or of UDP datagram."),
+    component.Field("active", bool, "Human-readable state."),
+    component.Field("bytes_received", int, "Bytes in."),
+    component.Field("bytes_sent", int, "Bytes out."),
+    component.Field("packets_received", int, "Packets in."),
+    component.Field("packets_sent", int, "Packets out."),
+    component.Alias("handles", alias="&Handle/resource",
+                    docstring="Handles by processes on this socket."),
+    helpstring=(
+        "The notion of connection depends on the protocol (mostly at Layer4).\n"
+        "For connection-oriented protocols, e.g. TCP, the source endpoint"
+        "initiates the handshake (TCP SYN, SCTP INIT, etc.).\n"
+        "For connection-free protocols (UDP), the source is the source of the"
+        "datagram or packet as captured."))
 
 
 Socket = component.DeclareComponent(
@@ -187,6 +207,15 @@ Socket = component.DeclareComponent(
                     "Type in AF_UNIX/AF_LOCAL family."),
     component.Field("file", entity.IdentityDescriptor(),
                     "The file this socket binds to."))
+
+
+NetworkInterface = component.DeclareComponent(
+    "NetworkInterface", "A network interface.",
+    component.Field("name", str, "E.g. en01, tunnel, etc.", width=6),
+    component.Field(
+        "state", {"up", "down"}, "State of the inteface.", width=6),
+    component.Alias("endpoints", alias="&Endpoint/interface",
+                    docstring="Endpoints of this interface (IP/MAC/etc.)"))
 
 
 Handle = component.DeclareComponent(

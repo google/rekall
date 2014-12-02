@@ -532,9 +532,10 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
     def format_address(self, address, **options):
         result = "%x" % address
         if options.get("padding") == "0":
-            return "0x" + "0" * max(0, self.address_size-2-len(result)) + result
+            return ("0x" + "0" * max(0, self.address_size - 2 - len(result)) +
+                    result)
 
-        return " " * max(0, self.address_size-2-len(result)) + "0x" + result
+        return " " * max(0, self.address_size - 2 - len(result)) + "0x" + result
 
     def render_header(self, name=None, style=StyleEnum.full, **options):
         """This should be overloaded to return the header Cell.
@@ -812,11 +813,13 @@ class Cell(BaseCell):
                 escape_seq = ""
                 if fg:
                     fg_id = self.colorizer.COLOR_MAP[fg]
-                    escape_seq += self.colorizer.tparm(["setaf", "setf"], fg_id)
+                    escape_seq += self.colorizer.tparm(
+                        ["setaf", "setf"], fg_id)
 
                 if bg:
                     bg_id = self.colorizer.COLOR_MAP[bg]
-                    escape_seq += self.colorizer.tparm(["setab", "setb"], bg_id)
+                    escape_seq += self.colorizer.tparm(
+                        ["setab", "setb"], bg_id)
 
                 insert_at = start - offset + adjust
                 line = line[:insert_at] + escape_seq + line[insert_at:]

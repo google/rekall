@@ -37,7 +37,6 @@ class BaseObjectTextRenderer(text.TextObjectRenderer):
         result = text.Cell(unicode(target.v()), **options)
         return result
 
-
     def render_value(self, target, **_):
         return text.Cell(unicode(target.v()))
 

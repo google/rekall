@@ -34,6 +34,19 @@ class DarwinOnlyMixin(object):
                 plugin.Command.is_active(session))
 
 
+class ListInterfaces(DarwinOnlyMixin, entities.EntityFind):
+    name = "ifconfig"
+    search = "has component NetworkInterface"
+
+    columns=["NetworkInterface/name",
+             "NetworkInterface/endpoints->OSILayer2/address",
+             "NetworkInterface/endpoints->OSILayer3/address"]
+
+    sort = ["Endpoint/owner->NetworkInterface/name",
+            "OSILayer3/protocol",
+            "OSILayer3/address"]
+
+
 class ListZones(entities.EntityFind):
     name = "zones"
     search = "has component AllocationZone"
@@ -78,12 +91,24 @@ class IPNetstat(entities.EntityFind):
     __name = "ipnetstat"
     description = "IP Connections"
     width = 150
-    search = "OSILayer3/protocol in (IPv4, IPv6) and has component OSILayer4"
-    columns = ["OSILayer3/protocol", "OSILayer4/protocol",
-               "OSILayer3/src_addr", "OSILayer4/src_port",
-               "OSILayer3/dst_addr", "OSILayer4/dst_port",
-               "OSILayer4/state", "Connection/handles->Handle/process"]
-    sort = ["OSILayer3/protocol", "OSILayer4/protocol", "OSILayer3/src_addr"]
+    search = "Connection/protocol_family in ('INET', 'INET6')"
+    columns = [dict(name="protocol",
+                    fn=lambda e: "/".join([
+                        e["Connection/source->OSILayer3/protocol"],
+                        e["Connection/source->OSILayer4/protocol"]])),
+               dict(attribute="Connection/source->OSILayer3/address",
+                    name="src address"),
+               dict(attribute="Connection/source->OSILayer4/port",
+                    name="src port"),
+               dict(attribute="Connection/destination->OSILayer3/address",
+                    name="dst address"),
+               dict(attribute="Connection/destination->OSILayer4/port",
+                    name="dst port"),
+               "Connection/source->OSILayer4/state",
+               "Connection/handles->Handle/process"]
+    sort = ["Connection/source->OSILayer3/protocol",
+            "Connection/source->OSILayer4/protocol",
+            "Connection/source->OSILayer3/address"]
 
 
 class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):

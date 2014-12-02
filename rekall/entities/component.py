@@ -120,6 +120,7 @@ class Component(object):
     component_attributes = None
     component_name = None
     component_docstring = None
+    component_helpstring = None
 
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry
@@ -219,8 +220,19 @@ class Component(object):
 
 
 # pylint: disable=protected-access
-def DeclareComponent(name, docstring, *attributes):
-    """Defines a new component."""
+def DeclareComponent(name, docstring, *attributes, **kwargs):
+    """Declare a new component by subclassing the Component class.
+
+    Arguments:
+        name: Name of the new component.
+        docstring: Short (one sentence) description.
+        helpstring: Arbitrary discussion of the component and its usage.
+        *attributes: Instances of Attribute, describing the data model.
+
+    Returns:
+        A subclass of Component.
+    """
+    helpstring = kwargs.pop("helpstring", None)
     fields = []
     indexed_attributes = {}
     for attribute in attributes:
@@ -234,7 +246,8 @@ def DeclareComponent(name, docstring, *attributes):
                  component_fields=fields,
                  component_attributes=indexed_attributes,
                  component_name=name,
-                 component_docstring=docstring)
+                 component_docstring=docstring,
+                 component_helpstring=helpstring)
 
     for idx, field in enumerate(fields):
         props[field.name] = property(operator.itemgetter(idx))
