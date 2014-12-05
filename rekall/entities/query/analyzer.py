@@ -36,11 +36,11 @@ class Dependency(object):
     certain component (e.g. to run 'Process/pid is 5') the Process component
     definitely needs to be collected, or on collectors that also happen to
     always set a certain attribute to a specific value (e.g.
-    'MemoryObject/type is vnode' will depend on collectors that declare they
+    'MemoryObject/type is 'vnode'' will depend on collectors that declare they
     produce MemoryObject and set the type to 'vnode').
 
     The latter can also be used to exclude collectors from running - for
-    example, if the query is for 'MemoryObject/type is vnode' then there is no
+    example, if the query is for 'MemoryObject/type is 'vnode'' then there is no
     point running a collector that declares it will produce MemoryObject but
     always set type to 'socket'.
 
@@ -217,7 +217,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
     do better and return more granular dependencies.
 
     2) A query may depend on a specific attribute being set to a constant value
-    (a Literal). For example, 'MemoryObject/type is socket' will depend on
+    (a Literal). For example, 'MemoryObject/type is 'socket'' will depend on
     collectors that either just declare that they collect MemoryObject, but
     collectors that explicitly declare they set MemoryObject/type to values
     other than 'socket' will be excluded.
@@ -295,7 +295,8 @@ class QueryAnalyzer(visitor.QueryVisitor):
 
     def visit_Complement(self, expr):
         # If we're dealing with simple dependencies, we can just flip the
-        # flag from inclusion to exclusion (e.g. MemoryObject/type != socket).
+        # flag from inclusion to exclusion (e.g. MemoryObject/type !=
+        # 'socket').
         value = self.visit(expr.value)
         if isinstance(value, SimpleDependency):
             value.flag = not value.flag

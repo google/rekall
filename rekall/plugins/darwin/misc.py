@@ -18,6 +18,7 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
+
 import re
 
 from rekall.plugins.darwin import common

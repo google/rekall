@@ -1,11 +1,10 @@
-import logging
-import unittest
+from rekall import testlib
 
 from rekall.entities.query import query as entity_query
 from rekall.entities.query import validator
 
 
-class ValidatorTest(unittest.TestCase):
+class ValidatorTest(testlib.RekallBaseUnitTestCase):
     def assertQueryRaises(self, query):
         q = entity_query.Query(query)
         self.assertRaises(validator.ValidationError,
@@ -36,7 +35,12 @@ class ValidatorTest(unittest.TestCase):
         query = "Process/pid == 1 and Process/command == 'foo'"
         self.assertQueryPasses(query)
 
+    def testUnquoted(self):
+        query = "Process/command is foo"
+        self.assertQueryRaises(query)
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()
+        query = "Process/command is Process"
+        self.assertQueryRaises(query)
+
+        query = "Process/command is 'Process'"
+        self.assertQueryPasses(query)

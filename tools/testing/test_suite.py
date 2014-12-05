@@ -142,7 +142,7 @@ from rekall.ui import text
 # Bring in all the tests and all the plugins
 # pylint: disable=unused-import
 from rekall import plugins
-from rekall.plugins import tests
+from rekall import tests
 # pylint: enable=unused-import
 
 

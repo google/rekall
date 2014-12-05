@@ -224,6 +224,27 @@ class Entity(object):
 
         return result
 
+    @classmethod
+    def fromdict(cls, attributes, manager=None):
+        """Rebuilds the entity from a dict of attributes.
+
+        Values will be coerced into their proper types automatically.
+        """
+        component_dicts = {}
+
+        for attribute, value in attributes.iteritems():
+            component_name, field_name = attribute.split("/", 1)
+            component_dicts.setdefault(component_name, {})
+            component_dicts[component_name][field_name] = value
+
+        components = {}
+        for component_name, kwargs in component_dicts.iteritems():
+            component_cls = cls.reflect_component(component_name)
+            components[component_name] = component_cls(**kwargs)
+
+        return cls(entity_component.CONTAINER_PROTOTYPE._replace(**components),
+                   manager)
+
     def get_referencing_entities(self, key, complete=True):
         """Finds entities that reference this entity by its identity.
 
@@ -421,7 +442,12 @@ class Entity(object):
         # the last one.
         attribute_name = path.split("->")[-1]
 
-        component, key = attribute_name.split("/", 1)
+        try:
+            component, key = attribute_name.split("/", 1)
+        except ValueError:
+            # Doesn't include a slash - it's a component maybe?
+            return cls.reflect_component(path)
+
         component_cls = cls.reflect_component(component)
         if not component_cls:
             return
@@ -511,7 +537,7 @@ class IdentityDescriptor(types.TypeDescriptor):
             raise TypeError(
                 ("Object passed to coerce is not an entity. Additionally, "
                  "calling repr(object) raised %s.") % e)
-        
+
         raise TypeError("%s is not an Entity." % value_repr)
 
     def __repr__(self):

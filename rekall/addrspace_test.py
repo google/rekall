@@ -1,8 +1,8 @@
 import logging
-import unittest
 
 from rekall import addrspace
 from rekall import obj
+from rekall import testlib
 from rekall import session
 
 
@@ -15,7 +15,7 @@ class CustomRunsAddressSpace(addrspace.RunBasedAddressSpace):
             self.runs.insert(i)
 
 
-class RunBasedTest(unittest.TestCase):
+class RunBasedTest(testlib.RekallBaseUnitTestCase):
     """Test the RunBasedAddressSpace implementation."""
 
     def setUp(self):

@@ -32,14 +32,14 @@ from rekall.entities.query import expression as expr
 from rekall.entities.query import query as entity_query
 
 
-class TestEntityFind(testlib.SimpleTestCase):
+class TestEntityFind(testlib.SortedComparison):
     PARAMETERS = dict(
-        commandline='find "Process/command =~ %(process)s"',
+        commandline="find \"Process/command =~ '%(process)s'\"",
         process="lsass")
 
 
 class TestEntityAnalyze(testlib.SortedComparison):
-    PARAMETERS = dict(commandline='analyze "Process/command =~ lsass"')
+    PARAMETERS = dict(commandline="analyze \"Process/command =~ 'lsass'\"")
 
 
 class EntityAnalyze(plugin.ProfileCommand):

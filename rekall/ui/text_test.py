@@ -1,10 +1,11 @@
 import logging
-import unittest
+
+from rekall import testlib
 
 from rekall.ui import text
 
 
-class CellTest(unittest.TestCase):
+class CellTest(testlib.RekallBaseUnitTestCase):
     
     def testNesting(self):
         c1 = text.Cell(value="Hello, world!", width=6, align="r")

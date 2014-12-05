@@ -114,7 +114,7 @@ class IPNetstat(entities.EntityFind):
 class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):
     __name = "unix_sockets"
     description = "UNIX sockets"
-    search = "Connection/protocol_family is UNIX"
+    search = "Connection/protocol_family is 'UNIX'"
     columns = ["Socket/type", "Socket/address", "Socket/connected",
                "Socket/file", "Connection/handles->Handle/process"]
     sort = ["Socket/address"]

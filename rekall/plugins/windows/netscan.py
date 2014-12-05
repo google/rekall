@@ -155,8 +155,7 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             if tcpentry.State.v() not in tcpip_vtypes.TCP_STATE_ENUM:
                 continue
 
-            if (not owner or owner.UniqueProcessId == 0 or
-                owner.UniqueProcessId > 65535) and not local_addr:
+            if not owner and not local_addr:
                 continue
 
             yield (tcpentry, proto, local_addr, tcpentry.LocalPort,
@@ -189,11 +188,11 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
         renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
                                ("Proto", "protocol", "<8"),
                                ("Local Address", "local_addr", "<20"),
-                               ("Remote Address", "remote_addr", "<20"),
+                               ("Remote Address", "remote_addr", "30"),
                                ("State", "state", "<16"),
                                ("Pid", "pid", ">5"),
                                ("Owner", "owner", "<14"),
-                               ("Created", "created", "<7")])
+                               ("Created", "created", "")])
 
         for (net_object, proto, laddr, lport, raddr, rport,
              state) in self.generate_hits():

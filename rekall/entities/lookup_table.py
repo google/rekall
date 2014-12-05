@@ -134,7 +134,7 @@ class EntityQuerySearch(visitor.QueryVisitor):
         seed = self.visit(expr.context)
         return self._slow_solve(expr, seed)
 
-    def visit_LetAll(self, expr):
+    def visit_LetEach(self, expr):
         return self._slow_Let(expr)
 
     def visit_LetAny(self, expr):

@@ -67,7 +67,7 @@ class DarwinIfnetCollector(common.DarwinEntityCollector):
 
 class DarwinNetworkInterfaceParser(common.DarwinEntityCollector):
 
-    collect_args = dict(ifnets="MemoryObject/type is ifnet")
+    collect_args = dict(ifnets="MemoryObject/type is 'ifnet'")
     outputs = ["NetworkInterface", "Endpoint/local=True", "OSILayer2",
                "OSILayer3"]
 

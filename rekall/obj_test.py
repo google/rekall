@@ -1,5 +1,4 @@
 import logging
-import unittest
 
 from rekall import addrspace
 from rekall import obj
@@ -7,9 +6,10 @@ from rekall import obj
 # Import and register all the plugins.
 from rekall import plugins # pylint: disable=unused-import
 from rekall import session
+from rekall import testlib
 
 
-class ProfileTest(unittest.TestCase):
+class ProfileTest(testlib.RekallBaseUnitTestCase):
     """Test the profile implementation."""
 
     def setUp(self):
@@ -135,22 +135,16 @@ class ProfileTest(unittest.TestCase):
         # And its pointing to.
         self.assertEqual(ptr2.v(), 0x33445566)
 
-        # FIXME: These three asserts fail because the pointer dereferences just
-        # fine. Investigate whether this is a regression or intended behavior.
-        
-        # Alas it can't be dereferenced.
-        # self.assertEqual(type(ptr2.dereference()), obj.NoneObject)
-        # self.assert_("invalid" in ptr2.dereference().reason)
+        # The above makes the pointer invalid, so dereferencing it returns a 0.
+        # (This is because there is no good way to validate pages except at
+        # system runtime.)
+        self.assertEqual(ptr2.dereference(), 0)
 
-        # This is also invalid.
-        # self.assertEqual(type(test.invalid.dereference()), obj.NoneObject)
+        # This is also invalid and will return a zero.
+        self.assertEqual(test.invalid.dereference(), 0)
 
         # Test nonzero.
         self.assert_(test.ptr32)
-
-        # Note this pointer is actually zero, but it is actually valid in this
-        # AS.
-        self.assert_(test.ptr32 + 1)
 
         # Now dereference a struct.
         ptr3 = test.next
@@ -215,8 +209,8 @@ class ProfileTest(unittest.TestCase):
         self.assertEqual(test[0], 0x64636261)
         self.assertEqual(test[1], 0x68676665)
 
-        # Can read past the end of the array but this returns a None object.
-        self.assertEqual(test[100], None)
+        # Can read past the end of the array but this returns all zeros.
+        self.assertEqual(test[100], 0)
 
 
 if __name__ == "__main__":

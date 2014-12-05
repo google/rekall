@@ -112,6 +112,18 @@ class Alias(Attribute):
         super(Alias, self).__init__(*args, **kwargs)
 
 
+class ComponentDescriptor(types.TypeDescriptor):
+    """Describes a component."""
+
+    type_name = "Component"
+
+    def coerce(self, value):
+        if not isinstance(value, Component):
+            raise TypeError("%s is not a component." % repr(value))
+
+        return value
+
+
 class Component(object):
     """A high-performance container similar to namedtuple."""
 
@@ -124,6 +136,8 @@ class Component(object):
 
     __abstract = True
     __metaclass__ = registry.MetaclassRegistry
+
+    typedesc = ComponentDescriptor()
 
     def __init__(self, *args, **kwargs):
         self._set_values(args, kwargs)

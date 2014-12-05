@@ -1,10 +1,9 @@
-import logging
-import unittest
+from rekall import testlib
 
 from rekall.entities.query import query as entity_query
 
 
-class MatcherTest(unittest.TestCase):
+class MatcherTest(testlib.RekallBaseUnitTestCase):
     def assertQueryMatches(self, query, bindings):
         m = entity_query.Query(query).execute("QueryMatcher", "match",
                                               bindings=bindings)
@@ -22,9 +21,5 @@ class MatcherTest(unittest.TestCase):
         self.assertQueryMatches(query, bindings)
 
         query = ("any Process/parent matches (Process/pid is 1 or "
-                 "Process/command is foo)")
+                 "Process/command is 'foo')")
         self.assertQueryMatches(query, bindings)
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()

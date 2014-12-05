@@ -706,7 +706,7 @@ class Pointer(NativeType):
             return False
 
     def is_valid(self):
-        """ Returns if what we are pointing to is valid """
+        """Returns if what we are pointing to is valid """
         # Null pointers are invalid.
         return self.v() != 0
 

@@ -57,8 +57,10 @@ def NegateValue(*args, **kwargs):
 
 
 def FlattenComponentLiteral(*args, **kwargs):
-    if not isinstance(args[0], expression.Literal):
-        raise ValueError("'has component' must be followed by a component.")
+    if not isinstance(args[0], expression.Binding):
+        raise ValueError(
+            "'has component' must be followed by a component. Got %s." % (
+                args[0]))
     return expression.ComponentLiteral(args[0].value, **kwargs)
 
 
@@ -227,7 +229,7 @@ class Tokenizer(object):
                 "emit", None),
         Pattern("comma", "INITIAL", r",",
                 "emit", None),
-        Pattern("literal", "INITIAL", r"([a-z_\.][a-z_\.0-9]+)", "emit", None),
+        Pattern("symbol", "INITIAL", r"([a-z_\.][a-z_\.0-9]+)", "emit", None),
         Pattern("param", "INITIAL", r"\{([a-z_0-9]*)\}", "emit_param", None),
 
         # Numeric literals

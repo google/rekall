@@ -665,8 +665,16 @@ class _EPROCESS(obj.Struct):
 
     def is_valid(self):
         """Validate the _EPROCESS."""
+        pid = self.pid
+
         # PID must be in a reasonable range.
-        if self.pid < 0 or self.pid > 0xFFFF:
+        if pid < 0 or pid > 0xFFFF:
+            return False
+
+        # Since we're not validating memory pages anymore it's important
+        # to weed out zero'd structs.
+        if ((pid == 0 or self.CreateTime == 0) and
+                self.ImageFileName not in ("Idle", "System")):
             return False
 
         # Dispatch header must be for a process object.

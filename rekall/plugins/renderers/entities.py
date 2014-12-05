@@ -104,7 +104,7 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
             else:
                 raise ValueError(
                     "Column must be dict or a basestring. Got %s." % (
-                    type(column)))
+                        type(column)))
 
             if not column_getter:
                 if not column_attr:

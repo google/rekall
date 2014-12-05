@@ -36,6 +36,10 @@ class DarwinProcParentInferor(common.DarwinEntityCollector):
     collect_args = dict(processes="has component Process")
     complete_input = True
 
+    @classmethod
+    def is_active(cls, _):
+        return False
+
     def collect(self, hint, processes):
         by_pid = {}
         to_decorate = []

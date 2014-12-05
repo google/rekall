@@ -1,6 +1,3 @@
-import logging
-import unittest
-
 from rekall import testlib
 from rekall.entities.query import efilter
 from rekall.entities.query import expression
@@ -73,7 +70,7 @@ class TokenizerTest(testlib.RekallBaseUnitTestCase):
         self.assertEquals(tokenizer.next_token().value, 10)
 
 
-class ParserTest(unittest.TestCase):
+class ParserTest(testlib.RekallBaseUnitTestCase):
     def assertQueryMatches(self, query, expected, params=None):
         parser = efilter.Parser(query, params=params)
         actual = parser.parse()
@@ -288,7 +285,7 @@ class ParserTest(unittest.TestCase):
 
     def testParenParsing(self):
         # This query should fail on the lose 'name' token:
-        query = ("Buffer/purpose is zones and any Buffer/context matches"
+        query = ("Buffer/purpose is 'zones' and any Buffer/context matches"
                  " (Allocation/zone name is {zone_name})")
         params = dict(zone_name="foo")
         parser = efilter.Parser(query, params=params)
@@ -300,8 +297,3 @@ class ParserTest(unittest.TestCase):
     def testMultipleLiterals(self):
         query = "Process/binding foo foo bar 15"
         self.assertQueryRaises(query)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()

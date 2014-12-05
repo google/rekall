@@ -70,6 +70,10 @@ class Lsof(common.LinProcessFilter):
 
 
 class TestLsof(testlib.SimpleTestCase):
+    @classmethod
+    def is_active(cls, session):
+        return Lsof.is_active(session)
+
     PARAMETERS = dict(
         commandline="lsof --proc_regex %(proc_name)s",
         proc_name="bash"
