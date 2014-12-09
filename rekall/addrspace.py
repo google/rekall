@@ -518,7 +518,7 @@ class MultiRunBasedAddressSpace(PagedReader):
             # run and return the number of bytes we need to pad until then.
             virt_addr, _, _, _ = self.runs.find_ge(addr)
 
-            return "\x00" * (virt_addr - addr)
+            return "\x00" * min(length, virt_addr - addr)
 
         except ValueError:
             # If we get here we dont have a next valid range.

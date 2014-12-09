@@ -355,7 +355,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         # Multiple entries of choices (requires a choices paramter).
         elif arg_type == "ChoiceArray":
             kwargs["nargs"] = "+" if required else "*"
-            kwargs["action"] = ChoiceArrayParser
+            kwargs["choices"] = list(kwargs["choices"])
 
         # Skip option if not critical.
         critical_arg = kwargs.pop("critical", False)
@@ -480,21 +480,6 @@ class ArrayIntParser(IntParser):
             result.extend([self.Validate(x) for x in value.split(",")])
 
         setattr(namespace, self.dest, result or None)
-
-
-class ChoiceArrayParser(ArrayIntParser):
-
-    def __init__(self, *args, **kwargs):
-        self._choices = kwargs.pop("choices", [])
-        super(ChoiceArrayParser, self).__init__(*args, **kwargs)
-
-    def Validate(self, value):
-        if value not in self._choices:
-            raise argparse.ArgumentError(
-                None, "Choice %r not valid. Valid choices are %s" % (
-                    value, self._choices))
-
-        return value
 
 
 class ArrayStringParser(argparse.Action):

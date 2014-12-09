@@ -102,10 +102,11 @@ class DetectionMethod(object):
         """
 
 
+# By default use all detection modules.
 config.DeclareOption("autodetect", group="Autodetection Overrides",
-                     type="ChoiceArray",
+                     type="ChoiceArray", required=True,
                      choices=utils.JITIterator(DetectionMethod),
-                     default=["nt_index", "osx", "pe", "rsds", "linux"],
+                     default=utils.JITIterator(DetectionMethod),
                      help="Autodetection method.")
 
 config.DeclareOption("autodetect_threshold", default=1.0,

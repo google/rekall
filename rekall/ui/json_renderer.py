@@ -615,15 +615,12 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
         if super(JsonRenderer, self).RenderProgress(**kwargs):
-            self.last_spin += 1
             if not message:
                 return
 
             # Only expand variables when we need to.
             if "%(" in message:
-                kwargs["spinner"] = self.spinner[
-                    self.last_spin % len(self.spinner)]
-
+                kwargs["spinner"] = ""
                 message = message % kwargs
             elif args:
                 format_args = []

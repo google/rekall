@@ -37,7 +37,8 @@ INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
 PAGE_SHIFT = 12
 
 
-class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
+class Win32FileAddressSpace(addrspace.CachingAddressSpaceMixIn,
+                            addrspace.RunBasedAddressSpace):
     """ This is a direct file AS for use in windows.
 
     In windows, in order to open raw devices we need to use the win32 apis. This
@@ -54,12 +55,13 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
     def __init__(self, base=None, filename=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
         super(Win32FileAddressSpace, self).__init__(**kwargs)
+        self.phys_base = self
 
         path = filename or (self.session and self.session.GetParameter(
             "filename"))
 
         self.as_assert(path, "Filename must be specified in session (e.g. "
-                       "session.GetParameter('filename', 'MyFile.raw').")
+                       "session.SetParameter('filename', 'MyFile.raw').")
 
         self.fname = path
 
@@ -71,7 +73,10 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             except IOError:
                 self._OpenFileForRead(path)
 
-            self.ParseMemoryRuns()
+            try:
+                self.ParseMemoryRuns()
+            except Exception:
+                self.runs.insert((0, 0, 2**63))
 
         else:
             # The file is just a regular file, we open for reading.
@@ -83,11 +88,13 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
             self.fhandle = win32file.CreateFile(
                 path,
                 win32file.GENERIC_READ,
-                win32file.FILE_SHARE_READ,
+                win32file.FILE_SHARE_READ | win32file.FILE_SHARE_WRITE,
                 None,
                 win32file.OPEN_EXISTING,
                 win32file.FILE_ATTRIBUTE_NORMAL,
                 None)
+            self.write_enabled = False
+
         except pywintypes.error as e:
             raise IOError("Unable to open %s: %s" % (path, e))
 
@@ -101,6 +108,8 @@ class Win32FileAddressSpace(addrspace.RunBasedAddressSpace):
                 win32file.OPEN_EXISTING,
                 win32file.FILE_ATTRIBUTE_NORMAL,
                 None)
+            self.write_enabled = True
+
         except pywintypes.error as e:
             raise IOError("Unable to open %s: %s" % (path, e))
 

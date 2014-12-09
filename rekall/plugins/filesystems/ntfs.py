@@ -50,6 +50,7 @@ from rekall import obj
 from rekall import testlib
 from rekall import utils
 from rekall.plugins import core
+from rekall.plugins import guess_profile
 from rekall.plugins.filesystems import lznt1
 from rekall.plugins.overlays import basic
 
@@ -69,6 +70,23 @@ class ParseError(Error):
 
 class NTFSParseError(ParseError):
     pass
+
+
+class NTFSDetector(guess_profile.DetectionMethod):
+    name = "ntfs"
+
+    def Offsets(self):
+        return [0]
+
+    def DetectFromHit(self, hit, _, address_space):
+        ntfs_profile = self.session.LoadProfile("ntfs")
+        try:
+            ntfs = NTFS(address_space=address_space, session=self.session)
+            self.session.SetParameter("ntfs", ntfs)
+
+            return ntfs_profile
+        except NTFSParseError:
+            return
 
 
 FILE_FLAGS = dict(
@@ -594,10 +612,9 @@ class MFT_ENTRY(obj.Struct):
         for attribute in self.attributes:
             if (attribute.type in ("$INDEX_ALLOCATION", "$INDEX_ROOT") and
                     attribute.name == "$I30"):
-                decoded_attribute = attribute.DecodeAttribute()
-
-                for x in decoded_attribute.node.Entries():
-                    yield x
+                for index_header in attribute.DecodeAttribute():
+                    for x in index_header.node.Entries():
+                        yield x
 
     def open_file(self):
         """Returns an address space which maps the content of the file's data.
@@ -788,12 +805,17 @@ class NTFS_ATTRIBUTE(obj.Struct):
             return list(self.RunList())
 
         elif self.type == "$INDEX_ALLOCATION":
-            return self.obj_profile.STANDARD_INDEX_HEADER(
-                offset=0, vm=self.data, context=self.obj_context)
+            result = []
+            for i in xrange(0, self.size, 0x1000):
+                result.append(
+                    self.obj_profile.STANDARD_INDEX_HEADER(
+                        offset=i, vm=self.data, context=self.obj_context))
+
+            return result
 
         elif self.type == "$INDEX_ROOT":
-            return self.obj_profile.INDEX_ROOT(
-                offset=0, vm=self.data, context=self.obj_context)
+            return [self.obj_profile.INDEX_ROOT(
+                offset=0, vm=self.data, context=self.obj_context)]
 
         elif self.type == "$ATTRIBUTE_LIST":
             result = self.obj_profile.ListArray(
@@ -1080,8 +1102,8 @@ class IStat(MFTPluginsMixin, NTFSPlugins):
                 renderer.format("\nClusters ({0:d}-{1:d}):\n",
                                 attribute.type, attribute.attribute_id)
                 renderer.table_header([
-                    ("c%s" % x, "c%s" % x, "8") for x in range(8)
-                ], suppress_headers=True)
+                    ("c%s" % x, "c%s" % x, "25") for x in range(4)
+                ], suppress_headers=True, nowrap=True)
 
                 blocks = attribute.DecodeAttribute()
                 for i in range(0, len(blocks), 8):

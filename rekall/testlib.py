@@ -139,6 +139,12 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                     if v is True:
                         baseline_commandline = "%s %s" % (
                             k, baseline_commandline)
+
+                    elif isinstance(v, list):
+                        baseline_commandline = "%s %s %s" % (
+                            k, " ".join("'%s'" % x for x in v),
+                            baseline_commandline)
+
                     else:
                         baseline_commandline = "%s '%s' %s" % (
                             k, v, baseline_commandline)
@@ -314,7 +320,14 @@ class HashChecker(SimpleTestCase):
         for filename in os.listdir(self.temp_directory):
             if not filename.startswith("."):
                 with open(os.path.join(self.temp_directory, filename)) as fd:
-                    md5 = hashlib.md5(fd.read())
+                    md5 = hashlib.md5()
+                    while 1:
+                        data = fd.read(1024 * 1024)
+                        if not data:
+                            break
+
+                        md5.update(data)
+
                     baseline['hashes'][filename] = md5.hexdigest()
 
         return baseline

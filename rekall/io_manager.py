@@ -245,7 +245,7 @@ class ZipFileManager(IOManager):
                     "Zip files must have the .zip extensions.")
 
         self.fd = fd
-        if urn:
+        if urn is not None:
             self.file_name = os.path.normpath(os.path.abspath(urn))
             self.canonical_name = os.path.splitext(os.path.basename(urn))[0]
 

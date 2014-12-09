@@ -658,17 +658,19 @@ class Session(object):
         except KeyError:
             pass
 
-        # If the filename is a path we try to open it directly:
-        if os.access(filename, os.R_OK):
-            container = io_manager.Factory(os.path.dirname(filename))
+        result = None
+
+        try:
+            # If the filename is a path we try to open it directly:
+            container = io_manager.DirectoryIOManager(os.path.dirname(filename))
             result = obj.Profile.LoadProfileFromData(
                 container.GetData(os.path.basename(filename)),
                 self, name=canonical_name)
+        except IOError:
+            pass
 
         # Traverse the profile path until one works.
-        else:
-            result = None
-
+        if not result:
             # The profile path is specified in search order.
             profile_path = self.state.Get("profile_path") or []
 
