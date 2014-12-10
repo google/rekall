@@ -697,25 +697,23 @@ class Session(object):
 
                 try:
                     manager = io_manager.Factory(path)
-                    try:
-                        # The inventory allows us to fail fetching the profile
-                        # quickly - without making the round trip.
-                        if path not in self.inventories:
-                            # Fetch the profile inventory.
-                            self.inventories[path] = manager.GetData(
-                                "inventory")
 
-                        inventory = self.inventories[path]["$INVENTORY"]
-                        if (filename not in inventory and
-                                filename + ".gz" not in inventory):
-                            logging.debug(
-                                "Skipped profile %s from %s (Not in inventory)",
-                                filename, path)
-                            continue
+                    # The inventory allows us to fail fetching the profile
+                    # quickly - without making the round trip.
+                    if path not in self.inventories:
+                        # Fetch the profile inventory.
+                        self.inventories[path] = manager.GetData(
+                            "inventory")
 
-                    # No inventory in that repository - just try anyway.
-                    except IOError:
-                        pass
+                    inventory = self.inventories[path]["$INVENTORY"]
+                    # If inventory is there, but file is not in the
+                    # inventory - skip it
+                    if (inventory and filename not in inventory and
+                            filename + ".gz" not in inventory):
+                        logging.debug(
+                            "Skipped profile %s from %s (Not in inventory)",
+                            filename, path)
+                        continue
 
                     result = obj.Profile.LoadProfileFromData(
                         manager.GetData(filename), self,
