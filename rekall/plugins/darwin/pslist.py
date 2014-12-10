@@ -78,9 +78,8 @@ class DawrinPSTree(common.DarwinPlugin):
         ])
 
         # Find the kernel process.
-        pslist = list(self.session.plugins.pslist(
-            proc_regex="kernel_task").filter_processes())
-        root_proc = pslist[0]
+        root_proc = self.session.entities.find_first(
+            "Process/pid is 0")["MemoryObject/base_object"]
 
         for proc, level in self.recurse_proc(root_proc, 0):
             renderer.table_row(

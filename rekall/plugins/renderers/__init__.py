@@ -6,7 +6,6 @@ from rekall.plugins.renderers import data_export
 from rekall.plugins.renderers import entities
 from rekall.plugins.renderers import json_storage
 from rekall.plugins.renderers import virtualization
-from rekall.plugins.renderers import visual_aides
 from rekall.plugins.renderers import windows
 
 try:

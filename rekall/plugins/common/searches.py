@@ -87,6 +87,24 @@ class LSOF(DarwinOnlyMixin, entities.EntityFind):
     sort = ["Handle/process->Process/pid", "Handle/fd"]
 
 
+class DarwinListFiles(DarwinOnlyMixin, entities.EntityFind):
+    __name = "list_files"
+    description = "All Files"
+    width = 110
+    search = "has component File"
+    columns = [dict(width=10, attribute="File/type"),
+               dict(name="Sources",
+                    fn=lambda e: ",".join(sorted(e["Entity/collectors"])),
+                    width=30),
+               dict(name="Created", width=15,
+                    attribute="Timestamps/created_at"),
+               dict(name="Modified", width=15,
+                    attribute="Timestamps/modified_at"),
+               dict(attribute="File/path", width=40)]
+    sort = ["Timestamps/created_at", "Timestamps/modified_at"]
+
+
+
 class IPNetstat(entities.EntityFind):
     __name = "ipnetstat"
     description = "IP Connections"
