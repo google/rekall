@@ -61,7 +61,7 @@ class Query_TextObjectRenderer(text.TextObjectRenderer):
 
 
 class Identity_TextObjectRenderer(text.TextObjectRenderer):
-    renderes_type = "Identity"
+    renders_type = "Identity"
     renderers = ["TextRenderer", "TestRenderer"]
 
     def render_row(self, target, **_):
@@ -147,7 +147,5 @@ class Entity_TextObjectRenderer(text.TextObjectRenderer):
         if self.style == "full":
             values = [getter(target) for getter in self.column_getters]
             return self.table.get_row(*values)
-        elif self.style == "compact":
-            return text.Cell("%s: %s" % (target.kind, target.name))
-        elif self.style == "value":
+        elif self.style in ("compact", "value"):
             return text.Cell(target.name)

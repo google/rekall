@@ -36,21 +36,33 @@ class DarwinProcParentInferor(common.DarwinEntityCollector):
     collect_args = dict(processes="has component Process")
     complete_input = True
 
-    @classmethod
-    def is_active(cls, _):
-        return False
-
     def collect(self, hint, processes):
         by_pid = {}
         to_decorate = []
         for process in processes:
-            by_pid[process["Process/pid"]] = process
+            pid = process["Process/pid"]
+            collision = by_pid.get(pid)
+            if collision:
+                # Collision on PIDs. Keep the later process, since the earlier
+                # one is definitely dead.
+                start_time = process["Timestamps/created_at"]
+                if start_time < collision["Timestamps/created_at"]:
+                    # Keep the collision.
+                    continue
+
+            by_pid[pid] = process
             to_decorate.append(process)
 
         for process in to_decorate:
             ppid = process["MemoryObject/base_object"].p_ppid
             parent = by_pid.get(ppid, None)
             if parent is None:
+                continue
+
+            parent_start = parent["Timestamps/created_at"]
+            process_start = process["Timestamps/created_at"]
+
+            if parent_start > process_start:
                 continue
 
             yield [process.identity,

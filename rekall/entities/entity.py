@@ -109,9 +109,12 @@ class Entity(object):
     http://en.wikipedia.org/wiki/Entity_component_system
     """
 
+    typedesc = None
+
     def __init__(self, components, entity_manager=None):
         self.components = components
         self.manager = entity_manager
+        self.typedesc = EntityDescriptor()
 
     @property
     def identity(self):
@@ -138,7 +141,7 @@ class Entity(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def strict_superset(self, other):
+    def issuperset(self, other):
         """Is this entity a strict superset of other?"""
         # Compare both component containers, but skip the Entity component.
         other_components = other.components[1:]
@@ -147,7 +150,7 @@ class Entity(object):
             if other_comp is None:
                 continue
 
-            if component is None or not component.strict_superset(other_comp):
+            if component is None or not component.issuperset(other_comp):
                 return False
 
         return True
@@ -296,45 +299,6 @@ class Entity(object):
         except AttributeError:
             return component.reflect_attribute(attribute)
 
-    def get_variants(self, key, complete=False):
-        """Yields all known values of key.
-
-        Arguments:
-            key: The path to the attribute we want. For example: "Process/pid".
-
-        Yields:
-            All known values of the key. This is usually exactly one value, but
-            can be more, if the key is a superposition.
-        """
-        # The & sigil denotes reverse lookup.
-        if key.startswith("&"):
-            for entity in self.get_referencing_entities(
-                    key[1:], complete=complete):
-                yield entity
-
-            return
-
-        # The raw result could be None, a superposition or just a scalar.
-        values = self.get_raw(key)
-
-        if values is None:
-            return
-
-        if isinstance(values, superposition.Superposition):
-            values = values.variants
-        elif isinstance(values, entity_component.Alias):
-            values = self.get_variants(values.alias, complete)
-        else:
-            values = (values,)
-
-        for value in values:
-            if isinstance(value, identity.Identity):
-                for entity in self.manager.find_by_identity(
-                        value, complete=complete):
-                    yield entity
-            else:
-                yield value
-
     def get(self, key, complete=False):
         """Returns value of the key, or a superposition thereof.
 
@@ -423,14 +387,44 @@ class Entity(object):
         if "->" in key:
             # This works recursively.
             key, rest = key.split("->", 1)
-            return self[key][rest]
+            subresult = self.get(key=key, complete=complete)
+            if not subresult:
+                return None
 
-        results = list(self.get_variants(key, complete=complete))
-        if not results:
+            return subresult.get(key=rest, complete=complete)
+
+        # The & sigil denotes reverse lookup.
+        if key.startswith("&"):
+            return superposition.EntitySuperposition.merge_values(
+                variants=self.get_referencing_entities(key[1:],
+                                                       complete=complete),
+                typedesc=self.typedesc)
+
+        # The raw result could be None, a superposition or just a scalar.
+        value = self.get_raw(key)
+        if value is None:
             return obj.NoneObject(
-                "Entity '%s' has no results for key '%s'" % (self, key))
+                "Entity '%s' has no results for key '%s'." % (self, key))
 
-        return superposition.Superposition.merge_scalars(*results)
+        # Redirection.
+        if isinstance(value, entity_component.Alias):
+            return self.get(value.alias, complete=complete)
+
+        typedesc = self.reflect_type(key)
+        if typedesc.type_name == "Entity":
+            return superposition.EntitySuperposition.merge_values(
+                variants=self.manager.find_by_identity(value,
+                                                       complete=complete),
+                typedesc=self.typedesc)
+
+        return value
+
+    def get_variants(self, key, complete=False):
+        value = self.get(key, complete=complete)
+        if isinstance(value, superposition.BaseSuperposition):
+            return iter(value)
+
+        return (value,)
 
     def __getitem__(self, key):
         return self.get(key)
@@ -462,6 +456,18 @@ class Entity(object):
         return attribute
 
     @classmethod
+    def reflect_type(cls, path):
+        typedesc = cls.reflect_attribute(path).typedesc
+        if typedesc.type_name == "Identity":
+            # Return a typedesc that says "Entity" on it when asked. Even
+            # though the attribute contains an Identity, and that's what will
+            # be set by any writers, Entity is what we actually return from
+            # self.get.
+            return EntityDescriptor()
+
+        return typedesc
+
+    @classmethod
     def reflect_component(cls, component):
         return entity_component.Component.classes.get(component, None)
 
@@ -472,10 +478,19 @@ class Entity(object):
         y = other.components
 
         # Skipping component idx 0 (Entity)
-        for idx, component in enumerate(x[1:]):
-            new_components.append(superposition.SuperpositionMergeNamedTuples(
-                component,
-                y[idx + 1]))
+        for idx in xrange(1, len(x)):
+            cx = x[idx]
+            cy = y[idx]
+            if not cx:
+                if cy:
+                    new_components.append(cy)
+                else:
+                    new_components.append(None)
+            else:
+                if cy:
+                    new_components.append(cx.union(cy))
+                else:
+                    new_components.append(cx)
 
         # Entity component is merged using slightly simpler rules.
         component_cls = entity_component.Component.classes["Entity"]
@@ -535,10 +550,37 @@ class IdentityDescriptor(types.TypeDescriptor):
             value_repr = repr(value)
         except Exception as e:
             raise TypeError(
+                ("Object passed to coerce is not an identity. Additionally, "
+                 "calling repr(object) raised %s.") % e)
+
+        raise TypeError("%s is not an identity." % value_repr)
+
+    def __repr__(self):
+        return "Entity (Identity) type"
+
+
+class EntityDescriptor(types.TypeDescriptor):
+    """Actually contains an Entity. Used by superpositions."""
+
+    type_name = "Entity"
+    type_cls = Entity
+
+    def coerce(self, value):
+        if value is None:
+            return None
+
+        if isinstance(value, Entity):
+            return value
+
+        value_repr = None
+        try:
+            value_repr = repr(value)
+        except Exception as e:
+            raise TypeError(
                 ("Object passed to coerce is not an entity. Additionally, "
                  "calling repr(object) raised %s.") % e)
 
-        raise TypeError("%s is not an Entity." % value_repr)
+        raise TypeError("%s is not an entity." % value_repr)
 
     def __repr__(self):
         return "Entity type"

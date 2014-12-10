@@ -272,7 +272,7 @@ class EntityManager(object):
         effect = entity_collector.EffectEnum.Added
         if existing_entities:
             if (len(existing_entities) == 1 and
-                    existing_entities[0].strict_superset(entity)):
+                    existing_entities[0].issuperset(entity)):
                 # No new data, but let's give the collector credit for finding
                 # what we already knew.
                 entity_comp = existing_entities[0].components.Entity
@@ -540,9 +540,10 @@ class EntityManager(object):
         for entity in self.find(query, complete=False):
             _deduplicator(entity)
 
-    def find_first(self, query, complete=True, validate=True):
+    def find_first(self, query, complete=True, validate=True,
+                   query_params=None):
         """Like find, but returns just the first result."""
-        for entity in self.find(query, complete, validate):
+        for entity in self.find(query, complete, validate, query_params):
             return entity
 
     # pylint: disable=protected-access
