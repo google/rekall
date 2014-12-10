@@ -226,6 +226,24 @@ ript>
 </li>
 </ul></li>
 <li>
+   <a href='/docs/Manual/Plugins/Windows/PEAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/AnalyzeStruct.html' class="tree-link "  title="analyze_struct">
+      analyze_struct
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
    </a>
@@ -246,6 +264,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link "  title="certscan">
       certscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CheckPEHooks.html' class="tree-link "  title="check_pehooks">
+      check_pehooks
    </a>
 </li>
 
@@ -322,6 +346,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/DumpFiles.html' class="tree-link "  title="dumpfiles">
+      dumpfiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link "  title="evtlogs">
       evtlogs
    </a>
@@ -340,8 +370,32 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/FLS.html' class="tree-link "  title="fls">
+      fls
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link "  title="handles">
       handles
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EATHooks.html' class="tree-link "  title="hooks_eat">
+      hooks_eat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/IATHooks.html' class="tree-link "  title="hooks_iat">
+      hooks_iat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/InlineHooks.html' class="tree-link "  title="hooks_inline">
+      hooks_inline
    </a>
 </li>
 
@@ -448,6 +502,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Pagefiles.html' class="tree-link "  title="pagefiles">
+      pagefiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -526,6 +586,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link "  title="pte">
       pte
    </a>
@@ -540,6 +606,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link "  title="raw2dmp">
       raw2dmp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Services.html' class="tree-link "  title="services">
+      services
    </a>
 </li>
 
@@ -598,6 +670,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/EnumerateVacbs.html' class="tree-link "  title="vacbs">
+      vacbs
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link "  title="vad">
       vad
    </a>
@@ -612,6 +690,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link "  title="vadinfo">
       vadinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADMap.html' class="tree-link "  title="vadmap">
+      vadmap
    </a>
 </li>
 
@@ -642,6 +726,18 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VtoP.html' class="tree-link "  title="vtop">
       vtop
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32kAutodetect.html' class="tree-link activate_tooltip"  title="win32k_autodetect">
+      win32k_autodete ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 
@@ -726,15 +822,15 @@ to the TCP endpoints.</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">xp</span><span class="o">-</span><span class="n">laptop</span><span class="o">-</span><span class="mi">2005</span><span class="o">-</span><span class="mo">06</span><span class="o">-</span><span class="mf">25.</span><span class="n">img</span> <span class="mi">23</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">24</span><span class="o">&gt;</span> <span class="n">connections</span>
-<span class="o">---------------------------------&gt;</span> <span class="n">connections</span><span class="p">()</span>
-<span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="n">Local</span> <span class="n">Address</span>             <span class="n">Remote</span> <span class="n">Address</span>               <span class="n">Pid</span>
-<span class="o">----------</span> <span class="o">-------------------------</span> <span class="o">-------------------------</span> <span class="o">------</span>
-<span class="mh">0x820869b0</span> <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">1055</span>            <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">1056</span>              <span class="mi">2160</span>
-<span class="mh">0xffa2baf0</span> <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">1056</span>            <span class="mf">127.0.0.1</span><span class="o">:</span><span class="mi">1055</span>              <span class="mi">2160</span>
-<span class="mh">0x8220c008</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1077</span>          <span class="mf">64.62.243.144</span><span class="o">:</span><span class="mi">80</span>            <span class="mi">2392</span>
-<span class="mh">0x81f11e70</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1082</span>          <span class="mf">205.161.7.134</span><span class="o">:</span><span class="mi">80</span>            <span class="mi">2392</span>
-<span class="mh">0x8220d6b8</span> <span class="mf">192.168.2.7</span><span class="o">:</span><span class="mi">1066</span>          <span class="mf">199.239.137.200</span><span class="o">:</span><span class="mi">80</span>          <span class="mi">2392</span>
+<div class="highlight"><pre>xp-laptop-2005-06-25.img 23:00:24&gt; connections
+---------------------------------&gt; connections()
+Offset (V) Local Address             Remote Address               Pid
+---------- ------------------------- ------------------------- ------
+0x820869b0 127.0.0.1:1055            127.0.0.1:1056              2160
+0xffa2baf0 127.0.0.1:1056            127.0.0.1:1055              2160
+0x8220c008 192.168.2.7:1077          64.62.243.144:80            2392
+0x81f11e70 192.168.2.7:1082          205.161.7.134:80            2392
+0x8220d6b8 192.168.2.7:1066          199.239.137.200:80          2392
 </pre></div>
 
 <p>

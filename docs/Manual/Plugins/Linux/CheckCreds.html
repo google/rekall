@@ -106,6 +106,12 @@ ript>
  <div class='css-treeview'>
    <ul class='nav nav-stacked'>
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Arp.html' class="tree-link "  title="arp">
       arp
    </a>
@@ -196,6 +202,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Hostname.html' class="tree-link "  title="hostname">
+      hostname
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Ifconfig.html' class="tree-link "  title="ifconfig">
       ifconfig
    </a>
@@ -226,6 +238,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mcat.html' class="tree-link "  title="mcat">
+      mcat
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinMemDump.html' class="tree-link "  title="memdump">
       memdump
    </a>
@@ -238,6 +256,36 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mfind.html' class="tree-link "  title="mfind">
+      mfind
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mls.html' class="tree-link "  title="mls">
+      mls
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Moddump.html' class="tree-link "  title="moddump">
+      moddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mount.html' class="tree-link "  title="mount">
+      mount
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/NotifierChainPlugin.html' class="tree-link "  title="notifier_chains">
+      notifier_chains
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -246,6 +294,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Linux/PidHashTable.html' class="tree-link "  title="pidhashtable">
       pidhashtable
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PacketQueues.html' class="tree-link "  title="pkt_queues">
+      pkt_queues
    </a>
 </li>
 
@@ -268,8 +322,20 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinVadDump.html' class="tree-link "  title="vaddump">
       vaddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 </ul>
@@ -316,7 +382,40 @@ ript>
 <a href="/epydocs/rekall.plugins.linux.check_creds.CheckCreds-class.html">View Source</a>
 
 
-
+<p>In order for rootkits to elevate the privileges of a given process, they need
+to alter the current effective identifier of a process. Before kernel 2.6, this
+was done by setting a couple of integers in the process task to the desired ID.</p>
+<p>After 2.6, credentials are handled internally via the <code>task_struct-&gt;cred</code>
+member. Likely due to laziness or a poor attempt at remaining stealth, some
+rootkits simply reuse the <code>cred</code> member of tasks that have the desired
+credentials (most often ID 0: <code>root</code>).</p>
+<p>This plugin reports the location of the <code>cred</code> member of each task. When this
+structure is being reused, you&rsquo;ll see more than one line of output with the
+same <code>cred</code> address.</p>
+<h3>Sample output</h3>
+<div class="highlight"><pre>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 15:40:12&gt; check_creds
+-----------------------------------------------------------------------&gt; check_creds()
+     Cred      PID      Command             
+-------------- -------- --------------------
+0x88003b86c900 966      dbus-daemon         
+0x88003c766480 1031     systemd-logind      
+0x88003c1a7380 1056     getty               
+0x88003c1d2180 1103     irqbalance          
+0x88003c1d23c0 1290     kauditd             
+0x88003c1a6c00 1058     getty               
+0x880036b2e840 1132     atd                 
+0x88003b96d080 1055     getty               
+0x88003c767440 1335     bash                
+0x88003c1a6cc0 1074     sshd                
+0x88003c1d2c00 1131     cron                
+0x88003cbc0900 1160     login               
+0x88003c183140 1081     acpid               
+0x88003b9ded80 1042     getty               
+0x88003b9dee40 1049     getty               
+0x88003c1a78c0 1176     whoopsie            
+0x88003c69a480 1486     dnsmasq             
+0x88003cbc1440 1199     libvirtd            
+</pre></div>
 
 <p>
 

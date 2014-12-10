@@ -106,6 +106,12 @@ ript>
  <div class='css-treeview'>
    <ul class='nav nav-stacked'>
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Arp.html' class="tree-link "  title="arp">
       arp
    </a>
@@ -196,6 +202,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Hostname.html' class="tree-link "  title="hostname">
+      hostname
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Ifconfig.html' class="tree-link "  title="ifconfig">
       ifconfig
    </a>
@@ -226,6 +238,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mcat.html' class="tree-link "  title="mcat">
+      mcat
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinMemDump.html' class="tree-link "  title="memdump">
       memdump
    </a>
@@ -238,6 +256,36 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mfind.html' class="tree-link "  title="mfind">
+      mfind
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mls.html' class="tree-link "  title="mls">
+      mls
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Moddump.html' class="tree-link "  title="moddump">
+      moddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mount.html' class="tree-link "  title="mount">
+      mount
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/NotifierChainPlugin.html' class="tree-link "  title="notifier_chains">
+      notifier_chains
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -246,6 +294,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Linux/PidHashTable.html' class="tree-link "  title="pidhashtable">
       pidhashtable
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PacketQueues.html' class="tree-link "  title="pkt_queues">
+      pkt_queues
    </a>
 </li>
 
@@ -268,8 +322,20 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinVadDump.html' class="tree-link "  title="vaddump">
       vaddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 </ul>
@@ -312,7 +378,9 @@ ript>
 a direct mapping between the kernel virtual address space and the physical
 memory.  This is the difference between the virtual and physical addresses
 (aka PAGE_OFFSET). This is defined by the __va macro:</p>
-<h1>define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))</h1>
+<pre class="highlight"><code>#define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))</code></pre>
+
+
 <p>This one plugin handles both 32 and 64 bits.</p>
 </div>
 

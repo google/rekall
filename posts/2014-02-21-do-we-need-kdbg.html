@@ -114,7 +114,7 @@ PsActiveProcessHead symbol (which is the head of the doubly linked list holding
 the _EPROCESS objects together).</p></div>
 <div class="paragraph"><p>Recently, the Volatility blog reminded us that the KDBG is critical for memory
 analysis. In that post, the author recognizes that the KDBG block is encoded on
-Window 8 and is not readily scanned for using the usual <tt>kdbgscan</tt> plugin. In
+Window 8 and is not readily scanned for using the usual <code>kdbgscan</code> plugin. In
 particular that blog post states:</p></div>
 <div class="quoteblock">
 <div class="content">
@@ -132,7 +132,7 @@ becomes that much more difficult.</p></div>
 <div class="paragraph"><p>We have previously demonstrated in
 <a href="https://docs.google.com/presentation/d/1nzbqYqoEmLH9fhzHaQaERJdKXGfGD9-fcJBgQXNfQXY/">our
 OSDFC training workshop</a> that the KDBG block can be trivially overwritten
-without affecting system stability. Since the <tt>kdbgscan</tt> plugin simply scans for
+without affecting system stability. Since the <code>kdbgscan</code> plugin simply scans for
 the plain text "KDBG" signature, by overwriting this signature it is impossible
 to locate the KDBG, nor bootstrap memory analysis. Indeed with Volatility you
 are going to have a really bad day. It is still possible to workaround this
@@ -146,7 +146,7 @@ Modification for Breaking Memory Forensic Analysis</a>.</p></div>
 <div class="sect1">
 <h2 id="_does_rekall_use_the_kdbg">Does Rekall use the KDBG?</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Volatility windows profiles are typically generated using the <tt>pdbparse</tt>
+<div class="paragraph"><p>Volatility windows profiles are typically generated using the <code>pdbparse</code>
 project, using the script
 <a href="https://code.google.com/p/pdbparse/source/browse/trunk/examples/pdb_tpi_vtypes.py">pdb_tpi_vtypes.py</a>
 script. They normally only contain the vtype definitions (embedded into python
@@ -155,21 +155,21 @@ files, for example
 vista_sp0_x64_vtypes.py</a>).</p></div>
 <div class="paragraph"><p>While developing the Rekall profile system (which is described in detail in
 previous blog posts), new profiles were generated for windows kernels. Rather
-than rely on the <tt>pdbparse</tt> project to parse the pdb files, we have implemented
+than rely on the <code>pdbparse</code> project to parse the pdb files, we have implemented
 a complete Microsoft PDB parser within the Rekall framework (This will be
 described in a future blog post).</p></div>
 <div class="paragraph"><p>Microsoft PDB files contain a number of streams. One of the streams describe
 struct definitions and can be used to generate the vtypes. However,
 interestingly, there are a few more streams which extract global symbols from
-the PDB file. (The <tt>pdbparse</tt> project does provide an additional script to
+the PDB file. (The <code>pdbparse</code> project does provide an additional script to
 extract the constants from the pdb file, but that script is not currently used
 by Volatility).</p></div>
 <div class="paragraph"><p>In other words, the PDB file contains the addresses in memory of many
-symbols. This is akin to the <tt>System.map</tt> file we use when analyzing a Linux
+symbols. This is akin to the <code>System.map</code> file we use when analyzing a Linux
 memory image. Lets examine a typical Rekall windows profile:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>{
+<pre><code>{
  "$CONSTANTS": {
 .....
   "PromoteNode": 611168,
@@ -184,19 +184,19 @@ memory image. Lets examine a typical Rekall windows profile:</p></div>
   "KdDebuggerEnabled": 2562992,
   "KdDebuggerInitialize0": 805256,
   "KdDebuggerInitialize1": 805244,
-...</tt></pre>
+...</code></pre>
 </div></div>
 <div class="paragraph"><p>We can see that the typical Microsoft kernel PDB file contains a huge number of
 symbols which are not exported in the PE export table. In particular we see the
-symbol <tt>PsActiveProcessHead</tt> which is required to list processes. We also see
-the exact location of the Kernel Debugger block in <tt>KdDebuggerDataBlock</tt> symbol
+symbol <code>PsActiveProcessHead</code> which is required to list processes. We also see
+the exact location of the Kernel Debugger block in <code>KdDebuggerDataBlock</code> symbol
 (Just in case we need it). The symbol offset is specified relative to the Kernel
 Base address (i.e. the MZ header where the kernel is mapped into memory).</p></div>
-<div class="paragraph"><p>Let us examine in detail the steps that Rekall goes through in the <tt>pslist</tt>
+<div class="paragraph"><p>Let us examine in detail the steps that Rekall goes through in the <code>pslist</code>
 module by enabling verbose logging:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall --verbose -f  ~/images/win7.elf pslist
+<pre><code>$ rekall --verbose -f  ~/images/win7.elf pslist
 .....
 INFO:root:Autodetected physical address space Elf64CoreDump                     <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -247,7 +247,7 @@ ZWIyNWU1NjJmY2M4Y2M5YjNjN2Uw37I5ngAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElF
 TkSuQmCC" />
 0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
 0xfa8001994310 smss.exe                272      4      2       29 ------  False 2012-10-01 21:39:51+0000 -
-0xfa8002259060 csrss.exe               348    340      9      436      0  False 2012-10-01 21:39:57+0000 -</tt></pre>
+0xfa8002259060 csrss.exe               348    340      9      436      0  False 2012-10-01 21:39:57+0000 -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -301,7 +301,7 @@ We now find the kernel&#8217;s base address. Once that is known, the addresses o
 </table></div>
 <div class="paragraph"><p>Rekall generally does not need to use the KDBG at all. This is much faster since
 it does not need to scan for it, but more importantly, is much more robust
-because malware can not overwrite the <tt>PsActiveProcessHead</tt> symbol without
+because malware can not overwrite the <code>PsActiveProcessHead</code> symbol without
 crashing the system.</p></div>
 <div class="paragraph"><p>Since Rekall uses a profile repository we are able to locate the exact profile
 for the kernel we are analyzing. Therefore we do not need to scan for anything -
@@ -310,14 +310,14 @@ guessing. This makes analysis far more robust and simple.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_another_example_the_tt_callbacks_tt_plugin">Another example, the <tt>callbacks</tt> plugin.</h2>
+<h2 id="_another_example_the_code_callbacks_code_plugin">Another example, the <code>callbacks</code> plugin.</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Another example of this technique is the <tt>callbacks</tt>
+<div class="paragraph"><p>Another example of this technique is the <code>callbacks</code>
 plugin. <a href="https://code.google.com/p/volatility/source/browse/trunk/volatility/plugins/malware/callbacks.py#251">Here</a>,
 Volatility resorts to disassembling various exported functions to try to locate
 the offset of a number of non-exported callback pointer tables
-(e.g. <tt>PsSetLoadImageNotifyRoutine</tt> is disassembled to get to
-<tt>PspLoadImageNotifyRoutine</tt>). This algorithm is pretty fragile and complex. It
+(e.g. <code>PsSetLoadImageNotifyRoutine</code> is disassembled to get to
+<code>PspLoadImageNotifyRoutine</code>). This algorithm is pretty fragile and complex. It
 also only works on 32 bit systems at the moment, since signatures need to be
 developed for different architectures.</p></div>
 <div class="paragraph"><p>However, this algorithm is entirely not needed, if one uses the correct profile
@@ -325,7 +325,7 @@ for the exact kernel version. You can simply look up the exact addresses of the
 (non-exported) symbols you need. Here is the Rekall code:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>        routines = ["_PspLoadImageNotifyRoutine",             <img alt="1" src="data:image/png;base64,
+<pre><code>        routines = ["_PspLoadImageNotifyRoutine",             <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
@@ -362,7 +362,7 @@ NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
 SUVORK5CYII=" />
                 callback = addr.dereference_as("_GENERIC_CALLBACK")
                 if callback:
-                    yield "GenericKernelCallback", callback.Callback, None</tt></pre>
+                    yield "GenericKernelCallback", callback.Callback, None</code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -407,11 +407,11 @@ disassembles the code which is resident in memory, all relocations, imports,
 exports etc have already been done by the kernel. In other words if we see a
 memory reference, we can resolve it to know where it is or what it is without
 considering imports.</p></div>
-<div class="paragraph"><p>Here is an example of disassembling the <tt>PsSetLoadImageNotifyRoutine</tt> routine on
-a 64 bit image (This is what Volatility is doing in the <tt>callbacks</tt> plugin).</p></div>
+<div class="paragraph"><p>Here is an example of disassembling the <code>PsSetLoadImageNotifyRoutine</code> routine on
+a 64 bit image (This is what Volatility is doing in the <code>callbacks</code> plugin).</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f  ~/images/win7.elf dis 'ntoskrnl.exe!PsSetLoadImageNotifyRoutine'
+<pre><code>$ rekall -f  ~/images/win7.elf dis 'ntoskrnl.exe!PsSetLoadImageNotifyRoutine'
    Address      Rel Op Codes             Instruction                    Comment
 -------------- ---- -------------------- ------------------------------ -------
 ------ ntoskrnl.exe!PsSetLoadImageNotifyRoutine ------
@@ -447,21 +447,21 @@ a 64 bit image (This is what Volatility is doing in the <tt>callbacks</tt> plugi
 0xf80002aa10b8   68 33c0                 XOR EAX, EAX
 0xf80002aa10ba   6A 488b5c2430           MOV RBX, [RSP+0x30]
 0xf80002aa10bf   6F 4883c420             ADD RSP, 0x20
-0xf80002aa10c3   73 5f                   POP RDI</tt></pre>
+0xf80002aa10c3   73 5f                   POP RDI</code></pre>
 </div></div>
 <div class="paragraph"><p>We can see that addresses are resolved according to the known symbols at that
 address (In the Volatility code we are actually after the
-<tt>PspLoadImageNotifyRoutine</tt> address).</p></div>
+<code>PspLoadImageNotifyRoutine</code> address).</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-05-26 11:45:18 CEST
+Last updated 2014-11-20 17:53:13 CET
 </div>
 </div>
-
+<script src="/js/asciidoc.js"></script>
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>

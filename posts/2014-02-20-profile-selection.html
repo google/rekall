@@ -117,7 +117,7 @@ Rekall one can specify the profile as a path to a file (which may be
 compressed):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f OSX_image.dd --profile ./OSX_10.6.6_AMD.json.gz</tt></pre>
+<pre><code>$ rekall -f OSX_image.dd --profile ./OSX_10.6.6_AMD.json.gz</code></pre>
 </div></div>
 </div>
 </div>
@@ -136,13 +136,13 @@ coverage as much as possible.</p></div>
 <div class="paragraph"><p>For example, we can see what Rekall is doing when loading an OSX profile:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f memory_vm_10_7.dd.E01 --profile OSX/10.7.4_AMD -v pslist
+<pre><code>$ rekall -f memory_vm_10_7.dd.E01 --profile OSX/10.7.4_AMD -v pslist
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//OSX/10.7.4_AMD.gz
 INFO:root:Loaded profile OSX/10.7.4_AMD from URL:http://profiles.rekall.googlecode.com/git/
 DEBUG:root:Voting round
 DEBUG:root:Trying &lt;class 'rekall.plugins.addrspaces.macho.MACHOCoreDump'&gt;
 DEBUG:root:Failed instantiating MACHOCoreDump: Must stack on another address space
-....</tt></pre>
+....</code></pre>
 </div></div>
 <div class="paragraph"><p>Rekall contacts the default public profile repository to load the specified
 profile and continues running.</p></div>
@@ -159,7 +159,7 @@ locally. The following will create a directory called rekall.profiles containing
 the most up to date version of the public repository:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ git clone https://code.google.com/p/rekall.profiles
+<pre><code>$ git clone https://code.google.com/p/rekall.profiles
 
 # It is possible to update the local mirror with the latest public profiles.
 $ cd rekall.profiles
@@ -167,18 +167,18 @@ rekall.profiles$ git pull
 
 # Now we can tell Rekall to use the local repository
 $ rekall -f memory_vm_10_7.dd.E01 --profile_path full_path_to_rekall.profiles \
-   --profile OSX/10.7.4_AMD -v pslist</tt></pre>
+   --profile OSX/10.7.4_AMD -v pslist</code></pre>
 </div></div>
 <div class="paragraph"><p>To save typing, it is possible to just change the local rekall configuration to
-point at the profile repository by default. Simply edit the <tt>~/.rekallrc</tt> file
+point at the profile repository by default. Simply edit the <code>~/.rekallrc</code> file
 (Which is a configuration file in YAML format):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>profile_path:
+<pre><code>profile_path:
   - /home/scudette/projects/rekall.profiles
-  - http://profiles.rekall.googlecode.com/git/</tt></pre>
+  - http://profiles.rekall.googlecode.com/git/</code></pre>
 </div></div>
-<div class="paragraph"><p>The <tt>profile_path</tt> parameter specifies a list of paths to search for the
+<div class="paragraph"><p>The <code>profile_path</code> parameter specifies a list of paths to search for the
 specified profile in order. If we place the public repository in the second
 position, rekall will only attempt to contact the public repository if the
 required profile does not exist in the local mirror.</p></div>
@@ -255,7 +255,7 @@ PAr9L8j/96+U/w3yCoCXW14B8HLLvwDd67nwZIEPdgAAAABJRU5ErkJggg==" />
 <div class="paragraph"><p>How does the Microsoft compiler generate debugging symbols?</p></div>
 <div class="paragraph"><p>When an executable is built, the compiler places the debugging symbols in a
 separate file (with a <em>.pdb</em> extension). The final executable contains a special
-structure called an <tt>RSDS</tt> signature (This is not the official name since this
+structure called an <code>RSDS</code> signature (This is not the official name since this
 is not exactly documented, but the string "RSDS" actually appears in the
 executable).</p></div>
 <div class="paragraph"><p>The RSDS structure contains three critical pieces of information:</p></div>
@@ -272,7 +272,7 @@ The filename of the pdb file which goes with the binary.
 </li>
 <li>
 <p>
-An <tt>age</tt>. This is a number usually single digit like 2 or 3.
+An <code>age</code>. This is a number usually single digit like 2 or 3.
 </p>
 </li>
 </ul></div>
@@ -291,10 +291,10 @@ analyzing a windows memory dump.</p></div>
 RSDS scanner:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f win7.elf version_scan --name_regex krnl
+<pre><code>$ rekall -f win7.elf version_scan --name_regex krnl
   Offset (P)   GUID/Version                     PDB
 -------------- -------------------------------- ------------------------------
-0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb</tt></pre>
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb</code></pre>
 </div></div>
 <div class="paragraph"><p>Here we see that this image contains a specific version with the GUID
 F8E2A8B5C9B74BF4A6E4A48F180099942. We actually can check the GUIDs from the
@@ -309,27 +309,27 @@ versions in the wild.</p></div>
 <div class="sect2">
 <h3 id="_repository_symlinks">Repository Symlinks</h3>
 <div class="paragraph"><p>The profile repository contains a special type of profile definition
-which is a Symlink. For example, we define a profile called <tt>Win7SP1x64</tt> which
+which is a Symlink. For example, we define a profile called <code>Win7SP1x64</code> which
 contains:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>{
+<pre><code>{
   "$METADATA": {
     "Type": "Symlink",
     "Target": "ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2"
   }
-}</tt></pre>
+}</code></pre>
 </div></div>
 <div class="paragraph"><p>This just selects a representative profile from the many Windows 7 Service Pack
 1 profiles we have. This allows Rekall to be used in backwards compatibility mode:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f ~/images/win7.elf -v --profile Win7SP1x64 pslist
+<pre><code>$ rekall -f ~/images/win7.elf -v --profile Win7SP1x64 pslist
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//Win7SP1x64.gz
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2.gz
 INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7601.17514/3844DBB920174967BE7AA4A2C20430FA2 from URL:http://profiles.rekall.googlecode.com/git/
 INFO:root:Loaded profile Win7SP1x64 from URL:http://profiles.rekall.googlecode.com/git/
-....</tt></pre>
+....</code></pre>
 </div></div>
 <div class="paragraph"><p>We can see that first the Symlink profile is opened, followed by the real profile.</p></div>
 </div>
@@ -338,16 +338,16 @@ INFO:root:Loaded profile Win7SP1x64 from URL:http://profiles.rekall.googlecode.c
 <div class="paragraph"><p>Have you even been given an image of a windows version, but you don&#8217;t know
 exactly which one it is supposed to be? Is it a 64 bit system or a 32 bit
 system? Is it Windows 7 or Windows XP? Is it Service Pack 1 or 2?</p></div>
-<div class="paragraph"><p>Volatility has the <tt>imageident</tt> plugin which load all the windows profiles it
+<div class="paragraph"><p>Volatility has the <code>imageident</code> plugin which load all the windows profiles it
 knows about (about 20 different ones) and tries to fit them to the image. Its
 very slow and often does not work.</p></div>
 <div class="paragraph"><p>The easier way is simply check the RSDS signature of the windows kernel:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f win7.elf version_scan --name_regex krnl
+<pre><code>$ rekall -f win7.elf version_scan --name_regex krnl
   Offset (P)   GUID/Version                     PDB
 -------------- -------------------------------- ------------------------------
-0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb</tt></pre>
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb</code></pre>
 </div></div>
 <div class="paragraph"><p>The Rekall public repository organizes windows profiles using two hierarchies,
 the first is by binary name, architecture and build version, for example:</p></div>
@@ -357,12 +357,12 @@ unique). If we know the GUID we can automatically access the correct profile
 without needing to know if it is Windows 7, WinXP or whatever:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f ~/images/win7.elf -v --profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 pslist
+<pre><code>$ rekall -f ~/images/win7.elf -v --profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 pslist
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//GUID/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
 INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
 INFO:root:Loaded profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
-....</tt></pre>
+....</code></pre>
 </div></div>
 <div class="paragraph"><p>This method is actually extremely reliable since it will retrieve exactly the
 correct profile according to the RSDS header we find. Rekall uses this method by
@@ -370,7 +370,7 @@ default to guess the required profile to use. Therefore normally users do not
 really need to provide the profile explicitly to Rekall:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f ~/images/win7.elf -v pslist
+<pre><code>$ rekall -f ~/images/win7.elf -v pslist
 DEBUG:root:Voting round
 DEBUG:root:Trying &lt;class 'rekall.plugins.addrspaces.macho.MACHOCoreDump'&gt;
 .....
@@ -382,10 +382,10 @@ DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//GUID/F8E2A8B5C9
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942.gz
 INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7600.16385/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
 INFO:root:Loaded profile GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 from URL:http://profiles.rekall.googlecode.com/git/
-DEBUG:root:Found _EPROCESS @ 0x2818140 (DTB: 0x187000)</tt></pre>
+DEBUG:root:Found _EPROCESS @ 0x2818140 (DTB: 0x187000)</code></pre>
 </div></div>
-<div class="paragraph"><p>We can see that Rekall initially fetches the <tt>pe</tt> profile (so it can parse the
-<tt>RSDS</tt> header), when a hit is found, the profile repository is search by the
+<div class="paragraph"><p>We can see that Rekall initially fetches the <code>pe</code> profile (so it can parse the
+<code>RSDS</code> header), when a hit is found, the profile repository is search by the
 GUID. This is found as a symlink to an actual profile from a Windows 7 version.</p></div>
 </div>
 <div class="sect2">
@@ -395,7 +395,7 @@ and it may be that we do not have the profile for the exact version in your
 memory image. You will typically see something like this:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall -f ~/images/win7.elf -v pslist
+<pre><code>$ rekall -f ~/images/win7.elf -v pslist
 DEBUG:root:Opened url http://profiles.rekall.googlecode.com/git//GUID/F8E1A8B5C9B74BF4A6E4A48F180099942
 DEBUG:root:Could not find profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 in http://profiles.rekall.googlecode.com/git/
 DEBUG:root:Could not find profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 in None
@@ -414,16 +414,16 @@ Traceback (most recent call last):
     self.profile = self.LoadProfile(profile_parameter)
   File "/home/scudette/rekall/rekall/session.py", line 464, in LoadProfile
     filename)
-ValueError: Unable to load profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 from any repository.</tt></pre>
+ValueError: Unable to load profile GUID/F8E1A8B5C9B74BF4A6E4A48F180099942 from any repository.</code></pre>
 </div></div>
-<div class="paragraph"><p>Although you could maybe substitute a generic profile (like <tt>Win7SP1x64</tt> as
+<div class="paragraph"><p>Although you could maybe substitute a generic profile (like <code>Win7SP1x64</code> as
 described above). This is really not recommended and will probably stop working
 at some point in the future (as Rekall uses more advanced analysis methods which
 depend on accurate profiles).</p></div>
 <div class="paragraph"><p>The correct solution is to generate your own profile like this:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt># First find the GUID of the kernel in your image
+<pre><code># First find the GUID of the kernel in your image
 $ rekall -f win7.elf version_scan --name_regex krnl
   Offset (P)   GUID/Version                     PDB
 -------------- -------------------------------- ------------------------------
@@ -442,7 +442,7 @@ All done, no errors.
 # approximate windows version.
 $ rekall parse_pdb -f ntkrnlmp.pdb --output F8E2A8B5C9B74BF4A6E4A48F180099942.json \
    --win 6.1
-  Extracting OMAP Information 62%</tt></pre>
+  Extracting OMAP Information 62%</code></pre>
 </div></div>
 <div class="paragraph"><p>Please send us that GUID so we can add it to our repository. If you have a local
 repository you can just add it to your own repository (under the GUID/
@@ -485,10 +485,10 @@ Rekall also implements a robust profile auto-detection method. The user rarely
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-05-26 11:57:55 CEST
+Last updated 2014-11-20 17:53:12 CET
 </div>
 </div>
-
+<script src="/js/asciidoc.js"></script>
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>

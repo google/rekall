@@ -1,0 +1,74 @@
+address_resolver
+X arp
+X banner
+X bash
+- certscan
+X check_afinfo
+X check_creds
+X check_idt
+X check_modules
+X check_proc_fops
+X check_syscall
+X check_task_fops
+X check_ttys
+- convert_profile
+X cpuinfo
+- dis
+X dmesg
+- dt
+- dump
+- dwarfparser
+- ewfacquire
+- fetch_pdb
+- find_dtb
+- find_kaslr
+- GetPluginClass
+- grep
+- hostname
+X ifconfig
+- imagecopy
+- info
+X iomem
+- json_render
+- l
+- list_events
+- list_terminals
+- load_as
+- load_plugin
+- lsmod
+- lsof
+maps
+- mcat
+memdump
+memmap
+- Metadata
+- mfind
+- mls
+moddump
+mount
+netstat
+notifier_chains
+- null
+- p
+- parse_pdb
+- pas2vas
+- peinfo
+- pidhashtable
+- pkt_queues
+- psaux
+- pslist
+- pstree
+psxview
+render_sample
+- sdel
+- shell
+- slist
+- smod
+- snew
+- sswitch
+X vaddump
+- version_scan
+- vmscan
+- vtop
+- webconsole
+yarascan

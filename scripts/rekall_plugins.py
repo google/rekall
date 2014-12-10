@@ -35,7 +35,7 @@ from rekall import plugin
 
 
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument("plugins", default=None, nargs="+",
+PARSER.add_argument("plugins", default=None, nargs="*",
                     help="The name of the plugin to re-write.")
 
 
@@ -44,6 +44,15 @@ class DummyParser(object):
 
     def __init__(self):
         self.args = {}
+
+    def add_requirement(*_, **__):
+        pass
+
+    def set_description(*_, **__):
+        pass
+
+    def add_positional_arg(*_, **__):
+        pass
 
     def add_argument(self, short_option, long_opt="", help=None, **_):
         name = long_opt.lstrip("-") or short_option.lstrip("-")
@@ -82,6 +91,9 @@ def GetPluginArgs(cls):
 
     return result
 
+def RebuildAllDocs():
+    for plugin_name in plugin.Command.classes:
+        RebuildMissingDocs(plugin_name)
 
 def RebuildMissingDocs(filename):
     plugin_name = os.path.basename(filename).split(".")[0]
@@ -112,7 +124,7 @@ def RebuildMissingDocs(filename):
     result['abstract'] = "\n".join(
         ["  %s" % x for x in result['abstract'].strip().splitlines()])
 
-    with open(filename, "wb") as fd:
+    with open("%s.md" % filename, "wb") as fd:
         data = """---
 layout: plugin
 title: %(title)s
@@ -128,5 +140,8 @@ epydoc: %(epydoc)s
 
 if __name__ == "__main__":
     FLAGS = PARSER.parse_args()
-    for _plugin in FLAGS.plugins:
-        RebuildMissingDocs(_plugin)
+    if not FLAGS.plugins:
+        RebuildAllDocs()
+    else:
+        for _plugin in FLAGS.plugins:
+            RebuildMissingDocs(_plugin)

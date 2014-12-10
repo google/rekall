@@ -106,6 +106,12 @@ ript>
  <div class='css-treeview'>
    <ul class='nav nav-stacked'>
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Arp.html' class="tree-link "  title="arp">
       arp
    </a>
@@ -196,6 +202,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Hostname.html' class="tree-link "  title="hostname">
+      hostname
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Ifconfig.html' class="tree-link "  title="ifconfig">
       ifconfig
    </a>
@@ -226,6 +238,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mcat.html' class="tree-link "  title="mcat">
+      mcat
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinMemDump.html' class="tree-link "  title="memdump">
       memdump
    </a>
@@ -238,6 +256,36 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mfind.html' class="tree-link "  title="mfind">
+      mfind
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mls.html' class="tree-link "  title="mls">
+      mls
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Moddump.html' class="tree-link "  title="moddump">
+      moddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mount.html' class="tree-link "  title="mount">
+      mount
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/NotifierChainPlugin.html' class="tree-link "  title="notifier_chains">
+      notifier_chains
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -246,6 +294,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Linux/PidHashTable.html' class="tree-link "  title="pidhashtable">
       pidhashtable
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PacketQueues.html' class="tree-link "  title="pkt_queues">
+      pkt_queues
    </a>
 </li>
 
@@ -268,8 +322,20 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinVadDump.html' class="tree-link "  title="vaddump">
       vaddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 </ul>
@@ -317,7 +383,23 @@ ript>
 <a href="/epydocs/rekall.plugins.linux.bash.BashHistory-class.html">View Source</a>
 
 
-
+<p>The Bourne Again Shell maintains a history a history of all commands that
+have been executed in the current session in memory. <code>bash</code> is a plugin that
+provides a chronologically ordered list of commands executed by each bash
+process, grouped by pid.</p>
+<h3>Notes</h3>
+<ul>
+<li>Only commands executed in each bash session are stored in memory. So if
+you&rsquo;re looking for commands for exitted bash sessions you may be more lucky
+by looking at the disk .bash_history file if logging wasn&rsquo;t disabled.</li>
+</ul>
+<h3>Sample output</h3>
+<div class="highlight"><pre>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 12:27:35&gt; bash
+-----------------------------------------------------------------------&gt; bash()
+   Pid Name                 Timestamp                Command
+------ -------------------- ------------------------ --------------------
+  1335 bash                 2014-03-04 17:16:31+0000 uname -a
+</pre></div>
 
 <p>
 

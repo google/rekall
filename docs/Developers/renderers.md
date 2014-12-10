@@ -66,7 +66,7 @@ output by calling methods on the renderer.
 Consider the `pslist` plugin. This is the default output (using the
 TextRenderer):
 
-```
+```python
 _EPROCESS          Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
 ---------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
 0x823c8a00 System               4          0     57      671      -  False -                        -

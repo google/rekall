@@ -102,7 +102,7 @@ ript>
 <div id="header">
 <h1>Windows Virtual Address Translation and the Pagefile.</h1>
 <span id="author">Michael Cohen</span><br />
-<span id="email"><tt>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</tt></span><br />
+<span id="email"><code>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</code></span><br />
 <div id="toc">
   <div id="toctitle">Table of Contents</div>
   <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
@@ -155,17 +155,17 @@ automatically exposing the pagefile from kernel space.).</p></div>
 example a command such as:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>C:\&gt; fcat.exe pagefile.sys \\.\c: &gt; pagefile.dd</tt></pre>
+<pre><code>C:\&gt; fcat.exe pagefile.sys \\.\c: &gt; pagefile.dd</code></pre>
 </div></div>
 <div class="paragraph"><p>This opens the raw device corresponding to the C drive, and extracts the file
 pagefile.sys by parsing the NTFS filesystem directly - thereby bypassing the
 Windows file locking.</p></div>
-<div class="paragraph"><p>I integrated a statically compiled version of <tt>fls.exe</tt> in Winpmem and updated
+<div class="paragraph"><p>I integrated a statically compiled version of <code>fls.exe</code> in Winpmem and updated
 the tool to allow for the acquisition of the pagefile in addition to the
 standard ELF format memory image.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   C:\projects\rekall\tools\windows\winpmem&gt;winpmem_1.6.2.exe -p -e swapped.elf
+<pre><code>   C:\projects\rekall\tools\windows\winpmem&gt;winpmem_1.6.2.exe -p -e swapped.elf
    Will write an elf core dump.
    Extracting driver to C:\Users\mic\AppData\Local\Temp\pme6EBA.tmp
    Driver Unloaded.
@@ -189,16 +189,16 @@ standard ELF format memory image.</p></div>
       50Mb ..................................................
    [.. snip ..]
     1050Mb ....................
-   Driver Unloaded.</tt></pre>
+   Driver Unloaded.</code></pre>
 </div></div>
 <div class="paragraph"><p>The pagefile is appended to the ELF file (so it does not appear in any program
 headers) and a short YAML footer is appended. This allows us to write the image
 to a non seekable pipe (e.g. so it can be sent over netcat or encrypted) while
 still appending data to it. When Rekall reads the image it follows the
-<tt>PreviousHeader</tt> pointer in each YAML footer to traverse all the footers.</p></div>
+<code>PreviousHeader</code> pointer in each YAML footer to traverse all the footers.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   82DF2170   12 12 01 01  00 0A E0 26  01 45 71 0E  0A 0E 7C 07  .......&amp;.Eq...|.
+<pre><code>   82DF2170   12 12 01 01  00 0A E0 26  01 45 71 0E  0A 0E 7C 07  .......&amp;.Eq...|.
    82DF2180   44 0E 21 07  44 0E 02 0E  0A 0E 70 0E  7C 0E 99 0E  D.!.D.....p.|...
    82DF2190   32 0E 70 0E  32 0E 99 0E  32 0E 02 0E  48 0E 32 0E  2.p.2...2...H.2.
    82DF21A0   A9 0E 21 0E  1A 01 01 12  12 02 12 02  12 12 12 12  ..!.............
@@ -209,14 +209,14 @@ still appending data to it. When Rekall reads the image it follows the
    82DF21F0   74 3A 20 30  78 33 66 66  38 65 31 62  64 0A 50 61  t: 0x3ff8e1bd.Pa
    82DF2200   67 65 66 69  6C 65 53 69  7A 65 3A 20  30 78 34 32  gefileSize: 0x42
    82DF2210   65 36 34 30  30 30 0A 2E  2E 2E 0A                  e64000.....
-   ---  swapped.elf       --0x82DF221B/0x82DF221B---------------------------------</tt></pre>
+   ---  swapped.elf       --0x82DF221B/0x82DF221B---------------------------------</code></pre>
 </div></div>
 <div class="paragraph"><p>Rekall can automatically identify the pagefile embedded in this file and add it
 to the analysis. It is possible to simply extract the pagefile from the Winpmem
 image by using dd (for example in order to use it in another framework):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>  $ dd if=swapped.elf of=pagefile.dd bs=1 skip=$((0x3ff8e1bd))</tt></pre>
+<pre><code>  $ dd if=swapped.elf of=pagefile.dd bs=1 skip=$((0x3ff8e1bd))</code></pre>
 </div></div>
 </div>
 </div>
@@ -225,14 +225,15 @@ image by using dd (for example in order to use it in another framework):</p></di
 <div class="sectionbody">
 <div class="paragraph"><p>So now that Winpmem can acquire the pagefile we can add the pagefile into
 Rekall. But the main problem is how?</p></div>
-<div class="paragraph"><p>Rekall uses a "Paging Address Space" (for example the <tt>AMD64PagedMemory</tt> address
+<div class="paragraph"><p>Rekall uses a "Paging Address Space" (for example the <code>AMD64PagedMemory</code> address
 space) to translate virtual addresses to physical addresses. The process is
 illustrated in the figure below. The Virtual Address Space is stacked over the
-physical address space (i.e. the image) such that a <tt>read()</tt> operation issued to
+physical address space (i.e. the image) such that a <code>read()</code> operation issued to
 the Virtual Address Space is translated into a specific offset from the image.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img alt="posts/2014-10-25-pagefile/address_space.jpg" src="data:image/jpg;base64,
+<img alt="posts/2014-10-25-pagefile/address_space.jpg"
+src="data:image/jpeg;base64,
 /9j/4AAQSkZJRgABAQEAtQCHAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAUDBAQEAwUEBAQF
 BQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBD
 AQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e
@@ -648,7 +649,8 @@ reference its new location in the same physical address space. This scheme is
 illustrated in the figure below.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img alt="posts/2014-10-25-pagefile/paging_address_space.png" src="data:image/png;base64,
+<img alt="posts/2014-10-25-pagefile/paging_address_space.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAA5wAAAIeCAIAAABY35fhAAAAAXNSR0IArs4c6QAAAAlwSFlzAAAO
 xAAADsQBlSsOGwAAAAd0SU1FB94KGQ05CfzBcQYAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRo
 IEdJTVBXgQ4XAAAgAElEQVR42uzdd1xT9/oH8OfIHioCxgEC2ioIFUVIXSxFQXCBYL04gNoK6K2C
@@ -1308,13 +1310,13 @@ RK5CYII=" />
 </div>
 <div class="title">Figure 2. The pagefile is mapped into the physical address space.</div>
 </div>
-<div class="paragraph"><p>The previous Rekall implementation uses the <tt>AMD64PagedMemory</tt> address space for
+<div class="paragraph"><p>The previous Rekall implementation uses the <code>AMD64PagedMemory</code> address space for
 all operating systems, but obviously we need to treat the windows page file
 differently from other operating systems when we support windows specific
 pagefiles. In fact there is a subtle bug in previous Rekall versions (and
 Volatility), which use this code to determine if a PTE is valid:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1333,19 +1335,19 @@ http://www.gnu.org/software/src-highlite -->
         <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> False</tt></pre></div></div>
 <div class="paragraph"><p>This code is a holdover from the old Volatility code base and was introduced
 back when people noticed that many pages on a windows image are in
-<tt>Transition</tt>. Pages in the <tt>Transition</tt> state are waiting to be written to the
+<code>Transition</code>. Pages in the <code>Transition</code> state are waiting to be written to the
 pagefile but still contain valid data. It&#8217;s just that as far as the hardware is
 concerned they are not valid (so CPU access to these pages will generate a
-pagefault). Windows uses the special <tt>Transition</tt> and <tt>Prototype</tt> flags (bits 10
+pagefault). Windows uses the special <code>Transition</code> and <code>Prototype</code> flags (bits 10
 and 11) to indicate the page is in transition. Volatility can simply treat the
 page as valid anyway (since it still contains valid data). This was a good idea
 at the time and gave us access to more valid pages on windows images.</p></div>
-<div class="paragraph"><p>But this code is strictly incorrect! The <tt>AMD64PagedMemory</tt> address space is
+<div class="paragraph"><p>But this code is strictly incorrect! The <code>AMD64PagedMemory</code> address space is
 used for all operating systems and other operating systems do not use bits 10
 and 11 in this way. Hence it is likely that this would produce subtly corrupted
 data on Linux and OSX!</p></div>
 <div class="paragraph"><p>Clearly we need to have a specialized address space for the different operating
-systems. Hence in Rekall we introduce the <tt>WindowsAMD64PagedMemory</tt> which is
+systems. Hence in Rekall we introduce the <code>WindowsAMD64PagedMemory</code> which is
 only active for windows profiles. This address space actually changes the way
 that virtual page translation is done almost completely to emulate the Windows
 kernel as accurately as possible. Linux and OSX should get their own address
@@ -1357,7 +1359,7 @@ spaces in future (e.g. to handle compressed memory).</p></div>
 <div class="sectionbody">
 <div class="paragraph"><p>In this section we try to summarize how virtual page translation works on
 Windows. The seminal work on this subject was actually published back in 2007 by
-<tt>Jesse Kornblum</tt> (<strong>Kornblum, Jesse D. "Using every part of the buffalo in
+<code>Jesse Kornblum</code> (<strong>Kornblum, Jesse D. "Using every part of the buffalo in
 Windows memory analysis." Digital Investigation 4.1 (2007): 24-29</strong>). This was a
 short but extremely important paper on the subject. (I am frankly a little
 embarrassed that we did not implement the published algorithms until 2014 -
@@ -1373,52 +1375,52 @@ state of the program.</p></div>
 <div class="paragraph"><p>When the CPU addresses memory while running in protected mode, the Memory
 Management Unit (MMU) is the hardware component which is responsible for
 fetching the content from the physical memory. The MMU uses the Control Register
-3 (<tt>CR3</tt>) to refer to <tt>Page Tables</tt> which specify a translation between the
+3 (<code>CR3</code>) to refer to <code>Page Tables</code> which specify a translation between the
 virtual address and physical memory.</p></div>
 <div class="paragraph"><p>Since this translation happens in hardware it is very fast, and more importantly
 it is operating system independent. The operating system simply sets up the page
-tables in advance and then loads their address into the <tt>CR3</tt> register and the
+tables in advance and then loads their address into the <code>CR3</code> register and the
 hardware immediately translates the virtual memory according to this (This is
-how process context switching works, the OS simply switches <tt>CR3</tt> from one
+how process context switching works, the OS simply switches <code>CR3</code> from one
 process&#8217;s memory layout to the other and each process has a different virtual
 memory layout).</p></div>
 <div class="paragraph"><p>The page tables are multi-level (e.g. on 64 bit architectures they have 4
-levels) but essentially contain Page Table Entries (<tt>PTE</tt>). I wont go into the
+levels) but essentially contain Page Table Entries (<code>PTE</code>). I wont go into the
 specific of how the hardware follows the page tables themselves because that is
 covered in many references, including
 <a href="http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html">Intel®
 64 and IA-32 Architectures Software Developer Manuals</a>. My discussion below
 focuses on 64 bit architectures, but 32 bit architectures are analogous.</p></div>
-<div class="paragraph"><p>The <tt>PTE</tt> is a 64 bit integer which is split into various bitfields and
+<div class="paragraph"><p>The <code>PTE</code> is a 64 bit integer which is split into various bitfields and
 flags. The PTE can be in a number of states, marked by various flags. These
 states determine how to interpret the PTE. On Windows, there are kernel structs
 which can be used in each state, making it easier to interpret the PTE. Below we
 illustrate the states using the relevant kernel structs and Rekall.</p></div>
-<div class="paragraph"><p>There are two types of PTEs, which I will call <tt>Hardware PTE</tt> s and <tt>Software
-PTE</tt> s. The Hardware PTEs are ones that can be seen in response to a page fault -
+<div class="paragraph"><p>There are two types of PTEs, which I will call <code>Hardware PTE</code> s and <code>Software
+PTE</code> s. The Hardware PTEs are ones that can be seen in response to a page fault -
 i.e. the hardware sees the PTE, as it traverses the page tables from the Page
-Directory Entry (<tt>PDE</tt>). Hardware PTEs are typically allocated in low physical
+Directory Entry (<code>PDE</code>). Hardware PTEs are typically allocated in low physical
 memory addresses and form part of the page tables of the operating system.</p></div>
 <div class="paragraph"><p>Software PTEs are allocated out of pool space. Typically these PTEs are used to
 manage large memory mappings. For example, when a VAD region is added, the
 system allocates an array of continuous PTEs which will be used to control the
 mapping. Software PTEs are usually the target of Prototype PTEs.</p></div>
-<div class="paragraph"><p>Although similar, <tt>Software PTE</tt> and <tt>Hardware PTE</tt> do not share exactly the
+<div class="paragraph"><p>Although similar, <code>Software PTE</code> and <code>Hardware PTE</code> do not share exactly the
 same states. Therefore I will list all the states that each type of PTE can have
 under different headers.</p></div>
 <div class="sect2">
 <h3 id="_hardware_pte_states">3.1. Hardware PTE states</h3>
-<div class="paragraph"><p>Recall that a <tt>Hardware PTE</tt> is linked directly from the Page Directory Entry
+<div class="paragraph"><p>Recall that a <code>Hardware PTE</code> is linked directly from the Page Directory Entry
 (PDE). The following are the valid PTE states for it.</p></div>
 <div class="sect3">
 <h4 id="_valid_state">3.1.1. Valid State</h4>
 <div class="paragraph"><p>The Valid state is signified by the Valid flag being set. In this case the
 hardware is responsible for interpreting the PTE according to the layout of
-<tt>_PTE_HARDWARE</tt>. Note that since the hardware must interpret the PTE - all
+<code>_PTE_HARDWARE</code>. Note that since the hardware must interpret the PTE - all
 operating systems must use the exact same layout.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [_MMPTE_HARDWARE _MMPTE_HARDWARE] @ 0x000000
+<pre><code>   [_MMPTE_HARDWARE _MMPTE_HARDWARE] @ 0x000000
        Offset                 Field              Content
    -------------- ------------------------------ -------
               0x0 Accessed                        [BitField(5-6):Accessed]: 0X000000
@@ -1436,7 +1438,7 @@ operating systems must use the exact same layout.</p></div>
        = 1 -&gt; 0x0 Valid                           [BitField(0-1):Valid]: 0X000000
               0x0 Write                           [BitField(11-12):Write]: 0X000000
               0x0 WriteThrough                    [BitField(3-4):WriteThrough]: 0X000000
-              0x0 reserved1                       [BitField(48-52):reserved1]: 0X000000</tt></pre>
+              0x0 reserved1                       [BitField(48-52):reserved1]: 0X000000</code></pre>
 </div></div>
 <div class="paragraph"><p>If the Valid flag is not set, the hardware does not care about any of the other
 flags, it will simply generate a pagefault into the operating system&#8217;s pagefault
@@ -1462,7 +1464,7 @@ valid.</p></div>
 Prototype flag is off:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [_MMPTE_TRANSITION _MMPTE_TRANSITION] @ 0x000000
+<pre><code>   [_MMPTE_TRANSITION _MMPTE_TRANSITION] @ 0x000000
        Offset                 Field              Content
    -------------- ------------------------------ -------
               0x0 CacheDisable                    [BitField(4-5):CacheDisable]: 0X000000
@@ -1474,7 +1476,7 @@ Prototype flag is off:</p></div>
               0x0 Unused                          [BitField(48-64):Unused]: 0X000000
       = 0 -&gt;  0x0 Valid                           [BitField(0-1):Valid]: 0X000000
               0x0 Write                           [BitField(1-2):Write]: 0X000000
-              0x0 WriteThrough                    [BitField(3-4):WriteThrough]: 0X000000</tt></pre>
+              0x0 WriteThrough                    [BitField(3-4):WriteThrough]: 0X000000</code></pre>
 </div></div>
 <div class="paragraph"><p>Rekall can make immediate use of pages in Transition since their data is still
 valid.</p></div>
@@ -1488,14 +1490,14 @@ pages. Since there are many references to the same physical page, if the OS
 needs to e.g. relocate the physical page into the pagefile, it will need to
 search and update all these references. Since this is very inefficient, the
 Windows solution is to use a kind of "symlink" PTE to direct shared pages to
-another PTE - called a <tt>Prototype PTE</tt>. Thus we only need to update the
+another PTE - called a <code>Prototype PTE</code>. Thus we only need to update the
 Prototype PTE and all PTEs that refer to the shared memory will become
 automatically updated.</p></div>
-<div class="paragraph"><p>So the best way to think of a Prototype PTE is that it is a <tt>symlink</tt> to
+<div class="paragraph"><p>So the best way to think of a Prototype PTE is that it is a <code>symlink</code> to
 something else. Here is the windows struct for the Prototype PTE:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [_MMPTE_PROTOTYPE _MMPTE_PROTOTYPE] @ 0x000000
+<pre><code>   [_MMPTE_PROTOTYPE _MMPTE_PROTOTYPE] @ 0x000000
        Offset                 Field              Content
    -------------- ------------------------------ -------
               0x0 Protection                      [BitField(11-16):Protection]: 0X000000
@@ -1504,11 +1506,11 @@ something else. Here is the windows struct for the Prototype PTE:</p></div>
               0x0 ReadOnly                        [BitField(8-9):ReadOnly]: 0X000000
               0x0 Unused0                         [BitField(1-8):Unused0]: 0X000000
               0x0 Unused1                         [BitField(9-10):Unused1]: 0X000000
-      = 0 -&gt;  0x0 Valid                           [BitField(0-1):Valid]: 0X000000</tt></pre>
+      = 0 -&gt;  0x0 Valid                           [BitField(0-1):Valid]: 0X000000</code></pre>
 </div></div>
-<div class="paragraph"><p>The <tt>ProtoAddress</tt> field contains the address to the prototype PTE (which is
+<div class="paragraph"><p>The <code>ProtoAddress</code> field contains the address to the prototype PTE (which is
 allocated from system pool). The target of the Prototype PTE is what I refer to
-as a <tt>Software PTE</tt>, and can only take on the states appropriate for the
+as a <code>Software PTE</code>, and can only take on the states appropriate for the
 Software PTE (see below).</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -1561,7 +1563,7 @@ PAr9L8j/96+U/w3yCoCXW14B8HLLvwDd67nwZIEPdgAAAABJRU5ErkJggg==" />
 </td>
 <td class="content">
 <div class="paragraph"><p>The prototype PTE is allocated by the system, hence it is a Virtual Address in
-the kernel&#8217;s virtual address space. Contrast this with the <tt>PageFrameNumber</tt>
+the kernel&#8217;s virtual address space. Contrast this with the <code>PageFrameNumber</code>
 field from other states which refer to the physical address space.</p></div>
 </td>
 </tr></table>
@@ -1569,10 +1571,10 @@ field from other states which refer to the physical address space.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_vad_prototype_pte">3.1.4. VAD Prototype PTE</h4>
-<div class="paragraph"><p>If the <tt>Hardware PTE</tt> looks like a Prototype PTE (i.e. has Valid=0,
-Prototype=1), and the <tt>ProtoAddress</tt> is equal to the special value
-<tt>0xFFFFFFFF0000</tt> this marks a VAD Prototype. In this case we must find the VAD
-region which corresponds with the virtual address in question. The <tt>MMVAD</tt>
+<div class="paragraph"><p>If the <code>Hardware PTE</code> looks like a Prototype PTE (i.e. has Valid=0,
+Prototype=1), and the <code>ProtoAddress</code> is equal to the special value
+<code>0xFFFFFFFF0000</code> this marks a VAD Prototype. In this case we must find the VAD
+region which corresponds with the virtual address in question. The <code>MMVAD</code>
 struct then contains a range of PTEs which corresponds with the entire VAD
 range. We then calculate the relative offset of the original virtual address
 into the VAD region to find its corresponding PTE.</p></div>
@@ -1581,7 +1583,7 @@ into the VAD region to find its corresponding PTE.</p></div>
 <li>
 <p>
 Traversing the page tables we identify a VAD Prototype PTE
-   (i.e. <tt>ProtoAddress</tt> = 0xFFFFFFFF0000).
+   (i.e. <code>ProtoAddress</code> = 0xFFFFFFFF0000).
 </p>
 </li>
 <li>
@@ -1592,7 +1594,7 @@ We search the process VADs for the region of interest. Say we find a region
 </li>
 <li>
 <p>
-The _MMVAD object for this region has a <tt>FirstPrototypePte</tt> member (say it
+The _MMVAD object for this region has a <code>FirstPrototypePte</code> member (say it
    points to 0xFFFF1000000).
 </p>
 </li>
@@ -1613,16 +1615,16 @@ We resolve the physical address from that PTE.
 <div class="paragraph"><p>If the PTE is completely 0, this means that the VAD should be consulted. This
 condition seems to also be the case for when the PDE pointing to the PTE is
 invalid (I.e. the entire page table is not valid). In this case we need to
-examine the VAD in an identical way to the <tt>VAD Prototype PTE</tt> above.</p></div>
+examine the VAD in an identical way to the <code>VAD Prototype PTE</code> above.</p></div>
 <div class="paragraph"><p>This state seems to be identical to the one above.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_software_state">3.1.6. Software State</h4>
-<div class="paragraph"><p>If both the <tt>Prototype</tt> and <tt>Transition</tt> flags are unset, the PTE refers to a
+<div class="paragraph"><p>If both the <code>Prototype</code> and <code>Transition</code> flags are unset, the PTE refers to a
 Software PTE:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [_MMPTE_SOFTWARE _MMPTE_SOFTWARE] @ 0x000000
+<pre><code>   [_MMPTE_SOFTWARE _MMPTE_SOFTWARE] @ 0x000000
        Offset                 Field              Content
    -------------- ------------------------------ -------
               0x0 InStore                         [BitField(22-23):InStore]: 0X000000
@@ -1633,17 +1635,17 @@ Software PTE:</p></div>
               0x0 Reserved                        [BitField(23-32):Reserved]: 0X000000
       = 0 -&gt;  0x0 Transition                      [BitField(11-12):Transition]: 0X000000
               0x0 UsedPageTableEntries            [BitField(12-22):UsedPageTableEntries]: 0X000000
-      = 0 -&gt;  0x0 Valid                           [BitField(0-1):Valid]: 0X000000</tt></pre>
+      = 0 -&gt;  0x0 Valid                           [BitField(0-1):Valid]: 0X000000</code></pre>
 </div></div>
-<div class="paragraph"><p>The Software PTE refers to a paged out page. The <tt>PageFileHigh</tt> member is the
+<div class="paragraph"><p>The Software PTE refers to a paged out page. The <code>PageFileHigh</code> member is the
 frame number in the page file (i.e. it must be multiplies by 0x1000 to get the
-file offset). The <tt>PageFileLow</tt> member is the number of pagefile (Windows
+file offset). The <code>PageFileLow</code> member is the number of pagefile (Windows
 supports up to 16 pagefiles).</p></div>
 <div class="paragraph"><p>Windows actually keeps data structures of the available pagefiles, their
-location and stats. I wrote the <tt>pagefiles</tt> plugin to show this information:</p></div>
+location and stats. I wrote the <code>pagefiles</code> plugin to show this information:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [1] Default session 12:25:54&gt; pagefiles
+<pre><code>   [1] Default session 12:25:54&gt; pagefiles
    _MMPAGING_FILE Number  Size (b)        Filename
    -------------- ------ ---------- --------------------
    0xfa8001cae010   0    1207721984 \??\C:\pagefile.sys
@@ -1671,11 +1673,11 @@ location and stats. I wrote the <tt>pagefiles</tt> plugin to show this informati
      0x76 Spare1              [BitField(1-16):Spare1]: 0x00000000
      0x78 FileHandle         &lt;Void Pointer to [0xFFFF80000204] (FileHandle)&gt;
      0x80 Lock                [unsigned long long:Lock]: 0x00000000
-     0x88 LockOwner          &lt;_ETHREAD Pointer to [0xFA8002D93061] (LockOwner)&gt;</tt></pre>
+     0x88 LockOwner          &lt;_ETHREAD Pointer to [0xFA8002D93061] (LockOwner)&gt;</code></pre>
 </div></div>
 <div class="paragraph"><p>You can see the size of the pagefile, and also the allocation bitmap (which
-pages in the pagefile are currently used.). Note that the <tt>PageFileNumber</tt>
-associates the <tt>PageFileLow</tt> member of the <tt>_MMPTE_SOFTWARE</tt> struct with the
+pages in the pagefile are currently used.). Note that the <code>PageFileNumber</code>
+associates the <code>PageFileLow</code> member of the <code>_MMPTE_SOFTWARE</code> struct with the
 pagefile path.</p></div>
 <div class="paragraph"><p>If we have the pagefile available, we can resolve the PTE immediately and read
 the data from the pagefile.</p></div>
@@ -1698,11 +1700,11 @@ the Software PTE requires the following states.</p></div>
 <h4 id="_subsection_prototype_pte">3.2.3. Subsection Prototype PTE</h4>
 <div class="paragraph"><p>If the PTE has the Prototype bit set, and Valid bit unset (P=1, V=0) it is a
 Subsection PTE.</p></div>
-<div class="paragraph"><p>A Subsection PTE refers to an instance of a <tt>_SUBSECTION</tt> object and is used to
+<div class="paragraph"><p>A Subsection PTE refers to an instance of a <code>_SUBSECTION</code> object and is used to
 denote a File Mapping:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [_MMPTE_SUBSECTION _MMPTE_SUBSECTION] @ 0x000000
+<pre><code>   [_MMPTE_SUBSECTION _MMPTE_SUBSECTION] @ 0x000000
        Offset                 Field              Content
    -------------- ------------------------------ -------
               0x0 Protection                      [BitField(5-10):Protection]: 0X000000
@@ -1723,7 +1725,7 @@ denote a File Mapping:</p></div>
              0x20 UnusedPtes                      [unsigned long:UnusedPtes]: 0x00000000
              0x28 u                              [&lt;unnamed-7983&gt; u] @ 0x00000028
              0x2c StartingSector                  [unsigned long:StartingSector]: 0x00000000
-             0x30 NumberOfFullSectors             [unsigned long:NumberOfFullSectors]: 0x00000000</tt></pre>
+             0x30 NumberOfFullSectors             [unsigned long:NumberOfFullSectors]: 0x00000000</code></pre>
 </div></div>
 <div class="paragraph"><p>Subsection PTEs are used to refer to memory mappings of a file on disk. When a
 file is mapped into memory (e.g. an executable file or DLL), the file may be
@@ -1735,13 +1737,13 @@ sense to read the file again from disk if needed in future, rather than waste
 precious pagefile space on mapped files.</p></div>
 <div class="paragraph"><p>Unfortunately, if we do not have access to the disk image any more, we can not
 recover the data in the page any more. We can however, determine directly which
-file the page came from by inspecting the <tt>ControlArea</tt> field of the
-<tt>_SUBSECTION</tt> (So for example _SUBSECTION.ControlArea.FilePointer.FileName). We
+file the page came from by inspecting the <code>ControlArea</code> field of the
+<code>_SUBSECTION</code> (So for example _SUBSECTION.ControlArea.FilePointer.FileName). We
 can also determine the offset in that file by subtracting the prototype PTE from
-<tt>_SUBSECTION.SubsectionBase</tt> and adding the <tt>_SUBSECTION.StartingSector</tt>:</p></div>
+<code>_SUBSECTION.SubsectionBase</code> and adding the <code>_SUBSECTION.StartingSector</code>:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>   [_SUBSECTION _SUBSECTION] @ 0x000000
+<pre><code>   [_SUBSECTION _SUBSECTION] @ 0x000000
        Offset                 Field              Content
    -------------- ------------------------------ -------
               0x0 ControlArea                    &lt;_CONTROL_AREA Pointer to [0x00000000]&gt;
@@ -1807,15 +1809,15 @@ can also determine the offset in that file by subtracting the prototype PTE from
              0xb0 CompletionContext              &lt;_IO_COMPLETION_CONTEXT Pointer to [0x00000000]&gt;
              0xb8 IrpListLock                     [unsigned long long]: 0x00000000
              0xc0 IrpList                        [_LIST_ENTRY IrpList] @ 0x000000C0
-             0xd0 FileObjectExtension            &lt;Void Pointer to [0x00000000]&gt;</tt></pre>
+             0xd0 FileObjectExtension            &lt;Void Pointer to [0x00000000]&gt;</code></pre>
 </div></div>
 </div>
 <div class="sect3">
 <h4 id="_demand_zero_pte">3.2.4. Demand Zero PTE</h4>
 <div class="paragraph"><p>If the PTE&#8217;s target has (Valid=0, Prototype=0, Transition=0) and it also has
-<tt>PageFileHigh</tt>=0, then this page is a demand zero page. The page fault handler
+<code>PageFileHigh</code>=0, then this page is a demand zero page. The page fault handler
 will simply assign a zero page in response to the page fault. Often this page
-will also have non-zero <tt>Protection</tt> bits which should reflect the VAD&#8217;s
+will also have non-zero <code>Protection</code> bits which should reflect the VAD&#8217;s
 original protections.</p></div>
 </div>
 </div>
@@ -1826,7 +1828,8 @@ resolve the Hardware PTE to receive a Software PTE, then resolve the software
 PTE if needed.</p></div>
 <div class="imageblock">
 <div class="content">
-<img alt="align=center" src="data:image/png;base64,
+<img alt="align=center"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAA8AAAALQCAIAAADQFY7jAACAAElEQVR42uydX0hcy562N3OcUVCI
 M5Fsycg+IcfMpxydbTgN42EctkwEBQXFI0GCiDI6KGPO9IUDXsgoRFBQMk0QkWBAQaEDXjREiBCJ
 YINCJEiQIGLAgAEDXnjhhRde+L3tm127slZ32/7vbt8Hke7V60/V6rWqnqr+raofDoUQQgghhBAx
@@ -3042,7 +3045,7 @@ If the Transition flag is set, but the Prototype flag is unset, the PTE is in
 </li>
 <li>
 <p>
-If the Prototype flag is set, but the <tt>ProtoAddress</tt> field is equal to
+If the Prototype flag is set, but the <code>ProtoAddress</code> field is equal to
    0xFFFFFFFF0000, this is a Vad PTE and we must consult the VAD to recover the
    Software PTE.
 </p>
@@ -3064,7 +3067,7 @@ If the PTE has all the Transition, Prototype and Valid flags unset, but the
 <li>
 <p>
 Finally if the Prototype bit is on, then this is a Prototype PTE and we can
-   read the <tt>Software PTE</tt> from the <tt>ProtoAddress</tt> field.
+   read the <code>Software PTE</code> from the <code>ProtoAddress</code> field.
 </p>
 </li>
 </ol></div>
@@ -3073,7 +3076,8 @@ different algorithm. Note that Prototype states are not allowed for Software
 PTEs (i.e. you cant have a symlink to a symlink essentially).</p></div>
 <div class="imageblock">
 <div class="content">
-<img alt="align=center" src="data:image/png;base64,
+<img alt="align=center"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAA8AAAALQCAIAAADQFY7jAACAAElEQVR42uydXUgc2572wxwhAYXI
 RLIlI/uEPWZew9E5htMwDjhsmQgKyaDkSJAgoowZlDEzfeGAFzIJRFCIZCRIkGBAQcGAFw0RIkQi
 pCFCJEiQIMGAGwwY8MILL7zwwvdpn73/e6Wqu2y/u9vnRwhtdX2stapq1W+t/tdaZ7aFEEIIIYQQ
@@ -4092,13 +4096,13 @@ If the Prototype flag is set, then this is a File Mapping PTE which points to
 </li>
 <li>
 <p>
-If all Valid, Prototype and Transition flags are unset, and <tt>PageFileHigh</tt> is
+If all Valid, Prototype and Transition flags are unset, and <code>PageFileHigh</code> is
    also zero, then this is a Demand Zero mapping. Return a Zero page.
 </p>
 </li>
 <li>
 <p>
-If all Valid, Prototype and Transition flags are unset, but <tt>PageFileHigh</tt> is
+If all Valid, Prototype and Transition flags are unset, but <code>PageFileHigh</code> is
    not zero, then this is a PageFile PTE and we can return the page from the
    page file.
 </p>
@@ -4111,11 +4115,11 @@ If all Valid, Prototype and Transition flags are unset, but <tt>PageFileHigh</tt
 <h2 id="_experiment">4. Experiment</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>In order to study the effects of the new page translation code, I wrote a small
-program which allocates a large memory block (using <tt>VirtualAlloc</tt>), fills the
+program which allocates a large memory block (using <code>VirtualAlloc</code>), fills the
 memory with a pattern and then just Sleeps. Additionally I mapped a file and
 also mapped a large region which is never touched (Demand Zero region):</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -4175,13 +4179,14 @@ http://www.gnu.org/software/src-highlite -->
   <span style="font-weight: bold"><span style="color: #000000">Sleep</span></span><span style="color: #990000">(</span><span style="color: #993399">1000000</span><span style="color: #990000">);</span>
   <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
 <span style="color: #FF0000">}</span></tt></pre></div></div>
-<div class="paragraph"><p>I ran the program (<tt>swapper.exe</tt>) on a small Windows 7 VM with only 1GB of ram
-allocated. I also enabled a few more columns in <tt>Task Manager</tt> to observe memory
+<div class="paragraph"><p>I ran the program (<code>swapper.exe</code>) on a small Windows 7 VM with only 1GB of ram
+allocated. I also enabled a few more columns in <code>Task Manager</code> to observe memory
 usage. We can see that the program allocated over 800mb (Commit Size) but only
 347Mb is currently resident in memory.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img alt="posts/2014-10-25-pagefile/swapper1.jpg" src="data:image/jpg;base64,
+<img alt="posts/2014-10-25-pagefile/swapper1.jpg"
+src="data:image/jpeg;base64,
 /9j/4AAQSkZJRgABAQEAYABgAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAUDBAQEAwUEBAQF
 BQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBD
 AQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e
@@ -7233,10 +7238,11 @@ f3ysXl3fd107Mqk5nvQfxnM//9k=" />
 <div class="title">Figure 5. Running a program which allocated a lot of virtual memory.</div>
 </div>
 <div class="paragraph"><p>I then ran WinPmem to acquire the physical memory and the pagefile
-(<tt>winpmem-1.6.2.exe -p -e swapper.elf</tt>).</p></div>
+(<code>winpmem-1.6.2.exe -p -e swapper.elf</code>).</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img alt="posts/2014-10-25-pagefile/swapper2.jpg" src="data:image/jpg;base64,
+<img alt="posts/2014-10-25-pagefile/swapper2.jpg"
+src="data:image/jpeg;base64,
 /9j/4AAQSkZJRgABAQEAYABgAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAUDBAQEAwUEBAQF
 BQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBD
 AQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e
@@ -10624,11 +10630,11 @@ SwNPNEhtuBa4wkBIuUVFRcoqL8NfP8A2r/nKxfXu+rr07Mqk5neg/LOZ/9k=" />
 </div>
 <div class="title">Figure 6. Acquiring memory with WinPmem.</div>
 </div>
-<div class="paragraph"><p>The additional system activity caused the working set of the <tt>swapper.exe</tt>
+<div class="paragraph"><p>The additional system activity caused the working set of the <code>swapper.exe</code>
 program to be trimmed down to 118Mb within a few seconds. This is actually a
 problem because the imager starts writing the image from physical address 0. The
 page tables are typically found at very low physical addresses. For example in
-this image, the <tt>CR3</tt> value is 0x187000 (About 1.6Mb) into the physical image.</p></div>
+this image, the <code>CR3</code> value is 0x187000 (About 1.6Mb) into the physical image.</p></div>
 <div class="paragraph"><p>Since it takes a finite time to write the image to disk, and the additional
 system activity causes processes to be aggressively trimmed, it is very likely
 that the page tables that are written within a fraction of a second from the
@@ -10644,10 +10650,10 @@ acquisition &#8230;.</p></div>
 <h2 id="_analysis">5. Analysis</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>I loaded the file into Rekall as normal and inspected the VAD regions of the
-<tt>swapper.exe</tt> process using the <tt>vad</tt> plugin:</p></div>
+<code>swapper.exe</code> process using the <code>vad</code> plugin:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 17:24:32&gt; vad  proc_regex="swapper.exe"
+<pre><code>swapped.elf 17:24:32&gt; vad  proc_regex="swapper.exe"
 **************************************************
 Pid: 656 swapper.exe
      VAD       lev   Start Addr      End Addr    com                Protect Filename
@@ -10688,18 +10694,18 @@ Pid: 656 swapper.exe
 0xfa8000fc1650   5 0x00007efdf000 0x00007efdffff    1 Private        READWRITE            Pagefile-backed section
 0xfa80010e4ce0   6 0x00007efe0000 0x00007f0dffff    0 Mapped         READONLY             Pagefile-backed section
 0xfa80026f82c0   4 0x00007ffe0000 0x00007ffeffff   -1 Private        READONLY
-0xfa8000dee010   5 0x00007fff0000 0x07fffffeffff   -1 Private        READONLY</tt></pre>
+0xfa8000dee010   5 0x00007fff0000 0x07fffffeffff   -1 Private        READONLY</code></pre>
 </div></div>
-<div class="paragraph"><p>I modified the plugin <tt>vtop</tt> to perform the full analysis mentioned in this
+<div class="paragraph"><p>I modified the plugin <code>vtop</code> to perform the full analysis mentioned in this
 paper and describe each intermediate step. We can therefore use it to examine
-some interesting addresses in the <tt>swapper.exe</tt> address space.</p></div>
-<div class="paragraph"><p>I started off examining some of the pages allocated by <tt>swapper.exe</tt> in the
-large <tt>VirtualAlloc</tt> region. These pages are marked by their page number so they
+some interesting addresses in the <code>swapper.exe</code> address space.</p></div>
+<div class="paragraph"><p>I started off examining some of the pages allocated by <code>swapper.exe</code> in the
+large <code>VirtualAlloc</code> region. These pages are marked by their page number so they
 should be easy to identify (First we change the process context to the
-<tt>swapper.exe</tt> using the <tt>cc</tt> plugin):</p></div>
+<code>swapper.exe</code> using the <code>cc</code> plugin):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:20:49&gt; cc proc_regex="swapper.exe"
+<pre><code>swapped.elf 18:20:49&gt; cc proc_regex="swapper.exe"
 Switching to process context: swapper.exe (Pid 656@0xfa8000fb5060)
 
 swapped.elf 18:20:55&gt; vtop 0x000000b30000 + 4 * 0x1000
@@ -10723,15 +10729,15 @@ PTE Type: Pagefile
   0x00 Valid                 [BitField(0-1):Valid]: 0x00000000
 
 PTE mapped at 0x696A2000
-Physical Address 0x296a2000@Pagefile</tt></pre>
+Physical Address 0x296a2000@Pagefile</code></pre>
 </div></div>
-<div class="paragraph"><p>We examine the 4th allocated page. The <tt>vtop</tt> plugin finds the relevant PTE and
+<div class="paragraph"><p>We examine the 4th allocated page. The <code>vtop</code> plugin finds the relevant PTE and
 tells us that it is a software PTE. We therefore know that the relevant offset
-into the pagefile is found in the <tt>PageFileHigh</tt> field. Lets see if this
+into the pagefile is found in the <code>PageFileHigh</code> field. Lets see if this
 produces the correct data:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:20:55&gt; dump 0x000000b30000 + 4 * 0x1000
+<pre><code>swapped.elf 18:20:55&gt; dump 0x000000b30000 + 4 * 0x1000
     Offset                           Hex                              Data       Comment
 -------------- ------------------------------------------------ ---------------- -------
       0xb34000 04 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00  ................
@@ -10740,15 +10746,15 @@ produces the correct data:</p></div>
       0xb34030 04 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00  ................
       0xb34040 04 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00  ................
       0xb34050 04 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00  ................
-      0xb34060 04 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00  ................</tt></pre>
+      0xb34060 04 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00  ................</code></pre>
 </div></div>
 <div class="paragraph"><p>Yes! The page is marked with the integer 4.</p></div>
-<div class="paragraph"><p>For the next example we want to read the binary itself for <tt>swapper.exe</tt>. This
+<div class="paragraph"><p>For the next example we want to read the binary itself for <code>swapper.exe</code>. This
 is a very common requirement when dumping malware from memory. We see from the
-vad output that <tt>swapper.exe</tt> is mapped from address 0x000001330000:</p></div>
+vad output that <code>swapper.exe</code> is mapped from address 0x000001330000:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:22:01&gt; vtop 0x000000b10000
+<pre><code>swapped.elf 18:22:01&gt; vtop 0x000000b10000
 Virtual 0xb10000 Page Directory 0x323ef000
 pml4e@ 0x323ef000 = 0x940000031ac0867
 pdpte@ 0x31ac0000 = 0xb0000007f84867
@@ -10778,18 +10784,18 @@ Prototype PTE backed by file.
 Filename: \Users\mic\Documents\Visual Studio 2010\Projects\swapper\Debug\swapper.exe
 File Offset: 0 (0x0)
 Invalid PTE
-Physical Address Invalid</tt></pre>
+Physical Address Invalid</code></pre>
 </div></div>
 <div class="paragraph"><p>This is a Prototype PTE which points to a Subsection PTE, backed by a file. We
-can tell the name of the file and the <tt>_FILE_OBJECT</tt> responsible for it, but
+can tell the name of the file and the <code>_FILE_OBJECT</code> responsible for it, but
 alas this page is not found in the pagefile nor in memory. We would have to
 retrieve it from the file system.</p></div>
 <div class="paragraph"><p>For the next example we try to dump the first page of the mapped
-<tt>ntdll.dll</tt>. This DLL is mapped into every process so it is an example of shared
+<code>ntdll.dll</code>. This DLL is mapped into every process so it is an example of shared
 memory. The VAD tells us that it is mapped at 0x0000777b0000 for this process:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:22:06&gt; vtop 0x0000777b0000
+<pre><code>swapped.elf 18:22:06&gt; vtop 0x0000777b0000
 Virtual 0x777b0000 Page Directory 0x323ef000
 pml4e@ 0x323ef000 = 0x940000031ac0867
 pdpte@ 0x31ac0008 = 0x8000002a801867
@@ -10829,7 +10835,7 @@ PTE Type: Valid
   0x00 reserved1        [BitField(48-52):reserved1]: 0x00000000
 
 PTE mapped at 0x2318E000
-Physical Address 0x2318e000</tt></pre>
+Physical Address 0x2318e000</code></pre>
 </div></div>
 <div class="paragraph"><p>We see that the PTE is a Prototype PTE pointing to a valid page. We can dump it
 out to see the familiar MZ header (Note that without interpreting the Prototype
@@ -10837,7 +10843,7 @@ PTE we would not be able to read this page at all - even though it is still
 Valid and present in the memory image!):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 20:50:35&gt; dump 0x0000777b0000
+<pre><code>swapped.elf 20:50:35&gt; dump 0x0000777b0000
     Offset                           Hex                              Data       Comment
 -------------- ------------------------------------------------ ---------------- -------
     0x777b0000 4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00  MZ..............
@@ -10847,13 +10853,13 @@ Valid and present in the memory image!):</p></div>
     0x777b0040 0e 1f ba 0e 00 b4 09 cd 21 b8 01 4c cd 21 54 68  ........!..L.!Th
     0x777b0050 69 73 20 70 72 6f 67 72 61 6d 20 63 61 6e 6e 6f  is.program.canno
     0x777b0060 74 20 62 65 20 72 75 6e 20 69 6e 20 44 4f 53 20  t.be.run.in.DOS.
-    0x777b0070 6d 6f 64 65 2e 0d 0d 0a 24 00 00 00 00 00 00 00  mode....$.......</tt></pre>
+    0x777b0070 6d 6f 64 65 2e 0d 0d 0a 24 00 00 00 00 00 00 00  mode....$.......</code></pre>
 </div></div>
-<div class="paragraph"><p>The next example we try to read from <tt>locale.nls</tt> which is mapped from
+<div class="paragraph"><p>The next example we try to read from <code>locale.nls</code> which is mapped from
 0x0000001d0000:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:24:07&gt; vtop 0x0000001d0000
+<pre><code>swapped.elf 18:24:07&gt; vtop 0x0000001d0000
 Virtual 0x1d0000 Page Directory 0x323ef000
 pml4e@ 0x323ef000 = 0x940000031ac0867
 pdpte@ 0x31ac0000 = 0xb0000007f84867
@@ -10902,18 +10908,18 @@ PTE Type: Valid
   0x00 reserved1        [BitField(48-52):reserved1]: 0x00000000
 
 PTE mapped at 0x04D91000
-Physical Address 0x4d91000</tt></pre>
+Physical Address 0x4d91000</code></pre>
 </div></div>
-<div class="paragraph"><p>In this special case, we see that the Prototype PTE has a <tt>ProtoAddress</tt> field
+<div class="paragraph"><p>In this special case, we see that the Prototype PTE has a <code>ProtoAddress</code> field
 of 0XFFFFFFFF0000 - the magic signature for the VAD Prototype PTE. Rekall
 therefore must search for the containing VAD region for the virtual address
-0x000000110000. The output of the <tt>vad</tt> plugin is shown next, and the relevant
-<tt>_MMVAD</tt> address is shown at 0xfa8001a44920. In this case we need to read the
+0x000000110000. The output of the <code>vad</code> plugin is shown next, and the relevant
+<code>_MMVAD</code> address is shown at 0xfa8001a44920. In this case we need to read the
 first PTE, which is found to be valid. Hence we can read this page directly from
 the memory image:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:24:21&gt; dump 0x0000001d0000
+<pre><code>swapped.elf 18:24:21&gt; dump 0x0000001d0000
     Offset                           Hex                              Data       Comment
 -------------- ------------------------------------------------ ---------------- -------
       0x1d0000 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
@@ -10924,19 +10930,19 @@ the memory image:</p></div>
       0x1d0050 09 00 00 00 48 02 0a 00 48 00 10 02 0b 00 48 00  ....H...H.....H.
       0x1d0060 10 02 0b 00 48 04 10 02 05 00 48 00 10 02 05 00  ....H.....H.....
       0x1d0070 48 04 10 02 0b 00 40 04 10 02 04 00 48 00 10 02  H.....@.....H...
-      0x1d0080 07 00 48 00 10 02 04 00 40 04 10 02 07 00 48 04  ..H.....@.....H.</tt></pre>
+      0x1d0080 07 00 48 00 10 02 04 00 40 04 10 02 07 00 48 04  ..H.....@.....H.</code></pre>
 </div></div>
 <div class="paragraph"><p>I then used a hex-editor to confirm that this data is indeed the same as in the
-<tt>locale.nls</tt> file.</p></div>
-<div class="paragraph"><p>Its actually kind of fun to look at the output of the <tt>vad</tt> plugin and call the
-<tt>vtop</tt> plugin in random addresses to see how they are mapped. I thought it would
-be useful to see how the entire region is mapped. I wrote the <tt>vadmap</tt> plugin
+<code>locale.nls</code> file.</p></div>
+<div class="paragraph"><p>Its actually kind of fun to look at the output of the <code>vad</code> plugin and call the
+<code>vtop</code> plugin in random addresses to see how they are mapped. I thought it would
+be useful to see how the entire region is mapped. I wrote the <code>vadmap</code> plugin
 which outputs a map of all addresses in the vad of a process and how they are
 mapped. Note that vadmap resolves the Prototype PTEs transparently, so if there
 is a Prototype PTE that points to a Valid PTE, vadmap will say it is Valid.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>swapped.elf 18:25:32&gt; vadmap proc_regex="swapper.exe"
+<pre><code>swapped.elf 18:25:32&gt; vadmap proc_regex="swapper.exe"
 **************************************************
 Pid: 656 swapper.exe
   Virt Addr        Length             Type         Comments
@@ -11002,13 +11008,13 @@ DEBUG:root:Switching to process context: swapper.exe (Pid 656@0xfa8000fb5060)
 0x0000321d1000       0x95f000 Demand Zero
 0x000063f60000         0x1000 File Mapping filename: \Windows\SysWOW64\msvcr100d.dll
 0x000063f61000         0x1000 Valid
-0x000063f62000        0x15000 File Mapping filename: \Windows\SysWOW64\msvcr100d.dll</tt></pre>
+0x000063f62000        0x15000 File Mapping filename: \Windows\SysWOW64\msvcr100d.dll</code></pre>
 </div></div>
 <div class="paragraph"><p>We can see some interesting points:</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
-The executable <tt>swapper.exe</tt> is mapped from 0x000000b10000, but some pages
+The executable <code>swapper.exe</code> is mapped from 0x000000b10000, but some pages
    are marked as file mappings, some as demand paging (for the spaces between
    the PE sections), while some are valid (i.e. contain code loaded into
    memory). We can see that if we dump the VAD region we will only be able to
@@ -11018,14 +11024,14 @@ The executable <tt>swapper.exe</tt> is mapped from 0x000000b10000, but some page
 <li>
 <p>
 We also see that significant number of pages exist in the pagefile. Note that
-   <tt>vadmap</tt> can identify pages in the pagefile, regardless if we actually have
+   <code>vadmap</code> can identify pages in the pagefile, regardless if we actually have
    the page file. This can sometimes be useful in order to assess how important
    it is to acquire the page file as well.
 </p>
 </li>
 <li>
 <p>
-The entire region mapped for <tt>notepad.exe</tt> contains subsection PTEs - none of
+The entire region mapped for <code>notepad.exe</code> contains subsection PTEs - none of
    the data was ever read hence no pages were read from the file.
 </p>
 </li>
@@ -11072,7 +11078,7 @@ github if you find any bugs.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-31 12:29:26 CET
+Last updated 2014-11-20 17:53:10 CET
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

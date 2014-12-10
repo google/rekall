@@ -108,26 +108,26 @@ therefore access the repository to fetch profiles on demand.</p>
 <p>If you dont want to access the internet each time you can copy the entire
 profile repository locally and then just use it from your local machine. Since
 the profile repository is a git repository you can just check it out:</p>
-<div class="highlight"><pre><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="o">:</span><span class="c1">//github.com/google/rekall-profiles.git</span>
+<div class="highlight"><pre>git clone https://github.com/google/rekall-profiles.git
 </pre></div>
 
 
 <p>You can then just keep it up to date by running:</p>
-<div class="highlight"><pre><span class="n">git</span> <span class="n">pull</span>
+<div class="highlight"><pre>git pull
 </pre></div>
 
 
 <p>from within this directory. Alternatively you can just download the latest
 snapshot as a zip file (you do not need the git tool in that case):</p>
-<div class="highlight"><pre><span class="n">wget</span> <span class="n">https</span><span class="o">:</span><span class="c1">//github.com/google/rekall-profiles/archive/master.zip</span>
+<div class="highlight"><pre>wget https://github.com/google/rekall-profiles/archive/master.zip
 </pre></div>
 
 
 <p>You will now need to edit your ~/.rekallrc file to use your local directory copy
 instead of the web copy:</p>
-<div class="highlight"><pre><span class="nl">profile_path:</span>
-   <span class="o">-</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">scudette</span><span class="o">/</span><span class="n">rekall</span><span class="o">-</span><span class="n">profiles</span>
-   <span class="o">-</span> <span class="n">https</span><span class="o">:</span><span class="c1">//raw.githubusercontent.com/google/rekall-profiles/master</span>
+<div class="highlight"><pre>profile_path:
+   - /home/scudette/rekall-profiles
+   - https://raw.githubusercontent.com/google/rekall-profiles/master
 </pre></div>
 
 
@@ -149,7 +149,7 @@ way because Rekall will then be able to autodetect your profile afterwards:</p>
 <li>Now change directory to the v1.0/ directory.</li>
 <li>Run the profile management tool:</li>
 </ol>
-<div class="highlight"><pre><span class="n">python</span> <span class="o">~/</span><span class="n">rekall</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">profiles</span><span class="o">/</span><span class="n">build_profile_repo</span><span class="p">.</span><span class="n">py</span> <span class="n">src</span><span class="o">/</span><span class="n">guids</span><span class="p">.</span><span class="n">txt</span>
+<div class="highlight"><pre>python ~/rekall/tools/profiles/build_profile_repo.py src/guids.txt
 </pre></div>
 
 
@@ -176,27 +176,27 @@ are not quite sure what exact version of Windows it is.</p>
 <p>Finally we convert the pdb file into Rekall&rsquo;s own json format.</p>
 </li>
 </ol>
-<div class="highlight"><pre><span class="err">$</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="n">version_scan</span> <span class="o">--</span><span class="n">name</span> <span class="n">ntkrnl</span>
-<span class="mh">0x0000027bb5fc</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
+<div class="highlight"><pre><span class="nv">$ </span>rekal -f ~/images/win7.elf version_scan --name ntkrnl
+0x0000027bb5fc f8e2a8b5c9b74bf4a6e4a48f180099942 ntkrnlmp.pdb
 
-<span class="err">$</span> <span class="n">rekal</span> <span class="n">fetch_pdb</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">dir</span> <span class="p">.</span> <span class="o">--</span><span class="n">pdb_filename</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">guid</span> <span class="n">f8e2a8b5c9b74bf4a6e4a48f180099942</span>
-<span class="n">Trying</span> <span class="n">to</span> <span class="n">fetch</span> <span class="n">http</span><span class="o">:</span><span class="c1">//msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_</span>
-<span class="n">Received</span> <span class="mi">2675077</span> <span class="n">bytes</span>
-<span class="n">Extracting</span> <span class="n">cabinet</span><span class="o">:</span> <span class="p">.</span><span class="o">/</span><span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pd_</span>
- <span class="n">extracting</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
+<span class="nv">$ </span>rekal fetch_pdb --dump-dir . --pdb_filename ntkrnlmp.pdb --guid f8e2a8b5c9b74bf4a6e4a48f180099942
+Trying to fetch http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/F8E2A8B5C9B74BF4A6E4A48F180099942/ntkrnlmp.pd_
+Received <span class="m">2675077</span> bytes
+Extracting cabinet: ./ntkrnlmp.pd_
+ extracting ntkrnlmp.pdb
 
-<span class="n">All</span> <span class="n">done</span><span class="p">,</span> <span class="n">no</span> <span class="n">errors</span><span class="p">.</span>
+All <span class="k">done</span>, no errors.
 
-<span class="err">$</span> <span class="n">rekal</span> <span class="n">parse_pdb</span> <span class="o">-</span><span class="n">f</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span> <span class="o">--</span><span class="n">output</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">json</span> <span class="o">--</span><span class="n">profile_class</span> <span class="n">Win7x64</span>
-<span class="err">$</span> <span class="n">rekal</span> <span class="o">--</span><span class="n">profile</span> <span class="p">.</span><span class="o">/</span><span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">json</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">images</span><span class="o">/</span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="n">pslist</span>
- <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                    <span class="n">Exit</span>
-<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
-<span class="mh">0xfa80008959e0</span> <span class="n">System</span>                    <span class="mi">4</span>      <span class="mi">0</span>     <span class="mi">84</span>      <span class="mi">511</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="mh">0xfa8001994310</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">272</span>      <span class="mi">4</span>      <span class="mi">2</span>       <span class="mi">29</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="mh">0xfa8002259060</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">348</span>    <span class="mi">340</span>      <span class="mi">9</span>      <span class="mi">436</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="mh">0xfa8000901060</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">384</span>    <span class="mi">340</span>      <span class="mi">3</span>       <span class="mi">75</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="mh">0xfa8000900420</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">396</span>    <span class="mi">376</span>      <span class="mi">8</span>      <span class="mi">192</span>      <span class="mi">1</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="p">....</span>
+<span class="nv">$ </span>rekal parse_pdb -f ntkrnlmp.pdb --output ntkrnlmp.json --profile_class Win7x64
+<span class="nv">$ </span>rekal --profile ./ntkrnlmp.json -f ~/images/win7.elf pslist
+ Offset <span class="o">(</span>V<span class="o">)</span>   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                    Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xfa80008959e0 System                    <span class="m">4</span>      <span class="m">0</span>     <span class="m">84</span>      <span class="m">511</span> ------  False 2012-10-01 21:39:51+0000 -
+0xfa8001994310 smss.exe                <span class="m">272</span>      <span class="m">4</span>      <span class="m">2</span>       <span class="m">29</span> ------  False 2012-10-01 21:39:51+0000 -
+0xfa8002259060 csrss.exe               <span class="m">348</span>    <span class="m">340</span>      <span class="m">9</span>      <span class="m">436</span>      <span class="m">0</span>  False 2012-10-01 21:39:57+0000 -
+0xfa8000901060 wininit.exe             <span class="m">384</span>    <span class="m">340</span>      <span class="m">3</span>       <span class="m">75</span>      <span class="m">0</span>  False 2012-10-01 21:39:57+0000 -
+0xfa8000900420 csrss.exe               <span class="m">396</span>    <span class="m">376</span>      <span class="m">8</span>      <span class="m">192</span>      <span class="m">1</span>  False 2012-10-01 21:39:57+0000 -
+....
 </pre></div>
 
 

@@ -1,0 +1,434 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
+       <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+         </ul>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
+           </div>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
+   </nav>
+
+<div class="container-fluid">
+<div class="row">
+  <div class="col-md-2">
+    
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
+ </a>
+
+ <a href='/docs/Manual/Plugins/Linux/index.html' class="btn btn-default btn-lg btn-block">
+   Linux
+ </a>
+ <p>
+ <div class='css-treeview'>
+   <ul class='nav nav-stacked'>
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Arp.html' class="tree-link "  title="arp">
+      arp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Banner.html' class="tree-link "  title="banner">
+      banner
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/BashHistory.html' class="tree-link "  title="bash">
+      bash
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckAFInfo.html' class="tree-link "  title="check_afinfo">
+      check_afinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckCreds.html' class="tree-link "  title="check_creds">
+      check_creds
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckIdt.html' class="tree-link "  title="check_idt">
+      check_idt
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckModules.html' class="tree-link "  title="check_modules">
+      check_modules
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckProcFops.html' class="tree-link "  title="check_proc_fops">
+      check_proc_fops
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckSyscall.html' class="tree-link "  title="check_syscall">
+      check_syscall
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckTaskFops.html' class="tree-link "  title="check_task_fops">
+      check_task_fops
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CheckTTY.html' class="tree-link "  title="check_ttys">
+      check_ttys
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/CpuInfo.html' class="tree-link "  title="cpuinfo">
+      cpuinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxDmesg.html' class="tree-link "  title="dmesg">
+      dmesg
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxFindDTB.html' class="tree-link "  title="find_dtb">
+      find_dtb
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxFindKASLR.html' class="tree-link "  title="find_kaslr">
+      find_kaslr
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Hostname.html' class="tree-link "  title="hostname">
+      hostname
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Ifconfig.html' class="tree-link "  title="ifconfig">
+      ifconfig
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/IOmem.html' class="tree-link "  title="iomem">
+      iomem
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Lsmod.html' class="tree-link "  title="lsmod">
+      lsmod
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Lsof.html' class="tree-link "  title="lsof">
+      lsof
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/ProcMaps.html' class="tree-link "  title="maps">
+      maps
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mcat.html' class="tree-link "  title="mcat">
+      mcat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinMemDump.html' class="tree-link "  title="memdump">
+      memdump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinMemMap.html' class="tree-link "  title="memmap">
+      memmap
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mfind.html' class="tree-link "  title="mfind">
+      mfind
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mls.html' class="tree-link "  title="mls">
+      mls
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Moddump.html' class="tree-link "  title="moddump">
+      moddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mount.html' class="tree-link "  title="mount">
+      mount
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/NotifierChainPlugin.html' class="tree-link "  title="notifier_chains">
+      notifier_chains
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinPas2Vas.html' class="tree-link "  title="pas2vas">
+      pas2vas
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PidHashTable.html' class="tree-link "  title="pidhashtable">
+      pidhashtable
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PacketQueues.html' class="tree-link "  title="pkt_queues">
+      pkt_queues
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PSAux.html' class="tree-link "  title="psaux">
+      psaux
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxPsList.html' class="tree-link "  title="pslist">
+      pslist
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinPSTree.html' class="tree-link "  title="pstree">
+      pstree
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinVadDump.html' class="tree-link "  title="vaddump">
+      vaddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
+   </a>
+</li>
+</ul>
+ </div>
+
+  </div>
+
+  <div class="col-md-8">
+    
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Linux/ProcMaps.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         maps
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Linux/LinMemDump.html">
+          memdump
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+<h1>mcat</h1>
+
+<div class="abstract">
+<p>Returns the contents available in memory for a given file.</p>
+<p>Ranges of the file that are not present in memory are returned blank.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>out_file</td><td>Path for output file.</td></tr><tr><td>path</td><td>Path to the file.</td></tr><tr><td>device</td><td>Name of the device to match.</td></tr><tr><td>dtb</td><td>The DTB physical address.</td></tr>
+</tbody>
+</table>
+
+
+
+<a href="/epydocs/rekall.plugins.linux.fs.Mcat-class.html">View Source</a>
+
+
+<p>You can find the list of files in memory by using the <code>mls</code> plugin.</p>
+
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Linux/ProcMaps.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         maps
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Linux/LinMemDump.html">
+          memdump
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+  </div>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
+
+
+  </div>
+</div>
+</div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </body>
+</html>
+

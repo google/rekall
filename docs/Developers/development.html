@@ -254,7 +254,7 @@ the profile.</p></div>
 <div class="paragraph"><p>Here is the base minimum that should be defined for a new command plugin:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<tt>args(cls, parser)</tt>
+<code>args(cls, parser)</code>
 </dt>
 <dd>
 <p>
@@ -263,7 +263,7 @@ the profile.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<tt>__init__(**args)</tt>
+<code>__init__(**args)</code>
 </dt>
 <dd>
 <p>
@@ -274,7 +274,7 @@ the profile.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<tt>is_active(cls, session)</tt>
+<code>is_active(cls, session)</code>
 </dt>
 <dd>
 <p>
@@ -285,7 +285,7 @@ the profile.</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<tt>render(renderer)</tt>
+<code>render(renderer)</code>
 </dt>
 <dd>
 <p>
@@ -299,11 +299,11 @@ the profile.</p></div>
 be reusable by other components.</p></div>
 <div class="paragraph"><p>Many of the existing command plugins implement some of these methods via
 inheritance. For example, plugins which can only operate on a Linux image may
-extend the <tt>rekall.plugins.linux.common.LinuxPlugin</tt> class which already
-implements the correct <tt>is_active()</tt> method.</p></div>
+extend the <code>rekall.plugins.linux.common.LinuxPlugin</code> class which already
+implements the correct <code>is_active()</code> method.</p></div>
 <div class="paragraph"><p>Similarly plugins which operate on processes may extend the
-<tt>rekall.plugins.linux.common.LinuxProcessFilter</tt> plugin. This will give the new
-plugin the <tt>args()</tt> method defining all the commandline options which allow the
+<code>rekall.plugins.linux.common.LinuxProcessFilter</code> plugin. This will give the new
+plugin the <code>args()</code> method defining all the commandline options which allow the
 user to select processes (i.e. by pid, by task address etc). In this way the
 commands which operate on processes can present a consistent user interface
 easily with the same filtering options.</p></div>
@@ -314,7 +314,7 @@ easily with the same filtering options.</p></div>
 following command is issued:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>    <img alt="1" src="data:image/png;base64,
+<pre><code>    <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
@@ -345,7 +345,7 @@ QmCC" />
 $ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw pslist --proc_reg DumpIt
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
-0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</tt></pre>
+0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -400,7 +400,7 @@ name, the help output simply lists those options processed by the main program
 (i.e. global options). It also provides a list of available modules:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal --help
+<pre><code>$ rekal --help
 usage: rekal [-h] [--pager PAGER]
              [--logging {debug,info,warning,critical,error}] [--debug]
              [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
@@ -434,12 +434,12 @@ subcommands:
     driverscan          Scan for driver objects _DRIVER_OBJECT
     memmap              Calculates the memory regions mapped by a process.
     load_as             Load address spaces into the session if its not
-                        already loaded.</tt></pre>
+                        already loaded.</code></pre>
 </div></div>
 <div class="paragraph"><p>Once the module is provided, we see a per-module help output:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal pslist --help
+<pre><code>$ rekal pslist --help
 usage: rekal pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
@@ -455,7 +455,7 @@ optional arguments:
                         Physical addresses of eprocess structs.
   --pid PID [PID ...]   One or more pids of processes to select.
   --proc_regex PROC_REGEX
-                        A regex to select a profile by name.</tt></pre>
+                        A regex to select a profile by name.</code></pre>
 </div></div>
 </div>
 <div class="sect2">
@@ -466,7 +466,7 @@ without needing to reinitialize the framework each time.</p></div>
 <div class="paragraph"><p>This is what happens during initialization:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw
+<pre><code>$ rekal --profile Win7SP0x64 --filename win7_trial_64bit.raw
 Python 2.6.5 (r265:79063, Apr 16 2010, 13:57:41)
 Type "copyright", "credits" or "license" for more information.
 
@@ -527,7 +527,7 @@ QmCC" />
 ----------------------------------------&gt; pslist(proc_regex="DumpIt")
   Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 -------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
-0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</tt></pre>
+0xfa8001016060 DumpIt.exe             2860   1652      2       42      1   True 2012-02-22 11:28:59  -</code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -615,7 +615,8 @@ creating a <em>Virtual Address Space</em> with the IA32PagedMemory and Amd64 pag
 address spaces stacked over the <em>Physical Address Space</em>.</p></div>
 <div class="imageblock" style="text-align:center;">
 <div class="content">
-<img alt="img/address_space.jpg" src="data:image/jpg;base64,
+<img alt="img/address_space.jpg"
+src="data:image/jpeg;base64,
 /9j/4AAQSkZJRgABAQEAtQCHAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAUDBAQEAwUEBAQF
 BQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBD
 AQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e
@@ -1029,7 +1030,7 @@ whenever there is no corresponding page translation.</p></div>
 least:</p></div>
 <div class="dlist"><dl>
 <dt class="hdlist1">
-<tt>__init__(base, **kwargs)</tt>
+<code>__init__(base, **kwargs)</code>
 </dt>
 <dd>
 <p>
@@ -1041,7 +1042,7 @@ least:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<tt>read(address, length)</tt>
+<code>read(address, length)</code>
 </dt>
 <dd>
 <p>
@@ -1053,7 +1054,7 @@ least:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<tt>vtop(address)</tt>
+<code>vtop(address)</code>
 </dt>
 <dd>
 <p>
@@ -1064,7 +1065,7 @@ least:</p></div>
 </p>
 </dd>
 <dt class="hdlist1">
-<tt>get_address_ranges()</tt>
+<code>get_address_ranges()</code>
 </dt>
 <dd>
 <p>
@@ -1178,17 +1179,17 @@ PAr9L8j/96+U/w3yCoCXW14B8HLLvwDd67nwZIEPdgAAAABJRU5ErkJggg==" />
 </td>
 <td class="content">
 <div class="paragraph"><p>For an address space to be eligible to participate in physical address space
-voting, it must have the <tt>_md_image</tt> attribute set. This indicate that this
+voting, it must have the <code>_md_image</code> attribute set. This indicate that this
 address space applies to a memory image.</p></div>
 </td>
 </tr></table>
 </div>
-<div class="paragraph"><p>In the windows <tt>load_as()</tt> plugin, the virtual address space is created from the
+<div class="paragraph"><p>In the windows <code>load_as()</code> plugin, the virtual address space is created from the
 kernel&#8217;s Directory Table Base (DTB). If the DTB is not directly provided, the
-<tt>load_as()</tt> plugin employs the <tt>find_dtb()</tt> plugin to detect the dtb. On
-Windows, the <tt>find_dtb()</tt> plugin scans the image for the Idle process. In other
+<code>load_as()</code> plugin employs the <code>find_dtb()</code> plugin to detect the dtb. On
+Windows, the <code>find_dtb()</code> plugin scans the image for the Idle process. In other
 implementations, the kernel DTB is calculated using some other way
-(e.g. directly from debug symbols). The correct <tt>find_dtb()</tt> plugin for the
+(e.g. directly from debug symbols). The correct <code>find_dtb()</code> plugin for the
 selected profile will be used, allowing a different algorithm to be used for
 windows or linux.</p></div>
 <div class="admonitionblock">
@@ -1262,7 +1263,7 @@ memory image, and deducing higher level constructs from the low level "ones and
 zeros" in memory.</p></div>
 <div class="paragraph"><p>For example, if a C program defines the following struct:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1376,10 +1377,10 @@ unit. It is important to note that the same struct may be defined with the same
 name but different layout in different compilation units without any problem.</p></div>
 <div class="paragraph"><p>In Rekall we want to derive high level semantic information from the low level
 memory layout. We use the object system to instantiate high level classes (with
-behaviours at specified memory addresses). The Rekall <tt>object system</tt> is built
-on top of the base class found in <tt>rekall.obj.BaseObject()</tt>:</p></div>
+behaviours at specified memory addresses). The Rekall <code>object system</code> is built
+on top of the base class found in <code>rekall.obj.BaseObject()</code>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1415,11 +1416,11 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #990000">....</span></tt></pre></div></div>
 <div class="paragraph"><p>So in order to instantiate a Rekall object, we need to provide at a minimum an
 address space to read and an offset of where in the address space to read. More
-complex objects may require more parameters. For example, to define a <tt>Struct</tt>
+complex objects may require more parameters. For example, to define a <code>Struct</code>
 class we also need to provide the list of members and the total size of the
 struct:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1452,7 +1453,7 @@ http://www.gnu.org/software/src-highlite -->
         <span style="color: #990000">....</span></tt></pre></div></div>
 <div class="paragraph"><p>In the above examples of Rekall objects, new keyword args are introduced which
 are specific for each new type. Note in particular the use the keyword arg
-<tt>target</tt> and <tt>target_args</tt> which by convention are used for any class which will
+<code>target</code> and <code>target_args</code> which by convention are used for any class which will
 instantiate some other class. For example, the pointer is told which class will
 be instantiated upon de-referencing the pointer (i.e. which object it is
 pointing to). Similarly the Array() object is told which object will be
@@ -1463,16 +1464,16 @@ offsets in the address space. However, this is not very convenient to do by hand
 since we would need to know where in the address space we should instantiate
 each object ourselves. What we need is a way to control the creation of Rekall
 object automatically by using debug symbol information. This is done through the
-<tt>profile</tt> object, and its <tt>vtype language</tt> definitions.</p></div>
+<code>profile</code> object, and its <code>vtype language</code> definitions.</p></div>
 <div class="sect2">
 <h3 id="_the_vtypes_language">4.1. The VTypes language.</h3>
 <div class="paragraph"><p>In order to control object creation automatically, we need to describe how they
-are to be created. This description is termed the <tt>vtypes language</tt>. It is
-really a data driven description of how to create instances of the <tt>Struct()</tt>
+are to be created. This description is termed the <code>vtypes language</code>. It is
+really a data driven description of how to create instances of the <code>Struct()</code>
 class.</p></div>
-<div class="paragraph"><p>The precise format of a <tt>vtype language</tt> struct definition is as follows:</p></div>
+<div class="paragraph"><p>The precise format of a <code>vtype language</code> struct definition is as follows:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1603,7 +1604,7 @@ Struct members are simply names of object classes (inherited from
 </ul></div>
 <div class="paragraph"><p>The following is an example of a vtype definition generated from debugging symbols:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1699,7 +1700,7 @@ of type <em>unsigned long</em>.
 <h3 id="_overlaying">4.2. Overlaying</h3>
 <div class="paragraph"><p>Rekall aims to specify semantic information about each field type. That means that we are really looking for the meaning behind each field, not just the mechanics of how to parse it. For example, the following struct may be defined in C:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1712,7 +1713,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #FF0000">}</span></tt></pre></div></div>
 <div class="paragraph"><p>The debugging symbols will generate for this field an array of char objects:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1726,11 +1727,11 @@ http://www.gnu.org/software/src-highlite -->
 that the array of char objects should really be interpreted as a null terminated
 unicode string in UTF8. We know that the offset of this field is correct though,
 just that its meaning according to the debug symbols is inaccurate.</p></div>
-<div class="paragraph"><p>The <tt>vtype language</tt> allows specification of <tt>Overlays</tt> to "correct" or adjust
+<div class="paragraph"><p>The <code>vtype language</code> allows specification of <code>Overlays</code> to "correct" or adjust
 the values of lower layers. In this case we load the debug generated vtype
 first, then we load an overlay like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1745,11 +1746,11 @@ values in the lower vtype description.</p></div>
 existing fields in a version independent manner. The exact offsets of fields is
 obtained from the debugging symbols, but semantic meaning is obtained from the
 overlay.</p></div>
-<div class="paragraph"><p>The <tt>vtype language</tt> allows recursive definition of field types. This is
+<div class="paragraph"><p>The <code>vtype language</code> allows recursive definition of field types. This is
 encouraged since it leads to semantically readable code which exactly describes
 the nature of the memory objects. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.5
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
@@ -1761,16 +1762,16 @@ http://www.gnu.org/software/src-highlite -->
                             target<span style="color: #990000">=</span><span style="color: #FF0000">'kernel_param'</span><span style="color: #990000">,</span>
                             count<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #0000FF">lambda</span></span> x<span style="color: #990000">:</span> x<span style="color: #990000">.</span>num_kp<span style="color: #990000">))]],</span>
             <span style="color: #990000">}],</span></tt></pre></div></div>
-<div class="paragraph"><p>Specifies the <tt>name</tt> member to be a unicode string of length 60, while the <tt>kp</tt>
-field is a pointer to an array of <tt>kernel_param</tt> objects. The array size is
-specified in the module&#8217;s <tt>num_kp</tt> member.</p></div>
-<div class="paragraph"><p>Note that <tt>None</tt> is specified for some fields in this vtype description. This
-means that the value in this position will be <tt>overlayed</tt> (or taken from a
+<div class="paragraph"><p>Specifies the <code>name</code> member to be a unicode string of length 60, while the <code>kp</code>
+field is a pointer to an array of <code>kernel_param</code> objects. The array size is
+specified in the module&#8217;s <code>num_kp</code> member.</p></div>
+<div class="paragraph"><p>Note that <code>None</code> is specified for some fields in this vtype description. This
+means that the value in this position will be <code>overlayed</code> (or taken from a
 previous layer).</p></div>
 <div class="paragraph"><p>In order to simplify the description within the vtypes languages, we can replace
-many of the fields with python callables (usually <tt>lambda</tt> ). In the above
-example, we specified the <tt>count</tt> parameter of the Array constructor as a
-callable fetching the value from the <tt>module</tt> object&#8217;s <tt>num_kp</tt> field:</p></div>
+many of the fields with python callables (usually <code>lambda</code> ). In the above
+example, we specified the <code>count</code> parameter of the Array constructor as a
+callable fetching the value from the <code>module</code> object&#8217;s <code>num_kp</code> field:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1798,14 +1799,14 @@ data, and can therefore be encoded in a safe format, such as JSON.</p></div>
 <div class="sidebarblock">
 <div class="content">
 <div class="title">How to generate a windows profile.</div>
-<div class="paragraph"><p>To generate a vtypes file for a windows executable, simple use the <tt>fetch_pdb</tt>
-and <tt>parse_pdb</tt> plugins. For example, suppose you have a memory image which you
+<div class="paragraph"><p>To generate a vtypes file for a windows executable, simple use the <code>fetch_pdb</code>
+and <code>parse_pdb</code> plugins. For example, suppose you have a memory image which you
 are not quite sure what exact version of Windows it is.</p></div>
 <div class="olist arabic"><ol class="arabic">
 <li>
 <p>
 The first step is to figure out the precise version of the windows kernel this
-image has. We do this by scanning for the GUID of the <tt>ntoskrnl.exe</tt> process
+image has. We do this by scanning for the GUID of the <code>ntoskrnl.exe</code> process
 from the image itself.
 </p>
 </li>
@@ -1823,7 +1824,7 @@ Finally we convert the pdb file into Rekall&#8217;s own json format.
 </ol></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal -f ~/images/win7.elf version_scan | grep ntkrnl
+<pre><code>$ rekal -f ~/images/win7.elf version_scan | grep ntkrnl
 0x0000027bb5fc f8e2a8b5c9b74bf4a6e4a48f180099942 ntkrnlmp.pdb
 
 $ rekal fetch_pdb --dump-dir . --filename ntkrnlmp.pdb --guid f8e2a8b5c9b74bf4a6e4a48f180099942
@@ -1843,7 +1844,7 @@ $ rekal --profile ./ntkrnlmp.json -f ~/images/win7.elf pslist
 0xfa8002259060 csrss.exe               348    340      9      436      0  False 2012-10-01 21:39:57+0000 -
 0xfa8000901060 wininit.exe             384    340      3       75      0  False 2012-10-01 21:39:57+0000 -
 0xfa8000900420 csrss.exe               396    376      8      192      1  False 2012-10-01 21:39:57+0000 -
-....</tt></pre>
+....</code></pre>
 </div></div>
 </div></div>
 </div>
@@ -1851,7 +1852,7 @@ $ rekal --profile ./ntkrnlmp.json -f ~/images/win7.elf pslist
 <h3 id="_the_profile">4.3. The Profile.</h3>
 <div class="paragraph"><p>The profile is essentially the factory class for all Rekall objects. A profile
 is where a number of sources of information are combined in order to produce
-information consistant with a single uniform <tt>compilation unit</tt>:</p></div>
+information consistant with a single uniform <code>compilation unit</code>:</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
@@ -1875,7 +1876,7 @@ compilation unit it cares about. For example the following is a base profile for
 parsing the Windows kernel:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>class BaseWindowsProfile(basic.BasicClasses):
+<pre><code>class BaseWindowsProfile(basic.BasicClasses):
     """Common symbols for all of windows kernel profiles."""
     _md_os = "windows"
 
@@ -1895,7 +1896,7 @@ parsing the Windows kernel:</p></div>
         self.add_constants(DRIVER_POOLTAG="Dri\xf6",
                            EPROCESS_POOLTAG="Pro\xe3",
                            THREAD_POOLTAG='\x54\x68\x72\xe5',
-                           )</tt></pre>
+                           )</code></pre>
 </div></div>
 <div class="paragraph"><p>We can see this profile is applying classes, overlays and constants to the
 profile. Viewed as a whole, the profile can be said to implement a parsing
@@ -1919,22 +1920,22 @@ sense for a permanent storage format.</p></div>
 <div class="ulist"><ul>
 <li>
 <p>
-<tt>$METADATA</tt>: This is a dictionary representing the metadata of this profile:
+<code>$METADATA</code>: This is a dictionary representing the metadata of this profile:
 </p>
 <div class="ulist"><ul>
 <li>
 <p>
-<tt>Type</tt>: Currently can be <tt>Profile</tt> or <tt>Symlink</tt>.
+<code>Type</code>: Currently can be <code>Profile</code> or <code>Symlink</code>.
 </p>
 </li>
 <li>
 <p>
-<tt>Version</tt>: (Code version) if present (otherwise assumes version 1).
+<code>Version</code>: (Code version) if present (otherwise assumes version 1).
 </p>
 </li>
 <li>
 <p>
-<tt>ProfileClass</tt>: The name of the class to instantiate as the base for this
+<code>ProfileClass</code>: The name of the class to instantiate as the base for this
      profile.
 </p>
 </li>
@@ -1942,34 +1943,34 @@ sense for a permanent storage format.</p></div>
 </li>
 <li>
 <p>
-<tt>$ENUM</tt>: These represent dictionary of enum value&#8594;name mappings.
+<code>$ENUM</code>: These represent dictionary of enum value&#8594;name mappings.
 </p>
 </li>
 <li>
 <p>
-<tt>$CONSTANTS</tt>: These represent all constant addresses applicable for this
+<code>$CONSTANTS</code>: These represent all constant addresses applicable for this
   profile (i.e. addresses of global symbols).
 </p>
 </li>
 <li>
 <p>
-<tt>$STRUCTS</tt>: This is a dict with the descriptions of the structs using the vtypes
+<code>$STRUCTS</code>: This is a dict with the descriptions of the structs using the vtypes
   language.
 </p>
 </li>
 </ul></div>
 <div class="paragraph"><p>In order to load the profile, the code parses the json serialized data:
-. Examine the type of the blob (<tt>$METADATA.Type</tt>).
+. Examine the type of the blob (<code>$METADATA.Type</code>).
 . If it is a profile, we search for the implementation specified in the ProfileClass and instantiate it.
-. Call its add_constants() method with the constants found in the <tt>$CONSTANTS</tt> section.
-. Call its add_types() method with the <tt>$STRUCTS</tt> section.
-. Call its add_enums() method with <tt>$ENUMS</tt> section.</p></div>
-<div class="paragraph"><p>A special case is when the <tt>$METADATA.Type == "Symlink"</tt>. In that case, the
+. Call its add_constants() method with the constants found in the <code>$CONSTANTS</code> section.
+. Call its add_types() method with the <code>$STRUCTS</code> section.
+. Call its add_enums() method with <code>$ENUMS</code> section.</p></div>
+<div class="paragraph"><p>A special case is when the <code>$METADATA.Type == "Symlink"</code>. In that case, the
 object actually refers to a different named profile (Stored in
-<tt>$METADATA.Target</tt>) , and that profile is opened instead. This mechanism allows
+<code>$METADATA.Target</code>) , and that profile is opened instead. This mechanism allows
 us to store a specific profiles by build numbers (e.g. for windows
-<tt>5.1.2600.6165_I386</tt>) but still have those accessible via a human readable name
-like <tt>WinXPSP1x86</tt>.</p></div>
+<code>5.1.2600.6165_I386</code>) but still have those accessible via a human readable name
+like <code>WinXPSP1x86</code>.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -2025,7 +2026,7 @@ qTCT16/0nPgLA/i6xjf+Xw3+B2ll/uiqTaJTAAAAAElFTkSuQmCC" />
 </td>
 <td class="content">
 <div class="paragraph"><p>In Rekall terminology we refer to a "profile" as the actual file which contains
-the vtype information, as well as the instance of the <tt>Profile()</tt> class which is
+the vtype information, as well as the instance of the <code>Profile()</code> class which is
 created from this file. These are mostly distinct concepts and it may be
 slightly confusing to refer to both using the same name.</p></div>
 </td>
@@ -2104,9 +2105,9 @@ must use a different profile file for each linux build and kernel version (even
 the standard distributions like Ubuntu ship many kernels each year). Similarly
 if Rekall is used as a library in another application, adding these profiles
 directly into the Rekall source code will needlessly bloat the application.</p></div>
-<div class="paragraph"><p>In order to solve this problem, the Rekall project provides for <tt>Profile
-Repositories</tt>. When a profile is specified (using the <tt>--profile</tt> command line,
-or when passed to the <tt>session.LoadProfile()</tt> function), Rekall will search for
+<div class="paragraph"><p>In order to solve this problem, the Rekall project provides for <code>Profile
+Repositories</code>. When a profile is specified (using the <code>--profile</code> command line,
+or when passed to the <code>session.LoadProfile()</code> function), Rekall will search for
 this profile using the profile path configuration parameter. By adding the
 public profile repository to the search path, it is possible to automatically
 use the public repository for profiles that are widely known. It is also
@@ -2134,7 +2135,7 @@ Unpack somewhere and build:
 </ol></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>/tmp$ wget http://downloads.rekall.googlecode.com/git/Linux/linux_pmem_1.0RC1.tgz
+<pre><code>/tmp$ wget http://downloads.rekall.googlecode.com/git/Linux/linux_pmem_1.0RC1.tgz
 --2014-01-17 10:57:19--  http://downloads.rekall.googlecode.com/git/Linux/linux_pmem_1.0RC1.tgz
 Resolving downloads.rekall.googlecode.com (downloads.rekall.googlecode.com)... 2a00:1450:4001:c02::52, 173.194.70.82
 Connecting to downloads.rekall.googlecode.com (downloads.rekall.googlecode.com)|2a00:1450:4001:c02::52|:80... connected.
@@ -2180,13 +2181,13 @@ Archive:  3.8.0-35-generic.zip
    371919  2014-01-17 10:57   module_dwarf.ko
   3192757  2013-12-04 18:49   boot/System.map-3.8.0-35-generic
 ---------                     -------
-  3564676                     2 files</tt></pre>
+  3564676                     2 files</code></pre>
 </div></div>
 <div class="paragraph"><p>The zip file contains both the kernel module compiled with symbols and the
 system map. We now get rekal to convert this into a proper linux profile.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>11:01:17&gt; convert_profile "3.8.0-35-generic.zip", "3.8.0-35-generic"</tt></pre>
+<pre><code>11:01:17&gt; convert_profile "3.8.0-35-generic.zip", "3.8.0-35-generic"</code></pre>
 </div></div>
 <div class="paragraph"><p>This new profile can now simply be added to the repository (i.e. dropped into
 the repository directory). It can also be compressed to save space.</p></div>
@@ -2195,17 +2196,17 @@ the repository directory). It can also be compressed to save space.</p></div>
 <h4 id="_generating_windows_profiles">4.5.2. Generating Windows Profiles</h4>
 <div class="paragraph"><p>Although windows releases are less frequent than Linux releases, the number of
 distinct windows kernels in existance can be quite large. Usually the user will
-simply select a profile like <tt>Win7SP1x64</tt>, however, even for Service Pack 1
+simply select a profile like <code>Win7SP1x64</code>, however, even for Service Pack 1
 there are many different kernel variants. For most purposes it can be close
 enough, but users might need to build a profile for the exact version of their
 windows kernel.</p></div>
 <div class="paragraph"><p>The first step is to copy the windows kernel from the target system (this is
-usually found in <tt>C:\Windows\ntoskrnl.exe</tt>. The binary contains a special GUID
+usually found in <code>C:\Windows\ntoskrnl.exe</code>. The binary contains a special GUID
 which can be used to retrieve the debugging symbols from Microsoft&#8217;s debugging
 server.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall peinfo --filename ntoskrnl.exe
+<pre><code>$ rekall peinfo --filename ntoskrnl.exe
 
 Attribute            Value
 -------------------- -----
@@ -2225,24 +2226,24 @@ InternalName         ntkrnlmp.exe
 LegalCopyright       Microsoft Corporation. All rights reserved.
 OriginalFilename     ntkrnlmp.exe
 ProductName          Microsoft Windows Operating System
-ProductVersion       6.1.7600.17273</tt></pre>
+ProductVersion       6.1.7600.17273</code></pre>
 </div></div>
 <div class="paragraph"><p>Note the exact product version and GUID for this kernel. We now use rekall to
 fetch the pdb file which contains debugging symbols:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal fetch_pdb --filename ntoskrnl.exe -D .
+<pre><code>$ rekal fetch_pdb --filename ntoskrnl.exe -D .
 Trying to fetch http://msdl.microsoft.com/download/symbols/ntkrnlmp.pdb/2C39F687423840E793308F28C4FDE0CD2/ntkrnlmp.pd_
 Received 2654299 bytes
 Extracting cabinet: /tmp/ntkrnlmp.pd_
   extracting ntkrnlmp.pdb
 
-All done, no errors.</tt></pre>
+All done, no errors.</code></pre>
 </div></div>
 <div class="paragraph"><p>Now we simply parse the pdb into a rekall profiles</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal parse_pdb -f /tmp/ntkrnlmp.pdb --output 2C39F687423840E793308F28C4FDE0CD2 \
+<pre><code>$ rekal parse_pdb -f /tmp/ntkrnlmp.pdb --output 2C39F687423840E793308F28C4FDE0CD2 \
   --profile_class Win7x64
 $ head 2C39F687423840E793308F28C4FDE0CD2
 {
@@ -2254,11 +2255,11 @@ $ head 2C39F687423840E793308F28C4FDE0CD2
   "BATTERY_REPORTING_SCALE": [8, {
    "Capacity": [4, ["unsigned long", {}]],
    "Granularity": [0, ["unsigned long", {}]]
-   }],</tt></pre>
+   }],</code></pre>
 </div></div>
 <div class="paragraph"><p>Windows profiles are usually stored in the repository by their GUIDs, e.g. the
 above is stored under
-<tt>ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2.gz</tt>.</p></div>
+<code>ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2.gz</code>.</p></div>
 </div>
 <div class="sect3">
 <h4 id="_symbolic_names">4.5.3. Symbolic names</h4>
@@ -2266,28 +2267,28 @@ above is stored under
 command line. For example:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal --profile ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2 \
-  -f ~/images/win7.elf pslist</tt></pre>
+<pre><code>$ rekal --profile ntoskrnl.exe/AMD64/6.1.7600.17273/2C39F687423840E793308F28C4FDE0CD2 \
+  -f ~/images/win7.elf pslist</code></pre>
 </div></div>
 <div class="paragraph"><p>This is very hard for a human to remember.</p></div>
-<div class="paragraph"><p>It is possible to create a <tt>Symlink</tt> in the profile repository to essentially
+<div class="paragraph"><p>It is possible to create a <code>Symlink</code> in the profile repository to essentially
 give a profile a short name. We simply create a JSON file and store it in the repository under its short name:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>{
+<pre><code>{
   "$METADATA": {
     "Type": "Symlink",
     "Target": "ntoskrnl.exe/AMD64/6.1.7601.17514/3844dbb920174967be7aa4a2c20430fa"
   }
-}</tt></pre>
+}</code></pre>
 </div></div>
 <div class="paragraph"><p>When accessed, Rekall will automatically retrieve the correct profile:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekal -v --profile Win7SP1x64  -f ~/images/win7.elf pslist
+<pre><code>$ rekal -v --profile Win7SP1x64  -f ~/images/win7.elf pslist
 INFO:root:Loaded profile ntoskrnl.exe/AMD64/6.1.7601.17514/3844dbb920174967be7aa4a2c20430fa from URL:http://profiles.rekall.googlecode.com/git/
 INFO:root:Loaded profile Win7SP1x64 from URL:http://profiles.rekall.googlecode.com/git/
-....</tt></pre>
+....</code></pre>
 </div></div>
 </div>
 </div>
@@ -2314,7 +2315,7 @@ kernel. For a plugin to use this implementation, they will need to add it to
 their current profile:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>class RekallRegisteryImplementation(obj.ProfileModification):
+<pre><code>class RekallRegisteryImplementation(obj.ProfileModification):
     """The standard rekall registry parsing subsystem."""
 
     @classmethod
@@ -2346,7 +2347,7 @@ Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
 izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></tt></pre>
+AAAASUVORK5CYII=" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -2422,7 +2423,7 @@ parameters. Note that common data is interpolated from the DEFAULT section:
 <div class="listingblock">
 <div class="title">Sample test configuration file.</div>
 <div class="content">
-<pre><tt>[DEFAULT]
+<pre><code>[DEFAULT]
 --profile = Win7SP1x64
 --filename = %(testdir)s/win7.elf
 
@@ -2439,11 +2440,11 @@ commandline = dump 0xfa8002193060
 commandline = vtop 0xfa8002193060
 
 [TestDisassemble]
-func = 0xfa8002193060</tt></pre>
+func = 0xfa8002193060</code></pre>
 </div></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ python tools/testing/build_suite.py template \                <img alt="1" src="data:image/png;base64,
+<pre><code>$ python tools/testing/build_suite.py template \                <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
@@ -2457,7 +2458,7 @@ Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
 izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></tt></pre>
+AAAASUVORK5CYII=" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -2490,7 +2491,7 @@ have changed between the old and new versions.).
 </table></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ python tools/testing/build_suite.py baseline \                <img alt="1" src="data:image/png;base64,
+<pre><code>$ python tools/testing/build_suite.py baseline \                <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
@@ -2504,7 +2505,7 @@ Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
 izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></tt></pre>
+AAAASUVORK5CYII=" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -2531,7 +2532,7 @@ generated:</p></div>
 <div class="listingblock">
 <div class="title">Sample baseline image for a test case.</div>
 <div class="content">
-<pre><tt>{
+<pre><code>{
     "time_used": 4.6139168739318848,
     "output": [
         "Offset(V) ||Name                ||   PID||  PPID||  Thds||    Hnds||  Sess|| Wow64||Start               ||Exit                ",
@@ -2545,7 +2546,7 @@ generated:</p></div>
         "commandline": "pslist",
         "--filename": "/tmp/xp-laptop-2005-06-25_trunk/xp-laptop-2005-06-25.img",
     }
-}</tt></pre>
+}</code></pre>
 </div></div>
 <div class="ulist"><ul>
 <li>
@@ -2556,7 +2557,7 @@ Finally test the current output against the baseline:
 </ul></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ python tools/testing/build_suite.py test \                    <img alt="1" src="data:image/png;base64,
+<pre><code>$ python tools/testing/build_suite.py test \                    <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
@@ -2570,7 +2571,7 @@ Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
 izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></tt></pre>
+AAAASUVORK5CYII=" /></code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -2599,7 +2600,7 @@ was any discrepancy with the baseline.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-06-18 01:00:46 CEST
+Last updated 2014-11-20 17:53:14 CET
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

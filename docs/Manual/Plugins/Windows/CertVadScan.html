@@ -226,6 +226,24 @@ ript>
 </li>
 </ul></li>
 <li>
+   <a href='/docs/Manual/Plugins/Windows/PEAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/AnalyzeStruct.html' class="tree-link "  title="analyze_struct">
+      analyze_struct
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
    </a>
@@ -246,6 +264,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link "  title="certscan">
       certscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CheckPEHooks.html' class="tree-link "  title="check_pehooks">
+      check_pehooks
    </a>
 </li>
 
@@ -322,6 +346,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/DumpFiles.html' class="tree-link "  title="dumpfiles">
+      dumpfiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link "  title="evtlogs">
       evtlogs
    </a>
@@ -340,8 +370,32 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/FLS.html' class="tree-link "  title="fls">
+      fls
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link "  title="handles">
       handles
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EATHooks.html' class="tree-link "  title="hooks_eat">
+      hooks_eat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/IATHooks.html' class="tree-link "  title="hooks_iat">
+      hooks_iat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/InlineHooks.html' class="tree-link "  title="hooks_inline">
+      hooks_inline
    </a>
 </li>
 
@@ -448,6 +502,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Pagefiles.html' class="tree-link "  title="pagefiles">
+      pagefiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -526,6 +586,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link "  title="pte">
       pte
    </a>
@@ -540,6 +606,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link "  title="raw2dmp">
       raw2dmp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Services.html' class="tree-link "  title="services">
+      services
    </a>
 </li>
 
@@ -598,6 +670,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/EnumerateVacbs.html' class="tree-link "  title="vacbs">
+      vacbs
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link "  title="vad">
       vad
    </a>
@@ -612,6 +690,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link "  title="vadinfo">
       vadinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADMap.html' class="tree-link "  title="vadmap">
+      vadmap
    </a>
 </li>
 
@@ -642,6 +726,18 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VtoP.html' class="tree-link "  title="vtop">
       vtop
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32kAutodetect.html' class="tree-link activate_tooltip"  title="win32k_autodetect">
+      win32k_autodete ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 
@@ -710,20 +806,20 @@ also dumped to files in the specified directory.</p>
 <h3>Sample Output</h3>
 <p>In the example below we scan the address space of the winpmem acquistion tool to
 find certificates used to sign the driver and binary.</p>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">cert_vad_scan</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span>
-<span class="o">-------------------&gt;</span> <span class="n">cert_vad_scan</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">)</span>
-<span class="n">Pid</span>   <span class="n">Command</span>       <span class="n">Address</span>     <span class="n">Type</span>  <span class="n">Length</span> <span class="n">Description</span>
-<span class="o">-----</span> <span class="o">----------</span> <span class="o">--------------</span> <span class="o">-----</span> <span class="o">------</span> <span class="o">-----------</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003c179</span> <span class="n">X509</span>  <span class="mi">1010</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Services</span> <span class="n">CA</span> <span class="o">-</span> <span class="n">G2</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003c56b</span> <span class="n">X509</span>  <span class="mi">1191</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Services</span> <span class="n">Signer</span> <span class="o">-</span> <span class="n">G4</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003ca12</span> <span class="n">X509</span>  <span class="mi">1343</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">Inc</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">www</span><span class="p">.</span><span class="n">digicert</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">High</span> <span class="n">Assurance</span> <span class="n">EV</span> <span class="n">Root</span> <span class="n">CA</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003cf51</span> <span class="n">X509</span>  <span class="mi">1690</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">CH</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Switzerland</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Horgen</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Michael</span> <span class="n">Cohen</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Michael</span> <span class="n">Cohen</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d285</span> <span class="n">X509</span>  <span class="mi">443</span>   <span class="o">-</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d5eb</span> <span class="n">X509</span>  <span class="mi">1734</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">Inc</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">www</span><span class="p">.</span><span class="n">digicert</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">High</span> <span class="n">Assurance</span> <span class="n">Code</span> <span class="n">Signing</span> <span class="n">CA</span><span class="o">-</span><span class="mi">1</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d87c</span> <span class="n">X509</span>  <span class="mi">442</span>   <span class="o">-</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000bd2260</span> <span class="n">X509</span>  <span class="mi">704</span>   <span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">VeriSign</span> <span class="n">Trust</span> <span class="n">Network</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">VeriSign</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">VeriSign</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Service</span> <span class="n">Root</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">NO</span> <span class="n">LIABILITY</span> <span class="n">ACCEPTED</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="mi">97</span> <span class="n">VeriSign</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000bd2720</span> <span class="n">X509</span>  <span class="mi">462</span>   <span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Root</span> <span class="n">Agency</span>
-<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000c153b0</span> <span class="n">X509</span>  <span class="mi">1491</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">MOPR</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Update</span>
+<div class="highlight"><pre>win8.1.raw 22:07:16&gt; cert_vad_scan proc_regex=&quot;winpmem&quot;
+-------------------&gt; cert_vad_scan(proc_regex=&quot;winpmem&quot;)
+Pid   Command       Address     Type  Length Description
+----- ---------- -------------- ----- ------ -----------
+2628  winpmem_1.5.2. 0x00000003c179 X509  1010  /C=US/O=Symantec Corporation/CN=Symantec Time Stamping Services CA - G2
+2628  winpmem_1.5.2. 0x00000003c56b X509  1191  /C=US/O=Symantec Corporation/CN=Symantec Time Stamping Services Signer - G4
+2628  winpmem_1.5.2. 0x00000003ca12 X509  1343  /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
+2628  winpmem_1.5.2. 0x00000003cf51 X509  1690  /C=CH/ST=Switzerland/L=Horgen/O=Michael Cohen/CN=Michael Cohen
+2628  winpmem_1.5.2. 0x00000003d285 X509  443   -
+2628  winpmem_1.5.2. 0x00000003d5eb X509  1734  /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance Code Signing CA-1
+2628  winpmem_1.5.2. 0x00000003d87c X509  442   -
+2628  winpmem_1.5.2. 0x000000bd2260 X509  704   /O=VeriSign Trust Network/OU=VeriSign, Inc./OU=VeriSign Time Stamping Service Root/OU=NO LIABILITY ACCEPTED, (c)97 VeriSign, Inc.
+2628  winpmem_1.5.2. 0x000000bd2720 X509  462   /CN=Root Agency
+2628  winpmem_1.5.2. 0x000000c153b0 X509  1491  /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/OU=MOPR/CN=Microsoft Update
 </pre></div>
 
 <p>

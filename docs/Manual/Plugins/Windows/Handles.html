@@ -226,6 +226,24 @@ ript>
 </li>
 </ul></li>
 <li>
+   <a href='/docs/Manual/Plugins/Windows/PEAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/AnalyzeStruct.html' class="tree-link "  title="analyze_struct">
+      analyze_struct
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
    </a>
@@ -246,6 +264,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link "  title="certscan">
       certscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CheckPEHooks.html' class="tree-link "  title="check_pehooks">
+      check_pehooks
    </a>
 </li>
 
@@ -322,6 +346,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/DumpFiles.html' class="tree-link "  title="dumpfiles">
+      dumpfiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link "  title="evtlogs">
       evtlogs
    </a>
@@ -340,8 +370,32 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/FLS.html' class="tree-link "  title="fls">
+      fls
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link "  title="handles">
       handles
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EATHooks.html' class="tree-link "  title="hooks_eat">
+      hooks_eat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/IATHooks.html' class="tree-link "  title="hooks_iat">
+      hooks_iat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/InlineHooks.html' class="tree-link "  title="hooks_inline">
+      hooks_inline
    </a>
 </li>
 
@@ -448,6 +502,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Pagefiles.html' class="tree-link "  title="pagefiles">
+      pagefiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -526,6 +586,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link "  title="pte">
       pte
    </a>
@@ -540,6 +606,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link "  title="raw2dmp">
       raw2dmp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Services.html' class="tree-link "  title="services">
+      services
    </a>
 </li>
 
@@ -598,6 +670,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/EnumerateVacbs.html' class="tree-link "  title="vacbs">
+      vacbs
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link "  title="vad">
       vad
    </a>
@@ -612,6 +690,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link "  title="vadinfo">
       vadinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADMap.html' class="tree-link "  title="vadmap">
+      vadmap
    </a>
 </li>
 
@@ -646,6 +730,18 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Win32kAutodetect.html' class="tree-link activate_tooltip"  title="win32k_autodetect">
+      win32k_autodete ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/YaraScan.html' class="tree-link "  title="yarascan">
       yarascan
    </a>
@@ -662,9 +758,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WinFindDTB.html">
+       <a href="/docs/Manual/Plugins/Windows/FLS.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         find_dtb
+         fls
        </a>
     </li>
   </ul>
@@ -672,8 +768,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/ImageInfo.html">
-          imageinfo
+       <a href="/docs/Manual/Plugins/Windows/EATHooks.html">
+          hooks_eat
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -720,39 +816,39 @@ seen by the <a href="ObjectTypes.html">object_types</a> plugin.</p>
 <p>In the following output we see the winpmem acquisition tool&rsquo;s handle table. Note
 that it has an open file to the raw device <em>\Device\pmem</em> and the output file of
 <em>\Device\HarddiskVolume2\temp\win8.1.raw</em>.</p>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">18</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">43</span><span class="o">&gt;</span> <span class="n">handles</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span>
-<span class="o">-------------------&gt;</span> <span class="n">handles</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">)</span>
-  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>      <span class="n">Pid</span>     <span class="n">Handle</span>         <span class="n">Access</span>     <span class="n">Type</span>             <span class="n">Details</span>
-<span class="o">--------------</span> <span class="o">------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----------------</span> <span class="o">-------</span>
-<span class="mh">0xe00001f82f20</span>   <span class="mi">2628</span>            <span class="mh">0x4</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Reference</span>
-<span class="mh">0xe00001d17e00</span>   <span class="mi">2628</span>           <span class="mh">0x10</span>       <span class="mh">0x100020</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">Windows</span>
-<span class="mh">0xe00001f546b0</span>   <span class="mi">2628</span>           <span class="mh">0x18</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Input</span>
-<span class="mh">0xe00001eef800</span>   <span class="mi">2628</span>           <span class="mh">0x1c</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Output</span>
-<span class="mh">0xe00001eef800</span>   <span class="mi">2628</span>           <span class="mh">0x20</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Output</span>
-<span class="mh">0xe00001d0db80</span>   <span class="mi">2628</span>           <span class="mh">0x24</span>       <span class="mh">0x100020</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">temp</span>
-<span class="mh">0xe0000006e1f0</span>   <span class="mi">2628</span>           <span class="mh">0x28</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Connect</span>
-<span class="mh">0xe00000637480</span>   <span class="mi">2628</span>           <span class="mh">0x30</span>       <span class="mh">0x1f0001</span> <span class="n">ALPC</span> <span class="n">Port</span>
-<span class="mh">0xe000006bd290</span>   <span class="mi">2628</span>           <span class="mh">0x34</span>       <span class="mh">0x1f0003</span> <span class="n">Event</span>
-<span class="mh">0xe00001ed6060</span>   <span class="mi">2628</span>           <span class="mh">0x38</span>            <span class="mh">0x1</span> <span class="n">WaitCompletionPacket</span>
-<span class="mh">0xe00001ecd080</span>   <span class="mi">2628</span>           <span class="mh">0x3c</span>       <span class="mh">0x1f0003</span> <span class="n">IoCompletion</span>
-<span class="mh">0xe00001ec7060</span>   <span class="mi">2628</span>           <span class="mh">0x40</span>        <span class="mh">0xf00ff</span> <span class="n">TpWorkerFactory</span>
-<span class="mh">0xe00000778320</span>   <span class="mi">2628</span>           <span class="mh">0x44</span>       <span class="mh">0x100002</span> <span class="n">IRTimer</span>
-<span class="mh">0xe00001ecfb80</span>   <span class="mi">2628</span>           <span class="mh">0x48</span>            <span class="mh">0x1</span> <span class="n">WaitCompletionPacket</span>
-<span class="mh">0xe00001a629d0</span>   <span class="mi">2628</span>           <span class="mh">0x4c</span>       <span class="mh">0x100002</span> <span class="n">IRTimer</span>
-<span class="mh">0xe00001ec8f90</span>   <span class="mi">2628</span>           <span class="mh">0x50</span>            <span class="mh">0x1</span> <span class="n">WaitCompletionPacket</span>
-<span class="mh">0xe00002048970</span>   <span class="mi">2628</span>           <span class="mh">0x54</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe0000077dd00</span>   <span class="mi">2628</span>           <span class="mh">0x58</span>       <span class="mh">0x100003</span> <span class="n">Semaphore</span>
-<span class="mh">0xe00001d1b340</span>   <span class="mi">2628</span>           <span class="mh">0x5c</span>       <span class="mh">0x100001</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">CNG</span>
-<span class="mh">0xe000006b82c0</span>   <span class="mi">2628</span>           <span class="mh">0x60</span>       <span class="mh">0x100003</span> <span class="n">Semaphore</span>
-<span class="mh">0xe00001d0c6e0</span>   <span class="mi">2628</span>           <span class="mh">0x64</span>       <span class="mh">0x120196</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span>
-<span class="mh">0xe000007db2f0</span>   <span class="mi">2628</span>           <span class="mh">0x74</span>       <span class="mh">0x1f0003</span> <span class="n">Event</span>
-<span class="mh">0xe000023eda60</span>   <span class="mi">2628</span>           <span class="mh">0x78</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe000024c56c0</span>   <span class="mi">2628</span>           <span class="mh">0x7c</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe00001f803e0</span>   <span class="mi">2628</span>           <span class="mh">0x80</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe00000813330</span>   <span class="mi">2628</span>           <span class="mh">0x84</span>       <span class="mh">0x1f0003</span> <span class="n">Event</span>
-<span class="mh">0xe00001254440</span>   <span class="mi">2628</span>           <span class="mh">0x88</span>       <span class="mh">0x1fffff</span> <span class="n">Thread</span>           <span class="n">TID</span> <span class="mi">3420</span> <span class="n">PID</span> <span class="mi">2628</span>
-<span class="mh">0xe0000061ebb0</span>   <span class="mi">2628</span>           <span class="mh">0x8c</span>       <span class="mh">0x1f0001</span> <span class="n">ALPC</span> <span class="n">Port</span>
-<span class="mh">0xe00001d0c340</span>   <span class="mi">2628</span>           <span class="mh">0x90</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">pmem</span>
+<div class="highlight"><pre>win8.1.raw 18:00:43&gt; handles proc_regex=&quot;winpmem&quot;
+-------------------&gt; handles(proc_regex=&quot;winpmem&quot;)
+  Offset (V)      Pid     Handle         Access     Type             Details
+-------------- ------ -------------- -------------- ---------------- -------
+0xe00001f82f20   2628            0x4       0x12019f File             \Device\ConDrv\Reference
+0xe00001d17e00   2628           0x10       0x100020 File             \Device\HarddiskVolume2\Windows
+0xe00001f546b0   2628           0x18       0x12019f File             \Device\ConDrv\Input
+0xe00001eef800   2628           0x1c       0x12019f File             \Device\ConDrv\Output
+0xe00001eef800   2628           0x20       0x12019f File             \Device\ConDrv\Output
+0xe00001d0db80   2628           0x24       0x100020 File             \Device\HarddiskVolume2\temp
+0xe0000006e1f0   2628           0x28       0x12019f File             \Device\ConDrv\Connect
+0xe00000637480   2628           0x30       0x1f0001 ALPC Port
+0xe000006bd290   2628           0x34       0x1f0003 Event
+0xe00001ed6060   2628           0x38            0x1 WaitCompletionPacket
+0xe00001ecd080   2628           0x3c       0x1f0003 IoCompletion
+0xe00001ec7060   2628           0x40        0xf00ff TpWorkerFactory
+0xe00000778320   2628           0x44       0x100002 IRTimer
+0xe00001ecfb80   2628           0x48            0x1 WaitCompletionPacket
+0xe00001a629d0   2628           0x4c       0x100002 IRTimer
+0xe00001ec8f90   2628           0x50            0x1 WaitCompletionPacket
+0xe00002048970   2628           0x54          0x804 EtwRegistration
+0xe0000077dd00   2628           0x58       0x100003 Semaphore
+0xe00001d1b340   2628           0x5c       0x100001 File             \Device\CNG
+0xe000006b82c0   2628           0x60       0x100003 Semaphore
+0xe00001d0c6e0   2628           0x64       0x120196 File             \Device\HarddiskVolume2\temp\win8.1.raw
+0xe000007db2f0   2628           0x74       0x1f0003 Event
+0xe000023eda60   2628           0x78          0x804 EtwRegistration
+0xe000024c56c0   2628           0x7c          0x804 EtwRegistration
+0xe00001f803e0   2628           0x80          0x804 EtwRegistration
+0xe00000813330   2628           0x84       0x1f0003 Event
+0xe00001254440   2628           0x88       0x1fffff Thread           TID 3420 PID 2628
+0xe0000061ebb0   2628           0x8c       0x1f0001 ALPC Port
+0xe00001d0c340   2628           0x90       0x12019f File             \Device\pmem
 </pre></div>
 
 <p>
@@ -761,9 +857,9 @@ that it has an open file to the raw device <em>\Device\pmem</em> and the output 
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WinFindDTB.html">
+       <a href="/docs/Manual/Plugins/Windows/FLS.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         find_dtb
+         fls
        </a>
     </li>
   </ul>
@@ -771,8 +867,8 @@ that it has an open file to the raw device <em>\Device\pmem</em> and the output 
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/ImageInfo.html">
-          imageinfo
+       <a href="/docs/Manual/Plugins/Windows/EATHooks.html">
+          hooks_eat
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
+       <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+         </ul>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
+           </div>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
+   </nav>
+
+<div class="container-fluid">
+<div class="row">
+  <div class="col-md-2">
+    
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
+ </a>
+
+ <a href='/docs/Manual/Plugins/General/index.html' class="btn btn-default btn-lg btn-block">
+   General
+ </a>
+ <p>
+ <div class='css-treeview'>
+   <ul class='nav nav-stacked'>
+<li>
+   <a href='/docs/Manual/Plugins/General/BuildIndex.html' class="tree-link "  title="build_index">
+      build_index
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/ConvertProfile.html' class="tree-link "  title="convert_profile">
+      convert_profile
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/DT.html' class="tree-link "  title="dt">
+      dt
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Dump.html' class="tree-link "  title="dump">
+      dump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/DwarfParser.html' class="tree-link "  title="dwarfparser">
+      dwarfparser
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/EWFAcquire.html' class="tree-link "  title="ewfacquire">
+      ewfacquire
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="tree-link "  title="fetch_pdb">
+      fetch_pdb
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Grep.html' class="tree-link "  title="grep">
+      grep
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/GuessGUID.html' class="tree-link "  title="guess_guid">
+      guess_guid
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/ImageCopy.html' class="tree-link "  title="imagecopy">
+      imagecopy
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Info.html' class="tree-link "  title="info">
+      info
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/JSONParser.html' class="tree-link "  title="json_render">
+      json_render
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Lister.html' class="tree-link "  title="l">
+      l
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/LoadAddressSpace.html' class="tree-link "  title="load_as">
+      load_as
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/LoadPlugins.html' class="tree-link "  title="load_plugin">
+      load_plugin
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Notebook.html' class="tree-link "  title="notebook">
+      notebook
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Printer.html' class="tree-link "  title="p">
+      p
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/ParsePDB.html' class="tree-link "  title="parse_pdb">
+      parse_pdb
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/Rekall.html' class="tree-link "  title="rekal">
+      rekal
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionDelete.html' class="tree-link "  title="sdel">
+      sdel
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/InteractiveShell.html' class="tree-link "  title="shell">
+      shell
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionList.html' class="tree-link "  title="slist">
+      slist
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionMod.html' class="tree-link "  title="smod">
+      smod
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionNew.html' class="tree-link "  title="snew">
+      snew
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionSwitch.html' class="tree-link "  title="sswitch">
+      sswitch
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/VersionScan.html' class="tree-link "  title="version_scan">
+      version_scan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/VmScan.html' class="tree-link "  title="vmscan">
+      vmscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/WebConsole.html' class="tree-link "  title="webconsole">
+      webconsole
+   </a>
+</li>
+</ul>
+ </div>
+
+  </div>
+
+  <div class="col-md-8">
+    
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/SessionNew.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         snew
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/VersionScan.html">
+          version_scan
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+<h1>sswitch</h1>
+
+<div class="abstract">
+<p>Changes the current session to the session with session_id.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<table class='table table-striped table-bordered table-hover'>
+<tbody>
+<tr><td>session_id</td><td>The session id to change to</td></tr>
+</tbody>
+</table>
+
+
+
+<a href="/epydocs/rekall.plugins.tools.ipython.SessionSwitch-class.html">View Source</a>
+
+
+
+
+<p>
+
+<nav class="navbar navbar-default" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/SessionNew.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         snew
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/VersionScan.html">
+          version_scan
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+  </div>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
+
+
+  </div>
+</div>
+</div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </body>
+</html>
+

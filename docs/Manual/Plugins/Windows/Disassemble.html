@@ -226,6 +226,24 @@ ript>
 </li>
 </ul></li>
 <li>
+   <a href='/docs/Manual/Plugins/Windows/PEAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/AnalyzeStruct.html' class="tree-link "  title="analyze_struct">
+      analyze_struct
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
    </a>
@@ -246,6 +264,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link "  title="certscan">
       certscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CheckPEHooks.html' class="tree-link "  title="check_pehooks">
+      check_pehooks
    </a>
 </li>
 
@@ -322,6 +346,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/DumpFiles.html' class="tree-link "  title="dumpfiles">
+      dumpfiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link "  title="evtlogs">
       evtlogs
    </a>
@@ -340,8 +370,32 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/FLS.html' class="tree-link "  title="fls">
+      fls
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link "  title="handles">
       handles
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EATHooks.html' class="tree-link "  title="hooks_eat">
+      hooks_eat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/IATHooks.html' class="tree-link "  title="hooks_iat">
+      hooks_iat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/InlineHooks.html' class="tree-link "  title="hooks_inline">
+      hooks_inline
    </a>
 </li>
 
@@ -448,6 +502,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Pagefiles.html' class="tree-link "  title="pagefiles">
+      pagefiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -526,6 +586,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link "  title="pte">
       pte
    </a>
@@ -540,6 +606,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link "  title="raw2dmp">
       raw2dmp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Services.html' class="tree-link "  title="services">
+      services
    </a>
 </li>
 
@@ -598,6 +670,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/EnumerateVacbs.html' class="tree-link "  title="vacbs">
+      vacbs
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link "  title="vad">
       vad
    </a>
@@ -612,6 +690,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link "  title="vadinfo">
       vadinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADMap.html' class="tree-link "  title="vadmap">
+      vadmap
    </a>
 </li>
 
@@ -642,6 +726,18 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VtoP.html' class="tree-link "  title="vtop">
       vtop
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32kAutodetect.html' class="tree-link activate_tooltip"  title="win32k_autodetect">
+      win32k_autodete ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 
@@ -735,41 +831,41 @@ ript>
 pointer obfuscation that Patch Guard uses on 64 bit Windows 7. We can see the
 names of the symbols used and their current values, as well as the name of
 internally called functions.</p>
-<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">23</span><span class="o">:</span><span class="mi">48</span><span class="o">:</span><span class="mi">14</span><span class="o">&gt;</span> <span class="n">dis</span> <span class="s">&quot;nt!KiSetTimerEx&quot;</span>
-<span class="o">-----------------&gt;</span> <span class="n">dis</span><span class="p">(</span><span class="s">&quot;nt!KiSetTimerEx&quot;</span><span class="p">)</span>
-   <span class="n">Address</span>      <span class="n">Rel</span> <span class="n">Op</span> <span class="n">Codes</span>             <span class="n">Instruction</span>                    <span class="n">Comment</span>
-<span class="o">--------------</span> <span class="o">----</span> <span class="o">--------------------</span> <span class="o">------------------------------</span> <span class="o">-------</span>
-<span class="o">------</span> <span class="n">nt</span><span class="o">!</span><span class="n">KiSetTimerEx</span> <span class="o">------</span>
-<span class="mh">0xf8000269d4f0</span>    <span class="mi">0</span> <span class="mi">48895</span><span class="n">c2408</span>           <span class="n">MOV</span> <span class="p">[</span><span class="n">RSP</span><span class="o">+</span><span class="mh">0x8</span><span class="p">],</span> <span class="n">RBX</span>
-<span class="mh">0xf8000269d4f5</span>    <span class="mi">5</span> <span class="mi">4889542410</span>           <span class="n">MOV</span> <span class="p">[</span><span class="n">RSP</span><span class="o">+</span><span class="mh">0x10</span><span class="p">],</span> <span class="n">RDX</span>
-<span class="mh">0xf8000269d4fa</span>    <span class="n">A</span> <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">RBP</span>
-<span class="mh">0xf8000269d4fb</span>    <span class="n">B</span> <span class="mi">56</span>                   <span class="n">PUSH</span> <span class="n">RSI</span>
-<span class="mh">0xf8000269d4fc</span>    <span class="n">C</span> <span class="mi">57</span>                   <span class="n">PUSH</span> <span class="n">RDI</span>
-<span class="mh">0xf8000269d4fd</span>    <span class="n">D</span> <span class="mi">4154</span>                 <span class="n">PUSH</span> <span class="n">R12</span>
-<span class="mh">0xf8000269d4ff</span>    <span class="n">F</span> <span class="mi">4155</span>                 <span class="n">PUSH</span> <span class="n">R13</span>
-<span class="mh">0xf8000269d501</span>   <span class="mi">11</span> <span class="mi">4156</span>                 <span class="n">PUSH</span> <span class="n">R14</span>
-<span class="mh">0xf8000269d503</span>   <span class="mi">13</span> <span class="mi">4157</span>                 <span class="n">PUSH</span> <span class="n">R15</span>
-<span class="mh">0xf8000269d505</span>   <span class="mi">15</span> <span class="mi">4883</span><span class="n">ec50</span>             <span class="n">SUB</span> <span class="n">RSP</span><span class="p">,</span> <span class="mh">0x50</span>
-<span class="mh">0xf8000269d509</span>   <span class="mi">19</span> <span class="mi">488</span><span class="n">b05f09b2200</span>       <span class="n">MOV</span> <span class="n">RAX</span><span class="p">,</span> <span class="p">[</span><span class="n">RIP</span><span class="o">+</span><span class="mh">0x229bf0</span><span class="p">]</span>        <span class="mh">0x6D7CFFA404933FBB</span> <span class="n">nt</span><span class="o">!</span><span class="n">KiWaitNever</span>
-<span class="mh">0xf8000269d510</span>   <span class="mi">20</span> <span class="mi">488</span><span class="n">b1dc19c2200</span>       <span class="n">MOV</span> <span class="n">RBX</span><span class="p">,</span> <span class="p">[</span><span class="n">RIP</span><span class="o">+</span><span class="mh">0x229cc1</span><span class="p">]</span>        <span class="mh">0x933DD660CFFF8004</span> <span class="n">nt</span><span class="o">!</span><span class="n">KiWaitAlways</span>
-<span class="mh">0xf8000269d517</span>   <span class="mi">27</span> <span class="mi">4</span><span class="n">c8bb424b0000000</span>     <span class="n">MOV</span> <span class="n">R14</span><span class="p">,</span> <span class="p">[</span><span class="n">RSP</span><span class="o">+</span><span class="mh">0xb0</span><span class="p">]</span>
-<span class="mh">0xf8000269d51f</span>   <span class="mf">2F</span> <span class="mi">4933</span><span class="n">de</span>               <span class="n">XOR</span> <span class="n">RBX</span><span class="p">,</span> <span class="n">R14</span>
-<span class="mh">0xf8000269d522</span>   <span class="mi">32</span> <span class="mi">488</span><span class="n">bf1</span>               <span class="n">MOV</span> <span class="n">RSI</span><span class="p">,</span> <span class="n">RCX</span>
-<span class="mh">0xf8000269d525</span>   <span class="mi">35</span> <span class="mf">450f</span><span class="n">b6f9</span>             <span class="n">MOVZX</span> <span class="n">R15D</span><span class="p">,</span> <span class="n">R9B</span>
-<span class="mh">0xf8000269d529</span>   <span class="mi">39</span> <span class="mf">480f</span><span class="n">cb</span>               <span class="n">BSWAP</span> <span class="n">RBX</span>
-<span class="mh">0xf8000269d52c</span>   <span class="mi">3</span><span class="n">C</span> <span class="mi">418</span><span class="n">bf8</span>               <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">R8D</span>
-<span class="mh">0xf8000269d52f</span>   <span class="mf">3F</span> <span class="mi">4833</span><span class="n">d9</span>               <span class="n">XOR</span> <span class="n">RBX</span><span class="p">,</span> <span class="n">RCX</span>
-<span class="mh">0xf8000269d532</span>   <span class="mi">42</span> <span class="mi">8</span><span class="n">bc8</span>                 <span class="n">MOV</span> <span class="n">ECX</span><span class="p">,</span> <span class="n">EAX</span>
-<span class="mh">0xf8000269d534</span>   <span class="mi">44</span> <span class="mi">48</span><span class="n">d3cb</span>               <span class="n">ROR</span> <span class="n">RBX</span><span class="p">,</span> <span class="n">CL</span>
-<span class="mh">0xf8000269d537</span>   <span class="mi">47</span> <span class="mi">4833</span><span class="n">d8</span>               <span class="n">XOR</span> <span class="n">RBX</span><span class="p">,</span> <span class="n">RAX</span>
-<span class="mh">0xf8000269d53a</span>   <span class="mi">4</span><span class="n">A</span> <span class="mf">450f</span><span class="mi">20</span><span class="n">c4</span>             <span class="n">MOV</span> <span class="n">R12</span><span class="p">,</span> <span class="n">CR8</span>
-<span class="mh">0xf8000269d53e</span>   <span class="mi">4</span><span class="n">E</span> <span class="n">b802000000</span>           <span class="n">MOV</span> <span class="n">EAX</span><span class="p">,</span> <span class="mh">0x2</span>
-<span class="mh">0xf8000269d543</span>   <span class="mi">53</span> <span class="mf">440f</span><span class="mi">22</span><span class="n">c0</span>             <span class="n">MOV</span> <span class="n">CR8</span><span class="p">,</span> <span class="n">RAX</span>
-<span class="mh">0xf8000269d547</span>   <span class="mi">57</span> <span class="mi">65488</span><span class="n">b2c2520000000</span>   <span class="n">MOV</span> <span class="n">RBP</span><span class="p">,</span> <span class="p">[</span><span class="n">GS</span><span class="o">:</span><span class="mh">0x20</span><span class="p">]</span>
-<span class="mh">0xf8000269d550</span>   <span class="mi">60</span> <span class="mi">33</span><span class="n">d2</span>                 <span class="n">XOR</span> <span class="n">EDX</span><span class="p">,</span> <span class="n">EDX</span>
-<span class="mh">0xf8000269d552</span>   <span class="mi">62</span> <span class="mi">488</span><span class="n">bce</span>               <span class="n">MOV</span> <span class="n">RCX</span><span class="p">,</span> <span class="n">RSI</span>
-<span class="mh">0xf8000269d555</span>   <span class="mi">65</span> <span class="n">e8f6b0ffff</span>           <span class="n">CALL</span> <span class="mh">0xf80002698650</span>            <span class="n">nt</span><span class="o">!</span><span class="n">KiCancelTimer</span>
-<span class="mh">0xf8000269d55a</span>   <span class="mi">6</span><span class="n">A</span> <span class="mf">48895e30</span>             <span class="n">MOV</span> <span class="p">[</span><span class="n">RSI</span><span class="o">+</span><span class="mh">0x30</span><span class="p">],</span> <span class="n">RBX</span>
+<div class="highlight"><pre>win7.elf 23:48:14&gt; dis &quot;nt!KiSetTimerEx&quot;
+-----------------&gt; dis(&quot;nt!KiSetTimerEx&quot;)
+   Address      Rel Op Codes             Instruction                    Comment
+-------------- ---- -------------------- ------------------------------ -------
+------ nt!KiSetTimerEx ------
+0xf8000269d4f0    0 48895c2408           MOV [RSP+0x8], RBX
+0xf8000269d4f5    5 4889542410           MOV [RSP+0x10], RDX
+0xf8000269d4fa    A 55                   PUSH RBP
+0xf8000269d4fb    B 56                   PUSH RSI
+0xf8000269d4fc    C 57                   PUSH RDI
+0xf8000269d4fd    D 4154                 PUSH R12
+0xf8000269d4ff    F 4155                 PUSH R13
+0xf8000269d501   11 4156                 PUSH R14
+0xf8000269d503   13 4157                 PUSH R15
+0xf8000269d505   15 4883ec50             SUB RSP, 0x50
+0xf8000269d509   19 488b05f09b2200       MOV RAX, [RIP+0x229bf0]        0x6D7CFFA404933FBB nt!KiWaitNever
+0xf8000269d510   20 488b1dc19c2200       MOV RBX, [RIP+0x229cc1]        0x933DD660CFFF8004 nt!KiWaitAlways
+0xf8000269d517   27 4c8bb424b0000000     MOV R14, [RSP+0xb0]
+0xf8000269d51f   2F 4933de               XOR RBX, R14
+0xf8000269d522   32 488bf1               MOV RSI, RCX
+0xf8000269d525   35 450fb6f9             MOVZX R15D, R9B
+0xf8000269d529   39 480fcb               BSWAP RBX
+0xf8000269d52c   3C 418bf8               MOV EDI, R8D
+0xf8000269d52f   3F 4833d9               XOR RBX, RCX
+0xf8000269d532   42 8bc8                 MOV ECX, EAX
+0xf8000269d534   44 48d3cb               ROR RBX, CL
+0xf8000269d537   47 4833d8               XOR RBX, RAX
+0xf8000269d53a   4A 450f20c4             MOV R12, CR8
+0xf8000269d53e   4E b802000000           MOV EAX, 0x2
+0xf8000269d543   53 440f22c0             MOV CR8, RAX
+0xf8000269d547   57 65488b2c2520000000   MOV RBP, [GS:0x20]
+0xf8000269d550   60 33d2                 XOR EDX, EDX
+0xf8000269d552   62 488bce               MOV RCX, RSI
+0xf8000269d555   65 e8f6b0ffff           CALL 0xf80002698650            nt!KiCancelTimer
+0xf8000269d55a   6A 48895e30             MOV [RSI+0x30], RBX
 </pre></div>
 
 <p>

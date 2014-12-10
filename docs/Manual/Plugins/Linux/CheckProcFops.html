@@ -106,6 +106,12 @@ ript>
  <div class='css-treeview'>
    <ul class='nav nav-stacked'>
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Arp.html' class="tree-link "  title="arp">
       arp
    </a>
@@ -196,6 +202,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Hostname.html' class="tree-link "  title="hostname">
+      hostname
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/Ifconfig.html' class="tree-link "  title="ifconfig">
       ifconfig
    </a>
@@ -226,6 +238,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mcat.html' class="tree-link "  title="mcat">
+      mcat
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinMemDump.html' class="tree-link "  title="memdump">
       memdump
    </a>
@@ -238,6 +256,36 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/Mfind.html' class="tree-link "  title="mfind">
+      mfind
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mls.html' class="tree-link "  title="mls">
+      mls
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Moddump.html' class="tree-link "  title="moddump">
+      moddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/Mount.html' class="tree-link "  title="mount">
+      mount
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/NotifierChainPlugin.html' class="tree-link "  title="notifier_chains">
+      notifier_chains
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -246,6 +294,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Linux/PidHashTable.html' class="tree-link "  title="pidhashtable">
       pidhashtable
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/PacketQueues.html' class="tree-link "  title="pkt_queues">
+      pkt_queues
    </a>
 </li>
 
@@ -268,8 +322,20 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Linux/LinuxPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Linux/LinVadDump.html' class="tree-link "  title="vaddump">
       vaddump
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Linux/LinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 </ul>
@@ -316,7 +382,25 @@ ript>
 <a href="/epydocs/rekall.plugins.linux.check_fops.CheckProcFops-class.html">View Source</a>
 
 
-
+<p><code>check_proc_fops</code> checks the file operations pointers of each open file in the
+proc filesystem. Some rootkits hook these operations in order to implement
+process hiding.</p>
+<p>In order to determine if an operation pointer is hooked, rekall checks that the
+pointer resides within a known module or the kernel image.</p>
+<p>If a pointer is found outside of these bounds, it will be reported.</p>
+<h3>Notes</h3>
+<ul>
+<li>To obtain a list of all checked function pointers, use the <code>--all</code>
+   parameter.</li>
+</ul>
+<h3>Sample output</h3>
+<p>Expect blank output on clean systems.</p>
+<div class="highlight"><pre>pmem 15:44:30&gt; check_proc_fops
+-------------&gt; check_proc_fops()
+   DirEntry    Path                                               Member                  Address     Module              
+-------------- -------------------------------------------------- -------------------- -------------- --------------------
+pmem 15:44:35&gt; 
+</pre></div>
 
 <p>
 

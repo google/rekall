@@ -10,7 +10,9 @@ abstract: |
     memory.  This is the difference between the virtual and physical addresses
     (aka PAGE_OFFSET). This is defined by the __va macro:
 
+    ```
     #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
+    ```
 
     This one plugin handles both 32 and 64 bits.
     

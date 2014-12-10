@@ -226,6 +226,24 @@ ript>
 </li>
 </ul></li>
 <li>
+   <a href='/docs/Manual/Plugins/Windows/PEAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/AnalyzeStruct.html' class="tree-link "  title="analyze_struct">
+      analyze_struct
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
    </a>
@@ -246,6 +264,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link "  title="certscan">
       certscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CheckPEHooks.html' class="tree-link "  title="check_pehooks">
+      check_pehooks
    </a>
 </li>
 
@@ -322,6 +346,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/DumpFiles.html' class="tree-link "  title="dumpfiles">
+      dumpfiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link "  title="evtlogs">
       evtlogs
    </a>
@@ -340,8 +370,32 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/FLS.html' class="tree-link "  title="fls">
+      fls
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link "  title="handles">
       handles
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EATHooks.html' class="tree-link "  title="hooks_eat">
+      hooks_eat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/IATHooks.html' class="tree-link "  title="hooks_iat">
+      hooks_iat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/InlineHooks.html' class="tree-link "  title="hooks_inline">
+      hooks_inline
    </a>
 </li>
 
@@ -448,6 +502,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Pagefiles.html' class="tree-link "  title="pagefiles">
+      pagefiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -526,6 +586,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link "  title="pte">
       pte
    </a>
@@ -540,6 +606,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link "  title="raw2dmp">
       raw2dmp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Services.html' class="tree-link "  title="services">
+      services
    </a>
 </li>
 
@@ -598,6 +670,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/EnumerateVacbs.html' class="tree-link "  title="vacbs">
+      vacbs
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link "  title="vad">
       vad
    </a>
@@ -612,6 +690,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link "  title="vadinfo">
       vadinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADMap.html' class="tree-link "  title="vadmap">
+      vadmap
    </a>
 </li>
 
@@ -642,6 +726,18 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VtoP.html' class="tree-link "  title="vtop">
       vtop
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32kAutodetect.html' class="tree-link activate_tooltip"  title="win32k_autodetect">
+      win32k_autodete ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 
@@ -702,41 +798,41 @@ ript>
 
 
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">18</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">34</span><span class="o">&gt;</span> <span class="n">impscan</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;dwm.exe&quot;</span>
-<span class="o">-------------------&gt;</span> <span class="n">impscan</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;dwm.exe&quot;</span><span class="p">)</span>
-<span class="o">**************************************************</span>
-<span class="n">Process</span> <span class="n">dwm</span><span class="p">.</span><span class="n">exe</span> <span class="n">PID</span> <span class="mi">692</span>
-     <span class="n">IAT</span>            <span class="n">Call</span>      <span class="n">Module</span>               <span class="n">Function</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">--------</span>
-<span class="mh">0x7ff7474f4000</span> <span class="mh">0x7ff87f2c369c</span> <span class="n">sechost</span><span class="p">.</span><span class="n">dll</span>          <span class="n">ConvertStringSecurityDescriptorToSecurityDescriptorW</span>
-<span class="mh">0x7ff7474f4030</span> <span class="mh">0x7ff87b48beb0</span> <span class="n">uxtheme</span><span class="p">.</span><span class="n">dll</span>          <span class="n">CloseThemeData</span>
-<span class="mh">0x7ff7474f4038</span> <span class="mh">0x7ff87b4bfc80</span> <span class="n">uxtheme</span><span class="p">.</span><span class="n">dll</span>          <span class="n">OpenThemeData</span>
-<span class="mh">0x7ff7474fa020</span> <span class="mh">0x7ff87e4b5d34</span> <span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>           <span class="mi">382</span>
-<span class="mh">0x7ff7474fa030</span> <span class="mh">0x7ff87e4b5f18</span> <span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>           <span class="mi">410</span>
-<span class="mh">0x7ff7474fa050</span> <span class="mh">0x7ff87e4b9948</span> <span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>           <span class="mi">144</span>
-<span class="mh">0x7ff7474fa058</span> <span class="mh">0x7ff87e4babc0</span> <span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>           <span class="mi">129</span>
-<span class="mh">0x7ff7474fa0e0</span> <span class="mh">0x7ff87e4b468c</span> <span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>           <span class="mi">35</span>
-<span class="mh">0x7ff7474fa0e8</span> <span class="mh">0x7ff87e4b1cd4</span> <span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>           <span class="mi">36</span>
-<span class="mh">0x7ff7474fa120</span> <span class="mh">0x7ff87f38f85c</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="mi">1252</span>
-<span class="mh">0x7ff7474fa128</span> <span class="mh">0x7ff87f36e384</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="mi">1229</span>
-<span class="mh">0x7ff7474fa130</span> <span class="mh">0x7ff87c9a3dec</span> <span class="n">KERNELBASE</span><span class="p">.</span><span class="n">dll</span>       <span class="mi">170</span>
-<span class="mh">0x7ff7474fa138</span> <span class="mh">0x7ff87f33c31c</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="mi">815</span>
-<span class="mh">0x7ff7474fa148</span> <span class="mh">0x7ff87f383270</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">RtlInitializeCriticalSection</span>
-<span class="mh">0x7ff7474fa158</span> <span class="mh">0x7ff87f36d100</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">RtlAcquireSRWLockShared</span>
-<span class="mh">0x7ff7474fa168</span> <span class="mh">0x7ff87f36b810</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">RtlLeaveCriticalSection</span>
-<span class="mh">0x7ff7474fa170</span> <span class="mh">0x7ff87c9a24f4</span> <span class="n">KERNELBASE</span><span class="p">.</span><span class="n">dll</span>       <span class="mi">157</span>
-<span class="mh">0x7ff7474fa180</span> <span class="mh">0x7ff87f36e50c</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="mi">1228</span>
-<span class="mh">0x7ff7474fa188</span> <span class="mh">0x7ff87f35db60</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">RtlAcquireSRWLockExclusive</span>
-<span class="mh">0x7ff7474fa190</span> <span class="mh">0x7ff87f36b550</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="mi">867</span>
-<span class="mh">0x7ff7474fa1a0</span> <span class="mh">0x7ff87c9a14a0</span> <span class="n">KERNELBASE</span><span class="p">.</span><span class="n">dll</span>       <span class="mi">635</span>
-<span class="mh">0x7ff7474fa1c8</span> <span class="mh">0x7ff87c9a1440</span> <span class="n">KERNELBASE</span><span class="p">.</span><span class="n">dll</span>       <span class="mi">481</span>
-<span class="mh">0x7ff7474fa1e8</span> <span class="mh">0x7ff87f37c7c0</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">RtlSetLastWin32Error</span>
-<span class="mh">0x7ff7474fa1f8</span> <span class="mh">0x7ff87f366b90</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="mi">928</span>
-<span class="mh">0x7ff7474fa200</span> <span class="mh">0x7ff87f3620d0</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">RtlAllocateHeap</span>
-<span class="mh">0x7ff7474fa208</span> <span class="mh">0x7ff87c9ac960</span> <span class="n">KERNELBASE</span><span class="p">.</span><span class="n">dll</span>       <span class="mi">684</span>
-<span class="mh">0x7ff7474fa218</span> <span class="mh">0x7ff87c9a14e0</span> <span class="n">KERNELBASE</span><span class="p">.</span><span class="n">dll</span>       <span class="mi">554</span>
-<span class="mh">0x7ff7474fa230</span> <span class="mh">0x7ff87edd3184</span> <span class="n">KERNEL32</span><span class="p">.</span><span class="n">DLL</span>         <span class="n">GetStartupInfoW</span>
-<span class="mh">0x7ff7474fa238</span> <span class="mh">0x7ff87edd3074</span> <span class="n">KERNEL32</span><span class="p">.</span><span class="n">DLL</span>         <span class="n">SetPriorityClass</span>
+<div class="highlight"><pre>win8.1.raw 18:30:34&gt; impscan proc_regex=&quot;dwm.exe&quot;
+-------------------&gt; impscan(proc_regex=&quot;dwm.exe&quot;)
+**************************************************
+Process dwm.exe PID 692
+     IAT            Call      Module               Function
+-------------- -------------- -------------------- --------
+0x7ff7474f4000 0x7ff87f2c369c sechost.dll          ConvertStringSecurityDescriptorToSecurityDescriptorW
+0x7ff7474f4030 0x7ff87b48beb0 uxtheme.dll          CloseThemeData
+0x7ff7474f4038 0x7ff87b4bfc80 uxtheme.dll          OpenThemeData
+0x7ff7474fa020 0x7ff87e4b5d34 msvcrt.dll           382
+0x7ff7474fa030 0x7ff87e4b5f18 msvcrt.dll           410
+0x7ff7474fa050 0x7ff87e4b9948 msvcrt.dll           144
+0x7ff7474fa058 0x7ff87e4babc0 msvcrt.dll           129
+0x7ff7474fa0e0 0x7ff87e4b468c msvcrt.dll           35
+0x7ff7474fa0e8 0x7ff87e4b1cd4 msvcrt.dll           36
+0x7ff7474fa120 0x7ff87f38f85c ntdll.dll            1252
+0x7ff7474fa128 0x7ff87f36e384 ntdll.dll            1229
+0x7ff7474fa130 0x7ff87c9a3dec KERNELBASE.dll       170
+0x7ff7474fa138 0x7ff87f33c31c ntdll.dll            815
+0x7ff7474fa148 0x7ff87f383270 ntdll.dll            RtlInitializeCriticalSection
+0x7ff7474fa158 0x7ff87f36d100 ntdll.dll            RtlAcquireSRWLockShared
+0x7ff7474fa168 0x7ff87f36b810 ntdll.dll            RtlLeaveCriticalSection
+0x7ff7474fa170 0x7ff87c9a24f4 KERNELBASE.dll       157
+0x7ff7474fa180 0x7ff87f36e50c ntdll.dll            1228
+0x7ff7474fa188 0x7ff87f35db60 ntdll.dll            RtlAcquireSRWLockExclusive
+0x7ff7474fa190 0x7ff87f36b550 ntdll.dll            867
+0x7ff7474fa1a0 0x7ff87c9a14a0 KERNELBASE.dll       635
+0x7ff7474fa1c8 0x7ff87c9a1440 KERNELBASE.dll       481
+0x7ff7474fa1e8 0x7ff87f37c7c0 ntdll.dll            RtlSetLastWin32Error
+0x7ff7474fa1f8 0x7ff87f366b90 ntdll.dll            928
+0x7ff7474fa200 0x7ff87f3620d0 ntdll.dll            RtlAllocateHeap
+0x7ff7474fa208 0x7ff87c9ac960 KERNELBASE.dll       684
+0x7ff7474fa218 0x7ff87c9a14e0 KERNELBASE.dll       554
+0x7ff7474fa230 0x7ff87edd3184 KERNEL32.DLL         GetStartupInfoW
+0x7ff7474fa238 0x7ff87edd3074 KERNEL32.DLL         SetPriorityClass
 </pre></div>
 
 <p>

@@ -136,6 +136,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/General/EWFAcquire.html' class="tree-link "  title="ewfacquire">
+      ewfacquire
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="tree-link "  title="fetch_pdb">
       fetch_pdb
    </a>
@@ -214,6 +220,42 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/General/SessionDelete.html' class="tree-link "  title="sdel">
+      sdel
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/InteractiveShell.html' class="tree-link "  title="shell">
+      shell
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionList.html' class="tree-link "  title="slist">
+      slist
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionMod.html' class="tree-link "  title="smod">
+      smod
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionNew.html' class="tree-link "  title="snew">
+      snew
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/General/SessionSwitch.html' class="tree-link "  title="sswitch">
+      sswitch
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/General/VersionScan.html' class="tree-link "  title="version_scan">
       version_scan
    </a>
@@ -266,21 +308,20 @@ structure:</p>
    data: Data that should be found in the image.</li>
 </ul>
 <p>Example:</p>
-<div class="highlight"><pre><span class="nl">repository_root:</span> <span class="p">.</span><span class="o">/</span>
-<span class="nl">path:</span> <span class="n">win32k</span><span class="p">.</span><span class="n">sys</span>
-<span class="nl">symbols:</span>
-  <span class="o">-</span>
-    <span class="err">#</span> <span class="n">The</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">symbol</span> <span class="n">we</span> <span class="n">test</span> <span class="k">for</span><span class="p">.</span>
-    <span class="nl">name:</span> <span class="s">&quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;</span>
+<pre class="highlight"><code>repository_root: ./
+path: win32k.sys
+symbols:
+  -
+    # The name of the symbol we test for.
+    name: &quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;
 
-    <span class="err">#</span> <span class="n">The</span> <span class="n">data</span> <span class="n">we</span> <span class="n">expect</span> <span class="n">to</span> <span class="n">find</span> <span class="n">at</span> <span class="n">that</span> <span class="n">offset</span><span class="p">.</span>
-    <span class="nl">data:</span> <span class="s">&quot;47005500490046006f006e0074002e00480065006900670068007400&quot;</span>
+    # The data we expect to find at that offset.
+    data: &quot;47005500490046006f006e0074002e00480065006900670068007400&quot;
 
-  <span class="o">-</span>
-    <span class="nl">name:</span> <span class="s">&quot;wcschr&quot;</span>
-    <span class="nl">shift:</span> <span class="o">-</span><span class="mi">1</span>
-    <span class="nl">data:</span> <span class="s">&quot;90&quot;</span>
-</pre></div>
+  -
+    name: &quot;wcschr&quot;
+    shift: -1
+    data: &quot;90&quot;</code></pre>
 
 
 <p>The result is an index profile. This has an $INDEX section which is a dict,
@@ -295,16 +336,16 @@ tuples.</p>
 
 
 <p>For example:</p>
-<div class="highlight"><pre>    <span class="p">{</span>
-     <span class="s">&quot;$INDEX&quot;</span><span class="o">:</span> <span class="p">{</span>
-      <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1184600</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-      <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1190376</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-      <span class="s">&quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1194296</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-     <span class="s">&quot;$METADATA&quot;</span><span class="o">:</span> <span class="p">{</span>
-      <span class="s">&quot;ProfileClass&quot;</span><span class="o">:</span> <span class="s">&quot;Index&quot;</span><span class="p">,</span>
-      <span class="s">&quot;Type&quot;</span><span class="o">:</span> <span class="s">&quot;Profile&quot;</span>
-      <span class="p">}</span>
-     <span class="p">}</span>
+<div class="highlight"><pre><span class="x">    </span><span class="err">{</span><span class="x"></span>
+<span class="x">     &quot;</span><span class="p">$</span><span class="nv">INDEX</span><span class="x">&quot;: </span><span class="err">{</span><span class="x"></span>
+<span class="x">      &quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;: [[1184600, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">      &quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;: [[1190376, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">      &quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;: [[1194296, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">     &quot;</span><span class="p">$</span><span class="nv">METADATA</span><span class="x">&quot;: </span><span class="err">{</span><span class="x"></span>
+<span class="x">      &quot;ProfileClass&quot;: &quot;Index&quot;,</span>
+<span class="x">      &quot;Type&quot;: &quot;Profile&quot;</span>
+<span class="x">      }</span>
+<span class="x">     }</span>
 </pre></div>
 
 <p>

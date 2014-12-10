@@ -306,7 +306,8 @@ control every now and then. In VT-x you tell the CPU to pause the VM execution
 and return control to the hypervisor under certain circumstances.</p></div>
 <div class="imageblock" id="img-vtx-high-level" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/vtx_high_level.png" src="data:image/png;base64,
+<img alt="posts/images/vtx_high_level.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAA5gAAAINCAYAAABbFND5AAB7D0lEQVR42uy9C7hdVX2vjUILh1KL
 nxzLKXhA2Emx5rQ5xVrqh56dQL3h7VOrcrCFryhSPAreii20hCO2aaFqq5CYBAINNUW0aJMDBEM2
 JCYQdiRAgAgJ3UAIARIJmGCABOZZ78z6r4w1M9faa9/X3vt9n+f37LXmZcwxx7zs8Vv/cdlnHxER
@@ -865,7 +866,7 @@ AAAAAAAAAAAAAAAAAAAAjKX/B6+Z1yqR++5oAAAAAElFTkSuQmCC" />
 <div class="title">Figure 1. High-level view of processor CPL transitions with VT-x enabled.</div>
 </div>
 <div class="paragraph"><p>In order to set up the VM and start/resume it, VM-specific x86 instructions are
-used (<tt>VMREAD</tt>, <tt>VMWRITE</tt>, <tt>VMPTRLD</tt>, <tt>VMRUN</tt>). Only code running with CPL 0 (ring0) is allowed to execute these
+used (<code>VMREAD</code>, <code>VMWRITE</code>, <code>VMPTRLD</code>, <code>VMRUN</code>). Only code running with CPL 0 (ring0) is allowed to execute these
 instructions. This is why virtualization software
 use kernel drivers. These kernel components are the actual hypervisor
 and pretty much all virtualization products provide some sort of UI or API to
@@ -908,7 +909,8 @@ The processor has a cache called the Translation Lookaside Buffer (TLB) whose
 job is to improve these lookups.</p></div>
 <div class="imageblock" id="img-address-translation" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/real_address_translation.png" src="data:image/png;base64,
+<img alt="posts/images/real_address_translation.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAArwAAAI7CAYAAAAOD0gjAABxCElEQVR42uy9D5hU5X33faJrJJWa
 TaCKkZh9lBqsGEGJEp9FV9Fig8lajGIkuipBNFSJYoIWI0Zi0W4UjUaMaDeWJLwRWmxpQhLyuq1U
 UYZh40W4iCF9SGv64vvQ5yVv6fuQPvTpec/3eN/rPfeeM392Z2Znzn4+1/W9dufMmTNnzsyZ+cxv
@@ -1448,12 +1450,13 @@ virtual-to-physical resolution.</p></div>
 <div class="paragraph"><p>This is the fundamental problem that Extended Page Tables (EPT) tries to
 optimize. The processor is in charge of maintaining and optimizing both page
 mappings. The guest-physical-to-host-physical page tables are pointed to by the
-EPT Pointer (<tt>EPTP</tt>), which is a value stored in the VMCS region. The
-guest-virtual-to-guest-physical page tables are pointed to by the <tt>GUEST_CR3</tt>
+EPT Pointer (<code>EPTP</code>), which is a value stored in the VMCS region. The
+guest-virtual-to-guest-physical page tables are pointed to by the <code>GUEST_CR3</code>
 field of the VMCS region.</p></div>
 <div class="imageblock" id="img-virtualized-address-translation" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/virtualized_address_translation.png" src="data:image/png;base64,
+<img alt="posts/images/virtualized_address_translation.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAABJQAAALuCAYAAAD4w0zYAACAAElEQVR42uy9C7AsZXmovT1QgSiJ
 qJxAhAgiElSOUoCKCiZQaDBylGPQgyUW/IGwEVEuh5uCG7WgCkuiYFA51saDYgwqBiJEkVAQoYih
 kMtm781d7jcBuSMgyPw8je/kXd/u7plZay7r8jxVb601Mz09Pd0z83399Pu936JFIiIiIiIiIiIi
@@ -2886,7 +2889,7 @@ The first 4-bytes have to match the processor revision ID.
 </li>
 <li>
 <p>
-The 4 following bytes are the <tt>VMX-abort indicator</tt>. This field will be 0
+The 4 following bytes are the <code>VMX-abort indicator</code>. This field will be 0
 unless an error occurred.
 </p>
 </li>
@@ -2898,7 +2901,8 @@ The rest is reserved for VMCS fields and is an implementation detail.
 </ul></div>
 <div class="imageblock" id="img-vmcs-layout" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/vmcs_layout.png" src="data:image/png;base64,
+<img alt="posts/images/vmcs_layout.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAyAAAAKCCAYAAAAp0705AABz7UlEQVR42uzdD7CldWHf/9O6jTRs
 fm7K1uwQxDsWMqtFs5aN3WSWyW0ggVFSqDBClQQMGDFipGGrpGKgAxUiBIkyurprgYACAx02iooD
 cUfXgRo0pINmJ12bTbqmm0gTGsmdbUPT57efh/2efO+z59x79s8999/rPfOZe5//zzn33HO+7/P9
@@ -3506,7 +3510,7 @@ We can decide its initial state
 </li>
 <li>
 <p>
-We can ask the processor to read (<tt>VMREAD</tt>) and write to it (<tt>VMWRITE</tt>).
+We can ask the processor to read (<code>VMREAD</code>) and write to it (<code>VMWRITE</code>).
 </p>
 </li>
 <li>
@@ -3529,7 +3533,7 @@ Instruct the CPU to use this region.
 </li>
 <li>
 <p>
-<tt>VMWRITE</tt> to a single field with a needle value.
+<code>VMWRITE</code> to a single field with a needle value.
 </p>
 </li>
 <li>
@@ -3561,7 +3565,7 @@ Instruct the CPU to use this region.
 </li>
 <li>
 <p>
-<tt>VMREAD</tt> a single field.
+<code>VMREAD</code> a single field.
 </p>
 </li>
 <li>
@@ -3577,7 +3581,8 @@ Repeat for every field.
 </ol></div>
 <div class="imageblock" id="img-vmcs-layout-discovery" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/vmcs_layout_discovery.png" src="data:image/png;base64,
+<img alt="posts/images/vmcs_layout_discovery.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAABDIAAAJ9CAYAAADHd1KjAACAAElEQVR42uy9D5CV13nmeZHaERPw
 mIwYhRCi6VKhLeRBMbLbmnbSqvQasqgMMzCCtRiJBctCIylGC7MwEbZI0BaqQAVFKBJlYQsHOUJr
 XGIKKigrxajErtgVs8IOcWEXleAIJUhpxcQiMZIhtJVv7/Nx3s7bp7/v/ut7+/7p30M9Rd/7fff7
@@ -4435,7 +4440,7 @@ fields.
 </li>
 <li>
 <p>
-<tt>VMREAD</tt> behaviour for inactive fields isn&#8217;t consistent, sometimes properly
+<code>VMREAD</code> behaviour for inactive fields isn&#8217;t consistent, sometimes properly
 reporting a failure, sometimes returning bogus data.
 </p>
 </li>
@@ -4504,18 +4509,18 @@ the same revision ID.</td>
 the microarchitecture, so we can select the right offsets when we start
 validating potential VMCS hits with intelligent signatures.</p></div>
 <div class="paragraph"><p>To automate the layout discovery task in a convenient way I wrote a <a href="https://github.com/google/rekall/tree/master/tools/linux/vmcs_layout">Linux kernel module</a>
-called <tt>vmcs_layout</tt> that dumps via syslog the VMCS layout of the CPU in the
+called <code>vmcs_layout</code> that dumps via syslog the VMCS layout of the CPU in the
 profile format of Rekall.</p></div>
 <div class="paragraph"><p>Currently, Rekall has in its repository profiles for all current Intel
 microarchitectures that support virtualization: Penryn, Nehalem, Westmere,
 Sandybridge, Ivy Bridge and Haswell.</p></div>
 <div class="sect3">
 <h4 id="_haswell_is_interesting">Haswell is interesting</h4>
-<div class="paragraph"><p>While working on <tt>vmcs_layout</tt>, I found that this exact
+<div class="paragraph"><p>While working on <code>vmcs_layout</code>, I found that this exact
 approach doesn&#8217;t work on processors with the Haswell microarchitecture.
-No matter how many <tt>VMWRITEs</tt> you do, you won&#8217;t see the value you wrote in
-memory right away. Same thing for <tt>VMREAD</tt>. If you prefill the page, ask the
-processor to use that page as a VMCS region and then issue a <tt>VMREAD</tt> you will
+No matter how many <code>VMWRITEs</code> you do, you won&#8217;t see the value you wrote in
+memory right away. Same thing for <code>VMREAD</code>. If you prefill the page, ask the
+processor to use that page as a VMCS region and then issue a <code>VMREAD</code> you will
 get zeros back. Why?</p></div>
 <div class="paragraph"><p>Well, the the Intel manual explicitly says:</p></div>
 <div class="quoteblock">
@@ -4527,15 +4532,15 @@ active VMCSs is the current VMCS.</div>
 &#8212; <a href="http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-system-programming-manual-325384.pdf">Intel® 64 and IA-32 Architectures - Software Developer’s Manual - Volume 3</a>
 </div></div>
 <div class="paragraph"><p>As far as I&#8217;ve seen, Haswell processors are the first ones to implement internal storage for VMCSs.
-So, in order to discover the layout, I implemented a simple trick in <tt>vmcs_layout</tt>.</p></div>
-<div class="paragraph"><p><tt>vmcs_layout</tt> asks the processor to keep loading fake VMCSs until we overflow its storage. Then the processor is forced to flush to
+So, in order to discover the layout, I implemented a simple trick in <code>vmcs_layout</code>.</p></div>
+<div class="paragraph"><p><code>vmcs_layout</code> asks the processor to keep loading fake VMCSs until we overflow its storage. Then the processor is forced to flush to
 memory one of the previous VMCSs to make space for a new one.
 When this happens, any new VMCS that we ask the processor to load will forcefully be read from memory because it doesn&#8217;t
 know about it and cannot know if it holds previous state unless it reads it from memory.
 So we then proceed as explained earlier. We prefill it with values and discover the fields as usual.</p></div>
 <div class="paragraph"><p>Does this mean we may not find Haswell VMCS regions in memory? In my tests,
 I&#8217;ve been able to locate them in memory just fine. It&#8217;s likely when running
-<tt>VMRUN</tt> to start a VM or when transitioning back to the hypervisor, the processor flushes
+<code>VMRUN</code> to start a VM or when transitioning back to the hypervisor, the processor flushes
 it to memory. I haven&#8217;t determined what exactly causes this to happen.
 Please, let us know if you find problems like virtual machines not being detected
 or being detected with the wrong number of cores.</p></div>
@@ -4567,11 +4572,11 @@ performance for false positives.</p></div>
 <div class="paragraph"><p>At this point, we know we have a valid VMCS and we are now ready to use the
 EPT pointer to access the guest physical memory. This means we can now have
 access to the VM&#8217;s physical memory in a <strong>generic way</strong>!</p></div>
-<div class="paragraph"><p>All this scanning and validating is done by the <tt>vmscan</tt> plugin. See an example
+<div class="paragraph"><p>All this scanning and validating is done by the <code>vmscan</code> plugin. See an example
 invocation for a host with 3 VMs running on 2 different hypervisors:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM,VM)_VBox(VM).ram vmscan
+<pre><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM,VM)_VBox(VM).ram vmscan
 Virtual machines                                     Type    Valid EPT
 ------------------------------------ -------------------- -------- ---
 VM #0 [2 vCORE, I386]                                  VM     True 0xDEB1B01E
@@ -4579,20 +4584,20 @@ VM #0 [2 vCORE, I386]                                  VM     True 0xDEB1B01E
 VM #1 [2 vCORE, AMD64]                                 VM     True 0x14128D01E
 **************************************************
 VM #2 [4 vCORE, AMD64]                                 VM     True 0x17725001E
-**************************************************</tt></pre>
+**************************************************</code></pre>
 </div></div>
 </div>
 <div class="sect2">
 <h3 id="_introspecting_a_running_vm">Introspecting a running VM</h3>
-<div class="paragraph"><p>Once you know the EPT value you can feed it to Rekall with the <tt>--ept</tt> parameter.</p></div>
-<div class="paragraph"><p>What this does is place <tt>VTxPagedMemory</tt> address space as the <tt>session.physical_address_space</tt>.
-<tt>VTxPagedMemory</tt> stacks on top of the memory image address space (the one that can read from the file format of the memory image).
-Any read requests done on <tt>VTxPagedMemory</tt> for a given address will first translate
+<div class="paragraph"><p>Once you know the EPT value you can feed it to Rekall with the <code>--ept</code> parameter.</p></div>
+<div class="paragraph"><p>What this does is place <code>VTxPagedMemory</code> address space as the <code>session.physical_address_space</code>.
+<code>VTxPagedMemory</code> stacks on top of the memory image address space (the one that can read from the file format of the memory image).
+Any read requests done on <code>VTxPagedMemory</code> for a given address will first translate
 the address via the Extended Page Tables and then read from the underlying address space
 at the translated address.</p></div>
 <div class="paragraph"><p>So, normally, if you&#8217;re running a plugin against a raw memory image, when it requests to read
 data at the physical address 0, we&#8217;ll read at offset 0 from the file.</p></div>
-<div class="paragraph"><p>However, when you specify --ept, <tt>VTxPagedMemory</tt> will instead receive this request, translate
+<div class="paragraph"><p>However, when you specify --ept, <code>VTxPagedMemory</code> will instead receive this request, translate
 address 0 via EPT (for example: 38684000) and return data from the underlying address space.</p></div>
 <div class="paragraph"><p>Because of how address spaces are designed, neither rekall or the plugins care that they
 are not actually reading from the physical image, but from a view into it (the VM memory).</p></div>
@@ -4600,7 +4605,7 @@ are not actually reading from the physical image, but from a view into it (the V
 <li>
 <p>
 Kernel autodetection, for example, reads from the physical address space and finds and sets the
-  <tt>session.kernel_address_space</tt> for it. When using the <tt>--ept</tt> parameter, it will
+  <code>session.kernel_address_space</code> for it. When using the <code>--ept</code> parameter, it will
   locate the guest kernel instead.
 </p>
 </li>
@@ -4613,7 +4618,8 @@ Plugins will operate on the guest automatically because they don&#8217;t even kn
 </ul></div>
 <div class="imageblock" id="img-vtxpagedmemory" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/vtxpagedmemory.png" src="data:image/png;base64,
+<img alt="posts/images/vtxpagedmemory.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAA74AAAKPCAYAAABKLxa9AACAAElEQVR42uy9D3QdV3mvPcRKEIkg
 gqiJGpxECYaKYkAhDpjggBKHOOCAQxzipA5LudX9Yho3OOAUF0xwshyuc3EuCjGNQ01qqAFBDbhN
 AAOmqMFQhyXuUi/uh2/xatXW7XVbf70uiGJAwPnOb7Rf6dXWzPkjHdmSzvOs9S7pzN89e+ZI88y7
@@ -5696,7 +5702,7 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADyR/wNY0++pKyvaDQAAAABJRU5ErkJggg==" />
 </div>
-<div class="title">Figure 6. Address space stacking and how <tt>VTxPagedMemory</tt> is transparent to any plugin.</div>
+<div class="title">Figure 6. Address space stacking and how <code>VTxPagedMemory</code> is transparent to any plugin.</div>
 </div>
 <div class="admonitionblock">
 <table><tr>
@@ -5781,15 +5787,15 @@ setups but we&#8217;ll leave this for another post.</p></div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="the_vmscan_plugin">The <tt>vmscan</tt> plugin</h2>
+<h2 id="the_vmscan_plugin">The <code>vmscan</code> plugin</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Use the <tt>vmscan</tt> plugin, which will find all VMCS regions in memory and group
+<div class="paragraph"><p>Use the <code>vmscan</code> plugin, which will find all VMCS regions in memory and group
 them together logically as virtual machines.</p></div>
 <div class="paragraph"><p>In this test image, the host is Windows 7 SP1 x64. It&#8217;s running 2 VMs inside VMWare
 (Linux and Windows XP SP2 32bits) and 1 Windows 7 x64 VM inside VirtualBox.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram vmscan
+<pre><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram vmscan
 Virtual machines                                     Type    Valid EPT
 ------------------------------------ -------------------- -------- ---
 VM #0 [2 vCORE, I386]                                  VM     True 0xDEB1B01E <img alt="1" src="data:image/png;base64,
@@ -5817,7 +5823,7 @@ Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
 cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
 NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
 SUVORK5CYII=" />
-**************************************************</tt></pre>
+**************************************************</code></pre>
 </div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
@@ -5853,12 +5859,12 @@ SUVORK5CYII=" /></td><td>
 <div class="sect1">
 <h2 id="_how_to_run_a_rekall_plugin_on_a_vm">How to run a rekall plugin on a VM</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>To run a rekall plugin on a VM that <tt>vmscan</tt> found, invoke rekall as you normally
-would, but add <tt>--ept EPT_VALUE</tt> as a parameter.</p></div>
+<div class="paragraph"><p>To run a rekall plugin on a VM that <code>vmscan</code> found, invoke rekall as you normally
+would, but add <code>--ept EPT_VALUE</code> as a parameter.</p></div>
 <div class="paragraph"><p>We&#8217;ll run pslist on the XP SP3 32bit VM first.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram --ept 0xDEB1B01E pslist
+<pre><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram --ept 0xDEB1B01E pslist
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                    Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------ ------------------------
 0x823c6a00 System                    4      0     54      241 ------  False -                        -
@@ -5877,12 +5883,12 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 0x821afda0 svchost.exe            1196    640     13      192      0  False 2014-03-04 15:56:34+0000 -
 0x82094020 spoolsv.exe            1344    640     10      107      0  False 2014-03-04 15:56:35+0000 -
 0x81f13bc0 cmd.exe                1376   1600      1       30      0  False 2014-03-04 17:14:24+0000 -
-0x8206b020 explorer.exe           1600   1544     11      302      0  False 2014-03-04 15:56:36+0000 -</tt></pre>
+0x8206b020 explorer.exe           1600   1544     11      302      0  False 2014-03-04 15:56:36+0000 -</code></pre>
 </div></div>
 <div class="paragraph"><p>And now we&#8217;ll try doing a pslist on the 64-bit Ubuntu.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram --ept 0x14128D01E,0x3D67F01E pslist
+<pre><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram --ept 0x14128D01E,0x3D67F01E pslist
 Offset (V)           Name          PID    PPID   UID    GID        DTB              Start Time
 -------------- -------------------- ------ ------ ------ ------ -------------- ------------------------
 ...
@@ -5904,19 +5910,19 @@ Offset (V)           Name          PID    PPID   UID    GID        DTB          
 0x88003686c650 kauditd                1290      2      0      0 -                                     -
 0x88003b30ddc0 bash                   1335   1160 -      -      0x00003b60d000                        -
 0x88003b8bc650 dnsmasq                1486 -         108     30 -                                     -
-...</tt></pre>
+...</code></pre>
 </div></div>
 <div class="sect2">
 <h3 id="_live_analysis">Live analysis</h3>
 <div class="paragraph"><p>All of this works live, too!</p></div>
 <div class="paragraph"><p>Open a root/administrator console and use any of <a href="/downloads.html">our physical memory access</a>
-drivers. Then try pointing rekall against "<tt>\\.\pmem</tt>" on Windows or
-"<tt>/dev/pmem</tt>" on Linux while running a VM and Rekall will detect it for you.
+drivers. Then try pointing rekall against "<code>\\.\pmem</code>" on Windows or
+"<code>/dev/pmem</code>" on Linux while running a VM and Rekall will detect it for you.
 Remember that you need to have VT-x extensions active (it&#8217;s usually a BIOS
 setting).</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>C:\winpmem-1.4&gt; winpmem_1.4.exe -l
+<pre><code>C:\winpmem-1.4&gt; winpmem_1.4.exe -l
 Driver Unloaded.
 Loaded Driver C:\Users\Administrator\AppData\Local\Temp\pmeF23H.tmp.
 Setting acquisition mode to 3
@@ -5926,7 +5932,7 @@ Start 0x00001000 - Length 0x0009E000
 Start 0x00100000 - Length 0x3FDF0000
 Start 0x3FF00000 - Length 0x00100000
 
-C:\winpmem-1.4&gt; rekal -f \\.\pmem vmscan</tt></pre>
+C:\winpmem-1.4&gt; rekal -f \\.\pmem vmscan</code></pre>
 </div></div>
 </div>
 <div class="sect2">
@@ -5934,11 +5940,12 @@ C:\winpmem-1.4&gt; rekal -f \\.\pmem vmscan</tt></pre>
 <div class="paragraph"><p>Because <a href="https://code.google.com/p/grr/">GRR</a> now ships with Rekall, you can
 remotely discover VMs running in a machine. Or your whole fleet if you run a
 <a href="https://github.com/google/grr-doc/blob/master/user_manual.adoc#hunting">Hunt</a>!</p></div>
-<div class="paragraph"><p>Set up an <tt>AnalyzeClientMemory</tt> flow and use <tt>vmscan</tt> as the plugin name and
-select <tt>profile</tt> = <tt>None</tt> in the session data.</p></div>
+<div class="paragraph"><p>Set up an <code>AnalyzeClientMemory</code> flow and use <code>vmscan</code> as the plugin name and
+select <code>profile</code> = <code>None</code> in the session data.</p></div>
 <div class="imageblock" id="img-grr-rekall" style="text-align:center;">
 <div class="content">
-<img alt="posts/images/grr_vmscan.png" src="data:image/png;base64,
+<img alt="posts/images/grr_vmscan.png"
+src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAABAAAAAGYCAYAAADcEJAKAAAMRGlDQ1BJQ0MgUHJvZmlsZQAASA2t
 V2dUU9kW3rckgZCEEoiAlNCbKL1K74KCVGEshCSQUGIIBBW74+AIjgUVC1Z0VMQ2OgIyFkTsDord
 sTzUQUEZBws2VN65oThv1sy/d9c653732/vs++19zz3rHABNW4FcnotrAeTJChXxEcH8CalpfMYD
@@ -7821,7 +7828,7 @@ ass1uKaPCwgAAAAASUVORK5CYII=" />
 <div class="title">Figure 7. Setting up a Rekall memory analysis flow in <a href="https://code.google.com/p/grr/">GRR</a>.</div>
 </div>
 <div class="paragraph"><p>Once you get the results, you can run additional plugins against a VM by
-adding the <tt>ept</tt> = <tt>0xVALUE_FOUND</tt> as a parameter.</p></div>
+adding the <code>ept</code> = <code>0xVALUE_FOUND</code> as a parameter.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -7892,11 +7899,11 @@ this functionality in the future so that it can be automated.</td>
 </div>
 <div class="sect2">
 <h3 id="_the_rekall_shell_and_vms">The Rekall shell and VMs</h3>
-<div class="paragraph"><p>You can also interact with VMs from the shell via the <tt>get_vms()</tt> method of
-the <tt>vmscan</tt> plugin. It returns a list of <tt><a href="/epydocs/rekall.plugins.hypervisors.VirtualMachine-class.html">VirtualMachine</a></tt>:</p></div>
+<div class="paragraph"><p>You can also interact with VMs from the shell via the <code>get_vms()</code> method of
+the <code>vmscan</code> plugin. It returns a list of <code><a href="/epydocs/rekall.plugins.hypervisors.VirtualMachine-class.html">VirtualMachine</a></code>:</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram
+<pre><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram
  ----------------------------------------------------------------------------
  The Rekall Memory Forensic framework 1.0rc11.
 
@@ -7914,7 +7921,7 @@ Windows7_VMware(VM+VM,VM)_VBox(VM).ram 00:05:18&gt; for vm in vms: print vm
 VirtualMachine(Hypervisor=0XFFFFF8800E8718A0, EPT=0XDEB1B01E)
 VirtualMachine(Hypervisor=0XFFFFFFFFFC2AE0FA, EPT=0X14128D01E)
 VirtualMachine(Hypervisor=0XFFFFFFFFFC2AE0FA, EPT=0X17725001E)
-VirtualMachine(Hypervisor=0X0, EPT=0X329D8F8)</tt></pre>
+VirtualMachine(Hypervisor=0X0, EPT=0X329D8F8)</code></pre>
 </div></div>
 <div class="admonitionblock">
 <table><tr>
@@ -7970,26 +7977,26 @@ fsAErJoAYItG1mdr+hfvVlACtHDIXkploYXbHvQOikDEe6/ZmjFmAhf9ZvJxOk2Qol88W4kYz32S
 GNQfHLG+TyMTkAVEr88xQfVnkBg7GAKixSIykDYQsL21/wFkW/B5QqT9lwAAAABJRU5ErkJggg==" />
 </td>
 <td class="content">
-<div class="paragraph"><p>VMs returned via <tt>get_vms()</tt> are all that were found, not just the valid ones.
-Use the <tt>is_valid</tt> property to check if a VM was determined to be valid.
+<div class="paragraph"><p>VMs returned via <code>get_vms()</code> are all that were found, not just the valid ones.
+Use the <code>is_valid</code> property to check if a VM was determined to be valid.
 Invalid VMs are reported via the API to aid in debugging.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt> &gt; vmscan_plugin = session.plugins.vmscan()
+<pre><code> &gt; vmscan_plugin = session.plugins.vmscan()
  &gt; vms = list(vmscan_plugin.get_vms())
  &gt; vms[0].is_valid
 True
  &gt; vms[1].is_valid
-False</tt></pre>
+False</code></pre>
 </div></div>
 </td>
 </tr></table>
 </div>
-<div class="paragraph"><p>You can run any plugin on a VM by using the <tt>RunPlugin()</tt> method of
-<tt>VirtualMachine</tt>.</p></div>
+<div class="paragraph"><p>You can run any plugin on a VM by using the <code>RunPlugin()</code> method of
+<code>VirtualMachine</code>.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>Windows7_VMware(VM+VM,VM)_VBox(VM).ram 00:06:41&gt; vms[0].RunPlugin("pslist")
+<pre><code>Windows7_VMware(VM+VM,VM)_VBox(VM).ram 00:06:41&gt; vms[0].RunPlugin("pslist")
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                    Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------ ------------------------
 0x823c6a00 System                    4      0     54      241 ------  False -                        -
@@ -8009,7 +8016,7 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 0x82094020 spoolsv.exe            1344    640     10      107      0  False 2014-03-04 15:56:35+0000 -
 0x81f13bc0 cmd.exe                1376   1600      1       30      0  False 2014-03-04 17:14:24+0000 -
 0x8206b020 explorer.exe           1600   1544     11      302      0  False 2014-03-04 15:56:36+0000 -
-                                          Out&lt;4&gt; &lt;rekall.plugins.windows.taskmods.WinPsList at 0x40ffa50&gt;</tt></pre>
+                                          Out&lt;4&gt; &lt;rekall.plugins.windows.taskmods.WinPsList at 0x40ffa50&gt;</code></pre>
 </div></div>
 </div>
 <div class="sect2">
@@ -8019,7 +8026,7 @@ VM introspection, you can export the VM memory instead as a raw image!</p></div>
 <div class="paragraph"><p>Again, using the EPT parameter of the VM you want to analyze, simply run</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>python rekall/rekal.py -f ${HOST_IMAGE} --ept ${EPT_VALUE} imagecopy -O guest_vm.raw</tt></pre>
+<pre><code>python rekall/rekal.py -f ${HOST_IMAGE} --ept ${EPT_VALUE} imagecopy -O guest_vm.raw</code></pre>
 </div></div>
 <div class="paragraph"><p>And guest_vm.raw will contain the physical memory in raw format. Now you can
 load this image in your tool of choice :)</p></div>
@@ -8117,14 +8124,14 @@ access (VMWare ESXi, vSphere, Hyper-V(?), etc.)
 <div class="sect1">
 <h2 id="_future_improvements">Future improvements</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>We want <tt>vmscan</tt> to provide better output. In particular, we&#8217;d also like to
+<div class="paragraph"><p>We want <code>vmscan</code> to provide better output. In particular, we&#8217;d also like to
 provide the OS or profile that matches a VM and the hostname.</p></div>
 <div class="paragraph"><p>We&#8217;d also like to implement support for AMD-V so that people running AMD
 processors can benefit from VM inspection in Rekall.</p></div>
 <div class="paragraph"><p>We&#8217;re thinking of something along these lines.</p></div>
 <div class="literalblock">
 <div class="content">
-<pre><tt>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram vmscan2
+<pre><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware(VM+VM,VM)_VBox(VM).ram vmscan2
 Virtual machines                                  Type/OS    Valid Hostname            EPT
 ------------------------------------ -------------------- -------- ------------------- ----------
 Hypervisor #0: 0xFC78230                           VMWARE     True
@@ -8135,7 +8142,7 @@ Hypervisor #0: 0xFC78230                           VMWARE     True
 **************************************************
 Hypervisor #1: 0x2345678                       VIRTUALBOX
   VM #2 [4 vCORE, AMD64]                 Windows 5.1.2600     True VBOX-VM             0x17725001E
-**************************************************</tt></pre>
+**************************************************</code></pre>
 </div></div>
 <div class="paragraph"><p>Additionally, we&#8217;d like to better integrate all this functionality into GRR
 so you can discover and introspect VMs running in your environment with a couple
@@ -8161,7 +8168,7 @@ of clicks.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-10-04 14:37:12 CEST
+Last updated 2014-11-20 17:53:09 CET
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

@@ -110,7 +110,7 @@ profiles to control the parsing of memory. For example, in Volatility one must
 specify the profile before analysis begins:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ vol.py -f myimage.dd --profile Win7SP1x86 pslist</tt></pre>
+<pre><code>$ vol.py -f myimage.dd --profile Win7SP1x86 pslist</code></pre>
 </div></div>
 </div>
 </div>
@@ -126,13 +126,13 @@ physical memory itself is simply a series of zeros and ones, without any
 semantic context at all. The processor is free to read/write from arbitrary
 locations (sans alignment restrictions). However, computer programs need to
 organize this memory so they can store meaningful data. For example, in the C
-programming language one can define a <tt>struct</tt> which specifies how variables are
+programming language one can define a <code>struct</code> which specifies how variables are
 laid out in memory (For all the details see
 <a href="https://docs.google.com/presentation/d/1KsZGF6cQ-N8ngABFGCZf8pTQQ5CZ19VoAHq5cO5ZPdE">this
 workshop</a>):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>typedef unsigned char uchar;
+<pre><code>typedef unsigned char uchar;
 enum {
   OPT1,
   OPT2
@@ -142,7 +142,7 @@ struct foobar {
     enum options flags;
     short int bar;
     uchar *foo;
-}</tt></pre>
+}</code></pre>
 </div></div>
 <div class="paragraph"><p>Using this information, the compiler can devise a layout of how to store each
 variable in memory. Since Rekall only receives the memory as a contiguous block
@@ -155,10 +155,10 @@ every data type they have. This way the debugger can see where in memory
 <div class="paragraph"><p>Rekall (and Volatility) use this debugging information to know how to extract
 each struct member from memory. We construct a python data structure which
 specifies exactly how to extract each field by parsing the debugging symbols.</p></div>
-<div class="paragraph"><p>For example, the above <tt>struct foo</tt> might by described by:</p></div>
+<div class="paragraph"><p>For example, the above <code>struct foo</code> might by described by:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>vtypes = {
+<pre><code>vtypes = {
   'foobar': [12, {
      'flags': [0, ['Enumeration', dict(
         target="unsigned int",
@@ -169,7 +169,7 @@ specifies exactly how to extract each field by parsing the debugging symbols.</p
         )]],
      'bar: [4, ['unsigned short int']],
      'foo: [8, ['Pointer', dict(target="unsigned char")]],
-}</tt></pre>
+}</code></pre>
 </div></div>
 <div class="paragraph"><p>Note that:</p></div>
 <div class="ulist"><ul>
@@ -181,7 +181,7 @@ The description is purely data. It consists of field names, offsets and type nam
 <li>
 <p>
 The precise offset of each field is provided explicitly. This is different
-  from many other parsing libraries (e.g. <tt>Construct</tt>) which require all fields
+  from many other parsing libraries (e.g. <code>Construct</code>) which require all fields
   to be specified (or padding fields to be inserted). This special feature allows:
 </p>
 </li>
@@ -214,18 +214,18 @@ ways. For example, assume the above struct definition is altered to add an
 additional field:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>struct foobar {
+<pre><code>struct foobar {
     unsigned int new_field;
     enum options flags;
     short int bar;
     uchar *foo;
-}</tt></pre>
+}</code></pre>
 </div></div>
 <div class="paragraph"><p>Now to make space for the new field, all subsequent fields are pushed up by 4
 bytes. This means the vtype definition we have above is wrong, since the offsets
 for all the fields have changed. If we tried to use the old template on the
-memory image from the new operating system, we will think that the <tt>new_field</tt>
-is actually <tt>flags</tt>, the <tt>flags</tt> field is actually <tt>bar</tt> etc.</p></div>
+memory image from the new operating system, we will think that the <code>new_field</code>
+is actually <code>flags</code>, the <code>flags</code> field is actually <code>bar</code> etc.</p></div>
 <div class="paragraph"><p>So generally a profile must match the exact version of the operating system
 kernel we are analyzing. Slight version mismatches might still work but not
 reliably (Struct definitions which have not changed between versions will
@@ -309,7 +309,7 @@ The profile format is not consistent between operating systems. The OSX
 <li>
 <p>
 The profiles are very slow to parse. The dwarfparsers used for Linux and OSX
-   profiles are actually parsing the textual output of the <tt>dwarfdump</tt> program -
+   profiles are actually parsing the textual output of the <code>dwarfdump</code> program -
    this is quite slow and not really needed.
 </p>
 </li>
@@ -357,7 +357,7 @@ different members of a zip file, we combine them all into a single dict. Here is
 an example of a Linux Ubuntu 3.8.0-27 kernel:</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>{
+<pre><code>{
  "$CONSTANTS": {
   ".brk.dmi_alloc": 18446744071598981120,
   ".brk.m2p_overrides": 18446744071598964736,
@@ -380,14 +380,14 @@ an example of a Linux Ubuntu 3.8.0-27 kernel:</p></div>
    "head": [0, ["short unsigned int"]],
    "tail": [2, ["short unsigned int"]]
    }],
-....</tt></pre>
+....</code></pre>
 </div></div>
 <div class="paragraph"><p>We can see that the top level object is a dict, with keys like "$CONSTANTS",
-"$METADATA", "$STRUCTS". These are called profile <tt>sections</tt>. For example, the
+"$METADATA", "$STRUCTS". These are called profile <code>sections</code>. For example, the
 most common sections are:</p></div>
-<div class="paragraph"><p><tt>$CONSTANTS</tt>: A dict of constants and their offsets in memory.</p></div>
-<div class="paragraph"><p><tt>$STRUCTS</tt>: The vtype description of all structs in this kernel version.</p></div>
-<div class="paragraph"><p><tt>$METADATA</tt>: This describes the kernel, it contains the name of the python class
+<div class="paragraph"><p><code>$CONSTANTS</code>: A dict of constants and their offsets in memory.</p></div>
+<div class="paragraph"><p><code>$STRUCTS</code>: The vtype description of all structs in this kernel version.</p></div>
+<div class="paragraph"><p><code>$METADATA</code>: This describes the kernel, it contains the name of the python class
   that implements this profile, the kernel&#8217;s build version, architecture etc.</p></div>
 <div class="paragraph"><p>The whole data structure is serialized using JSON into a file and is loaded at
 once using pythons json.load() function (This function is actually implemented
@@ -409,8 +409,8 @@ using the convert_profile plugin (This might be useful when migrating old
 profiles from Volatility to Rekall):</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><tt>$ rekall convert_profile ./profiles/Volatility/SnowLeopard_10.6.6_AMD.zip ./OSX_10.6.6_AMD.json
-$ rekall -f OSX_image.dd --profile ./OSX_10.6.6_AMD.json</tt></pre>
+<pre><code>$ rekall convert_profile ./profiles/Volatility/SnowLeopard_10.6.6_AMD.zip ./OSX_10.6.6_AMD.json
+$ rekall -f OSX_image.dd --profile ./OSX_10.6.6_AMD.json</code></pre>
 </div></div>
 <div class="paragraph"><p>In a future post we discuss how Rekall profiles are organized into a public
 profile repository.</p></div>
@@ -420,10 +420,10 @@ profile repository.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-05-26 11:45:22 CEST
+Last updated 2014-11-20 17:53:11 CET
 </div>
 </div>
-
+<script src="/js/asciidoc.js"></script>
   </div>
   <div class="col-md-2 sidebar">
     <img src="/img/Rekall.png" class="logo"></img>

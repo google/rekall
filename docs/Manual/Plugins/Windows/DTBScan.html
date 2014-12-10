@@ -226,6 +226,24 @@ ript>
 </li>
 </ul></li>
 <li>
+   <a href='/docs/Manual/Plugins/Windows/PEAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
+      address_resolve ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/AnalyzeStruct.html' class="tree-link "  title="analyze_struct">
+      analyze_struct
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Callbacks.html' class="tree-link "  title="callbacks">
       callbacks
    </a>
@@ -246,6 +264,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/CertScan.html' class="tree-link "  title="certscan">
       certscan
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/CheckPEHooks.html' class="tree-link "  title="check_pehooks">
+      check_pehooks
    </a>
 </li>
 
@@ -322,6 +346,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/DumpFiles.html' class="tree-link "  title="dumpfiles">
+      dumpfiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/EvtLogs.html' class="tree-link "  title="evtlogs">
       evtlogs
    </a>
@@ -340,8 +370,32 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/FLS.html' class="tree-link "  title="fls">
+      fls
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/Handles.html' class="tree-link "  title="handles">
       handles
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/EATHooks.html' class="tree-link "  title="hooks_eat">
+      hooks_eat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/IATHooks.html' class="tree-link "  title="hooks_iat">
+      hooks_iat
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/InlineHooks.html' class="tree-link "  title="hooks_inline">
+      hooks_inline
    </a>
 </li>
 
@@ -448,6 +502,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/Pagefiles.html' class="tree-link "  title="pagefiles">
+      pagefiles
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/WinPas2Vas.html' class="tree-link "  title="pas2vas">
       pas2vas
    </a>
@@ -526,6 +586,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/WindowsPsxView.html' class="tree-link "  title="psxview">
+      psxview
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/PTE.html' class="tree-link "  title="pte">
       pte
    </a>
@@ -540,6 +606,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/Raw2Dump.html' class="tree-link "  title="raw2dmp">
       raw2dmp
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Services.html' class="tree-link "  title="services">
+      services
    </a>
 </li>
 
@@ -598,6 +670,12 @@ ript>
 </li>
 
 <li>
+   <a href='/docs/Manual/Plugins/Windows/EnumerateVacbs.html' class="tree-link "  title="vacbs">
+      vacbs
+   </a>
+</li>
+
+<li>
    <a href='/docs/Manual/Plugins/Windows/VAD.html' class="tree-link "  title="vad">
       vad
    </a>
@@ -612,6 +690,12 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VADInfo.html' class="tree-link "  title="vadinfo">
       vadinfo
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/VADMap.html' class="tree-link "  title="vadmap">
+      vadmap
    </a>
 </li>
 
@@ -642,6 +726,18 @@ ript>
 <li>
    <a href='/docs/Manual/Plugins/Windows/VtoP.html' class="tree-link "  title="vtop">
       vtop
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/Win32kAutodetect.html' class="tree-link activate_tooltip"  title="win32k_autodetect">
+      win32k_autodete ...
+   </a>
+</li>
+
+<li>
+   <a href='/docs/Manual/Plugins/Windows/WinYaraScan.html' class="tree-link "  title="yarascan">
+      yarascan
    </a>
 </li>
 
@@ -712,23 +808,23 @@ physical page and locate its DTB (or page table directory base) offset. We then
 match the DTB to a known process DTB. If the DTB is not known this is a strong
 indication that the process is hidden.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">50</span><span class="o">&gt;</span> <span class="n">dtbscan</span>
-<span class="o">-------------------&gt;</span> <span class="n">dtbscan</span><span class="p">()</span>
-     <span class="n">DTB</span>           <span class="n">VAddr</span>        <span class="n">_EPROCESS</span>    <span class="n">Image</span> <span class="n">Name</span>           <span class="n">Known</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">-----</span>
-<span class="mh">0x0000001a7000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00000074580</span> <span class="n">System</span>               <span class="n">True</span>
-<span class="mh">0x0000118a3000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00002073900</span> <span class="n">explorer</span><span class="p">.</span><span class="n">exe</span>         <span class="n">True</span>
-<span class="mh">0x00000923e000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000020ea900</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x000036ea3000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000006208c0</span> <span class="n">taskhost</span><span class="p">.</span><span class="n">exe</span>         <span class="n">True</span>
-<span class="mh">0x000004c01000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000000ce080</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x00000d0a4000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000022c6900</span> <span class="n">MsMpEng</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x0000093c4000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000020df080</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x0000348c6000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00001e2f700</span> <span class="n">dwm</span><span class="p">.</span><span class="n">exe</span>              <span class="n">True</span>
-<span class="mh">0x000011504000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000007a3080</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x000007c94000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00001f22080</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>              <span class="n">True</span>
-<span class="mh">0x00002fe03000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00002043900</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x00002f8ce000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00001299900</span> <span class="n">SearchIndexer</span><span class="p">.</span>       <span class="n">True</span>
-<span class="mh">0x0000207b9000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00002645080</span> <span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span>         <span class="n">True</span>
+<div class="highlight"><pre>win8.1.raw 16:23:50&gt; dtbscan
+-------------------&gt; dtbscan()
+     DTB           VAddr        _EPROCESS    Image Name           Known
+-------------- -------------- -------------- -------------------- -----
+0x0000001a7000 0xf6fb7dbed000 0xe00000074580 System               True
+0x0000118a3000 0xf6fb7dbed000 0xe00002073900 explorer.exe         True
+0x00000923e000 0xf6fb7dbed000 0xe000020ea900 svchost.exe          True
+0x000036ea3000 0xf6fb7dbed000 0xe000006208c0 taskhost.exe         True
+0x000004c01000 0xf6fb7dbed000 0xe000000ce080 wininit.exe          True
+0x00000d0a4000 0xf6fb7dbed000 0xe000022c6900 MsMpEng.exe          True
+0x0000093c4000 0xf6fb7dbed000 0xe000020df080 svchost.exe          True
+0x0000348c6000 0xf6fb7dbed000 0xe00001e2f700 dwm.exe              True
+0x000011504000 0xf6fb7dbed000 0xe000007a3080 svchost.exe          True
+0x000007c94000 0xf6fb7dbed000 0xe00001f22080 cmd.exe              True
+0x00002fe03000 0xf6fb7dbed000 0xe00002043900 conhost.exe          True
+0x00002f8ce000 0xf6fb7dbed000 0xe00001299900 SearchIndexer.       True
+0x0000207b9000 0xf6fb7dbed000 0xe00002645080 VBoxTray.exe         True
 </pre></div>
 
 <p>
