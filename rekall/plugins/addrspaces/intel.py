@@ -107,6 +107,8 @@ class IA32PagedMemory(addrspace.PagedReader):
         # overlay on.
         self.phys_base = self.base
 
+        self._cache = utils.FastStore(100)
+
     def pde_entry_present(self, entry):
         '''
         Returns whether or not the 'P' (Present) flag is on
@@ -398,8 +400,14 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Returns an unsigned 64-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.
         '''
-        string = self.base.read(addr, 8)
-        return struct.unpack('<Q', string)[0]
+        try:
+            return self._cache.Get(addr)
+        except KeyError:
+            string = self.base.read(addr, 8)
+            result = struct.unpack('<Q', string)[0]
+            self._cache.Put(addr, result)
+
+            return result
 
     def get_available_addresses(self, start=0):
         """A generator of address, length tuple for all valid memory regions."""

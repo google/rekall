@@ -33,7 +33,6 @@ __author__ = (
 
 import logging
 
-from rekall import addrspace
 from rekall import obj
 
 
@@ -64,11 +63,14 @@ class Index(obj.Profile):
             value = value.decode("hex")
             data = address_space.read(offset, len(value))
             if value == data:
-                return True
+                return data
 
-    def _TestProfile(self, address_space, image_base, profile, symbols):
+    def _TestProfile(self, address_space, image_base, profile, symbols,
+                     minimal_match=1):
         """Match _all_ the symbols against this data."""
         count_matched = 0
+        count_unmatched = 0
+
         for offset, possible_values in symbols:
             # The possible_values can be a single string which means there is
             # only one option. If it is a list, then any of the symbols may
@@ -76,55 +78,59 @@ class Index(obj.Profile):
             if isinstance(possible_values, basestring):
                 possible_values = [possible_values]
 
-            if self._TestSymbols(
-                    address_space=address_space,
-                    offset=image_base + offset,
-                    possible_values=possible_values):
+            # If the offset is not mapped in we can not compare it. Skip it.
+            offset_to_check = image_base + offset
+            if address_space.vtop(offset_to_check) == None:
+                continue
+
+            match = self._TestSymbols(
+                address_space=address_space,
+                offset=offset_to_check,
+                possible_values=possible_values)
+
+            if match:
                 logging.debug(
-                    "%s matched offset %#x+%#x=%#x",
-                    profile, offset, image_base, offset+image_base)
+                    "%s matched offset %#x+%#x=%#x (%r)",
+                    profile, offset, image_base, offset+image_base, match)
                 count_matched += 1
+
+            else:
+                # FIXME: We get here if the comparison point does not match -
+                # does it make sense to allow some points to not match? Should
+                # we consider these a failure to match?
+                count_unmatched += 1
+
+        # Require at least this many comparison points to be matched.
+        if count_matched < minimal_match:
+            return 0
 
         if count_matched > 0:
             logging.debug(
                 "%s matches %d/%d comparison points",
-                profile, count_matched, len(symbols))
+                profile, count_matched, count_matched + count_unmatched)
 
-        return float(count_matched) / len(symbols)
+            return float(count_matched) / (count_matched + count_unmatched)
 
-    def IndexHits(self, image_base, address_space=None):
+        return 0
+
+    def IndexHits(self, image_base, address_space=None, minimal_match=1):
         if address_space == None:
             address_space = self.session.GetParameter("default_address_space")
-
-        # Only preload the data we need to read, based on the known max offset.
-        min_offset = self.metadata("MinOffset", 0) + image_base
-        max_offset = self.metadata("MaxOffset", 5*1024*1024) + image_base
-
-        # If min_offset is negative then the index is faulty, even though that
-        # may not have been obvious at the time it was generated. Go ahead and
-        # explode.
-        if min_offset < 0:
-            raise RuntimeError("Profile index points to a negative offset.")
-
-        data = address_space.read(min_offset, max_offset - min_offset)
-
-        address_space = addrspace.BufferAddressSpace(
-            base_offset=min_offset,
-            data=data,
-            session=self.session)
 
         for profile, symbols in self.index.iteritems():
             match = self._TestProfile(
                 address_space=address_space,
                 image_base=image_base,
                 profile=profile,
+                minimal_match=minimal_match,
                 symbols=symbols)
 
             yield match, profile
 
-    def LookupIndex(self, image_base, address_space=None):
+    def LookupIndex(self, image_base, address_space=None, minimal_match=1):
         partial_matches = []
-        for match, profile in self.IndexHits(image_base, address_space):
+        for match, profile in self.IndexHits(image_base, address_space,
+                                             minimal_match=minimal_match):
             if match == self.PERFECT_MATCH:
                 # Yield perfect matches right away.
                 yield (profile, self.PERFECT_MATCH)
@@ -137,4 +143,3 @@ class Index(obj.Profile):
         partial_matches.sort(reverse=True)
         for match, profile in partial_matches:
             yield (profile, match)
-

@@ -170,6 +170,18 @@ class WindowsIndexDetector(DetectionMethod):
                 if self.VerifyDTB(test_as):
                     yield test_as
 
+    def _match_profile_for_kernel_base(self, kernel_base, test_as):
+        threshold = self.session.GetParameter("autodetect_threshold")
+
+        for profile, match in self.nt_index.LookupIndex(
+                kernel_base, address_space=test_as):
+
+            if match < threshold:
+                break
+
+            profile_obj = self.session.LoadProfile(profile)
+            if profile_obj:
+                return profile_obj
 
     def DetectFromHit(self, hit, filename_offset, address_space):
         # Get potential kernel address spaces.
@@ -181,14 +193,19 @@ class WindowsIndexDetector(DetectionMethod):
                     "This program cannot be run in DOS mode",
                     ])
 
+            kernel_base = self.session.GetParameter("kernel_base")
+            if kernel_base:
+                return self._match_profile_for_kernel_base(
+                    kernel_base, test_as)
+
             for offset, _ in scanner.scan(
                     offset=0xF80000000000, maxlen=0x10000000000):
                 kernel_base = offset & 0xFFFFFFFFFFFFFF000
-                for profile, _ in self.nt_index.LookupIndex(
-                        kernel_base, address_space=test_as):
-                    profile_obj = self.session.LoadProfile(profile)
-                    if profile_obj:
-                        return profile_obj
+                profile_obj = self._match_profile_for_kernel_base(
+                    kernel_base, test_as)
+
+                if profile_obj:
+                    return profile_obj
 
 
 class PEImageFileDetector(DetectionMethod):

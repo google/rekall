@@ -60,6 +60,7 @@ class WindowsPagedMemoryMixin(object):
         self.transition_pte_value = 1 << 11 # (p=0, t=1)
         self.subsection_pte_value = 1 << 10 # (v=0, p=1, t=0)
         self._resolve_vads = True
+        self.vads = None
 
     def entry_present(self, entry):
         # Treat Transition PTEs as valid.

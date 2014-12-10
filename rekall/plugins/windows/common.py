@@ -129,6 +129,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
     def VerifyHit(self, hit):
         """Check the eprocess for sanity."""
         dtb, eprocess = hit
+        self.session.SetParameter("dtb", dtb)
+
         address_space = self.CreateAS(dtb)
 
         # In windows the DTB must be page aligned, except for PAE images where

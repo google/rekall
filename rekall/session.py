@@ -461,6 +461,13 @@ class Session(object):
         """This will only get called if the attribute does not exist."""
         return obj.NoneObject("Attribute not set")
 
+    def HasParameter(self, item):
+        """Returns if the session has the specified parameter set.
+
+        If False, a call to GetParameter() might trigger autodetection.
+        """
+        return self.state.has_key(item) or self.state.cache.has_key(item)
+
     def GetParameter(self, item, default=obj.NoneObject()):
         """Retrieves a stored parameter.
 

@@ -42,25 +42,24 @@ win32k_overlay = {
         }],
 
     'tagWINDOWSTATION': [None, {
-      'pGlobalAtomTable': [None, ['Pointer', dict(
+        'pGlobalAtomTable': [None, ['Pointer', dict(
             target="_RTL_ATOM_TABLE"
-            )]],
+        )]],
 
-      'pClipBase': [None, ["Pointer", dict(
-          target="Array",
-          target_args=dict(
-              target='tagCLIP',
-              count=lambda x: x.cNumClipFormats
-              )
-          )]],
-      }],
+        'pClipBase': [None, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                target='tagCLIP',
+                count=lambda x: x.cNumClipFormats
+            )
+        )]],
+    }],
 
     'tagDESKTOP': [None, {
         'pheapDesktop': [None, ['Pointer', dict(
-                        target="_HEAP"
-                        )]],
-
-        }],
+            target="_HEAP"
+        )]],
+    }],
 
     'tagSHAREDINFO': [None, {
         'aheList': [None, ['Pointer', dict(
@@ -73,8 +72,8 @@ win32k_overlay = {
         }],
 
     '_HEAD': [None, {
-            'h': [None, ['unsigned int']],
-            }],
+        'h': [None, ['unsigned int']],
+    }],
 
     "tagTHREADINFO": [None, {
         "pEThread": [None, ["Pointer", dict(
@@ -82,9 +81,9 @@ win32k_overlay = {
         }],
 
     "tagHOOK": [None, {
-            "flags": [None, ["Flags", dict(
-                        bitmap=utils.MaskMapFromDefines(
-                            """
+        "flags": [None, ["Flags", dict(
+            bitmap=utils.MaskMapFromDefines(
+                """
 // 9/18/2011
 // http://forum.sysinternals.com/enumerate-windows-hooks_topic23877.html#122641
 #define HF_GLOBAL   0x0001
@@ -98,8 +97,8 @@ win32k_overlay = {
 // mask for valid flags
 #define HF_VALID   0x00FF
 """))
-                             ]],
-            }],
+                     ]],
+    }],
 
     "_HANDLEENTRY": [None, {
         "pOwner": [None, ["Pointer", dict(
@@ -188,8 +187,8 @@ win32k_undocumented_AMD64 = {
 
     'tagHANDLETYPEINFO' : [16, {
         'fnDestroy' : [0, ['Pointer', dict(
-                        target="Function"
-                        )]],
+            target="Function"
+        )]],
         'dwAllocTag' : [8, ['String', dict(length=4)]],
         'bObjectCreateFlags' : [12, ['Flags', dict(
             target='unsigned char',
@@ -239,8 +238,8 @@ win32k_undocumented_I386 = {
 
     'tagHANDLETYPEINFO' : [12, {
         'fnDestroy' : [0, ['Pointer', dict(
-                        target="Function"
-                        )]],
+            target="Function"
+        )]],
         'dwAllocTag' : [4, ['String', dict(length=4)]],
         'bObjectCreateFlags' : [8, ['Flags', dict(
             target='unsigned char',
@@ -268,7 +267,7 @@ class _MM_SESSION_SPACE(obj.Struct):
         one session.
         """
         for p in self.ProcessList.list_of_type(
-            "_EPROCESS", "SessionProcessLinks"):
+                "_EPROCESS", "SessionProcessLinks"):
             yield p
 
     @property
@@ -533,7 +532,7 @@ class tagDESKTOP(tagWINDOWSTATION):
 
             if cur.spwndChild.is_valid() and cur.spwndChild.v() != 0:
                 for info in self.windows(
-                    cur.spwndChild, filter=filter, level=level+1):
+                        cur.spwndChild, filter=filter, level=level+1):
                     yield info
 
     def heaps(self):
@@ -640,7 +639,7 @@ class tagCLIPDATA(obj.Struct):
         """Format the clipboard contents as a hexdump"""
         data = ''.join([chr(c) for c in self.abData])
         return "".join(["{0:#x}  {1:<48}  {2}\n".format(
-                    self.abData.obj_offset + o, h, ''.join(c))
+            self.abData.obj_offset + o, h, ''.join(c))
                         for o, h, c in utils.Hexdump(data)])
 
 
@@ -947,6 +946,7 @@ class Win32kHook(kb.ParameterHook):
     name = "win32k_profile"
 
     def calculate(self):
+        # Require at least 3 comparison points to be matched.
         for _, guess in self.session.plugins.guess_guid(
-            module_name="win32k").GuessProfiles():
+                module_name="win32k", minimal_match=3).GuessProfiles():
             return guess

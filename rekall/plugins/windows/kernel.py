@@ -49,6 +49,9 @@ class KernelBaseHook(kb.ParameterHook):
 
     def calculate(self):
         address_space = self.session.kernel_address_space
+        if not address_space:
+            return
+
         scanner = ExportScanner(session=self.session,
                                 address_space=address_space)
 

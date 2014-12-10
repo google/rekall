@@ -50,9 +50,16 @@ class GuessGUID(common.WindowsCommandPlugin):
         parser.add_argument("module_name", default=None,
                             help="The name of the module to guess.")
 
-    def __init__(self, module_name=None, **kwargs):
+        parser.add_argument(
+            "--minimal_match", default=1,
+            help="The minimal number of comparison points to be considered. "
+            "Sometimes not all comparison points can be used since they may "
+            "not be mapped.")
+
+    def __init__(self, module_name=None, minimal_match=1, **kwargs):
         super(GuessGUID, self).__init__(**kwargs)
         self.module = module_name
+        self.minimal_match = minimal_match
 
     def ScanProfile(self):
         """Scan for module using version_scan for RSDS scanning."""
@@ -79,7 +86,8 @@ class GuessGUID(common.WindowsCommandPlugin):
                 image_base = self.session.address_resolver.get_address_by_name(
                     self.module)
 
-                for profile, _ in index.LookupIndex(image_base):
+                for profile, _ in index.LookupIndex(
+                        image_base, minimal_match=self.minimal_match):
                     yield self.session.GetParameter("process_context"), profile
 
     def GuessProfiles(self):
@@ -136,8 +144,7 @@ class EProcessIndex(basic.ProfileLLP64):
             self.filename_to_dtb.add((relative_offset, arch))
 
 
-class TestGuessGUID(testlib.SimpleTestCase):
+class TestGuessGUID(testlib.SortedComparison):
     PARAMETERS = dict(
         commandline="guess_guid win32k"
         )
-

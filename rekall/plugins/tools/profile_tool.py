@@ -597,10 +597,12 @@ class BuildIndex(plugin.Command):
                 # 'str:' then that means it was given to us as
                 # human-readable and we need to encode it. Otherwise it
                 # should already be hex-encoded.
-                raw_prefix = "str:"
                 for value in sym_spec["data"]:
-                    if value.startswith(raw_prefix):
-                        value = value[len(raw_prefix):].encode("hex")
+                    if value.startswith("lstr:"):
+                        value = value[5:].encode("utf-16le").encode("hex")
+
+                    elif value.startswith("str:"):
+                        value = value[4:].encode("hex")
 
                     values.append(value)
 

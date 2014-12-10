@@ -305,6 +305,12 @@ class CachingAddressSpaceMixIn(object):
 
         chunk_number = addr / self.CHUNK_SIZE
         chunk_offset = addr % self.CHUNK_SIZE
+
+        # Do not cache large reads.
+        if chunk_offset == 0 and length > self.CHUNK_SIZE:
+            return super(CachingAddressSpaceMixIn, self).read(
+                addr, length)
+
         available_length = min(length, self.CHUNK_SIZE - chunk_offset)
 
         try:
@@ -345,24 +351,24 @@ class PagedReader(BaseAddressSpace):
 
         return self.base.read(paddr, to_read)
 
-    def read(self, vaddr, length):
+    def read(self, addr, length):
         """
         Read 'length' bytes from the virtual address 'vaddr'.
         """
         if length > self.session.GetParameter("buffer_size"):
             raise IOError("Too much data to read.")
 
-        vaddr, length = int(vaddr), int(length)
+        addr, length = int(addr), int(length)
 
         result = ''
 
         while length > 0:
-            buf = self._read_chunk(vaddr, length)
+            buf = self._read_chunk(addr, length)
             if not buf:
                 break
 
             result += buf
-            vaddr += len(buf)
+            addr += len(buf)
             length -= len(buf)
 
         return result
@@ -370,15 +376,6 @@ class PagedReader(BaseAddressSpace):
     def is_valid_address(self, addr):
         vaddr = self.vtop(addr)
         return vaddr != None and self.base.is_valid_address(vaddr)
-
-    def get_available_addresses(self, start=None):
-        for vstart, pstart, length in self.get_available_pages():
-            if vstart * self.PAGE_SIZE > start:
-                continue
-
-            yield (vstart * self.PAGE_SIZE,
-                   pstart * self.PAGE_SIZE,
-                   length * self.PAGE_SIZE)
 
 
 class RunBasedAddressSpace(PagedReader):
@@ -410,10 +407,6 @@ class RunBasedAddressSpace(PagedReader):
     def vtop(self, addr):
         file_offset, _ = self._get_available_buffer(addr, 1)
         return file_offset
-
-    def get_available_pages(self):
-        for page_offset, _, page_count in self.runs:
-            yield page_offset, page_count
 
     def _get_available_buffer(self, addr, length):
         """Resolves the address into the file offset.
@@ -540,10 +533,6 @@ class MultiRunBasedAddressSpace(PagedReader):
 
         except ValueError:
             pass
-
-    def get_available_pages(self):
-        for page_offset, _, page_count in self.runs:
-            yield page_offset, page_count
 
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None

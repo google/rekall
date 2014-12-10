@@ -140,9 +140,10 @@ class Formatter(string.Formatter):
     def _calculate_address_size(self):
         self.address_size = 14
 
-        # TODO: The below will force profile autodetection. We need to do it
-        # only when the profile is already autodetected.
-        if self.session.profile.metadata("arch") == "I386":
+        # Be careful to not force profile autodetection here for such a trivial
+        # piece of information.
+        if (self.session.HasParameter("profile") and
+                self.session.profile.metadata("arch") == "I386"):
             self.address_size = 10
 
     def parse_extended_format(self, value, formatstring=None, header=False,

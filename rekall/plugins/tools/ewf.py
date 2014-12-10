@@ -48,6 +48,7 @@ ELF core dump and stacks the relevant address spaces.
 
 __author__ = "Michael Cohen <scudette@google.com>"
 import array
+import os
 import struct
 import zlib
 
@@ -388,6 +389,8 @@ class EWFFileWriter(object):
         file_header.fields_end = 1
 
         self.current_offset = file_header.obj_end
+        self.buffer = ""
+        self.table_count = 0
 
         # Get ready to accept data.
         self.StartNewTable()
@@ -408,6 +411,7 @@ class EWFFileWriter(object):
     def StartNewTable(self):
         """Writes a sections table and begins collecting chunks into table."""
         self.table = []
+        self.table_count += 1
 
         sectors_section = self.profile.ewf_section_descriptor_v1(
             offset=self.current_offset, vm=self.out_as)
@@ -415,8 +419,6 @@ class EWFFileWriter(object):
         self.AddNewSection(sectors_section)
 
         self.base_offset = self.current_offset = sectors_section.obj_end
-
-        self.buffer = ""
 
     def write(self, data):
         """Writes the data into the file.
@@ -440,6 +442,15 @@ class EWFFileWriter(object):
             self.current_offset += len(cdata)
             buffer_offset += self.chunk_size
             self.chunk_id += 1
+
+            # Flush the table when it gets too large. Tables can only store 31
+            # bit offset and so can only address roughly 2gb. We choose to stay
+            # under 1gb: 30000 * 32kb = 0.91gb.
+            if len(self.table) > 30000:
+                self.session.report_progress(
+                    "Flushing EWF Table %s.", self.table_count)
+                self.FlushTable()
+                self.StartNewTable()
 
         self.buffer = self.buffer[buffer_offset:]
 
@@ -520,9 +531,11 @@ class EWFAcquire(plugin.PhysicalASMixin, plugin.Command):
 
     def render(self, renderer):
         if self.destination is None:
-            out_fd = renderer.Open(filename="output.E01", mode="w+b")
+            out_fd = renderer.open(filename="output.E01", mode="w+b")
         else:
-            out_fd = open(self.destination, "w+b")
+            directory, filename = os.path.split(self.destination)
+            out_fd = renderer.open(filename=filename, directory=directory,
+                                   mode="w+b")
 
         with out_fd:
             runs = list(self.physical_address_space.get_available_addresses())
