@@ -166,7 +166,7 @@ class ObjectRenderer(object):
     def FromMRO(cls, mro, renderer):
         """Get the best object renderer class from the MRO."""
         try:
-            return MRO_CACHE[mro]
+            return MRO_CACHE[(mro, renderer)]
         except KeyError:
             cls._BuildRendererCache()
 
@@ -185,7 +185,8 @@ class ObjectRenderer(object):
                     (class_name, renderer))
 
                 if object_renderer_cls:
-                    MRO_CACHE.Put(":".join(mro), object_renderer_cls)
+                    MRO_CACHE.Put((":".join(mro), renderer),
+                                  object_renderer_cls)
                     return object_renderer_cls
 
     @classmethod
