@@ -17,6 +17,7 @@
 #define _REKALL_TOOL_ELF_MEMORY_MAP_H_
 
 #include <stdlib.h>
+#include <sys/types.h>
 
 #include "../elfrelink/elf_generic.h"
 
@@ -25,9 +26,12 @@
 // Simple description of a valid memory range,
 // start is the starting offset,
 // pages the number of pages valid from that offset.
+// file_offset is the offset inside the device file,
+// from which this range can be read.
 typedef struct MEMORY_RANGE_T {
   size_t start;
   size_t pages;
+  off_t file_offset;
 } MEMORY_RANGE;
 
 // The memory map is a simple vector of ranges
@@ -37,6 +41,9 @@ typedef struct MEMORY_MAP_T {
   MEMORY_RANGE *ranges;
 } MEMORY_MAP;
 
+const char *iomem_path;
+const char *iomem_ram_str;
+
 // Allocates memory for the memory ranges in this vector,
 // the caller must provide memory for the mm struct.
 ELF_ERROR memory_map_init(MEMORY_MAP *mm);
@@ -44,7 +51,8 @@ ELF_ERROR memory_map_init(MEMORY_MAP *mm);
 void memory_map_free(MEMORY_MAP *mm);
 // When parsing the memory map ranges can be added to the end,
 // but random access is not implemented.
-ELF_ERROR memory_map_append(MEMORY_MAP *mm, size_t run_start, size_t pages);
+ELF_ERROR memory_map_append(MEMORY_MAP *mm, size_t run_start, size_t pages,
+    off_t file_offset);
 // You can always access a range in the map
 ELF_ERROR memory_map_get(MEMORY_MAP *mm, size_t idx, MEMORY_RANGE **range);
 // Parses /proc/iomem and creates a map of all System RAM ranges.
