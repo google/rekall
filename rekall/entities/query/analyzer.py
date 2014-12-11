@@ -258,7 +258,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
         # dependency may be discarded under certain circumstances.
         component_cls = getattr(definitions, component)
         field = component_cls.reflect_attribute(attribute)
-        if field.typedesc.type_name == "Identity":
+        if field.typedesc.type_name == "Entity":
             return SimpleDependency(component=component, attribute=attribute,
                                     weak=True, expression=expr)
 

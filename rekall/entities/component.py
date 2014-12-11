@@ -160,6 +160,25 @@ class Component(object):
     def reflect_attribute(cls, attribute_name):
         return cls.component_attributes.get(attribute_name, None)
 
+    def union(self, other):
+        if other is None:
+            return self
+
+        if not isinstance(other, type(self)):
+            raise TypeError("Cannot merge %s with %s" % (type(self),
+                                                         type(other)))
+
+        merged_fields = []
+        for i, x in enumerate(self._contents):
+            y = other[i]
+            typedesc = self.component_fields[i].typedesc
+            superposition_cls = superposition.BaseSuperposition.impl_for_type(
+                self.component_fields[i].typedesc)
+            merged_fields.append(superposition_cls.merge_values((x, y),
+                                                                typedesc))
+
+        return type(self)(*merged_fields)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return False
@@ -170,7 +189,7 @@ class Component(object):
 
         return True
 
-    def strict_superset(self, other):
+    def issuperset(self, other):
         """Is this component a strict superset of other?"""
         if not isinstance(other, type(self)):
             return False
@@ -180,8 +199,7 @@ class Component(object):
             if other_val == None:
                 continue
 
-            superval = superposition.Superposition.coerce(val)
-            if not superval.strict_superset(other_val):
+            if not superposition.FastSuperpositionCompare(val, other_val):
                 return False
 
         return True

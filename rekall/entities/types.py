@@ -59,6 +59,12 @@ class TypeDescriptor(object):
     def __str__(self):
         return repr(self)
 
+    def __eq__(self, other):
+        return self.type_name == other.type_name
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class ScalarDescriptor(TypeDescriptor):
     """Take an instance of type and calls its constructor to coerce."""

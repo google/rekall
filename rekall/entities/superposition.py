@@ -23,125 +23,236 @@ The Rekall Entity Layer.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
-import itertools
+from rekall.entities import types
 
-from rekall import obj
+from rekall.entities.ext import indexset
 
 
-class Superposition(object):
-    """Represents multiple possible values of a single variable.
+def FastSuperpositionCompare(x, y):
+    if isinstance(x, BaseSuperposition):
+        return x.issuperset(y)
+    elif isinstance(y, BaseSuperposition):
+        return y.issubset(x)
+    else:
+        return x == y
 
-    Superpositions are used to represent merge conflicts and inconsistencies in
-    a memory image. Due to a variety of factors, such as smear in acquisition,
-    and differences in representation of certain objects, such inconsistencies
-    are fairly common and not considered errors in Rekall.
 
-    Superposition objects are used in two ways: they can either be created
-    explicitly out of any iterable object (using the constructor), or they can
-    be created implicitly as needed by one of the several merge_* class methods
-    on this class.
+class BaseSuperposition(object):
+    _backing_container = None
+    typedesc = None
 
-    For example:
+    def __init__(self, typedesc, variants):
+        self.typedesc = types.TypeFactory(typedesc)
+        self._backing_container = self._make_container(variants)
 
-    Superposition.merge_scalars("foo", "bar") # returns superposition
-    Superposition.merge_scalars("foo", "foo") # returns "foo"
+    def _make_container(self, variants):
+        raise NotImplementedError("Subclasses must override.")
 
-    Once created, superpositions can be further merged, returning unions. They
-    can also be used in place of the original objects in most situations - the
-    __unicode__ and __repr__ functions represent the inconsistency in a
-    human-readable way, and calls to __getitem__ are proxied to each of the
-    variants of the superposition, returning a new superposition of the results.
-    """
+    def _typecheck(self, other):
+        if not isinstance(other, BaseSuperposition):
+            raise TypeError(
+                "%s cannot compare with %s.", type(self), type(other))
 
-    def __init__(self, variants):
-        self.variants = variants
-
-    @classmethod
-    def merge_scalars(cls, *scalars):
-        # TODO (adam): This method should be using sets, but it currently can't,
-        # because there is a requirement for implementing __hash__ expressed
-        # as, in essence, A == B -> hash(A) == hash(B), and some types in
-        # rekall (entities, enums, etc.) currently violate this rule.
-        #
-        # A robust solution to this problem is to implement a hashing protocol
-        # for these types instead of trying to stick them in primitive sets
-        # and dicts. Once we've done that, this method should be optimized by
-        # using containers that support that hashing protocol.
-        #
-        # I think the following is currently O(n^2), which kind of sucks, but
-        # luckily, N is almost always 2 or 3.
-        variants = []
-        for scalar in scalars:
-            if isinstance(scalar, Superposition):
-                for var in scalar.variants:
-                    if var not in variants:
-                        variants.append(var)
-            elif scalar != None and scalar not in variants:
-                variants.append(scalar)
-
-        if len(variants) == 1:
-            return variants.pop()
-        elif not variants:
-            return None
-
-        return cls(set(variants))
-
-    @classmethod
-    def coerce(cls, value):
-        if isinstance(value, cls):
-            return value
-
-        return cls(set([value]))
-
-    def __unicode__(self):
-        results = []
-        for variant in self.variants:
-            if isinstance(variant, obj.BaseObject):
-                # Base object __str__ returns massive output.
-                results.append(repr(variant))
-            else:
-                results.append(str(variant))
-
-        return "%s (%d values)" % (", ".join(results), len(results))
-
-    def __str__(self):
-        return self.__unicode__()
-
-    def __repr__(self):
-        return self.__unicode__()
+        if self.typedesc != other.typedesc:
+            raise TypeError(
+                "Cannot compare %s to %s." % (self.type_name, other.type_name))
 
     def union(self, other):
-        return Superposition(
-            set(self.variants) | set(other.variants))
+        self._typecheck(other)
 
-    def __or__(self, other):
-        return self.union(other)
+        return type(self)(self.typedesc, self.variants.union(other.variants))
 
-    def __getitem__(self, key):
-        values = [variant[key] for variant in self.variants]
-        return self.merge_scalars(*values)
+    def add(self, value):
+        self._backing_container.add(self.typedesc.coerce(value))
+
+    @property
+    def type_name(self):
+        return self.typedesc.type_name
+
+    def coerce(self, value):
+        if isinstance(value, BaseSuperposition):
+            self._typecheck(value)
+            return value, False
+
+        return self.typedesc.coerce(value), True
+
+    def __contains__(self, value):
+        return self.typedesc.coerce(value) in self._backing_container
 
     def __iter__(self):
-        return self.variants.__iter__()
+        return iter(self._backing_container)
 
-    def strict_superset(self, other):
-        if not isinstance(other, Superposition):
-            return other in self.variants
+    def __nonzero__(self):
+        return len(self) > 0
 
-        return self.variants.issuperset(other.variants)
+    def __len__(self):
+        return len(self._backing_container)
+
+    def __unicode__(self):
+        if len(self) == 1:
+            for variant in self:
+                return unicode(variant)
+
+        results = [unicode(variant) for variant in self]
+        return "%s (%d values)" % (", ".join(results), len(results))
+
+    # pylint: disable=protected-access
+    def issuperset(self, other):
+        other, isscalar = self.coerce(other)
+        if isscalar:
+            return other in self
+
+        return self._backing_container.issuperset(other._backing_container)
+
+    # pylint: disable=protected-access
+    def issubset(self, other):
+        other, isscalar = self.coerce(other)
+        if isscalar:
+            # Subset should still return true if we're equal to the other value
+            # (it's a <= comparison, not a <).
+            if len(self._backing_container) != 1:
+                return False
+
+            for variant in self:
+                return variant == other
+
+        return self._backing_container.issubset(other._backing_container)
+
+    def __eq__(self, other):
+        other, isscalar = self.coerce(other)
+        if isscalar:
+            if len(self) != 1:
+                return False
+
+            for variant in self:
+                return variant == other
+
+        return (sorted(self._backing_container) ==
+                sorted(other._backing_container))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @classmethod
+    def impl_for_type(cls, typedesc):
+        if typedesc.type_name == "Entity":
+            return EntitySuperposition
+        if typedesc.type_name == "Identity":
+            return IndexedSuperposition
+        elif hasattr(getattr(typedesc, "type_cls", None), "__hash__"):
+            return HashableSuperposition
+        else:
+            return ListSuperposition
+
+    @classmethod
+    def merge_values(cls, variants, typedesc):
+        instance = cls(typedesc, ())
+        for variant in variants:
+            if variant is None:
+                continue
+            elif isinstance(variant, cls):
+                instance = instance.union(variant)
+            else:
+                instance.add(variant)
+
+        if len(instance) == 0:
+            return None
+
+        if len(instance) == 1:
+            for variant in iter(instance):
+                return variant
+
+        return instance
 
 
-def SuperpositionMergeNamedTuples(x, y):
-    """Merges namedtuples x and y using superpositions.
+class HashableSuperposition(BaseSuperposition):
+    def _make_container(self, variants):
+        return set([self.typedesc.coerce(x) for x in variants])
 
-    Both arguments must be of the same type.
-    """
-    if None in (x, y):
-        return x or y or None
 
-    tuple_cls = type(x)
-    if not isinstance(y, tuple_cls):
-        raise ValueError("Cannot merge namedtuples of different types.")
+class IndexedSuperposition(BaseSuperposition):
+    def _make_container(self, variants):
+        return indexset.IndexSet([self.typedesc.coerce(x) for x in variants])
 
-    return tuple_cls(*[Superposition.merge_scalars(mx, my)
-                       for mx, my in itertools.izip(x, y)])
+    @property
+    def indices(self):
+        result = set()
+        for variant in self:
+            result |= set(variant.indices)
+
+        return result
+
+
+class ListSuperposition(BaseSuperposition):
+    def _make_container(self, variants):
+        return [self.typedesc.coerce(variant) for variant in variants]
+
+    @classmethod
+    def merge_values(cls, variants, typedesc):
+        if not variants:
+            return []
+
+        ordered = [typedesc.coerce(x) for x in variants]
+        ordered.sort()
+
+        uniq = [ordered[0]]
+        for i in xrange(1, len(ordered)):
+            variant = ordered[i]
+            if uniq[-1] != variant:
+                uniq.append(variant)
+
+        return cls(variants=uniq, typedesc=typedesc)
+
+    def add(self, value):
+        if value in self._backing_container:
+            return
+
+        self._backing_container.append(value)
+
+    def union(self, other):
+        self._typecheck(other)
+
+        variants = self.variants[:]
+        for variant in other.variants:
+            if variant in variants:
+                continue
+
+            variants.append(variant)
+
+        return type(self)(self.typedesc, variants)
+
+
+class EntitySuperposition(IndexedSuperposition):
+    def __init__(self, typedesc=None, variants=()):
+        if not typedesc:
+            typedesc = "EntityDescriptor"
+        super(EntitySuperposition, self).__init__(
+            typedesc=typedesc, variants=variants)
+
+    def issuperset(self, other):
+        if not super(EntitySuperposition, self).issuperset(other):
+            return False
+
+        for other_entity in iter(other):
+            my_entity = self._backing_container.get(other_entity)
+            if not my_entity.issuperset(other_entity):
+                return False
+
+        return True
+
+    def get(self, key, **kwargs):
+        typedesc = self.typedesc.type_cls.reflect_type(key)
+        superposition_cls = self.impl_for_type(typedesc)
+
+        vals = []
+        for entity in iter(self):
+            value = entity.get(key, **kwargs)
+            if isinstance(value, BaseSuperposition):
+                vals.extend(iter(value))
+            else:
+                vals.append(value)
+
+        return superposition_cls(variants=vals, typedesc=typedesc)
+
+    def __getitem__(self, key):
+        return self.get(key)

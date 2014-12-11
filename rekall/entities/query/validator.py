@@ -60,9 +60,9 @@ class QueryValidator(visitor.QueryVisitor):
     def visit_Binding(self, exp):
         if exp.value.startswith("&"):
             field = entity.Entity.reflect_attribute(exp.value[1:])
-            if field and field.typedesc.type_name != "Identity":
+            if field and field.typedesc.type_name != "Entity":
                 return self.error(
-                    "%s is type %s. Reverse lookups require type Identity." %
+                    "%s is type %s. Reverse lookups require type Entity." %
                     (field.name, field.typedesc.type_name),
                     exp)
         else:
