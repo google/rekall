@@ -35,6 +35,8 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+#include "elf_dump.h"
+#include "kcore.h"
 #include "lkm_control.h"
 #include "lmap_config.h"
 #include "memory_map.h"
@@ -51,8 +53,13 @@ typedef enum WORKMODE_T {
   WM_LOAD,
   WM_DUMP,
   WM_MMAP,
-  WM_ACQUIRE
+  WM_ACQUIRE,
 } WORKMODE;
+
+typedef enum ACQMODE_T {
+  AM_INJECT,
+  AM_KCORE
+} ACQMODE;
 
 // Commandline arguments and configuration
 typedef struct ARGS_T {
@@ -64,7 +71,8 @@ typedef struct ARGS_T {
   char *acquisition_path;
   size_t module_size;
   size_t host_path_len;
-  WORKMODE mode;
+  WORKMODE work_mode;
+  ACQMODE acq_mode;
   size_t injection_idx;
 } ARGS;
 
@@ -75,7 +83,8 @@ static ARGS args = {
   .module_path = NULL,
   .lib_path = NULL,
   .host_path_len = 0,
-  .mode = WM_NONE,
+  .work_mode = WM_NONE,
+  .acq_mode = AM_INJECT,
   .injection_idx = 0
 };
 
@@ -220,8 +229,7 @@ static const INJECTION injections[] = {
 };
 
 static const unsigned int SYMBUFSIZ = 128;
-static const char *opt_string = "aldfvp:mh:i:o:";
-
+static const char *opt_string = "adfh:i:klmo:p:v";
 // This is the embedded minpmem module
 extern uint8_t MINPMEM_START;
 extern uint8_t MINPMEM_END;
@@ -342,7 +350,7 @@ int ftw_is_compatible_host(const char *fpath, const struct stat *sb,
   args.host_path = (char *)malloc(args.host_path_len + 1);
   log_print(LL_LOG, "Found suitable host %s", fpath);
   // If we're just searching for suitable modules continue
-  if (args.mode != WM_FIND) {
+  if (args.work_mode != WM_FIND) {
     memcpy(args.host_path, fpath, args.host_path_len);
     args.host_path[args.host_path_len] = 0x00;
     // Need to store which injection config we use on this module
@@ -370,20 +378,23 @@ void usage(char *prog_path) {
     log_print(LL_MSG, "\nOptions:");
     log_print(LL_MSG, "\n  mode of operation:");
     log_print(LL_MSG, "    -a dumpfile  acquire memory ");
-    log_print(LL_MSG, "    -l           patch and load the acquisition module");
     log_print(LL_MSG, "    -d           "
               "dump the generated module to the filesystem");
     log_print(LL_MSG, "    -f           "
               "find suitable hosts, don't inject anything");
+    log_print(LL_MSG, "    -l           patch and load the acquisition module");
+    log_print(LL_MSG, "    -m           print the systems physical memory map");
     log_print(LL_MSG, "\n  optional arguments:");
-    log_print(LL_MSG, "    -o outfile   the output file (default: %s)",
-              args.out_path);
-    log_print(LL_MSG, "    -i inputfile don't inject the bundled module, "
-              "use this one");
     log_print(LL_MSG, "    -h module    don't search for a suitable host module"
               ", use this one");
+
+    log_print(LL_MSG, "    -i inputfile don't inject the bundled module, "
+              "use this one");
+    log_print(LL_MSG, "    -k           dump memory from /proc/kcore without "
+              "loading a module");
+    log_print(LL_MSG, "    -o outfile   the output file (default: %s)",
+              args.out_path);
     log_print(LL_MSG, "    -p path      path to kernel modules");
-    log_print(LL_MSG, "    -m           print the systems physical memory map");
     log_print(LL_MSG, "    -v           verbose, produces detailed debug "
               "logging\n");
 }
@@ -394,35 +405,39 @@ int parse_args(int argc, char **argv) {
   while ((opt = getopt(argc, argv, opt_string)) != -1) {
     switch(opt) {
        case 'a':
-        if (args.mode != WM_NONE) {
+        if (args.work_mode != WM_NONE) {
           usage(argv[0]);
           return EXIT_FAILURE;
         }
-        args.mode = WM_ACQUIRE;
+        args.work_mode = WM_ACQUIRE;
+        break;
+
+       case 'k':
+        args.acq_mode = AM_KCORE;
         break;
 
       case 'l':
-        if (args.mode != WM_NONE) {
+        if (args.work_mode != WM_NONE) {
           usage(argv[0]);
           return EXIT_FAILURE;
         }
-        args.mode = WM_LOAD;
+        args.work_mode = WM_LOAD;
         break;
 
       case 'd':
-        if (args.mode != WM_NONE) {
+        if (args.work_mode != WM_NONE) {
           usage(argv[0]);
           return EXIT_FAILURE;
         }
-        args.mode = WM_DUMP;
+        args.work_mode = WM_DUMP;
         break;
 
       case 'f':
-        if (args.mode != WM_NONE) {
+        if (args.work_mode != WM_NONE) {
           usage(argv[0]);
           return EXIT_FAILURE;
         }
-        args.mode = WM_FIND;
+        args.work_mode = WM_FIND;
         break;
 
       case 'o':
@@ -438,7 +453,7 @@ int parse_args(int argc, char **argv) {
         break;
 
       case 'm':
-        args.mode = WM_MMAP;
+        args.work_mode = WM_MMAP;
         break;
 
       case 'h':
@@ -452,7 +467,7 @@ int parse_args(int argc, char **argv) {
     }
   }
   // If we want to acquire, there should be exactly one argument left.
-  if (args.mode == WM_ACQUIRE && (argc - optind != 1)) {
+  if (args.work_mode == WM_ACQUIRE && (argc - optind != 1)) {
     usage(argv[0]);
     return EXIT_FAILURE;
   } else {
@@ -460,7 +475,7 @@ int parse_args(int argc, char **argv) {
     args.acquisition_path = argv[optind];
   }
   // This can be dangerous, we want the user to explicitly tell us what to do
-  if (args.mode == WM_NONE) {
+  if (args.work_mode == WM_NONE) {
     usage(argv[0]);
     return EXIT_FAILURE;
   }
@@ -554,7 +569,7 @@ int find_compatible_host(void) {
   log_print(LL_LOG, "Scanning modules in %s for suitable host",
       specific_module_path);
   if (ftw(specific_module_path, ftw_is_compatible_host, 20) == 0 &&
-      args.mode != WM_FIND) {
+      args.work_mode != WM_FIND) {
     log_print(LL_ERR, "No suitable host modules found");
     goto error;
   }
@@ -658,195 +673,6 @@ int hook_relocations(void) {
   return EXIT_SUCCESS;
 }
 
-// Initialize an ELF header with default values for a core dump file
-// and a specific number of program headers.
-//
-// args: header is a pointer to the mach_header_64 struct to initialize.
-//       num_segments is the number of program headers to add to this header.
-//
-void prepare_elf_header(Elf_Ehdr *header, unsigned int num_segments) {
-  // All values that are unset will be zero
-  bzero(header, sizeof(Elf_Ehdr));
-  // We create a 64 bit core dump file with one section
-  // for each physical memory segment.
-  header->e_ident[0] = ELFMAG0;
-  header->e_ident[1] = ELFMAG1;
-  header->e_ident[2] = ELFMAG2;
-  header->e_ident[3] = ELFMAG3;
-  header->e_ident[4] = ELFCLASS64;
-  header->e_ident[5] = ELFDATA2LSB;
-  header->e_ident[6] = EV_CURRENT;
-  header->e_type     = ET_CORE;
-  header->e_machine  = EM_X86_64;
-  header->e_version  = EV_CURRENT;
-  header->e_phoff    = sizeof(Elf_Ehdr);
-  header->e_ehsize   = sizeof(Elf_Ehdr);
-  header->e_phentsize= sizeof(Elf_Phdr);
-  header->e_phnum    = num_segments;
-  header->e_shentsize= sizeof(Elf_Shdr);
-}
-
-// Initialize an ELF program header with data from an EFI segment descriptor.
-//
-// args: program_header is a pointer to an Elf_Phdr struct to initialize.
-//       segment is a pointer to the EFI segment descriptor to copy data from.
-//       file_offset is the raw offset into the mach-o file the segment will be
-//       actually stored in.
-//
-void prepare_elf_program_header(Elf_Phdr *program_header, MEMORY_RANGE *range,
-    uint64_t file_offset) {
-  // All values that are unset will be zero
-  bzero(program_header, sizeof(Elf_Phdr));
-  program_header->p_type = PT_LOAD;
-  program_header->p_paddr = range->start;
-  program_header->p_memsz = range->pages * PAGE_SIZE;
-  program_header->p_align = PAGE_SIZE;
-  program_header->p_flags = PF_R;
-  program_header->p_offset = file_offset;
-  program_header->p_filesz = range->pages * PAGE_SIZE;
-}
-
-// Write a prepared header to the beginning of a file.
-//
-// args: file is an open filehandle to the output file.
-//       header is a pointer to the buffer which stores the prepared header.
-//       header_size is the size of the header in bytes.
-//
-// return: EXIT_SUCCESS or EXIT_FAILURE.
-//
-unsigned int write_header(int file, uint8_t *header, unsigned int header_size) {
-  if (lseek(file, 0, SEEK_SET) != 0) {
-    log_print(LL_ERR, "Could not seek to beginning of file");
-    return EXIT_FAILURE;
-  }
-  if (write(file, header, header_size) != header_size) {
-    log_print(LL_ERR, "Failed to write header");
-    return EXIT_FAILURE;
-  }
-  return EXIT_SUCCESS;
-}
-
-
-// Write a segment of physical memory into a binary file. This segment must be
-// accessible, otherwise the function will return 0.
-//
-// args: segment is a struct describing the position and size of the segment.
-//       mem_dev is an open filehandle to the /dev/pmem device.
-//       dump_file is an open filehandle to the image file.
-//
-// return: the number of bytes written.
-//
-unsigned int write_segment(MEMORY_RANGE *segment, int mem_dev, int dump_file,
-    size_t file_offset) {
-  size_t segment_size = segment->pages * PAGE_SIZE;
-  size_t page = segment->start;
-  size_t end = segment->start + segment_size;
-  uint8_t page_buf[PAGE_SIZE];
-
-  // Dump contiguous segments one page at a time
-  while (page < end) {
-    if (lseek(mem_dev, page, SEEK_SET) < 0) {
-      log_print(LL_ERR, "Could not seek to page in memory device");
-      return EXIT_FAILURE;
-    }
-    if (read(mem_dev, page_buf, PAGE_SIZE) != PAGE_SIZE) {
-      log_print(LL_ERR, "Failed to read page");
-      perror("[-] error: ");
-      return EXIT_FAILURE;
-    }
-    // Copy the page to the indicated offset in the mach-o file
-    if (lseek(dump_file, file_offset, SEEK_SET) < 0) {
-      log_print(LL_ERR, "Could not seek to segment in dump file");
-      return EXIT_FAILURE;
-    }
-    if (write(dump_file, page_buf, PAGE_SIZE) != PAGE_SIZE) {
-      log_print(LL_ERR, "Failed to write page");
-      return EXIT_FAILURE;
-   }
-    // Advance the read and write pointers
-    page += PAGE_SIZE;
-    file_offset += PAGE_SIZE;
-  }
-  return EXIT_SUCCESS;
-}
-
-
-// Parse the mmap and dump each section into an elf core dump file.
-// Memory holes are ignored and unreadable sections like MMIO are written as
-// empty segments. For each segment a program header is created in the elf
-// file, that documents the physical address range it occupied.
-//
-// args:
-//       mm is a pointer to a memory map of the system
-//       mem_dev is an open filehandle to the pmem device file (/dev/pmem).
-//       dump_file is an open filehandle to which the image will be written.
-//
-// return: EXIT_SUCCESS or EXIT_FAILURE.
-//
-unsigned int dump_memory_elf(MEMORY_MAP *mm, int mem_dev, int dump_file) {
-  unsigned int status = EXIT_FAILURE;
-  MEMORY_RANGE *curr_range = NULL;
-  size_t curr_idx = 0;
-  uint64_t file_offset = 0;
-  uint64_t phys_as_size = 0;
-  uint64_t bytes_imaged = 0;
-  unsigned int headers_bufsize = 0;
-  uint8_t *elf_headers_buf = NULL;
-  Elf_Ehdr *elf_header = NULL;
-  Elf_Phdr *program_header = NULL;
-
-  // Prepare an elf phdr for each memory range and 1 ehdr for the file
-  headers_bufsize = (
-      sizeof(Elf_Ehdr) + mm->size * sizeof(Elf_Phdr));
-  if ((elf_headers_buf = (uint8_t *)malloc(headers_bufsize)) == NULL) {
-    log_print(LL_ERR, "Could not allocate memory for mach-o headers");
-    goto error_headers;
-  }
-  // The ELF header is at the beginning of the buffer
-  elf_header = (Elf_Ehdr *)elf_headers_buf;
-  // The program headers come right after the elf header
-  program_header = (Elf_Phdr *)(elf_headers_buf + sizeof(Elf_Ehdr));
-  prepare_elf_header(elf_header, mm->size);
-  // Data will be written right after the header and load commands
-  file_offset = headers_bufsize;
-  log_print(LL_LOG, "Starting to dump memory");
-  // Iterate over each section in the physical memory map and write it to disk.
-  for (curr_idx = 0; curr_idx < mm->size; curr_idx++) {
-    if (memory_map_get(mm, curr_idx, &curr_range) != ELF_SUCCESS) {
-      log_print(LL_ERR, "Memory map corrupted, unable to write memory dump");
-      return status;
-    }
-    uint64_t segment_size = curr_range->pages * PAGE_SIZE;
-    prepare_elf_program_header(program_header, curr_range, file_offset);
-    log_print(LL_NNL, "[%016llx - %016llx] ", curr_range->start,
-        curr_range->start + segment_size - 1);
-    if (write_segment(curr_range, mem_dev, dump_file, file_offset)
-        == EXIT_FAILURE) {
-      log_print(LL_ERR, "Failed to dump segment %d\n", curr_idx);
-      goto error;
-    }
-    file_offset += segment_size;
-    bytes_imaged += segment_size;
-    log_print(LL_MSG, "[WRITTEN]");
-    program_header++;
-    // Calculate statistics
-    uint64_t end_addr = curr_range->start + curr_range->pages * PAGE_SIZE;
-    if (end_addr > phys_as_size) {
-      phys_as_size = end_addr;
-    }
-  }
-  write_header(dump_file, elf_headers_buf, headers_bufsize);
-  log_print(LL_LOG, "Acquired %lld pages (%lld bytes)",
-            bytes_imaged / PAGE_SIZE, bytes_imaged);
-  log_print(LL_LOG, "Size of accessible physical address space: %lld bytes "
-      "(%lld segments)", phys_as_size, curr_idx);
-  status = EXIT_SUCCESS;
-error:
-  free(elf_headers_buf);
-error_headers:
-  return status;
-}
-
 // Will read the memory runs specified in mm from the device file and
 // write an ELF memory dump into the output file.
 ELF_ERROR acquire_memory(char *in_path, char *out_path) {
@@ -919,9 +745,9 @@ int main (int argc, char **argv) {
   if (parse_args(argc, argv) != EXIT_SUCCESS) {
     return EXIT_FAILURE;
   }
-  // Some modes don't require to create a parasited module,
+  // Some work_modes don't require to create a parasited module,
   // we'll deal with that here
-  switch (args.mode) {
+  switch (args.work_mode) {
     case WM_MMAP:
       return print_memory_map();
 
@@ -929,6 +755,10 @@ int main (int argc, char **argv) {
       find_compatible_host();
       return EXIT_SUCCESS;
 
+    case WM_ACQUIRE:
+      if (args.acq_mode == AM_KCORE) {
+        return acquire_memory_kcore(args.acquisition_path);
+      }
     default:
       // All other modes are handled at the end when we finish finding and
       // injecting a module...
@@ -1000,7 +830,7 @@ int main (int argc, char **argv) {
     // Worst case is module won't load due to host already being loaded.
   }
   log_print(LL_DBG, "Sucessfully removed all module dependencies");
-  switch (args.mode) {
+  switch (args.work_mode) {
     case WM_ACQUIRE:
       if (acquire_memory(pmem_dev_file, args.acquisition_path) != ELF_SUCCESS) {
           log_print(LL_ERR, "Memory acquisition failed");

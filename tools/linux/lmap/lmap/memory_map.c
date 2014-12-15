@@ -1,15 +1,33 @@
+// Copyright 2013 Google Inc. All Rights Reserved.
+// Author: Johannes Stüttgen (johannes.stuettgen@gmail.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <elf.h>
+#include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "../elfrelink/elf_generic.h"
 #include "../log/log.h"
-
 #include "memory_map.h"
 
-static const char *iomem_path = "/proc/iomem";
-static const char *iomem_ram_str = "System RAM";
-
+const char *iomem_path = "/proc/iomem";
+const char *iomem_ram_str = "System RAM";
 static const unsigned int INITIAL_CAPACITY = 100;
 
 // Allocates memory for the memory ranges in this vector,
@@ -32,7 +50,8 @@ void memory_map_free(MEMORY_MAP *mm) {
 
 // When parsing the memory map ranges can be added to the end,
 // but random access is not implemented.
-ELF_ERROR memory_map_append(MEMORY_MAP *mm, size_t run_start, size_t pages) {
+ELF_ERROR memory_map_append(MEMORY_MAP *mm, size_t run_start, size_t pages,
+    off_t file_offset) {
   // double capacity if full to avoid too many realloc calls
   if (mm->size >= mm->capacity) {
     mm->capacity *= 2;
@@ -50,6 +69,7 @@ ELF_ERROR memory_map_append(MEMORY_MAP *mm, size_t run_start, size_t pages) {
   }
   mm->ranges[mm->size].start = run_start;
   mm->ranges[mm->size].pages = pages;
+  mm->ranges[mm->size].file_offset = file_offset;
   mm->size++;
   return ELF_SUCCESS;
 }
@@ -91,7 +111,7 @@ ELF_ERROR get_physical_memory_map(MEMORY_MAP *mm) {
     if (strncmp(run_type, iomem_ram_str, strlen(iomem_ram_str)) == 0) {
       // The end address of runs in iomem is inclusive
       run_pages = (run_end + 1 - run_start) / PAGE_SIZE;
-      if (memory_map_append(mm, run_start, run_pages)
+      if (memory_map_append(mm, run_start, run_pages, run_start)
           != ELF_SUCCESS) {
         log_print(LL_ERR, "Failed to insert range %016lx (%ld pages) "
             "into memory map", run_start, run_pages);
