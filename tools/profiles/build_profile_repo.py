@@ -292,7 +292,6 @@ def RebuildInventory():
                     inventory[profile_name][
                         "LastModified"] = file_modified_time
 
-
     with gzip.GzipFile(filename="inventory.gz", mode="wb") as outfd:
         outfd.write(utils.PPrint(result))
 

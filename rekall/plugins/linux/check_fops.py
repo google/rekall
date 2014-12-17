@@ -131,11 +131,11 @@ class CheckProcFops(common.LinuxPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-                ("DirEntry", "proc_dir_entry", "[addrpad]"),
-                ("Path", "path", "<50"),
-                ("Member", "member", "<20"),
-                ("Address", "address", "[addrpad]"),
-                ("Module", "module", "<20")])
+            ("DirEntry", "proc_dir_entry", "[addrpad]"),
+            ("Path", "path", "<50"),
+            ("Member", "member", "<20"),
+            ("Address", "address", "[addrpad]"),
+            ("Module", "module", "<20")])
 
         for proc_dir_entry, path, member, func, location in itertools.chain(
             self.check_proc_fop(), self.check_fops()):

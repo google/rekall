@@ -19,9 +19,12 @@
 import logging
 import math
 
-from rekall import session
 from rekall.plugins.linux import common
 from rekall.plugins.overlays.linux import vfs
+
+
+class Container(object):
+    """A simple container."""
 
 
 class Mount(common.LinuxPlugin):
@@ -48,6 +51,7 @@ class Mount(common.LinuxPlugin):
                 mount_hashtable_target_type)
             page_size = self.kernel_address_space.PAGE_SIZE
             hash_size = 1 << int(math.log(page_size/hashtable_head_len, 2))
+            numentries = hash_size
 
         else:
             # TODO(nop): Finish writing the code
@@ -60,7 +64,7 @@ class Mount(common.LinuxPlugin):
             numentries = self.profile.get_constant_object(
                 "mhash_entries",
                 vm=self.kernel_address_space,
-                target="unsigned long")
+                target="unsigned long").value
 
             # The followinr code mimics alloc_large_system_hash
             # http://lxr.free-electrons.com/source/mm/page_alloc.c?v=3.14#L5888
@@ -70,9 +74,9 @@ class Mount(common.LinuxPlugin):
                     vm=self.kernel_address_space,
                     target="unsigned long")
                 # XXX Need to finish the calculation
-                numentries = 256
+                numentries = 65536
 
-        logging.debug("mount_hashtable size: %d", hash_size)
+        logging.debug("numentries: %d", numentries)
 
         mount_hashtable = self.profile.get_constant_object(
             "mount_hashtable",
@@ -81,7 +85,7 @@ class Mount(common.LinuxPlugin):
             target_args=dict(
                 target="Array",
                 target_args=dict(
-                    count=hash_size,
+                    count=numentries,
                     target=mount_hashtable_target_type
                 )))
 
@@ -124,7 +128,7 @@ class Mount(common.LinuxPlugin):
                 # d_name() codepath, so the resolved mount paths may be a
                 # different in rekall than on a live system in these cases.
 
-                path_struct = session.Container()
+                path_struct = Container()
                 path_struct.dentry = mnt.mnt_root
                 path_struct.mnt = vfsmount
                 path = vfs.Linux3VFS(self.session.profile).prepend_path(

@@ -52,8 +52,9 @@ class CheckIdt(common.LinuxPlugin):
             entry = table[i]
             idt_addr = entry.address
 
+            resolver = self.session.address_resolver
             # Try to resolve the address from the profile.
-            name = (self.profile.get_constant_by_address(idt_addr) or
+            name = (resolver.format_address(idt_addr) or
 
                     # Search for a module which contains this address.
                     lsmod.find_module(idt_addr).name or
@@ -96,7 +97,7 @@ class CheckIdt(common.LinuxPlugin):
                                ("Type", "type", ">18"),
                                ("Present", "present", ">7"),
                                ("DPL", "dpl", ">3"),
-                               ("Symbol", "symbol", "<30")])
+                               ("Symbol", "symbol", "")])
 
         for (i, entry, symbol) in self.CheckIDTTables():
             highlight = None
