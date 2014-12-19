@@ -47,6 +47,8 @@ def InodeToPermissionString(inode):
         result.append("c")
     elif inode.type == "S_IFIFO":
         result.append("f")
+    else:
+        result.append(" ")
 
     result.append("r" if inode.mode.S_IRUSR else "-")
     result.append("w" if inode.mode.S_IWUSR else "-")
@@ -79,12 +81,12 @@ class Mfind(common.LinuxPlugin):
     @classmethod
     def args(cls, parser):
         """Declare the command line args we accept."""
-        super(Mfind, cls).args(parser)
         parser.add_argument(
             "path", default="/", help="Path to the file.")
         parser.add_argument(
             "--device", default=None,
             help="Name of the device to match.")
+        super(Mfind, cls).args(parser)
 
     def __init__(self, path="/", device=None, **kwargs):
         super(Mfind, self).__init__(**kwargs)
@@ -245,6 +247,9 @@ class Mcat(core.OutputFileMixin, Mfind):
         elif len(files) > 1:
             logging.error(("%d files found. Please specify the device to "
                            "target a single file."), len(files))
+            self.render_file_header(renderer)
+            for file in files:
+                self.render_file(renderer, file)
 
         else:
             renderer.table_header(
@@ -286,17 +291,17 @@ class Mcat(core.OutputFileMixin, Mfind):
 
 class TestMfind(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="mfind %(file)"
+        commandline="mfind %(file)s"
         )
 
 
 class TestMls(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="mls %(file)"
+        commandline="mls %(file)s"
         )
 
 
 class TestMcat(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="mcat %(file) %(tempdir)s/mcat"
+        commandline="mcat %(file)s %(tempdir)s/mcat"
         )

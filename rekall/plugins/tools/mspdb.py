@@ -101,7 +101,6 @@ from rekall.plugins import core
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import pe_vtypes
-from rekall.plugins.overlays.windows import windows
 
 
 class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
@@ -1182,7 +1181,7 @@ class ParsePDB(plugin.Command):
         self.metadata.update(self.tpi.metadata)
 
         # Demangle all constants.
-        demangler = windows.Demangler(self.metadata)
+        demangler = pe_vtypes.Demangler(self.metadata)
         constants = {}
         for name, value in self.tpi.constants.iteritems():
             constants[demangler.DemangleName(name)] = value

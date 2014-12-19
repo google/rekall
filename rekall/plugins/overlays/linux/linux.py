@@ -220,12 +220,15 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
         }],
 
     'qstr': [None, {
+        'len': lambda x: (x.m("len") or
+                          x.m("u1.u1.len") or
+                          # Worst case scenario, when dwarf parsing epicfailed.
+                          (x.m("u1.hash_len") & 0xFFFFFFFF00000000) >> 32),
         'name': [None, ['Pointer', dict(
             target='UnicodeString',
             target_args=dict(
                 # include/linux/limits.h
-                length=lambda x: (x.m("len") or
-                                  x.m("u1.u1.len") or 255),
+                length=lambda x: (min(x.len, 255)),
                 )
             )]],
         }],
@@ -247,14 +250,6 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
                 count=lambda x: x.m("fdt").max_fds or x.max_fds,
                 )
             )
-        }],
-    "proc_dir_entry": [None, {
-        'Name': lambda x: (
-            # 2.6 kernel.
-            x.name.cast("Pointer", target="String").deref() or
-
-            # 3.x kernel.
-            x.name.cast("String")),
         }],
 
     "kobject": [None, {
@@ -540,6 +535,9 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
             target_args=dict(start_bit=0, end_bit=12),
             ),
         }],
+    "radix_tree_node": [None, {
+        "rcu_head": lambda x: x.m("rcu_head") or x.m("u1.rcu_head"),
+        }],
     }
 
 
@@ -549,15 +547,40 @@ class list_head(basic.ListMixIn, obj.Struct):
     _backward = "prev"
 
 
-class hlist_head(obj.Struct):
+class hlist_head(list_head):
     def list_of_type(self, type, member):
-        head = self.first.deref()
+        return self.first.list_of_type(type, member)
+
+class hlist_node(list_head):
+    _backward = "pprev"
+
+    def list_of_type(self, type, member):
+        head = self
         node = head
         if node:
             yield basic.container_of(node, type, member)
         while node and node != head:
             yield basic.container_of(node, type, member)
-            node = node.next
+            node = node.next.deref()
+
+    def find_all_lists(self, seen):
+        stack = [self]
+        while stack:
+            item = stack.pop()
+            if item not in seen:
+                seen.append(item)
+
+                # In hlist, prev is a **
+                Blink = item.m(self._backward).deref()
+                if Blink.is_valid():
+                    stack.append(Blink.dereference())
+
+                Flink = item.m(self._forward)
+                if Flink.is_valid():
+                    stack.append(Flink.dereference())
+
+    def __empty__(self):
+        return self.m(self._forward) == self.m(self._backward).deref()
 
 
 class inet_sock(obj.Struct):
@@ -794,12 +817,25 @@ class PermissionFlags(basic.Flags):
 
 class kgid_t(obj.Struct):
     """Newer kernels use this struct instead of an int."""
+
     def __unicode__(self):
         return unicode(self.val)
+
+    def __long__(self):
+        return long(self.val)
 
 
 class kuid_t(kgid_t):
     """Newer kernels use this struct instead of an int."""
+
+
+class proc_dir_entry(obj.Struct):
+    @property
+    def Name(self):
+        if self.name.obj_type == "Pointer":
+            return self.name.deref.cast("String", length=self.namelen)
+        else:
+            return self.name.cast("String", length=self.namelen)
 
 
 class page(obj.Struct):
@@ -865,13 +901,16 @@ class Linux(basic.BasicClasses):
     def Initialize(cls, profile):
         super(Linux, cls).Initialize(profile)
         profile.add_classes(dict(
-            list_head=list_head, hlist_head=hlist_head,
+            list_head=list_head,
+            hlist_head=hlist_head,
+            hlist_node=hlist_node,
             dentry=dentry,
             task_struct=task_struct,
             timespec=timespec, inet_sock=inet_sock,
             PermissionFlags=PermissionFlags,
             InodePermission=InodePermission,
             page=page, kgid_t=kgid_t, kuid_t=kuid_t,
+            proc_dir_entry=proc_dir_entry,
             ))
         profile.add_overlay(linux_overlay)
         profile.add_constants(default_text_encoding="utf8")
@@ -974,9 +1013,10 @@ class Linux(basic.BasicClasses):
         """Returns the real time of system boot."""
         boottime = (self.get_wall_to_monotonic(vm=vm) +
                     self.get_total_sleep_time(vm=vm))
-        boottime.tv_sec = -boottime.tv_sec
-        boottime.tv_nsec = -boottime.tv_nsec
-        return boottime.normalized_timespec()
+        corrected_boottime = self.timespec()
+        corrected_boottime.tv_sec = -boottime.tv_sec
+        corrected_boottime.tv_nsec = -boottime.tv_nsec
+        return corrected_boottime.normalized_timespec()
 
 
 # Legacy for old profiles

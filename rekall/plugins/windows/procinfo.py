@@ -92,7 +92,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
     def render(self, renderer):
         """Print information about a PE file from memory."""
         # Get our helper object to parse the PE file.
-        renderer.table_header([('Attribute', 'attribute', '<20'),
+        renderer.table_header([('Attribute', 'attribute', '<30'),
                                ('Value', 'value', '60')])
 
         for field in ["Machine", "TimeDateStamp", "Characteristics"]:

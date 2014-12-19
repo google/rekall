@@ -178,7 +178,29 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         if module_name in self.profiles:
             return self.profiles[module_name]
 
-        # Create a dummy profile.
+        # Try to determine the DLL's GUID.
+        pe_helper = pe_vtypes.PE(
+            address_space=self.session.GetParameter("default_address_space"),
+            image_base=module_base,
+            session=self.session)
+
+        guid_age = pe_helper.RSDS.GUID_AGE
+        if guid_age:
+            profile = self.session.LoadProfile("%s/GUID/%s" % (
+                module_name, guid_age))
+
+            profile.name = module_name
+            profile.image_base = module_base
+            if profile:
+                self.profiles[module_name] = profile
+                return profile
+
+        result = self._build_profile_from_exports(module_base, module_name)
+        self.profiles[module_name] = result
+        return result
+
+    def _build_profile_from_exports(self, module_base, module_name):
+        """Create a dummy profile from PE exports."""
         result = obj.Profile.classes["BasicPEProfile"](
             name=module_name,
             session=self.session)
@@ -261,7 +283,23 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         if module:
             return self.LoadProfileForModule(module)
 
+        module_base = self._resolve_module_base_address(module_name)
+        if module_base:
+            return self.LoadProfileForDll(module_base, module_name)
+
         return obj.NoneObject()
+
+    def _resolve_module_base_address(self, name):
+        module = self.modules_by_name.get(name)
+        if module is not None:
+            return module.base
+
+        # Try to match the module name to a VAD region (e.g. a DLL).
+        task = self.session.GetParameter("process_context")
+        if task:
+            for start, _, filename, _ in self.vad.GetVadsForProcess(task):
+                if "%s.dll" % name.lower() in filename.lower():
+                    return start
 
     def _format_address_from_profile(self, profile, address):
         nearest_offset, name = profile.get_nearest_constant_by_address(
@@ -290,7 +328,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             # Ensure address falls within the current module.
             containing_module = self._FindContainingModule(address)
             if (containing_module and address < containing_module.end and
-                0 < difference < max_distance):
+                    0 < difference < max_distance):
                 return "%s + %#x" % (
                     name, address - offset)
 
@@ -299,7 +337,9 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 if hit:
                     start, end, name, _ = hit
                     if start < address < end:
-                        profile = self.LoadProfileForDll(start, name)
+                        module_name = self.NormalizeModuleName(name)
+
+                        profile = self.LoadProfileForDll(start, module_name)
                         return self._format_address_from_profile(
                             profile, address)
 
@@ -339,7 +379,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 start, _, full_name, _ = vad_desc
                 module_name = self.NormalizeModuleName(full_name)
                 nearest_offset = start
-                profile = self.LoadProfileForDll(start, full_name)
+                profile = self.LoadProfileForDll(start, module_name)
 
                 if profile:
                     offset, name = profile.get_nearest_constant_by_address(
@@ -515,7 +555,7 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
             # Ensure address falls within the current module.
             containing_module = self._FindContainingModule(address)
             if (containing_module and address < containing_module.end and
-                0 < difference < max_distance):
+                    0 < difference < max_distance):
                 return "%s + %#x" % (
                     name, address - offset)
 

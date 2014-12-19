@@ -7,11 +7,13 @@ from rekall.plugins.windows import connections
 from rekall.plugins.windows import connscan
 from rekall.plugins.windows import crashinfo
 from rekall.plugins.windows import disassembler
+from rekall.plugins.windows import dns
 from rekall.plugins.windows import dumpcerts
 from rekall.plugins.windows import filescan
 from rekall.plugins.windows import kernel
 from rekall.plugins.windows import gui
 from rekall.plugins.windows import handles
+from rekall.plugins.windows import heap_analysis
 from rekall.plugins.windows import index
 from rekall.plugins.windows import interactive
 from rekall.plugins.windows import kdbgscan

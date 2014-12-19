@@ -176,7 +176,7 @@ class File(object):
             return page.read(0, page_size)
 
     def walk(self, recursive=False, unallocated=False):
-        if not self.dentry.d_inode.type.S_IFDIR:
+        if not self.is_directory():
             return
 
         results = []

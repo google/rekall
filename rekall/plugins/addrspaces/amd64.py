@@ -228,6 +228,9 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                    self.get_phys_addr(vaddr, pte_value),
                    0x1000)
 
+    def end(self):
+        return (2**64)-1
+
 
 class VTxPagedMemory(AMD64PagedMemory):
     """Intel VT-x address space.

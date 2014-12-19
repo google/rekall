@@ -32,6 +32,11 @@
 struct pid_namespace pid_namespace;
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#include <linux/clocksource.h>
+#include <linux/ktime.h>
+#endif
+
 
 #include <linux/radix-tree.h>
 #include <linux/netfilter.h>
@@ -153,6 +158,10 @@ struct fib_node
 struct fib_node fib_node;
 struct fib_alias fib_alias;
 
+/****************************************
+ * RADIX_TREE START
+ ****************************************/
+
 struct rt_hash_bucket {
   struct rtable __rcu     *chain;
 } rt_hash_bucket;
@@ -163,6 +172,24 @@ struct rt_hash_bucket {
 #define RADIX_TREE_MAP_MASK     (RADIX_TREE_MAP_SIZE-1)
 #define RADIX_TREE_TAG_LONGS    ((RADIX_TREE_MAP_SIZE + BITS_PER_LONG - 1) / BITS_PER_LONG)
 
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+// In 3.15 the radix_tree_node is defined in linux/radix-tree.h, which we
+// include earlier.
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+struct radix_tree_node {
+    unsigned int    height;         /* Height from the bottom */
+    unsigned int    count;
+    union {
+        struct radix_tree_node *parent; /* Used when ascending tree */
+        struct rcu_head rcu_head;       /* Used when freeing node */
+    };
+    void            *slots[RADIX_TREE_MAP_SIZE];
+    unsigned long   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
+};
+
+#else
+
 struct radix_tree_node {
     unsigned int    height;         /* Height from the bottom */
     unsigned int    count;
@@ -170,6 +197,11 @@ struct radix_tree_node {
     void            *slots[RADIX_TREE_MAP_SIZE];
     unsigned long   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
 };
+#endif
+
+/****************************************
+ * RADIX_TREE END
+ ****************************************/
 
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,25)
@@ -377,9 +409,226 @@ struct slab {
 struct slab slab;
 #endif
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,31)
+
+/****************************************
+ * TIMEKEEPING START
+ ****************************************/
 
 typedef u64 cycle_t;
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
+struct tk_read_base {
+        struct clocksource      *clock;
+        cycle_t                 (*read)(struct clocksource *cs);
+        cycle_t                 mask;
+        cycle_t                 cycle_last;
+        u32                     mult;
+        u32                     shift;
+        u64                     xtime_nsec;
+        ktime_t                 base_mono;
+};
+
+struct timekeeper {
+        struct tk_read_base     tkr;
+        u64                     xtime_sec;
+        struct timespec64       wall_to_monotonic;
+        ktime_t                 offs_real;
+        ktime_t                 offs_boot;
+        ktime_t                 offs_tai;
+        s32                     tai_offset;
+        ktime_t                 base_raw;
+        struct timespec64       raw_time;
+
+        /* The following members are for timekeeping internal use */
+        cycle_t                 cycle_interval;
+        u64                     xtime_interval;
+        s64                     xtime_remainder;
+        u32                     raw_interval;
+        /* The ntp_tick_length() value currently being used.
+         * This cached copy ensures we consistently apply the tick
+         * length for an entire tick, as ntp_tick_length may change
+         * mid-tick, and we don't want to apply that new value to
+         * the tick in progress.
+         */
+        u64                     ntp_tick;
+        /* Difference between accumulated time and NTP time in ntp
+         * shifted nano seconds. */
+        s64                     ntp_error;
+        u32                     ntp_error_shift;
+        u32                     ntp_err_mult;
+};
+
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+struct timekeeper {
+        /* Current clocksource used for timekeeping. */
+        struct clocksource      *clock;
+        /* NTP adjusted clock multiplier */
+        u32                     mult;
+        /* The shift value of the current clocksource. */
+        u32                     shift;
+        /* Number of clock cycles in one NTP interval. */
+        cycle_t                 cycle_interval;
+        /* Last cycle value (also stored in clock->cycle_last) */
+        cycle_t                 cycle_last;
+        /* Number of clock shifted nano seconds in one NTP interval. */
+        u64                     xtime_interval;
+        /* shifted nano seconds left over when rounding cycle_interval */
+        s64                     xtime_remainder;
+        /* Raw nano seconds accumulated per NTP interval. */
+        u32                     raw_interval;
+
+        /* Current CLOCK_REALTIME time in seconds */
+        u64                     xtime_sec;
+        /* Clock shifted nano seconds */
+        u64                     xtime_nsec;
+
+        /* Difference between accumulated time and NTP time in ntp
+         * shifted nano seconds. */
+        s64                     ntp_error;
+        /* Shift conversion between clock shifted nano seconds and
+         * ntp shifted nano seconds. */
+        u32                     ntp_error_shift;
+
+        /*
+         * wall_to_monotonic is what we need to add to xtime (or xtime corrected
+         * for sub jiffie times) to get to monotonic time.  Monotonic is pegged
+         * at zero at system boot time, so wall_to_monotonic will be negative,
+         * however, we will ALWAYS keep the tv_nsec part positive so we can use
+         * the usual normalization.
+         *
+         * wall_to_monotonic is moved after resume from suspend for the
+         * monotonic time not to jump. We need to add total_sleep_time to
+         * wall_to_monotonic to get the real boot based time offset.
+         *
+         * - wall_to_monotonic is no longer the boot time, getboottime must be
+         * used instead.
+         */
+        struct timespec         wall_to_monotonic;
+        /* Offset clock monotonic -> clock realtime */
+        ktime_t                 offs_real;
+        /* time spent in suspend */
+        struct timespec         total_sleep_time;
+        /* Offset clock monotonic -> clock boottime */
+        ktime_t                 offs_boot;
+        /* The raw monotonic time for the CLOCK_MONOTONIC_RAW posix clock. */
+        struct timespec         raw_time;
+        /* The current UTC to TAI offset in seconds */
+        s32                     tai_offset;
+        /* Offset clock monotonic -> clock tai */
+        ktime_t                 offs_tai;
+
+};
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0)
+struct timekeeper {
+        /* Current clocksource used for timekeeping. */
+        struct clocksource      *clock;
+        /* NTP adjusted clock multiplier */
+        u32                     mult;
+        /* The shift value of the current clocksource. */
+        u32                     shift;
+        /* Number of clock cycles in one NTP interval. */
+        cycle_t                 cycle_interval;
+        /* Number of clock shifted nano seconds in one NTP interval. */
+        u64                     xtime_interval;
+        /* shifted nano seconds left over when rounding cycle_interval */
+        s64                     xtime_remainder;
+        /* Raw nano seconds accumulated per NTP interval. */
+        u32                     raw_interval;
+
+        /* Current CLOCK_REALTIME time in seconds */
+        u64                     xtime_sec;
+        /* Clock shifted nano seconds */
+        u64                     xtime_nsec;
+
+        /* Difference between accumulated time and NTP time in ntp
+         * shifted nano seconds. */
+        s64                     ntp_error;
+        /* Shift conversion between clock shifted nano seconds and
+         * ntp shifted nano seconds. */
+        u32                     ntp_error_shift;
+
+        /*
+         * wall_to_monotonic is what we need to add to xtime (or xtime corrected
+         * for sub jiffie times) to get to monotonic time.  Monotonic is pegged
+         * at zero at system boot time, so wall_to_monotonic will be negative,
+         * however, we will ALWAYS keep the tv_nsec part positive so we can use
+         * the usual normalization.
+         *
+         * wall_to_monotonic is moved after resume from suspend for the
+         * monotonic time not to jump. We need to add total_sleep_time to
+         * wall_to_monotonic to get the real boot based time offset.
+         *
+         * - wall_to_monotonic is no longer the boot time, getboottime must be
+         * used instead.
+         */
+        struct timespec         wall_to_monotonic;
+        /* Offset clock monotonic -> clock realtime */
+        ktime_t                 offs_real;
+        /* time spent in suspend */
+        struct timespec         total_sleep_time;
+        /* Offset clock monotonic -> clock boottime */
+        ktime_t                 offs_boot;
+        /* The raw monotonic time for the CLOCK_MONOTONIC_RAW posix clock. */
+        struct timespec         raw_time;
+        /* Seqlock for all timekeeper values */
+        seqlock_t               lock;
+};
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0)
+struct timekeeper {
+        /* Current clocksource used for timekeeping. */
+        struct clocksource      *clock;
+        /* NTP adjusted clock multiplier */
+        u32                     mult;
+        /* The shift value of the current clocksource. */
+        u32                     shift;
+        /* Number of clock cycles in one NTP interval. */
+        cycle_t                 cycle_interval;
+        /* Number of clock shifted nano seconds in one NTP interval. */
+        u64                     xtime_interval;
+        /* shifted nano seconds left over when rounding cycle_interval */
+        s64                     xtime_remainder;
+        /* Raw nano seconds accumulated per NTP interval. */
+        u32                     raw_interval;
+
+        /* Current CLOCK_REALTIME time in seconds */
+        u64                     xtime_sec;
+        /* Clock shifted nano seconds */
+        u64                     xtime_nsec;
+
+        /* Difference between accumulated time and NTP time in ntp
+         * shifted nano seconds. */
+        s64                     ntp_error;
+        /* Shift conversion between clock shifted nano seconds and
+         * ntp shifted nano seconds. */
+        u32                     ntp_error_shift;
+
+        /*
+         * wall_to_monotonic is what we need to add to xtime (or xtime corrected
+         * for sub jiffie times) to get to monotonic time.  Monotonic is pegged
+         * at zero at system boot time, so wall_to_monotonic will be negative,
+         * however, we will ALWAYS keep the tv_nsec part positive so we can use
+         * the usual normalization.
+         *
+         * wall_to_monotonic is moved after resume from suspend for the
+         * monotonic time not to jump. We need to add total_sleep_time to
+         * wall_to_monotonic to get the real boot based time offset.
+         *
+         * - wall_to_monotonic is no longer the boot time, getboottime must be
+         * used instead.
+         */
+        struct timespec         wall_to_monotonic;
+        /* Offset clock monotonic -> clock realtime */
+        ktime_t                 offs_real;
+        /* time spent in suspend */
+        struct timespec         total_sleep_time;
+        /* Offset clock monotonic -> clock boottime */
+        ktime_t                 offs_boot;
+        /* The raw monotonic time for the CLOCK_MONOTONIC_RAW posix clock. */
+        struct timespec         raw_time;
+        /* Seqlock for all timekeeper values */
+        seqlock_t               lock;
+};
+#elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,31)
 
 struct timekeeper {
 	/* Current clocksource used for timekeeping. */
@@ -438,9 +687,13 @@ struct timekeeper {
 	/* Seqlock for all timekeeper values */
 	seqlock_t lock;
 };
-
+#endif
 
 struct timekeeper my_timekeeper;
+
+/****************************************
+ * TIMEKEEPING END
+ ****************************************/
 
 struct log {
          u64 ts_nsec;            /* timestamp in nanoseconds */
@@ -454,102 +707,12 @@ struct log {
 
 struct log my_log;
 
-#endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
-struct mnt_namespace {
-        atomic_t                count;
-        struct mount *  root;
-        struct list_head        list;
-        wait_queue_head_t poll;
-        int event;
-};
+/****************************************
+ * MOUNT POINTS START
+ ****************************************/
 
-struct mnt_pcp {
-        int mnt_count;
-        int mnt_writers;
-};
-
-struct mount {
-        struct list_head mnt_hash;
-        struct mount *mnt_parent;
-        struct dentry *mnt_mountpoint;
-        struct vfsmount mnt;
-#ifdef CONFIG_SMP
-        struct mnt_pcp __percpu *mnt_pcp;
-        atomic_t mnt_longterm;          /* how many of the refs are longterm */
-#else
-        int mnt_count;
-        int mnt_writers;
-#endif
-        struct list_head mnt_mounts;    /* list of children, anchored here */
-        struct list_head mnt_child;     /* and going through their mnt_child */
-        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
-        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
-        struct list_head mnt_list;
-        struct list_head mnt_expire;    /* link in fs-specific expiry list */
-        struct list_head mnt_share;     /* circular list of shared mounts */
-        struct list_head mnt_slave_list;/* list of slave mounts */
-        struct list_head mnt_slave;     /* slave list entry */
-        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
-        struct mnt_namespace *mnt_ns;   /* containing namespace */
-#ifdef CONFIG_FSNOTIFY
-        struct hlist_head mnt_fsnotify_marks;
-        __u32 mnt_fsnotify_mask;
-#endif
-        int mnt_id;                     /* mount identifier */
-        int mnt_group_id;               /* peer group identifier */
-        int mnt_expiry_mark;            /* true if marked for expiry */
-        int mnt_pinned;
-        int mnt_ghosts;
-};
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0)
-struct mnt_namespace {
-        atomic_t                count;
-        struct mount *  root;
-        struct list_head        list;
-        wait_queue_head_t poll;
-        int event;
-};
-
-struct mnt_pcp {
-        int mnt_count;
-        int mnt_writers;
-};
-
-struct mount {
-        struct list_head mnt_hash;
-        struct mount *mnt_parent;
-        struct dentry *mnt_mountpoint;
-        struct vfsmount mnt;
-#ifdef CONFIG_SMP
-        struct mnt_pcp __percpu *mnt_pcp;
-#else
-        int mnt_count;
-        int mnt_writers;
-#endif
-        struct list_head mnt_mounts;    /* list of children, anchored here */
-        struct list_head mnt_child;     /* and going through their mnt_child */
-        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
-        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
-        struct list_head mnt_list;
-        struct list_head mnt_expire;    /* link in fs-specific expiry list */
-        struct list_head mnt_share;     /* circular list of shared mounts */
-        struct list_head mnt_slave_list;/* list of slave mounts */
-        struct list_head mnt_slave;     /* slave list entry */
-        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
-        struct mnt_namespace *mnt_ns;   /* containing namespace */
-#ifdef CONFIG_FSNOTIFY
-        struct hlist_head mnt_fsnotify_marks;
-        __u32 mnt_fsnotify_mask;
-#endif
-        int mnt_id;                     /* mount identifier */
-        int mnt_group_id;               /* peer group identifier */
-        int mnt_expiry_mark;            /* true if marked for expiry */
-        int mnt_pinned;
-        int mnt_ghosts;
-};
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
 struct mnt_namespace {
         atomic_t                count;
         unsigned int            proc_inum;
@@ -558,56 +721,7 @@ struct mnt_namespace {
         struct user_namespace   *user_ns;
         u64                     seq;    /* Sequence number to prevent loops */
         wait_queue_head_t poll;
-        int event;
-};
-
-struct mnt_pcp {
-        int mnt_count;
-        int mnt_writers;
-};
-
-struct mount {
-        struct list_head mnt_hash;
-        struct mount *mnt_parent;
-        struct dentry *mnt_mountpoint;
-        struct vfsmount mnt;
-#ifdef CONFIG_SMP
-        struct mnt_pcp __percpu *mnt_pcp;
-#else
-        int mnt_count;
-        int mnt_writers;
-#endif
-        struct list_head mnt_mounts;    /* list of children, anchored here */
-        struct list_head mnt_child;     /* and going through their mnt_child */
-        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
-        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
-        struct list_head mnt_list;
-        struct list_head mnt_expire;    /* link in fs-specific expiry list */
-        struct list_head mnt_share;     /* circular list of shared mounts */
-        struct list_head mnt_slave_list;/* list of slave mounts */
-        struct list_head mnt_slave;     /* slave list entry */
-        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
-        struct mnt_namespace *mnt_ns;   /* containing namespace */
-#ifdef CONFIG_FSNOTIFY
-        struct hlist_head mnt_fsnotify_marks;
-        __u32 mnt_fsnotify_mask;
-#endif
-        int mnt_id;                     /* mount identifier */
-        int mnt_group_id;               /* peer group identifier */
-        int mnt_expiry_mark;            /* true if marked for expiry */
-        int mnt_pinned;
-        int mnt_ghosts;
-};
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
-struct mnt_namespace {
-        atomic_t                count;
-        unsigned int            proc_inum;
-        struct mount *  root;
-        struct list_head        list;
-        struct user_namespace   *user_ns;
-        u64                     seq;    /* Sequence number to prevent loops */
-        wait_queue_head_t poll;
-        int event;
+        u64 event;
 };
 
 struct mnt_pcp {
@@ -616,69 +730,13 @@ struct mnt_pcp {
 };
 
 struct mountpoint {
-        struct list_head m_hash;
+        struct hlist_node m_hash;
         struct dentry *m_dentry;
         int m_count;
 };
 
 struct mount {
-        struct list_head mnt_hash;
-        struct mount *mnt_parent;
-        struct dentry *mnt_mountpoint;
-        struct vfsmount mnt;
-#ifdef CONFIG_SMP
-        struct mnt_pcp __percpu *mnt_pcp;
-#else
-        int mnt_count;
-        int mnt_writers;
-#endif
-        struct list_head mnt_mounts;    /* list of children, anchored here */
-        struct list_head mnt_child;     /* and going through their mnt_child */
-        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
-        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
-        struct list_head mnt_list;
-        struct list_head mnt_expire;    /* link in fs-specific expiry list */
-        struct list_head mnt_share;     /* circular list of shared mounts */
-        struct list_head mnt_slave_list;/* list of slave mounts */
-        struct list_head mnt_slave;     /* slave list entry */
-        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
-        struct mnt_namespace *mnt_ns;   /* containing namespace */
-        struct mountpoint *mnt_mp;      /* where is it mounted */
-#ifdef CONFIG_FSNOTIFY
-        struct hlist_head mnt_fsnotify_marks;
-        __u32 mnt_fsnotify_mask;
-#endif
-        int mnt_id;                     /* mount identifier */
-        int mnt_group_id;               /* peer group identifier */
-        int mnt_expiry_mark;            /* true if marked for expiry */
-        int mnt_pinned;
-        int mnt_ghosts;
-};
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
-struct mnt_namespace {
-        atomic_t                count;
-        unsigned int            proc_inum;
-        struct mount *  root;
-        struct list_head        list;
-        struct user_namespace   *user_ns;
-        u64                     seq;    /* Sequence number to prevent loops */
-        wait_queue_head_t poll;
-        int event;
-};
-
-struct mnt_pcp {
-        int mnt_count;
-        int mnt_writers;
-};
-
-struct mountpoint {
-        struct list_head m_hash;
-        struct dentry *m_dentry;
-        int m_count;
-};
-
-struct mount {
-        struct list_head mnt_hash;
+        struct hlist_node mnt_hash;
         struct mount *mnt_parent;
         struct dentry *mnt_mountpoint;
         struct vfsmount mnt;
@@ -768,7 +826,7 @@ struct mount {
         int mnt_pinned;
         struct path mnt_ex_mountpoint;
 };
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,13,0)
 struct mnt_namespace {
         atomic_t                count;
         unsigned int            proc_inum;
@@ -777,7 +835,7 @@ struct mnt_namespace {
         struct user_namespace   *user_ns;
         u64                     seq;    /* Sequence number to prevent loops */
         wait_queue_head_t poll;
-        u64 event;
+        int event;
 };
 
 struct mnt_pcp {
@@ -786,13 +844,13 @@ struct mnt_pcp {
 };
 
 struct mountpoint {
-        struct hlist_node m_hash;
+        struct list_head m_hash;
         struct dentry *m_dentry;
         int m_count;
 };
 
 struct mount {
-        struct hlist_node mnt_hash;
+        struct list_head mnt_hash;
         struct mount *mnt_parent;
         struct dentry *mnt_mountpoint;
         struct vfsmount mnt;
@@ -825,4 +883,239 @@ struct mount {
         int mnt_pinned;
         struct path mnt_ex_mountpoint;
 };
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+struct mnt_namespace {
+        atomic_t                count;
+        unsigned int            proc_inum;
+        struct mount *  root;
+        struct list_head        list;
+        struct user_namespace   *user_ns;
+        u64                     seq;    /* Sequence number to prevent loops */
+        wait_queue_head_t poll;
+        int event;
+};
+
+struct mnt_pcp {
+        int mnt_count;
+        int mnt_writers;
+};
+
+struct mountpoint {
+        struct list_head m_hash;
+        struct dentry *m_dentry;
+        int m_count;
+};
+
+struct mount {
+        struct list_head mnt_hash;
+        struct mount *mnt_parent;
+        struct dentry *mnt_mountpoint;
+        struct vfsmount mnt;
+#ifdef CONFIG_SMP
+        struct mnt_pcp __percpu *mnt_pcp;
+#else
+        int mnt_count;
+        int mnt_writers;
 #endif
+        struct list_head mnt_mounts;    /* list of children, anchored here */
+        struct list_head mnt_child;     /* and going through their mnt_child */
+        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
+        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
+        struct list_head mnt_list;
+        struct list_head mnt_expire;    /* link in fs-specific expiry list */
+        struct list_head mnt_share;     /* circular list of shared mounts */
+        struct list_head mnt_slave_list;/* list of slave mounts */
+        struct list_head mnt_slave;     /* slave list entry */
+        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
+        struct mnt_namespace *mnt_ns;   /* containing namespace */
+        struct mountpoint *mnt_mp;      /* where is it mounted */
+#ifdef CONFIG_FSNOTIFY
+        struct hlist_head mnt_fsnotify_marks;
+        __u32 mnt_fsnotify_mask;
+#endif
+        int mnt_id;                     /* mount identifier */
+        int mnt_group_id;               /* peer group identifier */
+        int mnt_expiry_mark;            /* true if marked for expiry */
+        int mnt_pinned;
+        int mnt_ghosts;
+};
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,8,0)
+struct mnt_namespace {
+        atomic_t                count;
+        unsigned int            proc_inum;
+        struct mount *  root;
+        struct list_head        list;
+        struct user_namespace   *user_ns;
+        u64                     seq;    /* Sequence number to prevent loops */
+        wait_queue_head_t poll;
+        int event;
+};
+
+struct mnt_pcp {
+        int mnt_count;
+        int mnt_writers;
+};
+
+struct mount {
+        struct list_head mnt_hash;
+        struct mount *mnt_parent;
+        struct dentry *mnt_mountpoint;
+        struct vfsmount mnt;
+#ifdef CONFIG_SMP
+        struct mnt_pcp __percpu *mnt_pcp;
+#else
+        int mnt_count;
+        int mnt_writers;
+#endif
+        struct list_head mnt_mounts;    /* list of children, anchored here */
+        struct list_head mnt_child;     /* and going through their mnt_child */
+        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
+        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
+        struct list_head mnt_list;
+        struct list_head mnt_expire;    /* link in fs-specific expiry list */
+        struct list_head mnt_share;     /* circular list of shared mounts */
+        struct list_head mnt_slave_list;/* list of slave mounts */
+        struct list_head mnt_slave;     /* slave list entry */
+        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
+        struct mnt_namespace *mnt_ns;   /* containing namespace */
+#ifdef CONFIG_FSNOTIFY
+        struct hlist_head mnt_fsnotify_marks;
+        __u32 mnt_fsnotify_mask;
+#endif
+        int mnt_id;                     /* mount identifier */
+        int mnt_group_id;               /* peer group identifier */
+        int mnt_expiry_mark;            /* true if marked for expiry */
+        int mnt_pinned;
+        int mnt_ghosts;
+};
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0)
+struct mnt_namespace {
+        atomic_t                count;
+        struct mount *  root;
+        struct list_head        list;
+        wait_queue_head_t poll;
+        int event;
+};
+
+struct mnt_pcp {
+        int mnt_count;
+        int mnt_writers;
+};
+
+struct mount {
+        struct list_head mnt_hash;
+        struct mount *mnt_parent;
+        struct dentry *mnt_mountpoint;
+        struct vfsmount mnt;
+#ifdef CONFIG_SMP
+        struct mnt_pcp __percpu *mnt_pcp;
+#else
+        int mnt_count;
+        int mnt_writers;
+#endif
+        struct list_head mnt_mounts;    /* list of children, anchored here */
+        struct list_head mnt_child;     /* and going through their mnt_child */
+        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
+        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
+        struct list_head mnt_list;
+        struct list_head mnt_expire;    /* link in fs-specific expiry list */
+        struct list_head mnt_share;     /* circular list of shared mounts */
+        struct list_head mnt_slave_list;/* list of slave mounts */
+        struct list_head mnt_slave;     /* slave list entry */
+        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
+        struct mnt_namespace *mnt_ns;   /* containing namespace */
+#ifdef CONFIG_FSNOTIFY
+        struct hlist_head mnt_fsnotify_marks;
+        __u32 mnt_fsnotify_mask;
+#endif
+        int mnt_id;                     /* mount identifier */
+        int mnt_group_id;               /* peer group identifier */
+        int mnt_expiry_mark;            /* true if marked for expiry */
+        int mnt_pinned;
+        int mnt_ghosts;
+};
+
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+struct mnt_namespace {
+        atomic_t                count;
+        struct mount *  root;
+        struct list_head        list;
+        wait_queue_head_t poll;
+        int event;
+};
+
+struct mnt_pcp {
+        int mnt_count;
+        int mnt_writers;
+};
+
+struct mount {
+        struct list_head mnt_hash;
+        struct mount *mnt_parent;
+        struct dentry *mnt_mountpoint;
+        struct vfsmount mnt;
+#ifdef CONFIG_SMP
+        struct mnt_pcp __percpu *mnt_pcp;
+        atomic_t mnt_longterm;          /* how many of the refs are longterm */
+#else
+        int mnt_count;
+        int mnt_writers;
+#endif
+        struct list_head mnt_mounts;    /* list of children, anchored here */
+        struct list_head mnt_child;     /* and going through their mnt_child */
+        struct list_head mnt_instance;  /* mount instance on sb->s_mounts */
+        const char *mnt_devname;        /* Name of device e.g. /dev/dsk/hda1 */
+        struct list_head mnt_list;
+        struct list_head mnt_expire;    /* link in fs-specific expiry list */
+        struct list_head mnt_share;     /* circular list of shared mounts */
+        struct list_head mnt_slave_list;/* list of slave mounts */
+        struct list_head mnt_slave;     /* slave list entry */
+        struct mount *mnt_master;       /* slave is on master->mnt_slave_list */
+        struct mnt_namespace *mnt_ns;   /* containing namespace */
+#ifdef CONFIG_FSNOTIFY
+        struct hlist_head mnt_fsnotify_marks;
+        __u32 mnt_fsnotify_mask;
+#endif
+        int mnt_id;                     /* mount identifier */
+        int mnt_group_id;               /* peer group identifier */
+        int mnt_expiry_mark;            /* true if marked for expiry */
+        int mnt_pinned;
+        int mnt_ghosts;
+};
+#endif
+
+/****************************************
+ * MOUNT POINTS END
+ ****************************************/
+
+
+/****************************************
+ * PROC START
+ ****************************************/
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0)
+struct proc_dir_entry {
+        unsigned int low_ino;
+        umode_t mode;
+        nlink_t nlink;
+        kuid_t uid;
+        kgid_t gid;
+        loff_t size;
+        const struct inode_operations *proc_iops;
+        const struct file_operations *proc_fops;
+        struct proc_dir_entry *next, *parent, *subdir;
+        void *data;
+        atomic_t count;         /* use count */
+        atomic_t in_use;        /* number of callers into module in progress; */
+                                /* negative -> it's going away RSN */
+        struct completion *pde_unload_completion;
+        struct list_head pde_openers;   /* who did ->open, but not ->release */
+        spinlock_t pde_unload_lock; /* proc_fops checks and pde_users bumps */
+        u8 namelen;
+        char name[];
+};
+#else
+/** Before 3.10, proc_dir_entry is defined in <linux/proc_fs.h> **/
+#endif
+/****************************************
+ * PROC END
+ ****************************************/

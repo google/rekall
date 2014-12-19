@@ -24,10 +24,11 @@
 """
 import bisect
 import logging
+import re
 
 from rekall import obj
+from rekall.plugins.linux import address_resolver
 from rekall.plugins.linux import common
-
 
 class Lsmod(common.LinuxPlugin):
     '''Gathers loaded kernel modules.'''
@@ -134,8 +135,8 @@ class Lsmod(common.LinuxPlugin):
     def _make_cache(self):
         # Add the kernel to the cache so we can dereference addresses in the
         # kernel.
-        kernel = KernelModule(self.session)
-        self.mod_lookup = {kernel.module_core.v(): kernel}
+        kernel = address_resolver.KernelModule(self.session)
+        self.mod_lookup = {int(kernel.module_core): kernel}
 
         for module in self.get_module_list():
             self.mod_lookup[int(module.module_core.deref())] = module
@@ -158,7 +159,7 @@ class Lsmod(common.LinuxPlugin):
 
         # Get the module.
         module = self.mod_lookup[self.modlist[pos]]
-        start = int(module.module_core.v())
+        start = int(module.module_core)
 
         if (addr >= start and
             addr < start + module.core_size):
@@ -230,13 +231,21 @@ class Moddump(common.LinuxPlugin):
         self.regexp = regexp
 
     def dump_module(self, module):
-        module_start = int(module.module_core.v())
+        module_start = int(module.module_core)
         return module.obj_vm.read(module_start, module.core_size)
 
     def render(self, renderer):
         lsmod_plugin = self.session.plugins.lsmod(session=self.session)
         for module in lsmod_plugin.get_module_list():
-            file_name = "{0}.{1:#x}.lkm".format(module.name, module.module_core)
+            if self.regexp:
+                if not module.name:
+                    continue
+
+                if not re.search(module.name, self.regexp):
+                    continue
+
+            file_name = "{0}.{1:#x}.lkm".format(module.name,
+                                                module.module_core)
             with renderer.open(directory=self.dump_dir,
                                filename=file_name,
                                mode="wb") as mod_file:

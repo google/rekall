@@ -396,50 +396,6 @@ windows_overlay = {
         'Tag': lambda x: str(x.PoolTag.cast("String", length=4)),
         }],
 
-    '_HEAP': [None, {
-        'Flags': [None, ['Flags', dict(
-            maskmap=dict(
-                NO_SERIALIZE=0x00000001L,
-                GROWABLE=0x00000002L,
-                GENERATE_EXCEPTIONS=0x00000004L,
-                ZERO_MEMORY=0x00000008L,
-                REALLOC_IN_PLACE_ONLY=0x00000010L,
-                TAIL_CHECKING_ENABLED=0x00000020L,
-                FREE_CHECKING_ENABLED=0x00000040L,
-                DISABLE_COALESCE_ON_FREE=0x00000080L,
-                CREATE_ALIGN_16=0x00010000L,
-                CREATE_ENABLE_TRACING=0x00020000L,
-                CREATE_ENABLE_EXECUTE=0x00040000L,
-                ),
-            target="unsigned long"
-            )]],
-        }],
-
-    '_HEAP_ENTRY': [None, {
-        'Flags': [None, ['Flags', dict(
-            maskmap=dict(
-                BUSY=0x01,
-                EXTRA_PRESENT=0x02,
-                FILL_PATTERN=0x04,
-                VIRTUAL_ALLOC=0x08,
-                LAST_ENTRY=0x10,
-                SETTABLE_FLAG1=0x20,
-                SETTABLE_FLAG2=0x40,
-                SETTABLE_FLAG3=0x80,
-                ),
-            target="unsigned char"
-            )]],
-
-
-        # Virtual field to provide a shortcut to the next entry.
-        'NextEntry': lambda x: x.cast(
-            "Pointer",
-            target="_HEAP_ENTRY",
-            value=(x.obj_offset +
-                   x.Size * x.obj_profile.get_obj_size("_HEAP_ENTRY")),
-            )
-        }],
-
     '_DISPATCHER_HEADER': [None, {
         "Type": [None, ["Enumeration", dict(
             choices=undocumented.ENUMS["_KOBJECTS"],
@@ -1279,44 +1235,6 @@ class VadTraverser(obj.Struct):
             yield c
 
 
-class _HEAP(obj.Struct):
-    """
-    Ref:
-    http://www.informit.com/articles/article.aspx?p=1081496
-    """
-
-    @property
-    def Segments(self):
-        """Returns an iterator over the segments."""
-        # Windows XP has an array of segments.
-        segment_array = self.m("Segments")
-        if segment_array:
-            for x in segment_array:
-                x = x.dereference()
-
-                # Since we operate in the process address space address 0 may be
-                # valid.
-                if not x:
-                    break
-
-                yield x
-
-            return
-
-        # Windows 7 has a linked list of segments.
-        for x in self.SegmentList.list_of_type(
-                "_HEAP_SEGMENT", "SegmentListEntry"):
-            yield x
-
-
-    @property
-    def Entries(self):
-        """Iterates over all the entries in all the segments."""
-        for segment in self.Segments:
-            for entry in segment.FirstEntry.walk_list("NextEntry", True):
-                yield entry
-
-
 class _KTIMER(obj.Struct):
     @property
     def Dpc(self):
@@ -1391,7 +1309,6 @@ def InitializeWindowsProfile(profile):
         '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
         "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
         "_SID": _SID,
-        "_HEAP": _HEAP,
         "_KTIMER": _KTIMER,
         "RVAPointer": pe_vtypes.RVAPointer,
         "SentinelArray": pe_vtypes.SentinelArray,

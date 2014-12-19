@@ -24,7 +24,7 @@ import logging
 from rekall import kb
 from rekall import utils
 from rekall import obj
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows.gui import constants
 from rekall.plugins.windows.gui.vtypes import xp
 
@@ -785,7 +785,7 @@ class Win32kPluginMixin(object):
             raise RuntimeError("Unable to load the profile for Win32k.sys")
 
 
-class Win32k(windows.BasicPEProfile):
+class Win32k(pe_vtypes.BasicPEProfile):
     """A profile for the Win32 GUI system."""
 
     guessed_types = False

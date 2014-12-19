@@ -1239,7 +1239,7 @@ class IDump(NTFSPlugins):
         super(IDump, cls).args(parser)
         parser.add_argument("mft", type="IntParser", default=5,
                             required=True,
-                            help="MFT entries to list.")
+                            help="MFT entry to dump.")
 
         parser.add_argument("type", type="IntParser", default=128,
                             required=False,
@@ -1254,6 +1254,7 @@ class IDump(NTFSPlugins):
         self.mft = int(mft)
         self.type = int(type)
         self.id = id
+        self.offset = 0
 
     def render(self, renderer):
         mft_entry = self.ntfs.mft[self.mft]
@@ -1261,8 +1262,10 @@ class IDump(NTFSPlugins):
         data = attribute.data
 
         if data:
-            dump_plugin = self.session.plugins.dump(address_space=data)
+            dump_plugin = self.session.plugins.dump(
+                offset=self.offset, address_space=data)
             dump_plugin.render(renderer)
+            self.offset = dump_plugin.offset
 
 
 class IExport(MFTPluginsMixin, core.DirectoryDumperMixin, NTFSPlugins):

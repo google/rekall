@@ -543,7 +543,7 @@ class Session(object):
         """
         kwargs = self._CorrectKWArgs(kwargs)
         output = kwargs.pop("output", None)
-        renderer = kwargs.pop("renderer", None)
+        ui_renderer = kwargs.pop("renderer", None)
 
         # Do we need to redirect output?
         if output is not None:
@@ -552,13 +552,13 @@ class Session(object):
                 old_output = self.GetParameter("output") or None
                 self.SetParameter("output", output)
                 try:
-                    return self._RunPlugin(plugin_obj, renderer=renderer,
+                    return self._RunPlugin(plugin_obj, renderer=ui_renderer,
                                            *pos_args, **kwargs)
                 finally:
                     self.SetParameter("output", old_output)
 
         else:
-            return self._RunPlugin(plugin_obj, renderer=renderer,
+            return self._RunPlugin(plugin_obj, renderer=ui_renderer,
                                    *pos_args, **kwargs)
 
     def _GetPluginObj(self, plugin_obj, *pos_args, **kwargs):
@@ -621,6 +621,9 @@ class Session(object):
                 pdb.post_mortem(sys.exc_info()[2])
 
             raise
+
+        finally:
+            ui_renderer.flush()
 
         return plugin_obj
 
@@ -832,7 +835,8 @@ class DynamicNameSpace(dict):
         if session is None:
             raise RuntimeError("Session must be given.")
 
-        self.help_profile = session.LoadProfile("help_doc")
+        self.help_profile = None
+        self.session = session
 
         super(DynamicNameSpace, self).__init__(
             session=session, plugins=session.plugins,
@@ -862,12 +866,24 @@ class DynamicNameSpace(dict):
 
             raise KeyError(item)
 
+    def get(self, item, default=None):
+        try:
+            return self[item]
+        except KeyError:
+            return default
+
     def _prepare_runner(self, name):
         """Prepare a runner to run the given plugin."""
-        default_args, doc = "", ""
-        if self.help_profile:
-            default_args = self.help_profile.ParametersForPlugin(name)
-            doc = self.help_profile.DocsForPlugin(name)
+        if self.help_profile is None:
+            self.help_profile = self.session.LoadProfile("help_doc")
+
+        doc = ""
+        plugin_cls = self.session.plugins.GetPluginClass(name)
+        if plugin_cls:
+            default_args, doc = "", ""
+            default_args = self.help_profile.ParametersForPlugin(
+                plugin_cls.__name__)
+            doc = self.help_profile.DocsForPlugin(plugin_cls.__name__)
 
         # Create a runner for this plugin and set its documentation.
         runner = obj.Curry(
@@ -888,7 +904,8 @@ class InteractiveSession(JsonSerializableSession):
     # A list of tuples (session_id, session) sorted by session id
     session_list = []
 
-    def __init__(self, env=None, use_config_file=True, session_name=None, **kwargs):
+    def __init__(self, env=None, use_config_file=True, session_name=None,
+                 **kwargs):
         """Creates an interactive session.
 
         Args:

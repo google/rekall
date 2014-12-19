@@ -30,6 +30,7 @@ import textwrap
 
 from rekall import addrspace
 from rekall import args
+from rekall import config
 from rekall import constants
 from rekall import registry
 from rekall import plugin
@@ -163,7 +164,7 @@ class Info(plugin.Command):
         if item is None:
             item = self.item
 
-        metadata = plugin.CommandMetadata(item)
+        metadata = config.CommandMetadata(item)
         for x, y in metadata.args.items():
             # Normalize the option name to use _.
             x = x.replace("-", "_")
@@ -601,6 +602,9 @@ class DirectoryDumperMixin(object):
         for offset, _, length in address_space.get_available_addresses(
                 start=start):
 
+            if start > offset:
+                continue
+
             if offset >= end:
                 break
 
@@ -771,8 +775,18 @@ class Dump(plugin.Command):
         parser.add_argument("-a", "--address_space", default=None,
                             help="The address space to use.")
 
-    def __init__(self, offset=0, address_space=None, width=16, rows=30,
-                 suppress_headers=False, **kwargs):
+        parser.add_argument("--data", default=None,
+                            help="Dump this string instead.")
+
+        parser.add_argument("--length", default=None, type="IntParser",
+                            help="Maximum length to dump.")
+
+        parser.add_argument("--suppress_headers", default=False, type="Boolean",
+                            help="Should headers be suppressed?.")
+
+
+    def __init__(self, offset=0, address_space=None, data=None, length=None,
+                 width=16, rows=30, suppress_headers=False, **kwargs):
         """Hexdump an object or memory location.
 
         You can use this plugin repeateadely to keep dumping more data using the
@@ -800,22 +814,43 @@ class Dump(plugin.Command):
           address_space: The address_space to dump from. If omitted we use the
             default address space.
 
+          data: If provided we dump the string provided in data rather than use
+            an address_space.
+
+          length: If provided we stop dumping at the specified length.
+
           width: How many Hex character per line.
 
           rows: How many rows to dump.
 
           suppress_headers: If set we do not write the headers.
+
         """
         super(Dump, self).__init__(**kwargs)
 
         # Allow offset to be symbol name.
         if isinstance(offset, basestring):
-            offset = self.session.address_resolver.get_address_by_name(offset)
+            self.offset = self.session.address_resolver.get_address_by_name(
+                offset)
 
-        self.offset = obj.Pointer.integer_to_address(offset)
+        elif isinstance(offset, obj.BaseObject):
+            self.offset = offset.obj_offset
+            address_space = offset.obj_vm
+            length = offset.obj_size
+        else:
+            self.offset = obj.Pointer.integer_to_address(offset)
+
+        self.length = length
         self.width = int(width)
         self.rows = int(rows)
         self.suppress_headers = suppress_headers
+
+        if data is not None:
+            address_space = addrspace.BufferAddressSpace(
+                data=data, session=self.session)
+
+            if self.length is None:
+                self.length = len(data)
 
         # Resolve the correct address space. This allows the address space to be
         # specified from the command line (e.g.
@@ -827,12 +862,17 @@ class Dump(plugin.Command):
             renderer.format("Error: {0}\n", self.offset.reason)
             return
 
+        to_read = min(self.width * self.rows,
+                      self.address_space.end() - self.offset)
+        if self.length is not None:
+            to_read = min(to_read, self.length)
+
         # Dump some data from the address space.
-        data = self.address_space.read(self.offset, self.width * self.rows)
+        data = self.address_space.read(self.offset, to_read)
 
         renderer.table_header([("Offset", "offset", "[addr]"),
-                               ("Hex", "hex", "^" + str(3 * self.width)),
-                               ("Data", "data", "^" + str(self.width)),
+                               ("Hex", "hex", str(3 * self.width)),
+                               ("Data", "data", str(self.width)),
                                ("Comment", "comment", "40")],
                               suppress_headers=self.suppress_headers)
 
@@ -873,7 +913,7 @@ class Grep(plugin.Command):
         parser.add_argument("--limit", default=1024*1024,
                             help="The length of data to search.")
 
-    def __init__(self, address_space=None, offset=0, keyword=None, context=20,
+    def __init__(self, offset=0, keyword=None, context=20, address_space=None,
                  limit=1024 * 1024, **kwargs):
         """Search an address space for keywords.
 

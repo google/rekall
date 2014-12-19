@@ -68,6 +68,7 @@ StyleEnum = utils.AttributeDict(
     value="value",
     compact="compact",
     full="full",
+    hexdump="hexdump",
     cow="cow")
 
 
@@ -607,6 +608,16 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
 
         cell = method(target, **options)
         return cell
+
+    def render_hexdump(self, target, hex_width=8, **_):
+        data = str(target)
+        hexcell = Cell(width=hex_width * 3)
+        datacell = Cell(width=hex_width)
+        for _, hexdata, translated_data in utils.Hexdump(data, width=hex_width):
+            hexcell.append_line(hexdata)
+            datacell.append_line("".join(translated_data))
+
+        return NestedCell(hexcell, datacell)
 
     def render_cow(self, *_, **__):
         """Renders a proud Swiss cow."""
