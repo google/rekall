@@ -45,6 +45,7 @@ import os
 import traceback
 import multiprocessing
 
+from rekall import config
 from rekall import interactive
 from rekall import plugin
 from rekall import utils
@@ -84,6 +85,7 @@ PDB_TO_SYS = {
     "tcpip.pdb": "tcpip",
     "tcpip6.pdb": "tcpip",
     "tcpipreg.pdb": "tcpip",
+    "ntdll.pdb": "ntdll",
     }
 
 FILENAMES_TO_TRY = [
@@ -95,6 +97,7 @@ FILENAMES_TO_TRY = [
     "tcpip.pdb",
     "tcpipreg.pdb",
     "win32k.pdb",
+    "ntdll.pdb",
     ]
 
 
@@ -141,13 +144,14 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
             continue
 
         try:
-          guid, pdb_filename = line.split(" ", 2)
-          # We dont care about this pdb.
-          if pdb_filename not in PDB_TO_SYS:
-            continue
+            guid, pdb_filename = line.split(" ", 2)
+
+            # We dont care about this pdb.
+            if pdb_filename not in PDB_TO_SYS:
+                continue
 
         except ValueError:
-          guid, pdb_filename = line, None
+            guid, pdb_filename = line, None
 
         # Fetch the pdb from the MS symbol server.
         pdb_path = os.path.join("src", "pdb")
@@ -213,7 +217,7 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
     if unsuccessful:
         print "Unable to download pdbs for:"
         for guid in sorted(unsuccessful):
-          print guid
+            print guid
 
     return changed_files
 
@@ -243,7 +247,7 @@ def RebuildHelp():
         doc = utils.SmartUnicode(info_plugin)
         help_dict[cls.__name__] = [default_args, doc]
 
-        command_metadata = plugin.CommandMetadata(cls)
+        command_metadata = config.CommandMetadata(cls)
         plugin_metadata[cls.__name__] = command_metadata.Metadata()
 
     with gzip.GzipFile(filename="help_doc.gz", mode="wb") as outfd:

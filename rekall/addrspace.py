@@ -555,7 +555,6 @@ class MultiRunBasedAddressSpace(PagedReader):
             yield run_start, file_address, length, _as
 
 
-
 class Error(Exception):
     """Address space errors."""
 

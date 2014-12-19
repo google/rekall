@@ -72,11 +72,12 @@ def RekallCompleter(self, text):
 
             # Get the object and ask it about the list of default args.
             obj = self.namespace.get(global_matches.pop())
-            try:
-                matches = ["%s=" % x for x in obj.get_default_arguments()]
-                return [x for x in matches if x.startswith(text)]
-            except Exception:
-                pass
+            if obj:
+                try:
+                    matches = ["%s=" % x for x in obj.get_default_arguments()]
+                    return [x for x in matches if x.startswith(text)]
+                except Exception:
+                    pass
 
         return []
 

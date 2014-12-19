@@ -22,7 +22,7 @@ from rekall import kb
 from rekall import obj
 from rekall import type_generator
 from rekall import utils
-from rekall.plugins.overlays.windows import windows
+from rekall.plugins.overlays.windows import pe_vtypes
 
 
 AF_INET = 2
@@ -581,7 +581,7 @@ class TcpipPluginMixin(object):
             raise RuntimeError("Unable to load the profile for tcpip.sys")
 
 
-class Tcpip(windows.BasicPEProfile):
+class Tcpip(pe_vtypes.BasicPEProfile):
     """A profile for the TCPIP driver."""
 
     @classmethod

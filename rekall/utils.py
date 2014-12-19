@@ -419,17 +419,17 @@ class FileLock(object):
 class AttributedString(object):
     """This is just a container for a string and some metadata."""
     highlights = None
-    
+
     def __init__(self, value, highlights=None):
         self.highlights = highlights
         self.value = unicode(value)
-    
+
     def __unicode__(self):
         return self.value
-    
+
     def __str__(self):
         return str(self.value)
-    
+
     def __repr__(self):
         return "AttributedString(%s, highlights=%s)" % (repr(self.value),
                                                         repr(self.highlights))
@@ -860,3 +860,8 @@ def issubclass(obj, cls):    # pylint: disable=redefined-builtin
       True if obj is a subclass of cls and False otherwise.
     """
     return isinstance(obj, type) and __builtin__.issubclass(obj, cls)
+
+
+def XOR(string1, string2):
+    """Returns string1 xor string2."""
+    return "".join(chr(ord(x) ^ ord(y)) for x, y in zip(string1, string2))

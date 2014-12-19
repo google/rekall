@@ -44,8 +44,8 @@ class AddressResolverMixin(object):
 
         r"((?P<address>0x[0-9A-Fa-f]+)|" # Alternative - Either an address, or,
 
-        r"(?P<module>[A-Za-z_0-9\.]+)"  # Module name - can include extension
-                                        # (.exe, .sys)
+        r"(?P<module>[A-Za-z_0-9\.\\]+)" # Module name - can include extension
+                                         # (.exe, .sys)
 
         r"!?"                           # ! separates module name from symbol
                                         # name.
@@ -126,6 +126,13 @@ class AddressResolverMixin(object):
 
         return obj.NoneObject("Profile for name %s unknown.", name, log=True)
 
+    def _resolve_module_base_address(self, name):
+        module = self.modules_by_name.get(name)
+        if module is None:
+            return obj.NoneObject("No module %s" % name, log=True)
+
+        return module.base
+
     def get_address_by_name(self, name):
         self._EnsureInitialized()
 
@@ -138,23 +145,24 @@ class AddressResolverMixin(object):
             raise TypeError("Name should be a string.")
 
         components = self._ParseAddress(name)
+        module_name = components["module"]
+
         address = components["address"]
         if address:
             address = int(address, 0)
 
         # User did not specify an address
         if address is None:
-            module = self.modules_by_name.get(components["module"])
-            if module is None:
-                return obj.NoneObject("No module %s" % name, log=True)
-
             # Found the module we use its base address
-            address = module.base
+            address = self._resolve_module_base_address(module_name)
+            if address == None:
+                return obj.NoneObject(
+                    "No module %s found" % module_name, log=True)
 
         # Search for a symbol in the module.
         if components["symbol"]:
             # Get the profile for this module.
-            module_profile = self.LoadProfileForName(module.name)
+            module_profile = self.LoadProfileForName(module_name)
             if module_profile:
                 address = module_profile.get_constant(
                     components["symbol"], True)

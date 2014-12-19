@@ -232,7 +232,7 @@ class Flags(obj.NativeType):
         flags = []
         length = 0
         value = self.v()
-        
+
         for k, v in sorted(self.maskmap.items()):
             if value & v:
                 length += len(k)
@@ -241,7 +241,7 @@ class Flags(obj.NativeType):
                     break
 
                 flags.append(k)
-        
+
         return "%s (%s)" % (super(Flags, self).__repr__(), ", ".join(flags))
 
     def write(self, data):
@@ -673,7 +673,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         elif self.mode == "AMD64":
             self.distorm_mode = distorm3.Decode64Bits
         else:
-	    self.distorm_mode = None
+            self.distorm_mode = None
 
         self.decompose_cache = []
 
@@ -738,12 +738,12 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
 
             if self.mode == 'I386':
                 if (self._call_or_unc_jmp(op) and
-                    op.operands[0].type == 'AbsoluteMemoryAddress'):
+                        op.operands[0].type == 'AbsoluteMemoryAddress'):
                     iat_loc = (op.operands[0].disp & 0xffffffff)
             else:
                 if (self._call_or_unc_jmp(op) and
-                    'FLAG_RIP_RELATIVE' in op.flags and
-                    op.operands[0].type == 'AbsoluteMemory'):
+                        'FLAG_RIP_RELATIVE' in op.flags and
+                        op.operands[0].type == 'AbsoluteMemory'):
                     iat_loc = op.address + op.size + op.operands[0].disp
 
             if iat_loc:
@@ -767,7 +767,7 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
           size: Stop after decoding this much data. If specified we ignore
             the instructions parameter.
         """
-        if self.distorm_mode :
+        if self.distorm_mode:
             if len(self.decompose_cache) < instructions:
                 self.decompose_cache = list(self._Decompose(
                     instructions=instructions, size=size))

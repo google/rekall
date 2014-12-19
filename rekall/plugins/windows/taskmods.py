@@ -109,7 +109,8 @@ class WinDllList(common.WinProcessFilter):
                                        ("Size", "module_size", "[addr]"),
                                        ("Load Reason/Count", "reason", "30"),
                                        ("Path", "loaded_dll_path", ""),
-                                       ])
+                                      ])
+
                 for m in task.get_load_modules():
                     renderer.table_row(m.DllBase, m.SizeOfImage,
                                        m.LoadReason, m.FullDllName)

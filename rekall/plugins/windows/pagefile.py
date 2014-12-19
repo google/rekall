@@ -211,7 +211,7 @@ class WindowsPagedMemoryMixin(object):
 
             # Only yield valid physical addresses. This will skip DemandZero
             # pages and File mappings into the filesystem.
-            if phys_addr is not None:
+            if phys_addr != None:
                 yield (vaddr, phys_addr, 0x1000)
 
     def get_phys_addr(self, virtual_address, pte_value):

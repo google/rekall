@@ -441,8 +441,9 @@ class BaseObject(object):
         # Allow the caller to also change the offset, overriding the current
         # object.
         offset = kwargs.pop("offset", self.obj_offset)
+        profile_obj = kwargs.pop("profile", self.obj_profile)
 
-        return self.obj_profile.Object(
+        return profile_obj.Object(
             type_name=type_name or self.obj_type, offset=offset,
             vm=vm or self.obj_vm, parent=self.obj_parent,
             context=self.obj_context, **kwargs)

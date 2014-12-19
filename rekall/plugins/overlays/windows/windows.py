@@ -21,11 +21,12 @@
 
 # pylint: disable=protected-access
 
-import re
 from rekall import obj
 
-from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import common
+from rekall.plugins.overlays.windows import heap
+from rekall.plugins.overlays.windows import pe_vtypes
+
 from rekall.plugins.overlays.windows import xp
 from rekall.plugins.overlays.windows import vista
 from rekall.plugins.overlays.windows import win7
@@ -34,188 +35,8 @@ from rekall.plugins.overlays.windows import crashdump
 from rekall.plugins.overlays.windows import undocumented
 
 
-class RelativeOffsetMixin(object):
-    """A mixin which shifts all constant addresses by a constant."""
 
-    # This should be adjusted to the correct image base.
-    def GetImageBase(self):
-        return 0
-
-    def get_constant(self, name, is_address=False):
-        """Gets the constant from the profile.
-
-        The windows profile specify addresses relative to the kernel image base.
-        """
-        base_constant = super(RelativeOffsetMixin, self).get_constant(name)
-        if is_address and isinstance(base_constant, (int, long)):
-            return base_constant + self.GetImageBase()
-
-        return base_constant
-
-    def add_constants(self, relative_to_image_base=True, **kwargs):
-        """Add new constants to this profile.
-
-        Args:
-
-          - relative_to_image_base: If True, the constants are specified
-            relative to the image base. Otherwise constants are absolute
-            addresses.
-        """
-        for k, v in kwargs.items():
-            if not relative_to_image_base:
-                kwargs[k] = (v) - self.GetImageBase()
-
-        super(RelativeOffsetMixin, self).add_constants(**kwargs)
-
-    def get_nearest_constant_by_address(self, address, below=True):
-        if address < self.GetImageBase():
-            return 0, ""
-
-        try:
-            offset, name = super(
-                RelativeOffsetMixin, self).get_nearest_constant_by_address(
-                    address - self.GetImageBase(), below=below)
-
-            return offset + self.GetImageBase(), name
-        except ValueError:
-            return self.GetImageBase(), "image_base"
-
-
-class Demangler(object):
-    """A utility class to demangle VC++ names.
-
-    This is not a complete or accurate demangler, it simply extract the name and
-    strips out args etc.
-
-    Ref:
-    http://www.kegel.com/mangle.html
-    """
-    STRING_MANGLE_MAP = {
-        "^0": ",",
-        "^2": r"\\",
-        "^4": ".",
-        "^3": ":",
-        "^5": "_",  # Really space.
-        "^6": ".",  # Really \n.
-        r"\$AA": "",
-        r"\$AN": "", # Really \r.
-        r"\$CF": "%",
-        r"\$EA": "@",
-        r"\$CD": "#",
-        r"\$CG": "&",
-        r"\$HO": "~",
-        r"\$CI": "(",
-        r"\$CJ": ")",
-        r"\$DM1": "</",
-        r"\$DMO": ">",
-        r"\$DN": "=",
-        r"\$CK": "*",
-        r"\$CB": "!",
-
-        }
-
-    def __init__(self, metadata):
-        self._metadata = metadata
-
-    def _UnpackMangledString(self, string):
-        string = string.split("@")[3]
-
-        result = []
-        for cap in string.split("?"):
-            for k, v in self.STRING_MANGLE_MAP.items():
-                cap = re.sub(k, v, cap)
-
-            result.append(cap)
-
-        return "str:" + "".join(result).strip()
-
-    SIMPLE_X86_CALL = re.compile(r"[_@]([A-Za-z0-9_]+)@(\d{1,3})$")
-    FUNCTION_NAME_RE = re.compile(r"\?([A-Za-z0-9_]+)@")
-    def DemangleName(self, mangled_name):
-        """Returns the de-mangled name.
-
-        At this stage we don't really do proper demangling since we usually dont
-        care about the prototype, nor c++ exports. In the future we should
-        though.
-        """
-        m = self.SIMPLE_X86_CALL.match(mangled_name)
-        if m:
-            # If we see x86 name mangling (_cdecl, __stdcall) with stack sizes
-            # of 4 bytes, this is definitely a 32 bit pdb. Sometimes we dont
-            # know the architecture of the pdb file for example if we do not
-            # have the original binary, but only the GUID as extracted by
-            # version_scan.
-            if m.group(2) in ["4", "12"]:
-                self._metadata.setdefault("arch", "I386")
-
-            return m.group(1)
-
-        m = self.FUNCTION_NAME_RE.match(mangled_name)
-        if m:
-            return m.group(1)
-
-        # Strip the first _ from the name. I386 mangled constants have a
-        # leading _ but their AMD64 counterparts do not.
-        if mangled_name.startswith("_"):
-            mangled_name = mangled_name[1:]
-
-        elif mangled_name.startswith("??_C@"):
-            return self._UnpackMangledString(mangled_name)
-
-        return mangled_name
-
-
-class BasicPEProfile(RelativeOffsetMixin, basic.BasicClasses):
-    """A basic profile for a pe image.
-
-    This profile deals with Microsoft Oddities like name mangling, and
-    correcting global offsets to the base image address.
-    """
-
-    image_base = 0
-
-    METADATA = dict(os="windows")
-
-    def GetImageBase(self):
-        return self.image_base
-
-    def add_constants(self, **kwargs):
-        """Add the demangled constants.
-
-        This allows us to handle 32 bit vs 64 bit constant names easily since
-        the mangling rules are different.
-        """
-        demangler = Demangler(self._metadata)
-        result = {}
-        for k, v in kwargs.iteritems():
-            result[demangler.DemangleName(k)] = v
-
-        super(BasicPEProfile, self).add_constants(**result)
-
-    def copy(self):
-        result = super(BasicPEProfile, self).copy()
-        result.image_base = self.image_base
-        return result
-
-    @classmethod
-    def Initialize(cls, profile):
-        super(BasicPEProfile, cls).Initialize(profile)
-
-        # If the architecture is not added yet default to 64 bit. NOTE that with
-        # PE Profiles we normally guess the architecture based on the name
-        # mangling conventions.
-        if profile.metadata("arch") is None:
-            profile.set_metadata("arch", "AMD64")
-
-        # Add the basic compiler model for windows.
-        if profile.metadata("arch") == "AMD64":
-            basic.ProfileLLP64.Initialize(profile)
-
-        elif profile.metadata("arch") == "I386":
-            basic.Profile32Bits.Initialize(profile)
-
-
-class Ntoskrnl(BasicPEProfile):
+class Ntoskrnl(pe_vtypes.BasicPEProfile):
     """A profile for Windows."""
 
     @classmethod
@@ -284,6 +105,8 @@ class Ntoskrnl(BasicPEProfile):
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)
         crashdump.InstallKDDebuggerProfile(profile)
+
+        heap.InitializeHeapProfile(profile)
 
         # Get the windows version of this profile.
         version = cls.GuessVersion(profile)
