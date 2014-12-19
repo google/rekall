@@ -100,6 +100,37 @@ ript>
   <div class="col-md-8">
     
   <ul class="nav nav-stacked">
+     <h2>The Windows User mode heap.</h2>
+     <h4>2014-12-20 Michael Cohen <scudette@google.com></h4>
+     
+Memory analysis has come a long way in the last few years. There has been a
+large focus on analyzing popular operating system kernels such as Windows,
+Linux and OSX. We have been able to reconstruct important system information,
+such as processes, threads, mutexes etc. However, progress has been slower with
+analysis of applications.
+
+Some applications contain a wealth of forensically relevant information, such
+as recent URLs visited, encryption keys etc. Analyzing applications, however,
+is difficult because most of the time these are not documented, and debugging
+symbols are not available or incomplete.
+
+Virtually all applications use the heap to allocate memory (e.g. using
+malloc()/free()). Typically applications request the exact size they need from
+the heap allocator to accommodate the intended purpose of the memory. By
+enumerating all heap allocations we can sometimes get a good idea of their
+purpose. Unlike scanning techniques, heap enumeration allows us to see the
+memory layouts of structs at the application intends (i.e. we know where the
+structs begins in memory and how large it is).
+
+This blog post explains how heap enumeration techniques work and how to apply
+these to reverse some forensically important artifacts - namely recovering the
+windows DNS resolver cache.
+
+     <p>
+     <a href="/posts/2014-12-20-usermode-heap.html">Read Post</a>
+     </p>
+  </ul>
+  <ul class="nav nav-stacked">
      <h2>Windows Virtual Address Translation and the Pagefile.</h2>
      <h4>2014-10-25 Michael Cohen <scudette@gmail.com></h4>
      

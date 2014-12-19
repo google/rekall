@@ -378,7 +378,8 @@ ript>
 a direct mapping between the kernel virtual address space and the physical
 memory.  This is the difference between the virtual and physical addresses
 (aka PAGE_OFFSET). This is defined by the __va macro:</p>
-<pre class="highlight"><code>#define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))</code></pre>
+<div class="highlight"><pre>#define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
+</pre></div>
 
 
 <p>This one plugin handles both 32 and 64 bits.</p>

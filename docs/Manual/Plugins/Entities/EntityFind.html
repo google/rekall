@@ -218,27 +218,28 @@ ript>
 
 <div class="abstract">
 <p>Runs the query and displays results. Base class for saved searches.</p>
-<pre class="highlight"><code>This class is designed to be subclasses by saved searches. Subclasses may
+<div class="highlight"><pre>This class is designed to be subclasses by saved searches. Subclasses may
 override the defaults for the following properties:
 
---query, search: The query that'll be run.
-(--)display_filter: Another query that'll be used to filter out unwanted
+--query, search: The query that&#39;ll be run.
+(--)display_filter: Another query that&#39;ll be used to filter out unwanted
                     results.
 (--)columns: A list of attributes to render in the output. Format as
              &quot;Component/attribute&quot;.
 (--)sort: A list of columns to sort by. Sort is currently ASC. Same format
           as above.
 (--)width: Width of the rendered table.
-(--)stream_results: If on, will render results as soon as they're available.
+(--)stream_results: If on, will render results as soon as they&#39;re available.
                     This typically means the results will be incomplete. It
                     is probably pointless to use this in combination with
-                    'sort' but no one will stop you.
+                    &#39;sort&#39; but no one will stop you.
 
 Further arguments that can be supplied at runtime:
 
 --explain: If set, an analysis of the query will be rendered and each
            row in results will include a highlight of the part of the query
-           that matched it (obviously a heuristic, your mileage may vary).</code></pre>
+           that matched it (obviously a heuristic, your mileage may vary).
+</pre></div>
 </div>
 
 
