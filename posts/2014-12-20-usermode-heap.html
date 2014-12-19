@@ -1,0 +1,1337 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
+       <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+         </ul>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
+           </div>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
+   </nav>
+
+<div class="container-fluid">
+<div class="row">
+  <div class="col-md-2">
+    
+  </div>
+
+  <div class="col-md-8">
+    
+<div id="header">
+<h1>The Windows User mode heap and the DNS resolver cache.</h1>
+<span id="author">Michael Cohen</span><br />
+<span id="email"><code>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</code></span><br />
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>Memory analysis has come a long way in the last few years. There has been a
+large focus on analysing popular operating system kernels such as Windows,
+Linux and OSX. We have been able to reconstruct important system information,
+such as processes, threads, mutexes etc. However, progress has been slower with
+analysis of applications.</p></div>
+<div class="paragraph"><p>Some applications contain a wealth of forensically relevant information, such
+as recent URLs visited, encryption keys etc. Analyzing applications, however,
+is difficult because most of the time these are not documented, and debugging
+symbols are not available or incomplete.</p></div>
+<div class="paragraph"><p>Virtually all applications use the heap to allocate memory (e.g. using
+malloc()/free()). Typically applications request the exact size they need from
+the heap allocator to accommodate the intended purpose of the memory. By
+enumerating all heap allocations we can sometimes get a good idea of their
+purpose. Unlike scanning techniques, heap enumeration allows us to see the
+memory layouts of structs at the application intends (i.e. we know where the
+structs begins in memory and how large it is).</p></div>
+<div class="paragraph"><p>This blog post explains Rekall&#8217;s new heap inspection plugin. In particular I
+wanted to demonstrate how heap inspection can be used to help reverse engineer
+some important application, such as the DNS resolver cache. In windows, DNS
+requests are typically cached by the DNS resolver service (which is running
+inside one of the <code>svchost.exe</code> processes). This information is very important
+from an incident response perspective since it can reveal recently accesses
+command and control (C&amp;C) connections. However, the DNS resolver is a largely
+undocumented application, making it an excellent demonstration for heap based
+analysis.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_what_is_a_heap">1. What is a heap?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The kernel provides a single mechanism for an application to allocate memory -
+<code>VirtualAlloc</code>. By calling <code>VirtualAlloc</code>, the process is able to map new pages
+into its address space. The kernel will set up additional VAD regions and
+manipulate page tables to ensure this new region may be mapped by physical
+memory so that the application can use the memory as it pleases.</p></div>
+<div class="paragraph"><p>However, in practice, most applications do not need to allocate page sized
+memory (4kb), rather they need to rapidly allocate and free small allocations
+(e.g. 20 bytes) to store structs, strings etc. VirtualAlloc is kind of a
+sledgehammer - its quite slow since it needs to set up page tables, flush TLB
+etc.</p></div>
+<div class="paragraph"><p>Therefore the application uses a <code>heap</code> library. The library is a set of
+routines in the user process which divides up the large page-sized allocation
+the kernel can provide into manageable, small allocations the application
+needs. From the kernel&#8217;s point of view, the heap area is a contiguous region of
+process pages (marked with a VAD). But from the application&#8217;s point of view the
+heap represents a set of arbitrarily sized allocations (obtained via
+e.g. malloc()).</p></div>
+<div class="paragraph"><p>In the following discussion I examine how the heap looks like in a real
+process. In order to test this I wrote a quick c program which uses malloc() to
+allocate known strings:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">"Windows.h"</span>
+
+<span style="color: #009900">int</span> <span style="font-weight: bold"><span style="color: #000000">_tmain</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> argc<span style="color: #990000">,</span> _TCHAR<span style="color: #990000">*</span> argv<span style="color: #990000">[])</span>
+<span style="color: #FF0000">{</span>
+  <span style="color: #009900">int</span> i<span style="color: #990000">;</span>
+  <span style="color: #009900">char</span> pattern<span style="color: #990000">[]</span> <span style="color: #990000">=</span> <span style="color: #990000">(</span>
+     <span style="color: #FF0000">" "</span> <span style="font-style: italic"><span style="color: #9A1900">// First byte for the size of allocation.</span></span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
+     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span><span style="color: #990000">);</span>
+
+  <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>i<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span> i<span style="color: #990000">&lt;</span><span style="color: #993399">255</span><span style="color: #990000">;</span> i<span style="color: #990000">++)</span> <span style="color: #FF0000">{</span>
+    <span style="color: #009900">char</span> <span style="color: #990000">*</span>buff <span style="color: #990000">=</span> <span style="color: #990000">(</span><span style="color: #009900">char</span> <span style="color: #990000">*)</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span>i<span style="color: #990000">+</span><span style="color: #993399">1</span><span style="color: #990000">);</span>
+    <span style="font-weight: bold"><span style="color: #000000">memcpy</span></span><span style="color: #990000">(</span>buff<span style="color: #990000">,</span> pattern<span style="color: #990000">,</span> i<span style="color: #990000">);</span>
+    buff<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> i<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">// Mark the size of allocation in the first byte.</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">((</span>i <span style="color: #990000">%</span> <span style="color: #993399">3</span><span style="color: #990000">)</span> <span style="color: #990000">==</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
+      <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>buff<span style="color: #990000">);</span>
+    <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+  <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
+
+  <span style="font-weight: bold"><span style="color: #000000">Sleep</span></span><span style="color: #990000">(</span><span style="color: #993399">100000</span><span style="color: #990000">);</span>
+  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
+<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="paragraph"><p>This program simply allocates a string of increasing length and marks the length
+of the string in the first byte. The program also frees every third
+string. Finally the program simply sleeps, allowing us to either examine the
+live system memory, or acquire a memory image capturing the process memory. I
+just ran the <code>ewfacquire</code> plugin to write an EWF format image called
+<code>output.E01</code> from within the Rekall interactive shell.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Note" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">
+<div class="paragraph"><p>When compiling the test program one should select the <code>Release</code> mode rather than
+the <code>Debug</code> mode. Compiling in Debug mode creates different heap structures
+which are larger and contain a lot of debugging information. It might be useful
+for Rekall to also support debugging heaps but currently we only support release
+heaps.</p></div>
+</td>
+</tr></table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_windows_heap_implementation">2. The windows HEAP implementation.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Implementing an efficient heap is actually a very complex task, since it needs
+to be very fast, use memory efficiently, and reduce memory
+fragmentation. Additionally heaps need to defend themselves from exploitation by
+being resilient to heap overflows. The Microsoft default heap implementation is
+implemented in <code>ntdll.dll</code> and is therefore available by default in all
+processes. Although it is possible for an application to use a different
+heap implementation, this is rarely done - most applications use the standard
+heap library.</p></div>
+<div class="paragraph"><p>The Microsoft heap has been studied extensively by the security community. The
+seminal references are:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+<a href="http://illmatics.com/Understanding_the_LFH.pdf">Understanding the LFH</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://illmatics.com/Windows%208%20Heap%20Internals.pdf">Windows 8 Heap Internals</a>
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redux/">Understanding the Windows Allocator: A Redux</a>
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>These documents are very detailed and cover the heap operation algorithms with a
+general focus on exploitation. For our purposes, the information is too
+detailed, since we are only interested in enumerating all heap allocations and
+care less about how the heap actually works. I will therefore explain at a high
+level how the heap looks in memory and skip all the gory details of how the heap
+actually works.</p></div>
+<div class="paragraph"><p>The Microsoft heap implementation is divided into two parts - the Front End
+Allocator and the Back End Allocator. The Back End allocator is the one which
+actually requests memory from the kernel, managing relatively large blocks of
+memory. The Front End allocator is a fine grained allocator which further
+divides large memory regions (obtained from the backend allocator) into
+efficiently managed small allocations. In Windows 7 there is only one type of
+front end allocator named the <code>Low Fragmentation Heap (LFH)</code>.</p></div>
+<div class="paragraph"><p>Another important point to make is that a single process may have multiple heaps
+for different purposes. This helps to keep related data together. We can see all
+the heaps that a process contains by examining the <code>_EPROCESS.Peb.ProcessHeaps</code>
+array in the Rekall interactive shell:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 09:37:11&gt; pslist proc_regex="heap"
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xfa8002c04060 heap.exe              2628   2956      1        7      1 False  2014-12-16 10:25:29+0000 -
+[1] output.E01 09:47:37&gt; task = session.profile._EPROCESS(0xfa8002c04060)
+[1] output.E01 09:48:06&gt; for heap in task.Peb.ProcessHeaps: print repr(heap)
+&lt;_HEAP Pointer to [0x00060000] (ProcessHeaps[0] )&gt;
+&lt;_HEAP Pointer to [0x00010000] (ProcessHeaps[1] )&gt;
+&lt;_HEAP Pointer to [0x00020000] (ProcessHeaps[2] )&gt;
+&lt;_HEAP Pointer to [0x003C0000] (ProcessHeaps[3] )&gt;</code></pre>
+</div></div>
+<div class="paragraph"><p>So there are 4 process heaps in this process. Note that each of these heaps
+exists in a VAD region:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 09:51:48&gt; vad pid=2628
+**************************************************
+Pid: 2628 heap.exe
+     VAD       lev   Start Addr      End Addr    com  ------- ------       Protect        Filename
+-------------- --- -------------- -------------- ----                -------------------- --------
+0xfa8002eec850   1 0x000000210000 0x00000030ffff    5 Private        READWRITE
+0xfa8001e30ed0   2 0x000000050000 0x000000050fff    1 Private        READWRITE
+0xfa8000df2ba0   3 0x000000030000 0x000000033fff    0 Mapped         READONLY
+0xfa8001754a10   4 0x000000010000 0x00000001ffff    0 Mapped         READWRITE            &lt;----- Heap
+0xfa8001c0e480   5 0x000000020000 0x00000002ffff    0 Mapped         READWRITE            &lt;----- Heap
+0xfa8000e83230   4 0x000000040000 0x000000040fff    0 Mapped         READONLY
+0xfa80010d7c00   3 0x000000060000 0x00000015ffff   25 Private        READWRITE            &lt;----- Heap
+0xfa8002acd1b0   4 0x000000160000 0x0000001c6fff    0 Mapped         READONLY             \Windows\System32\locale.nls
+0xfa8000e12990   2 0x00007ffe0000 0x00007ffeffff   -1 Private        READONLY
+0xfa8002ec2ad0   3 0x000076fc0000 0x000077168fff   12 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\System32\ntdll.dll
+0xfa8001645580   4 0x00006da20000 0x00006daf1fff   10 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\System32\msvcr100.dll
+0xfa8000df4e60   5 0x0000003c0000 0x0000003cffff   16 Private        READWRITE            &lt;----- Heap
+0xfa8002e460d0   6 0x0000003d0000 0x0000004cffff   17 Private        READWRITE
+0xfa8001bbc680   5 0x000076ea0000 0x000076fbefff    4 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\System32\kernel32.dll
+0xfa8001737160   4 0x00007f0e0000 0x00007ffdffff    0 Private        READONLY
+0xfa8001dee1b0   5 0x00007efe0000 0x00007f0dffff    0 Mapped         READONLY
+0xfa8002ec2d60   3 0x07fffffb0000 0x07fffffd2fff    0 Mapped         READONLY
+0xfa80010d06d0   4 0x07fefcdf0000 0x07fefce5bfff    3 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\System32\KernelBase.dll
+0xfa8002e1f8d0   5 0x00013f350000 0x00013f356fff    2 Mapped  Exe    EXECUTE_WRITECOPY    \Users\mic\Documents\Visual Studio 2010\Projects\heap\x64\Release\heap.exe
+0xfa8000e39010   5 0x07feff2e0000 0x07feff2e0fff    0 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\System32\apisetschema.dll
+0xfa80011eb200   4 0x07fffffdd000 0x07fffffddfff    1 Private        READWRITE
+0xfa800148da10   5 0x07fffffde000 0x07fffffdffff    2 Private        READWRITE</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_the_back_end_allocator">2.1. The Back End allocator.</h3>
+<div class="paragraph"><p>The Back End allocator uses <code>VirtualAlloc</code> system calls to carve out large
+regions of contiguous memory. The memory is divided into regions called
+<code>Segments</code>. Each segment has a <code>_HEAP_SEGMENT</code> struct at its start. Segments
+form a linked list headed at the <code>_HEAP.SegmentListEntry</code> (Note that <code>_HEAP</code> is
+also a <code>_HEAP_SEGMENT</code> and therefore the first segment is the <code>_HEAP</code> struct
+itself).</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 10:02:20&gt; for seg in heap.SegmentListEntry.list_of_type("_HEAP_SEGMENT", "SegmentListEntry"):
+                    |..&gt;     print repr(seg)
+[_HEAP_SEGMENT _HEAP_SEGMENT] @ 0x003D0000
+[_HEAP_SEGMENT _HEAP_SEGMENT] @ 0x003C0110</code></pre>
+</div></div>
+<div class="paragraph"><p>The Back End allocator further subdivides the Segments into smaller allocations
+to service user (and Front End) requests. Each of these user allocations is
+preceded with a <code>_HEAP_ENTRY</code> struct. On 64 bits Windows 7 this is:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 10:10:07&gt; dt "_HEAP_ENTRY"
+[_HEAP_ENTRY _HEAP_ENTRY] @ 0x000000
+Offset                           Field              Content
+-------------------- ------------------------------ -------
+             0x0     PreviousBlockPrivateData       &lt;Void Pointer to [0x00000000] (PreviousBlockPrivateData)&gt;
+             0x0     Reserved                       &lt;Void Pointer to [0x00000000] (Reserved)&gt;
+             0x0     ReservedForAlignment           &lt;Void Pointer to [0x00000000] (ReservedForAlignment)&gt;
+             0x8     AgregateCode                    [unsigned long long:AgregateCode]: 0x00000000
+             0x8     Code1                           [unsigned long:Code1]: 0x00000000
+             0x8     CompactHeader                   [unsigned long long:CompactHeader]: 0x00000000
+             0x8     FunctionIndex                   [unsigned short:FunctionIndex]: 0x00000000
+             0x8     InterceptorValue                [unsigned long:InterceptorValue]: 0x00000000
+             0x8     Size                            [unsigned short:Size]: 0x00000000
+             0xa     ContextValue                    [unsigned short:ContextValue]: 0x00000000
+             0xa     Flags                           [Flags:Flags]: 0x00000000 ()
+             0xb     SmallTagIndex                   [unsigned char:SmallTagIndex]: 0x00000000
+             0xc     Code2                           [unsigned short:Code2]: 0x00000000
+             0xc     PreviousSize                    [unsigned short:PreviousSize]: 0x00000000
+             0xc     UnusedBytesLength               [unsigned short:UnusedBytesLength]: 0x00000000
+             0xe     Code3                           [unsigned char:Code3]: 0x00000000
+             0xe     EntryOffset                     [unsigned char:EntryOffset]: 0x00000000
+             0xe     LFHFlags                        [unsigned char:LFHFlags]: 0x00000000
+             0xe     SegmentOffset                   [unsigned char:SegmentOffset]: 0x00000000
+             0xf     Code4                           [unsigned char:Code4]: 0x00000000
+             0xf     ExtendedBlockSignature          [unsigned char:ExtendedBlockSignature]: 0x00000000
+             0xf     UnusedBytes                     [unsigned char:UnusedBytes]: 0x00000000</code></pre>
+</div></div>
+<div class="paragraph"><p>For now I will point out the <code>Size</code> and <code>PreviousSize</code> members of the header
+(Both are expressed in terms of allocation blocks - 16 bytes on AMD64). This
+means that it is possible to follow <code>_HEAP_ENTRY</code> structs along the Segment from
+start to end. In fact one can notice that many heap structs (e.g. <code>_HEAP</code>,
+<code>_HEAP_SEGMENT</code>) start with a <code>_HEAP_ENTRY</code>. One can start at the start of the
+segment and walk the entries to the end of the segment.</p></div>
+<div class="paragraph"><p>Most of the smarts in the Back End allocator is about managing allocated and
+freed entries. The backend always maintains the property that <code>_HEAP_ENTRYs</code> can
+be walked over to enumerate them all. Since we only really care about
+enumerating all user allocations we don&#8217;t particularly care about the specific
+algorithms the heap uses to manage its free lists, only where the final chunks
+are to be found.</p></div>
+<div class="paragraph"><p>There is a small trick though. In order to prevent traditional heap overflow
+attacks, the <code>_HEAP_ENTRY</code> is encoded by XORing it with a unique heap specific
+key. Therefore before we can read the <code>_HEAP_ENTRY</code> we must XOR it with
+<code>_HEAP.Encoding</code>.</p></div>
+<div class="paragraph"><p>I have written a plugin that can be used to visualize these allocations. For
+each heap it lists the segment and then enumerates the heap entries (after
+decoding them with the heap key) and displays the first few bytes of each
+allocation. In our case only the last heap is interesting:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 10:25:02&gt; inspect_heap proc_regex="heap", heaps=[4]
+DEBUG:root:Switching to process context: heap.exe (Pid 2628@0xfa8002c04060)
+**************************************************
+[_EPROCESS _EPROCESS] @ 0xFA8002C04060 (pid=2628)
+Heap 4: 0x3c0000 (LOW_FRAG)
+Backend Info:
+
+Segment              End         Length   Data
+--------------- -------------- ---------- ----
+. 0x3c0040            0x3d0000 65472
+.. 0x3c0a80           0x3c12e0 2128       00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00  ................
+.. 0x3c12e0           0x3c15b0 704        50 03 00 00 00 00 00 00 ff ff ff ff ff ff ff ff  P...............
+.. 0x3c15b0           0x3c20c0 2816       03 00 00 00 00 00 00 00 c1 0a 00 00 01 00 00 00  ................
+.. 0x3c20c0           0x3c28c0 2032       30 c5 3d 00 00 00 00 00 20 9a 3c 00 00 00 00 00  0.=.......&lt;.....
+.. 0x3c28c0           0x3c2900 48         46 00 72 00 61 00 6d 00 65 00 77 00 6f 00 72 00  F.r.a.m.e.w.o.r.
+.. 0x3c2900           0x3c2ad0 448        49 00 4e 00 43 00 4c 00 55 00 44 00 45 00 3d 00  I.N.C.L.U.D.E.=.
+.. 0x3c2ad0           0x3c2c00 288        4c 00 49 00 42 00 3d 00 63 00 3a 00 5c 00 50 00  L.I.B.=.c.:.\.P.
+.. 0x3c2c00           0x3c2c60 80         4c 00 4f 00 43 00 41 00 4c 00 41 00 50 00 50 00  L.O.C.A.L.A.P.P.
+.. 0x3c2c60           0x3c2ca0 48         4e 00 55 00 4d 00 42 00 45 00 52 00 5f 00 4f 00  N.U.M.B.E.R._.O.
+.. 0x3c2ca0           0x3c2d30 128        50 00 41 00 54 00 48 00 45 00 58 00 54 00 3d 00  P.A.T.H.E.X.T.=.
+....
+.. 0x3c7700           0x3c7f00 2032       00 c5 3d 00 00 00 00 00 58 01 3c 00 00 00 00 00  ..=.....X.&lt;.....
+....
+.. 0x3c8fd0           0x3c9020 64         38 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  8The.quick.brown
+.. 0x3c9020           0x3c9070 64         3a 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  :The.quick.brown
+.. 0x3c9070           0x3c90c0 64         3b 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  ;The.quick.brown
+.. 0x3c90c0           0x3c9120 80         49 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  IThe.quick.brown
+.. 0x3c9120           0x3c9180 80         4a 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  JThe.quick.brown
+.. 0x3c9180           0x3c91e0 80         4c 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  LThe.quick.brown
+.. 0x3c91e0           0x3c9240 80         4d 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  MThe.quick.brown
+.. 0x3c9240           0x3c92a0 80         4f 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  OThe.quick.brown
+.. 0x3c92a0           0x3c9300 80         50 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  PThe.quick.brown
+.. 0x3c9300           0x3c9360 80         52 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  RThe.quick.brown
+...
+.. 0x3caba0           0x3cbba0 4080       60 c5 3d 00 00 00 00 00 e0 8f 3c 00 00 00 00 00  `.=.......&lt;.....
+.. 0x3cbba0           0x3ccba0 4080       90 c5 3d 00 00 00 00 00 d0 90 3c 00 00 00 00 00  ..=.......&lt;.....
+.. 0x3ccba0           0x3cdba0 4080       c0 c5 3d 00 00 00 00 00 90 94 3c 00 00 00 00 00  ..=.......&lt;.....
+.. 0x3cdba0           0x3cdc10 96         65 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  eThe.quick.brown</code></pre>
+</div></div>
+<div class="paragraph"><p>We can see some of the allocations that our program made in the output, but
+closely examining the data shows that not all allocations are found.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_the_front_end_allocator">2.2. The Front End Allocator.</h3>
+<div class="paragraph"><p>On Windows 7 the only Front End Allocator available is the Low Fragmentation
+Heap (LFH) front end. The front end is set for a particular heap in the
+<code>_HEAP.FrontEndHeapType</code> enumeration which can be 0 (backend only) or 2
+(LFH). The <code>_LFH_HEAP</code> struct contains the low fragmentation heap and is set in
+<code>_HEAP.FrontEndHeap</code> if it is used. In the following discussion is skip over
+some of the low level details so please take a look at the source code for the
+<code>inspect_heap</code> plugin for the gory details.</p></div>
+<div class="paragraph"><p>The heap starts off with only a backend allocator active. If the heap heuristics
+detect that the application might benefit from a low fragmentation heap, the LFH
+is created and added to the heap. Note that LFH is only used for smallish
+allocations. Larger allocations still end up going to the backend directly.</p></div>
+<div class="paragraph"><p>The LFH claims sub-segments from the backend allocator. Each subsegment starts
+with a <code>_HEAP_USERDATA_HEADER</code> and it is followed by an array of allocations of
+the same size. Each such allocation has a <code>_HEAP_ENTRY</code> at the start. To the
+backend allocator the subsegments simply look like largish opaque allocations
+(and are therefore also contained in a backend <code>_HEAP_ENTRY</code> ).</p></div>
+<div class="paragraph"><p>The LFH reuses the <code>_HEAP_ENTRY</code> struct (again encoded with the heap&#8217;s key) to
+describe each allocation, but since all entries in a subsegments are the same
+size, there is no need to use <code>Size</code> and <code>PreviousSize</code> to track them. The
+<code>_HEAP_ENTRY.UnusedBytes</code> member describes how many bytes are unused in the
+allocation (e.g. if the allocation is 20 bytes but the user only wanted 18 bytes
+there are 2 bytes unused), and also contains flags to indicate if the entry is
+BUSY or FREE.</p></div>
+<div class="paragraph"><p>We can see the LFH allocations for our example (output just follows the previous
+command):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>Low Fragmentation Front End Information:
+    Entry      Alloc  Length Data
+-------------- ------ ------ ----
+      0x3c7730 32         21 54 41 52 47 45 54 5f 50 4c 41 54 46 4f 52 4d 3d  TARGET_PLATFORM=
+                             57 49 4e 37 00                                   WIN7.
+      0x3c7750 32         17 54 6f 6f 6c 73 56 65 72 73 69 6f 6e 3d 34 2e 30  ToolsVersion=4.0
+                             00                                               .
+      0x3c7770 32         15 55 53 45 52 44 4f 4d 41 49 4e 3d 64 65 76 00     USERDOMAIN=dev.
+      0x3c7790 32         13 55 53 45 52 4e 41 4d 45 3d 6d 69 63 00           USERNAME=mic.
+      0x3c77b0 32         18 77 69 6e 64 69 72 3d 43 3a 5c 57 69 6e 64 6f 77  windir=C:\Window
+                             73 00                                            s.
+      0x3c77d0 32         24 e0 16 ab 6d 00 00 00 00 98 9a ab 6d 00 00 00 00  ...m.......m....
+                             00 00 00 00 00 00 00 00                          ........
+      0x3c77f0 32         22 41 00 50 00 50 00 56 00 45 00 52 00 3d 00 36 00  A.P.P.V.E.R.=.6.
+                             2e 00 31 00 00 00                                ..1...
+      0x3c7810 32         24 50 00 52 00 4f 00 4d 00 50 00 54 00 3d 00 24 00  P.R.O.M.P.T.=.$.
+                             50 00 24 00 47 00 00 00                          P.$.G...
+      0x3c7830 32          9 08 54 68 65 20 71 75 69 00                       .The.qui.
+      0x3c7850 32         11 0a 54 68 65 20 71 75 69 63 6b 00                 .The.quick.
+      0x3c7870 32         12 0b 54 68 65 20 71 75 69 63 6b 20 00              .The.quick..
+      0x3c7890 32         14 0d 54 68 65 20 71 75 69 63 6b 20 62 72 00        .The.quick.br.
+      0x3c78b0 32         15 0e 54 68 65 20 71 75 69 63 6b 20 62 72 6f 00     .The.quick.bro.
+      0x3c78d0 32         17 10 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             00                                               .
+      0x3c78f0 32         18 11 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 00                                            ..
+      0x3c7910 32         20 13 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 00                                      .fo.
+      0x3c7930 32         21 14 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 00                                   .fox.
+      0x3c7950 32         23 16 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 00                             .fox.j.
+      0x3c7970 32         24 17 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 00                          .fox.ju.
+....
+      0x3c2390 48         26 19 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 69                    .fox.jumpi
+      0x3c23c0 48         27 1a 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 65 5c                 .fox.jumpe\
+      0x3c23f0 48         29 1c 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 65 64 20 74           .fox.jumped.t
+      0x3c2420 48         30 1d 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 65 64 20 6f 63        .fox.jumped.oc
+      0x3c2450 48         32 1f 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 65 64 20 6f 76 65 4c  .fox.jumped.oveL
+      0x3c2480 48         33 20 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 65 64 20 6f 76 65 72  .fox.jumped.over
+                             2e                                               .
+      0x3c24b0 48         35 22 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  "The.quick.brown
+                             20 66 6f 78 20 6a 75 6d 70 65 64 20 6f 76 65 72  .fox.jumped.over
+                             20 74 31                                         .t1
+.....</code></pre>
+</div></div>
+<div class="paragraph"><p>We can see a series of allocations of size 0x20 which can hold strings up to
+size 24 (8 bytes must be reserved for the <code>_HEAP_ENTRY</code> header). Further
+allocations must skip to the next sub-segment which contains allocations of size
+48. Note also that as far as the backend is concerned each of the sub-segments
+are unique opaque allocations in their own right (they appear in the previous
+listing too) but the backend does not see inside the subsegments to enumerate
+the smaller allocations. Note that the allocation of size 25 is missing since it
+was freed (i=24 and 24 % 3 == 0) and then probably reused for allocation of size
+26.</p></div>
+<div class="paragraph"><p>You can verify that all the allocated strings can be enumerated by a combination
+of front end and back end enumerations.</p></div>
+<div class="paragraph"><p>It is instructive to see the allocations using the regular Rekall <code>dump</code> plugin
+to view a hexdump of the allocations (We must remember to switch to the correct
+process context first using the <code>cc</code> plugin so we can read the process address
+space):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 11:09:06&gt; cc proc_regex="heap"
+Switching to process context: heap.exe (Pid 2628@0xfa8002c04060)
+[1] output.E01 11:30:06&gt; dump 0x3c7950
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+      0x3c7950 20 66 6f 78 00 00 00 00 80 f9 a4 45 19 00 00 89  .fox.......E....
+      0x3c7960 16 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+      0x3c7970 20 66 6f 78 20 6a 00 00 82 f9 a4 45 19 00 00 88  .fox.j.....E....
+      0x3c7980 17 54 68 65 20 71 75 69 63 6b 20 62 72 6f 77 6e  .The.quick.brown
+      0x3c7990 20 66 6f 78 20 6a 75 00 8c f9 a4 45 19 00 00 80  .fox.ju....E....
+      0x3c79a0 2a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  *...............</code></pre>
+</div></div>
+<div class="paragraph"><p>The <code>inspect_heap</code> plugin indicates that the entry at offset 0x3c7950 is an
+allocation of length 23 bytes. This offset contains an <code>_HEAP_ENTRY</code> struct, but
+we can see a weird effect - the first 8 bytes appear to belong to the previous
+allocation. This is a weird implementation detail of the Microsoft heap. The
+first 8 bytes of the <code>_HEAP_ENTRY</code> struct (which is normally 16 bytes long) are
+actually reserved for the previous allocation and named
+<code>_HEAP_ENTRY.PreviousBlockPrivateData</code>. An allocation is allowed to overflow up
+to 8 bytes into the next <code>_HEAP_ENTRY</code>. Therefore for an allocation of size 32
+bytes, there are 24 user usable bytes. It is useful to recognize this effect
+when looking at the hexdump of raw memory. This effect only occurs on 64 bit
+systems.</p></div>
+<div class="paragraph"><p>The next 4 bytes belong to the <code>_HEAP_ENTRY</code> but before we read them we need to
+decode the entry using the heap key. The final byte (0x89) is the <code>UnusedBytes</code>
+field which is not encoded. In the LFH this field can be ANDed with 0x38 to
+determine if the allocation is BUSY or FREE. Subtracting 0x88 gives the number
+of unused bytes in the allocation (in the above case 1 byte unused).</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_windows_dns_resolver">3. The Windows DNS Resolver.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>So now we have the ability to enumerate all application heap allocations. So
+what can we use this for? As an example I chose to examine the windows DNS
+resolver service. This is implemented as an in-process service (i.e. it is
+running as a thread in a shared process with other services). The resolver is
+implemented using <code>dnsrslvr.dll</code> which is linked into one of the <code>svchost.exe</code>
+shared service hosting processes.</p></div>
+<div class="paragraph"><p>To test this I used Chrome to browse to a bunch of websites and then ensured
+that the DNS cache was populated, and obtained a memory image.</p></div>
+<div class="paragraph"><p>You can check the DNS cache using the <code>ipconfig /displaydns</code> command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>C:\Program Files\Rekall&gt;ipconfig /displaydns
+
+Windows IP Configuration
+
+    clients4.google.com
+    ----------------------------------------
+    Record Name . . . . . : clients4.google.com
+    Record Type . . . . . : 5
+    Time To Live  . . . . : 3566
+    Data Length . . . . . : 8
+    Section . . . . . . . : Answer
+    CNAME Record  . . . . : clients.l.google.com
+
+    code.jquery.com
+    ----------------------------------------
+    Record Name . . . . . : code.jquery.com
+    Record Type . . . . . : 5
+    Time To Live  . . . . : 3577
+    Data Length . . . . . : 8
+    Section . . . . . . . : Answer
+    CNAME Record  . . . . : code.jquery.netdna-cdn.com
+
+    apis.google.com
+    ----------------------------------------
+    Record Name . . . . . : apis.google.com
+    Record Type . . . . . : 5
+    Time To Live  . . . . : 3571
+    Data Length . . . . . : 8
+    Section . . . . . . . : Answer
+    CNAME Record  . . . . : plus.l.google.com
+
+    www.google.com
+    ----------------------------------------
+    Record Name . . . . . : www.google.com
+    Record Type . . . . . : 1
+    Time To Live  . . . . : 3539
+    Data Length . . . . . : 4
+    Section . . . . . . . : Answer
+    A (Host) Record . . . : 173.194.72.147
+
+    Record Name . . . . . : www.google.com
+    Record Type . . . . . : 1
+    Time To Live  . . . . : 3539
+    Data Length . . . . . : 4
+    Section . . . . . . . : Answer
+    A (Host) Record . . . : 173.194.72.99</code></pre>
+</div></div>
+<div class="paragraph"><p>At this stage we have zero knowledge of how the resolver cache works, but we
+know it stores DNS records, hostnames and IP addresses. We can imagine that it
+stores these on the heap and probably has some data structures it uses to
+maintain these details. Usually before an application creates a new data
+structure it must allocate the memory from the heap - normally the exact size of
+the allocation depends on the data structure (so it can fit in the allocated
+memory). So examining the allocation of the resolver cache might give us a clue
+as to how it organizes its own data.</p></div>
+<div class="paragraph"><p>The first step is to find the process where the resolver is running in. We use
+the vad plugin to locate the svchost process which hosts the <code>dnsrslvr.dll</code>
+(filter by both process name and VAD filename):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 11:46:45&gt; vad proc_regex="svchost", regex="dnsrslvr.dll"
+.... [uninteresting output omitted]
+
+Pid: 1076 svchost.exe
+     VAD       lev   Start Addr      End Addr    com                  Protect        Filename
+-------------- --- -------------- -------------- ---- ------- ------  -------------------- --------
+0xfa800271fb80   4 0x07fef9a20000 0x07fef9a4ffff    4 Mapped  Exe     EXECUTE_WRITECOPY    \Windows\System32\dnsrslvr.dll</code></pre>
+</div></div>
+<div class="paragraph"><p>Ok great. This tells us the process we care about has a pid of 1076 and that the
+DLL is mapped in the range 0x07fef9a20000-0x07fef9a4ffff. Lets inspect its
+heaps. There is a lot of output here - the process has 12 heaps with a lot of
+allocations. However, we can immediately recognize some of the hostnames we are
+looking for in heap number 4:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 12:08:26&gt; inspect_heap pid=1076, heaps=[4]
+DEBUG:root:Switching to process context: svchost.exe (Pid 1076@0xfa800271c630)
+**************************************************
+[_EPROCESS _EPROCESS] @ 0xFA800271C630 (pid=1076)
+Heap 4: 0x11a0000 (BACKEND)
+Backend Info:
+
+Segment              End         Length   Data
+--------------- -------------- ---------- ----
+. 0x11a0040          0x1220000 524224
+.. 0x11a0a80         0x11a12f0 2144       00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00  ................
+.. 0x11a12f0         0x11a1500 512        00 13 1a 01 00 00 00 00 00 13 1a 01 00 00 00 00  ................
+.. 0x11a1500         0x11a2240 3376       10 15 1a 01 00 00 00 00 10 15 1a 01 00 00 00 00  ................
+.. 0x11a2240         0x11a2280 48         d0 22 1a 01 00 00 00 00 40 93 a4 f9 fe 07 00 00  ."......@.......
+.. 0x11a2280         0x11a22c0 48         d0 22 1a 01 00 00 00 00 50 22 1a 01 00 00 00 00  ."......P"......
+.. 0x11a22c0         0x11a2300 48         10 23 1a 01 00 00 00 00 50 22 1a 01 00 00 00 00  .#......P"......
+.. 0x11a2300         0x11a2340 48         50 23 1a 01 00 00 00 00 d0 22 1a 01 00 00 00 00  P#......."......
+.. 0x11a2340         0x11a2380 48         90 23 1a 01 00 00 00 00 10 23 1a 01 00 00 00 00  .#.......#......
+.. 0x11a2380         0x11a23c0 48         40 32 1a 01 00 00 00 00 50 23 1a 01 00 00 00 00  @2......P#......
+.. 0x11a23c0         0x11a23f0 32         07 00 00 00 30 75 00 00 60 ea 00 00 c0 d4 01 00  ....0u..`.......
+.. 0x11a23f0         0x11a2410 16         64 00 65 00 76 00 00 00 58 01 1a 01 00 00 00 00  d.e.v...X.......
+.. 0x11a2410         0x11a24a0 128        02 00 78 00 05 00 00 00 00 00 14 00 00 00 00 10  ..x.............
+.. 0x11a24a0         0x11a24e0 48         01 00 04 00 00 00 00 00 c0 d3 51 00 00 00 00 00  ..........Q.....
+.. 0x11a24e0         0x11a25e0 240        00 00 00 00 00 00 00 00 f0 25 1a 01 00 00 00 00  .........%......
+.. 0x11a25e0         0x11a2600 16         64 00 65 00 76 00 00 00 58 01 1a 01 00 00 00 00  d.e.v...X.......
+.. 0x11a2600         0x11a2620 16         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11a2620         0x11a2680 80         7b 00 32 00 31 00 43 00 35 00 30 00 31 00 36 00  {.2.1.C.5.0.1.6.
+.. 0x11a2680         0x11a26c0 48         4c 00 6f 00 63 00 61 00 6c 00 20 00 41 00 72 00  L.o.c.a.l...A.r.
+.. 0x11a26c0         0x11a2770 160        02 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11a2770         0x11a27e0 96         01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11a27e0         0x11a2840 80         7b 00 31 00 41 00 38 00 34 00 44 00 37 00 44 00  {.1.A.8.4.D.7.D.
+.. 0x11a2840         0x11a28a0 80         54 00 65 00 72 00 65 00 64 00 6f 00 20 00 54 00  T.e.r.e.d.o...T.
+.. 0x11a28a0         0x11a28d0 32         ac 02 00 00 00 00 00 00 50 05 00 00 00 00 00 00  ........P.......
+.. 0x11a28d0         0x11a2900 32         10 2b 1a 01 00 00 00 00 c0 3b 1c 01 00 00 00 00  .+.......;......
+.. 0x11a2900         0x11a2920 16         64 00 65 00 76 00 00 00 58 01 1a 01 00 00 00 00  d.e.v...X.......
+.. 0x11a2920         0x11a2980 80         90 2a 1a 01 00 00 00 00 10 37 1c 01 00 00 00 00  .*.......7......
+.. 0x11a2980         0x11a29d0 64         4c 00 6f 00 63 00 61 00 6c 00 20 00 41 00 72 00  L.o.c.a.l...A.r.
+.. 0x11a29d0         0x11a2a10 48         b0 6b 1f 01 00 00 00 00 60 2a 1a 01 00 00 00 00  .k......`*......
+.. 0x11a2a10         0x11a2a50 48         70 00 79 00 74 00 68 00 6f 00 6e 00 2e 00 6d 00  p.y.t.h.o.n...m.
+.. 0x11a2a50         0x11a2a80 32         77 00 77 00 77 00 2e 00 70 00 79 00 74 00 68 00  w.w.w...p.y.t.h.
+.. 0x11a2a80         0x11a2ae0 80         40 2c 1a 01 00 00 00 00 30 29 1a 01 00 00 00 00  @,......0)......
+.. 0x11a2ae0         0x11a2b00 16         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11a2b00         0x11a2b30 32         60 56 1f 01 00 00 00 00 e0 28 1a 01 00 00 00 00  `V.......(......
+.. 0x11a2b30         0x11a2b70 48         00 2c 1a 01 00 00 00 00 c0 2b 1a 01 00 00 00 00  .,.......+......
+.. 0x11a2b70         0x11a2bb0 48         63 00 6c 00 69 00 65 00 6e 00 74 00 73 00 2e 00  c.l.i.e.n.t.s...
+.. 0x11a2bb0         0x11a2bf0 48         63 00 6c 00 69 00 65 00 6e 00 74 00 73 00 34 00  c.l.i.e.n.t.s.4.
+.. 0x11a2bf0         0x11a2c30 48         d0 35 1c 01 00 00 00 00 90 35 1c 01 00 00 00 00  .5.......5......
+.. 0x11a2c30         0x11a2cd0 144        c0 69 1f 01 00 00 00 00 90 2a 1a 01 00 00 00 00  .i.......*......
+.. 0x11a2cd0         0x11a2cf0 16         64 00 65 00 76 00 00 00 58 01 1a 01 00 00 00 00  d.e.v...X.......
+.. 0x11a2cf0         0x11a2d10 16         20 32 1a 01 00 00 00 00 58 01 1a 01 00 00 00 00  .2......X.......
+.. 0x11a2d10         0x11a2dc0 160        02 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11a2dc0         0x11a2ec0 240        02 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11a2ec0         0x11a2f00 48         67 00 6f 00 6f 00 67 00 6c 00 65 00 61 00 70 00  g.o.o.g.l.e.a.p.
+.. 0x11a2f00         0x11a2f50 64         74 00 72 00 61 00 6e 00 73 00 6c 00 61 00 74 00  t.r.a.n.s.l.a.t.
+.. 0x11a2f50         0x11a2f90 48         20 30 1a 01 00 00 00 00 e0 2f 1a 01 00 00 00 00  .0......./......
+.. 0x11a2f90         0x11a2fd0 48         63 00 6c 00 69 00 65 00 6e 00 74 00 73 00 2e 00  c.l.i.e.n.t.s...
+.. 0x11a2fd0         0x11a3010 48         63 00 6c 00 69 00 65 00 6e 00 74 00 73 00 31 00  c.l.i.e.n.t.s.1.
+.. 0x11a3010         0x11a3050 48         a0 30 1a 01 00 00 00 00 60 30 1a 01 00 00 00 00  .0......`0......
+.. 0x11a3050         0x11a3090 48         63 00 6c 00 69 00 65 00 6e 00 74 00 73 00 2e 00  c.l.i.e.n.t.s...
+.. 0x11a3090         0x11a30d0 48         e0 30 1a 01 00 00 00 00 00 00 00 00 00 00 00 00  .0..............
+.. 0x11a30d0         0x11a3120 64         d0 5f 1f 01 00 00 00 00 00 00 00 00 00 00 00 00  ._..............
+.. 0x11a3120         0x11a3160 48         90 36 1c 01 00 00 00 00 10 2f 1a 01 00 00 00 00  .6......./......
+.. 0x11a3160         0x11a31a0 48         e0 31 1a 01 00 00 00 00 b0 31 1a 01 00 00 00 00  .1.......1......
+.. 0x11a31a0         0x11a31d0 32         77 00 77 00 77 00 2e 00 67 00 6f 00 6f 00 67 00  w.w.w...g.o.o.g.
+.. 0x11a31d0         0x11a3210 48         e0 3b 1c 01 00 00 00 00 00 00 00 00 00 00 00 00  .;..............
+.. 0x11a3210         0x11a3230 16         d0 37 1c 01 00 00 00 00 00 2d 1a 01 00 00 00 00  .7.......-......
+.. 0x11a3230         0x11a3270 48         40 93 a4 f9 fe 07 00 00 90 23 1a 01 00 00 00 00  @........#......
+.. 0x11a3270         0x11b33a0 65824      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11b33a0         0x11c34d0 65824      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11c34d0         0x11c3580 160        f0 65 1f 01 00 00 00 00 40 2c 1a 01 00 00 00 00  .e......@,......
+.. 0x11c3580         0x11c35c0 48         63 00 6c 00 69 00 65 00 6e 00 74 00 73 00 2e 00  c.l.i.e.n.t.s...
+.. 0x11c35c0         0x11c3600 48         10 36 1c 01 00 00 00 00 00 00 00 00 00 00 00 00  .6..............
+.. 0x11c3600         0x11c3640 48         50 36 1c 01 00 00 00 00 00 00 00 00 00 00 00 00  P6..............
+.. 0x11c3640         0x11c3680 48         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11c3680         0x11c36c0 48         00 00 00 00 00 00 00 00 d0 36 1c 01 00 00 00 00  .........6......
+.. 0x11c36c0         0x11c3700 48         67 00 6f 00 6f 00 67 00 6c 00 65 00 61 00 70 00  g.o.o.g.l.e.a.p.
+.. 0x11c3700         0x11c3760 80         30 29 1a 01 00 00 00 00 60 56 1f 01 00 00 00 00  0)......`V......
+.. 0x11c3760         0x11c37c0 80         7b 00 32 00 31 00 43 00 35 00 30 00 31 00 36 00  {.2.1.C.5.0.1.6.
+.. 0x11c37c0         0x11c37e0 16         f0 39 1c 01 00 00 00 00 20 32 1a 01 00 00 00 00  .9.......2......
+.. 0x11c37e0         0x11c3830 64         63 00 6f 00 64 00 65 00 2e 00 6a 00 71 00 75 00  c.o.d.e...j.q.u.
+.. 0x11c3830         0x11c3870 48         d0 38 1c 01 00 00 00 00 80 38 1c 01 00 00 00 00  .8.......8......
+.. 0x11c3870         0x11c38c0 64         63 00 6f 00 64 00 65 00 2e 00 6a 00 71 00 75 00  c.o.d.e...j.q.u.
+.. 0x11c38c0         0x11c3900 48         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11c3900         0x11c3930 32         64 00 65 00 76 00 00 00 58 01 1a 01 00 00 00 00  d.e.v...X.......
+.. 0x11c3930         0x11c3970 48         b0 39 1c 01 00 00 00 00 80 39 1c 01 00 00 00 00  .9.......9......
+.. 0x11c3970         0x11c39a0 32         73 00 73 00 6c 00 2e 00 67 00 73 00 74 00 61 00  s.s.l...g.s.t.a.
+.. 0x11c39a0         0x11c39e0 48         00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x11c39e0         0x11c3a00 16         c0 3b 1c 01 00 00 00 00 d0 37 1c 01 00 00 00 00  .;.......7......
+.. 0x11c3a00         0x11c3a40 48         e0 3a 1c 01 00 00 00 00 a0 3a 1c 01 00 00 00 00  .:.......:......
+.. 0x11c3a40         0x11c3a90 64         65 00 31 00 30 00 30 00 38 00 38 00 2e 00 64 00  e.1.0.0.8.8...d.
+.. 0x11c3a90         0x11c3ad0 48         77 00 77 00 77 00 2e 00 6d 00 69 00 63 00 72 00  w.w.w...m.i.c.r.
+.. 0x11c3ad0         0x11c3b10 48         60 3c 1c 01 00 00 00 00 70 3b 1c 01 00 00 00 00  `&lt;......p;......
+.. 0x11c3b10         0x11c3b60 64         74 00 6f 00 67 00 67 00 6c 00 65 00 2e 00 77 00  t.o.g.g.l.e...w.
+.....</code></pre>
+</div></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<img alt="Note" src="data:image/png;base64,
+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" />
+</td>
+<td class="content">
+<div class="paragraph"><p>Windows can have many heaps in each process. Sometimes an application can
+deliberately create multiple heaps to keep similar data together for some
+reason. Often data within the same heap is somehow related - as in this case -
+all the data in this heap involves the DNS resolver.</p></div>
+<div class="paragraph"><p>This makes it easier to make sense of data since its more likely that the data
+we are looking for exist in this heap.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>We can see some host names allocated in this heap. This makes sense - the
+application must have data structures to maintain state and these should have
+pointers to the allocated strings from the heap. For example consider the string
+"www.google.com" at allocation offset 0x11a31a0. There should be a pointer
+somewhere pointing to this string (Note that 0x11a31a0 is the offset to the
+<code>_HEAP_ENTRY</code> - the user allocation is 16 bytes later). We can use the <code>grep</code>
+plugin to find this pointer. We first assume it is located in this heap so we
+start the search from the heap&#8217;s starting address 0x11a0040:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 12:33:03&gt; cc 1076
+Switching to process context: svchost.exe (Pid 1076@0xfa800271c630)
+[1] output.E01 12:33:21&gt; grep 0x11a0040, keyword="\xb0\x31\x1a\x01"
+    Offset                                 Hex                                      Data
+-------------- ------------------------------------------------------------ --------------------
+     0x11a3164 00 00 00 00 e1 42 36 20 30 a1 00 1c e0 31 1a 01 00 00 00 00  .....B6.0....1......
+     0x11a3178 b0 31 1a 01 00 00 00 00 01 00 04 00 09 20 03 00 4a 20 01 00  .1..............J...</code></pre>
+</div></div>
+<div class="paragraph"><p>We can see a pointer to this string located at offset 0x11a3178 which exists
+inside an allocation of size 48 at heap entry 0x11a3160 (Struct starts at
+0x11a3170):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 12:36:04&gt; dump 0x11a3170
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x11a3170 e0 31 1a 01 00 00 00 00 b0 31 1a 01 00 00 00 00  .1.......1......
+     0x11a3180 01 00 04 00 09 20 03 00 4a 20 01 00 01 00 00 00  ........J.......
+     0x11a3190 ad c2 48 93 2e 00 63 00 6f 00 6d 00 00 00 00 00  ..H...c.o.m.....
+
+[1] output.E01 12:55:25&gt; dump 0x11a31e0
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x11a31e0 e0 3b 1c 01 00 00 00 00 00 00 00 00 00 00 00 00  .;..............
+     0x11a31f0 01 00 04 00 09 00 00 00 4a 20 01 00 01 00 00 00  ........J.......
+     0x11a3200 ad c2 48 63 6c 00 64 00 6c 00 2e 00 77 00 69 00  ..Hcl.d.l...w.i.
+
+[1] output.E01 13:00:44&gt; dump 0x11c3be0
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x11c3be0 20 3c 1c 01 00 00 00 00 00 00 00 00 00 00 00 00  .&lt;..............
+     0x11c3bf0 01 00 04 00 09 00 00 00 4a 20 01 00 01 00 00 00  ........J.......
+     0x11c3c00 ad c2 48 68 0a 00 02 03 00 00 00 00 00 00 00 00  ..Hh............
+
+[1] output.E01 13:03:36&gt; dump 0x11c3c20
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x11c3c20 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x11c3c30 01 00 04 00 09 00 00 00 4a 20 01 00 01 00 00 00  ........J.......
+     0x11c3c40 ad c2 48 6a 00 00 00 00 00 00 00 00 00 00 00 00  ..Hj............</code></pre>
+</div></div>
+<div class="paragraph"><p>The struct itself starts at offset 0x11a3170. There are two pointers back to
+this heap, the first points at 0x11a31e0, the second back at the string
+"www.google.com". We also see a short integer of value 1 - comparing to the
+output of ipconfig, this is the type. The next short integer is of size 4 (Data
+length). We see the data at offset 0x11a3190 representing the IPv4 address
+(173.194.72.147).</p></div>
+<div class="paragraph"><p>If we dump the contents at the first pointer we can see a very similar
+struct. We can repeat to see a series of very similar structs all containing the
+different IPv4 addresses for www.google.com.</p></div>
+<div class="paragraph"><p>Lets name this the DNS_RECORD struct. Examining other similar structs gives
+examples for ones with Type = 5:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 13:08:33&gt; dump 0x11c3c60
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x11c3c60 40 3d 1c 01 00 00 00 00 f0 3c 1c 01 00 00 00 00  @=.......&lt;......
+     0x11c3c70 05 00 08 00 09 30 00 00 60 20 01 00 01 00 00 00  .....0..`.......
+     0x11c3c80 a0 3c 1c 01 00 00 00 00 00 00 00 00 00 00 00 00  .&lt;..............
+
+[1] output.E01 13:08:38&gt; dump 0x11c3ca0
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x11c3ca0 77 00 77 00 77 00 2e 00 6d 00 69 00 63 00 72 00  w.w.w...m.i.c.r.
+     0x11c3cb0 6f 00 73 00 6f 00 66 00 74 00 2e 00 63 00 6f 00  o.s.o.f.t...c.o.
+     0x11c3cc0 6d 00 2e 00 65 00 64 00 67 00 65 00 6b 00 65 00  m...e.d.g.e.k.e.
+     0x11c3cd0 79 00 2e 00 6e 00 65 00 74 00 00 00 00 00 00 00  y...n.e.t.......</code></pre>
+</div></div>
+<div class="paragraph"><p>In this case we can see that the data field is a pointer to a string containing
+the CNAME record.</p></div>
+<div class="paragraph"><p>We can already write its definition like:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Most common DNS types.</span></span>
+DNS_TYPES <span style="color: #990000">=</span> <span style="color: #990000">{</span>
+    <span style="color: #993399">1</span><span style="color: #990000">:</span> <span style="color: #FF0000">"A"</span><span style="color: #990000">,</span>
+    <span style="color: #993399">5</span><span style="color: #990000">:</span> <span style="color: #FF0000">"CNAME"</span><span style="color: #990000">,</span>
+    <span style="color: #993399">28</span><span style="color: #990000">:</span> <span style="color: #FF0000">"AAAA"</span><span style="color: #990000">,</span>
+<span style="color: #990000">}</span>
+
+types <span style="color: #990000">=</span> <span style="color: #990000">{</span>
+    <span style="color: #FF0000">"DNS_RECORD"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">{</span>
+        <span style="color: #FF0000">"Next"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Pointer"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+            target<span style="color: #990000">=</span><span style="color: #FF0000">"DNS_RECORD"</span>
+            <span style="color: #990000">)]],</span>
+        <span style="color: #FF0000">"Name"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">8</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Pointer"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+            target<span style="color: #990000">=</span><span style="color: #FF0000">"UnicodeString"</span>
+            <span style="color: #990000">)]],</span>
+        <span style="color: #FF0000">"Type"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">16</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Enumeration"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
+            choices<span style="color: #990000">=</span>DNS_TYPES<span style="color: #990000">,</span>
+            target<span style="color: #990000">=</span><span style="color: #FF0000">"unsigned short"</span>
+        <span style="color: #990000">)]],</span>
+        <span style="color: #FF0000">"DataLength"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">18</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned short'</span><span style="color: #990000">]],</span>
+        <span style="color: #FF0000">"Data"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0x20</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'char'</span><span style="color: #990000">]],</span>
+    <span style="color: #990000">}],</span>
+<span style="color: #990000">}</span>
+
+<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">DNS_RECORD</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>Struct<span style="color: #990000">):</span>
+    @property
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">Data</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> self<span style="color: #990000">.</span>Type <span style="color: #990000">==</span> <span style="color: #FF0000">"CNAME"</span><span style="color: #990000">:</span>
+            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">m</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Data"</span><span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">cast</span></span><span style="color: #990000">(</span>
+                <span style="color: #FF0000">"Pointer"</span><span style="color: #990000">,</span> target<span style="color: #990000">=</span><span style="color: #FF0000">"UnicodeString"</span><span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">deref</span></span><span style="color: #990000">()</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">elif</span></span> self<span style="color: #990000">.</span>Type <span style="color: #990000">==</span> <span style="color: #FF0000">"A"</span><span style="color: #990000">:</span>
+            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> utils<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">inet_ntop</span></span><span style="color: #990000">(</span>
+                socket<span style="color: #990000">.</span>AF_INET<span style="color: #990000">,</span> self<span style="color: #990000">.</span>obj_vm<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span>self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">m</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Data"</span><span style="color: #990000">).</span>obj_offset<span style="color: #990000">,</span> <span style="color: #993399">4</span><span style="color: #990000">))</span></tt></pre></div></div>
+<div class="paragraph"><p>Just like we followed the <code>Next</code> pointer before we can also try to follow this
+list in reverse using the <code>grep</code> plugin to see where each struct is referenced
+from.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 13:13:28&gt; grep 0x11a0040, keyword="\x70\x31\x1a\x01"
+    Offset                                 Hex                                      Data
+-------------- ------------------------------------------------------------ --------------------
+
+[1] output.E01 13:15:17&gt; grep 0x20f0000, keyword="\x70\x31\x1a\x01"
+-----------------------&gt; grep(0x20f0000, keyword="\x70\x31\x1a\x01")
+    Offset                                 Hex                                      Data
+-------------- ------------------------------------------------------------ --------------------
+     0x20f1c84 00 00 00 00 b0 1c 0f 02 00 00 00 00 00 00 00 00 03 00 00 00  ....................
+     0x20f1c98 70 31 1a 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  p1..................
+
+[1] output.E01 13:15:14&gt; inspect_heap pid=1076, heaps=[12]
+[_EPROCESS _EPROCESS] @ 0xFA800271C630 (pid=1076)
+Heap 12: 0x20f0000 (BACKEND)
+Backend Info:
+
+Segment              End         Length   Data
+--------------- -------------- ---------- ----
+. 0x20f0040          0x2100000 65472
+.. 0x20f0a80         0x20f12e0 2128       00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00  ................
+.. 0x20f12e0         0x20f1980 1680       00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+.. 0x20f1980         0x20f19f0 96         00 00 00 00 00 00 00 00 c0 19 0f 02 00 00 00 00  ................
+.. 0x20f19f0         0x20f1a70 112        00 00 00 00 00 00 00 00 30 1a 0f 02 00 00 00 00  ........0.......
+.. 0x20f1a70         0x20f1ae0 96         00 00 00 00 00 00 00 00 b0 1a 0f 02 00 00 00 00  ................
+.. 0x20f1ae0         0x20f1b50 96         00 00 00 00 00 00 00 00 20 1b 0f 02 00 00 00 00  ................
+.. 0x20f1b50         0x20f1bb0 80         00 00 00 00 00 00 00 00 90 1b 0f 02 00 00 00 00  ................
+.. 0x20f1bb0         0x20f1c10 80         00 00 00 00 00 00 00 00 f0 1b 0f 02 00 00 00 00  ................
+.. 0x20f1c10         0x20f1c70 80         00 00 00 00 00 00 00 00 50 1c 0f 02 00 00 00 00  ........P.......
+.. 0x20f1c70         0x20f1cd0 80         00 00 00 00 00 00 00 00 b0 1c 0f 02 00 00 00 00  ................
+.. 0x20f1cd0         0x20f1d30 80         00 00 00 00 00 00 00 00 10 1d 0f 02 00 00 00 00  ................
+.. 0x20f1d30         0x20f1d90 80         00 00 00 00 00 00 00 00 70 1d 0f 02 00 00 00 00  ........p.......
+.. 0x20f1d90         0x20f1df0 80         00 00 00 00 00 00 00 00 d0 1d 0f 02 00 00 00 00  ................
+.. 0x20f1df0         0x20f1e60 96         00 00 00 00 00 00 00 00 30 1e 0f 02 00 00 00 00  ........0.......
+.. 0x20f1e60         0x20f1ec0 80         00 00 00 00 00 00 00 00 a0 1e 0f 02 00 00 00 00  ................
+.. 0x20f1ec0         0x20f1f20 80         00 00 00 00 00 00 00 00 00 1f 0f 02 00 00 00 00  ................
+.. 0x20f1f20         0x20f1f80 80         00 00 00 00 00 00 00 00 60 1f 0f 02 00 00 00 00  ........`.......
+.. 0x20f1f80         0x20f1fe0 80         00 00 00 00 00 00 00 00 c0 1f 0f 02 00 00 00 00  ................
+.. 0x20f1fe0         0x20f2040 80         00 00 00 00 00 00 00 00 20 20 0f 02 00 00 00 00  ................
+.. 0x20f2040         0x20f20b0 96         00 00 00 00 00 00 00 00 80 20 0f 02 00 00 00 00  ................
+.. 0x20f20b0         0x20f2120 96         00 00 00 00 00 00 00 00 f0 20 0f 02 00 00 00 00  ................
+.. 0x20f2120         0x20f2180 80         00 00 00 00 00 00 00 00 60 21 0f 02 00 00 00 00  ........`!......
+.. 0x20f2180         0x20f21e0 80         00 00 00 00 00 00 00 00 c0 21 0f 02 00 00 00 00  .........!......
+.. 0x20f21e0         0x20f2230 64         00 00 00 00 00 00 00 00 20 22 0f 02 00 00 00 00  ........."......
+.. 0x20f2230         0x20f2290 80         00 00 00 00 00 00 00 00 70 22 0f 02 00 00 00 00  ........p"......
+.. 0x20f2290         0x20f22f0 80         00 00 00 00 00 00 00 00 d0 22 0f 02 00 00 00 00  ........."......
+.. 0x20f22f0         0x20f2350 80         00 00 00 00 00 00 00 00 30 23 0f 02 00 00 00 00  ........0#......
+.. 0x20f2350         0x20f3fc0 7264       58 01 0f 02 00 00 00 00 58 01 0f 02 00 00 00 00  X.......X.......
+.. 0x20f3fc0         0x20f4000 48         f8 00 0f 02 00 00 00 00 f8 00 0f 02 00 00 00 00  ................
+.. 0x20f4000         0x2100000 49136      00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+[1] output.E01 13:15:26&gt; dump 0x20f1c70
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x20f1c70 63 00 6f 00 6d 00 00 00 bd 11 f0 6c 22 43 00 12  c.o.m......l"C..
+     0x20f1c80 00 00 00 00 00 00 00 00 b0 1c 0f 02 00 00 00 00  ................
+     0x20f1c90 00 00 00 00 03 00 00 00 70 31 1a 01 00 00 00 00  ........p1......
+     0x20f1ca0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1cb0 77 00 77 00 77 00 2e 00 67 00 6f 00 6f 00 67 00  w.w.w...g.o.o.g.
+     0x20f1cc0 6c 00 65 00 2e 00 63 00 6f 00 6d 00 00 00 00 00  l.e...c.o.m.....</code></pre>
+</div></div>
+<div class="paragraph"><p>The references to the first DNS_RECORD in the linked list actually come from a
+different heap (Heap 12). The struct in that heap starts at 0x20f1c80 and
+appears to be a different struct. The pointer at offset 8 is the string, while
+the pointer to the DNS_RECORD is at offset 24.</p></div>
+<div class="paragraph"><p>What is referring to this struct?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 13:17:56&gt; grep 0x20f0000, keyword="\x80\x1c\x0f\x02"
+    Offset                                 Hex                                      Data
+-------------- ------------------------------------------------------------ --------------------
+     0x20f14cc 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....................
+     0x20f14e0 80 1c 0f 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ....................
+
+# Go back to the start of the allocation and dump it out (This is a large
+# allocation 1680 bytes):
+[1] output.E01 13:21:32&gt; dump 0x20f12f0
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+     0x20f12f0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1300 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1310 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1320 00 00 00 00 00 00 00 00 a0 1d 0f 02 00 00 00 00  ................
+     0x20f1330 00 00 00 00 00 00 00 00 60 1b 0f 02 00 00 00 00  ........`.......
+     0x20f1340 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1350 00 00 00 00 00 00 00 00 c0 1b 0f 02 00 00 00 00  ................
+     0x20f1360 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1370 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1380 00 00 00 00 00 00 00 00 30 21 0f 02 00 00 00 00  ........0!......
+     0x20f1390 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f13a0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f13b0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f13c0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f13d0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f13e0 90 1f 0f 02 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f13f0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+     0x20f1400 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................</code></pre>
+</div></div>
+<div class="paragraph"><p>We see that the allocation at offset 0x20f12f0 seems to have lots of 0&#8217;s and
+randomly occurring pointers. If one dumps these pointers they all appear very
+similar to the allocation at 0x20f1c70. This looks very much like a hash table
+but we are not quite sure at this stage. If an application allocated this
+memory, it must have a pointer to it somewhere (if not the memory will be
+leaked!). We can search for who holds a reference to this 1680 byte
+allocation. The reference is not found within this heap but actually inside the
+mapped DLL itself (If you really have no idea where the reference might be, try
+vaddump to dump all the memory regions of the process and then use a hex editor
+to search them, alternatively you can use yarascan too):</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 13:28:24&gt; grep 0x07fef9a20000, keyword="\xf0\x12\x0f\x02"
+    Offset                                 Hex                                      Data                         Comment
+-------------- ------------------------------------------------------------ -------------------- ----------------------------------------
+ 0x7fef9a49254 00 00 00 00 f0 24 1a 01 00 00 00 00 00 00 0f 02 00 00 00 00  .....$.............. \Windows\System32\dnsrslvr.dll+0x55DF
+ 0x7fef9a49268 f0 12 0f 02 00 00 00 00 14 01 00 00 00 00 00 00 28 01 00 00  ................(... \Windows\System32\dnsrslvr.dll+0x55DF</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that Rekall knows this offset falls within the mapped region of
+dnsrslvr.dll - in fact 0x55DF bytes into it.</p></div>
+<div class="paragraph"><p>I wonder if we can obtain debugging information for this dll from Microsoft?</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 13:34:58&gt; peinfo 0x07fef9a20000
+          Attribute                                       Value
+------------------------------ ------------------------------------------------------------
+Machine                        IMAGE_FILE_MACHINE_AMD64
+TimeDateStamp                  2011-03-03 06:11:04+0000
+Characteristics                IMAGE_FILE_DLL, IMAGE_FILE_EXECUTABLE_IMAGE,
+                               IMAGE_FILE_LARGE_ADDRESS_AWARE
+GUID/Age                       -
+PDB                            -
+MajorOperatingSystemVersion    6
+MinorOperatingSystemVersion    1
+MajorImageVersion              6
+MinorImageVersion              1
+MajorSubsystemVersion          6
+MinorSubsystemVersion          1
+
+Sections (Relative to 0x7FEF9A20000):
+Perm   Name        VMA            Size
+---- -------- -------------- --------------
+xr-  .text    0x000000001000 0x00000001d400
+-r-  .rdata   0x00000001f000 0x000000009e00
+-rw  .data    0x000000029000 0x000000002600
+-r-  .pdata   0x00000002c000 0x000000002000
+-r-  .rsrc    0x00000002e000 0x000000000600
+-r-  .reloc   0x00000002f000 0x000000000600
+
+Data Directories:
+----------------------------------------      VMA            Size
+                                         -------------- --------------
+IMAGE_DIRECTORY_ENTRY_EXPORT             0x07fef9a43c2c 0x0000000000a9
+IMAGE_DIRECTORY_ENTRY_IMPORT             0x07fef9a45ebc 0x000000000230
+IMAGE_DIRECTORY_ENTRY_RESOURCE           0x07fef9a4e000 0x000000000528
+IMAGE_DIRECTORY_ENTRY_EXCEPTION          0x07fef9a4c000 0x000000001ecc
+IMAGE_DIRECTORY_ENTRY_SECURITY           0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_BASERELOC          0x07fef9a4f000 0x0000000004e4
+IMAGE_DIRECTORY_ENTRY_DEBUG              0x07fef9a3e31c 0x000000000038
+IMAGE_DIRECTORY_ENTRY_COPYRIGHT          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_GLOBALPTR          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_TLS                0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG        0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT       0x07fef9a202d8 0x00000000041c
+IMAGE_DIRECTORY_ENTRY_IAT                0x07fef9a3f000 0x000000000788
+IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT       0x07fef9a45d2c 0x000000000080
+IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR     0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_RESERVED           0x000000000000 0x000000000000
+
+Import Directory (Original):
+                       Name                                              Mapped Function                         Ord
+-------------------------------------------------- ------------------------------------------------------------ -----
+
+Export Directory:
+    Entry      Stat  Ord  Name
+-------------- ---- ----- ----
+0x07fef9a2bf14 M    0     dnsrslvr.dll!LoadGPExtension (dnsrslvr!LoadGPExtension)
+0x07fef9a28350 M    1     dnsrslvr.dll!Reg_DoRegisterAdapter (dnsrslvr!Reg_DoRegisterAdapter)
+0x07fef9a2c5f8 M    2     dnsrslvr.dll!ServiceMain (dnsrslvr!ServiceMain)
+0x07fef9a2c5e8 M    3     dnsrslvr.dll!SvchostPushServiceGlobals (dnsrslvr!SvchostPushServiceGlobals)
+0x07fef9a43c89 M    4     dnsrslvr.dll! (\Windows\System32\dnsrslvr.dll)
+Version Information:
+        key          value
+-------------------- -----</code></pre>
+</div></div>
+<div class="paragraph"><p>Unfortunately in this case the RSDS section is not mapped in. We will have to
+read it from the file on disk:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] pmem 12:17:18&gt; peinfo executable="c:/Windows/System32/dnsrslvr.dll"
+     Attribute                                  Value
+-------------------- --------------------------------------------------------
+Machine              IMAGE_FILE_MACHINE_AMD64
+TimeDateStamp        2011-03-03 06:11:04+0000
+Characteristics      IMAGE_FILE_DLL, IMAGE_FILE_EXECUTABLE_IMAGE,
+                     IMAGE_FILE_LARGE_ADDRESS_AWARE
+GUID/Age             D5736592F1A64779989D409FCC6BA4952
+PDB                  dnsrslvr.pdb
+.....</code></pre>
+</div></div>
+<div class="paragraph"><p>We can download an parse the PDB for this dll:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 13:38:32&gt; fetch_pdb guid="D5736592F1A64779989D409FCC6BA4952", pdb_filename="dnsrslvr.pdb"
+Trying to fetch http://msdl.microsoft.com/download/symbols/dnsrslvr.pdb/D5736592F1A64779989D409FCC6BA4952/dnsrslvr.pd_
+
+[1] output.E01 13:39:02&gt; parse_pdb "dnsrslvr.pdb", output="/tmp/dnsrslvr.json"</code></pre>
+</div></div>
+<div class="paragraph"><p>Unfortunately the public symbol server does not have information for structs,
+but it does have information for global constants. We can search for the name of
+the constant at offset 0x7fef9a49268 (168552 relative to the start of the PE
+image). We see that this symbol is in fact the hash table:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>  "g_HashTable": 168552,
+  "g_HashTableSize": 168304,</code></pre>
+</div></div>
+<div class="paragraph"><p>The other interesting thing we notice is that most of the allocations in heap 12
+seems to be related to the hash table and its records. In fact it appears as
+though the entire heap is dedicated to the DNS resolver itself. We can check
+this by searching for a reference to the heap from the DLL:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 14:52:07&gt; grep 0x07fef9a20000, keyword="\x00\x00\x0f\x02\x00\x00"
+    Offset                                 Hex                                      Data                         Comment
+-------------- ------------------------------------------------------------ -------------------- ----------------------------------------
+ 0x7fef9a4924c 00 00 00 00 ac 02 00 00 00 00 00 00 f0 24 1a 01 00 00 00 00  .............$...... \Windows\System32\dnsrslvr.dll+0x55D7
+ 0x7fef9a49260 00 00 0f 02 00 00 00 00 f0 12 0f 02 00 00 00 00 14 01 00 00  .................... \Windows\System32\dnsrslvr.dll+0x55D7
+[1] output.E01 14:52:34&gt; 0x7fef9a49260 - 0x07fef9a20000
+                 Out   &gt; 168544
+[1] output.E01 14:53:08&gt; !grep 168544 /tmp/dnsrslvr.json
+  "g_CacheHeap": 168544,</code></pre>
+</div></div>
+<div class="sect2">
+<h3 id="_putting_it_all_together">3.1. Putting it all together</h3>
+<div class="paragraph"><p>So now we can summarize how the DNS cache looks:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+There is a global symbol in <code>dnsrslvr.dll</code> pointing to a private heap (named <code>g_CacheHeap</code>).
+</p>
+</li>
+<li>
+<p>
+The heap has a allocation for a hash table. The allocation contains pointers
+   to <code>DNS_HASHTABLE_ENTRY</code> records.
+</p>
+</li>
+<li>
+<p>
+Each <code>DNS_HASHTABLE_ENTRY</code> has a reference to a head of a singly linked list
+   of <code>DNS_RECORD</code> structs relating to the name.
+</p>
+</li>
+<li>
+<p>
+Each <code>DNS_RECORD</code> struct contains either an A record (IP Address) or a CNAME
+   record anther name.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>We can now put it all together in a plugin:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] output.E01 14:54:08&gt; dns_cache
+DEBUG:root:Switching to process context: svchost.exe (Pid 1076@0xfa800271c630)
+INFO:root:Loaded profile ntdll/GUID/9D04EB0AA387494FBD81ED062072B99C2 from Directory:/home/scudette/projects/rekall-profiles/v1.0
+                    Name                          Record      Type  Data
+--------------------------------------------- -------------- ------ ----
+  clients4.google.com                         0x0000020f1da0 HTABLE
+. clients4.google.com                         0x0000011a2b40 CNAME  clients.l.google.com
+. clients.l.google.com                        0x0000011a2c00 A      64.233.187.102
+. clients.l.google.com                        0x0000011c35d0 A      64.233.187.139
+. clients.l.google.com                        0x0000011c3610 A      64.233.187.100
+. clients.l.google.com                        0x0000011c3650 A      64.233.187.101
+  tools.google.com                            0x0000020f1b60 HTABLE
+  crl.microsoft.com                           0x0000020f1bc0 HTABLE
+  code.jquery.com                             0x0000020f2130 HTABLE
+. code.jquery.com                             0x0000011f56a0 CNAME  code.jquery.netdna-cdn.com
+. code.jquery.netdna-cdn.com                  0x0000011c3840 A      94.31.29.53
+. code.jquery.netdna-cdn.com                  0x0000011c38d0 A      94.31.29.230
+  apis.google.com                             0x0000020f1f90 HTABLE
+. apis.google.com                             0x0000011f5950 CNAME  plus.l.google.com
+. plus.l.google.com                           0x0000011f59d0 A      173.194.72.101
+. plus.l.google.com                           0x0000011f5a50 A      173.194.72.113
+. plus.l.google.com                           0x0000011f5a90 A      173.194.72.138
+. plus.l.google.com                           0x0000011f5ad0 A      173.194.72.102
+  www.google.com                              0x0000020f1c80 HTABLE
+. www.google.com                              0x0000011a3170 A      173.194.72.147
+. www.google.com                              0x0000011a31e0 A      173.194.72.99
+. www.google.com                              0x0000011c3be0 A      173.194.72.104
+. www.google.com                              0x0000011c3c20 A      173.194.72.106
+  en.wikipedia.org                            0x0000020f2190 HTABLE
+. en.wikipedia.org                            0x0000011f6570 A      198.35.26.96
+  fe2.update.microsoft.com                    0x0000020f1af0 HTABLE
+  www.rekall-forensic.com                     0x0000020f2050 HTABLE
+. www.rekall-forensic.com                     0x0000011f5c50 CNAME  github.map.fastly.net
+. github.map.fastly.net                       0x0000011f5d10 CNAME  google.github.io
+. google.github.io                            0x0000011f5dd0 A      103.245.222.133
+  mscrl.microsoft.com                         0x0000020f1c20 HTABLE
+  github.com                                  0x0000020f21f0 HTABLE
+. github.com                                  0x0000011f6950 A      192.30.252.129
+  clients1.google.com                         0x0000020f2300 HTABLE
+. clients1.google.com                         0x0000011a2f60 CNAME  clients.l.google.com
+. clients.l.google.com                        0x0000011a3020 A      173.194.72.101
+. clients.l.google.com                        0x0000011a30a0 A      173.194.72.100
+. clients.l.google.com                        0x0000011a30e0 A      173.194.72.102
+. clients.l.google.com                        0x0000011f5fd0 A      173.194.72.139
+  www.google.de                               0x0000020f1d40 HTABLE
+. www.google.de                               0x0000011f55f0 A      216.58.220.99
+  translate.googleapis.com                    0x0000020f1e00 HTABLE
+. translate.googleapis.com                    0x0000011a3130 CNAME  googleapis.l.google.com
+. googleapis.l.google.com                     0x0000011c3690 A      74.125.204.95
+  ctldl.windowsupdate.com                     0x0000020f1990 HTABLE
+  www.python.org                              0x0000020f22a0 HTABLE
+. www.python.org                              0x0000011a29e0 CNAME  python.map.fastly.net
+. python.map.fastly.net                       0x0000011f6bb0 A      103.245.222.223
+  plusvic.github.io                           0x0000020f2240 HTABLE
+. plusvic.github.io                           0x0000011f6a70 CNAME  github.map.fastly.net
+. github.map.fastly.net                       0x0000011f6b30 A      103.245.222.133
+  www.gstatic.com                             0x0000020f1ed0 HTABLE
+. www.gstatic.com                             0x0000011c3f40 A      173.194.72.94
+. www.gstatic.com                             0x0000011f5710 A      173.194.72.120
+  rekall-forensic.com                         0x0000020f1ff0 HTABLE
+. rekall-forensic.com                         0x0000011f5b10 A      216.239.32.21
+. rekall-forensic.com                         0x0000011f5b90 A      216.239.34.21
+. rekall-forensic.com                         0x0000011f5bd0 A      216.239.36.21
+. rekall-forensic.com                         0x0000011f5c10 A      216.239.38.21
+  download.microsoft.com                      0x0000020f1a80 HTABLE
+  ds.download.windowsupdate.com               0x0000020f1a00 HTABLE
+  netdna.bootstrapcdn.com                     0x0000020f20c0 HTABLE
+. netdna.bootstrapcdn.com                     0x0000011f5e50 CNAME  bootstrapcdn.jdorfman.netdna-cdn.com
+. bootstrapcdn.jdorfman.netdna-cdn.com        0x0000011f5f30 A      94.31.29.154
+  clients3.google.com                         0x0000020f1f30 HTABLE
+. clients3.google.com                         0x0000011f5750 CNAME  clients.l.google.com
+. clients.l.google.com                        0x0000011f5810 A      173.194.72.139
+. clients.l.google.com                        0x0000011f5890 A      173.194.72.101
+. clients.l.google.com                        0x0000011f58d0 A      173.194.72.138
+. clients.l.google.com                        0x0000011f5910 A      173.194.72.100
+  ssl.gstatic.com                             0x0000020f1e70 HTABLE
+. ssl.gstatic.com                             0x0000011c3940 A      173.194.72.94
+. ssl.gstatic.com                             0x0000011c39b0 A      173.194.72.120
+  www.microsoft.com                           0x0000020f1ce0 HTABLE
+. www.microsoft.com                           0x0000011c3a10 CNAME  e10088.dscb.akamaiedge.net
+. e10088.dscb.akamaiedge.net                  0x0000011c3ae0 CNAME  toggle.www.ms.akadns.net
+. toggle.www.ms.akadns.net                    0x0000011c3c60 CNAME  www.microsoft.com.edgekey.net
+. www.microsoft.com.edgekey.net               0x0000011c3d40 A      23.53.152.151
+  -                                           0x434e6df011bc HTABLE</code></pre>
+</div></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2014-12-19 17:25:50 AEST
+</div>
+</div>
+<script src="/js/asciidoc.js"></script>
+  </div>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
+
+
+  </div>
+</div>
+</div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </body>
+</html>
+
