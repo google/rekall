@@ -1,6 +1,6 @@
-#define WINPMEM_VERSION '1.6.1'
-#define REKALL_VERSION '1.1.0'
-#define REKALL_CODENAME 'Buchenegg'
+#define WINPMEM_VERSION '1.6.2'
+#define REKALL_VERSION '1.2.0'
+#define REKALL_CODENAME 'Col de la Croix'
 
 [Files]
 ; Extra Binaries to add to the package.
@@ -14,7 +14,6 @@ Source: C:\Windows\sysnative\MSVCP100.dll; DestDir: {app}
 
 ; Winpmem tool
 Source: ..\windows\winpmem\winpmem_{#WINPMEM_VERSION}.exe; DestDir: {app}
-Source: ..\windows\winpmem\winpmem_write_{#WINPMEM_VERSION}.exe; DestDir: {app}
 
 ; PyInstaller files.
 DestDir: {app}; Source: ..\..\dist\rekal\*; Excludes: "_MEI"; Flags: recursesubdirs

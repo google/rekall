@@ -1,6 +1,6 @@
-#define WINPMEM_VERSION '1.6.1'
-#define REKALL_VERSION '1.1.0'
-#define REKALL_CODENAME 'Buchenegg'
+#define WINPMEM_VERSION '1.6.2'
+#define REKALL_VERSION '1.2.0'
+#define REKALL_CODENAME 'Col de la Croix'
 
 [Files]
 ; Extra Binaries to add to the package.
