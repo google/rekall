@@ -1,6 +1,8 @@
-rekall-forensic (1.0.3) RELEASED; urgency=low
+rekall-forensic (1.2.0) RELEASED; urgency=low
 
   [ Rekall Team ]
+  * Release 1.2.0 Col de la Croix.
+  * Release 1.1.0 Buchenegg.
   * Release 1.0.3 Albis.
 
  -- Rekall Team <rekall-dev@googlegroups.com>  Wed, 6 Aug 2014 16:46:37 +0200

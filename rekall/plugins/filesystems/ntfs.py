@@ -1131,7 +1131,7 @@ class IStat(MFTPluginsMixin, NTFSPlugins):
         if mft_entry.is_directory():
             renderer.format("\n$I30 Analysis:\n")
             renderer.table_header([
-                ("MFT", "mft", ">5"),
+                ("MFT", "mft", ">10"),
                 ("Seq", "seq", ">5"),
                 ("Created", "created", "25"),
                 ("File Mod", "file_mod", "25"),
@@ -1170,7 +1170,7 @@ class IStat(MFTPluginsMixin, NTFSPlugins):
 
             renderer.format("\nAttributes:\n")
             renderer.table_header([
-                ("Inode", "inode", ">10"),
+                ("Inode", "inode", ">15"),
                 ("Type", "type", "30"),
                 ("Name", "name", "10"),
                 ("Res", "resident", "5"),
@@ -1206,7 +1206,7 @@ class ILS(MFTPluginsMixin, NTFSPlugins):
 
             # List all files inside this directory.
             renderer.table_header([
-                ("MFT", "mft", ">5"),
+                ("MFT", "mft", ">10"),
                 ("Seq", "seq", ">5"),
                 ("Created", "created", "25"),
                 ("File Mod", "file_mod", "25"),
@@ -1268,7 +1268,7 @@ class IDump(NTFSPlugins):
             self.offset = dump_plugin.offset
 
 
-class IExport(MFTPluginsMixin, core.DirectoryDumperMixin, NTFSPlugins):
+class IExport(core.DirectoryDumperMixin, IDump):
     """Extracts files from NTFS.
 
     For each specified MFT entry, dump the file to the specified dump
@@ -1278,18 +1278,20 @@ class IExport(MFTPluginsMixin, core.DirectoryDumperMixin, NTFSPlugins):
     name = "iexport"
 
     def render(self, renderer):
-        for mft in self.mfts:
-            mft_entry = self.ntfs.mft[mft]
-            filename = mft_entry.full_path or ("MFT_%s" % self.mft)
+        mft_entry = self.ntfs.mft[self.mft]
+        filename = mft_entry.full_path or ("MFT_%s" % self.mft)
+        attribute = mft_entry.get_attribute(self.type, self.id)
 
-            in_as = mft_entry.open_file()
-            if in_as:
-                renderer.format("Writing MFT Entry {0} as {1}\n", mft, filename)
-                with renderer.open(directory=self.dump_dir,
-                                   filename=filename, mode="wb") as out_fd:
-                    utils.CopyAStoFD(
-                        in_as, out_fd, cb=lambda x: renderer.RenderProgress(
-                            "Wrote %s bytes" % x))
+        in_as = attribute.data
+        if in_as:
+            renderer.format(
+                "Writing MFT Entry {0} as {1}\n", self.mft, filename)
+
+            with renderer.open(directory=self.dump_dir,
+                               filename=filename, mode="wb") as out_fd:
+                utils.CopyAStoFD(
+                    in_as, out_fd, cb=lambda x: renderer.RenderProgress(
+                        "Wrote %s bytes" % x))
 
 
 class TestIExport(testlib.HashChecker):

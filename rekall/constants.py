@@ -18,8 +18,8 @@
 #
 import time
 
-VERSION = "1.1.0 beta"
-CODENAME = "Buchenegg"
+VERSION = "1.2.0"
+CODENAME = "Col de la Croix"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORIES = [
