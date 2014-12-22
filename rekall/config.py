@@ -157,6 +157,10 @@ DEFAULT_CONFIGURATION = dict(
 
     # By default we just drop the notebooks at the home directory.
     notebook_dir=GetHomeDir(),
+
+    # This is the path of the cache directory - given relative to the config
+    # file (or it can be specified as an absolute path).
+    cache_dir=".rekall_cache",
     )
 
 # Global options control the framework's own flags. They are not associated with
@@ -193,26 +197,36 @@ def GetConfigFile():
     return {}
 
 
+def CreateDefaultConfigFile():
+    """Creates a default config file."""
+    homedir = GetHomeDir()
+    if homedir:
+        try:
+            filename = "%s/.rekallrc" % homedir
+            with open(filename, "wb") as fd:
+                yaml.dump(DEFAULT_CONFIGURATION, fd)
+
+            logging.info("Created new configuration file %s", filename)
+            cache_dir = os.path.join(
+                homedir, DEFAULT_CONFIGURATION["cache_dir"])
+
+            os.makedirs(cache_dir)
+            logging.info("Created new cache directory %s", cache_dir)
+
+            return DEFAULT_CONFIGURATION
+        except (IOError, OSError):
+            pass
+
+    # Can not write it anywhere but at least we start with something sensible.
+    return DEFAULT_CONFIGURATION
+
+
 def MergeConfigOptions(state):
     """Read the config file and apply the config options to the session."""
     config_data = GetConfigFile()
     # An empty configuration file - we try to initialize a new one.
     if not config_data:
-        homedir = GetHomeDir()
-        if homedir:
-            try:
-                filename = "%s/.rekallrc" % homedir
-                with open(filename, "wb") as fd:
-                    yaml.dump(DEFAULT_CONFIGURATION, fd)
-
-                logging.info("Created new configuration file %s", filename)
-                config_data = DEFAULT_CONFIGURATION
-            except IOError:
-                pass
-
-    # Can not write it anywhere but at least we start with something sensible.
-    if not config_data:
-        config_data = DEFAULT_CONFIGURATION
+        config_data = CreateDefaultConfigFile()
 
     # First apply the defaults:
     for name, options in OPTIONS.args.iteritems():

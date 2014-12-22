@@ -43,7 +43,7 @@ from rekall import plugin
 from rekall import registry
 from rekall import utils
 
-from rekall.entities import manager
+from rekall.entities import manager as entity_manager
 from rekall.ui import renderer
 from rekall.ui import json_renderer
 
@@ -392,16 +392,16 @@ class Session(object):
         # having to hit the profile repository all the time.
         self.profile_cache = {}
 
-        self.entities = manager.EntityManager(session=self)
+        self.entities = entity_manager.EntityManager(session=self)
 
         # A container for active plugins. This is done so that the interactive
         # console can see which plugins are active by simply command completing
         # on this object.
         self.plugins = PluginContainer(self)
 
-        # The inventories is a local cache of all profiles available from all
-        # repositories.
-        self.inventories = {}
+        # These are the IO managers that are used to fetch profiles from the
+        # profile repository.
+        self.repository_managers = {}
 
         # When the session switches process context we store various things in
         # this cache, so we can restore the context quickly. The cache is
@@ -699,20 +699,15 @@ class Session(object):
                         path)
 
                 try:
-                    manager = io_manager.Factory(path)
+                    if path not in self.repository_managers:
+                        self.repository_managers[path] = io_manager.Factory(
+                            path, session=self)
+
+                    manager = self.repository_managers[path]
 
                     # The inventory allows us to fail fetching the profile
                     # quickly - without making the round trip.
-                    if path not in self.inventories:
-                        # Fetch the profile inventory.
-                        self.inventories[path] = manager.GetData(
-                            "inventory")
-
-                    inventory = self.inventories[path]["$INVENTORY"]
-                    # If inventory is there, but file is not in the
-                    # inventory - skip it
-                    if (inventory and filename not in inventory and
-                            filename + ".gz" not in inventory):
+                    if not manager.CheckInventory(filename):
                         logging.debug(
                             "Skipped profile %s from %s (Not in inventory)",
                             filename, path)

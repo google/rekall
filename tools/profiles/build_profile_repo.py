@@ -42,6 +42,7 @@ import json
 import gzip
 import pdb
 import os
+import time
 import traceback
 import multiprocessing
 
@@ -166,7 +167,7 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
                         dump_dir=pdb_path)
                     os.rename(os.path.join(pdb_path, candidate_filename),
                               pdb_out_filename)
-                except Exception as e:
+                except Exception:
                     continue
 
                 pdb_filename = candidate_filename
@@ -266,9 +267,12 @@ def RebuildInventory():
     metadata = dict(Type="Inventory",
                     ProfileClass="Inventory")
 
-    result = {"$METADATA": metadata,
-              "$INVENTORY": inventory}
+    result = {
+        "$METADATA": metadata,
+        "$INVENTORY": inventory,
+    }
 
+    modified = False
     for root, _, files in os.walk('./'):
         for filename in files:
             if filename.endswith(".gz"):
@@ -295,6 +299,11 @@ def RebuildInventory():
                     inventory[profile_name] = data["$METADATA"]
                     inventory[profile_name][
                         "LastModified"] = file_modified_time
+                    modified = True
+
+    if modified:
+        # Update the last modified time for the inventory itself.
+        result["LastModified"] = time.time()
 
     with gzip.GzipFile(filename="inventory.gz", mode="wb") as outfd:
         outfd.write(utils.PPrint(result))

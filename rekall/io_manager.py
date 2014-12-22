@@ -39,6 +39,7 @@ import StringIO
 import gzip
 import json
 import logging
+import time
 import os
 import urllib2
 import urlparse
@@ -65,9 +66,40 @@ class IOManager(object):
 
     order = 100
 
-    def __init__(self, urn=None, mode="r"):
+    def __init__(self, urn=None, mode="r", session=None):
         self.mode = mode
         self.urn = urn
+        self.session = session
+        self._inventory = None
+
+    @property
+    def inventory(self):
+        if self._inventory is None:
+            self._inventory = self.GetData("inventory") or {
+                "$METADATA": dict(
+                    Type="Inventory",
+                    ProfileClass="Inventory"),
+                "$INVENTORY": {},
+            }
+
+        return self._inventory
+
+    def CheckInventory(self, path):
+        """Checks if path exists in the inventory.
+
+        The inventory is a json object at the root of the repository which lists
+        all the profiles in this repository. It allows us to determine quickly
+        if a profile exists in this repository.
+        """
+        return path in self.inventory.get("$INVENTORY")
+
+    def FlushInventory(self):
+        """Write the inventory to the storage."""
+        self.inventory.setdefault("$METADATA", dict(
+            Type="Inventory",
+            ProfileClass="Inventory"))
+
+        self.StoreData("inventory", self.inventory)
 
     def ListFiles(self):
         """Returns a generator over all the files in this container."""
@@ -143,6 +175,13 @@ class IOManager(object):
                 to_write = json.dumps(data, sort_keys=True, **options)
 
             fd.write(to_write)
+
+        # Update the inventory.
+        if name != "inventory":
+            self.inventory.setdefault("$INVENTORY", {})[name] = dict(
+                LastModified=time.time())
+
+            self.FlushInventory()
 
     def __enter__(self):
         return self
@@ -255,6 +294,23 @@ class ZipFileManager(IOManager):
         # closed we can flush the ZipFile.
         self._outstanding_writers = set()
 
+    @property
+    def inventory(self):
+        """We do not really need an inventory for zip files.
+
+        We return a fake one based on the zip file's modification time.
+        """
+        result = {}
+        for zipinfo in self.zip.filelist:
+            result[zipinfo.filename] = zipinfo.date_time
+
+        return {
+            "$INVENTORY": result
+        }
+
+    def FlushInventory(self):
+        pass
+
     def _OpenZipFile(self, mode=None):
         try:
             if self.fd is None:
@@ -329,8 +385,8 @@ class URLManager(IOManager):
     Currenlty we only support openning a zip file fetched from a URL.
     """
 
-    def __init__(self, urn=None, mode="r"):
-        super(URLManager, self).__init__(urn=urn, mode=mode)
+    def __init__(self, urn=None, mode="r", **kwargs):
+        super(URLManager, self).__init__(urn=urn, mode=mode, **kwargs)
         if mode != "r":
             raise IOManagerError("%s supports only reading." %
                                  self.__class__.__name__)
@@ -366,11 +422,11 @@ class URLManager(IOManager):
         return "URL:%s" % self.urn
 
 
-def Factory(urn, mode="r", **kwargs):
+def Factory(urn, mode="r", session=None, **kwargs):
     """Try to instantiate the IOManager class."""
     for cls in sorted(IOManager.classes.values(), key=lambda x: x.order):
         try:
-            return cls(urn=urn, mode=mode, **kwargs)
+            return cls(urn=urn, mode=mode, session=session, **kwargs)
         except IOError:
             pass
 
