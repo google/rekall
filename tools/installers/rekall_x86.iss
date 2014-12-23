@@ -1,5 +1,5 @@
 #define WINPMEM_VERSION '1.6.2'
-#define REKALL_VERSION '1.2.0'
+#define REKALL_VERSION '1.2.1'
 #define REKALL_CODENAME 'Col de la Croix'
 
 [Files]

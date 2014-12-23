@@ -18,7 +18,7 @@
 #
 import time
 
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 CODENAME = "Col de la Croix"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
