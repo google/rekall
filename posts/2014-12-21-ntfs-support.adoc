@@ -1,0 +1,691 @@
+---
+layout: blog
+date: 2014-12-21
+title: Rekall NTFS Support
+abstract: |
+
+  Rekall's advanced memory analysis capabilities are powered by a powerful
+  binary parsing engine - capable of parsing very complex binary formats. Not
+  only can this be applied to memory forensics, but also traditional filesystem
+  forensics can be implemented using this capability.
+
+  Recent versions of Rekall have introduced a complete NTFS parsing subsystem
+  using the familiar Rekall interface. This blog post introduces the NTFS
+  filesystem plugins, and describes their implementation.
+
+author: Michael Cohen <scudette@google.com>
+
+---
+
+:toc2: left
+:icons:
+:numbered:
+:website: http://www.rekall-forensic.com
+
+Rekall NTFS Support.
+====================
+Michael Cohen <scudette@gmail.com>
+
+
+Rekall's advanced memory analysis capabilities are powered by a powerful binary
+parsing engine - capable of parsing very complex binary formats. Not only can
+this be applied to memory forensics, but also traditional filesystem forensics
+can be implemented using this capability.
+
+Recent versions of Rekall have introduced a complete NTFS parsing subsystem
+using the familiar Rekall interface. This blog post introduces the NTFS
+filesystem plugins. In the first part of this blog post, I will show how NTFS
+disk images can be analysed, while in the second part I will talk a bit about
+the implementation details within Rekall.
+
+Why did we add NTFS support to a memory forensic tool?
+
+1. When we added support for using the windows pagefile to supplement memory
+   analysis it became apparent that we needed to read the pagefile directly from
+   the NTFS since the file is normally locked - so normal file APIs are not
+   usable. We considered using tricky kernel hacking to bypass the file lock
+   restrictions but this seems fragile and NTFS parsing is not that complicated.
+   For memory acquisition using `WinPmem` we included the `fcat` tool from the
+   `Sleuthkit` to copy the pagefile out (alternatively we could have linked
+   `libtsk` directly). But one of the more important uses of Rekall is live
+   analysis, and this does not really solve it.
+
+2. We knew that Rekall's binary parsing library was up to the task of handling
+   NTFS. It was a good exercise to learn NTFS and document it in the Rekall
+   implementation. I used Brian Carrier's excellent book
+   http://www.amazon.com/System-Forensic-Analysis-Brian-Carrier/dp/0321268172/[File
+   System Forensic Analysis] to learn about the NTFS and implement it in Rekall.
+
+3. Although we also maintain `pytsk` as a python binding to the TSK library, it
+   is a bit of a pain to use. The bindings are sometimes fragile and can cause
+   crashes under some situations. They also need to be frequently updated when
+   TSK evolves. Performance is not great - TSK needs to parse the entire MFT
+   each time it is loaded. Pytsk has a lot of trouble parsing a live filesystems
+   since TSK caches its analysis of the MFT and might not see new files created
+   after this initial MFT parsing. Rebuilding the caches is quite slow too due
+   to the IO required in reading the entire MFT each time. I felt that a pure
+   python implementation of NTFS parsing can be useful in some situations and
+   use cases and possibly be more efficient (Despite being written in Python
+   :-).
+
+4. Probably the most important reason for implementing NTFS parsing in Rekall
+   was that it was a hell of a lot of fun! Rekall's programming APIs are very
+   easy to work with and the final plugins were really fast and powerful.
+
+Rekall's implementation is not supposed to be a replacement for TSK. The
+Sleuthkit actually converts much of the information found in NTFS into a common
+format to fit all filesystems. So for example, it extends the `inode`
+abstraction from other filesystems from a simple integer to a string which may
+contain type and id (e.g. 50-144-8). Some of the timestamps are also omitted
+from the tool's output (but may be found using the low level API). This extra
+layer of abstraction is good in the general case (e.g. autopsy works with all
+filesystems in the same way) but may actually be hiding some important forensic
+information in some cases. Its useful to have an implementation of NTFS parsing
+with no abstractions at all - to allow examiners to corroborate some of the low
+level information available.
+
+Rekall NTFS plugins.
+--------------------
+
+In order to analyze an NTFS disk image, simply load it with the familiar `-f`
+switch. In the following example I use the `vdfuse` tool in order to export my
+Virtual Box VDI disk partitions as raw devices:
+
+-----------------------------------------------------------------------
+$ vdfuse -r -f ~/VirtualBox\ VMs/win7/win7.vdi /tmp/mnt/
+$ rekal -f /tmp/mnt/Partition2
+ --------------------------------------------------------------------------
+The Rekall Memory Forensic framework 1.2.0 (Col de la Croix).
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
+ --------------------------------------------------------------------------
+[1] Partition2 15:57:14> istat
+MFT Entry Header Values:
+Entry: 5        Sequence: 5
+$LogFile Sequence Number: 13730649171
+Links: 1
+
+$STANDARD_INFORMATION Attribute Values:
+Flags                          COMPRESSED, HIDDEN, SYSTEM
+Owner ID                       0
+SID                            265
+Created                        2009-07-14 02:38:56+0000
+File Modified                  2014-10-31 21:36:56+0000
+MFT Modified                   2014-10-31 21:36:56+0000
+Accessed                       2014-10-31 21:36:56+0000
+
+Attributes:
+     Inode                   Type                 Name     Res     Size    Comment
+--------------- ------------------------------ ---------- ----- ---------- -------
+         5-16-0 $STANDARD_INFORMATION                     True          72
+         5-48-1 $FILE_NAME                                True          68 .
+        5-144-6 $INDEX_ROOT                    $I30       True         168
+        5-160-8 $INDEX_ALLOCATION              $I30       False       8192
+        5-176-7 $BITMAP                        $I30       True           8
+        5-256-9 $LOGGED_UTILITY_STREAM         $TXF_DATA  True          56
+
+$I30 Analysis:
+   MFT      Seq           Created                  File Mod                   MFT Mod                   Access              Size    Filename
+---------- ----- ------------------------- ------------------------- ------------------------- ------------------------- ---------- --------
+         4     4 -                         -                         -                         -                                  0 $AttrDef
+         8     8 -                         -                         -                         -                                  0 $BadClus
+         6     6 -                         -                         -                         -                                  0 $Bitmap
+         7     7 -                         -                         -                         -                                  0 $Boot
+        11    11 2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000           0 $Extend
+         2     2 -                         -                         -                         -                                  0 $LogFile
+         0     1 2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000       16384 $MFT
+         1     1 -                         -                         -                         -                                  0 $MFTMirr
+        57     3 2009-07-14 03:18:56+0000  2013-02-19 17:51:59+0000  2013-02-19 17:51:59+0000  2013-02-19 17:51:59+0000           0 $Recycle.Bin
+         9     9 2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000           0 $Secure
+        10    10 -                         -                         -                         -                                  0 $UpCase
+         3     3 -                         -                         -                         -                                  0 $Volume
+         5     5 2009-07-14 02:38:56+0000  2014-10-31 21:36:56+0000  2014-10-31 21:36:56+0000  2014-10-31 21:36:56+0000           0 .
+    145393    16 2013-02-24 22:22:28+0000  2014-10-28 09:15:59+0000  2014-10-28 09:15:59+0000  2014-10-28 09:15:59+0000           0 Config.Msi
+     63072    11 2013-02-19 18:31:29+0000  2014-10-23 15:24:31+0000  2014-10-23 15:24:31+0000  2014-10-23 15:24:31+0000           0 cygwin
+     13692     1 2009-07-14 05:08:56+0000  2009-07-14 05:08:56+0000  2013-02-20 02:46:34+0000  2009-07-14 05:08:56+0000           0 Documents and Settings
+    165336    45 2013-12-28 19:17:49+0000  2013-12-28 19:17:55+0000  2013-12-28 19:17:55+0000  2013-12-28 19:17:55+0000           0 MinGW
+      1251    15 2014-08-25 13:45:38+0000  2014-10-27 14:08:43+0000  2014-10-27 14:08:43+0000  2014-08-25 13:45:38+0000  1207721984 pagefile.sys
+        58     1 2009-07-14 03:20:08+0000  2009-07-14 03:20:08+0000  2013-02-20 02:46:13+0000  2009-07-14 03:20:08+0000           0 PerfLogs
+        60     1 2009-07-14 03:20:08+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000           0 Program Files
+       247     1 2009-07-14 03:20:08+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000           0 Program Files (x86)
+       363     1 2009-07-14 03:20:08+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000           0 ProgramData
+        60     1 2009-07-14 03:20:08+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000           0 PROGRA~1
+       247     1 2009-07-14 03:20:08+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000           0 PROGRA~2
+       363     1 2009-07-14 03:20:08+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000           0 PROGRA~3
+     88993     1 2013-02-19 18:58:43+0000  2014-08-27 22:34:33+0000  2014-10-21 16:39:13+0000  2014-08-27 22:34:33+0000           0 Python27
+    118195     3 2013-02-19 22:37:36+0000  2013-05-30 13:28:51+0000  2013-05-30 13:28:51+0000  2013-05-30 13:28:51+0000           0 Python27.32
+     27376     2 2013-02-19 17:51:27+0000  2013-02-19 17:51:27+0000  2013-02-19 17:51:27+0000  2013-02-19 17:51:27+0000           0 Recovery
+    149334    13 2014-08-06 18:56:26+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000           0 rekall-profiles
+    149334    13 2014-08-06 18:56:26+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000           0 REKALL~1
+     16393     2 2013-02-20 02:47:16+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000           0 System Volume Information
+     16393     2 2013-02-20 02:47:16+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000           0 SYSTEM~1
+       457     1 2009-07-14 03:20:08+0000  2013-02-19 17:51:39+0000  2014-08-27 22:06:23+0000  2013-02-19 17:51:39+0000           0 Users
+    154403     2 2013-02-20 13:12:13+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000           0 websymbols
+    154403     2 2013-02-20 13:12:13+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000           0 WEBSYM~1
+     58269     7 2013-02-19 18:28:16+0000  2013-02-19 18:28:16+0000  2013-02-19 18:28:16+0000  2013-02-19 18:28:16+0000           0 WinDDK
+       619     1 2009-07-14 03:20:08+0000  2014-10-21 23:41:52+0000  2014-10-21 23:41:52+0000  2014-10-21 23:41:52+0000           0 Windows
+
+-----------------------------------------------------------------------
+
+The `istat` plugin displays information about a particular MFT entry. By default
+it shows entry 5 (The root directory). If the entry has an `I30` attribute
+(which represents a directory index) the plugin further parses the entry and
+displays all files in the directory recovered from the `I30` attribute
+stream. Note that the `I30` stream contains 3 timestamps for each entry which
+are separated from the timestamps actually present in the MFT's
+`$STANDARD_INFORMATION` attribute.
+
+The output of `istat` also lists the attributes and their types in a similar
+notation to that found in, e.g. the Sleuthkit. That is as a tuple separated by
+dashes, MFT-TYPE-ID.
+
+The `fls` plugin works in a similar way, but lists directories based on a
+filename, rooted at the root of the filesystem. The filename may use forward or
+backslash for separators.
+
+-----------------------------------------------------------------------
+[1] Partition2 16:06:52> fls "Python27"
+-----------------------> fls("Python27")
+   MFT      Seq           Created                  File Mod                   MFT Mod                   Access              Size    Filename
+---------- ----- ------------------------- ------------------------- ------------------------- ------------------------- ---------- --------
+    213703    19 2013-12-28 19:37:46+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:46+0000        1315 distorm3-wininst.log
+    213703    19 2013-12-28 19:37:46+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:46+0000        1315 DISTOR~1.LOG
+     91798     1 2013-02-19 18:59:11+0000  2013-12-28 17:23:18+0000  2013-12-28 17:23:18+0000  2013-12-28 17:23:18+0000           0 DLLs
+     94581     1 2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000           0 Doc
+     92031     1 2013-02-19 18:59:15+0000  2014-10-03 00:01:56+0000  2014-10-03 00:01:56+0000  2014-10-03 00:01:56+0000           0 include
+     89201     1 2013-02-19 18:58:47+0000  2014-10-31 21:17:03+0000  2014-10-31 21:17:03+0000  2014-10-31 21:17:03+0000           0 Lib
+     92334     1 2013-02-19 18:59:18+0000  2013-02-19 18:59:18+0000  2013-02-19 18:59:18+0000  2013-02-19 18:59:18+0000           0 libs
+     89063     1 2012-04-10 22:31:16+0000  2012-04-10 22:31:16+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000       40092 LICENSE.txt
+    127389     7 2013-05-30 13:01:27+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:27+0000        9973 M2Crypto-wininst.log
+    127389     7 2013-05-30 13:01:27+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:27+0000        9973 M2CRYP~1.LOG
+     89035     1 2012-04-10 22:18:52+0000  2012-04-10 22:18:52+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000      310875 NEWS.txt
+    129217     7 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000        2645 psutil-wininst.log
+    129217     7 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000        2645 PSUTIL~1.LOG
+      1267     8 2014-08-27 22:34:33+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000           0 PyInstaller-2.1
+      1267     8 2014-08-27 22:34:33+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000           0 PYINST~1.1
+     89064     1 2012-04-10 22:24:54+0000  2012-04-10 22:24:54+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000       27136 python.exe
+     89065     1 2012-04-10 22:24:58+0000  2012-04-10 22:24:58+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000       27648 pythonw.exe
+    116396     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:49+0000  2013-02-19 23:42:49+0000  2013-02-19 19:45:14+0000      238566 pywin32-wininst.log
+    116396     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:49+0000  2013-02-19 23:42:49+0000  2013-02-19 19:45:14+0000      238566 PYWIN3~1.LOG
+     89009     2 2012-03-18 22:58:32+0000  2013-05-30 13:36:32+0000  2013-05-30 13:36:32+0000  2013-05-30 13:36:32+0000        2797 readme.txt
+    213706    13 2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000      223744 Removedistorm3.exe
+    127390     5 2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000      223744 RemoveM2Crypto.exe
+    129218     5 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000      223744 Removepsutil.exe
+    116397     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:21+0000  2013-02-19 23:42:21+0000  2013-02-19 19:45:14+0000      223744 Removepywin32.exe
+    116397     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:21+0000  2013-02-19 23:42:21+0000  2013-02-19 19:45:14+0000      223744 REMOVE~1.EXE
+    127390     5 2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000      223744 REMOVE~2.EXE
+    129218     5 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000      223744 REMOVE~3.EXE
+    213706    13 2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000      223744 REMOVE~4.EXE
+    117061     1 2013-02-19 19:45:15+0000  2014-08-27 23:48:19+0000  2014-08-27 23:48:19+0000  2014-08-27 23:48:19+0000           0 Scripts
+    233676    26 2014-02-19 22:43:58+0000  2014-02-19 22:43:58+0000  2014-02-19 22:43:58+0000  2014-02-19 22:43:58+0000           0 share
+     92364     1 2013-02-19 18:59:18+0000  2013-02-19 18:59:33+0000  2013-02-19 18:59:33+0000  2013-02-19 18:59:33+0000           0 tcl
+     94437     1 2013-02-19 18:59:33+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000           0 Tools
+-----------------------------------------------------------------------
+
+Similarly `fstat` is analogous to `istat` except takes a filename as an
+argument.
+
+Rekall supports NTFS compressed files too. Consider the following file:
+
+-----------------------------------------------------------------------
+[1] Partition2 16:06:54> istat 89063
+MFT Entry Header Values:
+Entry: 89063        Sequence: 1
+$LogFile Sequence Number: 12520239903
+Links: 1
+
+$STANDARD_INFORMATION Attribute Values:
+Flags                          ARCHIVE, COMPRESSED
+Owner ID                       0
+SID                            713
+Created                        2012-04-10 22:31:16+0000
+File Modified                  2012-04-10 22:31:16+0000
+MFT Modified                   2013-02-19 18:58:44+0000
+Accessed                       2013-02-19 18:58:44+0000
+
+Attributes:
+     Inode                   Type                 Name     Res     Size    Comment
+--------------- ------------------------------ ---------- ----- ---------- -------
+     89063-16-0 $STANDARD_INFORMATION                     True          72
+     89063-48-2 $FILE_NAME                                True          88 LICENSE.txt
+    89063-128-3 $DATA                                     False      40092 VCN: 0-15
+
+Clusters (128-3):
+3456320-3456326(6)        Sparse(10)
+-----------------------------------------------------------------------
+
+NTFS compression works by compressing every 16 clusters together, and inserting
+a sparse cluster to cover the compressed region. We can see this in the above
+cluster listing.
+
+Rekall provides the `idump` plugin which is analogous to the regular `dump`
+plugin, and displays a hexdump of the MTF entry.
+
+---------------------------------------------------------------------------------
+[1] Partition2 16:06:56> idump 89063
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+           0x0 41 2e 20 48 49 53 54 4f 52 59 20 4f 46 20 54 48  A..HISTORY.OF.TH -
+          0x10 45 20 53 4f 46 54 57 41 52 45 0d 0a 3d 3d 3d 3d  E.SOFTWARE..==== -
+          0x20 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d  ================ -
+          0x30 3d 3d 3d 3d 3d 3d 0d 0a 0d 0a 50 79 74 68 6f 6e  ======....Python -
+          0x40 20 77 61 73 20 63 72 65 61 74 65 64 20 69 6e 20  .was.created.in. -
+          0x50 74 68 65 20 65 61 72 6c 79 20 31 39 39 30 73 20  the.early.1990s. -
+          0x60 62 79 20 47 75 69 64 6f 20 76 61 6e 20 52 6f 73  by.Guido.van.Ros -
+          0x70 73 75 6d 20 61 74 20 53 74 69 63 68 74 69 6e 67  sum.at.Stichting -
+          0x80 0d 0a 4d 61 74 68 65 6d 61 74 69 73 63 68 20 43  ..Mathematisch.C -
+          0x90 65 6e 74 72 75 6d 20 28 43 57 49 2c 20 73 65 65  entrum.(CWI,.see -
+---------------------------------------------------------------------------------
+
+If you want to copy a file out of the NTFS filesystem, use the `iexport` plugin.
+
+-----------------------------------------------------------------------
+[1] Partition2 16:50:46> iexport 89063, dump_dir="/tmp/"
+Writing MFT Entry 89063 as Python27/LICENSE.txt
+[1] Partition2 16:51:11> !head /tmp/Python27%2fLICENSE.txt
+A. HISTORY OF THE SOFTWARE
+==========================
+
+Python was created in the early 1990s by Guido van Rossum at Stichting
+Mathematisch Centrum (CWI, see http://www.cwi.nl) in the Netherlands
+as a successor of a language called ABC.  Guido remains Python's
+principal author, although it includes many contributions from others.
+
+In 1995, Guido continued his work on Python at the Corporation for
+National Research Initiatives (CNRI, see http://www.cnri.reston.va.us)
+-----------------------------------------------------------------------
+
+Rekall's NTFS implementation notes.
+-----------------------------------
+
+This section is intended for Rekall developers who want to learn a bit about how
+Rekall's NTFS implementation uses some of the common features in the Rekall API.
+
+Autodetection of NTFS
+~~~~~~~~~~~~~~~~~~~~~
+
+To make Rekall as easy to use as possible, we use autodetection as much as we
+can. Ideally a user should simply provide the image file, and Rekall will detect
+the image format and the profile required. To support this, Rekall has an
+autodetection plugin system. A detector class simply registers by extending
+`guess_profile.DetectionMethod`:
+
+[source,python]
+----------------------------------------
+class NTFSDetector(guess_profile.DetectionMethod):
+    name = "ntfs"
+
+    def Offsets(self):
+        return [0]
+
+    def DetectFromHit(self, hit, _, address_space):
+        ntfs_profile = self.session.LoadProfile("ntfs")
+        try:
+            ntfs = NTFS(address_space=address_space, session=self.session)
+            self.session.SetParameter("ntfs", ntfs)
+
+            return ntfs_profile
+        except NTFSParseError:
+            return
+----------------------------------------
+
+The detector can provide a string on which to fire, or a list of offsets to
+check in its Offsets() method. The framework will then call it when a hit is
+found.
+
+Implementing Fixups
+~~~~~~~~~~~~~~~~~~~
+
+One of the more interesting features of NTFS is the use of Fixups. When the NTFS
+writes to disk certain data structures, it replaces some bytes in the cluster
+with a random sequence. It then stores the bytes that used to be there as fixups
+in a list. When NTFS reads the cluster from disk it applies the fixups to get
+the original data.
+
+This means that we can not simply read clusters from the disk - we must apply
+the relevant fixups. In Rekall we have an `Address Space` abstraction to read
+data. Address Spaces typically layer on top of other address spaces. Hence we
+can implement the `FixupAddressSpace` so it can be layered on top of another
+address space:
+
+[source,python]
+----------------------------------------
+class FixupAddressSpace(addrspace.BaseAddressSpace):
+    """An address space to implement record fixup."""
+
+    def __init__(self, fixup_magic, fixup_table, base_offset, length, **kwargs):
+        super(FixupAddressSpace, self).__init__(**kwargs)
+        self.as_assert(self.base is not None, "Address space must be stacked.")
+        self.base_offset = base_offset
+        self.fixup_table = fixup_table
+        self.fixup_magic = fixup_magic
+
+        # We read the entire region into a mutable buffer then apply the fixups.
+        self.buffer = array.array("c", self.base.read(base_offset, length))
+        for i, fixup_value in enumerate(fixup_table):
+            fixup_offset = (i+1) * 512 - 2
+            if (self.buffer[fixup_offset:fixup_offset+2].tostring() !=
+                    fixup_magic.v()):
+                raise NTFSParseError("Fixup error")
+
+            self.buffer[fixup_offset:fixup_offset+2] = array.array(
+                "c", fixup_value.v())
+
+    def read(self, address, length):
+        buffer_offset = address - self.base_offset
+        return self.buffer[buffer_offset:buffer_offset+length].tostring()
+----------------------------------------
+
+We can then apply the fixup to arbitary structures. The below code will
+automatically apply the fixup every time we instantiate an `MFT_ENTRY`
+struct. Therefore the fixups become completely transparent now:
+
+[source,python]
+----------------------------------------
+class MFT_ENTRY(obj.Struct):
+    def __init__(self, **kwargs):
+        super(MFT_ENTRY, self).__init__(**kwargs)
+
+        # We implement fixup by wrapping the base address space with a fixed
+        # one:
+        self.obj_vm = FixupAddressSpace(fixup_magic=self.fixup_magic,
+                                        fixup_table=self.fixup_table,
+                                        base_offset=self.obj_offset,
+                                        length=self.mft_entry_allocated,
+                                        base=self.obj_vm)
+----------------------------------------
+
+
+Runlists
+~~~~~~~~
+
+NTFS attributes can be fragmented. The actual blocks they occupy on disk are
+described using a run list. Rekall already has an address space primitive called
+a `RunBasedAddressSpace`. This type of address space is simply initialized with
+a list of runs specifying tuples of the form (file address, disk address
+length), and then layered on top of the Physical Address Space (i.e. the disk
+image).
+
+Supporting compressed files makes the implementation slightly more complex, but
+in general all one has to do is derive an address space from the
+`RunBasedAddressSpace` and in the constructor populate the `self.runs`
+collection. The following shows the simplified implementation ignoring
+compression.
+
+[source,python]
+----------------------------------------
+class RunListAddressSpace(addrspace.RunBasedAddressSpace):
+    """An address space which is initialized from a runlist."""
+
+    def __init__(self, run_list, cluster_size=None, size=0, **kwargs):
+        super(RunListAddressSpace, self).__init__(**kwargs)
+        self.PAGE_SIZE = cluster_size or self.session.cluster_size
+        self.compression_unit_size = 16 * self.PAGE_SIZE
+        self._end = size
+
+        # In clusters.
+        file_offset = 0
+        for range_start, range_length in run_list:
+            self._store_run(
+                file_offset, range_start, uncompressed_range_length)
+
+    def _store_run(self, file_offset, range_start, length):
+        """Store a new run with all items given in self.PAGE_SIZE."""
+        self.runs.insert(
+            [file_offset * self.PAGE_SIZE,
+             range_start * self.PAGE_SIZE,
+             length * self.PAGE_SIZE,
+             False])
+...
+
+----------------------------------------
+
+Once the mapping is defined, the address space takes care of efficiently
+locating and using the correct run for arbitrary read operations.
+
+Further abstractions
+~~~~~~~~~~~~~~~~~~~~
+
+Rekall uses `rekall.obj.Struct` classes to represent arbitrary structs in
+memory. There is a mechanism to extend these and provide methods for these
+structs. The methods can be used to define a kind of API for accessing other
+data. For example, we can attach convenience methods to an `MFT_ENTRY`:
+
+[source,python]
+----------------------------------------
+class MFT_ENTRY(obj.Struct):
+
+    @property
+    def attributes(self):
+        """Iterate over all attributes, even ones in $ATTRIBUTE_LIST."""
+        seen = set()
+
+        for attribute in self._attributes:
+            if attribute.type == 0xFFFFFFFF:
+                break
+
+            if attribute in seen:
+                continue
+
+            seen.add(attribute)
+            yield attribute
+
+            if attribute.type == "$ATTRIBUTE_LIST":
+                for sub_attr in attribute.DecodeAttribute():
+                    if sub_attr.mftReference == self.mft_entry:
+                        continue
+
+                    result = sub_attr.attribute
+                    if result in seen:
+                        continue
+
+                    yield result
+
+    def open_file(self):
+        """Returns an address space which maps the content of the file's data.
+
+        If this MFT does not contain any $DATA streams, returns a NoneObject().
+
+        The returned address space is formed by joining all $DATA streams' run
+        lists in this MFT into a contiguous mapping.
+        """
+        ....
+
+    def list_files(self):
+        """List the files contained in this directory.
+
+        Note that any file can contain other files (i.e. be a directory) if it
+        has an $I30 stream. Thats is directories may also contain data and
+        behave as files!
+
+        Returns:
+          An iterator over all INDEX_RECORD_ENTRY.
+        """
+        ....
+----------------------------------------
+
+The above is a sample of some of the convenience methods attached to the
+`MFT_ENTRY`. The first combines the attributes defined within the MFT with those
+defined inside the `$ATTRIBUTE_LIST` attribute (Typically an MFT will start with
+some built in attributes until it runs out of room, then it will move some
+attributes to an `$ATTRIBUTE_LIST` attribute which is non resident. But this is
+an implementation detail of the MFT and should really be abstracted.
+
+Similarly we have the `list_files()` method which simply finds the `$INDEX_ROOT`
+and `$INDEX_ALLOCATION` attributes and enumerates all entries within.
+
+Similarly file data can be stored in multiple `$DATA` attributes (with different
+VCN ranges). Its a bit tedious to combine these `$DATA` attributes and so we
+have the `open_file()` convenience method to return a suitable address space
+over the file.
+
+Using the NTFS API.
+-------------------
+
+It is easy to use the API to open and read arbitrary MFT entries:
+
+----------------------------------------
+$ rekal -f /tmp/mnt/Partition2
+ ----------------------------------------------------------------------------
+The Rekall Memory Forensic framework 1.2.0 (Col de la Croix).
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
+ ----------------------------------------------------------------------------
+# This gets a reference to the ntfs object which represents the filesystem.
+[1] Partition2 19:28:33> ntfs = session.GetParameter("ntfs")
+
+# The NTFS object contains a reference to the MFT
+[1] Partition2 19:28:38> mft = ntfs.mft[89035]
+
+# Which is just an array of MFT_ENTRY structs
+[1] Partition2 19:28:40> print mft
+[MFT_ENTRY Array[89035] ] @ 0x056F2C00
+  0x00 magic                    [String:magic]: 'FILE'
+  0x04 fixup_offset             [unsigned short:fixup_offset]: 0x00000030
+  0x06 fixup_count              [unsigned short:fixup_count]: 0x00000003
+  0x08 logfile_sequence_number  [unsigned long long:logfile_sequence_number]: 0x2C601977B
+  0x10 sequence_value           [unsigned short:sequence_value]: 0x00000001
+  0x12 link_count               [unsigned short:link_count]: 0x00000001
+  0x14 attribute_offset         [unsigned short:attribute_offset]: 0x00000038
+  0x16 flags                    [Flags:flags]: 0x00000001 (ALLOCATED)
+  0x18 mft_entry_size           [unsigned short:mft_entry_size]: 0x00000178
+  0x1C mft_entry_allocated      [unsigned short:mft_entry_allocated]: 0x00000400
+  0x20 base_record_reference    [unsigned long long:base_record_reference]: 0x00000000
+  0x28 next_attribute_id        [unsigned short:next_attribute_id]: 0x00000004
+  0x30 fixup_magic              [String:fixup_magic]: '\x0f\x00'
+  0x32 fixup_table             <Array 2 x String @ 0x056F2C32>
+  0x38 _attributes             <ListArray 0 x NTFS_ATTRIBUTE @ 0x056F2C38>
+
+# We use the convenience method to open the file, returning a suitable address space.
+[1] Partition2 19:28:41> fd = mft.open_file()
+
+# We can just read the address space.
+[1] Partition2 19:28:45> fd.read(0, 20)
+                  Out  > 'Python News\r\n+++++++'
+----------------------------------------
+
+We can also list files in a directory:
+----------------------------------------------------------------------------
+[1] Partition2 19:38:00> for record in ntfs.mft[5].list_files():
+                    |..>         print record.file.name
+$AttrDef
+$BadClus
+$Bitmap
+$Boot
+$Extend
+$LogFile
+$MFT
+$MFTMirr
+$Recycle.Bin
+$Secure
+$UpCase
+$Volume
+.
+Config.Msi
+cygwin
+Documents and Settings
+MinGW
+pagefile.sys
+PerfLogs
+Program Files
+Program Files (x86)
+ProgramData
+PROGRA~1
+PROGRA~2
+PROGRA~3
+Python27
+Python27.32
+Recovery
+rekall-profiles
+REKALL~1
+System Volume Information
+SYSTEM~1
+Users
+websymbols
+WEBSYM~1
+WinDDK
+Windows
+[1] Partition2 19:38:16> print record
+[INDEX_RECORD_ENTRY ListArray[20] ] @ 0x00001890
+  0x00 mftReference      [BitField(0-48):mftReference]: 0x0000026B
+  0x06 seq_num           [short int:seq_num]: 0x00000001
+  0x08 sizeOfIndexEntry  [unsigned short:sizeOfIndexEntry]: 0x00000060
+  0x0A filenameOffset    [unsigned short:filenameOffset]: 0x00000050
+  0x0C flags             [unsigned int:flags]: 0x00000000
+  0x10 file             [FILE_NAME file] @ 0x000018A0
+
+[1] Partition2 19:38:18> print record.file
+[FILE_NAME file] @ 0x000018A0
+  0x00 mftReference     [BitField(0-48):mftReference]: 0x00000005
+  0x06 seq_num          [short int:seq_num]: 0x00000005
+  0x08 created          [WinFileTime:created]: 0x4A5BF968 (2009-07-14 03:20:08+0000)
+  0x10 file_modified    [WinFileTime:file_modified]: 0x5446EF40 (2014-10-21 23:41:52+0000)
+  0x18 mft_modified     [WinFileTime:mft_modified]: 0x5446EF40 (2014-10-21 23:41:52+0000)
+  0x20 file_accessed    [WinFileTime:file_accessed]: 0x5446EF40 (2014-10-21 23:41:52+0000)
+  0x28 allocated_size   [unsigned long long:allocated_size]: 0x00000000
+  0x30 size             [unsigned long long:size]: 0x00000000
+  0x38 flags            [Flags:flags]: 0x10000800 ()
+  0x3C reparse_value    [unsigned int:reparse_value]: 0x00000000
+  0x40 _length_of_name  [byte:_length_of_name]: 0x00000007
+  0x41 name_type        [Enumeration:name_type]: 0x00000000 (POSIX)
+  0x42 name             [UnicodeString:name]: u'Windows' (Windows)
+----------------------------------------------------------------------------
+
+Note that iterating over the index produces a list of `INDEX_RECORD_ENTRY`
+structs which also contain `FILE_NAME` structs within them. The `FILE_NAME`
+structs contain the 4 NTFS timestamps quite independently from the timestamps
+stored in the actual MFT for the file itself (This `FILE_NAME` struct came from
+the directory index), this can be forensically significant.
+
+The next example shows how to get the `$STANDARD_INFORMATION` record for each
+file:
+----------------------------------------------------------------------------
+[1] Partition2 19:56:32> x=ntfs.mft[89035].get_attribute("$STANDARD_INFORMATION")
+[1] Partition2 19:57:01> print x.DecodeAttribute()
+[STANDARD_INFORMATION STANDARD_INFORMATION] @ 0x00000000
+  0x00 create_time         [WinFileTime:create_time]: 0x4F84B1CC (2012-04-10 22:18:52+0000)
+  0x08 file_altered_time   [WinFileTime:file_altered_time]: 0x4F84B1CC (2012-04-10 22:18:52+0000)
+  0x10 mft_altered_time    [WinFileTime:mft_altered_time]: 0x5123CB64 (2013-02-19 18:58:44+0000)
+  0x18 file_accessed_time  [WinFileTime:file_accessed_time]: 0x5123CB64 (2013-02-19 18:58:44+0000)
+  0x20 flags               [Flags:flags]: 0x00000820 (ARCHIVE, COMPRESSED)
+  0x24 max_versions        [unsigned int:max_versions]: 0x00000000
+  0x28 version             [unsigned int:version]: 0x00000000
+  0x2C class_id            [unsigned int:class_id]: 0x00000000
+  0x30 owner_id            [unsigned int:owner_id]: 0x00000000
+  0x34 sid                 [unsigned int:sid]: 0x000002C9
+  0x38 quota               [unsigned long long:quota]: 0x00000000
+  0x40 usn                 [unsigned int:usn]: 0xC54A40B8
+----------------------------------------------------------------------------
+
+First the attribute named `$STANDARD_INFORMATION` is retrieved and then it is
+decoded into the `STANDARD_INFORMATION` struct.
+
+Conclusions
+-----------
+
+Although the NTFS support in Rekall is still pretty immature we want to make it
+better and more useful. For a relatively complex filesystem, such as NTFS, the
+Rekall implementation is pretty small, coming in at around 1000 lines of code
+(not including the implementation for lznt1 - the NTFS compression
+algorithm. Additional lines are for plugins etc). It should be possible to
+support additional filesystems as well. We also want to write more interesting
+plugins, please let us know any ideas for a good NTFS plugin :-)
+
+Performance is pretty good. One thing you should notice is that Rekall starts up
+pretty fast since it does not scan the MFT like TSK does. Of course this means
+that Rekall cant find orphaned files like TSK does! Rekall also does not have a
+cache of the MFT - making it suitable to operate on a changing live filesystem.
+
+Reading compressed files is currently pretty slow since the `lznt1` compression
+algorithm is implemented in pure python. This could be easily accelerated with a
+C implementation in future.

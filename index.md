@@ -38,18 +38,15 @@ analysis, try it out with:
 
 ```rekall webconsole --browser```
 
+Rekall is now tested with Travis-CI [![Build Status](https://travis-ci.org/google/rekall.svg?branch=master)](https://travis-ci.org/google/rekall).
+
 # News
 
-## Current release: Rekall 1.1.0 [Buchenegg](http://en.wikipedia.org/wiki/Buechenegg_Pass)
+## Current release: Rekall 1.2.1 [Col de la Croix](http://en.wikipedia.org/wiki/Col_de_la_Croix_(Vaud))
 
-This release introduces a cool new GUI for Rekall. This GUI superceeds the
-Ipython notebook interface which has been deprecated. See some screenshots
-[here](docs/GUI.html).
-
-Rekall can now work on guest VMs through analyzing the Host's memory - either
-live, or using a memory image! See [this blog post](posts/2014-10-03-vms.html)
-for more details.
-
+This release introduces some cool new features such as pagefile analysis, NTFS
+support and user mode heap enumeration. Check out the [release
+notes](releases.html).
 
 ## Quick start
 
@@ -57,11 +54,6 @@ Rekall is available as a python package installable via the pip package
 manager. Simply type (for example on Linux):
 
 ```sudo pip install rekall```
-
-You might need to specifically allow pre-release software to be included (until
-Rekall makes a major stable release):
-
-```sudo pip install --pre rekall```
 
 To have all the dependencies installed. You still need to have python and pip
 installed first.

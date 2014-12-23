@@ -55,6 +55,12 @@ ript>
         </li>
 
         <li>
+          <a class="" href="/releases.html">
+            Releases
+          </a>
+        </li>
+
+        <li>
           <a class="" href="/blog.html">
             Blog
           </a>
@@ -99,22 +105,13 @@ ript>
 
   <div class="col-md-8">
     <h1>WinPMEM - A Windows Memory Acquisition Tool.</h1>
-<p>Version 1.6.0</p>
+<p>Version 1.6.2</p>
 <p>Michael Cohen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;">&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;</a></p>
-<p>This directory contains two binaries:</p>
 <ul>
-<li>
-<p>winpmem_1.6.0.exe: The officially supported winpmem binary memory imager. This
+<li>winpmem_1.6.2.exe: The officially supported winpmem binary memory imager. This
   contains signed drivers for loading into 64 bit windows versions. The drivers
-  support only read mode for forensic analysis. Write support is disabled.</p>
-</li>
-<li>
-<p>winpmem_write_1.6.0.exe: This is a binary with test signed drivers that also
-  have write support enabled. These will not load on a regular windows machine!
-  In order to use these drivers you will need to enable test mode signing in
-  your kernel by typing in a cmd shell <code>Bcdedit.exe -set TESTSIGNING ON</code> and
-  rebooting.</p>
-</li>
+  support only read mode for forensic analysis. Write support is disabled. This
+  version also includes the ability to acquire the pagefile.</li>
 </ul>
   </div>
   <div class="col-md-2 sidebar">

@@ -21,6 +21,7 @@ MD_EXTENSIONS = [
     'smarty',
     'tables',
     'sane_lists',
+    'def_list',
     'wikilinks(end_url=.html)',
     ]
 

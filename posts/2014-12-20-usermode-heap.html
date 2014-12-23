@@ -55,6 +55,12 @@ ript>
         </li>
 
         <li>
+          <a class="" href="/releases.html">
+            Releases
+          </a>
+        </li>
+
+        <li>
           <a class="" href="/blog.html">
             Blog
           </a>
@@ -129,10 +135,10 @@ memory layouts of structs at the application intends (i.e. we know where the
 structs begins in memory and how large it is).</p></div>
 <div class="paragraph"><p>This blog post explains Rekall&#8217;s new heap inspection plugin. In particular I
 wanted to demonstrate how heap inspection can be used to help reverse engineer
-some important application, such as the DNS resolver cache. In windows, DNS
+some important applications, such as the DNS resolver. In windows, DNS
 requests are typically cached by the DNS resolver service (which is running
 inside one of the <code>svchost.exe</code> processes). This information is very important
-from an incident response perspective since it can reveal recently accesses
+from an incident response perspective since it can reveal recently accessed
 command and control (C&amp;C) connections. However, the DNS resolver is a largely
 undocumented application, making it an excellent demonstration for heap based
 analysis.</p></div>
@@ -1317,7 +1323,7 @@ INFO:root:Loaded profile ntdll/GUID/9D04EB0AA387494FBD81ED062072B99C2 from Direc
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-19 17:25:50 AEST
+Last updated 2014-12-23 18:39:32 AEST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

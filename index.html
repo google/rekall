@@ -55,6 +55,12 @@ ript>
         </li>
 
         <li>
+          <a class="" href="/releases.html">
+            Releases
+          </a>
+        </li>
+
+        <li>
           <a class="" href="/blog.html">
             Blog
           </a>
@@ -123,21 +129,16 @@ major operating systems (see the tools directory).</p>
 <p>Additionally Rekall now features a complete GUI for writing reports, and driving
 analysis, try it out with:</p>
 <p><code>rekall webconsole --browser</code></p>
+<p>Rekall is now tested with Travis-CI <a href="https://travis-ci.org/google/rekall"><img alt="Build Status" src="https://travis-ci.org/google/rekall.svg?branch=master" /></a>.</p>
 <h1>News</h1>
-<h2>Current release: Rekall 1.1.0 <a href="http://en.wikipedia.org/wiki/Buechenegg_Pass">Buchenegg</a></h2>
-<p>This release introduces a cool new GUI for Rekall. This GUI superceeds the
-Ipython notebook interface which has been deprecated. See some screenshots
-<a href="docs/GUI.html">here</a>.</p>
-<p>Rekall can now work on guest VMs through analyzing the Host&rsquo;s memory - either
-live, or using a memory image! See <a href="posts/2014-10-03-vms.html">this blog post</a>
-for more details.</p>
+<h2>Current release: Rekall 1.2.1 <a href="http://en.wikipedia.org/wiki/Col_de_la_Croix_(Vaud)">Col de la Croix</a></h2>
+<p>This release introduces some cool new features such as pagefile analysis, NTFS
+support and user mode heap enumeration. Check out the <a href="releases.html">release
+notes</a>.</p>
 <h2>Quick start</h2>
 <p>Rekall is available as a python package installable via the pip package
 manager. Simply type (for example on Linux):</p>
 <p><code>sudo pip install rekall</code></p>
-<p>You might need to specifically allow pre-release software to be included (until
-Rekall makes a major stable release):</p>
-<p><code>sudo pip install --pre rekall</code></p>
 <p>To have all the dependencies installed. You still need to have python and pip
 installed first.</p>
 <p>If you want to use the yarascan plugin, install <a href="http://plusvic.github.io/yara/">yara and

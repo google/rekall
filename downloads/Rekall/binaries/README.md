@@ -3,9 +3,9 @@ title: Binary Releases of Rekall Memory Forensics.
 order: 1
 downloads:
 
-   Rekall_1.1.0_Buchenegg_x64.exe: Windows 64 bit installer (Includes winpmem and ipython notebook).
+   Rekall_1.2.1_Col de la Croix_x64_signed.exe: Windows 64 bit installer (Includes winpmem). This installer is digitally signed.
 
-   https://github.com/google/rekall/archive/v1.1.0.tar.gz: Source.
+   https://github.com/google/rekall/archive/v1.2.1.tar.gz: Source.
 
 ---
 Binary Releases of Rekall Memory Forensics.

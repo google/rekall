@@ -9,7 +9,7 @@ title: Rekall Memory Forensic Framework
 
 Copyright (C) 2007-2011 Volatile Systems
 
-Copyright 2013 Google Inc. All Rights Reserved.
+Copyright 2013-2014 Google Inc. All Rights Reserved.
 
 All Rights Reserved
 
@@ -65,4 +65,3 @@ contributors:
 - Jordi Sanchez
 - Michael Cohen
 - Misha Bushkov
-

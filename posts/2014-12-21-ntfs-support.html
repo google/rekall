@@ -1,0 +1,799 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
+       <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/releases.html">
+            Releases
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+         </ul>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
+           </div>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
+   </nav>
+
+<div class="container-fluid">
+<div class="row">
+  <div class="col-md-2">
+    
+  </div>
+
+  <div class="col-md-8">
+    
+<div id="header">
+<h1>Rekall NTFS Support.</h1>
+<span id="author">Michael Cohen</span><br />
+<span id="email"><code>&lt;<a href="mailto:scudette@gmail.com">scudette@gmail.com</a>&gt;</code></span><br />
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>Rekall&#8217;s advanced memory analysis capabilities are powered by a powerful binary
+parsing engine - capable of parsing very complex binary formats. Not only can
+this be applied to memory forensics, but also traditional filesystem forensics
+can be implemented using this capability.</p></div>
+<div class="paragraph"><p>Recent versions of Rekall have introduced a complete NTFS parsing subsystem
+using the familiar Rekall interface. This blog post introduces the NTFS
+filesystem plugins. In the first part of this blog post, I will show how NTFS
+disk images can be analysed, while in the second part I will talk a bit about
+the implementation details within Rekall.</p></div>
+<div class="paragraph"><p>Why did we add NTFS support to a memory forensic tool?</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+When we added support for using the windows pagefile to supplement memory
+   analysis it became apparent that we needed to read the pagefile directly from
+   the NTFS since the file is normally locked - so normal file APIs are not
+   usable. We considered using tricky kernel hacking to bypass the file lock
+   restrictions but this seems fragile and NTFS parsing is not that complicated.
+   For memory acquisition using <code>WinPmem</code> we included the <code>fcat</code> tool from the
+   <code>Sleuthkit</code> to copy the pagefile out (alternatively we could have linked
+   <code>libtsk</code> directly). But one of the more important uses of Rekall is live
+   analysis, and this does not really solve it.
+</p>
+</li>
+<li>
+<p>
+We knew that Rekall&#8217;s binary parsing library was up to the task of handling
+   NTFS. It was a good exercise to learn NTFS and document it in the Rekall
+   implementation. I used Brian Carrier&#8217;s excellent book
+   <a href="http://www.amazon.com/System-Forensic-Analysis-Brian-Carrier/dp/0321268172/">File
+   System Forensic Analysis</a> to learn about the NTFS and implement it in Rekall.
+</p>
+</li>
+<li>
+<p>
+Although we also maintain <code>pytsk</code> as a python binding to the TSK library, it
+   is a bit of a pain to use. The bindings are sometimes fragile and can cause
+   crashes under some situations. They also need to be frequently updated when
+   TSK evolves. Performance is not great - TSK needs to parse the entire MFT
+   each time it is loaded. Pytsk has a lot of trouble parsing a live filesystems
+   since TSK caches its analysis of the MFT and might not see new files created
+   after this initial MFT parsing. Rebuilding the caches is quite slow too due
+   to the IO required in reading the entire MFT each time. I felt that a pure
+   python implementation of NTFS parsing can be useful in some situations and
+   use cases and possibly be more efficient (Despite being written in Python
+   :-).
+</p>
+</li>
+<li>
+<p>
+Probably the most important reason for implementing NTFS parsing in Rekall
+   was that it was a hell of a lot of fun! Rekall&#8217;s programming APIs are very
+   easy to work with and the final plugins were really fast and powerful.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Rekall&#8217;s implementation is not supposed to be a replacement for TSK. The
+Sleuthkit actually converts much of the information found in NTFS into a common
+format to fit all filesystems. So for example, it extends the <code>inode</code>
+abstraction from other filesystems from a simple integer to a string which may
+contain type and id (e.g. 50-144-8). Some of the timestamps are also omitted
+from the tool&#8217;s output (but may be found using the low level API). This extra
+layer of abstraction is good in the general case (e.g. autopsy works with all
+filesystems in the same way) but may actually be hiding some important forensic
+information in some cases. Its useful to have an implementation of NTFS parsing
+with no abstractions at all - to allow examiners to corroborate some of the low
+level information available.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rekall_ntfs_plugins">1. Rekall NTFS plugins.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>In order to analyze an NTFS disk image, simply load it with the familiar <code>-f</code>
+switch. In the following example I use the <code>vdfuse</code> tool in order to export my
+Virtual Box VDI disk partitions as raw devices:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ vdfuse -r -f ~/VirtualBox\ VMs/win7/win7.vdi /tmp/mnt/
+$ rekal -f /tmp/mnt/Partition2
+ --------------------------------------------------------------------------
+The Rekall Memory Forensic framework 1.2.0 (Col de la Croix).
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
+ --------------------------------------------------------------------------
+[1] Partition2 15:57:14&gt; istat
+MFT Entry Header Values:
+Entry: 5        Sequence: 5
+$LogFile Sequence Number: 13730649171
+Links: 1
+
+$STANDARD_INFORMATION Attribute Values:
+Flags                          COMPRESSED, HIDDEN, SYSTEM
+Owner ID                       0
+SID                            265
+Created                        2009-07-14 02:38:56+0000
+File Modified                  2014-10-31 21:36:56+0000
+MFT Modified                   2014-10-31 21:36:56+0000
+Accessed                       2014-10-31 21:36:56+0000
+
+Attributes:
+     Inode                   Type                 Name     Res     Size    Comment
+--------------- ------------------------------ ---------- ----- ---------- -------
+         5-16-0 $STANDARD_INFORMATION                     True          72
+         5-48-1 $FILE_NAME                                True          68 .
+        5-144-6 $INDEX_ROOT                    $I30       True         168
+        5-160-8 $INDEX_ALLOCATION              $I30       False       8192
+        5-176-7 $BITMAP                        $I30       True           8
+        5-256-9 $LOGGED_UTILITY_STREAM         $TXF_DATA  True          56
+
+$I30 Analysis:
+   MFT      Seq           Created                  File Mod                   MFT Mod                   Access              Size    Filename
+---------- ----- ------------------------- ------------------------- ------------------------- ------------------------- ---------- --------
+         4     4 -                         -                         -                         -                                  0 $AttrDef
+         8     8 -                         -                         -                         -                                  0 $BadClus
+         6     6 -                         -                         -                         -                                  0 $Bitmap
+         7     7 -                         -                         -                         -                                  0 $Boot
+        11    11 2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000           0 $Extend
+         2     2 -                         -                         -                         -                                  0 $LogFile
+         0     1 2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000       16384 $MFT
+         1     1 -                         -                         -                         -                                  0 $MFTMirr
+        57     3 2009-07-14 03:18:56+0000  2013-02-19 17:51:59+0000  2013-02-19 17:51:59+0000  2013-02-19 17:51:59+0000           0 $Recycle.Bin
+         9     9 2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000  2013-02-20 02:35:15+0000           0 $Secure
+        10    10 -                         -                         -                         -                                  0 $UpCase
+         3     3 -                         -                         -                         -                                  0 $Volume
+         5     5 2009-07-14 02:38:56+0000  2014-10-31 21:36:56+0000  2014-10-31 21:36:56+0000  2014-10-31 21:36:56+0000           0 .
+    145393    16 2013-02-24 22:22:28+0000  2014-10-28 09:15:59+0000  2014-10-28 09:15:59+0000  2014-10-28 09:15:59+0000           0 Config.Msi
+     63072    11 2013-02-19 18:31:29+0000  2014-10-23 15:24:31+0000  2014-10-23 15:24:31+0000  2014-10-23 15:24:31+0000           0 cygwin
+     13692     1 2009-07-14 05:08:56+0000  2009-07-14 05:08:56+0000  2013-02-20 02:46:34+0000  2009-07-14 05:08:56+0000           0 Documents and Settings
+    165336    45 2013-12-28 19:17:49+0000  2013-12-28 19:17:55+0000  2013-12-28 19:17:55+0000  2013-12-28 19:17:55+0000           0 MinGW
+      1251    15 2014-08-25 13:45:38+0000  2014-10-27 14:08:43+0000  2014-10-27 14:08:43+0000  2014-08-25 13:45:38+0000  1207721984 pagefile.sys
+        58     1 2009-07-14 03:20:08+0000  2009-07-14 03:20:08+0000  2013-02-20 02:46:13+0000  2009-07-14 03:20:08+0000           0 PerfLogs
+        60     1 2009-07-14 03:20:08+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000           0 Program Files
+       247     1 2009-07-14 03:20:08+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000           0 Program Files (x86)
+       363     1 2009-07-14 03:20:08+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000           0 ProgramData
+        60     1 2009-07-14 03:20:08+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000  2014-08-27 23:30:42+0000           0 PROGRA~1
+       247     1 2009-07-14 03:20:08+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000  2014-10-28 09:11:38+0000           0 PROGRA~2
+       363     1 2009-07-14 03:20:08+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000  2013-02-19 18:27:21+0000           0 PROGRA~3
+     88993     1 2013-02-19 18:58:43+0000  2014-08-27 22:34:33+0000  2014-10-21 16:39:13+0000  2014-08-27 22:34:33+0000           0 Python27
+    118195     3 2013-02-19 22:37:36+0000  2013-05-30 13:28:51+0000  2013-05-30 13:28:51+0000  2013-05-30 13:28:51+0000           0 Python27.32
+     27376     2 2013-02-19 17:51:27+0000  2013-02-19 17:51:27+0000  2013-02-19 17:51:27+0000  2013-02-19 17:51:27+0000           0 Recovery
+    149334    13 2014-08-06 18:56:26+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000           0 rekall-profiles
+    149334    13 2014-08-06 18:56:26+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000  2014-09-11 14:18:27+0000           0 REKALL~1
+     16393     2 2013-02-20 02:47:16+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000           0 System Volume Information
+     16393     2 2013-02-20 02:47:16+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000  2014-10-31 22:07:56+0000           0 SYSTEM~1
+       457     1 2009-07-14 03:20:08+0000  2013-02-19 17:51:39+0000  2014-08-27 22:06:23+0000  2013-02-19 17:51:39+0000           0 Users
+    154403     2 2013-02-20 13:12:13+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000           0 websymbols
+    154403     2 2013-02-20 13:12:13+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000  2013-02-20 13:15:48+0000           0 WEBSYM~1
+     58269     7 2013-02-19 18:28:16+0000  2013-02-19 18:28:16+0000  2013-02-19 18:28:16+0000  2013-02-19 18:28:16+0000           0 WinDDK
+       619     1 2009-07-14 03:20:08+0000  2014-10-21 23:41:52+0000  2014-10-21 23:41:52+0000  2014-10-21 23:41:52+0000           0 Windows</code></pre>
+</div></div>
+<div class="paragraph"><p>The <code>istat</code> plugin displays information about a particular MFT entry. By default
+it shows entry 5 (The root directory). If the entry has an <code>I30</code> attribute
+(which represents a directory index) the plugin further parses the entry and
+displays all files in the directory recovered from the <code>I30</code> attribute
+stream. Note that the <code>I30</code> stream contains 3 timestamps for each entry which
+are separated from the timestamps actually present in the MFT&#8217;s
+<code>$STANDARD_INFORMATION</code> attribute.</p></div>
+<div class="paragraph"><p>The output of <code>istat</code> also lists the attributes and their types in a similar
+notation to that found in, e.g. the Sleuthkit. That is as a tuple separated by
+dashes, MFT-TYPE-ID.</p></div>
+<div class="paragraph"><p>The <code>fls</code> plugin works in a similar way, but lists directories based on a
+filename, rooted at the root of the filesystem. The filename may use forward or
+backslash for separators.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] Partition2 16:06:52&gt; fls "Python27"
+-----------------------&gt; fls("Python27")
+   MFT      Seq           Created                  File Mod                   MFT Mod                   Access              Size    Filename
+---------- ----- ------------------------- ------------------------- ------------------------- ------------------------- ---------- --------
+    213703    19 2013-12-28 19:37:46+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:46+0000        1315 distorm3-wininst.log
+    213703    19 2013-12-28 19:37:46+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:47+0000  2013-12-28 19:37:46+0000        1315 DISTOR~1.LOG
+     91798     1 2013-02-19 18:59:11+0000  2013-12-28 17:23:18+0000  2013-12-28 17:23:18+0000  2013-12-28 17:23:18+0000           0 DLLs
+     94581     1 2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000           0 Doc
+     92031     1 2013-02-19 18:59:15+0000  2014-10-03 00:01:56+0000  2014-10-03 00:01:56+0000  2014-10-03 00:01:56+0000           0 include
+     89201     1 2013-02-19 18:58:47+0000  2014-10-31 21:17:03+0000  2014-10-31 21:17:03+0000  2014-10-31 21:17:03+0000           0 Lib
+     92334     1 2013-02-19 18:59:18+0000  2013-02-19 18:59:18+0000  2013-02-19 18:59:18+0000  2013-02-19 18:59:18+0000           0 libs
+     89063     1 2012-04-10 22:31:16+0000  2012-04-10 22:31:16+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000       40092 LICENSE.txt
+    127389     7 2013-05-30 13:01:27+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:27+0000        9973 M2Crypto-wininst.log
+    127389     7 2013-05-30 13:01:27+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:29+0000  2013-05-30 13:01:27+0000        9973 M2CRYP~1.LOG
+     89035     1 2012-04-10 22:18:52+0000  2012-04-10 22:18:52+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000      310875 NEWS.txt
+    129217     7 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000        2645 psutil-wininst.log
+    129217     7 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000        2645 PSUTIL~1.LOG
+      1267     8 2014-08-27 22:34:33+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000           0 PyInstaller-2.1
+      1267     8 2014-08-27 22:34:33+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000  2014-08-27 22:34:36+0000           0 PYINST~1.1
+     89064     1 2012-04-10 22:24:54+0000  2012-04-10 22:24:54+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000       27136 python.exe
+     89065     1 2012-04-10 22:24:58+0000  2012-04-10 22:24:58+0000  2013-02-19 18:58:44+0000  2013-02-19 18:58:44+0000       27648 pythonw.exe
+    116396     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:49+0000  2013-02-19 23:42:49+0000  2013-02-19 19:45:14+0000      238566 pywin32-wininst.log
+    116396     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:49+0000  2013-02-19 23:42:49+0000  2013-02-19 19:45:14+0000      238566 PYWIN3~1.LOG
+     89009     2 2012-03-18 22:58:32+0000  2013-05-30 13:36:32+0000  2013-05-30 13:36:32+0000  2013-05-30 13:36:32+0000        2797 readme.txt
+    213706    13 2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000      223744 Removedistorm3.exe
+    127390     5 2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000      223744 RemoveM2Crypto.exe
+    129218     5 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000      223744 Removepsutil.exe
+    116397     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:21+0000  2013-02-19 23:42:21+0000  2013-02-19 19:45:14+0000      223744 Removepywin32.exe
+    116397     2 2013-02-19 19:45:14+0000  2013-02-19 23:42:21+0000  2013-02-19 23:42:21+0000  2013-02-19 19:45:14+0000      223744 REMOVE~1.EXE
+    127390     5 2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000  2013-05-30 13:01:27+0000      223744 REMOVE~2.EXE
+    129218     5 2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000  2013-05-30 13:02:47+0000      223744 REMOVE~3.EXE
+    213706    13 2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000  2013-12-28 19:37:46+0000      223744 REMOVE~4.EXE
+    117061     1 2013-02-19 19:45:15+0000  2014-08-27 23:48:19+0000  2014-08-27 23:48:19+0000  2014-08-27 23:48:19+0000           0 Scripts
+    233676    26 2014-02-19 22:43:58+0000  2014-02-19 22:43:58+0000  2014-02-19 22:43:58+0000  2014-02-19 22:43:58+0000           0 share
+     92364     1 2013-02-19 18:59:18+0000  2013-02-19 18:59:33+0000  2013-02-19 18:59:33+0000  2013-02-19 18:59:33+0000           0 tcl
+     94437     1 2013-02-19 18:59:33+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000  2013-02-19 18:59:34+0000           0 Tools</code></pre>
+</div></div>
+<div class="paragraph"><p>Similarly <code>fstat</code> is analogous to <code>istat</code> except takes a filename as an
+argument.</p></div>
+<div class="paragraph"><p>Rekall supports NTFS compressed files too. Consider the following file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] Partition2 16:06:54&gt; istat 89063
+MFT Entry Header Values:
+Entry: 89063        Sequence: 1
+$LogFile Sequence Number: 12520239903
+Links: 1
+
+$STANDARD_INFORMATION Attribute Values:
+Flags                          ARCHIVE, COMPRESSED
+Owner ID                       0
+SID                            713
+Created                        2012-04-10 22:31:16+0000
+File Modified                  2012-04-10 22:31:16+0000
+MFT Modified                   2013-02-19 18:58:44+0000
+Accessed                       2013-02-19 18:58:44+0000
+
+Attributes:
+     Inode                   Type                 Name     Res     Size    Comment
+--------------- ------------------------------ ---------- ----- ---------- -------
+     89063-16-0 $STANDARD_INFORMATION                     True          72
+     89063-48-2 $FILE_NAME                                True          88 LICENSE.txt
+    89063-128-3 $DATA                                     False      40092 VCN: 0-15
+
+Clusters (128-3):
+3456320-3456326(6)        Sparse(10)</code></pre>
+</div></div>
+<div class="paragraph"><p>NTFS compression works by compressing every 16 clusters together, and inserting
+a sparse cluster to cover the compressed region. We can see this in the above
+cluster listing.</p></div>
+<div class="paragraph"><p>Rekall provides the <code>idump</code> plugin which is analogous to the regular <code>dump</code>
+plugin, and displays a hexdump of the MTF entry.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] Partition2 16:06:56&gt; idump 89063
+    Offset                           Hex                              Data
+-------------- ------------------------------------------------ ----------------
+           0x0 41 2e 20 48 49 53 54 4f 52 59 20 4f 46 20 54 48  A..HISTORY.OF.TH -
+          0x10 45 20 53 4f 46 54 57 41 52 45 0d 0a 3d 3d 3d 3d  E.SOFTWARE..==== -
+          0x20 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d 3d  ================ -
+          0x30 3d 3d 3d 3d 3d 3d 0d 0a 0d 0a 50 79 74 68 6f 6e  ======....Python -
+          0x40 20 77 61 73 20 63 72 65 61 74 65 64 20 69 6e 20  .was.created.in. -
+          0x50 74 68 65 20 65 61 72 6c 79 20 31 39 39 30 73 20  the.early.1990s. -
+          0x60 62 79 20 47 75 69 64 6f 20 76 61 6e 20 52 6f 73  by.Guido.van.Ros -
+          0x70 73 75 6d 20 61 74 20 53 74 69 63 68 74 69 6e 67  sum.at.Stichting -
+          0x80 0d 0a 4d 61 74 68 65 6d 61 74 69 73 63 68 20 43  ..Mathematisch.C -
+          0x90 65 6e 74 72 75 6d 20 28 43 57 49 2c 20 73 65 65  entrum.(CWI,.see -</code></pre>
+</div></div>
+<div class="paragraph"><p>If you want to copy a file out of the NTFS filesystem, use the <code>iexport</code> plugin.</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] Partition2 16:50:46&gt; iexport 89063, dump_dir="/tmp/"
+Writing MFT Entry 89063 as Python27/LICENSE.txt
+[1] Partition2 16:51:11&gt; !head /tmp/Python27%2fLICENSE.txt
+A. HISTORY OF THE SOFTWARE
+==========================
+
+Python was created in the early 1990s by Guido van Rossum at Stichting
+Mathematisch Centrum (CWI, see http://www.cwi.nl) in the Netherlands
+as a successor of a language called ABC.  Guido remains Python's
+principal author, although it includes many contributions from others.
+
+In 1995, Guido continued his work on Python at the Corporation for
+National Research Initiatives (CNRI, see http://www.cnri.reston.va.us)</code></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rekall_8217_s_ntfs_implementation_notes">2. Rekall&#8217;s NTFS implementation notes.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>This section is intended for Rekall developers who want to learn a bit about how
+Rekall&#8217;s NTFS implementation uses some of the common features in the Rekall API.</p></div>
+<div class="sect2">
+<h3 id="_autodetection_of_ntfs">2.1. Autodetection of NTFS</h3>
+<div class="paragraph"><p>To make Rekall as easy to use as possible, we use autodetection as much as we
+can. Ideally a user should simply provide the image file, and Rekall will detect
+the image format and the profile required. To support this, Rekall has an
+autodetection plugin system. A detector class simply registers by extending
+<code>guess_profile.DetectionMethod</code>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">NTFSDetector</span></span><span style="color: #990000">(</span>guess_profile<span style="color: #990000">.</span>DetectionMethod<span style="color: #990000">):</span>
+    name <span style="color: #990000">=</span> <span style="color: #FF0000">"ntfs"</span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">Offsets</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]</span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">DetectFromHit</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> hit<span style="color: #990000">,</span> _<span style="color: #990000">,</span> address_space<span style="color: #990000">):</span>
+        ntfs_profile <span style="color: #990000">=</span> self<span style="color: #990000">.</span>session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">LoadProfile</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"ntfs"</span><span style="color: #990000">)</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">try</span></span><span style="color: #990000">:</span>
+            ntfs <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">NTFS</span></span><span style="color: #990000">(</span>address_space<span style="color: #990000">=</span>address_space<span style="color: #990000">,</span> session<span style="color: #990000">=</span>self<span style="color: #990000">.</span>session<span style="color: #990000">)</span>
+            self<span style="color: #990000">.</span>session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">SetParameter</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"ntfs"</span><span style="color: #990000">,</span> ntfs<span style="color: #990000">)</span>
+
+            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> ntfs_profile
+        <span style="font-weight: bold"><span style="color: #0000FF">except</span></span> NTFSParseError<span style="color: #990000">:</span>
+            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span></tt></pre></div></div>
+<div class="paragraph"><p>The detector can provide a string on which to fire, or a list of offsets to
+check in its Offsets() method. The framework will then call it when a hit is
+found.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_implementing_fixups">2.2. Implementing Fixups</h3>
+<div class="paragraph"><p>One of the more interesting features of NTFS is the use of Fixups. When the NTFS
+writes to disk certain data structures, it replaces some bytes in the cluster
+with a random sequence. It then stores the bytes that used to be there as fixups
+in a list. When NTFS reads the cluster from disk it applies the fixups to get
+the original data.</p></div>
+<div class="paragraph"><p>This means that we can not simply read clusters from the disk - we must apply
+the relevant fixups. In Rekall we have an <code>Address Space</code> abstraction to read
+data. Address Spaces typically layer on top of other address spaces. Hence we
+can implement the <code>FixupAddressSpace</code> so it can be layered on top of another
+address space:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">FixupAddressSpace</span></span><span style="color: #990000">(</span>addrspace<span style="color: #990000">.</span>BaseAddressSpace<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">    """An address space to implement record fixup."""</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> fixup_magic<span style="color: #990000">,</span> fixup_table<span style="color: #990000">,</span> base_offset<span style="color: #990000">,</span> length<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+        <span style="font-weight: bold"><span style="color: #000000">super</span></span><span style="color: #990000">(</span>FixupAddressSpace<span style="color: #990000">,</span> self<span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(**</span>kwargs<span style="color: #990000">)</span>
+        self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">as_assert</span></span><span style="color: #990000">(</span>self<span style="color: #990000">.</span>base <span style="font-weight: bold"><span style="color: #0000FF">is</span></span> <span style="font-weight: bold"><span style="color: #0000FF">not</span></span> None<span style="color: #990000">,</span> <span style="color: #FF0000">"Address space must be stacked."</span><span style="color: #990000">)</span>
+        self<span style="color: #990000">.</span>base_offset <span style="color: #990000">=</span> base_offset
+        self<span style="color: #990000">.</span>fixup_table <span style="color: #990000">=</span> fixup_table
+        self<span style="color: #990000">.</span>fixup_magic <span style="color: #990000">=</span> fixup_magic
+
+        <span style="font-style: italic"><span style="color: #9A1900"># We read the entire region into a mutable buffer then apply the fixups.</span></span>
+        self<span style="color: #990000">.</span>buffer <span style="color: #990000">=</span> array<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"c"</span><span style="color: #990000">,</span> self<span style="color: #990000">.</span>base<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span>base_offset<span style="color: #990000">,</span> length<span style="color: #990000">))</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> i<span style="color: #990000">,</span> fixup_value <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="font-weight: bold"><span style="color: #000000">enumerate</span></span><span style="color: #990000">(</span>fixup_table<span style="color: #990000">):</span>
+            fixup_offset <span style="color: #990000">=</span> <span style="color: #990000">(</span>i<span style="color: #990000">+</span><span style="color: #993399">1</span><span style="color: #990000">)</span> <span style="color: #990000">*</span> <span style="color: #993399">512</span> <span style="color: #990000">-</span> <span style="color: #993399">2</span>
+            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">(</span>self<span style="color: #990000">.</span>buffer<span style="color: #990000">[</span>fixup_offset<span style="color: #990000">:</span>fixup_offset<span style="color: #990000">+</span><span style="color: #993399">2</span><span style="color: #990000">].</span><span style="font-weight: bold"><span style="color: #000000">tostring</span></span><span style="color: #990000">()</span> <span style="color: #990000">!=</span>
+                    fixup_magic<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">v</span></span><span style="color: #990000">()):</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">raise</span></span> <span style="font-weight: bold"><span style="color: #000000">NTFSParseError</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Fixup error"</span><span style="color: #990000">)</span>
+
+            self<span style="color: #990000">.</span>buffer<span style="color: #990000">[</span>fixup_offset<span style="color: #990000">:</span>fixup_offset<span style="color: #990000">+</span><span style="color: #993399">2</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> array<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span>
+                <span style="color: #FF0000">"c"</span><span style="color: #990000">,</span> fixup_value<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">v</span></span><span style="color: #990000">())</span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> address<span style="color: #990000">,</span> length<span style="color: #990000">):</span>
+        buffer_offset <span style="color: #990000">=</span> address <span style="color: #990000">-</span> self<span style="color: #990000">.</span>base_offset
+        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> self<span style="color: #990000">.</span>buffer<span style="color: #990000">[</span>buffer_offset<span style="color: #990000">:</span>buffer_offset<span style="color: #990000">+</span>length<span style="color: #990000">].</span><span style="font-weight: bold"><span style="color: #000000">tostring</span></span><span style="color: #990000">()</span></tt></pre></div></div>
+<div class="paragraph"><p>We can then apply the fixup to arbitary structures. The below code will
+automatically apply the fixup every time we instantiate an <code>MFT_ENTRY</code>
+struct. Therefore the fixups become completely transparent now:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">MFT_ENTRY</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>Struct<span style="color: #990000">):</span>
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+        <span style="font-weight: bold"><span style="color: #000000">super</span></span><span style="color: #990000">(</span>MFT_ENTRY<span style="color: #990000">,</span> self<span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(**</span>kwargs<span style="color: #990000">)</span>
+
+        <span style="font-style: italic"><span style="color: #9A1900"># We implement fixup by wrapping the base address space with a fixed</span></span>
+        <span style="font-style: italic"><span style="color: #9A1900"># one:</span></span>
+        self<span style="color: #990000">.</span>obj_vm <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">FixupAddressSpace</span></span><span style="color: #990000">(</span>fixup_magic<span style="color: #990000">=</span>self<span style="color: #990000">.</span>fixup_magic<span style="color: #990000">,</span>
+                                        fixup_table<span style="color: #990000">=</span>self<span style="color: #990000">.</span>fixup_table<span style="color: #990000">,</span>
+                                        base_offset<span style="color: #990000">=</span>self<span style="color: #990000">.</span>obj_offset<span style="color: #990000">,</span>
+                                        length<span style="color: #990000">=</span>self<span style="color: #990000">.</span>mft_entry_allocated<span style="color: #990000">,</span>
+                                        base<span style="color: #990000">=</span>self<span style="color: #990000">.</span>obj_vm<span style="color: #990000">)</span></tt></pre></div></div>
+</div>
+<div class="sect2">
+<h3 id="_runlists">2.3. Runlists</h3>
+<div class="paragraph"><p>NTFS attributes can be fragmented. The actual blocks they occupy on disk are
+described using a run list. Rekall already has an address space primitive called
+a <code>RunBasedAddressSpace</code>. This type of address space is simply initialized with
+a list of runs specifying tuples of the form (file address, disk address
+length), and then layered on top of the Physical Address Space (i.e. the disk
+image).</p></div>
+<div class="paragraph"><p>Supporting compressed files makes the implementation slightly more complex, but
+in general all one has to do is derive an address space from the
+<code>RunBasedAddressSpace</code> and in the constructor populate the <code>self.runs</code>
+collection. The following shows the simplified implementation ignoring
+compression.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">RunListAddressSpace</span></span><span style="color: #990000">(</span>addrspace<span style="color: #990000">.</span>RunBasedAddressSpace<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">    """An address space which is initialized from a runlist."""</span></span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> run_list<span style="color: #990000">,</span> cluster_size<span style="color: #990000">=</span>None<span style="color: #990000">,</span> size<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
+        <span style="font-weight: bold"><span style="color: #000000">super</span></span><span style="color: #990000">(</span>RunListAddressSpace<span style="color: #990000">,</span> self<span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(**</span>kwargs<span style="color: #990000">)</span>
+        self<span style="color: #990000">.</span>PAGE_SIZE <span style="color: #990000">=</span> cluster_size <span style="font-weight: bold"><span style="color: #0000FF">or</span></span> self<span style="color: #990000">.</span>session<span style="color: #990000">.</span>cluster_size
+        self<span style="color: #990000">.</span>compression_unit_size <span style="color: #990000">=</span> <span style="color: #993399">16</span> <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE
+        self<span style="color: #990000">.</span>_end <span style="color: #990000">=</span> size
+
+        <span style="font-style: italic"><span style="color: #9A1900"># In clusters.</span></span>
+        file_offset <span style="color: #990000">=</span> <span style="color: #993399">0</span>
+        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> range_start<span style="color: #990000">,</span> range_length <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> run_list<span style="color: #990000">:</span>
+            self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">_store_run</span></span><span style="color: #990000">(</span>
+                file_offset<span style="color: #990000">,</span> range_start<span style="color: #990000">,</span> uncompressed_range_length<span style="color: #990000">)</span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">_store_run</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> file_offset<span style="color: #990000">,</span> range_start<span style="color: #990000">,</span> length<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">        """Store a new run with all items given in self.PAGE_SIZE."""</span></span>
+        self<span style="color: #990000">.</span>runs<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">insert</span></span><span style="color: #990000">(</span>
+            <span style="color: #990000">[</span>file_offset <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE<span style="color: #990000">,</span>
+             range_start <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE<span style="color: #990000">,</span>
+             length <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE<span style="color: #990000">,</span>
+             False<span style="color: #990000">])</span>
+<span style="color: #990000">...</span>
+</tt></pre></div></div>
+<div class="paragraph"><p>Once the mapping is defined, the address space takes care of efficiently
+locating and using the correct run for arbitrary read operations.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_further_abstractions">2.4. Further abstractions</h3>
+<div class="paragraph"><p>Rekall uses <code>rekall.obj.Struct</code> classes to represent arbitrary structs in
+memory. There is a mechanism to extend these and provide methods for these
+structs. The methods can be used to define a kind of API for accessing other
+data. For example, we can attach convenience methods to an <code>MFT_ENTRY</code>:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">MFT_ENTRY</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>Struct<span style="color: #990000">):</span>
+
+    @property
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">attributes</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">        """Iterate over all attributes, even ones in $ATTRIBUTE_LIST."""</span></span>
+        seen <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">set</span></span><span style="color: #990000">()</span>
+
+        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> attribute <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> self<span style="color: #990000">.</span>_attributes<span style="color: #990000">:</span>
+            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> attribute<span style="color: #990000">.</span>type <span style="color: #990000">==</span> <span style="color: #993399">0xFFFFFFFF</span><span style="color: #990000">:</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span>
+
+            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> attribute <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> seen<span style="color: #990000">:</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">continue</span></span>
+
+            seen<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add</span></span><span style="color: #990000">(</span>attribute<span style="color: #990000">)</span>
+            yield attribute
+
+            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> attribute<span style="color: #990000">.</span>type <span style="color: #990000">==</span> <span style="color: #FF0000">"$ATTRIBUTE_LIST"</span><span style="color: #990000">:</span>
+                <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> sub_attr <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> attribute<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">DecodeAttribute</span></span><span style="color: #990000">():</span>
+                    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> sub_attr<span style="color: #990000">.</span>mftReference <span style="color: #990000">==</span> self<span style="color: #990000">.</span>mft_entry<span style="color: #990000">:</span>
+                        <span style="font-weight: bold"><span style="color: #0000FF">continue</span></span>
+
+                    result <span style="color: #990000">=</span> sub_attr<span style="color: #990000">.</span>attribute
+                    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> result <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> seen<span style="color: #990000">:</span>
+                        <span style="font-weight: bold"><span style="color: #0000FF">continue</span></span>
+
+                    yield result
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">open_file</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">        """Returns an address space which maps the content of the file's data.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">        If this MFT does not contain any $DATA streams, returns a NoneObject().</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">        The returned address space is formed by joining all $DATA streams' run</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        lists in this MFT into a contiguous mapping.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
+        <span style="color: #990000">....</span>
+
+    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">list_files</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
+<span style="font-style: italic"><span style="color: #9A1900">        """List the files contained in this directory.</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">        Note that any file can contain other files (i.e. be a directory) if it</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        has an $I30 stream. Thats is directories may also contain data and</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        behave as files!</span></span>
+
+<span style="font-style: italic"><span style="color: #9A1900">        Returns:</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">          An iterator over all INDEX_RECORD_ENTRY.</span></span>
+<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
+        <span style="color: #990000">....</span></tt></pre></div></div>
+<div class="paragraph"><p>The above is a sample of some of the convenience methods attached to the
+<code>MFT_ENTRY</code>. The first combines the attributes defined within the MFT with those
+defined inside the <code>$ATTRIBUTE_LIST</code> attribute (Typically an MFT will start with
+some built in attributes until it runs out of room, then it will move some
+attributes to an <code>$ATTRIBUTE_LIST</code> attribute which is non resident. But this is
+an implementation detail of the MFT and should really be abstracted.</p></div>
+<div class="paragraph"><p>Similarly we have the <code>list_files()</code> method which simply finds the <code>$INDEX_ROOT</code>
+and <code>$INDEX_ALLOCATION</code> attributes and enumerates all entries within.</p></div>
+<div class="paragraph"><p>Similarly file data can be stored in multiple <code>$DATA</code> attributes (with different
+VCN ranges). Its a bit tedious to combine these <code>$DATA</code> attributes and so we
+have the <code>open_file()</code> convenience method to return a suitable address space
+over the file.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_the_ntfs_api">3. Using the NTFS API.</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>It is easy to use the API to open and read arbitrary MFT entries:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ rekal -f /tmp/mnt/Partition2
+ ----------------------------------------------------------------------------
+The Rekall Memory Forensic framework 1.2.0 (Col de la Croix).
+
+"We can remember it for you wholesale!"
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License.
+
+See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
+ ----------------------------------------------------------------------------
+# This gets a reference to the ntfs object which represents the filesystem.
+[1] Partition2 19:28:33&gt; ntfs = session.GetParameter("ntfs")
+
+# The NTFS object contains a reference to the MFT
+[1] Partition2 19:28:38&gt; mft = ntfs.mft[89035]
+
+# Which is just an array of MFT_ENTRY structs
+[1] Partition2 19:28:40&gt; print mft
+[MFT_ENTRY Array[89035] ] @ 0x056F2C00
+  0x00 magic                    [String:magic]: 'FILE'
+  0x04 fixup_offset             [unsigned short:fixup_offset]: 0x00000030
+  0x06 fixup_count              [unsigned short:fixup_count]: 0x00000003
+  0x08 logfile_sequence_number  [unsigned long long:logfile_sequence_number]: 0x2C601977B
+  0x10 sequence_value           [unsigned short:sequence_value]: 0x00000001
+  0x12 link_count               [unsigned short:link_count]: 0x00000001
+  0x14 attribute_offset         [unsigned short:attribute_offset]: 0x00000038
+  0x16 flags                    [Flags:flags]: 0x00000001 (ALLOCATED)
+  0x18 mft_entry_size           [unsigned short:mft_entry_size]: 0x00000178
+  0x1C mft_entry_allocated      [unsigned short:mft_entry_allocated]: 0x00000400
+  0x20 base_record_reference    [unsigned long long:base_record_reference]: 0x00000000
+  0x28 next_attribute_id        [unsigned short:next_attribute_id]: 0x00000004
+  0x30 fixup_magic              [String:fixup_magic]: '\x0f\x00'
+  0x32 fixup_table             &lt;Array 2 x String @ 0x056F2C32&gt;
+  0x38 _attributes             &lt;ListArray 0 x NTFS_ATTRIBUTE @ 0x056F2C38&gt;
+
+# We use the convenience method to open the file, returning a suitable address space.
+[1] Partition2 19:28:41&gt; fd = mft.open_file()
+
+# We can just read the address space.
+[1] Partition2 19:28:45&gt; fd.read(0, 20)
+                  Out  &gt; 'Python News\r\n+++++++'</code></pre>
+</div></div>
+<div class="paragraph"><p>We can also list files in a directory:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] Partition2 19:38:00&gt; for record in ntfs.mft[5].list_files():
+                    |..&gt;         print record.file.name
+$AttrDef
+$BadClus
+$Bitmap
+$Boot
+$Extend
+$LogFile
+$MFT
+$MFTMirr
+$Recycle.Bin
+$Secure
+$UpCase
+$Volume
+.
+Config.Msi
+cygwin
+Documents and Settings
+MinGW
+pagefile.sys
+PerfLogs
+Program Files
+Program Files (x86)
+ProgramData
+PROGRA~1
+PROGRA~2
+PROGRA~3
+Python27
+Python27.32
+Recovery
+rekall-profiles
+REKALL~1
+System Volume Information
+SYSTEM~1
+Users
+websymbols
+WEBSYM~1
+WinDDK
+Windows
+[1] Partition2 19:38:16&gt; print record
+[INDEX_RECORD_ENTRY ListArray[20] ] @ 0x00001890
+  0x00 mftReference      [BitField(0-48):mftReference]: 0x0000026B
+  0x06 seq_num           [short int:seq_num]: 0x00000001
+  0x08 sizeOfIndexEntry  [unsigned short:sizeOfIndexEntry]: 0x00000060
+  0x0A filenameOffset    [unsigned short:filenameOffset]: 0x00000050
+  0x0C flags             [unsigned int:flags]: 0x00000000
+  0x10 file             [FILE_NAME file] @ 0x000018A0
+
+[1] Partition2 19:38:18&gt; print record.file
+[FILE_NAME file] @ 0x000018A0
+  0x00 mftReference     [BitField(0-48):mftReference]: 0x00000005
+  0x06 seq_num          [short int:seq_num]: 0x00000005
+  0x08 created          [WinFileTime:created]: 0x4A5BF968 (2009-07-14 03:20:08+0000)
+  0x10 file_modified    [WinFileTime:file_modified]: 0x5446EF40 (2014-10-21 23:41:52+0000)
+  0x18 mft_modified     [WinFileTime:mft_modified]: 0x5446EF40 (2014-10-21 23:41:52+0000)
+  0x20 file_accessed    [WinFileTime:file_accessed]: 0x5446EF40 (2014-10-21 23:41:52+0000)
+  0x28 allocated_size   [unsigned long long:allocated_size]: 0x00000000
+  0x30 size             [unsigned long long:size]: 0x00000000
+  0x38 flags            [Flags:flags]: 0x10000800 ()
+  0x3C reparse_value    [unsigned int:reparse_value]: 0x00000000
+  0x40 _length_of_name  [byte:_length_of_name]: 0x00000007
+  0x41 name_type        [Enumeration:name_type]: 0x00000000 (POSIX)
+  0x42 name             [UnicodeString:name]: u'Windows' (Windows)</code></pre>
+</div></div>
+<div class="paragraph"><p>Note that iterating over the index produces a list of <code>INDEX_RECORD_ENTRY</code>
+structs which also contain <code>FILE_NAME</code> structs within them. The <code>FILE_NAME</code>
+structs contain the 4 NTFS timestamps quite independently from the timestamps
+stored in the actual MFT for the file itself (This <code>FILE_NAME</code> struct came from
+the directory index), this can be forensically significant.</p></div>
+<div class="paragraph"><p>The next example shows how to get the <code>$STANDARD_INFORMATION</code> record for each
+file:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] Partition2 19:56:32&gt; x=ntfs.mft[89035].get_attribute("$STANDARD_INFORMATION")
+[1] Partition2 19:57:01&gt; print x.DecodeAttribute()
+[STANDARD_INFORMATION STANDARD_INFORMATION] @ 0x00000000
+  0x00 create_time         [WinFileTime:create_time]: 0x4F84B1CC (2012-04-10 22:18:52+0000)
+  0x08 file_altered_time   [WinFileTime:file_altered_time]: 0x4F84B1CC (2012-04-10 22:18:52+0000)
+  0x10 mft_altered_time    [WinFileTime:mft_altered_time]: 0x5123CB64 (2013-02-19 18:58:44+0000)
+  0x18 file_accessed_time  [WinFileTime:file_accessed_time]: 0x5123CB64 (2013-02-19 18:58:44+0000)
+  0x20 flags               [Flags:flags]: 0x00000820 (ARCHIVE, COMPRESSED)
+  0x24 max_versions        [unsigned int:max_versions]: 0x00000000
+  0x28 version             [unsigned int:version]: 0x00000000
+  0x2C class_id            [unsigned int:class_id]: 0x00000000
+  0x30 owner_id            [unsigned int:owner_id]: 0x00000000
+  0x34 sid                 [unsigned int:sid]: 0x000002C9
+  0x38 quota               [unsigned long long:quota]: 0x00000000
+  0x40 usn                 [unsigned int:usn]: 0xC54A40B8</code></pre>
+</div></div>
+<div class="paragraph"><p>First the attribute named <code>$STANDARD_INFORMATION</code> is retrieved and then it is
+decoded into the <code>STANDARD_INFORMATION</code> struct.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusions">4. Conclusions</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Although the NTFS support in Rekall is still pretty immature we want to make it
+better and more useful. For a relatively complex filesystem, such as NTFS, the
+Rekall implementation is pretty small, coming in at around 1000 lines of code
+(not including the implementation for lznt1 - the NTFS compression
+algorithm. Additional lines are for plugins etc). It should be possible to
+support additional filesystems as well. We also want to write more interesting
+plugins, please let us know any ideas for a good NTFS plugin :-)</p></div>
+<div class="paragraph"><p>Performance is pretty good. One thing you should notice is that Rekall starts up
+pretty fast since it does not scan the MFT like TSK does. Of course this means
+that Rekall cant find orphaned files like TSK does! Rekall also does not have a
+cache of the MFT - making it suitable to operate on a changing live filesystem.</p></div>
+<div class="paragraph"><p>Reading compressed files is currently pretty slow since the <code>lznt1</code> compression
+algorithm is implemented in pure python. This could be easily accelerated with a
+C implementation in future.</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2014-12-23 17:14:43 AEST
+</div>
+</div>
+<script src="/js/asciidoc.js"></script>
+  </div>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
+
+
+  </div>
+</div>
+</div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </body>
+</html>
+

@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+    </style>
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/treeview.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+
+   <nav class="navbar navbar-inverse navbar-fixed-top"
+     role="navigation">
+     <div class="container-fluid">
+       <div class="navbar-header">
+         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
+       </div>
+
+       <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav">
+
+        <li>
+          <a class="" href="/index.html">
+            Home
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/about.html">
+            About
+          </a>
+        </li>
+
+        <li>
+          <a class="active" href="/releases.html">
+            Releases
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/blog.html">
+            Blog
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/docs.html">
+            Documentation
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/downloads.html">
+            Downloads
+          </a>
+        </li>
+
+        <li>
+          <a class="" href="/faq.html">
+            FAQ
+          </a>
+        </li>
+
+         </ul>
+         <form class="navbar-form navbar-right" role="search" action="/search.html">
+           <div class="form-group">
+             <input type="text" name="q" class="form-control" placeholder="Site Search">
+           </div>
+           <button type="submit" class="btn btn-default">
+             <span class="glyphicon glyphicon-search"></span>
+           </button>
+         </form>
+       </div> <!-- navbar-collapse -->
+     </div> <!-- container-fluid -->
+   </nav>
+
+<div class="container-fluid">
+<div class="row">
+  <div class="col-md-2">
+    
+  </div>
+
+  <div class="col-md-8">
+    <h1>Rekall Memory Forensic Releases</h1>
+<h2>Version 1.2.1 Col de la Croix</h2>
+<p>This release just made it in time for Christmas! Enjoy!</p>
+<h3>Release Highlights</h3>
+<dl>
+<dt>Filesystems</dt>
+<dd>For the first time Rekall includes experimental support for analysis of
+   traditional Disk images. This release includes a full featured parser for
+   NTFS. Some interesting plugins:</dd>
+</dl>
+<ul>
+<li><code>fls</code>: List files in the filesystem.</li>
+<li><code>istat</code>: Displays information about an MFT entry.</li>
+<li><code>idump</code>: hexdump an attribute or stream.</li>
+<li><code>iexport</code>: Exports a file from the NTFS.</li>
+</ul>
+<dl>
+<dt>Windows</dt>
+<dd>This release includes full support for acquisition and analysis of the
+   windows page file. Some interesting plugins include:</dd>
+</dl>
+<ul>
+<li><code>pagefiles</code>: Lists the currently active page files and their locations.</li>
+<li><code>vadmap</code>: Displays each page in the VAD and resolves its location in physical
+    memory (or the page file).</li>
+<li><code>vtop</code>: This plugin was expanded to display where virtual pages are actually
+    backed by the page file.</li>
+<li><code>dumpfiles</code>: This plugin was finally implemented in Rekall.</li>
+<li><code>inspect_heap</code>: Experimental support for heap enumeration on Win7 x64 allows
+  enumeration of userspace heap allocation (e.g. malloc()).<ul>
+<li><code>dns_cache</code>: This is also used to enumerate the dns cache by inspecting
+  heap allocations.</li>
+</ul>
+</li>
+</ul>
+<dl>
+<dt>OSX</dt>
+<dd>This release adds a functional Entity layer. Currently confined to OSX
+  analysis. Entities are a kind of query language for memory artifacts.
+  Some useful plugins:</dd>
+</dl>
+<ul>
+<li><code>find</code>: Search for entities based on a query.</li>
+<li><code>analyze</code>: Analyze the internal query optimizer&rsquo;s collectors that will be run in
+  response to a query.</li>
+<li>Most other plugins are rewritten in terms of entities (e.g. <code>lsof</code>, <code>netstat</code> etc.)</li>
+</ul>
+<dl>
+<dt>Linux</dt>
+<dd>This release brings a dedicated userspace imager to Linux. The <code>lmap</code> tool was
+  expanded to write ELF core dump files and acquire directly from <code>/proc/kcore</code>,
+  if the target system supports it (in this case no kernel module is needed).</dd>
+</dl>
+<ul>
+<li>MIPS address space added for support on Big Endian Machines.</li>
+</ul>
+<dl>
+<dt>Misc</dt>
+<dd>Rekall can now read and write EWF files natively. There have been many
+  performance and stability improvements too.</dd>
+</dl>
+<ul>
+<li><code>ewfacquire</code>: Rekall can be used to acquire memory efficiently, writing an EWF
+  compressed file (with an embedded ELF file).</li>
+<li>The Profile repository is now cached locally to make subsequent runs faster.</li>
+</ul>
+  </div>
+  <div class="col-md-2 sidebar">
+    <img src="/img/Rekall.png" class="logo"></img>
+
+
+  </div>
+</div>
+</div>
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </body>
+</html>
+

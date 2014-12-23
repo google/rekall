@@ -20,7 +20,7 @@ abstract: |
  the heap allocator to accommodate the intended purpose of the memory. By
  enumerating all heap allocations we can sometimes get a good idea of their
  purpose. Unlike scanning techniques, heap enumeration allows us to see the
- memory layouts of structs at the application intends (i.e. we know where the
+ memory layouts of structs as the application intends (i.e. we know where the
  structs begins in memory and how large it is).
 
  This blog post explains how heap enumeration techniques work and how to apply
@@ -62,10 +62,10 @@ structs begins in memory and how large it is).
 
 This blog post explains Rekall's new heap inspection plugin. In particular I
 wanted to demonstrate how heap inspection can be used to help reverse engineer
-some important application, such as the DNS resolver cache. In windows, DNS
+some important applications, such as the DNS resolver. In windows, DNS
 requests are typically cached by the DNS resolver service (which is running
 inside one of the `svchost.exe` processes). This information is very important
-from an incident response perspective since it can reveal recently accesses
+from an incident response perspective since it can reveal recently accessed
 command and control (C&C) connections. However, the DNS resolver is a largely
 undocumented application, making it an excellent demonstration for heap based
 analysis.
