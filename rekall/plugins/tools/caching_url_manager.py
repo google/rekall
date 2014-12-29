@@ -93,6 +93,12 @@ class CachingURLManager(io_manager.IOManager):
     def CheckUpstreamRepository(self):
         """Checks the repository for freshness."""
         upstream_inventory = self.url_manager.inventory
+
+        # This indicates failure to contact the remote repository. In this case
+        # we do not want to invalidate our cache, just use the cache as is.
+        if not upstream_inventory["$INVENTORY"]:
+            return
+
         cache_inventory = self.cache_io_manager.inventory
         modified = False
 
