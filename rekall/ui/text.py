@@ -414,7 +414,10 @@ class Pager(object):
         if self.fd is None:
             return
 
-        self.fd.flush()
+        try:
+            self.fd.flush()
+        except ValueError:
+            pass
 
         try:
             args = dict(filename=self.fd.name)

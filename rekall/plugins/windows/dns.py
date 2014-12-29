@@ -114,9 +114,11 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
         return None, None
 
-    def _verify_hash_table(self, start, length):
+    def _verify_hash_table(self, start, length, heaps):
         """Verify the region between start and end for a possible hash table.
         """
+        logging.debug("Verifying hash table at %#x", start)
+
         cache_hash_table = self.profile.Array(
             start,
             target="Pointer",
@@ -125,28 +127,53 @@ class WinDNSCache(common.WindowsCommandPlugin):
             ),
             count=length / 8)
 
+        target_heap = None
         for entry in cache_hash_table:
-            if entry.v() != 0:
-                name = entry.Name.deref().v()
-                if name:
-                    # name must be a valid utf16 string encodable to ascii,
-                    # since it is a DNS name.
-                    try:
-                        name.encode("ascii")
-                    except UnicodeError:
-                        return None
+            # If the hashtable entry is null, keep searching.
+            if entry.v() == 0:
+                continue
+
+            # ALL entry pointers must point back into one of the other heaps. It
+            # must also be the same heap for all pointers.
+            dest_heap = heaps.get_range(entry.v())
+            if dest_heap is None:
+                return False
+
+            if target_heap is None:
+                target_heap = dest_heap
+
+            elif target_heap != dest_heap:
+                return False
+
+            name = entry.Name.deref().v()
+            if name:
+                # name must be a valid utf16 string encodable to ascii,
+                # since it is a DNS name.
+                try:
+                    name.encode("ascii")
+                except UnicodeError:
+                    return None
+
+        # There must be at least one pointer in the hashtable. Note that
+        # sometimes the hash table is empty because the cache is empty.
+        if target_heap is None:
+            return False
+
+        logging.debug("All pointers target heap at %#x", target_heap)
 
         return cache_hash_table
 
     def _locate_heap(self, task, vad):
         # Find all heaps in this process.
-        heaps = [x.v() for x in task.Peb.ProcessHeaps]
+        heaps = utils.RangedCollection()
+        for heap in task.Peb.ProcessHeaps:
+            heaps.insert(heap.FirstEntry, heap.LastValidEntry, heap)
 
         # Locate the correct heap by scanning for its reference from the
         # dnsrslvr.dll vad. This will normally be stored in dnsrslvr.dll's
         # global variable called g_CacheHeap.
         scanner = scan.PointerScanner(
-            pointers=heaps,
+            pointers=task.Peb.ProcessHeaps,
             session=self.session,
             address_space=self.session.GetParameter("default_address_space"))
 
@@ -157,7 +184,7 @@ class WinDNSCache(common.WindowsCommandPlugin):
             )
             for entry in heap.Entries:
                 hash_table = self._verify_hash_table(
-                    entry.obj_offset + 0x10, entry.Size * 16)
+                    entry.obj_offset + 0x10, entry.Size * 16 - 8, heaps)
                 if hash_table:
                     return hash_table
 

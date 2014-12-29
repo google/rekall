@@ -797,6 +797,25 @@ class SortedCollection(object):
         raise ValueError('No item found with key above: %r' % (k,))
 
 
+class RangedCollection(object):
+    """A convenience wrapper around SortedCollection for ranges."""
+
+    def __init__(self):
+        self.collection = SortedCollection()
+
+    def insert(self, start, end, data):
+        self.collection.insert((int(start), int(end), data))
+
+    def get_range(self, value):
+        """Retrieve the data associated with the range that contains value."""
+        try:
+            start, end, data = self.collection.find_le((value, None, None))
+            if start <= value <= end:
+                return data
+        except ValueError:
+            return None
+
+
 class JITIterator(object):
     def __init__(self, baseclass):
         self.baseclass = baseclass
