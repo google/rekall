@@ -310,6 +310,13 @@ class EntityManager(object):
         if self.lookup_tables.get(key, None):
             return
 
+        attribute = entity_module.Entity.reflect_attribute(key)
+        if not isinstance(attribute, entity_component.Field):
+            logging.info(
+                ("Can't create a lookup for %s, because it's not a simple "
+                 "field."), attribute)
+            return
+
         logging.debug("Creating a lookup table for %s", key)
         component, _ = key.split("/")
 

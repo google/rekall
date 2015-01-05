@@ -127,6 +127,10 @@ class QueryMatcher(visitor.QueryVisitor):
 
         try:
             rebind = saved_bindings.get(context)
+
+            if not rebind:  # No results.
+                return False
+
             if isinstance(rebind, superposition.BaseSuperposition):
                 rebind_variants = list(saved_bindings.get_variants(context))
             else:

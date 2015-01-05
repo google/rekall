@@ -126,7 +126,11 @@ class FlagsTextRenderer(BaseObjectTextRenderer):
         return text.Cell(unicode(self.v()))
 
     def render_compact(self, target, **_):
-        elided = self.render_full(target).paragraphs[0]
+        lines = self.render_full(target).lines
+        if not lines:
+            return text.Cell("-")
+
+        elided = lines[0]
         if len(elided) > 40:
             elided = elided[:39] + u"…"
 
