@@ -5,6 +5,10 @@
 # Authors:
 # Michael Cohen <scudette@google.com>
 #
+# Acknowledgments:
+# We would like to thank Chakib Gzenayi for his patient testing and suggestions
+# in the development of this plugin.
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or (at
@@ -33,6 +37,8 @@ from rekall import scan
 from rekall import utils
 from rekall import obj
 from rekall.plugins.windows import common
+
+# pylint: disable=protected-access
 
 
 # Most common DNS types.
@@ -93,9 +99,25 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
     name = "dns_cache"
 
-    def __init__(self, **kwargs):
+    @classmethod
+    def is_active(cls, session):
+        return (super(WinDNSCache, cls).is_active(session) and
+                session.profile.metadata("version") == "6.1")
+
+    @classmethod
+    def args(cls, parser):
+        super(WinDNSCache, cls).args(parser)
+        parser.add_argument("--hashtable", default=None,
+                            help="Optionally provide the hashtable")
+
+        parser.add_argument("--index", default=True, type="Boolean",
+                            help="Should we use the index")
+
+    def __init__(self, hashtable=None, index=True, **kwargs):
         super(WinDNSCache, self).__init__(**kwargs)
         self.profile = InitializedDNSTypes(self.profile)
+        self.hashtable = hashtable
+        self.index = index
 
     def _find_svchost_vad(self):
         """Returns the vad and _EPROCESS of the dnsrslvr.dll."""
@@ -114,77 +136,148 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
         return None, None
 
-    def _verify_hash_table(self, start, length, heaps):
-        """Verify the region between start and end for a possible hash table.
-        """
-        logging.debug("Verifying hash table at %#x", start)
+    def _verify_hash_table(self, allocation, heap):
+        """Verify the allocation between start and end for a hash table.
 
-        cache_hash_table = self.profile.Array(
-            start,
+        We have observed that often the hash table may contain corrupt data due
+        to paging smear during acquisition, hence more rigorous checks might
+        actually fail to find the correct hash table due to corrupted data
+        confusing the sanity checks here. It is always better to detect the
+        correct version using the profile repository.
+        """
+        logging.debug("Verifying hash table at %#x", allocation.obj_offset)
+
+        if self.hashtable and allocation.obj_offset != self.hashtable:
+            return False
+
+        # Find all segments in this heap.
+        segments = utils.RangedCollection()
+        for seg in heap.Segments:
+            segments.insert(seg.FirstEntry, seg.LastValidEntry, seg)
+
+        # We usually observe the hash table to be about 1600 bytes, but it might
+        # grow.
+        if allocation.length > 1600 * 3 or allocation.length < 1600:
+            return False
+
+        # Cast the allocation into a hash table.
+        cache_hash_table = allocation.cast(
+            "Array",
             target="Pointer",
             target_args=dict(
                 target="DNS_HASHTABLE_ENTRY",
             ),
-            count=length / 8)
+            profile=self.profile,
+            size=allocation.length)
 
-        target_heap = None
+        count = 0
         for entry in cache_hash_table:
             # If the hashtable entry is null, keep searching.
-            if entry.v() == 0:
+            entry = entry.v()
+            if entry == 0:
                 continue
 
-            # ALL entry pointers must point back into one of the other heaps. It
-            # must also be the same heap for all pointers.
-            dest_heap = heaps.get_range(entry.v())
-            if dest_heap is None:
+            # ALL entry pointers must point back into one of the other segments
+            # in this heap (Since DNS_HASHTABLE_ENTRY are allocated from this
+            # heap)..
+            dest_segment = segments.get_range(entry)
+            if dest_segment is None:
                 return False
 
-            if target_heap is None:
-                target_heap = dest_heap
+            count += 1
 
-            elif target_heap != dest_heap:
-                return False
-
-            name = entry.Name.deref().v()
-            if name:
-                # name must be a valid utf16 string encodable to ascii,
-                # since it is a DNS name.
-                try:
-                    name.encode("ascii")
-                except UnicodeError:
-                    return None
-
-        # There must be at least one pointer in the hashtable. Note that
-        # sometimes the hash table is empty because the cache is empty.
-        if target_heap is None:
+        # It may be that the hashtable is all empty but otherwise we will match
+        # a zero allocated block.
+        if count == 0:
             return False
-
-        logging.debug("All pointers target heap at %#x", target_heap)
 
         return cache_hash_table
 
-    def _locate_heap(self, task, vad):
-        # Find all heaps in this process.
-        heaps = utils.RangedCollection()
-        for heap in task.Peb.ProcessHeaps:
-            heaps.insert(heap.FirstEntry, heap.LastValidEntry, heap)
+    def _locate_heap_using_index(self, task):
+        """Locate the heap by referencing the index.
 
-        # Locate the correct heap by scanning for its reference from the
-        # dnsrslvr.dll vad. This will normally be stored in dnsrslvr.dll's
-        # global variable called g_CacheHeap.
+        We consult the profile repository for all known versions of dnsrslvr.dll
+        and use the known symbol offsets to identify the currently running
+        version. Unfortunately often the RSDS section of the PE file is not
+        mapped and so we can not directly identify the running version. We
+        therefore use the following algorithm:
+
+        1. Enumerate the g_CacheHeap constant for each known version and ensure
+        it is referring to a valid heap.
+
+        2. Using the matching profile, dereference the g_HashTable constant and
+        ensure it refers to a valid allocation within the above heap.
+
+        3. If both these conditions exist, we return the hash table without
+        further checks.
+
+        This method is generally more robust than scanning for the pointers.
+        """
+        # The base addresses of all valid heaps.
+        heaps = set([x.v() for x in task.Peb.ProcessHeaps])
+        dnsrslvr_index = self.session.LoadProfile("dnsrslvr/index")
+
+        # The base address of dnsrslvr.dll.
+        base_address = self.session.address_resolver.get_address_by_name(
+            "dnsrslvr")
+
+        # Now check all profiles for these symbols.
+        for profile, symbols in dnsrslvr_index.index.iteritems():
+            # Correct symbols offset for dll base address.
+            lookup = dict((y[0], x + base_address) for x, y in symbols)
+
+            # According to this profile, where is the cache heap and hash table?
+            heap_pointer = self.profile.Pointer(lookup.get("g_CacheHeap")).v()
+            hash_tbl_ptr = self.profile.Pointer(lookup.get("g_HashTable")).v()
+
+            if heap_pointer in heaps:
+                heap = self.heap_profile._HEAP(
+                    offset=heap_pointer
+                )
+
+                for entry in heap.Entries:
+                    if entry.Allocation.obj_offset == hash_tbl_ptr:
+                        logging.info("dnsrslvr.dll match profile %s. "
+                                     "Hash table is at %#x", profile,
+                                     hash_tbl_ptr)
+
+                        return self.profile.Array(
+                            hash_tbl_ptr,
+                            target="Pointer",
+                            target_args=dict(
+                                target="DNS_HASHTABLE_ENTRY",
+                            ),
+                            count=entry.Allocation.length / 8)
+
+        logging.info("Failed to detect the exact version of dnsrslvr.dll, "
+                     "please consider sending a copy of this DLL's GUID to the "
+                     "Rekall team so we can add it to the index.")
+
+    def _locate_heap(self, task, vad):
+        """Locate the correct heap by scanning for its reference.
+
+        Find the references into the heap from the dnsrslvr.dll vad. This will
+        normally be stored in dnsrslvr.dll's global variable called g_CacheHeap.
+        """
         scanner = scan.PointerScanner(
             pointers=task.Peb.ProcessHeaps,
             session=self.session,
             address_space=self.session.GetParameter("default_address_space"))
 
-        heap_profile = self.session.address_resolver.LoadProfileForName("ntdll")
+        seen = set()
         for hit in scanner.scan(vad.Start, maxlen=vad.Length):
-            heap = heap_profile.Pointer(
+            heap = self.heap_profile.Pointer(
                 hit, target="_HEAP"
-            )
+            ).deref()
+
+
+            if heap in seen:
+                continue
+
+            seen.add(heap)
+
             for entry in heap.Entries:
-                hash_table = self._verify_hash_table(
-                    entry.obj_offset + 0x10, entry.Size * 16 - 8, heaps)
+                hash_table = self._verify_hash_table(entry.Allocation, heap)
                 if hash_table:
                     return hash_table
 
@@ -203,6 +296,16 @@ class WinDNSCache(common.WindowsCommandPlugin):
         # Switch to the svchost process context now.
         self.cc.SwitchProcessContext(task)
 
+        self.heap_profile = self.session.address_resolver.LoadProfileForName(
+            "ntdll")
+
+        # First try to locate the hash table using the index, then fallback to
+        # using scanning techniques:
+        if self.index:
+            hash_table = self._locate_heap_using_index(task)
+            if hash_table:
+                return hash_table
+
         return self._locate_heap(task, vad)
 
     def render(self, renderer):
@@ -213,7 +316,7 @@ class WinDNSCache(common.WindowsCommandPlugin):
                 renderer.table_header([
                     dict(name="Name", type="TreeNode", width=45),
                     ("Record", "record", "[addrpad]"),
-                    ("Type", "type", "6"),
+                    ("Type", "type", "16"),
                     ("Data", "data", ""),
                 ])
 

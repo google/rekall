@@ -46,7 +46,7 @@ class StringTextRenderer(BaseObjectTextRenderer):
 
     def render_full(self, target, **_):
         return text.Cell(
-            target.v().decode("utf8", "replace").split("\x00")[0] or u"")
+            utils.SmartUnicode(target).split("\x00")[0] or u"")
 
     render_value = render_full
     render_compact = render_full

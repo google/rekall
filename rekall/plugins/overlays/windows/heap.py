@@ -176,6 +176,19 @@ class _HEAP_ENTRY(obj.Struct):
             value=(self.obj_offset +
                    self.Size * self.obj_profile.get_obj_size("_HEAP_ENTRY")))
 
+    @property
+    def Allocation(self):
+        allocation_size = self.Size * self.obj_size
+
+        # On 64 bit platforms allocations are allowed to overflow into the first
+        # 8 bytes of the next allocation.
+        if self.obj_profile.metadata("arch") == "AMD64":
+            allocation_size -= 8
+
+        return self.obj_profile.String(offset=self.obj_end,
+                                       term=None,
+                                       length=allocation_size)
+
 
 class _HEAP(obj.Struct):
     """
@@ -187,8 +200,10 @@ class _HEAP(obj.Struct):
         super(_HEAP, self).__init__(**kwargs)
 
         # This passes the heap's encoding to all members of this heap.
-        self.obj_context["Encoding"] = self.obj_vm.read(
-            self.Encoding.obj_offset, self.Encoding.obj_size)
+        if self.m("Encoding"):
+            self.obj_context["Encoding"] = self.obj_vm.read(
+                self.Encoding.obj_offset, self.Encoding.obj_size)
+
         self.obj_context["HeapAS"] = self.obj_vm
 
     @property

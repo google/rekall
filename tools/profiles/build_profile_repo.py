@@ -87,6 +87,7 @@ PDB_TO_SYS = {
     "tcpip6.pdb": "tcpip",
     "tcpipreg.pdb": "tcpip",
     "ntdll.pdb": "ntdll",
+    "dnsrslvr.pdb": "dnsrslvr",
     }
 
 FILENAMES_TO_TRY = [

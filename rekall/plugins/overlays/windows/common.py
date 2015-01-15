@@ -22,7 +22,7 @@
 # pylint: disable=protected-access
 
 """Common windows overlays and classes."""
-
+import logging
 import struct
 from rekall import addrspace
 from rekall import obj
@@ -1207,7 +1207,8 @@ class VadTraverser(obj.Struct):
         We try to be tolerant of cycles by storing all offsets visited.
         """
         if depth > 100:
-            raise RuntimeError("Vad tree too deep - something went wrong!")
+            logging.error("Vad tree too deep - something went wrong!")
+            return
 
         if visited == None:
             visited = set()
