@@ -35,7 +35,6 @@ import time
 import traceback
 
 from rekall import config
-from rekall import constants
 from rekall import io_manager
 from rekall import kb
 from rekall import obj
@@ -627,43 +626,38 @@ class Session(object):
 
         return plugin_obj
 
-    def LoadProfile(self, filename, use_cache=True):
-        """Try to load a profile directly from a filename.
+    def LoadProfile(self, name, use_cache=True):
+        """Try to load a profile directly by its name.
 
         Args:
-          filename: A string which will be used to get an io_manager
-            container. If it contains a path sepearator we open the file
-            directly, otherwise we search in the profile_path specification.
+
+          name: A string which represents the canonical name for the profile. We
+              ask all repositories in the profile_path to resolve this name into
+              a profile.
 
         Returns:
           a Profile() instance or a NoneObject()
+
         """
-        if not filename:
+        if not name:
             return obj.NoneObject("No filename")
 
-        if isinstance(filename, obj.Profile):
-            return filename
+        if isinstance(name, obj.Profile):
+            return name
 
         # We only want to deal with unix paths.
-        filename = filename.replace("\\", "/")
-
-        # Only strip the extension if it is one of the recognized
-        # extensions. Otherwise ignore it - this allows the profile name to have
-        # . characters in it (e.g. Linux-3.1.13).
-        canonical_name, extension = os.path.splitext(filename)
-        if extension not in [".gz", ".json"]:
-            canonical_name = filename
+        name = name.replace("\\", "/")
 
         try:
             if use_cache:
-                cached_profile = self.profile_cache[canonical_name]
+                cached_profile = self.profile_cache[name]
                 if cached_profile:
                     return cached_profile
 
                 else:
                     return obj.NoneObject(
                         "Unable to load profile %s from any repository." %
-                        filename)
+                        name)
 
         except KeyError:
             pass
@@ -671,11 +665,12 @@ class Session(object):
         result = None
 
         try:
-            # If the filename is a path we try to open it directly:
-            container = io_manager.DirectoryIOManager(os.path.dirname(filename))
+            # If the name is a path we try to open it directly:
+            container = io_manager.DirectoryIOManager(os.path.dirname(name),
+                                                      version=None)
             result = obj.Profile.LoadProfileFromData(
-                container.GetData(os.path.basename(filename)),
-                self, name=canonical_name)
+                container.GetData(os.path.basename(name)),
+                self, name=name)
         except IOError:
             pass
 
@@ -686,18 +681,6 @@ class Session(object):
 
             # Add the last supported repository as the last fallback path.
             for path in profile_path:
-                path = "%s/%s" % (path, constants.PROFILE_REPOSITORY_VERSION)
-
-                # For now, print a warning when the user has an out of date
-                # config file. TODO: Remove this in a future version.
-                if "profiles.rekall.googlecode.com" in path:
-                    logging.warn(
-                        "Rekall profiles have moved to %s, but your .rekallrc "
-                        "file still points to %s. You should update your "
-                        "config file.",
-                        constants.PROFILE_REPOSITORIES[0],
-                        path)
-
                 try:
                     if path not in self.repository_managers:
                         self.repository_managers[path] = io_manager.Factory(
@@ -707,33 +690,33 @@ class Session(object):
 
                     # The inventory allows us to fail fetching the profile
                     # quickly - without making the round trip.
-                    if not manager.CheckInventory(filename):
+                    if not manager.CheckInventory(name):
                         logging.debug(
                             "Skipped profile %s from %s (Not in inventory)",
-                            filename, path)
+                            name, path)
                         continue
 
                     result = obj.Profile.LoadProfileFromData(
-                        manager.GetData(filename), self,
-                        name=canonical_name)
+                        manager.GetData(name), self,
+                        name=name)
                     logging.info(
-                        "Loaded profile %s from %s", filename, manager)
+                        "Loaded profile %s from %s", name, manager)
 
                     break
 
                 except (IOError, KeyError) as e:
                     result = obj.NoneObject(e)
                     logging.debug("Could not find profile %s in %s: %s",
-                                  filename, path, e)
+                                  name, path, e)
 
                     continue
 
         # Cache it for later. Note that this also caches failures so we do not
         # retry again.
-        self.profile_cache[canonical_name] = result
+        self.profile_cache[name] = result
         if result == None:
             return obj.NoneObject(
-                "Unable to load profile %s from any repository." % filename)
+                "Unable to load profile %s from any repository." % name)
 
         return result
 

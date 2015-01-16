@@ -45,6 +45,7 @@ import urllib2
 import urlparse
 import zipfile
 
+from rekall import constants
 from rekall import obj
 from rekall import registry
 from rekall import utils
@@ -59,16 +60,45 @@ class IOManagerError(IOError):
 
 
 class IOManager(object):
-    """The baseclass for abstracted IO implementations."""
+    """The baseclass for abstracted IO implementations.
+
+    The IO manager classes are responsible for managing access to profiles. A
+    profile is a JSON dict which is named using a standard notation. For
+    example, the profile for a certain NT kernel is:
+
+    nt/GUID/BF9E190359784C2D8796CF5537B238B42
+
+    The IO manager may actually store the profile file using some other scheme,
+    but that internal scheme is private to itself.
+    """
 
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
     order = 100
 
-    def __init__(self, urn=None, mode="r", session=None):
+    def __init__(self, urn=None, mode="r", session=None,
+                 version=constants.PROFILE_REPOSITORY_VERSION):
+        """Initialize the IOManager.
+
+        Args:
+
+          urn: The path to the IO manager. This might contain a scheme or
+               protocol specific to a certain IO manager implementation.
+
+          mode: Can be "r" or "w".
+
+          session: The session object.
+
+          version: The required version of the repository. The IOManager is free
+               to implement arbitrary storage for different versions if
+               required. Versioning the repository allows us to update the
+               repository file format transparently without affecting older
+               Rekall versions.
+        """
         self.mode = mode
         self.urn = urn
+        self.version = version
         self.session = session
         self._inventory = None
 
@@ -191,12 +221,27 @@ class IOManager(object):
 
 
 class DirectoryIOManager(IOManager):
-    """An IOManager which stores everything in files."""
+    """An IOManager which stores everything in files.
+
+    We prefer to store the profile file as a gzip compressed file within a
+    versioned directory. For example the profile:
+
+    nt/GUID/BF9E190359784C2D8796CF5537B238B42
+
+    will be stored in:
+
+    $urn/nt/GUID/BF9E190359784C2D8796CF5537B238B42.gz
+
+    Where $urn is the path where the DirectoryIOManager was initialized with.
+    """
 
     def __init__(self, urn=None, **kwargs):
         super(DirectoryIOManager, self).__init__(**kwargs)
 
         self.dump_dir = os.path.normpath(os.path.abspath(urn))
+        if not self.version:
+            self.version = ""
+
         self.check_dump_dir(self.dump_dir)
         self.canonical_name = os.path.basename(self.dump_dir)
 
@@ -211,7 +256,8 @@ class DirectoryIOManager(IOManager):
             raise IOManagerError("%s is not a directory" % self.dump_dir)
 
     def _GetAbsolutePathName(self, name):
-        path = os.path.normpath(os.path.join(self.dump_dir, name))
+        path = os.path.normpath(os.path.join(self.dump_dir, self.version, name))
+
         if not path.startswith(self.dump_dir):
             raise IOManagerError("Path name is outside container.")
 
@@ -234,13 +280,10 @@ class DirectoryIOManager(IOManager):
     def Create(self, name):
         path = self._GetAbsolutePathName(name)
         self.EnsureDirectoryExists(os.path.dirname(path))
-        return open(path, "wb")
+        return gzip.open(path + ".gz", "wb")
 
     def Open(self, name):
         path = self._GetAbsolutePathName(name)
-        if path.endswith(".gz"):
-            return gzip.open(path)
-
         try:
             return open(path, "rb")
         except IOError:
@@ -380,10 +423,7 @@ class ZipFileManager(IOManager):
 
 
 class URLManager(IOManager):
-    """Supports openning containers from the web.
-
-    Currenlty we only support openning a zip file fetched from a URL.
-    """
+    """Supports opening profile repositories hosted over the web."""
 
     def __init__(self, urn=None, mode="r", **kwargs):
         super(URLManager, self).__init__(urn=urn, mode=mode, **kwargs)
@@ -400,7 +440,8 @@ class URLManager(IOManager):
         raise IOManagerError("Write support to http is not supported.")
 
     def _GetURL(self, name):
-        url = self.url._replace(path="%s/%s" % (self.url.path, name))
+        url = self.url._replace(path="%s/%s/%s" % (
+            self.url.path, self.version, name))
         return urlparse.urlunparse(url)
 
     def Open(self, name):
