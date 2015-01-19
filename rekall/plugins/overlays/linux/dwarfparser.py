@@ -33,6 +33,10 @@ from rekall import plugin
 from rekall import utils
 import logging
 
+LOGGER = logging.getLogger("linux.dwarf")
+LOGGER.setLevel(logging.ERROR)
+
+
 def PatchPyElftools():
     """Upgrade pyelftools to support DWARF 4.
 
@@ -112,8 +116,10 @@ class DIETag(object):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
         elif ("DW_AT_sibling" in self.attributes and
-              self.attributes["DW_AT_sibling"].value+self.die.cu.cu_offset in self.types):
-            return self.types[self.attributes["DW_AT_sibling"].value + self.die.cu.cu_offset].name
+              (self.attributes["DW_AT_sibling"].value + self.die.cu.cu_offset
+               in self.types)):
+            return (self.types[self.attributes["DW_AT_sibling"].value +
+                               self.die.cu.cu_offset].name)
         else:
             return "__unnamed_%s" % self.die.offset
 
@@ -411,7 +417,7 @@ class DWARFParser(object):
 
             die_depth = 0
             for die in cu.iter_DIEs():
-                logging.debug('%d %s<%x>: %s' % (
+                LOGGER.debug('%d %s<%x>: %s' % (
                     die_depth,
                     "\t" * die_depth,
                     die.offset,
@@ -426,13 +432,18 @@ class DWARFParser(object):
                     # Unknown attribute values are passed-through as integers
                     if isinstance(name, int):
                         name = 'Unknown AT value: %x' % name
-                    logging.debug('%d %s    <%2x>   %-18s: %s' % (
-                        die_depth,
-                        "\t" * die_depth,
-                        attr.offset,
-                        name,
-                        describe_attr_value(
-                            attr, die, section_offset)))
+
+                    if LOGGER.isEnabledFor(logging.DEBUG):
+                        try:
+                            LOGGER.debug('%d %s    <%2x>   %-18s: %s' % (
+                                die_depth,
+                                "\t" * die_depth,
+                                attr.offset,
+                                name,
+                                describe_attr_value(
+                                    attr, die, section_offset)))
+                        except Exception:
+                            pass
 
                 # Record the type in this DIE.
                 t = self.types[die.offset] = DIEFactory(
