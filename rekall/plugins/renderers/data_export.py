@@ -91,7 +91,7 @@ class DataExportNoneObjectRenderer(json_storage.NoneObjectRenderer):
     renderers = ["DataExportRenderer"]
 
 
-class DataExportNoneRenderer(DataExportNoneObjectRenderer):
+class DataExportNoneRenderer(NativeDataExportObjectRenderer):
     renders_type = "NoneType"
 
     def Summary(self, item, **_):

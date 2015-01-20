@@ -165,7 +165,8 @@ class PointerTextRenderer(NativeTypeTextRenderer):
 
     def render_full(self, target, **_):
         target_obj = target.deref()
-        return target_obj.get_text_renderer().render_full(target_obj)
+        renderer = target_obj.get_text_renderer()
+        return renderer.render_full(target_obj)
 
     def render_compact(self, target, **options):
         return text.Cell(

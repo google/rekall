@@ -191,6 +191,8 @@ class Disassemble(plugin.Command):
 
         # All the visited addresses (for branch analysis).
         self._visited = set()
+        self._visited_count = 0
+
         self.follow_branches = branch
         self.suppress_headers = suppress_headers
         if mode == "auto":
@@ -220,7 +222,9 @@ class Disassemble(plugin.Command):
 
                 yield depth, offset, size, hexdump, instruction
 
-                self._visited.add(offset)
+                self._visited_count += 1
+                if self.follow_branches:
+                    self._visited.add(offset)
 
                 # If the user asked for full branch analysis we follow all
                 # branches. This gives us full code coverage for a function - we
@@ -244,7 +248,8 @@ class Disassemble(plugin.Command):
                             return
 
                 # Exit condition can be specified by length.
-                if self.length is not None and len(self._visited) > self.length:
+                if (self.length is not None and
+                        self._visited_count > self.length):
                     return
 
                 # Exit condition can be specified by end address.
@@ -321,7 +326,7 @@ class Disassemble(plugin.Command):
         renderer.table_header(
             [dict(type="TreeNode", name="Address", cname="cmd_address",
                   child=dict(style="address")),
-             ('Rel', "relative_address", '>4'),
+             ('Rel', "relative_address", '[addr]'),
              ('Op Codes', "opcode", '<20'),
              ('Instruction', "instruction", '<30'),
              ('Comment', "comment", "")],
@@ -329,6 +334,8 @@ class Disassemble(plugin.Command):
 
         offset = 0
         self._visited.clear()
+        self._visited_count = 0
+
         for depth, offset, size, hexdump, instruction in self.disassemble(
                 self.offset):
             relative = None

@@ -42,6 +42,7 @@ import copy
 from rekall import addrspace
 from rekall import registry
 from rekall import utils
+from rekall.ui import renderer
 
 import traceback
 
@@ -168,6 +169,10 @@ class NoneObject(object):
         self.args = args
         if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
+
+    def get_text_renderer(self):
+        return renderer.ObjectRenderer.ForTarget(self, "TextRenderer")(
+            renderer="TextRenderer", session=self.obj_session)
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -459,8 +464,8 @@ class BaseObject(object):
         return NoneObject("No value for {0}", self.obj_name)
 
     def get_text_renderer(self):
-        return self.obj_session.GetRenderer().get_object_renderer(
-            self, target_renderer="TextRenderer")
+        return renderer.ObjectRenderer.ForTarget(self, "TextRenderer")(
+            renderer="TextRenderer", session=self.obj_session)
 
     def __str__(self):
         return utils.SmartStr(unicode(self))
@@ -669,7 +674,7 @@ class Pointer(NativeType):
         super(Pointer, self).__init__(value=value, **kwargs)
 
         if value is not None:
-            self.obj_offset = None
+            self.obj_offset = NoneObject("No address specified")
 
         # We parse the address using the profile since address is a different
         # size on different platforms.

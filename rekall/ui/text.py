@@ -610,6 +610,9 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
                     type(self).__name__, style))
 
         cell = method(target, **options)
+        if not isinstance(cell, Cell):
+            raise RuntimeError("Invalid cell renderer.")
+
         return cell
 
     def render_hexdump(self, target, hex_width=8, **_):
@@ -725,8 +728,12 @@ class NestedCell(BaseCell):
         for cell in cells:
             if isinstance(cell, NestedCell):
                 self.cells.extend(cell.cells)
-            else:
+            elif isinstance(cell, Cell):
                 self.cells.append(cell)
+
+            elif not isinstance(cell, basestring):
+                raise RuntimeError(
+                    "Something went wrong! Cell should be a string.")
 
         self.rebuild()
 

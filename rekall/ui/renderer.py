@@ -108,7 +108,7 @@ config.DeclareOption(
     help="If set we break into the debugger on error conditions.")
 
 
-MRO_CACHE = utils.FastStore(100)
+MRO_CACHE = utils.FastStore(100, lock=True)
 
 
 class ObjectRenderer(object):
