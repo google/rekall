@@ -173,20 +173,16 @@ class ObjectRenderer(object):
             if not isinstance(renderer, basestring):
                 renderer = renderer.__class__.__name__
 
-            if isinstance(mro, basestring):
-                mro = mro.split(":")
-
             # MRO is the list of object inheritance for each type. For example:
             # FileAddressSpace,FDAddressSpace,BaseAddressSpace.  We try to match
             # the object renderer from most specific to least specific (or more
             # general).
-            for class_name in mro:
+            for class_name in mro.split(":"):
                 object_renderer_cls = cls._RENDERER_CACHE.get(
                     (class_name, renderer))
 
                 if object_renderer_cls:
-                    MRO_CACHE.Put((":".join(mro), renderer),
-                                  object_renderer_cls)
+                    MRO_CACHE.Put((mro, renderer), object_renderer_cls)
                     return object_renderer_cls
 
     @classmethod

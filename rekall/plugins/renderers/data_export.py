@@ -34,6 +34,7 @@ information about the exported objects. The exported data also omits information
 which is not relevant without access to the original image.
 """
 
+from rekall import utils
 from rekall.ui import json_renderer
 from rekall.plugins.renderers import json_storage
 
@@ -64,6 +65,7 @@ class DataExportRenderer(json_renderer.JsonRenderer):
 
 
 class NativeDataExportObjectRenderer(json_renderer.JsonObjectRenderer):
+    """This is the fallback for all objects without a dedicated renderer."""
     renderers = ["DataExportRenderer"]
 
     def Summary(self, item, formatstring=None, header=False, **options):
@@ -71,10 +73,14 @@ class NativeDataExportObjectRenderer(json_renderer.JsonObjectRenderer):
 
         The summary is a short human readable string, describing the object.
         """
-        if formatstring == "[addrpad]" and not header:
-            return "%#014x" % item
+        try:
+            if formatstring == "[addrpad]" and not header:
+                return "%#014x" % item
+        except TypeError:
+            pass
 
-        return item
+        # Since we are the default renderer we must ensure this works.
+        return utils.SmartStr(item)
 
 
 class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
@@ -83,6 +89,13 @@ class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
 class DataExportNoneObjectRenderer(json_storage.NoneObjectRenderer):
     renderers = ["DataExportRenderer"]
+
+
+class DataExportNoneRenderer(DataExportNoneObjectRenderer):
+    renders_type = "NoneType"
+
+    def Summary(self, item, **_):
+        return "-"
 
 
 class DataExportInstructionRenderer(DataExportObjectRenderer):
