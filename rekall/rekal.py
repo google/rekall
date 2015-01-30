@@ -35,6 +35,8 @@ from rekall import session
 # Import and register the core plugins
 from rekall import plugins  # pylint: disable=unused-import
 
+from rekall.ui import text
+
 
 config.DeclareOption(
     "-r", "--run", default=None,
@@ -50,14 +52,17 @@ def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
     user_session.session_list.append(user_session)
+    text_renderer = text.TextRenderer(session=user_session)
 
-    plugin_cls, flags = args.parse_args(argv=argv, user_session=user_session)
+    with text_renderer.start():
+        plugin_cls, flags = args.parse_args(argv=argv,
+                                            user_session=user_session)
 
-    # Determine if an external script needs to be run first.
-    if getattr(flags, "run", None):
-        # Export the session object to the external script.
-        user_session.locals["session"] = user_session
-        exec open(flags.run) in user_session.locals
+        # Determine if an external script needs to be run first.
+        if getattr(flags, "run", None):
+            # Export the session object to the external script.
+            user_session.locals["session"] = user_session
+            exec open(flags.run) in user_session.locals
 
     try:
         # Run the plugin with plugin specific args.

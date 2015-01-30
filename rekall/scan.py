@@ -33,6 +33,8 @@ class BaseScanner(object):
 
     __metaclass__ = registry.MetaclassRegistry
 
+    progress_message = "Scanning 0x%(offset)08X with %(name)s"
+
     checks = []
     def __init__(self, profile=None, address_space=None, window_size=8,
                  session=None):
@@ -164,8 +166,9 @@ class BaseScanner(object):
             while chunk_offset < end and chunk_offset < range_end:
                 if self.session:
                     self.session.report_progress(
-                        "Scanning 0x%08X with %s" %
-                        (chunk_offset, self.__class__.__name__))
+                        self.progress_message % dict(
+                            offset=chunk_offset,
+                            name=self.__class__.__name__))
 
                 # This chunk does not begin where the last chunk ended - this
                 # means there is a gap in the virtual address space and
