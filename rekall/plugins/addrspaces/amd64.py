@@ -4,6 +4,7 @@
 # Authors:
 # Mike Auty
 # Michael Cohen
+# Jordi Sanchez
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,9 +25,11 @@
 """
 # pylint: disable=protected-access
 
+import logging
 import struct
 
 from rekall import config
+from rekall import obj
 from rekall.plugins.addrspaces import intel
 
 
@@ -308,3 +311,127 @@ class VTxPagedMemory(AMD64PagedMemory):
 
     def __str__(self):
         return "%s@0x%08X" % (self.__class__.__name__, self._ept)
+
+
+class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
+    """XEN ParaVirtualized guest address space."""
+
+    PAGE_SIZE = 0x1000
+    P2M_PER_PAGE = P2M_TOP_PER_PAGE = P2M_MID_PER_PAGE = PAGE_SIZE / 8
+
+    def __init__(self, **kwargs):
+        super(XenParaVirtAMD64PagedMemory, self).__init__(**kwargs)
+        self.page_offset = self.session.GetParameter("page_offset")
+        self.m2p_mapping = {}
+        if self.page_offset:
+            self._RebuildM2PMapping()
+
+    def _ReadP2M(self, offset, p2m_size):
+        """Helper function to return p2m entries at offset.
+
+        This function is used to speed up reading the p2m tree, because
+        traversal via the Array struct is slow.
+
+        Yields tuples of (index, p2m) for each p2m, up to a number of p2m_size.
+        """
+        for index, mfn in zip(
+                xrange(0, p2m_size),
+                struct.unpack(
+                    "<" + "Q" * p2m_size,
+                    self.read(offset, 0x1000))):
+            yield (index, mfn)
+
+    def _RebuildM2PMapping(self):
+        """Rebuilds the machine to physical mapping.
+
+        A XEN ParaVirtualized kernel (the guest) maintains a special set of
+        page tables. Each entry is to machine (host) memory instead of
+        physical (guest) memory.
+
+        XEN maintains a mapping of machine to physical and mapping of physical
+        to machine mapping in a set of trees. We need to use the former to
+        translate the machine addresses in the page tables, but only the later
+        tree is available (mapped in memory) on the guest.
+
+        When rekall is run against the memory of a paravirtualized Linux kernel
+        we traverse the physical to machine mapping and invert it so we can
+        quickly translate from machine (host) addresses to guest physical
+        addresses.
+
+        See: http://lxr.free-electrons.com/source/arch/x86/xen/p2m.c?v=3.0 for
+        reference.
+        """
+
+        logging.debug("Rebuilding the machine to physical mapping...")
+        p2m_top_location = self.session.profile.get_constant_object(
+            "p2m_top", "Pointer", vm=self)
+
+        end_value = self.session.profile.get_constant("__bss_stop", True)
+        new_mapping = {}
+        for p2m_top in self._ReadP2M(p2m_top_location.v(), self.P2M_TOP_PER_PAGE):
+            p2m_top_idx, p2m_top_entry = p2m_top
+            self.session.report_progress("Building m2p map %.02f%%" % (
+                100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
+
+            if p2m_top_entry == end_value:
+                continue
+
+            for p2m_mid in self._ReadP2M(p2m_top_entry, self.P2M_MID_PER_PAGE):
+                p2m_mid_idx, p2m_mid_entry = p2m_mid
+                if p2m_mid_entry == end_value:
+                    continue
+
+                for p2m in self._ReadP2M(p2m_mid_entry, self.P2M_PER_PAGE):
+                    p2m_idx, mfn = p2m
+                    pfn = (p2m_top_idx*self.P2M_MID_PER_PAGE*self.P2M_PER_PAGE
+                           + p2m_mid_idx*self.P2M_PER_PAGE
+                           + p2m_idx)
+
+                    new_mapping[mfn] = pfn
+
+        self.m2p_mapping = new_mapping
+        self.session.SetParameter("mapping", self.m2p_mapping)
+
+    def m2p(self, machine_address):
+        """Translates from a machine address to a physical address.
+
+        This translates host physical addresses to guest physical.
+        Requires a machine to physical mapping to have been calculated.
+        """
+        machine_address = obj.Pointer.integer_to_address(machine_address)
+        mfn = machine_address / 0x1000
+        pfn = self.m2p_mapping.get(mfn)
+        if pfn is None:
+            return 0
+        return (pfn * 0x1000) | (0xFFF & machine_address)
+
+    def get_pml4e(self, vaddr):
+        return self.m2p(
+            super(XenParaVirtAMD64PagedMemory, self).get_pml4e(vaddr))
+
+    def get_pdpte(self, vaddr, pml4e):
+        return self.m2p(
+            super(XenParaVirtAMD64PagedMemory, self).get_pdpte(vaddr, pml4e))
+
+    def get_pde(self, vaddr, pml4e):
+        return self.m2p(
+            super(XenParaVirtAMD64PagedMemory, self).get_pde(vaddr, pml4e))
+
+    def get_pte(self, vaddr, pml4e):
+        return self.m2p(
+            super(XenParaVirtAMD64PagedMemory, self).get_pte(vaddr, pml4e))
+
+    def vtop(self, vaddr):
+        vaddr = obj.Pointer.integer_to_address(vaddr)
+
+        if not self.session.GetParameter("mapping"):
+            # Simple shortcut for linux. This is required for the first set
+            # of virtual to physical resolutions while we're building the
+            # mapping.
+            if self.page_offset and vaddr > self.page_offset:
+                return vaddr - self.page_offset
+
+            # Try to update the mapping
+            self._RebuildM2PMapping()
+
+        return super(XenParaVirtAMD64PagedMemory, self).vtop(vaddr)

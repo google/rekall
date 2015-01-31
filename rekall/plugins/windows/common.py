@@ -28,6 +28,7 @@ import collections
 import logging
 import re
 
+from rekall import addrspace
 from rekall import scan
 from rekall import obj
 from rekall import kb
@@ -158,6 +159,22 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         self.session.SetCache("idle_process", eprocess)
 
         return address_space
+
+    def GetAddressSpaceImplementation(self):
+        """Returns the correct address space class for this profile."""
+        # The virtual address space implementation is chosen by the profile.
+        architecture = self.profile.metadata("arch")
+        if architecture == "AMD64":
+            impl = "WindowsAMD64PagedMemory"
+
+        # PAE profiles go with the pae address space.
+        elif architecture == "I386" and self.profile.metadata("pae"):
+            impl = "WindowsIA32PagedMemoryPae"
+        else:
+            return super(WinFindDTB, self).GetAddressSpaceImplementation()
+
+        as_class = addrspace.BaseAddressSpace.classes[impl]
+        return as_class
 
     def render(self, renderer):
         renderer.table_header(

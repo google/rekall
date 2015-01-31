@@ -271,10 +271,6 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         if architecture == "AMD64":
             impl = "AMD64PagedMemory"
 
-            # Add specific support for windows.
-            if self.profile.metadata("os") == "windows":
-                impl = "WindowsAMD64PagedMemory"
-
         # PAE profiles go with the pae address space.
         elif architecture == "I386" and self.profile.metadata("pae"):
             impl = 'IA32PagedMemoryPae'

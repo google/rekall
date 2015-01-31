@@ -24,7 +24,9 @@
 """
 import logging
 import re
+import struct
 
+from rekall import addrspace
 from rekall import kb
 from rekall import obj
 from rekall import plugin
@@ -135,8 +137,31 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                     profile.get_constant("phys_startup_32", False))
 
         elif profile.metadata("arch") == "AMD64":
-            return (profile.get_constant("_text", False) -
-                    profile.get_constant("phys_startup_64", False))
+            # We can calculate phys_startup_64 when it's not present in the
+            # profile:
+            #
+            # From arch/x86/kernel/vmlinux.lds.S
+            # 17 #ifdef CONFIG_X86_32
+            # 18 #define LOAD_OFFSET __PAGE_OFFSET
+            # 19 #else
+            # 20 #define LOAD_OFFSET __START_KERNEL_map
+            # 21 #endif
+            # [...]
+            # 84 #ifdef CONFIG_X86_32
+            # 85         . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
+            # 86         phys_startup_32 = startup_32 - LOAD_OFFSET;
+            # 87 #else
+            # 88         . = __START_KERNEL;
+            # 89         phys_startup_64 = startup_64 - LOAD_OFFSET;
+            # 90 #endif
+            #
+            # From arch/x86/include/asm/page_64_types.h:
+            # #define __START_KERNEL_map    _AC(0xffffffff80000000, UL)
+            _phys_startup_64 = (profile.get_constant("startup_64", False)
+                                - 0xffffffff80000000)
+            phys_startup_64 = (profile.get_constant("phys_startup_64", False) or
+                               _phys_startup_64)
+            return profile.get_constant("_text", False) - phys_startup_64
 
         elif profile.metadata("arch") == "MIPS":
             return 0x80000000
@@ -146,6 +171,10 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     def VerifyHit(self, dtb):
         """Returns a valid address_space if the dtb is valid."""
+
+        self.session.SetParameter("page_offset", obj.Pointer.integer_to_address(
+            self.GetPageOffset(self.profile)))
+
         address_space = super(LinuxFindDTB, self).VerifyHit(dtb)
         if address_space:
             # Try to verify the profile by checking the linux_proc_banner.
@@ -158,6 +187,23 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
             logging.debug("Failed to verify dtb @ %#x" % dtb)
 
+    def GetAddressSpaceImplementation(self):
+        """Returns the correct address space class for this profile."""
+        # The virtual address space implementation is chosen by the profile.
+        architecture = self.profile.metadata("arch")
+        if architecture == "AMD64":
+            p2m_top_p = (self.profile.get_constant("p2m_top", False)
+                         - self.GetPageOffset(self.profile))
+            p2m_top = struct.unpack("<Q",
+                                    self.physical_address_space.read(
+                                        p2m_top_p, 8))[0]
+            if p2m_top:
+                logging.debug("Detected paravirtualized XEN guest.")
+                impl = "XenParaVirtAMD64PagedMemory"
+                as_class = addrspace.BaseAddressSpace.classes[impl]
+                return as_class
+        return super(LinuxFindDTB, self).GetAddressSpaceImplementation()
+
     def dtb_hits(self):
         """Tries to locate the DTB."""
         PAGE_OFFSET = self.GetPageOffset(self.profile)
@@ -168,7 +214,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
             yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
 
         else:
-            yield (self.profile.get_constant("init_level4_pgt", True) -
+            yield (self.profile.get_constant("init_level4_pgt", False) -
                    PAGE_OFFSET)
 
     def render(self, renderer):
