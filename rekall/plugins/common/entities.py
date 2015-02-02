@@ -205,12 +205,12 @@ class EntityFind(plugin.ProfileCommand):
                             help="Show which part of the query matched.")
         parser.add_argument("--width", type="int", default=None)
         parser.add_argument("--filter", type="str")
-        parser.add_argument("--complete_results", type="Boolean", default=None)
-        parser.add_argument("--stream_results", type="Boolean", default=None)
+        parser.add_argument("--complete_results", type="Boolean", default=True)
+        parser.add_argument("--stream_results", type="Boolean", default=False)
 
     def __init__(self, query=None, explain=None, columns=None, sort=None,
-                 width=None, filter=None, stream_results=None,
-                 complete_results=None, **kwargs):
+                 width=None, filter=None, stream_results=False,
+                 complete_results=True, **kwargs):
         super(EntityFind, self).__init__(**kwargs)
         if query:
             self.query = entity_query.Query(query)

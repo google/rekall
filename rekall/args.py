@@ -298,9 +298,10 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         kwargs = options.copy()
         name = kwargs.pop("name", None) or name
 
-        # We do not pass defaults to argparse because the defaults can not mask
-        # the config file. However if defaults are specified, we assume the
-        # parameter is not required.
+        # If default is specified we assume the parameter is not required.
+        # However, defaults are not passed on to argparse in most cases, and
+        # instead applied separately through ApplyDefaults. For exceptions,
+        # see below.
         default = kwargs.pop("default", None)
         try:
             required = kwargs.pop("required")
@@ -350,6 +351,10 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             kwargs["type"] = float
 
         elif arg_type == "Boolean":
+            # Argparse will assume default False for flags and not return
+            # None, which is required by ApplyDefaults to recognize an unset
+            # argument. To solve this issue, we just pass the default on.
+            kwargs["default"] = default
             kwargs["action"] = "store_true"
 
         # Multiple entries of choices (requires a choices paramter).

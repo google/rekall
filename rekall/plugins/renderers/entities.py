@@ -20,6 +20,7 @@
 
 from rekall.entities import entity
 
+from rekall.plugins.renderers import data_export
 from rekall.ui import text
 
 
@@ -67,6 +68,14 @@ class Identity_TextObjectRenderer(text.TextObjectRenderer):
     def render_row(self, target, **_):
         return text.Cell(
             "%s: %s" % (target.first_index[1], target.first_index[2]))
+
+
+class Entity_DataExportObjectRenderer(data_export.DataExportObjectRenderer):
+    renders_type = "Entity"
+    renderers = ["DataExportRenderer"]
+
+    def GetState(self, item, **_):
+        return item.asdict()
 
 
 class Entity_TextObjectRenderer(text.TextObjectRenderer):
