@@ -675,8 +675,18 @@ class EntityManager(object):
         # Collectors should run in FIFO order:
         repeated.reverse()
 
+        counter = 0
         # This will spin until none of the remaining collectors want to run.
         while not in_pipeline.empty:
+            # TODO (adamsh):
+            # There is a better way to detect faulty collector output and
+            # infinite loops, but this counter will do for now.
+            if counter > 100:
+                raise RuntimeError(
+                    ("Entity manager exceeded 100 iterations during "
+                     "higher-order collector resolution. You most likely "
+                     "have a faulty collector."))
+
             # Collectors will read from the in_pipeline and fill the
             # out_pipeline. At the end of each spin the pipelines swap and
             # the new out_pipeline is flushed.
