@@ -22,6 +22,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
 from rekall import plugin
+from rekall import testlib
 
 from rekall.plugins.common import entities
 
@@ -38,9 +39,9 @@ class ListInterfaces(DarwinOnlyMixin, entities.EntityFind):
     name = "ifconfig"
     search = "has component NetworkInterface"
 
-    columns=["NetworkInterface/name",
-             "NetworkInterface/endpoints->OSILayer2/address",
-             "NetworkInterface/endpoints->OSILayer3/address"]
+    columns = ["NetworkInterface/name",
+               "NetworkInterface/endpoints->OSILayer2/address",
+               "NetworkInterface/endpoints->OSILayer3/address"]
 
     sort = ["Endpoint/owner->NetworkInterface/name",
             "OSILayer3/protocol",
@@ -56,12 +57,24 @@ class ListZones(entities.EntityFind):
     sort = ["AllocationZone/name"]
 
 
+class TestListZones(testlib.SortedComparison):
+    PARAMETERS = dict(
+        commandline="zones"
+    )
+
+
 class ListEvents(entities.EntityFind):
     name = "events"
     search = "has component Event"
     columns = ["Event/timestamp", "Event/category", "Event/actor",
                "Event/action", "Event/target"]
     sort = ["Event/timestamp", "Event/category", "Event/action"]
+
+
+class TestListEvents(testlib.SortedComparison):
+    PARAMETERS = dict(
+        commandline="events"
+    )
 
 
 class Processes(DarwinOnlyMixin, entities.EntityFind):
@@ -103,6 +116,11 @@ class DarwinListFiles(DarwinOnlyMixin, entities.EntityFind):
                dict(attribute="File/path", width=40)]
     sort = ["Timestamps/created_at", "Timestamps/modified_at"]
 
+
+class TestDarwinListFiles(testlib.SortedComparison):
+    PARAMETERS = dict(
+        commandline="list_files"
+    )
 
 
 class IPNetstat(entities.EntityFind):
