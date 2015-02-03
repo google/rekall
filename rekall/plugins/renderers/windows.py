@@ -56,8 +56,8 @@ class UNICODE_STRING_Text(text.TextObjectRenderer):
     renders_type = "_UNICODE_STRING"
     renderers = ["TextRenderer", "TestRenderer", "WideTextRenderer"]
 
-    def render_row(self, target, **options):
-        return text.Cell(unicode(target))
+    def render_compact(self, target, width=None, **_):
+        return text.Cell(unicode(target), width=width)
 
 
 class SID_Text(UNICODE_STRING_Text):
@@ -125,3 +125,23 @@ class EPROCESS_WideTextObjectRenderer(EPROCESS_TextObjectRenderer):
         return text.Cell(
             self.formatter.format("{0:s} Pid: {1:s} (@{2:#x})",
                                   target.name, target.pid, target))
+
+
+class MMVAD_FLAGS_TextRenderer(text.TextObjectRenderer):
+    renders_type = ("_MMVAD_FLAGS", "_MMVAD_FLAGS2", "_MMSECTION_FLAGS")
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_compact(self, target, **_):
+        result = []
+        for name in sorted(target.members):
+            if name.endswith("Enum"):
+                continue
+
+            try:
+                attribute = getattr(target, name)
+                if attribute.v():
+                    result.append("%s: %s" % (name, attribute))
+            except AttributeError:
+                pass
+
+        return text.Cell(", ".join(result))

@@ -108,8 +108,6 @@ class InspectHeap(common.WinProcessFilter):
                     if not self.free and not entry.UnusedBytes & 0x38:
                         continue
 
-                    self.session.entry = entry
-
                     UnusedBytes = entry.UnusedBytes & 0x3f - 0x8
 
                     # The actual length of user allocation is the difference

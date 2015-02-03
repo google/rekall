@@ -90,31 +90,31 @@ class Sessions(common.WinProcessFilter):
             renderer.section()
 
             processes = list(session.ProcessList.list_of_type(
-                    "_EPROCESS", "SessionProcessLinks"))
+                "_EPROCESS", "SessionProcessLinks"))
 
-            renderer.format("Session(V): {0:x} ID: {1} Processes: {2}\n",
+            renderer.format("Session(V): {0:addrpad} ID: {1} Processes: {2}\n",
                             session.obj_offset,
                             session.SessionId,
                             len(processes))
 
-            renderer.format("PagedPoolStart: {0:x} PagedPoolEnd {1:x}\n",
-                            session.PagedPoolStart,
-                            session.PagedPoolEnd)
+            renderer.format(
+                "PagedPoolStart: {0:addrpad} PagedPoolEnd {1:addrpad}\n",
+                session.PagedPoolStart,
+                session.PagedPoolEnd)
 
             for process in processes:
-                renderer.format(" Process: {0} {1} {2} @ {3:#x}\n",
-                                process.UniqueProcessId,
-                                process.ImageFileName,
-                                process.CreateTime,
-                                process)
+                renderer.format(" Process: {0} @ {1}\n",
+                                process,
+                                process.CreateTime)
 
             # Follow the undocumented _IMAGE_ENTRY_IN_SESSION list to find the
             # kernel modules loaded in this session.
             for image in session.ImageList.list_of_type(
-                "_IMAGE_ENTRY_IN_SESSION", "Link"):
+                    "_IMAGE_ENTRY_IN_SESSION", "Link"):
                 module = module_plugin.find_module(image.Address)
 
-                renderer.format(" Image: {0:#x}, Address {1:#x}, Name: {2}\n",
-                                image.obj_offset,
-                                image.Address,
-                                module.BaseDllName)
+                renderer.format(
+                    " Image: {0:addrpad}, Address {1:addrpad}, Name: {2}\n",
+                    image.obj_offset,
+                    image.Address,
+                    module.BaseDllName)

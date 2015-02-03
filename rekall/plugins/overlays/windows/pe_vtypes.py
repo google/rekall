@@ -1204,7 +1204,7 @@ class Demangler(object):
 
         # Strip the first _ from the name. I386 mangled constants have a
         # leading _ but their AMD64 counterparts do not.
-        if mangled_name.startswith("_"):
+        if mangled_name and mangled_name[0] in "_.":
             mangled_name = mangled_name[1:]
 
         elif mangled_name.startswith("??_C@"):

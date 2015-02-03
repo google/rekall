@@ -1157,33 +1157,6 @@ class _CM_KEY_BODY(obj.Struct):
         return "\\".join(reversed(output))
 
 
-class _MMVAD_FLAGS(obj.Struct):
-    """This is for _MMVAD_SHORT.u.VadFlags"""
-
-    def __unicode__(self):
-        result = []
-        for name in sorted(self.members):
-            if name.endswith("Enum"):
-                continue
-
-            try:
-                attribute = getattr(self, name)
-                if attribute.v():
-                    result.append("%s: %s" % (name, attribute))
-            except AttributeError:
-                pass
-
-        return ", ".join(result)
-
-class _MMVAD_FLAGS2(_MMVAD_FLAGS):
-    """This is for _MMVAD_LONG.u2.VadFlags2"""
-    pass
-
-class _MMSECTION_FLAGS(_MMVAD_FLAGS):
-    """This is for _CONTROL_AREA.u.Flags"""
-    pass
-
-
 class VadTraverser(obj.Struct):
     """The windows Vad tree is basically the same in all versions of windows,
     but the exact name of the stucts vary with version. This is the base class
@@ -1304,9 +1277,6 @@ def InitializeWindowsProfile(profile):
         '_OBJECT_DIRECTORY': _OBJECT_DIRECTORY,
         '_EX_FAST_REF': _EX_FAST_REF,
         '_CM_KEY_BODY': _CM_KEY_BODY,
-        '_MMVAD_FLAGS': _MMVAD_FLAGS,
-        '_MMVAD_FLAGS2': _MMVAD_FLAGS2,
-        '_MMSECTION_FLAGS': _MMSECTION_FLAGS,
         '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
         "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
         "_SID": _SID,

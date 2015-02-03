@@ -184,6 +184,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             image_base=module_base,
             session=self.session)
 
+        # TODO: Apply profile index to detect the profile.
         guid_age = pe_helper.RSDS.GUID_AGE
         if guid_age:
             profile = self.session.LoadProfile("%s/GUID/%s" % (
@@ -297,8 +298,9 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         # Try to match the module name to a VAD region (e.g. a DLL).
         task = self.session.GetParameter("process_context")
         if task:
+            name = name.lower()
             for start, _, filename, _ in self.vad.GetVadsForProcess(task):
-                if "%s.dll" % name.lower() in filename.lower():
+                if re.search("%s.(dll|exe)" % name, filename.lower()):
                     return start
 
     def _format_address_from_profile(self, profile, address):
@@ -563,6 +565,9 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
 
     def get_nearest_constant_by_address(self, address):
         self._EnsureInitialized()
+
+        if self.pe_profile == None:
+            return 0, ""
 
         offset, name = self.pe_profile.get_nearest_constant_by_address(address)
 

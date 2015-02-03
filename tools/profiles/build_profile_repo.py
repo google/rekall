@@ -62,8 +62,8 @@ PARSER.add_argument('path_to_guids',
 PARSER.add_argument('--rebuild', default=False, action='store_true',
                     help='Rebuild all profiles.')
 
-PARSER.add_argument('--index', default=False, action='store_true',
-                    help='Rebuild all indexes.')
+PARSER.add_argument('--index', default=None,
+                    help='Rebuild all indexes (module name or "all").')
 
 PARSER.add_argument('--inventory', default=False, action='store_true',
                     help='Rebuild repository inventory.')
@@ -88,6 +88,7 @@ PDB_TO_SYS = {
     "tcpipreg.pdb": "tcpip",
     "ntdll.pdb": "ntdll",
     "dnsrslvr.pdb": "dnsrslvr",
+    "conhost.pdb": "conhost",
     }
 
 FILENAMES_TO_TRY = [
@@ -133,7 +134,7 @@ def BuildProfile(pdb_filename, profile_path, metadata):
         os.unlink(profile_path)
 
 
-def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
+def BuildAllProfiles(guidfile_path, rebuild=False, reindex=None):
     changed_files = set()
     new_filenames = {}
     unsuccessful = set()
@@ -169,11 +170,13 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
                     os.rename(os.path.join(pdb_path, candidate_filename),
                               pdb_out_filename)
                 except Exception:
+                    unsuccessful.add(guid)
                     continue
 
                 pdb_filename = candidate_filename
                 new_filenames[guid] = pdb_filename
                 break
+
         if not pdb_filename:
             unsuccessful.add(guid)
             continue
@@ -188,8 +191,12 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
                     pdb_filename=pdb_filename, guid=guid,
                     dump_dir=pdb_path)
 
-                os.rename(os.path.join(pdb_path, pdb_filename),
-                          pdb_out_filename)
+                try:
+                    os.rename(os.path.join(pdb_path, pdb_filename),
+                              pdb_out_filename)
+                except OSError:
+                    unsuccessful.add(guid)
+                    continue
 
             implementation = os.path.splitext(
                 PDB_TO_SYS[pdb_filename])[0].capitalize()
@@ -204,7 +211,7 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=False):
                 BuildProfile,
                 (pdb_out_filename, profile_path, metadata))
 
-        if reindex:
+        if reindex == PDB_TO_SYS[pdb_filename] or reindex == "all":
             changed_files.add(PDB_TO_SYS[pdb_filename])
 
     # Wait here until all the pool workers are done.

@@ -79,20 +79,20 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
         for window_station in self.stations():
             renderer.section()
             renderer.format(
-                "WindowStation: {0:#x}, Name: {1}, Next: {2:#x}\n",
+                "WindowStation: {0:addr}, Name: {1}, Next: {2:addr}\n",
                 window_station,
                 window_station.Name,
                 window_station.rpwinstaNext)
 
             renderer.format(
-                "SessionId: {0}, AtomTable: {1:#x}, "
+                "SessionId: {0}, AtomTable: {1:addr}, "
                 "Interactive: {2}\n",
                 window_station.dwSessionId,
                 window_station.pGlobalAtomTable,
                 window_station.Interactive)
 
             renderer.format(
-                "Desktops: {0:L}\n",
+                "Desktops: {0}\n",
                 [desk.Name for desk in window_station.desktops()])
 
             ethread = window_station.ptiDrawingClipboard.pEThread
@@ -102,19 +102,19 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
                 ethread.Cid.UniqueProcess, ethread.Cid.UniqueThread)
 
             last_registered_viewer = window_station.LastRegisteredViewer
-            renderer.format("spwndClipOpen: {0:#x}, spwndClipViewer: {1:#x} "
-                            "{2} {3}\n",
-                            window_station.spwndClipOpen,
-                            window_station.spwndClipViewer,
-                            last_registered_viewer.UniqueProcessId,
-                            last_registered_viewer.ImageFileName)
+            renderer.format(
+                "spwndClipOpen: {0:addr}, spwndClipViewer: {1:addr} {2} {3}\n",
+                window_station.spwndClipOpen,
+                window_station.spwndClipViewer,
+                last_registered_viewer.UniqueProcessId,
+                last_registered_viewer.ImageFileName)
 
             renderer.format("cNumClipFormats: {0}, iClipSerialNumber: {1}\n",
                             window_station.cNumClipFormats,
                             window_station.iClipSerialNumber)
 
             renderer.format(
-                "pClipBase: {0:#x}, Formats: {1:L}\n",
+                "pClipBase: {0:addr}, Formats: {1}\n",
                 window_station.pClipBase,
                 [clip.fmt for clip in window_station.pClipBase.dereference()])
 
@@ -131,7 +131,7 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
                 renderer.section()
 
                 renderer.format(
-                    "Desktop: {0:#x}, Name: {1}\\{2}, Next: {3:#x}\n",
+                    "Desktop: {0:addr}, Name: {1}\\{2}, Next: {3:addr}\n",
                     desktop,
                     window_station.Name,
                     desktop.Name,
@@ -139,19 +139,20 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
                     )
 
                 renderer.format(
-                    "SessionId: {0}, DesktopInfo: {1:#x}, fsHooks: {2}\n",
+                    "SessionId: {0}, DesktopInfo: {1:addr}, fsHooks: {2}\n",
                     desktop.dwSessionId,
                     desktop.pDeskInfo.v(),
                     desktop.DeskInfo.fsHooks,
                     )
 
                 renderer.format(
-                    "spwnd: {0:#x}, Windows: {1}\n",
+                    "spwnd: {0:addr}, Windows: {1}\n",
                     desktop.DeskInfo.spwnd,
                     len(list(desktop.windows(desktop.DeskInfo.spwnd)))
                     )
                 renderer.format(
-                    "Heap: {0:#x}, Size: {1:#x}, Base: {2:#x}, Limit: {3:#x}\n",
+                    "Heap: {0:addr}, Size: {1:addr}, Base: {2:addr}, "
+                    "Limit: {3:addr}\n",
                     desktop.pheapDesktop.v(),
                     (desktop.DeskInfo.pvDesktopLimit.v() -
                      desktop.DeskInfo.pvDesktopBase.v()),
@@ -163,7 +164,8 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
                 if self.verbosity > 1:
                     for entry in desktop.pheapDesktop.Entries:
                         renderer.format(
-                            "   Alloc: {0:#x}, Size: {1:#x} Previous: {2:#x}\n",
+                            "   Alloc: {0:addr}, Size: {1:addr} "
+                            "Previous: {2:addr}\n",
                             entry,
                             entry.Size,
                             entry.PreviousSize

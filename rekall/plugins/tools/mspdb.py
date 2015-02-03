@@ -136,7 +136,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                                    session=self.session)
             data_directory = self.pe.nt_header.OptionalHeader.DataDirectory[
                 "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
-                "_IMAGE_DEBUG_DIRECTORY")
+                    "_IMAGE_DEBUG_DIRECTORY")
 
             # We only support the more recent RSDS format.
             debug = data_directory.AddressOfRawData.dereference_as(
@@ -321,7 +321,7 @@ mspdb_overlays = {
         # This psuedo value automatically selects the correct member of the
         # union based on the leaf value.
         "value": lambda x: x.m(
-            LEAF_ENUM_TO_SUBRECORD.get(str(x.leaf), ""))
+            LEAF_ENUM_TO_SUBRECORD.get(str(x.leaf), "Unknown")),
         }],
 
     "_lfEnum": [None, {
@@ -672,8 +672,8 @@ class _PDB_HEADER_700(obj.Struct):
         result = []
         for idx in self.adIndexPages:
             for page_number in self.obj_profile.Array(
-                offset=idx*self.dPageBytes, vm=self.obj_vm,
-                target="unsigned int", count=self.dPageBytes/4):
+                    offset=idx*self.dPageBytes, vm=self.obj_vm,
+                    target="unsigned int", count=self.dPageBytes/4):
                 result.append(int(page_number))
                 if len(result) >= self.root_pages:
                     return result
@@ -715,7 +715,7 @@ class DBIExHeaders(obj.Struct):
     @property
     def obj_size(self):
         return (pe_vtypes.RoundUpToWordAlignment(
-                self.objName.obj_offset + self.objName.obj_size) -
+            self.objName.obj_offset + self.objName.obj_size) -
                 self.obj_offset)
 
 
@@ -888,8 +888,8 @@ class PDBParser(object):
             return
 
         for section in self.profile.ListArray(
-            maximum_size=stream.size,
-            target="IMAGE_SECTION_HEADER", vm=stream):
+                maximum_size=stream.size,
+                target="IMAGE_SECTION_HEADER", vm=stream):
             self.sections.append(section)
 
     def ParseOMAP(self, omap_stream_id):
@@ -1010,7 +1010,7 @@ class PDBParser(object):
             # Ignore the forward references.
             if ((value.type_enum == "LF_STRUCTURE" or
                  value.type_enum == "LF_UNION") and
-                not value.type.property.fwdref):
+                    not value.type.property.fwdref):
 
                 struct_name = value.type.name
                 if struct_name == "<unnamed-tag>":

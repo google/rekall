@@ -48,7 +48,7 @@ class VADInfo(common.WinProcessFilter):
     def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
-            renderer.write("Pid: {0:6}\n".format(task.UniqueProcessId))
+            renderer.format("Pid: {0:6}\n", task.UniqueProcessId)
 
             count = 0
             for count, vad in enumerate(task.RealVadRoot.traverse()):
@@ -67,7 +67,7 @@ class VADInfo(common.WinProcessFilter):
                 except AttributeError:
                     pass
 
-                renderer.write("\n")
+                renderer.format("\n")
 
             self.session.report_progress("Pid %s: %s Vads" % (
                 task.UniqueProcessId, count))
@@ -92,7 +92,7 @@ class VADInfo(common.WinProcessFilter):
                            "Tag",
                            vad.Tag)
 
-        renderer.write("Flags: {0}\n".format(str(vad.u.VadFlags)))
+        renderer.format("Flags: {0}\n", vad.u.VadFlags)
 
         # although the numeric value of Protection is printed above with
         # VadFlags, let's show the user a human-readable translation of the
@@ -101,7 +101,7 @@ class VADInfo(common.WinProcessFilter):
 
         # translate the vad type if its available (> XP)
         if vad.u.VadFlags.m("VadType"):
-            renderer.write("Vad Type: {0}\n".format(vad.u.VadFlags.VadTypeEnum))
+            renderer.format("Vad Type: {0}\n", vad.u.VadFlags.VadTypeEnum)
 
     def write_vad_control(self, renderer, vad):
         """Renders a text version of a (non-short) Vad's control information"""

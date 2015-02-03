@@ -97,12 +97,13 @@ class PrintKey(registry.RegistryPlugin):
     def render(self, renderer):
         renderer.format("Legend: (S) = Stable   (V) = Volatile\n\n")
         for reg, key in self.list_keys():
-            self.session.report_progress("Printing %s", lambda: key.Path)
+            self.session.report_progress(
+                "Printing %s", lambda key=key: key.Path)
 
             if key:
                 renderer.format("----------------------------\n")
                 renderer.format("Registry: {0}\n", reg.Name)
-                renderer.format("Key name: {0} {1:3s} @ {2:#X}\n", key.Name,
+                renderer.format("Key name: {0} {1} @ {2:addrpad}\n", key.Name,
                                 self.voltext(key), key.obj_vm.vtop(int(key)))
 
                 renderer.format("Last updated: {0}\n", key.LastWriteTime)
@@ -114,23 +115,23 @@ class PrintKey(registry.RegistryPlugin):
                         renderer.format(
                             "  Unknown subkey: {0}\n", subkey.Name.reason)
                     else:
-                        renderer.format(u"  {1:3s} {0}\n",
+                        renderer.format(u"  {1} {0}\n",
                                         subkey.Name, self.voltext(subkey))
 
                 renderer.format("\n")
                 renderer.format("Values:\n")
                 for value in key.values():
-                    renderer.format("{0:#X} ", value.obj_vm.vtop(int(value)))
+                    renderer.format("{0:addrpad} ", value.obj_vm.vtop(value))
                     if value.Type == 'REG_BINARY':
                         data = value.DecodedData
                         if isinstance(data, basestring):
                             renderer.format(
-                                u"{0:13} {1:15} : {2:3s}\n",
+                                u"{0:width=13} {1:width=15} : {2}\n",
                                 value.Type, value.Name, self.voltext(value))
                             utils.WriteHexdump(renderer, value.DecodedData)
                     else:
                         renderer.format(
-                            u"{0:13} {1:15} : {2:3s} {3}\n",
+                            u"{0:width=13} {1:width=15} : {2} {3}\n",
                             value.Type, value.Name, self.voltext(value),
                             utils.SmartUnicode(value.DecodedData).strip())
 
@@ -421,4 +422,3 @@ class Services(registry.RegistryPlugin):
                     v = self.ERROR_CONTROL.get(v, v)
 
                 renderer.table_row(k, v)
-

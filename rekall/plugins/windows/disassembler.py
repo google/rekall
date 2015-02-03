@@ -42,7 +42,10 @@ except Exception:
 try:
     import capstone
 except Exception:
-    import distorm3
+    pass
+
+# For now we still always use distorm3.
+import distorm3
 
 import re
 import binascii

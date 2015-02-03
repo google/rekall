@@ -96,9 +96,10 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
 class NativeTypeTextRenderer(BaseObjectTextRenderer):
     renders_type = "NativeType"
 
-    def render_address(self, target, **options):
+    def render_address(self, target, width=None, **options):
         return text.Cell(
-            self.format_address(target.v(), **options)
+            self.format_address(target.v(), **options),
+            width=width
         )
 
 
@@ -175,6 +176,23 @@ class PointerTextRenderer(NativeTypeTextRenderer):
                 self.format_address(target.v(), **options))
         )
 
+
+class ListRenderer(text.TextObjectRenderer):
+    """Renders a long as an address."""
+    renders_type = ("list", "tuple")
+
+    def render_row(self, target, **options):
+        result = []
+        for item in target:
+            object_renderer = self.ForTarget(item, self.renderer)(
+                session=self.session, renderer=self.renderer)
+            result.append(object_renderer.render_row(item, **options))
+            result.append(text.Cell(","))
+
+        if result:
+            result.pop(-1)
+
+        return text.NestedCell(*result)
 
 class VoidTextRenderer(PointerTextRenderer):
     renders_type = "Void"

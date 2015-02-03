@@ -250,7 +250,7 @@ class VtoP(common.WinProcessFilter):
 
         phys_addr = self.address_space.ResolveProtoPTE(pte, vaddr)
         if phys_addr:
-            renderer.format("PTE mapped at 0x{0:08X}\n", phys_addr)
+            renderer.format("PTE mapped at {0:addrpad}\n", phys_addr)
         else:
             renderer.format("Invalid PTE\n")
 
@@ -272,14 +272,14 @@ class VtoP(common.WinProcessFilter):
         renderer.section(name="{0:#08x}".format(vaddr))
         self.address_space = self.session.GetParameter("default_address_space")
 
-        renderer.format("Virtual {0:#08x} Page Directory 0x{1:08x}\n",
+        renderer.format("Virtual {0:addrpad} Page Directory {1:addr}\n",
                         vaddr, self.address_space.dtb)
 
         for name, value, address in self.vtop(vaddr, self.address_space):
             if address:
                 # Properly format physical addresses.
                 renderer.format(
-                    "{0}@ {1} = {2:#08x}\n",
+                    "{0}@ {1} = {2:addr}\n",
                     name,
                     self.physical_address_space.describe(address),
                     value or 0)
@@ -371,8 +371,9 @@ class PFNInfo(common.WindowsCommandPlugin):
 
         pfn_obj = self.pfn_record(pfn)
 
-        renderer.format("""    PFN 0x{0:08X} at kernel address 0x{1:016X}
-""", pfn, pfn_obj.obj_offset)
+        renderer.format("    PFN {0:style=address} at "
+                        "kernel address {1:addrpad}\n",
+                        pfn, pfn_obj.obj_offset)
 
         # The flags we are going to print.
         flags = {"M": "Modified",
@@ -390,10 +391,10 @@ class PFNInfo(common.WindowsCommandPlugin):
         pte_physical_address = ((containing_page << self.PAGE_BITS) |
                                 (int(pfn_obj.PteAddress) & 0xFFF))
 
-        renderer.format("""    flink       {0:08X}  blink / share count {1:016X}
-    pteaddress (VAS) 0x{2:016X}  (Phys AS) 0x{3:016X}
-    reference count {4:04X}   color {5}
-    containing page        0x{6:08X}  {7}     {8}
+        renderer.format("""    flink  {0:addr}  blink / share count {1:addr}
+    pteaddress (VAS) {2:addrpad}  (Phys AS) {3:addr}
+    reference count {4:addr}   color {5}
+    containing page        {6:addr}  {7}     {8}
     {9}
     """, pfn_obj.u1.Flink, pfn_obj.u2.Blink,
                         pfn_obj.PteAddress,
@@ -524,7 +525,8 @@ class PTE(common.WindowsCommandPlugin):
         # Page is pointing to a subsection.
         elif pte.u.Proto.Prototype:
             renderer.format(
-                "Prototype PTE backed by file.\n{0}\n", pte.u.Subsect)
+                "Prototype PTE backed by file.\n{0:style=full}\n",
+                pte.u.Subsect)
 
             subsection = pte.u.Subsect.Subsection
 
@@ -536,7 +538,8 @@ class PTE(common.WindowsCommandPlugin):
             file_offset = ((pte.reference() - subsection.SubsectionBase) *
                            0x1000 + subsection.StartingSector * 512)
 
-            renderer.format("File Offset: {0} (0x{0:x})\n", file_offset)
+            renderer.format("File Offset: {0} ({0:style=address})\n",
+                            file_offset)
 
         # Prototype PTE is a Demand Zero page
         elif pte.u.Soft.PageFileHigh == 0:
@@ -551,7 +554,7 @@ class PTE(common.WindowsCommandPlugin):
             pte, self.virtual_address)
 
         renderer.format(
-            "\nPTE Contains {1:#x}\nPTE Type: {2}\n{0}\n",
+            "\nPTE Contains {1:#x}\nPTE Type: {2}\n{0:style=full}\n",
             pte, pte.cast("_MMPTE").u.Long, desc)
 
         if desc == "Prototype":
@@ -795,7 +798,7 @@ class PtoV(common.WinProcessFilter):
                 renderer.format("{0} @ {1:#x}\n", type, phys_addr)
         else:
             renderer.format("Error converting Physical Address {0:#x}: "
-                            "{1!r}\n", self.physical_address, result)
+                            "{1}\n", self.physical_address, result)
 
 
 class DTBScan2(common.WindowsCommandPlugin):

@@ -125,7 +125,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
 
     @property
     def obj_size(self):
-        """This is equivalent to strlen()."""
+        """This is equivalent to strlen() plus the terminator."""
         # The length is really determined by the terminator here.
         return len(self.v())
 

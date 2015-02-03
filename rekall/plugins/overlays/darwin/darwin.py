@@ -1067,17 +1067,17 @@ class proc(obj.Struct):
         )
 
         for item in array:
+            # Total size of the argv array is specified in argc (not counting
+            # padding).
+            if len(result) >= self.p_argc:
+                break
+
             item = unicode(item)
 
             # The argv array may have null padding for alignment. Discard these
             # empty strings.
             if not len(item):
                 continue
-
-            # Total size of the argv array is specified in argc (not counting
-            # padding).
-            if len(result) > self.p_argc:
-                break
 
             result.append(item)
 

@@ -114,7 +114,8 @@ MRO_CACHE = utils.FastStore(100, lock=True)
 class ObjectRenderer(object):
     """Baseclass for all TestRenderer object renderers."""
 
-    # Fall back renderer for all objects.
+    # Fall back renderer for all objects. This can also be a list or tuple of
+    # all types rendered by this renderer.
     renders_type = "object"
 
     # These are the renderers supported by this object renderer.
@@ -192,8 +193,19 @@ class ObjectRenderer(object):
             cls._RENDERER_CACHE = {}
             for object_renderer_cls in cls.classes.values():
                 for impl_renderer in object_renderer_cls.renderers:
-                    key = (object_renderer_cls.renders_type, impl_renderer)
-                    cls._RENDERER_CACHE[key] = object_renderer_cls
+                    render_types = object_renderer_cls.renders_type
+                    if isinstance(render_types, basestring):
+                        render_types = (render_types,)
+
+                    for render_type in render_types:
+                        key = (render_type, impl_renderer)
+                        if key in cls._RENDERER_CACHE:
+                            raise RuntimeError(
+                                "Multiple renderer implementations for class "
+                                "%s: %s, %s" % (key, object_renderer_cls,
+                                                cls._RENDERER_CACHE[key]))
+
+                        cls._RENDERER_CACHE[key] = object_renderer_cls
 
     @classmethod
     def ForTarget(cls, target, renderer):

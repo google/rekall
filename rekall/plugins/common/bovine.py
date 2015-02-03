@@ -26,10 +26,10 @@ from rekall import utils
 
 class RekallBovineExperience3000(plugin.Command):
     """Renders Bessy the cow and some beer.
-    
+
     This is a text renderer stress-test. It uses multiple features at the
     same time:
-    
+
     - Multiple coloring rules per line (this was a doozy).
     - Two columns with colors next to each other.
     - Text with its own newlines isn't rewrapped.
@@ -45,6 +45,7 @@ class RekallBovineExperience3000(plugin.Command):
             dict(name="Pilsner", width=50, style="full"),
             dict(name="Nowrap", width=10, nowrap=True)])
 
+        # pylint: disable=anomalous-backslash-in-string
         beer = (
             "                /\                      \n"
             "               / |\                     \n"
@@ -60,13 +61,14 @@ class RekallBovineExperience3000(plugin.Command):
             "     /               ( o )o)            \n"
             "    /               ( o )o )o)          \n"
             "                  (o( ~~~~~~~~o         \n"
-            "                  ( )' ~~~~~~~' _       \n"                  
-            "                    o|   o    |-. \\     \n"                  
-            "                    o|     o  |  \\ \\    \n"                  
-            "                     | .      |  | |    \n"                  
-            "                    o|   .    |  / /    \n"          
-            "                     |  .  .  |._ /     \n"          
-            "                     .========.         \n")          
+            "                  ( )' ~~~~~~~' _       \n"
+            "                    o|   o    |-. \\     \n"
+            "                    o|     o  |  \\ \\    \n"
+            "                     | .      |  | |    \n"
+            "                    o|   .    |  / /    \n"
+            "                     |  .  .  |._ /     \n"
+            "                     .========.         \n")
+        # pylint: enable=anomalous-backslash-in-string
 
         beer_highlights = [(16, 18, "CYAN", None),
                            (55, 58, "CYAN", None),
@@ -79,16 +81,16 @@ class RekallBovineExperience3000(plugin.Command):
                            (336, 341, "RED", None),
                            (377, 380, "RED", None),
                            (418, 419, "RED", None),
-                           
+
                            (461, 468, "BLACK", "WHITE"),
                            (500, 510, "BLACK", "WHITE"),
                            (538, 551, "BLACK", "WHITE"),
                            (578, 591, "BLACK", "WHITE"),
-                           
+
                            (620, 621, "BLACK", "WHITE"),
                            (660, 661, "BLACK", "WHITE"),
                            (740, 741, "BLACK", "WHITE"),
-                           
+
                            (621, 631, "WHITE", "YELLOW"),
                            (661, 671, "WHITE", "YELLOW"),
                            (701, 711, "WHITE", "YELLOW"),

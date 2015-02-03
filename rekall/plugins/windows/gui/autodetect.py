@@ -47,7 +47,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
 
             for field, (offset, field_def) in sorted(definition[1].items(),
                                                      key=lambda x: x[1]):
-                renderer.table_row(field, offset, field_def)
+                renderer.table_row(field, offset, str(field_def))
 
     def GetWin32kOverlay(self, win32k_profile):
         # Make a temporary profile to work with.

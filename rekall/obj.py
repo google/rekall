@@ -474,7 +474,7 @@ class BaseObject(object):
         try:
             return "\n".join(self.get_text_renderer().render_row(self).lines)
         except Exception as e:
-            return "%s (string conversion raised %s)" % repr(self), e
+            return "%s (string conversion raised %s)" % (repr(self), e)
 
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(
@@ -966,28 +966,30 @@ class Array(BaseObject):
 
     def __iter__(self):
         # If the array is invalid we do not iterate.
-        if self.obj_vm.is_valid_address(self.obj_offset):
-            for position in xrange(0, self.count):
-                # Since we often calculate array counts it is possible to
-                # calculate huge arrays. This will then spin here
-                # uncontrollably. We use max_count as a safety to break out
-                # early - but we need to ensure that users see we hit this
-                # artificial limit.
-                if position > self.max_count:
-                    if self.obj_session.GetParameter("debug"):
-                        pdb.set_trace()
+        if not self.obj_vm.is_valid_address(self.obj_offset):
+            return
 
-                    logging.warn("%s Array iteration truncated by max_count!",
-                                 self.obj_name)
-                    break
+        for position in xrange(0, self.count):
+            # Since we often calculate array counts it is possible to
+            # calculate huge arrays. This will then spin here
+            # uncontrollably. We use max_count as a safety to break out
+            # early - but we need to ensure that users see we hit this
+            # artificial limit.
+            if position > self.max_count:
+                if self.obj_session.GetParameter("debug"):
+                    pdb.set_trace()
 
-                # We don't want to stop on a NoneObject.  Its
-                # entirely possible that this array contains a bunch of
-                # pointers and some of them may not be valid (or paged
-                # in). This should not stop us though we just return the
-                # invalid pointers to our callers.  It's up to the callers
-                # to do what they want with the array.
-                yield self[position]
+                logging.warn("%s Array iteration truncated by max_count!",
+                             self.obj_name)
+                break
+
+            # We don't want to stop on a NoneObject.  Its
+            # entirely possible that this array contains a bunch of
+            # pointers and some of them may not be valid (or paged
+            # in). This should not stop us though we just return the
+            # invalid pointers to our callers.  It's up to the callers
+            # to do what they want with the array.
+            yield self[position]
 
     def __repr__(self):
         return "<{3} {0} x {1} @ 0x{2:08X}>".format(
@@ -1125,9 +1127,6 @@ class ListArray(Array):
                              self.obj_name)
                 break
 
-            if not self.obj_vm.is_valid_address(offset):
-                return
-
             item = self.obj_profile.Object(
                 self.target, offset=offset, vm=self.obj_vm, parent=self,
                 profile=self.obj_profile, context=self.obj_context,
@@ -1246,7 +1245,9 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
     @property
     def obj_size(self):
         if callable(self.struct_size):
-            return self.struct_size(self)
+            # We must always return an integer, even if NoneObject is returned
+            # from the callable.
+            return self.struct_size(self) or 0
 
         return self.struct_size
 

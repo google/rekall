@@ -31,7 +31,6 @@ except Exception:  # curses sometimes raises weird exceptions.
 import logging
 import re
 import os
-import string
 import subprocess
 import sys
 import tempfile
@@ -75,8 +74,8 @@ StyleEnum = utils.AttributeDict(
 # This comes from http://docs.python.org/library/string.html
 # 7.1.3.1. Format Specification Mini-Language
 FORMAT_SPECIFIER_RE = re.compile(r"""
-(?P<fill>[^{}<>=^bcdeEfFgGnLorsxX0-9])?  # The fill parameter. This can not be a
-                                        # format string or it is ambiguous.
+(?P<fill>[^{}<>=^#bcdeEfFgGnLorsxX0-9])?  # The fill parameter. This can not be
+                                          # a format string or it is ambiguous.
 (?P<align>[<>=^])?     # The alignment.
 (?P<sign>[+\- ])?      # Sign extension.
 (?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
@@ -114,202 +113,6 @@ def ParseFormatSpec(formatstring):
         result["align"] = "c"
 
     return result
-
-
-class Formatter(string.Formatter):
-    """A formatter which supports extended formating specs."""
-    # This comes from http://docs.python.org/library/string.html
-    # 7.1.3.1. Format Specification Mini-Language
-    standard_format_specifier_re = re.compile(r"""
-(?P<fill>[^{}<>=^bcdeEfFgGnLorsxX0-9])?  # The fill parameter. This can not be a
-                                        # format string or it is ambiguous.
-(?P<align>[<>=^])?     # The alignment.
-(?P<sign>[+\- ])?      # Sign extension.
-(?P<hash>\#)?          # Hash means to preceed the whole thing with 0x.
-(?P<zerofill>0)?       # Should numbers be zero filled.
-(?P<width>\d+)?        # The minimum width.
-(?P<comma>,)?
-(?P<precision>.\d+)?   # Precision
-(?P<type>[bcdeEfFgGnorsxXL%])?  # The format string (Not all are supported).
-""", re.X)
-
-    def __init__(self, session=None):
-        super(Formatter, self).__init__()
-        self.session = session
-        self._calculate_address_size()
-
-    def _calculate_address_size(self):
-        self.address_size = 14
-
-        # Be careful to not force profile autodetection here for such a trivial
-        # piece of information.
-        if (self.session.HasParameter("profile") and
-                self.session.profile.metadata("arch") == "I386"):
-            self.address_size = 10
-
-    def parse_extended_format(self, value, formatstring=None, header=False,
-                              **options):
-        """Parse the format string into the format specification.
-
-        We support some extended forms of format string which we process
-        especially here:
-
-        [addrpad] - This is a padded address to width renderer.address_size.
-        [addr] - This is a non padded address.
-        [wrap:width] - This wraps a stringified version of the target in the
-           cell.
-
-        Args:
-          formatstring: The formatstring we parse.
-          options: An options dict. We may populate it with some options which
-             are encoded in the extended format.
-
-        Returns:
-          A Cell instance.
-        """
-        _ = options
-        extended_format = None
-
-        # This means unlimited and uncontrolled width.
-        if not formatstring:
-            extended_format = "s"
-
-        elif formatstring == "[addrpad]":
-            if header:
-                extended_format = "^%ss" % self.address_size
-            else:
-                extended_format = "#0%sx" % self.address_size
-
-            if value == None:
-                extended_format = "<%ss" % self.address_size
-
-        elif formatstring == "[addr]":
-            if header:
-                extended_format = "^%ss" % self.address_size
-            else:
-                extended_format = ">#%sx" % self.address_size
-
-        else:
-            # Look for the wrap specifier.
-            m = re.match(r"\[wrap:([^\]]+)\]", formatstring)
-            if m:
-                width = int(m.group(1))
-                return Cell.wrap(utils.SmartUnicode(value), width)
-
-        if extended_format is not None:
-            return Cell(self.format_field(value, extended_format))
-
-    def format_cell(self, value, formatstring="s", header=False, **options):
-        """Format the value into a Cell instance.
-
-        This also support extended formatting directives.
-
-        Returns:
-          A Cell instance.
-        """
-        res = self.parse_extended_format(
-            value, formatstring=formatstring, header=header, **options)
-
-        if res:
-            return res
-
-        if header:
-            formatstring = formatstring.replace("#", "")
-            formatstring = formatstring.replace("<", "")
-            formatstring = formatstring.replace(">", "")
-            formatstring = formatstring.replace("x", "s")
-            if not formatstring.startswith("^"):
-                formatstring = "^" + formatstring
-
-        return Cell(self.format_field(value, formatstring=formatstring),
-                    align=options.get("align", None),
-                    width=options.get("width", None))
-
-    def format_field(self, value, formatstring="", header=False, **_):
-        """Format the value using the format_spec.
-
-        The aim of this function is to remove the delegation to __format__() on
-        the object. For our needs we do not want the object to be responsible
-        for its own formatting since it is not aware of the renderer itself.
-
-        A rekall.obj.BaseObject instance must support the following
-        formatting operations:
-
-        __unicode__
-        __str__
-        __repr__
-        and may also support __int__ (for formatting in hex).
-        """
-        m = self.standard_format_specifier_re.match(formatstring)
-        if not m:
-            raise re.error("Invalid regex")
-
-        fields = m.groupdict()
-
-        if header:
-            fields["align"] = "^"
-
-        # Format the value according to the basic type.
-        type = fields["type"] or "s"
-        try:
-            value = getattr(
-                self, "format_type_%s" % type)(value, fields)
-        except AttributeError:
-            raise re.error("No formatter for type %s" % type)
-
-        try:
-            return format(value, formatstring)
-        except ValueError:
-            return str(value)
-
-    def format_type_s(self, value, fields):
-        try:
-            # This is required to allow BaseObject to pass non unicode returns
-            # from __unicode__ (e.g. NoneObject).
-            result = value.__unicode__()
-        except AttributeError:
-            result = utils.SmartUnicode(value)
-
-        formatstring = (u"{0:" + (fields.get("align") or "") +
-                        (fields.get("width") or "") + "s}")
-        return formatstring.format(result)
-
-    def format_type_x(self, value, fields):
-        _ = fields
-        try:
-            return int(value)
-        except ValueError:
-            return ""
-
-    def format_type_d(self, value, fields):
-        _ = fields
-        try:
-            return int(value)
-        except ValueError:
-            return ""
-
-    def format_type_X(self, value, fields):
-        _ = fields
-        try:
-            return int(value)
-        except ValueError:
-            return ""
-
-    def format_type_r(self, value, fields):
-        _ = fields
-        return repr(value)
-
-    def format_type_f(self, value, fields):
-        _ = fields
-        if isinstance(value, (float, int, long)):
-            return float(value)
-
-        return value
-
-    def format_type_L(self, value, fields):
-        """Support extended list format."""
-        _ = fields
-        return ", ".join([utils.SmartUnicode(x) for x in value])
 
 
 class Pager(object):
@@ -536,11 +339,13 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
 
     def format_address(self, address, **options):
         result = "%x" % address
-        if options.get("padding") == "0":
+        padding = options.get("padding", " ")
+        if padding == "0":
             return ("0x" + "0" * max(0, self.address_size - 2 - len(result)) +
                     result)
 
-        return " " * max(0, self.address_size - 2 - len(result)) + "0x" + result
+        return padding * max(
+            0, self.address_size - 2 - len(result)) + "0x" + result
 
     def render_header(self, name=None, style=StyleEnum.full, **options):
         """This should be overloaded to return the header Cell.
@@ -568,12 +373,13 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
 
         return header_cell
 
-    def render_full(self, target, **_):
-        return Cell(unicode(target))
+    def render_full(self, target, **options):
+        return Cell(unicode(target), **options)
 
-    def render_address(self, target, **options):
+    def render_address(self, target, width=None, **options):
         return Cell(
-            self.format_address(int(target), **options)
+            self.format_address(int(target), **options),
+            width=width
         )
 
     render_compact = render_full
@@ -610,7 +416,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
                     type(self).__name__, style))
 
         cell = method(target, **options)
-        if not isinstance(cell, Cell):
+        if not isinstance(cell, BaseCell):
             raise RuntimeError("Invalid cell renderer.")
 
         return cell
@@ -676,8 +482,6 @@ class AttributedStringRenderer(TextObjectRenderer):
 
     def render_full(self, target, **_):
         return Cell(value=target.value, highlights=target.highlights)
-
-    render_compact = render_full
 
     def render_value(self, target, **_):
         return Cell(value=target.value)
@@ -969,6 +773,9 @@ class TextColumn(object):
         merged_opts = self.options.copy()
         merged_opts.update(options)
 
+        if merged_opts.get("nowrap"):
+            merged_opts.pop("width", None)
+
         if self.object_renderer is not None:
             object_renderer = self.object_renderer
         else:
@@ -979,8 +786,11 @@ class TextColumn(object):
         result = object_renderer.render_row(target, **merged_opts)
         result.colorizer = self.renderer.colorizer
 
-        if ("width" in self.options and not merged_opts.get("nowrap", False)
-                or self.header_width > result.width):
+        # If we should not wrap we are done.
+        if merged_opts.get("nowrap"):
+            return result
+
+        if "width" in self.options or self.header_width > result.width:
             # Rewrap if we have an explicit width (and wrap wasn't turned off).
             # Also wrap to pad if the result is actually narrower than the
             # header, otherwise it messes up the columns to the right.
@@ -1161,8 +971,6 @@ class TextRenderer(renderer_module.BaseRenderer):
 
         # Make sure that our output is unicode safe.
         self.fd = UnicodeWrapper(fd)
-        self.formatter = Formatter(session=self.session)
-
         self.tablesep = tablesep
 
         # We keep the data that we produce in memory for while.
@@ -1187,6 +995,24 @@ class TextRenderer(renderer_module.BaseRenderer):
             self.write("\n{0} {1} {2}\n".format(padding, name, padding))
 
     def format(self, formatstring, *data):
+        """Parse and interpolate the format string.
+
+        A format string consists of a string with interpolation markers
+        embedded. The syntax for an interpolation marker is
+        {pos:opt1=value,opt2=value}, where pos is the position of the data
+        element to interpolate, and opt1, opt2 are the options to provide the
+        object renderer.
+
+        For example:
+
+        renderer.format("Process {0:style=compact}", task)
+
+        For backwards compatibility we support the following syntaxes:
+        {0:#x} equivalent to {0:style=address}
+        {1:d} equivalent to {1}
+
+
+        """
         super(TextRenderer, self).format(formatstring, *data)
 
         # Only clear the progress if we share the same output stream as the
@@ -1194,7 +1020,67 @@ class TextRenderer(renderer_module.BaseRenderer):
         if self.fd is self.progress_fd:
             self.ClearProgress()
 
-        self.write(self.formatter.format(formatstring, *data))
+        default_pos = 0
+        # Currently use a very simple regex to format - we dont support
+        # outputting {} chars.
+        for part in re.split("({.*?})", formatstring):
+            # Literal.
+            if not part.startswith("{"):
+                self.write(part)
+                continue
+
+            # By default use compact style unless specified otherwise.
+            options = dict(style="compact")
+            position = None
+
+            # Parse the format string - we do not support anything too complex
+            # now.
+            m = re.match(r"{(\d+):(.+)}", part)
+            if m:
+                position = int(m.group(1))
+                option_string = m.group(2)
+
+            m = re.match(r"{(\d*)}", part)
+            if m:
+                option_string = ""
+                if not m.group(1):
+                    position = default_pos
+                    default_pos += 1
+                else:
+                    position = int(m.group(1))
+
+            if position is None:
+                logging.error("Unknown format specifier: %s", part)
+                continue
+
+            # These are backwards compatible hacks. Newer syntax is
+            # preferred.
+            if option_string in ["#x", "08x", "8x", "addr"]:
+                options["style"] = "address"
+                options["padding"] = ""
+
+            elif option_string == "addrpad":
+                options["style"] = "address"
+                options["padding"] = "0"
+
+            elif "=" in option_string:
+                for option_part in option_string.split(","):
+                    if "=" in option_part:
+                        key, value = option_part.split("=", 1)
+                        options[key.strip()] = value.strip()
+                    else:
+                        options[option_part] = True
+            else:
+                options.update(ParseFormatSpec(option_string))
+
+            # Get the item to be interpolated.
+            item = data[position]
+
+            # Now find the correct object renderer.
+            obj_renderer = TextObjectRenderer.ForTarget(item, self)(
+                renderer=self, session=self.session)
+
+            self.write(obj_renderer.render_row(item, **options))
 
     def write(self, data):
         self.fd.write(data)
@@ -1385,10 +1271,13 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
             child = {}
 
         if self.child:
-            child_cell = self.child.render_row(target, **child)
+            child_renderer = self.child
         else:
-            child_cell = super(TreeNodeObjectRenderer, self).render_row(
-                target, **child)
+            child_renderer = self.ForTarget(target, renderer=self.renderer)(
+                session=self.session, renderer=self.renderer)
+
+        child_cell = child_renderer.render_row(target, **child)
+        child_cell.colorizer = self.renderer.colorizer
 
         padding = Cell("." * depth)
         result = NestedCell(padding, child_cell)

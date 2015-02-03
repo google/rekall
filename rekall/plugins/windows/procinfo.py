@@ -114,7 +114,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
                 getattr(self.pe_helper.nt_header.OptionalHeader, field))
 
         renderer.format(
-            "\nSections (Relative to 0x{0:08X}):\n",
+            "\nSections (Relative to {0:addrpad}):\n",
             self.pe_helper.image_base)
 
         renderer.table_header([('Perm', 'perm', '4'),

@@ -719,7 +719,7 @@ class DT(plugin.ProfileCommand):
 
     def render_Struct(self, renderer, struct):
         renderer.format(
-            "[{0} {1}] @ {2:#08x} \n",
+            "[{0} {1}] @ {2:addrpad} \n",
             struct.obj_type, struct.obj_name or '', struct.obj_offset)
 
         renderer.table_header([
