@@ -957,14 +957,6 @@ class Linux(basic.BasicClasses):
             logging.debug(("No kernel config available in the profile, so "
                            "we cannot detect PAE."))
 
-    def get_constant(self, name, is_address=True):
-        """Gets the constant from the profile, correcting for KASLR."""
-        base_constant = super(Linux, self).get_constant(name)
-        if is_address and isinstance(base_constant, (int, long)):
-            return base_constant + self.session.GetParameter("kaslr_shift")
-
-        return base_constant
-
     def add_kernel_config_options(self, **kwargs):
         """Add the kwargs as kernel config options for this profile."""
         for k, v in kwargs.iteritems():
@@ -1017,6 +1009,31 @@ class Linux(basic.BasicClasses):
         corrected_boottime.tv_sec = -boottime.tv_sec
         corrected_boottime.tv_nsec = -boottime.tv_nsec
         return corrected_boottime.normalized_timespec()
+
+    def phys_addr(self, va):
+        """Returns the physical address of a given virtual address va.
+
+        Linux has a direct mapping between the kernel virtual address space and
+        the physical memory. This is the difference between the virtual and
+        physical addresses (aka PAGE_OFFSET). This is defined by the __va macro:
+
+        #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
+
+        However, the kernel can be rebased when CONFIG_RELOCATABLE is active.
+        phys_addr detects the relocation and returns the correct physical
+        address.
+        """
+        return (obj.Pointer.integer_to_address(va)
+                - obj.Pointer.integer_to_address(self.GetPageOffset())
+                + self.GetRelocationDelta())
+
+    def GetRelocationDelta(self):
+        """Returns the number of bytes the kernel base is shifted."""
+        return self.session.GetParameter("kernel_slide")
+
+    def GetPageOffset(self):
+        """Gets the page offset without accounting for relocations or KASLR."""
+        return self.session.GetParameter("linux_page_offset")
 
 
 # Legacy for old profiles

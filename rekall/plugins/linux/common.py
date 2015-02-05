@@ -64,25 +64,23 @@ class SlideScanner(scan.BaseScanner):
         ]
 
 
-class LinuxFindKASLR(AbstractLinuxCommandPlugin):
-    """Locate the KASLR if it exists."""
+class LinuxFindKernelSlide(AbstractLinuxCommandPlugin):
+    """Locate the slide value if the kernel physical base has been relocated."""
 
-    name = "find_kaslr"
+    name = "find_kernelslide"
 
     def vm_kernel_slide_hits(self):
-        """Tries to compute the KASLR slide.
+        """Tries to compute the kernel base slide.
 
         In an ideal scenario, this should return exactly one valid result.
 
         Yields:
-          (int) semi-validated KASLR value
+          (int) validated kernel slide
         """
 
         virtual_offset = self.profile.get_constant("linux_proc_banner",
                                                    is_address=False)
-
-        page_offset = LinuxFindDTB.GetPageOffset(self.profile)
-        expected_physical_offset = virtual_offset - page_offset
+        expected_physical_offset = virtual_offset - self.profile.GetPageOffset()
 
         for hit in SlideScanner(
                 address_space=self.physical_address_space,
@@ -93,87 +91,62 @@ class LinuxFindKASLR(AbstractLinuxCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-            ("KASLR Slide", "vm_kernel_slide", "[addrpad]"),
+            ("Kernel slide", "vm_kernel_slide", "[addrpad]"),
         ])
 
         for vm_kernel_slide in self.vm_kernel_slide_hits():
             renderer.table_row(vm_kernel_slide)
 
 
-class KASLRHook(kb.ParameterHook):
-    name = "kaslr_shift"
+class LinuxKernelSlideHook(kb.ParameterHook):
+    name = "kernel_slide"
 
     def calculate(self):
-        find_kaslr = LinuxFindKASLR(session=self.session,
-                                    profile=self.session.profile)
-        for hit in find_kaslr.vm_kernel_slide_hits():
-            logging.debug("Found Kernel ASLR slide %#x.", hit)
+        find_kslide = LinuxFindKernelSlide(session=self.session,
+                                           profile=self.session.profile)
+        for hit in find_kslide.vm_kernel_slide_hits():
+            logging.debug("Found Kernel slide %#x.", hit)
             return hit
 
-        logging.debug("Unable to locate a KASLR.")
+        logging.debug("Unable to locate the kernel slide.")
         return 0
+
+class LinuxKernelPageOffsetHook(kb.ParameterHook):
+    name = "linux_page_offset"
+
+    def calculate(self):
+        profile = self.session.profile
+        if profile.metadata("arch") == "I386":
+            page_offset = (profile.get_constant("_text", False) -
+                           profile.get_constant("phys_startup_32", False))
+
+        elif profile.metadata("arch") == "AMD64":
+            # We use the symbol phys_startup_64. If it's not present in the
+            # profile and it's different than the default, we should be able
+            # to autodetect the difference via kernel_slide.
+            phys_startup_64 = (profile.get_constant("phys_startup_64", False) or
+                               0x1000000)
+            page_offset = profile.get_constant("_text", False) - phys_startup_64
+
+        elif profile.metadata("arch") == "MIPS":
+            page_offset = 0x80000000
+
+        else:
+            raise RuntimeError("No profile architecture set.")
+        return page_offset
 
 
 class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
-    """A scanner for DTB values.
+    """A scanner for DTB values. Handles both 32 and 64 bits.
 
-    For linux, the dtb values are taken directly from the symbol file. Linux has
-    a direct mapping between the kernel virtual address space and the physical
-    memory.  This is the difference between the virtual and physical addresses
-    (aka PAGE_OFFSET). This is defined by the __va macro:
-
-    #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
-
-    This one plugin handles both 32 and 64 bits.
+    The plugin also autodetects when the guest is running as a XEN
+    ParaVirtualized guest and returns a compatible address space.
     """
 
     __name = "find_dtb"
 
-    @classmethod
-    def GetPageOffset(cls, profile):
-        """Gets the expected page offset without taking KASLR into account."""
-        if profile.metadata("arch") == "I386":
-            return (profile.get_constant("_text", False) -
-                    profile.get_constant("phys_startup_32", False))
-
-        elif profile.metadata("arch") == "AMD64":
-            # We can calculate phys_startup_64 when it's not present in the
-            # profile:
-            #
-            # From arch/x86/kernel/vmlinux.lds.S
-            # 17 #ifdef CONFIG_X86_32
-            # 18 #define LOAD_OFFSET __PAGE_OFFSET
-            # 19 #else
-            # 20 #define LOAD_OFFSET __START_KERNEL_map
-            # 21 #endif
-            # [...]
-            # 84 #ifdef CONFIG_X86_32
-            # 85         . = LOAD_OFFSET + LOAD_PHYSICAL_ADDR;
-            # 86         phys_startup_32 = startup_32 - LOAD_OFFSET;
-            # 87 #else
-            # 88         . = __START_KERNEL;
-            # 89         phys_startup_64 = startup_64 - LOAD_OFFSET;
-            # 90 #endif
-            #
-            # From arch/x86/include/asm/page_64_types.h:
-            # #define __START_KERNEL_map    _AC(0xffffffff80000000, UL)
-            _phys_startup_64 = (profile.get_constant("startup_64", False)
-                                - 0xffffffff80000000)
-            phys_startup_64 = (profile.get_constant("phys_startup_64", False) or
-                               _phys_startup_64)
-            return profile.get_constant("_text", False) - phys_startup_64
-
-        elif profile.metadata("arch") == "MIPS":
-            return 0x80000000
-
-        else:
-            raise RuntimeError("No profile architecture set.")
-
     def VerifyHit(self, dtb):
         """Returns a valid address_space if the dtb is valid."""
-
-        self.session.SetParameter("page_offset", obj.Pointer.integer_to_address(
-            self.GetPageOffset(self.profile)))
 
         address_space = super(LinuxFindDTB, self).VerifyHit(dtb)
         if address_space:
@@ -189,14 +162,18 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     def GetAddressSpaceImplementation(self):
         """Returns the correct address space class for this profile."""
+
         # The virtual address space implementation is chosen by the profile.
         architecture = self.profile.metadata("arch")
         if architecture == "AMD64":
-            p2m_top_p = (self.profile.get_constant("p2m_top", False)
-                         - self.GetPageOffset(self.profile))
+
+            # XEN PV guests have a mapping in p2m_top. We verify this symbol
+            # is not NULL.
+            p2m_top_phys = self.profile.phys_addr(
+                self.profile.get_constant("p2m_top", True))
             p2m_top = struct.unpack("<Q",
                                     self.physical_address_space.read(
-                                        p2m_top_p, 8))[0]
+                                        p2m_top_phys, 8))[0]
             if p2m_top:
                 logging.debug("Detected paravirtualized XEN guest.")
                 impl = "XenParaVirtAMD64PagedMemory"
@@ -206,16 +183,17 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     def dtb_hits(self):
         """Tries to locate the DTB."""
-        PAGE_OFFSET = self.GetPageOffset(self.profile)
         if self.profile.metadata("arch") == "I386":
-            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
+            yield self.profile.phys_addr(
+                self.profile.get_constant("swapper_pg_dir"))
 
         elif self.profile.metadata("arch") == "MIPS":
-            yield self.profile.get_constant("swapper_pg_dir") - PAGE_OFFSET
+            yield self.profile.phys_addr(
+                self.profile.get_constant("swapper_pg_dir"))
 
         else:
-            yield (self.profile.get_constant("init_level4_pgt", False) -
-                   PAGE_OFFSET)
+            yield self.profile.phys_addr(
+                self.profile.get_constant("init_level4_pgt", False))
 
     def render(self, renderer):
         renderer.table_header([("DTB", "dtv", "[addrpad]"),

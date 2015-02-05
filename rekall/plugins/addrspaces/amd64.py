@@ -364,14 +364,15 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
         logging.debug("Rebuilding the machine to physical mapping...")
         p2m_top_location = self.session.profile.get_constant_object(
-            "p2m_top", "Pointer", vm=self)
+            "p2m_top", "Pointer", vm=self).deref()
 
-        end_value = self.session.profile.get_constant("__bss_stop", True)
+        end_value = self.session.profile.get_constant("__bss_stop", False)
         new_mapping = {}
-        for p2m_top in self._ReadP2M(p2m_top_location.v(), self.P2M_TOP_PER_PAGE):
+        for p2m_top in self._ReadP2M(p2m_top_location, self.P2M_TOP_PER_PAGE):
             p2m_top_idx, p2m_top_entry = p2m_top
-            self.session.report_progress("Building m2p map %.02f%%" % (
-                100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
+            self.session.report_progress(
+                "Building m2p map %.02f%%" % (
+                    100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
 
             if p2m_top_entry == end_value:
                 continue
@@ -428,8 +429,10 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
             # Simple shortcut for linux. This is required for the first set
             # of virtual to physical resolutions while we're building the
             # mapping.
-            if self.page_offset and vaddr > self.page_offset:
-                return vaddr - self.page_offset
+            page_offset = obj.Pointer.integer_to_address(
+                self.profile.GetPageOffset())
+            if vaddr > page_offset:
+                return self.profile.phys_addr(vaddr)
 
             # Try to update the mapping
             self._RebuildM2PMapping()

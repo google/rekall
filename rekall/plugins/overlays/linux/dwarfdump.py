@@ -1,48 +1,27 @@
-# Rekall Memory Forensics
+# Volatility
 # Copyright (C) 2010 Brendan Dolan-Gavitt
 # Copyright (c) 2011 Michael Cohen <scudette@gmail.com>
-# Copyright 2013 Google Inc. All Rights Reserved.
 #
-# This program is free software; you can redistribute it and/or modify
+# This file is part of Volatility.
+#
+# Volatility is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or (at
-# your option) any later version.
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+# Volatility is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-@author:       Brendan Dolan-Gavitt
-@license:      GNU General Public License 2.0 or later
-@contact:      brendandg@gatech.edu
-@organization: Georgia Institute of Technology
+# !! This file has been copied from Volatility's commit
+# !! e6ed7078f9cfe07f761a6a33ca5f24a548bdbdb4  and minor changes have been made
+# !! to 'DWARFParser.print_output' and '__main__' for compatibility.
 
-
-This is the obsolete parser for the output of dwarfdump. The current way is to
-parse dwarf symbols directly from the kernel module via the elftools python
-module.
-
-This file implements a parser for the output of dwarfdump:
-
-dwarfdump -di module.ko > module.dwarf
-"""
-import logging
 import re
-import sys
-import zipfile
-
-from rekall import obj
-from rekall import plugin
-
-from rekall.plugins.overlays import basic
-
 
 class DWARFParser(object):
     """A parser for DWARF files."""
@@ -53,7 +32,9 @@ class DWARFParser(object):
     dwarf_key_val_regex = re.compile(
         '\s*(?P<keyname>\w+)<(?P<val>[^>]*)>')
 
-    sz2tp = {8: 'long long', 4: 'long', 2: 'short', 1: 'char'}
+    dwarf_header_regex2 = re.compile(r'<(?P<level>\d+)><(?P<statement_id>0x[0-9a-fA-F]+([+]0x[0-9a-fA-F]+)?)><(?P<kind>\w+)>')
+
+    sz2tp = {8: 'long long', 4: 'int', 2: 'short', 1: 'char'}
     tp2vol = {
         '_Bool': 'unsigned char',
         'char': 'char',
@@ -70,10 +51,11 @@ class DWARFParser(object):
         'signed char': 'signed char',
         'unsigned char': 'unsigned char',
         'unsigned int': 'unsigned int',
+        'sizetype' : 'unsigned long',
     }
 
 
-    def __init__(self):
+    def __init__(self, data = None):
         self.current_level = -1
         self.name_stack = []
         self.id_to_name = {}
@@ -85,11 +67,19 @@ class DWARFParser(object):
         self.all_local_vars = []
         self.local_vars = []
         self.anons = 0
+        self.base = 10
+
+        if data:
+            for line in data.splitlines():
+                self.feed_line(line)
 
     def resolve(self, memb):
-        """Lookup anonymouse member and replace it with a well known one."""
+        """Lookup anonymous member and replace it with a well known one."""
         # Reference to another type
         if isinstance(memb, str) and memb.startswith('<'):
+            if memb[1:3] == "0x":
+                memb = "<0x" + memb[3:].lstrip('0')
+
             resolved = self.id_to_name[memb[1:]]
 
             return self.resolve(resolved)
@@ -115,7 +105,8 @@ class DWARFParser(object):
 
         elif isinstance(t, list):
             return [self.deep_replace(x, search, repl) for x in t]
-        else: return t
+        else:
+            return t
 
     def get_deepest(self, t):
         if isinstance(t, list):
@@ -134,9 +125,9 @@ class DWARFParser(object):
     def base_type_name(self, data):
         """Replace references to base types."""
         if 'DW_AT_name' in data:
-            return self.tp2vol[data['DW_AT_name']]
+            return self.tp2vol[data['DW_AT_name'].strip('"')]
         else:
-            sz = int(data['DW_AT_byte_size'])
+            sz = int(data['DW_AT_byte_size'], self.base)
             if data['DW_AT_encoding'] == 'DW_ATE_unsigned':
                 return 'unsigned ' + self.sz2tp[sz]
             else:
@@ -152,6 +143,11 @@ class DWARFParser(object):
         """
         # Does the header match?
         m = self.dwarf_header_regex.match(line)
+
+        if self.dwarf_header_regex2.match(line):
+            m = self.dwarf_header_regex2.match(line)
+            self.base = 16
+
         if m:
             parsed = m.groupdict()
             parsed['data'] = {}
@@ -163,10 +159,10 @@ class DWARFParser(object):
                     d = m.groupdict()
                     parsed['data'][d['keyname']] = d['val']
 
-            if parsed['kind'] in ('DW_TAG_formal_parameter','DW_TAG_variable'):
+            if parsed['kind'] in ('DW_TAG_formal_parameter', 'DW_TAG_variable'):
                 self.process_variable(parsed['data'])
             else:
-                self.process_statement(**parsed)
+                self.process_statement(**parsed) #pylint: disable-msg=W0142
 
     def process_statement(self, kind, level, data, statement_id):
         """Process a single parsed statement."""
@@ -175,7 +171,7 @@ class DWARFParser(object):
             self.current_level = new_level
             self.name_stack.append([])
         elif new_level < self.current_level:
-            self.name_stack = self.name_stack[:new_level+1]
+            self.name_stack = self.name_stack[:new_level + 1]
             self.current_level = new_level
 
         self.name_stack[-1] = [kind, statement_id]
@@ -194,34 +190,35 @@ class DWARFParser(object):
             self.id_to_name = {}
 
         elif kind == 'DW_TAG_structure_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id)
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
 
             # If it's just a forward declaration, we want the name around,
             # but there won't be a size
             if 'DW_AT_declaration' not in data:
-                self.vtypes[name] = [ int(data['DW_AT_byte_size']), {} ]
+                self.vtypes[name] = [ int(data['DW_AT_byte_size'], self.base), {} ]
 
         elif kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id)
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
-            self.vtypes[name] = [ int(data['DW_AT_byte_size']), {} ]
+            self.vtypes[name] = [ int(data['DW_AT_byte_size'], self.base), {} ]
 
         elif kind == 'DW_TAG_array_type':
             self.name_stack[-1][1] = statement_id
             self.id_to_name[statement_id] = data['DW_AT_type']
 
         elif kind == 'DW_TAG_enumeration_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id)
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
             self.name_stack[-1][1] = name
             self.id_to_name[statement_id] = [name]
 
             # If it's just a forward declaration, we want the name around,
             # but there won't be a size
             if 'DW_AT_declaration' not in data:
-                sz = int(data['DW_AT_byte_size'])
+                sz = int(data['DW_AT_byte_size'], self.base)
                 self.enums[name] = [sz, {}]
 
         elif kind == 'DW_TAG_pointer_type':
@@ -254,13 +251,22 @@ class DWARFParser(object):
             pass
 
         elif kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_structure_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id)
-            off = int(data['DW_AT_data_member_location'].split()[1])
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
+            try:
+                off = int(data['DW_AT_data_member_location'].split()[1])
+            except:
+                d = data['DW_AT_data_member_location']
+                idx = d.find("(")
+
+                if idx != -1:
+                    d = d[:idx]
+
+                off = int(d)
 
             if 'DW_AT_bit_size' in data and 'DW_AT_bit_offset' in data:
-                full_size = int(data['DW_AT_byte_size'])*8
-                stbit = int(data['DW_AT_bit_offset'])
-                edbit = stbit + int(data['DW_AT_bit_size'])
+                full_size = int(data['DW_AT_byte_size'], self.base) * 8
+                stbit = int(data['DW_AT_bit_offset'], self.base)
+                edbit = stbit + int(data['DW_AT_bit_size'], self.base)
                 stbit = full_size - stbit
                 edbit = full_size - edbit
                 stbit, edbit = edbit, stbit
@@ -272,16 +278,16 @@ class DWARFParser(object):
             self.vtypes[parent_name][1][name] = [off, memb_tp]
 
         elif kind == 'DW_TAG_member' and parent_kind == 'DW_TAG_union_type':
-            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id)
+            name = data.get('DW_AT_name', "__unnamed_%s" % statement_id).strip('"')
             self.vtypes[parent_name][1][name] = [0, data['DW_AT_type']]
 
         elif kind == 'DW_TAG_enumerator' and parent_kind == 'DW_TAG_enumeration_type':
-            name = data['DW_AT_name']
+            name = data['DW_AT_name'].strip('"')
 
             try:
                 val = int(data['DW_AT_const_value'])
             except ValueError:
-                val = int(data['DW_AT_const_value'].split('(')[0])
+                val = int(data['DW_AT_const_value'].split('(')[0], self.base)
 
             self.enums[parent_name][1][name] = val
 
@@ -311,8 +317,8 @@ class DWARFParser(object):
         if ('DW_AT_name' in data and 'DW_AT_decl_line' in data and
             'DW_AT_type' in data):
             self.local_vars.append(
-                (data['DW_AT_name'], int(data['DW_AT_decl_line']),
-                 data['DW_AT_decl_file'].split()[1], data['DW_AT_type']) )
+                (data['DW_AT_name'], int(data['DW_AT_decl_line'], self.base),
+                 data['DW_AT_decl_file'].split()[1], data['DW_AT_type']))
 
     def finalize(self):
         """Finalize the output."""
@@ -364,13 +370,13 @@ class DWARFParser(object):
 
         for t in self.all_vtypes:
             result += "  '%s': [ %#x, {\n" % (t, self.all_vtypes[t][0])
-            for m in sorted(self.all_vtypes[t][1], key=lambda m: self.all_vtypes[t][1][m][0]):
+            for m in sorted(self.all_vtypes[t][1], key = lambda m: self.all_vtypes[t][1][m][0]):
                 result += "    '%s': [%#x, %s],\n" % (m, self.all_vtypes[t][1][m][0], self.all_vtypes[t][1][m][1])
             result += "}],\n"
         result += "}\n\n"
 
         result += "linux_gvars = {\n"
-        for v in sorted(self.all_vars, key=lambda v: self.all_vars[v][0]):
+        for v in sorted(self.all_vars, key = lambda v: self.all_vars[v][0]):
             result += "  '%s': [%#010x, %s],\n" % (v, self.all_vars[v][0], self.all_vars[v][1])
         result += "}\n"
 
