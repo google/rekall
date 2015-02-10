@@ -108,6 +108,39 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
     lock = 0
 
+    def vaddr_access(self, vaddr):
+        """Is the access bit set on the page for the vaddr?"""
+        vaddr = long(vaddr)
+        pml4e = self.get_pml4e(vaddr)
+        if not self.pml4e_entry_present(pml4e):
+            return None
+
+        pdpte = self.get_pdpte(vaddr, pml4e)
+        if not self.pdpte_entry_present(pdpte):
+            return None
+
+        if self.page_size_flag(pdpte):
+            return (self.page_access_flag(pml4e) and
+                    self.page_access_flag(pdpte))
+
+        pde = self.get_pde(vaddr, pdpte)
+        if not self.pde_entry_present(pde):
+            return None
+
+        if self.page_size_flag(pde):
+            return (self.page_access_flag(pde) and
+                    self.page_access_flag(pml4e) and
+                    self.page_access_flag(pdpte))
+
+        pte = self.get_pte(vaddr, pde)
+        if not self.pte_entry_present(pte):
+            return None
+
+        return (self.page_access_flag(pte) and
+                self.page_access_flag(pde) and
+                self.page_access_flag(pml4e) and
+                self.page_access_flag(pdpte))
+
     def vtop(self, vaddr):
         '''
         Translates virtual addresses into physical offsets.
@@ -166,7 +199,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             for pdpte in range(0, 0x200):
                 vaddr = tmp1 | (pdpte << 30)
 
-                next_vaddr = tmp1 | ((pdpte+1) << 30)
+                next_vaddr = tmp1 | ((pdpte + 1) << 30)
                 if start >= next_vaddr:
                     continue
 
@@ -223,7 +256,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 continue
 
             vaddr = tmp3 | i << 12
-            next_vaddr = tmp3 | ((i+1) << 12)
+            next_vaddr = tmp3 | ((i + 1) << 12)
             if start >= next_vaddr:
                 continue
 
@@ -232,7 +265,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                    0x1000)
 
     def end(self):
-        return (2**64)-1
+        return (2 ** 64) - 1
 
 
 class VTxPagedMemory(AMD64PagedMemory):
@@ -384,8 +417,9 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
                 for p2m in self._ReadP2M(p2m_mid_entry, self.P2M_PER_PAGE):
                     p2m_idx, mfn = p2m
-                    pfn = (p2m_top_idx*self.P2M_MID_PER_PAGE*self.P2M_PER_PAGE
-                           + p2m_mid_idx*self.P2M_PER_PAGE
+                    pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
+                           * self.P2M_PER_PAGE
+                           + p2m_mid_idx * self.P2M_PER_PAGE
                            + p2m_idx)
 
                     new_mapping[mfn] = pfn

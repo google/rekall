@@ -1,11 +1,24 @@
 #!/bin/bash
 
-export LINT_FILES="rekall/entities/ rekall/plugins/common/entities.py rekall/plugins/collectors/ rekall/plugins/renderers/entities.py rekall/ui/text.py rekall/plugins/renderers/base_objects.py"
+# Find the top-level Rekall dir and change to it:
 
-export TEST_MODULES="rekall.entities.query.efilter_test rekall.entities.query.validator_test rekall.entities.query.analyzer_test rekall.entities.query.matcher_test rekall.obj_test rekall.ui.text_test rekall.entities.entity_test rekall.entities.identity_test rekall.entities.ext.indexset_test rekall.entities.superposition_test"
+# Change working dir to one containing this script.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-python -m unittest $TEST_MODULES
+# Recurse up until we get to the top-level.
+while [ ! -e "setup.py" ]
+do
+  cd ..
+  
+  if [[ "$(pwd)" == "/" ]]
+  then
+    echo "Cannot find rekall directory."
+    exit -1
+  fi
+done
 
-autopep8 --ignore E309,E711 -i -r $LINT_FILES
+echo "Working directory is $(pwd)"
 
-pylint --rcfile tools/devel/pylintrc $LINT_FILES
+git diff master --name-only | grep -F '.py' | xargs -I{} autopep8 --ignore E309,E711 -i -r {}
+
+git diff master --name-only | grep -F '.py' | xargs -I{} pylint --rcfile tools/devel/pylintrc {}

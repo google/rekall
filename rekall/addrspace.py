@@ -167,6 +167,7 @@ class BaseAddressSpace(object):
         contiguous_voffset = 0
         contiguous_poffset = 0
         total_length = 0
+
         for (voffset, poffset, length) in self.get_available_addresses(
                 start=start):
 
@@ -225,9 +226,9 @@ class BaseAddressSpace(object):
             self.__class__.__name__, hash(self), self.name)
 
 
-## This is a specialised AS for use internally - Its used to provide
-## transparent support for a string buffer so types can be
-## instantiated off the buffer.
+# This is a specialised AS for use internally - Its used to provide
+# transparent support for a string buffer so types can be
+# instantiated off the buffer.
 class BufferAddressSpace(BaseAddressSpace):
     __abstract = True
 
@@ -322,7 +323,7 @@ class CachingAddressSpaceMixIn(object):
 
             self._cache.Put(chunk_number, data)
 
-        return data[chunk_offset:chunk_offset+available_length]
+        return data[chunk_offset:chunk_offset + available_length]
 
 
 class PagedReader(BaseAddressSpace):
@@ -395,7 +396,8 @@ class RunBasedAddressSpace(PagedReader):
 
     def _read_chunk(self, addr, length):
         """Read from addr as much as possible up to a length of length."""
-        file_offset, available_length = self._get_available_buffer(addr, length)
+        file_offset, available_length = self._get_available_buffer(
+            addr, length)
 
         # Mapping not valid. We need to pad until the next run.
         if file_offset is None:

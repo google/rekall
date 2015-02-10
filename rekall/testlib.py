@@ -76,7 +76,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
     PARAMETERS = {
         # This is the command line which is used to run the test.
         "commandline": "",
-        }
+    }
 
     PLUGIN = None
 

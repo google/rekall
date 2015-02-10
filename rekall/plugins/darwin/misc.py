@@ -22,6 +22,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import re
 
 from rekall.plugins.darwin import common
+from rekall.plugins.renderers import visual_aides
 
 
 class DarwinDMSG(common.DarwinPlugin):
@@ -40,8 +41,8 @@ class DarwinDMSG(common.DarwinPlugin):
             target="Pointer",
             target_args=dict(
                 target="msgbuf"
-                )
             )
+        )
 
         # Make sure the buffer is not too large.
         size = min(msgbuf.msg_size, 0x400000)
@@ -89,6 +90,7 @@ class DarwinMount(common.DarwinPlugin):
                                mount.mnt_vfsstat.f_mntfromname,
                                mount.mnt_vfsstat.f_fstypename)
 
+
 class DarwinPhysicalMap(common.DarwinPlugin):
     """Prints the EFI boot physical memory map."""
 
@@ -112,16 +114,69 @@ class DarwinPhysicalMap(common.DarwinPlugin):
             vm=self.physical_address_space,
             target="EfiMemoryRange",
             target_size=int(boot_params.MemoryMapDescriptorSize),
-            count=boot_params.MemoryMapSize/boot_params.MemoryMapDescriptorSize
-            )
+            count=(boot_params.MemoryMapSize /
+                   boot_params.MemoryMapDescriptorSize))
 
+        runs = []
         for memory_range in memory_map:
+            start = memory_range.PhysicalStart
+            end = (memory_range.PhysicalStart
+                   + 0x1000
+                   * memory_range.NumberOfPages)
+            runs.append(dict(
+                value=unicode(memory_range.Type), start=start, end=end))
             renderer.table_row(
-                memory_range.PhysicalStart,
-                memory_range.PhysicalStart+0x1000*memory_range.NumberOfPages,
+                start,
+                end,
                 memory_range.VirtualStart.cast("Pointer"),
                 memory_range.NumberOfPages,
                 memory_range.Type)
+
+        # Render a heatmap.
+
+        # Automatically lower resolution for large images.
+        resolution = 0x1000 * 0x10  # 16 pages - conservative start.
+        column_count = 12
+        end = runs[-1]["end"]
+        # Keep it under 200 rows.
+        while end / resolution / column_count > 200:
+            resolution *= 2
+
+        notes = ("Resolution: %(pages)d pages (%(mb).2f MB) per cell.\n"
+                 "Note that colors of overlapping regions are blended "
+                 "using a weighted average. Letters in cells indicate "
+                 "which regions from the legend are present. They are "
+                 "ordered proportionally, by their respective page "
+                 "counts in each cell.") % dict(pages=resolution / 0x1000,
+                                                mb=resolution / 1024.0 ** 2)
+
+        legend = visual_aides.MapLegend(
+            notes=notes,
+            legend=[("Am", "kEfiACPIMemoryNVS", (0x00, 0xff, 0x00)),
+                    ("Ar", "kEfiACPIReclaimMemory", (0xc7, 0xff, 0x50)),
+                    ("Bc", "kEfiBootServicesCode", (0xff, 0xa5, 0x00)),
+                    ("Bd", "kEfiBootServicesData", (0xff, 0x00, 0x00)),
+                    ("M", "kEfiConventionalMemory", (0xff, 0xff, 0xff)),
+                    ("Ec", "kEfiLoaderCode", (0x00, 0xff, 0xff)),
+                    ("Ed", "kEfiLoaderData", (0x00, 0x00, 0xff)),
+                    ("I", "kEfiMemoryMappedIO", (0xff, 0xff, 0x00)),
+                    ("X", "kEfiReservedMemoryType", (0x00, 0x00, 0x00)),
+                    ("Rc", "kEfiRuntimeServicesCode", (0xff, 0x00, 0xff)),
+                    ("Rd", "kEfiRuntimeServicesData", (0xff, 0x00, 0x50))])
+
+        heatmap = visual_aides.RunBasedMap(
+            caption="Offset (p)",
+            legend=legend,
+            runs=runs,
+            resolution=resolution,
+            column_count=column_count)
+
+        renderer.table_header([
+            dict(name="Visual mapping", width=120, style="full"),
+            dict(name="Legend", orientation="vertical", style="full",
+                 width=40)])
+
+        renderer.table_row(heatmap, legend)
 
 
 class DarwinBootParameters(common.DarwinPlugin):

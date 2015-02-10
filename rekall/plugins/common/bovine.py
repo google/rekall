@@ -20,8 +20,13 @@
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import itertools
+
 from rekall import plugin
+from rekall import algo
 from rekall import utils
+
+from rekall.plugins.renderers import visual_aides
 
 
 class RekallBovineExperience3000(plugin.Command):
@@ -45,58 +50,9 @@ class RekallBovineExperience3000(plugin.Command):
             dict(name="Pilsner", width=50, style="full"),
             dict(name="Nowrap", width=10, nowrap=True)])
 
-        # pylint: disable=anomalous-backslash-in-string
-        beer = (
-            "                /\                      \n"
-            "               / |\                     \n"
-            "              /  | \                    \n"
-            "             /   |  \                   \n"
-            "            /____|   \                  \n"
-            "           / \    \   \                 \n"
-            "          /   \    \  /                 \n"
-            "         /     \    \/                  \n"
-            "        /       \   /                   \n"
-            "       /         \ /                    \n"
-            "      /           v                     \n"
-            "     /               ( o )o)            \n"
-            "    /               ( o )o )o)          \n"
-            "                  (o( ~~~~~~~~o         \n"
-            "                  ( )' ~~~~~~~' _       \n"
-            "                    o|   o    |-. \\     \n"
-            "                    o|     o  |  \\ \\    \n"
-            "                     | .      |  | |    \n"
-            "                    o|   .    |  / /    \n"
-            "                     |  .  .  |._ /     \n"
-            "                     .========.         \n")
-        # pylint: enable=anomalous-backslash-in-string
-
-        beer_highlights = [(16, 18, "CYAN", None),
-                           (55, 58, "CYAN", None),
-                           (94, 98, "CYAN", None),
-                           (133, 139, "CYAN", None),
-                           (172, 179, "CYAN", None),
-                           (213, 220, "RED", None),
-                           (254, 261, "RED", None),
-                           (295, 301, "RED", None),
-                           (336, 341, "RED", None),
-                           (377, 380, "RED", None),
-                           (418, 419, "RED", None),
-
-                           (461, 468, "BLACK", "WHITE"),
-                           (500, 510, "BLACK", "WHITE"),
-                           (538, 551, "BLACK", "WHITE"),
-                           (578, 591, "BLACK", "WHITE"),
-
-                           (620, 621, "BLACK", "WHITE"),
-                           (660, 661, "BLACK", "WHITE"),
-                           (740, 741, "BLACK", "WHITE"),
-
-                           (621, 631, "WHITE", "YELLOW"),
-                           (661, 671, "WHITE", "YELLOW"),
-                           (701, 711, "WHITE", "YELLOW"),
-                           (741, 751, "WHITE", "YELLOW"),
-                           (781, 791, "WHITE", "YELLOW"),
-                           (822, 830, "WHITE", "YELLOW")]
+        fixtures = self.session.LoadProfile("tests/fixtures")
+        beer = fixtures.data["ascii_art"]["beer"]
+        phys_map = fixtures.data["fixtures"]["phys_map"]
 
         renderer.table_row(
             ("This is a renderer stress-test. The flags should have correct"
@@ -106,6 +62,55 @@ class RekallBovineExperience3000(plugin.Command):
              "long column of text with its own newlines in it!\n"
              "This bovine experience has been brought to you by Rekall."),
             True,
-            utils.AttributedString(beer, beer_highlights),
+            utils.AttributedString("\n".join(beer["ascii"]),
+                                   beer["highlights"]),
             ("This is a fairly long line that shouldn't get wrapped.\n"
              "The same row has another line that shouldn't get wrapped."))
+
+        renderer.section("Heatmap test:")
+        cells = []
+        for digit in itertools.islice(algo.EulersDecimals(), 0xff):
+            cells.append(dict(heat=float(digit + 1) * .1, value=digit))
+
+        randomized = visual_aides.Heatmap(
+            caption="Offset (p)",
+            # Some of the below xs stand for eXtreme. The other ones just
+            # look cool.
+            column_headers=["%0.2x" % x for x in xrange(0, 0xff, 0x10)],
+            row_headers=["0x%0.6x" % x for x
+                         in xrange(0x0, 0xfffff, 0x10000)],
+            cells=cells,
+            greyscale=False)
+
+        gradual = visual_aides.Heatmap(
+            caption="Offset (v)",
+            column_headers=["%0.2x" % x for x in xrange(0, 0xff, 0x10)],
+            row_headers=["0x%0.6x" % x for x
+                         in xrange(0x0, 0xfffff, 0x10000)],
+            cells=[dict(value="%x" % x, heat=x / 255.0) for x in xrange(256)],
+            greyscale=False)
+
+        ranges_legend = visual_aides.MapLegend(phys_map["ranges_legend"])
+
+        ranges = visual_aides.RunBasedMap(
+            caption="Offset (p)",
+            legend=ranges_legend,
+            runs=phys_map["runs"])
+
+        renderer.table_header([dict(name="Random Heatmap", style="full",
+                                    width=60, align="c"),
+                               dict(name="Gradual Heatmap", style="full",
+                                    width=60, align="c"),
+                               dict(name="Legend", style="full",
+                                    orientation="horizontal")])
+        renderer.table_row(randomized, gradual, visual_aides.HeatmapLegend())
+
+        renderer.table_header([dict(name="Greyscale Random", style="full",
+                                    width=60, align="c"),
+                               dict(name="Memory Ranges", style="full",
+                                    width=80, align="c"),
+                               dict(name="Ranges Legend", style="full",
+                                    width=30, orientation="vertical")])
+
+        randomized.greyscale = True
+        renderer.table_row(randomized, ranges, ranges_legend)

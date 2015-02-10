@@ -181,7 +181,12 @@ class IOManager(object):
 
             return json.load(fd)
 
-        except (IOError, ValueError):
+        except ValueError as e:
+            logging.error(
+                "Cannot parse profile %s because of JSON error %s.",
+                name, e)
+            return obj.NoneObject()
+        except IOError:
             return obj.NoneObject()
 
     def StoreData(self, name, data, raw=False, **options):
@@ -256,7 +261,8 @@ class DirectoryIOManager(IOManager):
             raise IOManagerError("%s is not a directory" % self.dump_dir)
 
     def _GetAbsolutePathName(self, name):
-        path = os.path.normpath(os.path.join(self.dump_dir, self.version, name))
+        path = os.path.normpath(
+            os.path.join(self.dump_dir, self.version, name))
 
         if not path.startswith(self.dump_dir):
             raise IOManagerError("Path name is outside container.")

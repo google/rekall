@@ -192,7 +192,8 @@ class ListRenderer(text.TextObjectRenderer):
         if result:
             result.pop(-1)
 
-        return text.NestedCell(*result)
+        return text.JoinedCell(*result)
+
 
 class VoidTextRenderer(PointerTextRenderer):
     renders_type = "Void"

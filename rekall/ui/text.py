@@ -300,7 +300,7 @@ class Colorizer(object):
         """Decorate the string with the ansii escapes for the color."""
         if (not self.terminal_capable or
                 foreground not in self.COLOR_MAP or
-                foreground not in self.COLOR_MAP):
+                background not in self.COLOR_MAP):
             return utils.SmartUnicode(target)
 
         escape_seq = ""
@@ -429,10 +429,10 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
             hexcell.append_line(hexdata)
             datacell.append_line("".join(translated_data))
 
-        return NestedCell(hexcell, datacell)
+        return JoinedCell(hexcell, datacell)
 
     def render_cow(self, *_, **__):
-        """Renders a proud Swiss cow."""
+        """Renders Bessy the cow."""
         cow = (
             "                                |############          \n"
             "                                |#####  #####          \n"
@@ -481,7 +481,8 @@ class AttributedStringRenderer(TextObjectRenderer):
         raise NotImplementedError("This doesn't make any sense.")
 
     def render_full(self, target, **_):
-        return Cell(value=target.value, highlights=target.highlights)
+        return Cell(value=target.value, highlights=target.highlights,
+                    colorizer=self.renderer.colorizer)
 
     def render_value(self, target, **_):
         return Cell(value=target.value)
@@ -514,25 +515,99 @@ class BaseCell(object):
     Cell object.
     """
 
+    _width = None
+    _height = None
+    _align = None
+    _lines = None
+
+    # This flag means we have to respect the value of self._width when
+    # rebuilding because it was specified explicitly, either through the
+    # constructor, or through a call to rewrap.
+    width_explicit = False
+
+    # Stretch ("stretch") or push out ("margin", similar to CSS) to desired
+    # width?
+    mode = "stretch"
+
+    __abstract = True
+
+    def __init__(self, align="l", width=None, **_):
+        self._align = align or "l"
+        self._width = width
+        if self._width:
+            self.width_explicit = True
+
     def __iter__(self):
         return iter(self.lines)
 
     def __unicode__(self):
         return u"\n".join(self.lines)
 
+    @property
+    def lines(self):
+        if not self._lines:
+            self.rebuild()
 
-class NestedCell(BaseCell):
+        return self._lines
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
+    @property
+    def align(self):
+        return self._align
+
+    def dirty(self):
+        self._lines = None
+        if not self.width_explicit:
+            self._width = None
+
+    def rebuild(self):
+        raise NotImplementedError("Subclasses must override.")
+
+    def rewrap(self, width=None, align="l", mode="stretch"):
+        if width is not None:
+            self.width_explicit = True
+
+        if self.width == width and align == self.align and mode == self.mode:
+            return
+
+        self._width = width
+        self._align = align
+        self.mode = mode
+        self.dirty()
+
+
+class JoinedCell(BaseCell):
+    """Joins child cells sideways (left to right).
+
+    This is not a replacement for table output! Joined cells are for use when
+    an object renderer needs to display a subtable, or when one needs to pass
+    on wrapping information onto the table, and string concatenation in the
+    Cell class is insufficient.
+    """
+
     def __init__(self, *cells, **kwargs):
-        super(NestedCell, self).__init__()
+        super(JoinedCell, self).__init__()
         self.tablesep = kwargs.pop("tablesep", " ")
-        if kwargs:
-            raise AttributeError("Unsupported args %s" % kwargs)
 
         self.cells = []
         for cell in cells:
-            if isinstance(cell, NestedCell):
+            if (isinstance(cell, JoinedCell)
+                    and cell.align == self.align
+                    and self.mode == self.mode):
+                # As optimization, JoinedCells are not nested if we can just
+                # consume their contents. However, we have to give the child
+                # cell a chance to recalculate and can only do this if the
+                # configurations are compatible.
+                cell.rebuild()
                 self.cells.extend(cell.cells)
-            elif isinstance(cell, Cell):
+            elif isinstance(cell, BaseCell):
                 self.cells.append(cell)
 
             elif not isinstance(cell, basestring):
@@ -542,15 +617,43 @@ class NestedCell(BaseCell):
         self.rebuild()
 
     def rebuild(self):
-        self.height = 0
-        self.width = 0
+        self._height = 0
+        self._lines = []
+
+        # Figure out how wide the contents are going to be and adjust as
+        # needed.
+        contents_width = 0
         for cell in self.cells:
-            self.width += cell.width + len(self.tablesep)
-            self.height = max(self.height, cell.height)
+            contents_width += cell.width + len(self.tablesep)
+        contents_width -= len(self.tablesep)
 
-        self.width -= len(self.tablesep)
+        self._width = self.width or contents_width
+        adjustment = self._width - contents_width
 
-        self.lines = []
+        # Wrap or pad children.
+        if adjustment and self.mode == "stretch":
+            align = self.align
+
+            if align == "l":
+                child_cell = self.cells[-1]
+                child_cell.rewrap(width=adjustment + child_cell.width)
+            elif align == "r":
+                child_cell = self.cells[0]
+                child_cell.rewrap(width=adjustment + child_cell.width)
+            elif align == "c":
+                self.cells[-1].rewrap(
+                    width=(adjustment / 2) + self.cells[-1].width +
+                    adjustment % 2)
+                self.cells[0].rewrap(
+                    width=(adjustment / 2) + self.cells[0].width)
+            else:
+                raise ValueError(
+                    "Invalid alignment %s for JoinedCell." % align)
+
+        # Build up lines from child cell lines.
+        for cell in self.cells:
+            self._height = max(self.height, cell.height)
+
         for line_no in xrange(self.height):
             parts = []
             for cell in self.cells:
@@ -559,68 +662,152 @@ class NestedCell(BaseCell):
                 except IndexError:
                     parts.append(" " * cell.width)
 
-            self.lines.append(self.tablesep.join(parts))
+            line = self.tablesep.join(parts)
+            if self.mode == "margin":
+                if self.align == "l":
+                    line += adjustment * " "
+                elif self.align == "r":
+                    line = adjustment * " " + line
+                elif self.align == "c":
+                    p, r = divmod(adjustment, 2)
+                    line = " " * p + line + " " * (p + r)
+            self._lines.append(line)
 
-    def rewrap(self, width=None, align="l"):
-        """Rewraps a child cell to make up for the difference in width."""
-        if not width:
-            return
-
-        if align == "l":
-            child_cell = self.cells[-1]
-            child_cell.rewrap(width=(width - self.width) + child_cell.width)
-        elif align == "r":
-            child_cell = self.cells[0]
-            child_cell.rewrap(width=(width - self.width) + child_cell.width)
-        elif align == "c":
-            adjust = width - self.width
-            self.cells[-1].rewrap(
-                width=(adjust / 2) + self.cells[-1].width + adjust % 2)
-            self.cells[0].rewrap(
-                width=(adjust / 2) + self.cells[0].width)
-        else:
-            raise ValueError("Invalid alignment %s for NestedCell." % align)
-
-        self.width = width
+    def __repr__(self):
+        return "<JoinedCell align=%s, width=%s, cells=%s>" % (
+            repr(self.align), repr(self.width), repr(self.cells))
 
 
-class Cell(BaseCell):
-    _lines = None
+class StackedCell(BaseCell):
+    """Vertically stack child cells on top of each other.
 
-    def __init__(self, value="", width=None, align=None, highlights=None,
-                 colorizer=None, **_):
-        super(Cell, self).__init__()
+    This is not a replacement for table output! Stacked cells should be used
+    when one needs to display multiple lines in a single cell, and the text
+    paragraph logic in the Cell class is insufficient. (E.g. rendering faux
+    graphics, such as QR codes and heatmaps.)
 
-        self.paragraphs = value.splitlines()
-        self.align = align or "l"
-        self.colorizer = colorizer
-        self.highlights = highlights or []
+    Arguments:
+    table_align: If True (default) will align child cells as columns.
+                 NOTE: With this option, child cells must all be JoinedCell
+                 instanes and have exactly the same number of children each.
+    """
 
-        if width:
-            self.width = width
-        elif self.paragraphs:
-            self.width = max([len(x) for x in self.paragraphs]) or 1
-        else:
-            self.width = 1
+    def __init__(self, *cells, **kwargs):
+        self.table_align = kwargs.pop("table_align", True)
+        super(StackedCell, self).__init__(**kwargs)
+
+        self.cells = []
+        for cell in cells:
+            if isinstance(cell, StackedCell):
+                self.cells.extend(cell.cells)
+            else:
+                self.cells.append(cell)
 
     @property
-    def lines(self):
+    def width(self):
         if not self._lines:
             self.rebuild()
 
-        return self._lines
+        return self._width
+
+    @property
+    def column_count(self):
+        if not self.table_align:
+            raise AttributeError(
+                "Only works for StackedCells with table_align set to True.")
+        first_row = self.cells[0]
+        if not isinstance(first_row, JoinedCell):
+            raise AttributeError(
+                ("With table_align is set to True, first cell must be a "
+                 "JoinedCell"))
+        return len(self.cells[0].cells)
+
+    def rebuild(self):
+        target_width = 0
+        if self.width_explicit:
+            target_width = self._width
+
+        self._width = 0
+        self._height = 0
+        self._lines = []
+
+        column_widths = ()
+        if self.table_align:
+            column_widths = [0] * self.column_count
+            for row in self.cells:
+                for column, cell in enumerate(row.cells):
+                    w = column_widths[column]
+                    if cell.width > w:
+                        column_widths[column] = cell.width
+
+        lines = []
+        for cell in self.cells:
+            for column, width in enumerate(column_widths):
+                try:
+                    cell.cells[column].rewrap(width=width)
+                except IndexError:
+                    # Turns out, this row doens't have as many cells as we
+                    # have columns (common with last rows).
+                    break
+
+            if target_width:
+                # Rewrap to fit the target width.
+                cell.rewrap(align="l", width=target_width, mode="margin")
+            else:
+                cell.dirty()  # Gotta update them child cells.
+
+            lines.extend(cell.lines)
+            self._height += cell.height
+            self._width = max(self._width, cell.width)
+
+        self._lines = lines
+
+    def __repr__(self):
+        return "<StackedCell align=%s, _width=%s, cells=%s>" % (
+            repr(self.align), repr(self._width), repr(self.cells))
+
+
+class Cell(BaseCell):
+    """A cell for text, knows how to wrap, preserve paragraphs and colorize."""
+    _lines = None
+
+    def __init__(self, value="", highlights=None, colorizer=None,
+                 padding=0, **kwargs):
+        super(Cell, self).__init__(**kwargs)
+
+        self.paragraphs = value.splitlines()
+        self.colorizer = colorizer
+        self.highlights = highlights or []
+        self.padding = padding or 0
+
+        if not self._width:
+            if self.paragraphs:
+                self._width = max([len(x) for x in self.paragraphs])
+            else:
+                self._width = 1
+
+        self._width += self.padding
 
     def justify_line(self, line):
-        adjust = self.width - len(line)
+        adjust = self.width - len(line) - self.padding
 
         if self.align == "l":
-            return line + " " * adjust, 0
+            return " " * self.padding + line + " " * adjust, 0
         elif self.align == "r":
-            return " " * adjust + line, adjust
+            return " " * adjust + line + " " * self.padding, adjust
         elif self.align == "c":
-            remainder = adjust % 2
-            adjust /= 2
-            return " " * adjust + line + " " * (adjust + remainder), adjust
+            radjust, r = divmod(adjust, 2)
+            ladjust = radjust
+            radjust += r
+
+            padding, r = divmod(self.padding, 2)
+            radjust += padding
+            ladjust += padding
+            ladjust += r
+
+            lpad = " " * ladjust
+            rpad = " " * radjust
+            return lpad + line + rpad, 0
         else:
             raise ValueError("Invalid cell alignment: %s." % self.align)
 
@@ -634,18 +821,29 @@ class Cell(BaseCell):
         limit = offset + len(line)
         adjust = 0
 
-        for start, end, fg, bg in self.highlights:
+        for rule in self.highlights:
+            start = rule.get("start")
+            end = rule.get("end")
+            fg = rule.get("fg")
+            bg = rule.get("bg")
+            bold = rule.get("bold")
+
             if offset <= start <= limit + adjust:
                 escape_seq = ""
-                if fg:
-                    fg_id = self.colorizer.COLOR_MAP[fg]
+                if fg is not None:
+                    if isinstance(fg, basestring):
+                        fg = self.colorizer.COLOR_MAP[fg]
                     escape_seq += self.colorizer.tparm(
-                        ["setaf", "setf"], fg_id)
+                        ["setf", "setaf"], fg)
 
-                if bg:
-                    bg_id = self.colorizer.COLOR_MAP[bg]
+                if bg is not None:
+                    if isinstance(bg, basestring):
+                        bg = self.colorizer.COLOR_MAP[bg]
                     escape_seq += self.colorizer.tparm(
-                        ["setab", "setb"], bg_id)
+                        ["setb", "setab"], bg)
+
+                if bold:
+                    escape_seq += self.colorizer.tparm(["bold"])
 
                 insert_at = start - offset + adjust
                 line = line[:insert_at] + escape_seq + line[insert_at:]
@@ -672,8 +870,19 @@ class Cell(BaseCell):
     def rebuild(self):
         self._lines = []
         last_highlight = None
-        if self.highlights:
-            self.highlights.sort()
+
+        normalized_highlights = []
+        for highlight in self.highlights:
+            if isinstance(highlight, dict):
+                normalized_highlights.append(highlight)
+            else:
+                normalized_highlights.append(dict(
+                    start=highlight[0], end=highlight[1],
+                    fg=highlight[2], bg=highlight[3]))
+
+        self.highlights = sorted(normalized_highlights,
+                                 key=lambda x: x["start"])
+
         offset = 0
         for paragraph in self.paragraphs:
             for line in textwrap.wrap(paragraph, self.width):
@@ -691,7 +900,7 @@ class Cell(BaseCell):
     def dirty(self):
         self._lines = None
 
-    def rewrap(self, width=None, align=None):
+    def rewrap(self, width=None, align=None, **_):
         width = width or self.width or max(0, 0, *[len(line)
                                                    for line in self.lines])
         align = align or self.align or "l"
@@ -699,8 +908,8 @@ class Cell(BaseCell):
         if (width, align) == (self.width, self.align):
             return self
 
-        self.width = width
-        self.align = align
+        self._width = width
+        self._align = align
         self.dirty()
 
         return self
@@ -713,6 +922,17 @@ class Cell(BaseCell):
     def height(self):
         """The number of chars this Cell takes in height."""
         return len(self.lines)
+
+    def __repr__(self):
+        if not self.paragraphs:
+            contents = "None"
+        elif len(self.paragraphs) == 1:
+            contents = repr(self.paragraphs[0])
+        else:
+            contents = repr("%s..." % self.paragraphs[0])
+
+        return "<Cell value=%s, align=%s, width=%s>" % (
+            contents, repr(self.align), repr(self.width))
 
 
 class TextColumn(object):
@@ -860,7 +1080,7 @@ class TextTable(renderer_module.BaseTable):
             highlight, (None, None))
 
         # Iterate over all lines in the row and write it out.
-        for line in NestedCell(tablesep=self.options.get("tablesep"), *cells):
+        for line in JoinedCell(tablesep=self.options.get("tablesep"), *cells):
             self.renderer.write(
                 self.renderer.colorizer.Render(
                     line, foreground=foreground, background=background) + "\n")
@@ -868,7 +1088,7 @@ class TextTable(renderer_module.BaseTable):
     def render_header(self):
         """Returns a Cell formed by joining all the column headers."""
         # Get each column to write its own header and then we join them all up.
-        return NestedCell(*[c.render_header() for c in self.columns],
+        return JoinedCell(*[c.render_header() for c in self.columns],
                           tablesep=self.options.get("tablesep", " "))
 
     def get_row(self, *row, **options):
@@ -881,7 +1101,7 @@ class TextTable(renderer_module.BaseTable):
         Returns:
           A single Cell object spanning the entire row.
         """
-        return NestedCell(
+        return JoinedCell(
             *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
             tablesep=self.options.get("tablesep", " "))
 
@@ -1104,7 +1324,7 @@ class TextRenderer(renderer_module.BaseRenderer):
 
         Text tables support these additional kwargs:
           highlight: Highlights this raw according to the color scheme (e.g.
-          important, good...)
+                     important, good...)
         """
         super(TextRenderer, self).table_row(*args, **kwargs)
         self.RenderProgress(message=None)
@@ -1258,7 +1478,7 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
 
     def render_header(self, **options):
         if self.child:
-            heading = NestedCell(self.child.render_header(**options))
+            heading = JoinedCell(self.child.render_header(**options))
         else:
             heading = super(TreeNodeObjectRenderer, self).render_header(
                 **options)
@@ -1280,6 +1500,6 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
         child_cell.colorizer = self.renderer.colorizer
 
         padding = Cell("." * depth)
-        result = NestedCell(padding, child_cell)
+        result = JoinedCell(padding, child_cell)
 
         return result

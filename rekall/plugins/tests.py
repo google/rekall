@@ -21,4 +21,5 @@
 from rekall.plugins import core_test
 from rekall.plugins.windows import tests
 from rekall.plugins.linux import tests
+from rekall.plugins.renderers import tests
 from rekall.plugins.tools import tests
