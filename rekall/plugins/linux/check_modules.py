@@ -89,4 +89,3 @@ class CheckModules(common.LinuxPlugin):
 
             renderer.table_row(container_module, container_module.name,
                                ref_count, container_module in modules)
-

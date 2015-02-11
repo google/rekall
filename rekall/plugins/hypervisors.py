@@ -707,7 +707,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         vm_ept = ','.join(["0x%X" % e for e in vm.ept_list])
         renderer.table_row(vm, 'VM', vm.is_valid, vm_ept, depth=indent_level)
 
-        if isinstance(self.session, session.InteractiveSession):
+        if vm.is_valid and isinstance(self.session, session.InteractiveSession):
             self.session.add_session(vm.GetSession())
 
         if self.verbosity > 1:

@@ -171,7 +171,8 @@ class PacketQueues(common.LinuxPlugin):
         for task, fd, socket, _ in all_sockets:
             if not self.process_socket(renderer, task, fd, socket):
                 skipped_sockets_count += 1
-        renderer.format("Skipped %d/%d sockets.", skipped_sockets_count,
+
+        renderer.format("Skipped {0:d}/{1:d} sockets.", skipped_sockets_count,
                         len(all_sockets))
 
 

@@ -421,6 +421,8 @@ class Hostname(AbstractLinuxCommandPlugin):
 
         pslist_plugin = self.session.plugins.pslist(session=self.session)
         for process in pslist_plugin.filter_processes():
+            if not process.nsproxy or not process.nsproxy.uts_ns:
+                continue
             task = process
             break
 

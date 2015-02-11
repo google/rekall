@@ -127,13 +127,9 @@ class VirtualizationNode_TextObjectRenderer(text.TextObjectRenderer):
 
     def render_row(self, target, **options):
         if isinstance(target, hypervisors.VirtualMachine):
-            return text.Cell(
-                self.formatter.format(
-                    "VM [{0:s} vCORE(s), {1:s}]",
-                    (self.quick and "??") or target.num_cores,
-                    target.guest_arch))
+            return text.Cell("VM [{0:s} vCORE(s), {1:s}]".format(
+                (self.quick and "??") or str(target.num_cores),
+                target.guest_arch))
         elif "VMCS" in target.__class__.__name__:
-            return text.Cell(
-                self.formatter.format(
-                    "VMCS @ {0:[[addrpad]]} vCORE {1:x}", target.obj_offset,
-                    target.m("VPID")))
+            return text.Cell("VMCS @ {0:08X} vCORE {1:x}".format(
+                target.obj_offset, target.m("VPID")))
