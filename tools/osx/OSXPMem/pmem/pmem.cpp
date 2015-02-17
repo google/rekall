@@ -111,14 +111,10 @@ static kern_return_t pmem_read(dev_t dev, struct uio *uio, __unused int rw) {
 // to copy uio->resid bytes of physical memory from the physical address, as
 // specified in uio->offset to the buffer in the uio.
 static kern_return_t pmem_read_memory(struct uio *uio) {
-  size_t read_bytes = 0;
-
   while (uio_resid(uio) > 0) {
-    uio_update(uio, 0);
     // Try to read as many times as necessary until the uio is full.
-    read_bytes = pmem_partial_read(uio, uio_offset(uio),
-                                   uio_offset(uio) + uio_curriovlen(uio));
-    uio_update(uio, read_bytes);
+    pmem_partial_read(uio, uio_offset(uio),
+                      uio_offset(uio) + uio_curriovlen(uio));
   }
   return KERN_SUCCESS;
 }
