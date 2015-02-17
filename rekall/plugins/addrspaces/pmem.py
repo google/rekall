@@ -328,7 +328,7 @@ class PmemAddressSpace(addrspace.RunBasedAddressSpace):
         try:
             for offset, pages, efi_type in pmem_parse_mmap(self.fd):
                 if efi_type_readable(efi_type):
-                    self.runs.insert((offset, offset, pages * 0x1000 + offset))
+                    self.runs.insert((offset, offset, pages * 0x1000))
         except IOError:
             # Apparently we're not dealing with Pmem.
             raise TypeError("File at %s is not a pmem device." % path)
