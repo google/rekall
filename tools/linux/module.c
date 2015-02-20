@@ -414,8 +414,6 @@ struct slab slab;
  * TIMEKEEPING START
  ****************************************/
 
-typedef u64 cycle_t;
-
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,17,0)
 struct tk_read_base {
         struct clocksource      *clock;
