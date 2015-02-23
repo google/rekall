@@ -167,16 +167,19 @@ struct rt_hash_bucket {
 } rt_hash_bucket;
 
 
+/* RedHat Enterprise kernels moved the radix_tree_node definition out of
+   lib/radix-tree.c earlier than 3.15 so a simple LINUX_VERSION_CODE check
+   doesn't work. We resort to checking if RADIX_TREE_MAP_SHIFT is defined
+   instead as it's very closely related to struct radix_tree_node existing.
+*/
+#ifndef RADIX_TREE_MAP_SHIFT
+
 #define RADIX_TREE_MAP_SHIFT    (CONFIG_BASE_SMALL ? 4 : 6)
 #define RADIX_TREE_MAP_SIZE     (1UL << RADIX_TREE_MAP_SHIFT)
 #define RADIX_TREE_MAP_MASK     (RADIX_TREE_MAP_SIZE-1)
 #define RADIX_TREE_TAG_LONGS    ((RADIX_TREE_MAP_SIZE + BITS_PER_LONG - 1) / BITS_PER_LONG)
 
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,15,0)
-// In 3.15 the radix_tree_node is defined in linux/radix-tree.h, which we
-// include earlier.
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
 struct radix_tree_node {
     unsigned int    height;         /* Height from the bottom */
     unsigned int    count;
@@ -197,6 +200,8 @@ struct radix_tree_node {
     void            *slots[RADIX_TREE_MAP_SIZE];
     unsigned long   tags[RADIX_TREE_MAX_TAGS][RADIX_TREE_TAG_LONGS];
 };
+#endif
+
 #endif
 
 /****************************************
