@@ -32,7 +32,7 @@
 struct pid_namespace pid_namespace;
 #endif
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,0,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,18)
 #include <linux/clocksource.h>
 #include <linux/ktime.h>
 #endif
