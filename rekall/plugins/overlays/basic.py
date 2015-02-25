@@ -479,7 +479,7 @@ class ListMixIn(object):
                 continue
 
             task = lst.dereference_as(type, member)
-            if task:
+            if task.obj_offset != 0:
                 # Only yield valid objects (In case of dangling links).
                 yield task
 

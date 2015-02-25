@@ -90,6 +90,9 @@ class CachingURLManager(io_manager.IOManager):
 
         return data
 
+    def StoreData(self, name, data, **options):
+        self.cache_io_manager.StoreData(name, data, **options)
+
     def CheckUpstreamRepository(self):
         """Checks the repository for freshness."""
         upstream_inventory = self.url_manager.inventory

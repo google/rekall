@@ -50,9 +50,14 @@ DNS_TYPES = {
 
 types = {
     "DNS_HASHTABLE_ENTRY": [None, {
+        "Next": [0x0, ["Pointer", dict(
+            target="DNS_HASHTABLE_ENTRY"
+            )]],
+
         "Name": [0x8, ["Pointer", dict(
             target="UnicodeString"
             )]],
+
         "Record": [24, ["Pointer", dict(
             target="DNS_RECORD"
         )]],
@@ -320,8 +325,8 @@ class WinDNSCache(common.WindowsCommandPlugin):
                     ("Data", "data", ""),
                 ])
 
-                for entry in cache_hash_table:
-                    if entry.v() != 0:
+                for bucket in cache_hash_table:
+                    for entry in bucket.walk_list("Next", True):
                         name = entry.Name.deref()
                         renderer.table_row(
                             name, entry, "HTABLE", depth=0)

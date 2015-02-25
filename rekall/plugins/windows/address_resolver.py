@@ -264,6 +264,21 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         return result
 
+    def LoadProfileForModuleNameByName(self, module_name, profile_name):
+        """Loads a profile for a module by its full profile name.
+
+        This is needed if we can not determine the GUID for some reason from the
+        memory image. The user is able to provide the GUID (E.g. from disk
+        image).
+        """
+        self._EnsureInitialized()
+
+        profile = self.session.LoadProfile(profile_name)
+        module_base = self._resolve_module_base_address(module_name)
+        if module_base:
+            profile.image_base = module_base
+            self.profiles[module_name] = profile
+
     def LoadProfileForName(self, name):
         """Returns the profile responsible for the symbol name."""
         if not isinstance(name, basestring):
@@ -303,7 +318,8 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 if re.search("%s.(dll|exe)" % name, filename.lower()):
                     return start
 
-    def _format_address_from_profile(self, profile, address):
+    def _format_address_from_profile(self, profile, address,
+                                     max_distance=0x1000):
         nearest_offset, name = profile.get_nearest_constant_by_address(
             address)
 
@@ -311,7 +327,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             difference = address - nearest_offset
             if difference == 0:
                 return "%s!%s" % (profile.name, name)
-            else:
+            elif 0 < difference < max_distance:
                 return "%s!%s+%#x" % (profile.name, name, difference)
         else:
             return "%s!+%#x" % (profile.name, address - profile.image_base)
@@ -338,12 +354,13 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 hit = self.FindProcessVad(address)
                 if hit:
                     start, end, name, _ = hit
-                    if start < address < end:
+                    if (start < address < end and
+                            0 < address - start < max_distance):
                         module_name = self.NormalizeModuleName(name)
 
                         profile = self.LoadProfileForDll(start, module_name)
                         return self._format_address_from_profile(
-                            profile, address)
+                            profile, address, max_distance=max_distance)
 
         return ""
 

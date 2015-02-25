@@ -757,6 +757,72 @@ class DT(plugin.ProfileCommand):
         self.session.plugins.p(self.target).render(renderer)
 
 
+class AddressMap(object):
+    """Label memory ranges."""
+    _COLORS = "BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE".split()
+    # All color combinations except those with the same foreground an background
+    # colors, since these will be invisible.
+    COLORS = []
+    for x in _COLORS:
+        for y in _COLORS:
+            if x != y:
+                COLORS.append((x, y))
+
+    def __init__(self):
+        self.collection = utils.RangedCollection()
+        self.idx = 0
+        self.label_color_map = {}
+
+    def AddRange(self, start, end, label):
+        try:
+            fg, bg = self.label_color_map[label]
+        except KeyError:
+            fg, bg = self.COLORS[self.idx]
+            self.idx = (self.idx + 1) % len(self.COLORS)
+            self.label_color_map[label] = (fg, bg)
+
+        self.collection.insert(start, end, (label, fg, bg))
+
+    def HighlightRange(self, start, end, relative=True):
+        """Returns a highlighting list from start address to end.
+
+        If relative is True the highlighting list is relative to the start
+        offset.
+        """
+        result = []
+        for i in range(start, end):
+            hit = self.collection.get_range(i)
+            if hit:
+                _, fg, bg = hit
+                if relative:
+                    i -= start
+
+                result.append([i, i+1, fg, bg])
+
+        return result
+
+    def GetComment(self, start, end):
+        """Returns a tuple of labels and their highlights."""
+        labels = []
+        for i in range(start, end):
+            hit = self.collection.get_range(i)
+            if hit:
+                if hit not in labels:
+                    labels.append(hit)
+
+        result = ""
+        highlights = []
+        for label, fg, bg in labels:
+            highlights.append((len(result), len(result) + len(label), fg, bg))
+            result += label + ", "
+
+        # Drop the last ,
+        if result:
+            result = result[:-2]
+
+        return utils.AttributedString(result, highlights=highlights)
+
+
 class Dump(plugin.Command):
     """Hexdump an object or memory location."""
 
@@ -782,7 +848,8 @@ class Dump(plugin.Command):
 
 
     def __init__(self, offset=0, address_space=None, data=None, length=None,
-                 width=16, rows=30, suppress_headers=False, **kwargs):
+                 width=None, rows=None, suppress_headers=False,
+                 address_map=None, **kwargs):
         """Hexdump an object or memory location.
 
         You can use this plugin repeateadely to keep dumping more data using the
@@ -837,9 +904,18 @@ class Dump(plugin.Command):
             self.offset = obj.Pointer.integer_to_address(offset)
 
         self.length = length
+
+        # default width can be set in the session.
+        if width is None:
+            width = self.session.GetParameter("hexdump_width", 16)
+
         self.width = int(width)
+        if rows is None:
+            rows = self.session.GetParameter("paging_limit") or 30
+
         self.rows = int(rows)
         self.suppress_headers = suppress_headers
+        self.address_map = address_map or AddressMap()
 
         if data is not None:
             address_space = addrspace.BufferAddressSpace(
@@ -860,33 +936,37 @@ class Dump(plugin.Command):
 
         to_read = min(self.width * self.rows,
                       self.address_space.end() - self.offset)
+
         if self.length is not None:
             to_read = min(to_read, self.length)
 
-        # Dump some data from the address space.
-        data = self.address_space.read(self.offset, to_read)
+        renderer.table_header(
+            [("Offset", "offset", "[addr]"),
+             dict(name="Data", style="hexdump", hex_width=self.width),
+             ("Comment", "comment", "40")],
+            suppress_headers=self.suppress_headers)
 
-        renderer.table_header([("Offset", "offset", "[addr]"),
-                               ("Hex", "hex", str(3 * self.width)),
-                               ("Data", "data", str(self.width)),
-                               ("Comment", "comment", "40")],
-                              suppress_headers=self.suppress_headers)
-
-        offset = 0
         resolver = self.session.address_resolver
-        for offset, hexdata, translated_data in utils.Hexdump(
-                data, width=self.width):
+        for offset in range(self.offset, self.offset + to_read):
+            comment = resolver.format_address(offset, max_distance=1)
+            if comment:
+                self.address_map.AddRange(offset, offset + 1, comment)
 
+        offset = self.offset
+        for offset in range(self.offset, self.offset + to_read, self.width):
             # Add a symbol name for the start of each row.
-            comment = resolver.format_address(
-                offset+self.offset, max_distance=10)
+            hex_data = utils.AttributedString(
+                self.address_space.read(offset, self.width),
+                highlights=self.address_map.HighlightRange(
+                    offset, offset + self.width, relative=True))
 
-            renderer.table_row(self.offset + offset, hexdata,
-                               "".join(translated_data), comment)
+            comment = self.address_map.GetComment(offset, offset + self.width)
+
+            renderer.table_row(offset, hex_data, comment, nowrap=True)
 
         # Advance the offset so we can continue from this offset next time we
         # get called.
-        self.offset += offset
+        self.offset = offset
 
 
 class Grep(plugin.Command):

@@ -250,6 +250,16 @@ class DirectoryIOManager(IOManager):
         self.check_dump_dir(self.dump_dir)
         self.canonical_name = os.path.basename(self.dump_dir)
 
+    def CheckInventory(self, path):
+        """Checks if path exists in the inventory.
+
+        The inventory is a json object at the root of the repository which lists
+        all the profiles in this repository. It allows us to determine quickly
+        if a profile exists in this repository.
+        """
+        path = self._GetAbsolutePathName(path)
+        return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
+
     def check_dump_dir(self, dump_dir=None):
         if not dump_dir:
             raise IOManagerError("Please specify a dump directory.")

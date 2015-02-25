@@ -478,7 +478,9 @@ class PTE(common.WindowsCommandPlugin):
             pte, virtual_address)
 
         if desc == "Prototype":
-            return self._ResolveProtoPTE(pte.Proto, virtual_address)
+            result = self._ResolveProtoPTE(pte.Proto, virtual_address)
+            result["ProtoType"] = True
+            return result
 
         # This is a prototype into a vad region.
         elif desc == "Vad":

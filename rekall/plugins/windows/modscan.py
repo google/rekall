@@ -176,5 +176,6 @@ class ThrdScan(ModScan):
                                    thread.ExitTime,
                                    task.ImageFileName,
                                    self.session.address_resolver.format_address(
-                                       thread.Win32StartAddress.v()),
-                                   )
+                                       thread.Win32StartAddress.v(),
+                                       max_distance=1e6),
+                                  )

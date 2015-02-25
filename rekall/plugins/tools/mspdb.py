@@ -158,38 +158,31 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
             self.guid = self.guid.upper()
 
         for url in self.SYM_URLS:
+            basename = ntpath.splitext(self.pdb_filename)[0]
+            url += "/%s/%s/%s.pd_" % (self.pdb_filename,
+                                      self.guid, basename)
+
+            renderer.format("Trying to fetch {0}\n", url)
+            request = urllib2.Request(url, None, headers={
+                'User-Agent': self.USER_AGENT})
+
+            data = urllib2.urlopen(request).read()
+            renderer.format("Received {0} bytes\n", len(data))
+
+            output_file = "%s.pd_" % basename
+            with renderer.open(filename=output_file,
+                               directory=self.dump_dir,
+                               mode="wb") as fd:
+                fd.write(data)
+
             try:
-                basename = ntpath.splitext(self.pdb_filename)[0]
-                url += "/%s/%s/%s.pd_" % (self.pdb_filename,
-                                          self.guid, basename)
-
-                renderer.format("Trying to fetch {0}\n", url)
-                request = urllib2.Request(url, None, headers={
-                    'User-Agent': self.USER_AGENT})
-
-                data = urllib2.urlopen(request).read()
-                renderer.format("Received {0} bytes\n", len(data))
-
-                output_file = "%s.pd_" % basename
-                with renderer.open(filename=output_file,
-                                   directory=self.dump_dir,
-                                   mode="wb") as fd:
-                    fd.write(data)
-
-                try:
-                    subprocess.check_call(["cabextract",
-                                           os.path.basename(output_file)],
-                                          cwd=self.dump_dir)
-                except subprocess.CalledProcessError:
-                    renderer.format(
-                        "Failed to decompress output file {0}. "
-                        "Ensure cabextract is installed.\n", output_file)
-
-                break
-
-            except IOError as e:
-                logging.error(e)
-                continue
+                subprocess.check_call(["cabextract",
+                                       os.path.basename(output_file)],
+                                      cwd=self.dump_dir)
+            except subprocess.CalledProcessError:
+                renderer.report_error(
+                    "Failed to decompress output file {0}. "
+                    "Ensure cabextract is installed.\n", output_file)
 
 
 class TestFetchPDB(testlib.DisabledTest):
@@ -1052,7 +1045,7 @@ class PDBParser(object):
             return obj.NoneObject("Index not known")
 
 
-class ParsePDB(plugin.Command):
+class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
     """Parse the PDB streams."""
 
     __name = "parse_pdb"
@@ -1071,6 +1064,10 @@ class ParsePDB(plugin.Command):
             "Default name is derived from the pdb filename.")
 
         parser.add_argument(
+            "--output_filename",
+            help="The name of the file to store this profile. ")
+
+        parser.add_argument(
             "--windows_version", default=None,
             help="The windows version (major.minor.revision) "
             "corresponding with this PDB. For example, Windows 7 "
@@ -1081,11 +1078,13 @@ class ParsePDB(plugin.Command):
             help="Specify this to emit less detailed information.")
 
     def __init__(self, pdb_filename=None, profile_class=None,
-                 windows_version=None, metadata=None, concise=False, **kwargs):
+                 windows_version=None, metadata=None, concise=False,
+                 output_filename=None, **kwargs):
         super(ParsePDB, self).__init__(**kwargs)
         self.filename = pdb_filename
         self.metadata = metadata or {}
         self.concise = concise
+        self.output_filename = output_filename
 
         profile_class = self.metadata.get("ProfileClass", profile_class)
 
@@ -1093,6 +1092,9 @@ class ParsePDB(plugin.Command):
         if profile_class is None:
             profile_class = os.path.splitext(
                 os.path.basename(self.filename))[0].capitalize()
+
+            if profile_class not in obj.Profile.classes:
+                profile_class = "BasicPEProfile"
 
         self.profile_class = profile_class
 
@@ -1203,5 +1205,10 @@ class ParsePDB(plugin.Command):
             result["$CONSTANTS"] = constants
             result["$FUNCTIONS"] = functions
 
-
-        renderer.write(utils.PPrint(result))
+        if self.output_filename:
+            with renderer.open(filename=self.output_filename,
+                               directory=self.dump_dir,
+                               mode="wb") as fd:
+                fd.write(utils.PPrint(result))
+        else:
+            renderer.write(utils.PPrint(result))

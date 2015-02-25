@@ -122,6 +122,7 @@ class DisasmFactory(object):
 
     @classmethod
     def get(cls, mode):
+        return Distorm3(mode)
         try:
             return Capstone(mode)
 

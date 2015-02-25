@@ -105,7 +105,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         self.temp_directory = temp_directory
         super(RekallBaseUnitTestCase, self).__init__(method_name)
 
-    def LaunchExecutable(self, config_options):
+    def LaunchExecutable(self, config_options, retries=2):
         """Launches the rekall executable with the config specified.
 
         Returns:
@@ -165,6 +165,10 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
                 output = open(tmp_filename).read(10 * 1024 * 1024)
                 output = output.decode("utf8", "ignore")
+
+                if output == "" and retries > 0:
+                    return self.LaunchExecutable(
+                        config_options, retries=retries-1)
 
                 baseline_data = dict(output=output.splitlines(),
                                      return_code=pipe.returncode)

@@ -37,7 +37,7 @@ class BaseScanner(object):
 
     checks = []
     def __init__(self, profile=None, address_space=None, window_size=8,
-                 session=None):
+                 session=None, checks=None):
         """The base scanner.
 
         Args:
@@ -54,6 +54,8 @@ class BaseScanner(object):
         self.base_offset = None
         self.scan_buffer_offset = None
         self.buffer_as = addrspace.BufferAddressSpace(session=self.session)
+        if checks is not None:
+            self.checks = checks
 
     def build_constraints(self):
         self.constraints = []
@@ -465,9 +467,9 @@ class DiscontigScannerGroup(ScannerGroup):
         maxlen = maxlen or self.profile.get_constant("MaxPointer")
 
         for (start, _, length) in self.address_space.get_address_ranges(
-            offset, offset + maxlen):
+                offset, offset + maxlen):
             for match in super(DiscontigScannerGroup, self).scan(
-                start, maxlen=length):
+                    start, maxlen=length):
                 yield match
 
 

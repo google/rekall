@@ -598,13 +598,13 @@ class Session(object):
         try:
             plugin_obj = self._GetPluginObj(plugin_obj, *pos_args, **kwargs)
             with ui_renderer.start(plugin_name=plugin_obj.name, kwargs=kwargs):
-                plugin_obj.render(ui_renderer)
-                return plugin_obj
+                return plugin_obj.render(ui_renderer) or plugin_obj
 
         except plugin.InvalidArgs as e:
             logging.error("Invalid Args: %s", e)
 
         except plugin.PluginError as e:
+            plugin_obj.error_status = str(e)
             ui_renderer.report_error(str(e))
 
         except KeyboardInterrupt:
@@ -612,8 +612,12 @@ class Session(object):
             self.report_progress("Aborted!\r\n", force=True)
 
         except Exception, e:
+            error_status = traceback.format_exc()
+            if isinstance(plugin_obj, plugin.Command):
+                plugin_obj.error_status = error_status
+
             # Report the error to the renderer.
-            ui_renderer.report_error(traceback.format_exc())
+            ui_renderer.report_error(error_status)
 
             # If anything goes wrong, we break into a debugger here.
             if self.GetParameter("debug"):
@@ -953,6 +957,7 @@ class InteractiveSession(JsonSerializableSession):
 
     def RunPlugin(self, *args, **kwargs):
         self.last = super(InteractiveSession, self).RunPlugin(*args, **kwargs)
+        return self.last
 
     def v(self):
         """Re-execute the previous command."""

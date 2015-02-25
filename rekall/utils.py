@@ -422,10 +422,10 @@ class AttributedString(object):
 
     def __init__(self, value, highlights=None):
         self.highlights = highlights
-        self.value = unicode(value)
+        self.value = value
 
     def __unicode__(self):
-        return self.value
+        return unicode(self.value)
 
     def __str__(self):
         return str(self.value)
@@ -809,8 +809,8 @@ class RangedCollection(object):
     def get_range(self, value):
         """Retrieve the data associated with the range that contains value."""
         try:
-            start, end, data = self.collection.find_le((value, None, None))
-            if start <= value <= end:
+            start, end, data = self.collection.find_le((value+1, None, None))
+            if start <= value < end:
                 return data
         except ValueError:
             return None

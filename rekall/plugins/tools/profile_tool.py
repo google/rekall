@@ -684,3 +684,60 @@ class BuildIndex(plugin.Command):
             result = self.BuildDataIndex(spec)
 
         renderer.write(utils.PPrint(result))
+
+
+class BuildProfileLocally(plugin.Command):
+    """Download and builds a profile locally in one step.
+
+    We store the profile in the first repository in the profile_path which must
+    be writable. Usually this is a caching repository so the profile goes in the
+    local cache.
+    """
+
+    name = "build_local_profile"
+
+    @classmethod
+    def args(cls, parser):
+        super(BuildProfileLocally, cls).args(parser)
+        parser.add_argument(
+            "module_name",
+            help="The name of the module (without the .pdb extensilon).")
+
+        parser.add_argument(
+            "guid",
+            help="The guid of the module.")
+
+    def __init__(self, module_name=None, guid=None, **kwargs):
+        super(BuildProfileLocally, self).__init__(**kwargs)
+        self.module_name = module_name
+        self.guid = guid
+
+    def render(self, renderer):
+        profile_name = "{0}/GUID/{1}".format(self.module_name, self.guid)
+        renderer.format("Fetching Profile {0}", profile_name)
+
+        dump_dir = "/tmp/"
+        fetch_pdb = self.session.RunPlugin(
+            "fetch_pdb",
+            pdb_filename="%s.pdb" % self.module_name,
+            guid=self.guid, dump_dir=dump_dir)
+
+        if fetch_pdb.error_status:
+            raise RuntimeError(
+                "Failed fetching the pdb file: %s" % renderer.error_status)
+
+        out_file = os.path.join(dump_dir, "%s.json" % self.guid)
+        parse_pdb = self.session.RunPlugin(
+            "parse_pdb",
+            pdb_filename=os.path.join(dump_dir, "%s.pdb" % self.module_name),
+            output_filename="%s.json" % self.guid,
+            dump_dir=dump_dir)
+
+        if parse_pdb.error_status:
+            raise RuntimeError(
+                "Failed parsing pdb file: %s" % renderer.error_status)
+
+        # Get the first repository to write to.
+        repository = self.session.repository_managers.values()[0]
+        data = json.load(open(out_file))
+        repository.StoreData(profile_name, data)

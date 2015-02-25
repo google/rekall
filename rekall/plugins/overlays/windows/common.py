@@ -192,6 +192,12 @@ windows_overlay = {
             )]],
         }],
 
+    "_GUID": [16, {
+        "Data4": [8, ["String", dict(length=8, term=None)]],
+        "AsString": lambda x: ("%08x-%04x-%04x-%s" % (
+            x.Data1, x.Data2, x.Data3, x.Data4.v().encode('hex'))).upper(),
+        }],
+
     '_MMVAD_LONG': [None, {
         'FirstPrototypePte': [None, ["Pointer", dict(
             target="Array",

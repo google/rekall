@@ -266,7 +266,7 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
                 # We need to resolve the address using the process AS.
                 self.cc.SwitchProcessContext(process)
                 return self.session.address_resolver.format_address(
-                    hook.offPfn, max_distance=0)
+                    hook.offPfn, max_distance=1e6)
 
             return obj.NoneObject()
 

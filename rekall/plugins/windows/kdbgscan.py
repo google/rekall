@@ -168,9 +168,10 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
 
             # Count the total number of tasks from PsActiveProcessHead.
             try:
+
                 pslist = kdbg.PsActiveProcessHead.list_of_type(
                     "_EPROCESS", "ActiveProcessLinks")
-                num_tasks = len(list(pslist))
+                num_tasks = len([x for x in pslist if x.pid > 0])
             except AttributeError:
                 num_tasks = 0
 

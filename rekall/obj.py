@@ -1062,11 +1062,11 @@ class PointerArray(Array):
         self._data = struct.unpack(self.format_string, data)
 
     def __iter__(self):
-        return iter(self._data)
+        for i in xrange(len(self._data)):
+            yield self[i]
 
     def __getitem__(self, pos):
-        return self.obj_profile.Pointer(
-            value=self._data[pos], vm=self.obj_vm, session=self.obj_session)
+        return self.obj_profile.Pointer(value=self._data[pos], vm=self.obj_vm)
 
 
 class ListArray(Array):

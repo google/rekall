@@ -69,6 +69,9 @@ class Command(object):
     # This declares that this plugin only exists in the interactive session.
     interactive = False
 
+    # This will hold the error status from running this plugin.
+    error_status = None
+
     @classmethod
     def args(cls, parser):
         """Declare the command line args this plugin needs."""
@@ -124,6 +127,9 @@ class Command(object):
             self.render(ui_renderer)
 
         return fd.getvalue()
+
+    def __repr__(self):
+        return "Plugin: %s" % self.name
 
     def render(self, renderer):
         """Produce results on the renderer given.

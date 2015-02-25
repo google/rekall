@@ -338,6 +338,22 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
 
     name = "vadmap"
 
+    @classmethod
+    def args(cls, parser):
+        super(VADMap, cls).args(parser)
+        parser.add_argument(
+            "--start", default=0, type="IntParser",
+            help="Start reading from this page.")
+
+        parser.add_argument(
+            "--end", default=2**63, type="IntParser",
+            help="Stop reading at this offset.")
+
+    def __init__(self, *args, **kwargs):
+        self.start = kwargs.pop("start", 0)
+        self.end = kwargs.pop("end", 2**64)
+        super(VADMap, self).__init__(*args, **kwargs)
+
     def _GetPTE(self, vtop_plugin, vaddr):
         address_space = self.session.GetParameter("default_address_space")
         for type, _, addr in vtop_plugin.vtop(vaddr, address_space):
@@ -356,13 +372,14 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
         end = vad.End
 
         while offset < end:
-            pte = self._GetPTE(vtop, offset)
-            metadata = pte_plugin.ResolvePTE(pte, offset)
+            if self.start <= offset <= self.end:
+                pte = self._GetPTE(vtop, offset)
+                metadata = pte_plugin.ResolvePTE(pte, offset)
 
-            yield offset, metadata
+                yield offset, metadata
+                self.session.report_progress("Inspecting 0x%08X", offset)
 
             offset += 0x1000
-            self.session.report_progress("Inspecting 0x%08X", offset)
 
     def render(self, renderer):
         for task in self.filter_processes():
@@ -398,6 +415,7 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
                     for vaddr, metadata in self._GenerateVADRuns(vad):
                         offset = metadata.pop("offset", None)
 
+                        # Coalesce similar rows.
                         if ((offset is None or old_offset is None or
                              self.verbosity < 5 or
                              offset == old_offset + length) and
