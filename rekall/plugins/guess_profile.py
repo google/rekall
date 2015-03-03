@@ -461,6 +461,10 @@ class ProfileHook(kb.ParameterHook):
         self.session.profile = obj.NoneObject("Unset")
 
         profile_obj = self.ScanProfiles()
+        if not profile_obj:
+          raise RuntimeError(
+              "Unable to find a valid profile for this image. Try using -v "
+              "for more details.")
 
         # Update the session profile.
         self.session.profile = profile_obj
