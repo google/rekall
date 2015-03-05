@@ -569,8 +569,10 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         """Finds virtual machines in physical memory and returns a list of them.
         """
 
-        all_vmcs = VMCSScanner(address_space=self.physical_address_space,
-                               session=self.session).scan(offset=self._offset)
+        all_vmcs = VMCSScanner(
+            address_space=self.physical_address_space,
+            session=self.session,
+            profile=obj.NoneObject).scan(offset=self._offset)
 
         host_vms = []
         nested_vms = []

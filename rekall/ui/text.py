@@ -330,10 +330,12 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
     def address_size(self):
         address_size = 14
 
-        # TODO: The below will force profile autodetection. We need to do it
-        # only when the profile is already autodetected.
-        if self.session.profile.metadata("arch") == "I386":
-            address_size = 10
+        # We get the value of the profile via the session state because doing
+        # self.session.profile will trigger profile autodetection even when
+        # it's not needed.
+        if self.session.state.get("profile"):
+            if self.session.profile.metadata("arch") == "I386":
+                address_size = 10
 
         return address_size
 
