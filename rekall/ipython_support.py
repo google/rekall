@@ -28,15 +28,7 @@ import re
 import readline
 
 from rekall import constants
-
-try:
-    from IPython.terminal import embed
-except ImportError:
-    try:
-        from IPython.frontend.terminal import embed
-    except ImportError:
-        embed = None
-
+from IPython.terminal import embed
 from IPython.config.loader import Config
 
 
@@ -87,6 +79,10 @@ def RekallCompleter(self, text):
         logging.debug(e)
 
 
+class RekallShell(embed.InteractiveShellEmbed):
+    display_banner = constants.BANNER
+
+
 def Shell(user_session):
     # This should bring back the old autocall behaviour. e.g.:
     # In [1]: pslist
@@ -107,11 +103,9 @@ def Shell(user_session):
     cfg.InteractiveShell.separate_out = ''
     cfg.InteractiveShell.separate_out2 = ''
 
-    shell = embed.InteractiveShellEmbed(
-        config=cfg, user_ns=user_session.locals)
+    shell = RekallShell(config=cfg, user_ns=user_session.locals)
 
     shell.Completer.merge_completions = False
-    shell.banner = constants.BANNER
     shell.exit_msg = constants.GetQuote()
     shell.set_custom_completer(RekallCompleter, 0)
 
@@ -119,14 +113,10 @@ def Shell(user_session):
     if user_session.run != None:
         execfile(user_session.run, user_session.locals)
 
-    # Workaround for completer bug.
-    import IPython.core.completerlib
-    IPython.core.completerlib.get_ipython = lambda: shell
-
     # Set known delimeters for the completer. This varies by OS so we need to
     # set it to ensure consistency.
     readline.set_completer_delims(' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?')
 
-    shell(local_ns=user_session.locals)
+    shell(global_ns=user_session.locals)
 
     return True

@@ -333,9 +333,9 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         # We get the value of the profile via the session state because doing
         # self.session.profile will trigger profile autodetection even when
         # it's not needed.
-        if self.session.state.get("profile"):
-            if self.session.profile.metadata("arch") == "I386":
-                address_size = 10
+        if (self.session.HasParameter("profile") and
+                self.session.profile.metadata("arch") == "I386"):
+            address_size = 10
 
         return address_size
 

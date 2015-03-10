@@ -69,9 +69,9 @@ setup(
 
     install_requires=[
         "argparse >= 0.9",
-        "PyYAML>=2.10",
+        "PyYAML >= 2.10",
         "pytz >= 2012",
-        "ipython >= 2.0.0",
+        "ipython >= 3.0.0",
         "pycrypto >= 2.3.1",
         "pyelftools >= 0.22",
         "distorm3 >= 0",
