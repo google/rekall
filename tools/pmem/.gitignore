@@ -1,9 +1,13 @@
+
+
+# Built targets
 # Compiled Dynamic libraries
 # Compiled Object files
 # Compiled Static libraries
 # Executables
 # Fortran module files
 # Precompiled Headers
+# autoconf related files.
 # autoconf related files.
 *.a
 *.app
@@ -26,22 +30,19 @@
 *_test
 *~
 .depend
-/autom4te.cache
-doxygen/
-pmem_imager
-test_filename.bin
-
-# autoconf related files.
-Makefile
-config.log
-config.status
 .deps
 .libs
+/autom4te.cache
+/pmem-0.1.tar.gz
+Makefile
 autom4te.cache
 config.h
-stamp-h1
+config.log
+config.status
+doxygen/
 libtool
-
-# Built targets
 linpmem
+pmem_imager
+stamp-h1
+test_filename.bin
 winpmem.exe

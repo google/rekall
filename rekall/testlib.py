@@ -168,7 +168,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
                 # Travis often kills a test for lack of resources - we just
                 # retry it a couple of times.
-                if output in ["", "Killed"] and retries > 0:
+                if output.strip() in ["", "Killed"] and retries > 0:
                     return self.LaunchExecutable(
                         config_options, retries=retries-1)
 
