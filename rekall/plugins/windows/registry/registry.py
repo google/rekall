@@ -302,8 +302,8 @@ class _CM_KEY_NODE(obj.Struct):
             if unicode(subkey.Name).lower() == subkey_name.lower():
                 return subkey
 
-        return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
-            subkey_name, self.Name))
+        return obj.NoneObject("Couldn't find subkey {0} of {1}",
+                              subkey_name, self.Name)
 
     def open_value(self, value_name):
         """Opens our direct child."""
@@ -311,8 +311,8 @@ class _CM_KEY_NODE(obj.Struct):
             if value.Name == value_name:
                 return value
 
-        return obj.NoneObject("Couldn't find subkey {0} of {1}".format(
-            value_name, self.Name))
+        return obj.NoneObject("Couldn't find subkey {0} of {1}",
+                              value_name, self.Name)
 
     def subkeys(self):
         """Enumeate all subkeys of this key.

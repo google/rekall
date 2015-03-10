@@ -474,8 +474,7 @@ class LoadAddressSpace(plugin.Command):
                     found = True
                     break
                 except (AssertionError,
-                        addrspace.ASAssertionError,
-                        TypeError), e:
+                        addrspace.ASAssertionError), e:
                     logging.debug("Failed instantiating %s: %s",
                                   cls.__name__, e)
                     error.append_reason(cls.__name__, e)

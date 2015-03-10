@@ -675,8 +675,6 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
         else:
             self.distorm_mode = None
 
-        self.decompose_cache = []
-
     def __int__(self):
         return self.obj_offset
 
@@ -767,14 +765,6 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
           size: Stop after decoding this much data. If specified we ignore
             the instructions parameter.
         """
-        if self.distorm_mode:
-            if len(self.decompose_cache) < instructions:
-                self.decompose_cache = list(self._Decompose(
-                    instructions=instructions, size=size))
-
-        return self.decompose_cache
-
-    def _Decompose(self, instructions=10, size=None):
         overlap = 0x100
         data = ''
         offset = self.obj_offset

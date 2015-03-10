@@ -84,7 +84,7 @@ class LinuxFindKernelSlide(AbstractLinuxCommandPlugin):
 
         for hit in SlideScanner(
                 address_space=self.physical_address_space,
-                session=self.session).scan():
+                session=self.session).scan(maxlen=100*1024*1024):
             vm_kernel_slide = int(hit - expected_physical_offset)
 
             yield vm_kernel_slide

@@ -331,7 +331,8 @@ class PmemAddressSpace(addrspace.RunBasedAddressSpace):
                     self.runs.insert((offset, offset, pages * 0x1000))
         except IOError:
             # Apparently we're not dealing with Pmem.
-            raise TypeError("File at %s is not a pmem device." % path)
+            raise addrspace.ASAssertionError(
+                "File at %s is not a pmem device." % path)
 
     def write(self, *_, **__):
         raise NotImplementedError("Writes to Pmem aren't supported yet.")

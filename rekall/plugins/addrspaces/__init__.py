@@ -31,3 +31,8 @@ try:
     import rekall.plugins.addrspaces.win32
 except ImportError:
     pass
+
+try:
+    import rekall.plugins.addrspaces.aff4
+except ImportError:
+    pass

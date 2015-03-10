@@ -28,6 +28,7 @@
 import logging
 import struct
 
+from rekall import addrspace
 from rekall import config
 from rekall import obj
 from rekall.plugins.addrspaces import intel
@@ -294,7 +295,10 @@ class VTxPagedMemory(AMD64PagedMemory):
         # A dummy DTB is passed to the base class so the DTB checks on
         # IA32PagedMemory don't bail out. We require the DTB to never be used
         # for page translation outside of get_pml4e.
-        super(VTxPagedMemory, self).__init__(dtb=0xFFFFFFFF, **kwargs)
+        try:
+            super(VTxPagedMemory, self).__init__(dtb=0xFFFFFFFF, **kwargs)
+        except TypeError:
+            raise addrspace.ASAssertionError()
 
         # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None

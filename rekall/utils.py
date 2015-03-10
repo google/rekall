@@ -196,6 +196,7 @@ class FastStore(object):
         self.lock = None
         if lock:
             self.lock = threading.RLock()
+        self.hits = self.misses = 0
 
     @Synchronized
     def Expire(self):
@@ -266,8 +267,12 @@ class FastStore(object):
             node, item = self._hash[key]
             self._age.Unlink(node)
             self._age.AppendNode(node)
+            self.hits += 1
         except ValueError:
             raise KeyError(key)
+        except KeyError:
+            self.misses += 1
+            raise
 
         return item
 

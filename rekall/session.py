@@ -921,7 +921,8 @@ class InteractiveSession(JsonSerializableSession):
             session=self,
 
             # Prepopulate the namespace with our most important modules.
-            profile=self.profile, v=self.v,
+            profile=self.profile,
+            v=self.v,
 
             # Some useful modules which should be available always.
             sys=sys, os=os,

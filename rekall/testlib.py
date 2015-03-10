@@ -166,7 +166,9 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                 output = open(tmp_filename).read(10 * 1024 * 1024)
                 output = output.decode("utf8", "ignore")
 
-                if output == "" and retries > 0:
+                # Travis often kills a test for lack of resources - we just
+                # retry it a couple of times.
+                if output in ["", "Killed"] and retries > 0:
                     return self.LaunchExecutable(
                         config_options, retries=retries-1)
 

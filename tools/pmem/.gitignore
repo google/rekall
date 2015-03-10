@@ -1,0 +1,47 @@
+# Compiled Dynamic libraries
+# Compiled Object files
+# Compiled Static libraries
+# Executables
+# Fortran module files
+# Precompiled Headers
+# autoconf related files.
+*.a
+*.app
+*.dll
+*.dylib
+*.exe
+*.gch
+*.la
+*.lai
+*.lib
+*.lo
+*.mod
+*.o
+*.obj
+*.out
+*.pch
+*.slo
+*.so
+*.zip
+*_test
+*~
+.depend
+/autom4te.cache
+doxygen/
+pmem_imager
+test_filename.bin
+
+# autoconf related files.
+Makefile
+config.log
+config.status
+.deps
+.libs
+autom4te.cache
+config.h
+stamp-h1
+libtool
+
+# Built targets
+linpmem
+winpmem.exe

@@ -397,7 +397,8 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
                            profile_class=self.profile_class).Convert()
 
             try:
-                input = io_manager.Factory(self.source, mode="r")
+                input = io_manager.Factory(self.source, session=self.session,
+                                           mode="r")
             except IOError:
                 logging.critical("Input profile file %s could not be opened.",
                                  self.source)
