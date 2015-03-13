@@ -217,15 +217,22 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         "/rekall-webconsole/components/runplugin/pluginregistry-service.js",
         "/rekall-webconsole/components/runplugin/runplugin-controller.js",
         "/rekall-webconsole/components/runplugin/scroll-table-directive.js",
+        "/rekall-webconsole/components/runplugin/runplugin.js",
+
+        # Session management.
+        "/rekall-webconsole/components/sessions/session-arguments-directive.js",
+        "/rekall-webconsole/components/sessions/manage-sessions-controller.js",
+
+        # File upload directives
+        "/rekall-webconsole/components/fileupload/fileupload.js",
         "/rekall-webconsole/components/fileupload/fileupload-controller.js",
 
-        "/rekall-webconsole/components/runplugin/runplugin.js",
-        "/rekall-webconsole/components/fileupload/fileupload.js",
         ]
 
     CSS_FILES = [
         "/rekall-webconsole/components/runplugin/runplugin.css",
         "/rekall-webconsole/components/fileupload/fileupload.css",
+        "/rekall-webconsole/components/sessions/manage-sessions.css",
         ]
 
     @classmethod
@@ -233,7 +240,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
         @app.route("/rekall/plugins/all")
         def list_all_plugins():  # pylint: disable=unused-variable
-            session = app.config['rekall_session']
+            session = app.config["worksheet"].session
             return jsonify(session.plugins.plugin_db.Serialize())
 
         @app.route("/rekall/symbol_search")
@@ -241,13 +248,57 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             symbol = request.args.get("symbol", "")
             results = []
             if len(symbol) >= 3:
-                rekall_session = app.config["rekall_session"]
-                results = sorted(
-                    rekall_session.address_resolver.search_symbol(symbol+"*"))
+                try:
+                    rekall_session = app.config["worksheet"].session
+                    results = sorted(
+                        rekall_session.address_resolver.search_symbol(
+                            symbol+"*"))
 
-                results = results[:10]
+                    results = results[:10]
+                except RuntimeError:
+                    pass
 
             return jsonify(dict(results=results))
+
+    @classmethod
+    def SessionManager(cls, app):
+
+        @app.route("/sessions/update", methods=["POST"])
+        def update_sessions():  # pylint: disable=unused-variable
+            worksheet = app.config['worksheet']
+            sessions = request.get_json()["sessions"]
+            server_session_ids = set(
+                x.session_id for x in worksheet.session.session_list)
+
+            # Group the sessions by ID
+            for client_session in sessions:
+                session_id = client_session.pop("session_id", None)
+                server_session = worksheet.session.find_session(session_id)
+                if server_session is None:
+                    worksheet.session.RunPlugin("snew")
+                    break
+
+                server_session_ids.remove(session_id)
+
+                with server_session:
+                    for k, (v, _) in client_session["state"].items():
+                        if not v:
+                            continue
+
+                        if (server_session.HasParameter(k) and
+                                server_session.GetParameter(k) == v):
+                            continue
+
+                        logging.debug("Setting %s=%s for session %s",
+                                      k, v, session_id)
+                        server_session.SetParameter(k, v)
+
+            for deleted_session_id in server_session_ids:
+                worksheet.session.RunPlugin(
+                    "sdel", session_id=deleted_session_id)
+
+            # Send the updated session list to the client again.
+            return json.dumps(worksheet.GetSessionsAsJson()), 200
 
     @classmethod
     def DownloadManager(cls, app):
@@ -316,7 +367,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                 return
 
             worksheet = app.config['worksheet']
-            new_data = json.dumps(cells, sort_keys=True)
+            new_data = utils.PPrint(cells)
             old_data = worksheet.GetData("notebook_cells", raw=True)
             if old_data != new_data:
                 worksheet.StoreData("notebook_cells", new_data, raw=True)
@@ -325,15 +376,15 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         def rekall_load_nodes(ws):  # pylint: disable=unused-variable
             worksheet = app.config["worksheet"]
             cells = worksheet.GetData("notebook_cells") or []
-
-            result = dict(filename=worksheet.file_name,
+            result = dict(filename=worksheet.location,
+                          sessions=worksheet.GetSessionsAsJson(),
                           cells=cells)
 
             ws.send(json.dumps(result))
 
         @app.route("/worksheet/load_file")
         def load_new_worksheet():  # pylint: disable=unused-variable
-            session = app.config['rekall_session']
+            session = app.config['worksheet'].session
             worksheet_dir = session.GetParameter("notebook_dir", ".")
             path = os.path.normpath(request.args.get("path", ""))
             full_path = os.path.join(worksheet_dir, "./" + path)
@@ -357,7 +408,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         def save_current_worksheet():  # pylint: disable=unused-variable
             """Save the current worksheet into worksheet directory."""
             worksheet = app.config['worksheet']
-            session = app.config['rekall_session']
+            session = app.config['worksheet'].session
             worksheet_dir = session.GetParameter("notebook_dir", ".")
             path = os.path.normpath(request.args.get("path", ""))
             full_path = os.path.join(worksheet_dir, "./" + path)
@@ -388,21 +439,33 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
         @app.route("/worksheet/list_files")
         def list_files_in_worksheet_dir():  # pylint: disable=unused-variable
-            session = app.config['rekall_session']
+            session = app.config['worksheet'].session
             worksheet_dir = session.GetParameter("notebook_dir", ".")
-            path = os.path.normpath(request.args.get("path", ""))
-            full_path = os.path.join(worksheet_dir, "./" + path)
+            full_path = os.path.normpath(os.path.join(
+                worksheet_dir, request.args.get("path", "")))
+
+            if not os.path.isdir(full_path):
+                full_path = os.path.dirname(full_path)
+
+            if not full_path.startswith(worksheet_dir):
+                return "Can only access paths inside worksheet.", 403
 
             try:
                 result = []
-                for filename in os.listdir(full_path):
+                for filename in sorted(os.listdir(full_path)):
+                    if filename.startswith("."):
+                        continue
+
                     file_stat = os.stat(os.path.join(full_path, filename))
                     file_type = "file"
                     if stat.S_ISDIR(file_stat.st_mode):
                         file_type = "directory"
 
-                    result.append(dict(name=filename, type=file_type,
-                                       size=file_stat.st_size))
+                    result.append(
+                        dict(name=filename,
+                             path=os.path.join(full_path, filename),
+                             type=file_type,
+                             size=file_stat.st_size))
 
                 return jsonify(files=result)
             except (IOError, OSError) as e:
@@ -412,7 +475,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         def upload_new_worksheet():  # pylint: disable=unused-variable
             """Replace worksheet with uploaded file."""
             worksheet = app.config['worksheet']
-            session = app.config['rekall_session']
+            session = app.config['worksheet'].session
             worksheet_dir = session.GetParameter("notebook_dir", ".")
 
             for in_fd in request.files.itervalues():
@@ -456,7 +519,6 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             cell = json.loads(ws.receive())
             cell_id = cell["cell_id"]
             source = cell["source"]
-            rekall_session = app.config["rekall_session"]
             worksheet = app.config["worksheet"]
 
             # If the data is cached locally just return it.
@@ -467,18 +529,21 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                 ws.send(json.dumps(cache))
                 return
 
-            kwargs = source["arguments"]
+            kwargs = source.get("arguments", {})
+
+            # Must provide the correct session to run this on.
+            session_id = int(source.pop("session_id"))
 
             output = cStringIO.StringIO()
             renderer = WebConsoleRenderer(
-                session=rekall_session, output=output, cell_id=cell_id,
+                session=worksheet.session, output=output, cell_id=cell_id,
                 ws=ws, worksheet=worksheet)
 
             with renderer.start():
                 try:
-                    rekall_session.RunPlugin(source["plugin"]["name"],
-                                             renderer=renderer,
-                                             **kwargs)
+                    worksheet.session.find_session(session_id).RunPlugin(
+                        source["plugin"]["name"], renderer=renderer, **kwargs)
+
                 except Exception:
                     message = traceback.format_exc()
                     renderer.report_error(message)
@@ -494,3 +559,4 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         cls.PlugRunPluginsIntoApp(app)
         cls.PlugManageDocument(app)
         cls.DownloadManager(app)
+        cls.SessionManager(app)

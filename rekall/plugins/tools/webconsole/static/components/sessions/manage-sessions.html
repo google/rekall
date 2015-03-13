@@ -1,0 +1,57 @@
+<div class="modal-header">Manage Templates</div>
+<div class="modal-body session-form">
+  <div class="row-fluid">
+    <div class="col-sm-6 session-list">
+      <div class="list-group">
+        <a ng-repeat="session in data.sessions" href="#"
+           class="list-group-item" ng-click="data.state = session.state"
+           >
+          <button class="btn btn-default"
+            ng-click="delSession(session)"
+            ><span class="glyphicon glyphicon-remove">
+          </button>
+          {{session.state.session_name[0]}}
+        </a>
+      </div>
+
+      <button class="btn btn-default"
+              ng-click="newSession()"
+              >
+        <span class="glyphicon glyphicon-plus"/>
+        Add Session
+      </button>
+    </div>
+
+    <div class="col-sm-6  session-list">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">{{data.state.session_name[0]}} parameters</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row-fluid" ng-if="data.state">
+            <table class="table table-condensed">
+              <tr ng-repeat="(key, value) in data.state">
+                <td> {{key}} </td> <td>
+                  <span ng-switch="value[1]">
+                    <input ng-switch-when="IntParser"
+                           type="text" rekall-int
+                           class="form-control input-sm rekall-input"
+                           ng-model="value[0]"></input>
+
+                    <rekall-filename ng-switch-when="FileName"
+                           filename="value[0]"></rekall-filename>
+
+                    <input ng-switch-default
+                           type="text" rekall-int
+                           class="form-control input-sm rekall-input"
+                           ng-model="value[0]"></input>
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

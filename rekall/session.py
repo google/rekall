@@ -290,7 +290,13 @@ class Configuration(Cache):
     def _set_session_id(self, session_id, __):
         if self.Get("session_id") == None:
             return session_id
-        raise RuntimeError("Cannot modify the session id.")
+
+        # We are allowed to set a session id which is not already set.
+        for session in self.session.session_list:
+            if session_id == session.session_id:
+                raise RuntimeError("Session_id clashes with existing session.")
+
+        return session_id
 
     def Set(self, attr, value):
         hook = getattr(self, "_set_%s" % attr, None)
@@ -753,14 +759,16 @@ class Session(object):
     def profile(self, value):
         self.state.cache.Set('profile', value)
 
-    def clone(self, session_name=None, **kwargs):
+    def clone(self, **kwargs):
         new_state = self.state.copy()
         # Remove the cache from the copy so we start with a fresh cache.
         new_state.pop("cache")
+
         # session_ids are automatically generated so we need to pop it.
         new_state.pop("session_id")
+
         old_session_name = new_state.pop("session_name")
-        new_session_name = session_name or old_session_name
+        new_session_name = kwargs.pop("session_name", old_session_name)
         new_session = self.__class__(session_name=new_session_name, **new_state)
         new_session.Reset()
         new_session.locals = self.locals
@@ -861,6 +869,7 @@ class DynamicNameSpace(dict):
 
         doc = ""
         plugin_cls = self.session.plugins.GetPluginClass(name)
+        default_args = ""
         if plugin_cls:
             default_args, doc = "", ""
             default_args = self.help_profile.ParametersForPlugin(
@@ -883,11 +892,11 @@ class InteractiveSession(JsonSerializableSession):
     interactive use.
     """
 
-    # A list of tuples (session_id, session) sorted by session id
+    # A list of tuples (session_id, session) sorted by session id. This list is
+    # shared by all session instances! TODO: Refactor into a session group.
     session_list = []
 
-    def __init__(self, env=None, use_config_file=True, session_name=None,
-                 **kwargs):
+    def __init__(self, env=None, use_config_file=True, **kwargs):
         """Creates an interactive session.
 
         Args:
@@ -911,9 +920,7 @@ class InteractiveSession(JsonSerializableSession):
         self.pager = obj.NoneObject("Set this to your favourite pager.")
 
         # Set the session name
-        self.session_name = session_name or "Default session"
-        self.session_id = self._new_session_id()
-
+        self.session_name = kwargs.pop("session_name", u"Default session")
         super(InteractiveSession, self).__init__()
 
         # Prepare the local namespace for the interactive session.
@@ -937,7 +944,7 @@ class InteractiveSession(JsonSerializableSession):
         with self.state:
             self.state.Set("session_list", self.session_list)
             self.state.Set("session_name", self.session_name)
-            self.state.Set("session_id", self.session_id)
+            self.state.Set("session_id", self._new_session_id())
 
         # Configure the session from the config file and kwargs.
         if use_config_file:
@@ -948,12 +955,23 @@ class InteractiveSession(JsonSerializableSession):
                 for k, v in kwargs.items():
                     self.state.Set(k, v)
 
+    @property
+    def session_id(self):
+        return self.GetParameter("session_id")
+
+    def find_session(self, session_id):
+        for session in self.session_list:
+            if session.session_id == session_id:
+                return session
+
+        return None
+
     def _new_session_id(self):
         new_sid = 1
         for session in InteractiveSession.session_list:
-            if session.session_id == new_sid + 1:
-                break
-            new_sid += 1
+            if new_sid <= session.session_id:
+                new_sid = session.session_id + 1
+
         return new_sid
 
     def RunPlugin(self, *args, **kwargs):
@@ -987,6 +1005,22 @@ Config:
         logging.error("Failed running plugin %s: %s",
                       plugin_cls.name, e)
 
-    def add_session(self, session):
-        self.session_list.append(session)
+    def add_session(self, **kwargs):
+        """Creates a new session and adds it to the list.
+
+        Returns:
+          the new session.
+        """
+        session_id = kwargs["session_id"] = self._new_session_id()
+        if "session_name" not in kwargs:
+            # Make a unique session name.
+            kwargs["session_name"] = u"%s (%s)" % (
+                kwargs.get("filename", session_id), session_id)
+
+        new_session = self.__class__(**kwargs)
+        new_session.locals = self.locals
+
+        self.session_list.append(new_session)
         self.session_list.sort(key=lambda x: x.session_id)
+
+        return new_session

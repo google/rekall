@@ -304,18 +304,6 @@ class DisabledTest(RekallBaseUnitTestCase):
         return False
 
 
-class TempDirectory(object):
-    """A self cleaning temporary directory."""
-
-    def __enter__(self):
-        self.name = tempfile.mkdtemp()
-
-        return self.name
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        shutil.rmtree(self.name, True)
-
-
 class HashChecker(SimpleTestCase):
     """A test comparing the hashes of all the files dumped in the tempdir."""
 

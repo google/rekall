@@ -53,7 +53,6 @@
             </p>
           </div>
         </div>
-
       </div>
 
       <div class="col-sm-6">
@@ -62,6 +61,11 @@
             <h3 class="panel-title">{{node.source.plugin.name}} arguments</h3>
           </div>
           <div class="panel-body">
+            <select class="form-control" ng-model="node.source.session_id"
+                    ng-options="session.session_id as session.state.session_name[0] for session in configuration.sessions"
+                    >
+            </select>
+
             <div class="row-fluid" ng-if="requiredArguments">
               <h5 class=""><span class="glyphicon glyphicon-link"></span> Required arguments</h5>
               <rekall-plugin-arguments arguments="requiredArguments"
@@ -120,6 +124,11 @@
           </a>
         </div>
         <span>
+          <button type="button" class="btn btn-info btn-sm disabled">
+            <rekall-object
+               object="configuration.sessionsById[
+                       node.source.session_id]"/>
+          </button>
           {{node.source.plugin.name}}
           <span ng-if="node.source.arguments">
             <span ng-repeat="(key, value) in node.source.arguments">

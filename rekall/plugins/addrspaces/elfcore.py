@@ -52,7 +52,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
         self.offset = 0
         self.fname = ''
-        self.metadata = {}
+        self._metadata = {}
 
         # Now parse the ELF file.
         elf_profile = elf.ELFProfile(session=self.session)
@@ -122,7 +122,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         if pagefile_offset is not None and pagefile_size is not None:
             self.LoadPageFile(pagefile_offset, pagefile_size)
 
-        self.metadata.update(metadata)
+        self._metadata.update(metadata)
 
     pagefile_offset = 0
     pagefile_end = 0

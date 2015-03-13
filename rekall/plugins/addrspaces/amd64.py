@@ -32,6 +32,7 @@ from rekall import addrspace
 from rekall import config
 from rekall import obj
 from rekall.plugins.addrspaces import intel
+from rekall.plugins.addrspaces import standard
 
 
 config.DeclareOption("ept", group="Virtualization support",
@@ -273,8 +274,8 @@ class VTxPagedMemory(AMD64PagedMemory):
     """Intel VT-x address space.
 
     Provides an address space that does EPT page translation to provide access
-    to the guest physical address space, thus allowing volatility plugins to
-    operate on a virtual machine running on a host operating system.
+    to the guest physical address space, thus allowing plugins to operate on a
+    virtual machine running on a host operating system.
 
     This is described in the Intel(R) 64 and IA-32 Architectures Software
     Developer's Manual Volume 3C: System Programming Guide, Part 3, pages 28-1
@@ -287,7 +288,9 @@ class VTxPagedMemory(AMD64PagedMemory):
     Note that support for AMD's AMD-V address space is untested at the moment.
     """
 
-    order = 20
+    # Virtualization is always the last AS since it has to overlay any form of
+    # image AS.
+    order = standard.FileAddressSpace.order + 10
     __image = True
     _ept = None
 

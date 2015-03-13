@@ -9,11 +9,11 @@
       var socket = new WebSocket('ws://' + location.host + "/" + endpoint);
 
       socket.onopen = function(msg) {  // jshint ignore:line
-	socket.send(JSON.stringify(kwargs.params || {}));
+	socket.send(angular.toJson(kwargs.params || {}));
       };
 
       socket.onerror = function(error) {  // jshint ignore:line
-	// TODO(mbushkov): implement proper error handling
+	// TDO(mbushkov): implement proper error handling
       };
 
       if (kwargs.onclose) {

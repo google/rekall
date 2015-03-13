@@ -4,7 +4,6 @@
                               ['manuskript.core']);
 
   module.controller("FileSelectorController", function($scope, $http) {
-    $scope.filename = "/";
     $scope.files = [];
 
     $scope.updatePath = function(file) {

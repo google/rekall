@@ -13,12 +13,15 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     'manuskript.core',
     'manuskript.core.network.service',
     'manuskript.load.controller',
+    'rekall.sessions.sessionargument.directive',
+    'rekall.sessions.controller',
     'pasvaz.bindonce',
     'cfp.hotkeys',
-    'manuskript.configuration'].concat(manuskriptPluginsList));
+    'manuskript.configuration',
+  ].concat(manuskriptPluginsList));
 
   module.controller("ManuskriptAppController", function(
-    $scope, $modal, $timeout, $sce, $upload, hotkeys,
+    $scope, $modal, $timeout, $sce, $upload, $http, hotkeys,
     manuskriptCoreNodePluginRegistryService, manuskriptNetworkService,
     manuskriptConfiguration) {
 
@@ -39,7 +42,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
 
     /**
-     * A node represents the state of the cell. A node the following fields:
+     * A node represents the state of the cell. A node has the following fields:
      * - id: This is a unique number representing a unique configuration of the
      *   cell. Note that it can be used to cache cell data - id will change
      *   whenever the cell's content changes.
@@ -219,6 +222,48 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       };
     };
 
+    $scope.getSessionByID = function(session_id) {
+      for(var i=0; i < manuskriptConfiguration.sessions.length; i++) {
+        if(session_id == manuskriptConfiguration.sessions[i]) {
+          return manuskriptConfiguration.sessions[i];
+        };
+      };
+    };
+
+    $scope.manageSession = function() {
+      var newScope = $scope.$new();
+      newScope.data = {
+        sessions: manuskriptConfiguration.sessions,
+        state: manuskriptConfiguration.sessions[0].state,
+      };
+
+      $scope.$on('$destroy', function() {
+        newScope.$destroy();
+      });
+
+      /* Update the sessions on the server. */
+      var updateServerSessions = function () {
+        // Send the nodes to the server for storage.
+        $http.post("sessions/update", {
+          sessions: manuskriptConfiguration.sessions,
+        }).success(function(data) {
+          manuskriptConfiguration.sessions=data;
+        });
+      };
+
+      var modalInstance = $modal.open({
+        templateUrl: '/rekall-webconsole/components/sessions/manage-sessions.html',
+        controller: "RekallManageSessionController",
+        scope: $scope,
+        resolve: {
+          sessions: function() {
+            return manuskriptConfiguration.sessions;
+            }
+        },
+        windowClass: "wide-modal",
+      }).result.then(updateServerSessions, updateServerSessions);
+    };
+
     /**
      * Add new node before given node.
      * @param node - New node will be added before this node..
@@ -367,6 +412,17 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
             $scope.worksheet_filename = components[components.length-1];
           }
           $scope.nodes = result.cells;
+          manuskriptConfiguration.sessions = result.sessions;
+          manuskriptConfiguration.sessionsById = {}
+          for(var i=0; i < result.sessions.length; i++) {
+            manuskriptConfiguration.sessionsById[
+              result.sessions[i].session_id] = result.sessions[i];
+          };
+
+          if(manuskriptConfiguration.default_session === undefined) {
+            manuskriptConfiguration.default_session = result.sessions[0];
+          };
+
           $scope.renderAllNodes();
           $scope.$apply();
         }});
@@ -397,6 +453,10 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
     // If node order changes we refresh the server document.
     $scope.$watchCollection("nodes", $scope.uploadDocument);
+
+    // If sessions changes we refresh the server document.
+    $scope.$watchCollection(
+      "manuskriptConfiguration.sessions", $scope.uploadDocument);
 
     $scope.uploadWorksheet = function($files) {
       var file = $files[0];

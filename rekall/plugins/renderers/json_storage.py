@@ -117,20 +117,43 @@ class MIPSPagedMemoryObjectRenderer(IA32PagedMemoryObjectRenderer):
 class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = "Session"
 
-    def GetState(self, item, **_):
-        result = dict(item.state)
-        result["cls"] = item.__class__.__name__
-        return result
+    # We only serialize the following session variables since they make this
+    # session unique. When we unserialize we merge the other state variables
+    # from this current session.
+    SERIALIZABLE_STATE_PARAMETERS = [
+        ("ept", u"IntParser"),
+        ("filename", u"FileName"),
+        ("pagefile", u"FileName"),
+        ("session_name", u"String"),
+        ("timezone", u"TimeZone"),
+    ]
+
+    def GetState(self, item, **options):
+        state = super(SessionObjectRenderer, self).GetState(item, **options)
+        state["session_id"] = item.session_id
+        state_dict = state["state"] = {}
+        for parameter, type in self.SERIALIZABLE_STATE_PARAMETERS:
+            if item.HasParameter(parameter):
+                value = item.GetParameter(parameter)
+
+            if value == None:
+                value = None
+
+            state_dict[parameter] = (value, type)
+
+        return state
 
     def DecodeFromJsonSafe(self, state, options):
         state = super(SessionObjectRenderer, self).DecodeFromJsonSafe(
             state, options)
 
-        cls_name = state.pop("cls")
-        result = session.Session.classes[cls_name]()
+        mro = state["mro"].split(":")
+        result = session.Session.classes[mro[0]]()
         with result:
-            for k, v in state.iteritems():
+            for k, v in state["state"].iteritems():
                 result.SetParameter(k, v)
+
+            result.session_id = state["session_id"]
 
         return result
 
@@ -176,8 +199,12 @@ class NoneObjectRenderer(json_renderer.StateBasedObjectRenderer):
 class UnixTimestampJsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = "UnixTimeStamp"
 
+    def Summary(self, item, **_):
+        return item.get("string_value", "")
+
     def GetState(self, item, **_):
-        return dict(epoch=item.v())
+        return dict(epoch=item.v(),
+                    string_value=unicode(item))
 
     def DecodeFromJsonSafe(self, state, options):
         return self.session.profile.UnixTimeStamp(value=state.get("epoch", 0))
@@ -203,3 +230,50 @@ class ArrayObjectRenderer(PointerObjectRenderer):
         state["count"] = item.count
 
         return state
+
+
+class JsonAttributedStringRenderer(json_renderer.StateBasedObjectRenderer):
+    """Encode an attributed string."""
+    renders_type = "AttributedString"
+
+    def GetState(self, item, **options):
+        state = super(JsonAttributedStringRenderer, self).GetState(
+            item, **options)
+
+        state["value"] = utils.SmartUnicode(item.value)
+        state["highlights"] = item.highlights
+        return state
+
+
+class JsonHexdumpRenderer(json_renderer.StateBasedObjectRenderer):
+    """Encode a hex dumped string."""
+    renders_type = "HexDumpedString"
+
+    def GetState(self, item, **options):
+        state = super(JsonHexdumpRenderer, self).GetState(item, **options)
+        state["value"] = [unicode(x.encode("hex")) for x in item.value]
+        state["translated"] = u".".join([
+            x if ord(x) < 127 and ord(x) > 32 else "." for x in item.value])
+
+        state["highlights"] = item.highlights
+
+        return state
+
+
+class JsonInstructionRenderer(json_renderer.StateBasedObjectRenderer):
+    renders_type = "Instruction"
+
+    def GetState(self, item, **_):
+        return dict(value=unicode(item))
+
+
+class JsonEnumerationRenderer(json_renderer.StateBasedObjectRenderer):
+    """For enumerations store both their value and the enum name."""
+    renders_type = "Enumeration"
+
+    def GetState(self, item, **_):
+        return dict(enum=unicode(item),
+                    value=int(item))
+
+    def Summary(self, item, **_):
+        return item.get("enum", "")

@@ -56,12 +56,15 @@
         </div>
 
         <div class="col-md-{{main_width}}">
-          <div class="navbar-header">
-            <a class="navbar-brand" bo-text="pageTitle"></a>
-          </div>
-
           <!-- Toolbar -->
           <div class="btn-group btn-group-sm">
+            <div class="btn btn-default navbar-btn"
+               tooltip="Manage session." tooltip-placement="bottom"
+               tooltip-append-to-body
+               ng-click="manageSession()">
+              <span class="glyphicon glyphicon-off"></span> Session
+            </div>
+
             <button type="button" class="btn btn-default navbar-btn" ng-click="addNode()">
               <span class="glyphicon glyphicon-plus"></span> Cell
             </button>
@@ -179,7 +182,6 @@
           </div>
         </div>
         <div ng-repeat="node in nodes" ng-click="selection.node = node">
-
           <div ng-include="getIncludedFile(node)" ng-class="cellClass(node)">
           </div>
 

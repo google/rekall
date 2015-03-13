@@ -57,8 +57,8 @@ config.DeclareOption(
 
 
 HIGHLIGHT_SCHEME = dict(
-    important=("WHITE", "RED"),
-    good=("GREEN", None),
+    important=(u"WHITE", u"RED"),
+    good=(u"GREEN", None),
     neutral=(None, None))
 
 
@@ -252,8 +252,7 @@ class Pager(object):
 class Colorizer(object):
     """An object which makes its target colorful."""
 
-    COLORS = "BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE"
-    #COLORS = "BLACK BLUE CYAN GREEN MAGENTA RED WHITE YELLOW"
+    COLORS = u"BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE"
     COLOR_MAP = dict([(x, i) for i, x in enumerate(COLORS.split())])
 
     terminal_capable = False
@@ -482,17 +481,17 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
             "         `^'                    `^'  `-^-'             \n")
 
         cell = Cell(value=cow,
-                    highlights=[(33, 45, "RED", "RED"),
-                                (88, 93, "RED", "RED"),
-                                (93, 95, "WHITE", "WHITE"),
-                                (95, 100, "RED", "RED"),
-                                (143, 145, "RED", "RED"),
-                                (145, 153, "WHITE", "WHITE"),
-                                (153, 155, "RED", "RED"),
-                                (198, 203, "RED", "RED"),
-                                (203, 205, "WHITE", "WHITE"),
-                                (205, 210, "RED", "RED"),
-                                (253, 265, "RED", "RED")])
+                    highlights=[(33, 45, u"RED", u"RED"),
+                                (88, 93, u"RED", u"RED"),
+                                (93, 95, u"WHITE", u"WHITE"),
+                                (95, 100, u"RED", u"RED"),
+                                (143, 145, u"RED", u"RED"),
+                                (145, 153, u"WHITE", u"WHITE"),
+                                (153, 155, u"RED", u"RED"),
+                                (198, 203, u"RED", u"RED"),
+                                (203, 205, u"WHITE", u"WHITE"),
+                                (205, 210, u"RED", u"RED"),
+                                (253, 265, u"RED", u"RED")])
         return cell
 
 

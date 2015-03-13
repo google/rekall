@@ -20,7 +20,8 @@
 #
 """This module manages the command line parsing logic.
 
-
+Rekall uses the argparse module for command line parsing, however this module
+contains so many bugs it might be worth to implement our own parser in future.
 """
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
@@ -185,6 +186,11 @@ def ParseGlobalArgs(parser, argv, user_session):
 
     with user_session.state as state:
         for arg, value in vars(known_args).items():
+            # Argparser erroneously parses flags as str objects, but they are
+            # really unicode objects.
+            if isinstance(value, str):
+                value = utils.SmartUnicode(value)
+
             # Argparse tries to interpolate defaults into the parsed data in the
             # event that the args are not present - even when calling
             # parse_known_args. Before we get to this point, the config system
@@ -280,7 +286,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
     # This is used to allow the user to break the command line arbitrarily.
     parser.add_argument('-', dest='__dummy', action="store_true",
                         help="A do nothing arg. Useful to separate options "
-                        "which table multiple args from positional. Can be "
+                        "which take multiple args from positional. Can be "
                         "specified many times.")
 
     try:

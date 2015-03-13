@@ -489,3 +489,25 @@ class BaseRenderer(object):
         # This should never happen if the renderer installs a handler for
         # object().
         raise RuntimeError("Unable to render object")
+
+
+def CopyObjectRenderers(args, renderer=None):
+    """Automatically copy the object renderers for a renderer.
+
+    This is a convenience method which automatically generates the handlers for
+    the given renderer by copying them from the object renderers given in args.
+
+    Args:
+      args: classes to copy.
+
+      renderer: A string describing the renderer to apply the object renderers
+      to.
+
+    Return:
+      Nothing - new renderers are automatically registered.
+
+    """
+    for arg in args:
+        # Make a new unique name.
+        new_class_name = renderer + arg.__name__
+        type(new_class_name, (arg,), dict(renderers=[renderer]))

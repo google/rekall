@@ -251,4 +251,8 @@ def DeclareOption(*args, **kwargs):
     """Declare a config option for command line and config file."""
     # Options can not be positional!
     kwargs["positional"] = False
+    default = kwargs.get("default")
+    if default is not None and isinstance(default, str):
+        kwargs["default"] = unicode(default)
+
     OPTIONS.add_argument(*args, **kwargs)

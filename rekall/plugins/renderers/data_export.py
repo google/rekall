@@ -35,8 +35,21 @@ which is not relevant without access to the original image.
 """
 
 from rekall import utils
+from rekall.ui import renderer
 from rekall.ui import json_renderer
 from rekall.plugins.renderers import json_storage
+
+
+# Copy many of the normal json object renderers.
+renderer.CopyObjectRenderers((
+    json_storage.NoneObjectRenderer,
+    json_storage.JsonAttributedStringRenderer,
+    json_storage.JsonHexdumpRenderer,
+    json_storage.SessionObjectRenderer,
+    json_storage.JsonInstructionRenderer,
+    json_renderer.StringRenderer,
+    json_storage.UnixTimestampJsonObjectRenderer,
+), renderer="DataExportRenderer")
 
 
 class DataExportRenderer(json_renderer.JsonRenderer):
@@ -87,28 +100,6 @@ class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renderers = ["DataExportRenderer"]
 
 
-class DataExportNoneObjectRenderer(json_storage.NoneObjectRenderer):
-    renderers = ["DataExportRenderer"]
-
-
-class DataExportNoneRenderer(NativeDataExportObjectRenderer):
-    renders_type = "NoneType"
-
-    def Summary(self, item, **_):
-        return "-"
-
-
-class DataExportInstructionRenderer(DataExportObjectRenderer):
-    renders_type = "Instruction"
-
-    def GetState(self, item, **_):
-        return dict(value=unicode(item))
-
-
-class DataExportStringRenderer(json_renderer.StringRenderer):
-    renderers = ["DataExportRenderer"]
-
-
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):
     renders_type = "BaseObject"
 
@@ -152,27 +143,3 @@ class DataExportNativeTypeRenderer(DataExportObjectRenderer):
 
     def EncodeToJsonSafe(self, item, **_):
         return item.v()
-
-
-class DataExportEnumerationRenderer(DataExportObjectRenderer):
-    """For enumerations store both their value and the enum name."""
-    renders_type = "Enumeration"
-
-    def GetState(self, item, **_):
-        return dict(enum=unicode(item),
-                    value=int(item))
-
-    def Summary(self, item, **_):
-        return item.get("enum", "")
-
-
-class DataExportUnixTimestampObjectRenderer(DataExportObjectRenderer):
-    renders_type = "UnixTimeStamp"
-
-    def Summary(self, item, **_):
-        return item.get("string_value", "")
-
-    def GetState(self, item, **_):
-        return dict(type_name="UnixTimeStamp",
-                    epoch=item.v(),
-                    string_value=unicode(item))

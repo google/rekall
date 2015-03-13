@@ -72,6 +72,15 @@
         </samp>
       </span>
 
+      <span bo-switch-when="AttributedString">
+        <samp class="pre" bo-bind="object.value" />
+      </span>
+
+      <span bo-switch-when="HexDumpedString">
+        <samp class="pre" bo-bind="object.value" />
+        <samp class="pre" bo-bind="object.translated" />
+      </span>
+
       <span bo-switch-when="bool">
         <span class="glyphicon"
               bo-class="{'glyphicon-ok': object, 'glyphicon-remove': !object}"/>
@@ -81,8 +90,12 @@
         <samp bo-bind="object.str" />
       </span>
 
+      <span bo-switch-when="Session">
+        <samp bo-bind="object.state.session_name[0]" />
+      </span>
+
       <span bo-switch-default>
-        <samp bo-bind="object"/>
+        <samp bo-bind="object" class="pre" />
       </span>
 
     </span>

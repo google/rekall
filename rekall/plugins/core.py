@@ -758,7 +758,8 @@ class DT(plugin.ProfileCommand):
 
 class AddressMap(object):
     """Label memory ranges."""
-    _COLORS = "BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE".split()
+    _COLORS = u"BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE".split()
+
     # All color combinations except those with the same foreground an background
     # colors, since these will be invisible.
     COLORS = []
@@ -954,7 +955,7 @@ class Dump(plugin.Command):
         offset = self.offset
         for offset in range(self.offset, self.offset + to_read, self.width):
             # Add a symbol name for the start of each row.
-            hex_data = utils.AttributedString(
+            hex_data = utils.HexDumpedString(
                 self.address_space.read(offset, self.width),
                 highlights=self.address_map.HighlightRange(
                     offset, offset + self.width, relative=True))

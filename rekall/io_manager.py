@@ -77,7 +77,7 @@ class IOManager(object):
 
     order = 100
 
-    def __init__(self, urn=None, mode="r", session=None,
+    def __init__(self, urn=None, mode="r", session=None, pretty_print=True,
                  version=constants.PROFILE_REPOSITORY_VERSION):
         """Initialize the IOManager.
 
@@ -90,17 +90,23 @@ class IOManager(object):
 
           session: The session object.
 
+          pretty_print: If specified we dump sorted yaml data - this ends up
+          being more compressible in reality.
+
           version: The required version of the repository. The IOManager is free
                to implement arbitrary storage for different versions if
                required. Versioning the repository allows us to update the
                repository file format transparently without affecting older
                Rekall versions.
+
         """
         self.mode = mode
         self.urn = urn
         self.version = version
         self.session = session
+        self.pretty_print = pretty_print
         self._inventory = None
+        self.location = ""
 
     @property
     def inventory(self):
@@ -206,6 +212,8 @@ class IOManager(object):
         with self.Create(name) as fd:
             if raw:
                 to_write = utils.SmartStr(data)
+            elif self.pretty_print:
+                to_write = utils.PPrint(data)
             else:
                 to_write = json.dumps(data, sort_keys=True, **options)
 
@@ -243,7 +251,7 @@ class DirectoryIOManager(IOManager):
     def __init__(self, urn=None, **kwargs):
         super(DirectoryIOManager, self).__init__(**kwargs)
 
-        self.dump_dir = os.path.normpath(os.path.abspath(urn))
+        self.location = self.dump_dir = os.path.normpath(os.path.abspath(urn))
         if not self.version:
             self.version = ""
 
@@ -344,7 +352,8 @@ class ZipFileManager(IOManager):
 
         self.fd = fd
         if urn is not None:
-            self.file_name = os.path.normpath(os.path.abspath(urn))
+            self.location = self.file_name = os.path.normpath(
+                os.path.abspath(urn))
             self.canonical_name = os.path.splitext(os.path.basename(urn))[0]
 
         self._OpenZipFile()

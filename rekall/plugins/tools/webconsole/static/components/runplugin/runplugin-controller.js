@@ -14,8 +14,10 @@
                                'pasvaz.bindonce']);
 
   module.controller('RekallRunPluginController', function(
-    $scope, $filter, manuskriptNetworkService,
+    $scope, $filter, manuskriptNetworkService, manuskriptConfiguration,
     rekallPluginRegistryService, rekallJsonDecoderService) {
+
+    $scope.configuration = manuskriptConfiguration;
 
     $scope.search = {
       pluginName: null

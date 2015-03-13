@@ -1,10 +1,9 @@
 """Implements scanners and plugins to find hypervisors in memory."""
 
-from rekall import config
 from rekall import plugin
 from rekall import obj
 from rekall import scan
-from rekall import session
+from rekall import session as session_module
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.overlays import basic
@@ -426,8 +425,9 @@ class VirtualMachine(object):
             "profile": None,
         }
         vm_session = self.base_session.clone(**session_override)
-        vm_session.session_name = "VM %s" % ','.join(['0x%X' % s for s
-                                                      in self.ept_list])
+        vm_session.session_name = u"VM %s" % u','.join(
+            [u'0x%X' % s for s in self.ept_list])
+
         vm_session.Reset()
         return vm_session
 
@@ -443,7 +443,7 @@ class VirtualMachine(object):
         mapped in our physical AS and then try to validate them via HOST_CR3
         in our context.
         """
-
+        _ = validate_all   # TODO: Not currently implemented.
         if not vm_list:
             return
 
@@ -454,7 +454,7 @@ class VirtualMachine(object):
             for vm in vm_list:
                 if self.base_session:
                     self.base_session.report_progress(
-                        "Validating VM(%X) > VM(%X) @ %#X",
+                        u"Validating VM(%X) > VM(%X) @ %#X",
                         self.ept, vm.ept, paddr)
 
                 for vmcs in vm.vmcss:
@@ -465,7 +465,7 @@ class VirtualMachine(object):
                     # This step makes sure the VMCS is mapped in the
                     # Level1 guest physical memory (us).
                     if (paddr <= vmcs.obj_offset and
-                        vmcs.obj_offset < paddr+size):
+                            vmcs.obj_offset < paddr+size):
                         # Now we need to validate the VMCS under our context.
                         # For this we need to fix the VMCS AS and its offset.
                         vm.set_parent(self)
@@ -585,16 +585,15 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # core because more page tables would have to be maintained for the
         # same VM.
         for host_rip, rip_vmcs_list in groupby(
-
-            sorted(all_vmcs, key=lambda x: long(x.HOST_RIP)),
-            lambda x: long(x.HOST_RIP)):
+                sorted(all_vmcs, key=lambda x: long(x.HOST_RIP)),
+                lambda x: long(x.HOST_RIP)):
 
             sorted_rip_vmcs_list = sorted(
                 rip_vmcs_list, key=lambda x: long(x.m("EPT_POINTER_FULL")))
 
             for ept, rip_ept_vmcs_list in groupby(
-                sorted_rip_vmcs_list,
-                lambda x: long(x.m("EPT_POINTER_FULL"))):
+                    sorted_rip_vmcs_list,
+                    lambda x: long(x.m("EPT_POINTER_FULL"))):
 
                 vm = VirtualMachine(host_rip=host_rip, ept=ept,
                                     session=self.session)
@@ -607,7 +606,8 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                         # --ept parameter on the command line.
                         if vmcs.IS_NESTED:
                             if (self._image_is_guest or
-                                self.physical_address_space.metadata("ept")):
+                                    self.physical_address_space.metadata(
+                                        "ept")):
                                 vm.add_vmcs(vmcs, validate=self._validate)
                             else:
                                 vm.add_vmcs(vmcs, validate=False)
@@ -661,8 +661,8 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # This step validates nested VMs. We try all candidate nested vms
         # against all candidate hosts.
         for candidate_host_vm in candidate_hosts:
-            candidate_host_vm.add_nested_vms(nested_vms,
-                                             validate_all=not self._quick)
+            candidate_host_vm.add_nested_vms(
+                nested_vms, validate_all=not self._quick)
 
         # Add all remaining VMs that we weren't able to guess the hierarchy of
         # to the output vm list.
@@ -709,8 +709,9 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         vm_ept = ','.join(["0x%X" % e for e in vm.ept_list])
         renderer.table_row(vm, 'VM', vm.is_valid, vm_ept, depth=indent_level)
 
-        if vm.is_valid and isinstance(self.session, session.InteractiveSession):
-            self.session.add_session(vm.GetSession())
+        if vm.is_valid and isinstance(
+                self.session, session_module.InteractiveSession):
+            self.session.session_list.append(vm.GetSession())
 
         if self.verbosity > 1:
             for vmcs in sorted(vm.vmcss,

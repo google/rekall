@@ -162,7 +162,6 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     def GetAddressSpaceImplementation(self):
         """Returns the correct address space class for this profile."""
-
         # The virtual address space implementation is chosen by the profile.
         architecture = self.profile.metadata("arch")
         if architecture == "AMD64":

@@ -542,7 +542,7 @@ class UnixTimeStamp(obj.NativeType):
 
         # Default to display in UTC.
         try:
-            timezone_name = "UTC"
+            timezone_name = u"UTC"
             if custom_tz:
                 timezone_name = custom_tz
             elif session and session.GetParameter("timezone"):

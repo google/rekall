@@ -27,7 +27,9 @@ import importlib
 import itertools
 import json
 import re
+import shutil
 import socket
+import tempfile
 import threading
 import time
 
@@ -406,7 +408,7 @@ fcntl = ConditionalImport("fcntl")
 
 
 class FileLock(object):
-    """A self cleaning temporary directory."""
+    """A self releasing file lock."""
 
     def __init__(self, fd):
         self.fd = fd
@@ -419,6 +421,18 @@ class FileLock(object):
     def __exit__(self, exc_type, exc_value, traceback):
         if fcntl:
             fcntl.flock(self.fd.fileno(), fcntl.LOCK_UN)
+
+
+class TempDirectory(object):
+    """A self cleaning temporary directory."""
+
+    def __enter__(self):
+        self.name = tempfile.mkdtemp()
+
+        return self.name
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        shutil.rmtree(self.name, True)
 
 
 class AttributedString(object):
@@ -438,6 +452,10 @@ class AttributedString(object):
     def __repr__(self):
         return "AttributedString(%s, highlights=%s)" % (repr(self.value),
                                                         repr(self.highlights))
+
+
+class HexDumpedString(AttributedString):
+    """A string which should be hex dumped."""
 
 
 class AttributeDict(dict):
@@ -515,6 +533,9 @@ def PPrint(data, depth=0):
     This produces both a valid json and a valid python file.
     """
     result = []
+    if type(data) is bool:
+        return str(data).lower()
+
     if isinstance(data, dict):
         # Empty dicts emitted on one line.
         if not data:
@@ -552,7 +573,7 @@ def PPrint(data, depth=0):
     elif data is None:
         return "null"
 
-    return str(data)
+    return SmartStr(data)
 
 
 DEFINE_REGEX = re.compile(r"#define\s+([A-Z0-9_]+)\s+((0x)?[0-9A-Z]+)")

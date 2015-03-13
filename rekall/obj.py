@@ -164,7 +164,7 @@ class NoneObject(object):
         # important to see their reason.
         if kwargs.get("log"):
             logging.log(logging.WARN, reason)
-        self.reason = reason
+        self.reason = unicode(reason)
         self.strict = kwargs.get("strict")
         self.args = args
         if self.strict:

@@ -1,0 +1,8 @@
+.session-form {
+    height: 90%;
+}
+
+.session-list {
+    height: 90%;
+    overflow-y: auto;
+}

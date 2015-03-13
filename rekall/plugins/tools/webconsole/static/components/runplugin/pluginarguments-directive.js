@@ -1,8 +1,59 @@
 'use strict';
 (function() {
 
-  var module = angular.module('rekall.runplugin.pluginArguments.directive',
-                              ['manuskript.core.network.service']);
+  var module = angular.module('rekall.runplugin.pluginArguments.directive', [
+    'manuskript.core.network.service',
+  ]);
+
+  // An ng-model directive to present a filename selector.
+  module.directive('rekallFilename', function($modal, $http) {
+    return {
+      templateUrl: '/rekall-webconsole/components/runplugin/file-selector.html',
+      scope: {
+        filename: '=',
+      },
+      link: function($scope, elem, attr) {
+        $scope.$watch("filename", function() {
+          $scope.error = null;
+
+          $http.get(
+            location.href + 'worksheet/list_files', {
+              params: {
+                path: $scope.filename,
+              }
+            }).success(function(response){
+              $scope.files = response.files;
+            }).error(function (response) {
+              $scope.error = response;
+            });
+        });
+
+        $scope.updatePath = function(file) {
+          $scope.error = null;
+          $scope.filename = file.path;
+
+          if (file.type != "directory") {
+            $scope.modal.close();
+          };
+        };
+
+        $scope.previousDir = function() {
+          var components = $scope.filename.split("/");
+          if (components.length > 2) {
+            components.splice(components.length - 1, 1);
+            $scope.filename = components.join("/");
+          };
+        };
+
+        elem.on('mousedown', function(event) {
+          $scope.modal = $modal.open({
+            templateUrl: '/rekall-webconsole/components/runplugin/file-selector-modal.html',
+            scope: $scope,
+          });
+        });
+      },
+    };
+  });
 
   // An ng-model directive to convert to/from HEX.
   module.directive('rekallInt', function() {
@@ -115,10 +166,12 @@
         // Prefill the defaults.
         for (var i=0; i<scope.arguments.length; i++) {
           var arg = scope.arguments[i];
-          var existing_value = scope.filledArguments[arg.name];
+          if (scope.filledArguments !== undefined) {
+            var existing_value = scope.filledArguments[arg.name];
 
-          if (existing_value === null && arg.default !== null) {
-            scope.filledArguments[arg.name] = arg.default;
+            if (existing_value === null && arg.default !== null) {
+              scope.filledArguments[arg.name] = arg.default;
+            };
           };
         }
       }

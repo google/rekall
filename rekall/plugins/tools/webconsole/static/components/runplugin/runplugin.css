@@ -127,3 +127,11 @@ addrpad {
 .wide-modal .modal-dialog {
     width: 90%;
 }
+
+samp.pre {
+ white-space: pre;
+}
+
+.btn {
+    font-weight: bold;
+}

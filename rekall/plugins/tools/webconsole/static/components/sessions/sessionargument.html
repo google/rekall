@@ -1,0 +1,12 @@
+<table class="table table-condensed">
+  {{session}}
+  <tr ng-repeat="(key, value) in session">
+    <td width="50%">
+      <small>{{key}} ({{arguments[key].type}}{{arguments[key].nargs}})</small>
+      <div ng-if="arguments[key].help">
+        <h5><small>{{arguments[key].help}}</small></h5>
+      </div>
+    </td>
+    <td> {{key}} </td> <td> {{ value }} </td>
+  </tr>
+</table>

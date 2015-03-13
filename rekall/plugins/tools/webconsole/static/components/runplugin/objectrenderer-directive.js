@@ -90,7 +90,10 @@
     '_EPROCESS': true,
     'bool': true,
     'VirtualMachine': true,
+    'AttributedString': true,
+    'HexDumpedString': true,
     'str': true,
+    'Session': true,
   };
 
   var getTemplate = function(item) {

@@ -90,13 +90,6 @@ class BaseSessionCommand(plugin.Command):
         self.kwargs = kwargs
         self.session_id = session_id
 
-    def _find_session(self, session_id):
-        """Finds a session by its id."""
-        for session in self.session.session_list:
-            if session.session_id == session_id:
-                return session
-        return None
-
 
 class SessionList(BaseSessionCommand):
     """List the sessions available."""
@@ -114,7 +107,7 @@ class SessionSwitch(BaseSessionCommand):
     __name = "sswitch"
 
     def render(self, renderer):
-        new_session = self._find_session(self.session_id)
+        new_session = self.session.find_session(self.session_id)
         if new_session:
             self.session.locals["session"] = new_session
         else:
@@ -126,21 +119,21 @@ class SessionNew(BaseSessionCommand):
     __name = "snew"
 
     def render(self, renderer):
-        new_session_name = (self.session_id or
-                            "Copy of %s" % self.session.session_name)
-        new_session = self.session.clone(session_name=new_session_name,
-                                         **self.kwargs)
-        self.session.add_session(new_session)
+        new_session = self.session.add_session(**self.kwargs)
+
+        # Switch to the new session.
+        self.session.plugins.sswitch(new_session.session_id).render(renderer)
 
         renderer.format("Created session [{0:s}] {1:s}\n",
                         new_session.session_id, new_session.session_name)
+
 
 class SessionDelete(SessionSwitch):
     """Delete a session."""
     __name = "sdel"
 
     def render(self, renderer):
-        session = self._find_session(self.session_id)
+        session = self.session.find_session(self.session_id)
         if session == None:
             renderer.format("Invalid session id.\n")
         elif session == self.session:
