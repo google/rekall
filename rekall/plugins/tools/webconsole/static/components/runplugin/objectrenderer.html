@@ -1,103 +1,105 @@
-<rekall-context-menu object='object' bindonce="template">
+<span ng-if="::object !== undefined && object !== null">
+<rekall-context-menu object='::object'>
   <!-- If the object has a details attribute, we always show it instead of our
   rendering. This is equivalent to the repr() of the object.
     -->
-  <span bo-if="object.details">
-    <samp bo-bind="object.details"/>
+  <span ng-if="::object.details !== undefined">
+    <samp>{{::object.details}}</samp>
   </span>
 
-  <span bo-if="!object.details">
-    <span bo-switch="template">
-
-      <span bo-switch-when="LiteralAddress">
-        <addrpad object="object" />
+  <span ng-if="::object.details === undefined">
+    <span ng-switch="::template">
+      <span ng-switch-when="LiteralAddress">
+        <addrpad object="::object" />
       </span>
 
-      <span bo-switch-when="Address">
-        <addrpad object="object.value" />
+      <span ng-switch-when="Address">
+        <addrpad object="::object.value" />
       </span>
 
-      <span bo-switch-when="Pointer">
-        <addrpad object="object.target" pad=14 />
+      <span ng-switch-when="Pointer">
+        <addrpad object="::object.target" pad="14" />
       </span>
 
-      <span bo-switch-when="PaddedAddress">
-        <addrpad object="object.value" pad=14 />
+      <span ng-switch-when="PaddedAddress">
+        <addrpad object="::object.value" pad="14" />
       </span>
 
-      <span bo-switch-when="AddressSpace">
-        <samp bo-text="object.name"/>
+      <span ng-switch-when="AddressSpace">
+        <samp>{{::object.name}}</samp>
       </span>
 
-      <span bo-switch-when="Enumeration">
-        <samp class="enum" bo-text="object.enum"/> (<samp bo-text="object.value"/>)
+      <span ng-switch-when="Enumeration">
+        <samp class="enum">{{::object.enum}}</samp> (<samp>{{::object.value}}</samp>)
       </span>
 
-      <span bo-switch-when="Literal">
-        <samp bo-text="object.value"/>
+      <span ng-switch-when="Literal">
+        <samp>{{::object.value}}
       </span>
 
-      <span bo-switch-when="NativeType">
-        <samp bo-bind="object.value"></samp>
+      <span ng-switch-when="NativeType">
+        <samp>{{::object.value}}</samp>
       </span>
 
-      <span bo-switch-when="NoneObject">
-        <samp tooltip="{{object.reason}}" class="NoneObject">-</samp>
+      <span ng-switch-when="NoneObject">
+        <samp tooltip="{{::object.reason}}" class="NoneObject">-</samp>
       </span>
 
-      <span bo-switch-when="BaseObject">
-        <samp bo-bind="object.type_name"/>@<addrpad object="object.offset"/>
+      <span ng-switch-when="BaseObject">
+        <samp>{{::object.type_name}} @<addrpad object="::object.offset" />
       </span>
 
-      <span bo-switch-when="Instruction">
-        <rekall-instruction object="object" />
-      </span>
-      <span bo-switch-when="Struct">
-        <addrpad object="object.offset" />
+      <span ng-switch-when="Instruction">
+        <rekall-instruction object="::object" />
       </span>
 
-      <span bo-switch-when="UnixTimeStamp">
-        <samp bo-bind="object.epoch * 1000 | date:'medium'"></samp>
+      <span ng-switch-when="Struct">
+        <addrpad object="::object.offset" />
       </span>
 
-      <span bo-switch-when="_EPROCESS">
+      <span ng-switch-when="UnixTimeStamp">
+        <samp>{{::object.epoch * 1000 | date:'medium'}}</samp>
+      </span>
+
+      <span ng-switch-when="_EPROCESS">
         <samp class="process">
-          <span bo-bind="object.Cybox.Name"/> (<span bo-bind="object.Cybox.PID"/>)
+          <span>{{::object.Cybox.Name}}</span> (<span>{{::object.Cybox.PID}}</span>)
         </samp>
       </span>
 
-      <span bo-switch-when="VirtualMachine">
+      <span ng-switch-when="VirtualMachine">
         <samp class="process">
-          VM [<span bo-bind="object.num_cores"/> vCORE(s), <span bo-bind="object.guest_arch"/>]
+          VM [<span>{{::object.num_cores}}</span> vCORE(s), <span>{{::object.guest_arch}}</span>]
         </samp>
       </span>
 
-      <span bo-switch-when="AttributedString">
-        <samp class="pre" bo-bind="object.value" />
+      <span ng-switch-when="AttributedString">
+        <samp class="pre">{{::object.value}}</samp>
       </span>
 
-      <span bo-switch-when="HexDumpedString">
-        <samp class="pre" bo-bind="object.value" />
-        <samp class="pre" bo-bind="object.translated" />
+      <span ng-switch-when="HexDumpedString">
+        <samp class="pre">{{::object.value}}</samp>
+        <samp class="pre">{{::object.translated}}</samp>
       </span>
 
-      <span bo-switch-when="bool">
+      <span ng-switch-when="bool">
         <span class="glyphicon"
-              bo-class="{'glyphicon-ok': object, 'glyphicon-remove': !object}"/>
+              ng-class="::{'glyphicon-ok': object, 'glyphicon-remove': !object}"/>
       </span>
 
-      <span bo-switch-when="str">
-        <samp bo-bind="object.str" />
+      <span ng-switch-when="str">
+        <samp>{{::object.str}}</samp>
       </span>
 
-      <span bo-switch-when="Session">
-        <samp bo-bind="object.state.session_name[0]" />
+      <span ng-switch-when="Session">
+        <samp>{{::object.state.session_name[0]}}</samp>
       </span>
 
-      <span bo-switch-default>
-        <samp bo-bind="object" class="pre" />
+      <span ng-switch-default>
+        <samp class="pre">{{::object}}</samp>
       </span>
-
     </span>
   </span>
+
 </rekall-context-menu>
+</span>

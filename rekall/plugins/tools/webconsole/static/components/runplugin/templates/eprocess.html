@@ -1,21 +1,21 @@
-<div class="panel panel-default" bindonce>
+<div class="panel panel-default">
   <!-- Default panel contents -->
-  <div class="panel-heading" bo-text="object.Cybox.Name"></div>
+  <div class="panel-heading">{{::object.Cybox.Name}}</div>
 
   <!-- Table -->
   <table class="table">
     <tr>
       <td>Offset</td><td><addrpad object="object.offset"/></td>
     </tr><tr>
-      <td>Path</td><td><span bo-text="object.Cybox.Image_Info.Path"/></td>
+      <td>Path</td><td>{{::object.Cybox.Image_Info.Path}}</td>
     </tr><tr>
-      <td>File_Name</td><td><span bo-text="object.Cybox.Image_Info.File_Name"/></td>
+      <td>File_Name</td><td>{{::object.Cybox.Image_Info.File_Name}}</td>
     </tr><tr>
-      <td>Parent_PID</td><td><span bo-text="object.Cybox.Parent_PID"/></td>
+      <td>Parent_PID</td><td>{{::object.Cybox.Parent_PID}}</td>
     </tr><tr>
-      <td>Creation_Time</td><td><span bo-text="object.Cybox.Creation_Time.string_value"/></td>
+      <td>Creation_Time</td><td>{{::object.Cybox.Creation_Time.string_value}}</td>
     </tr><tr>
-      <td>Exit_Time</td><td><span bo-text="object.process_exit_time.string_value"/></td>
+      <td>Exit_Time</td><td>{{::object.process_exit_time.string_value}}</td>
     </tr>
   </table>
 </div>

@@ -2,8 +2,7 @@
 (function() {
   var module = angular.module('rekall.sessions.controller',
                               ['manuskript.core',
-                               'manuskript.core.network.service',
-                               'pasvaz.bindonce']);
+                               'manuskript.core.network.service']);
 
   module.controller('RekallManageSessionController', function(
     $scope, $modalInstance, $http, manuskriptNetworkService, sessions) {

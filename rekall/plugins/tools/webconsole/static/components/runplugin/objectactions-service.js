@@ -48,14 +48,15 @@
     };
 
 
-    this.createNewRekallModal = function($scope, pluginName, pluginArgs) {
-      var newNode = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin(
-        'rekallplugin');
+    this.createNewRekallModal = function($scope, pluginName, pluginArgs, sessionId) {
+      var newNodeModel = manuskriptCoreNodePluginRegistryService.createDefaultNodeForPlugin('rekallplugin');
 
       rekallPluginRegistryService.getPlugins(function(plugins) {
+        var newNode = angular.copy(newNodeModel);
         newNode.source = {
           'plugin': plugins[pluginName],
           'arguments': pluginArgs,
+          'session_id': $scope.sessionId
         };
 
         $scope.node = newNode;
@@ -80,6 +81,7 @@
           newNode.source = {
             'plugin': plugins[pluginName],
             'arguments': pluginArgs,
+            'session_id': $scope.sessionId
           };
 
           var nodesScope = $scope;

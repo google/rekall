@@ -1,8 +1,9 @@
-<ul class="dropdown-menu context-menu" role="menu" ng-if="menu.visible" ng-style="menu.style">
-  <li role="presentation" ng-repeat="item in menu.items">
-    <a ng-click="callItem(item, $event)" bo-text="item.title"
-       tooltip="{{item.description}}" />
+<ul class="dropdown-menu context-menu" role="menu">
+  <li role="presentation" ng-repeat="item in ::items">
+    <a ng-click="callItem(item, $event)" tooltip="{{::item.description}}">
+      {{::item.title}}
+    </a>
   </li>
 </ul>
 
-<span ng-transclude bo-class="{'actionable': actionable}"></span>
+<span ng-transclude ng-class="::{'actionable': actionable}"></span>

@@ -33,7 +33,7 @@
           scope.address = "0x" + result;
         }
       },
-      template: '<samp><span bo-bind="address" /></samp>'
+      template: '<samp>{{::address}}</samp>'
     }
   });
 
@@ -65,7 +65,7 @@
 
         scope.element = {data: [format].concat(links)};
 
-        element.html("<rekall-free-format element='element'/>");
+        element.html("<rekall-free-format element='::element'/>");
         $compile(element.contents())(scope);
       }
     };

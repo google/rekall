@@ -15,7 +15,6 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     'manuskript.load.controller',
     'rekall.sessions.sessionargument.directive',
     'rekall.sessions.controller',
-    'pasvaz.bindonce',
     'cfp.hotkeys',
     'manuskript.configuration',
   ].concat(manuskriptPluginsList));

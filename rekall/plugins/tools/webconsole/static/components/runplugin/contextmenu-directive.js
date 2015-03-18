@@ -7,40 +7,58 @@
 
   // This directive creates a context menu around a Rekall object.
   module.directive('rekallContextMenu', function(
-    rekallObjectActionsService, $modal, $timeout) {
+    rekallObjectActionsService, $timeout) {
     return {
       restrict: 'E',
       scope: {
         object: '=',
       },
-
       transclude: true,
 
-      controller: function($scope) {
-        var menu = $scope.menu = {
-          'items': [],
-          'visible': false,
-          'style': {
-            'left': 0,
-            'top': 0
-          }
-        };
-      },
-
       link: function(scope , element, attrs) {  // jshint ignore:line
-        scope.showContextMenu = function(newMenuItems, x, y) {
-          scope.menu.items = newMenuItems;
-          scope.menu.visible = true;
-          scope.menu.style.left = x;
-          scope.menu.style.top = y;
+        // Find a scope in the parent scope chain where there's a
+        // RekallRunPluginController.
+        var currentScope = scope;
+        while (currentScope) {
+          if (angular.isDefined(currentScope.node) &&
+              angular.isDefined(currentScope.pushSources)) {
+            scope.sessionId = currentScope.node.source.session_id;
+            break;
+          } else {
+            currentScope = currentScope.$parent;
+          }
         }
+        
+        // Fill items list.
+        scope.items = rekallObjectActionsService.menuItemsForObject(
+          scope.object);
+        scope.actionable = false;
+        
+        angular.forEach(scope.items, function(item) {
+          if (!item.description) {
+            item.description = '';
+          }
+        });
+        
+        scope.showContextMenu = function(x, y) {
+          var menu = $(element).find('ul');
+          menu.show();
+          menu.offset({top: y, left: x});
+        };
+
+        scope.hideContextMenu = function() {
+          $(element).find('ul').hide();
+        };
+        // Hide the menu by default.
+        scope.hideContextMenu();
 
         scope.callItem = function(item, event) {
           event.stopPropagation();
 
           item.action(scope);
-          scope.menu.visible = false;
 
+          // Hide menu when any item is clicked.
+          scope.hideContextMenu();
           return false;
         };
 
@@ -52,18 +70,14 @@
 
           // Add click handlers
           element.click(function(event) {
-            var items = rekallObjectActionsService.menuItemsForObject(scope.object);
-
             // Take into account window scrolling.
             $timeout(function () {
               scope.showContextMenu(
-                items, event.pageX, event.pageY - $(window).scrollTop());
-
+                event.pageX, event.pageY);
 
               var documentClickHandler = function(event) {
-                scope.menu.visible = false;
+                scope.hideContextMenu();
                 $(document).unbind('click', documentClickHandler);
-                scope.$apply();
 
                 event.stopPropagation();
               };

@@ -10,8 +10,7 @@
                                'rekall.runplugin.objectActions.service',
                                'rekall.runplugin.pluginArguments.directive',
                                'rekall.runplugin.pluginRegistry.service',
-                               'rekall.runplugin.rekallTable.directive',
-                               'pasvaz.bindonce']);
+                               'rekall.runplugin.rekallTable.directive']);
 
   module.controller('RekallRunPluginController', function(
     $scope, $filter, manuskriptNetworkService, manuskriptConfiguration,

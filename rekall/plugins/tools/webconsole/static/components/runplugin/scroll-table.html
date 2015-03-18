@@ -8,25 +8,27 @@
     <table class="table table-condensed table-striped table-hover">
       <thead>
         <tr>
-          <th ng-repeat="column in headers" no-watch style="font-size: 90%">
-            <span bo-text="column.name"></span>
+          <th ng-repeat="column in ::headers" style="font-size: 90%">
+            <span>{{::column.name}}</span>
           </th>
         </tr>
       </thead>
       <tbody>
         <tr ng-repeat="row in rows" ng-if="row.visible">
-            <td ng-repeat="item in row.data" no-watch style="font-size: 90%" >
-              <span bo-if="item.tree" style="margin-left: {{row.depth}}em"
+            <td ng-repeat="item in ::row.data" style="font-size: 90%" >
+              <span ng-if="::item.tree"
+                    ng-style="::{'margin-left': row.depth + 'em'}"
                     class="rekall-tree">
-                <span bo-if="!row.branch" style="margin-left: 15px"/>
-                <a bo-if="row.branch"
+                <span ng-if="::row.branch === undefined"
+                      style="margin-left: 15px" />
+                <a ng-if="::row.branch !== undefined"
                    ng-click="toggleTreeNode(row)" >
                   <span ng-class="{'glyphicon-expand': !row.opened,
                                    'glyphicon-collapse-down': row.opened}"
                         class="glyphicon" />
                 </a>
               </span>
-              <rekall-object object="item.data" />
+              <rekall-object object="::item.data" />
             </td>
           </span>
         </tr>
