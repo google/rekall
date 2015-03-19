@@ -54,9 +54,9 @@
       rekallPluginRegistryService.getPlugins(function(plugins) {
         var newNode = angular.copy(newNodeModel);
         newNode.source = {
-          'plugin': plugins[pluginName],
-          'arguments': pluginArgs,
-          'session_id': $scope.sessionId
+          plugin: plugins[pluginName],
+          arguments: pluginArgs,
+          session_id: $scope.object.session_id,
         };
 
         $scope.node = newNode;

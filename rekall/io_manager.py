@@ -166,6 +166,15 @@ class IOManager(object):
           IOManagerError: If the file is not found.
         """
 
+    def Encoder(self, data, **options):
+        if self.pretty_print:
+            return utils.PPrint(data)
+
+        return json.dumps(data, sort_keys=True, **options)
+
+    def Decoder(self, raw):
+        return json.loads(raw)
+
     def GetData(self, name, raw=False):
         """Get the data object stored at container member.
 
@@ -182,10 +191,11 @@ class IOManager(object):
         """
         try:
             fd = self.Open(name)
+            data = fd.read(MAX_DATA_SIZE)
             if raw:
-                return fd.read(MAX_DATA_SIZE)
+                return data
 
-            return json.load(fd)
+            return self.Decoder(data)
 
         except ValueError as e:
             logging.error(
@@ -212,10 +222,8 @@ class IOManager(object):
         with self.Create(name) as fd:
             if raw:
                 to_write = utils.SmartStr(data)
-            elif self.pretty_print:
-                to_write = utils.PPrint(data)
             else:
-                to_write = json.dumps(data, sort_keys=True, **options)
+                to_write = self.Encoder(data, **options)
 
             fd.write(to_write)
 

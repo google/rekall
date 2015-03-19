@@ -34,10 +34,10 @@ from rekall import io_manager
 from rekall import plugin
 from rekall import utils
 from rekall import testlib
+from rekall import yaml_utils
 
 from rekall.ui import renderer
 
-from rekall.plugins.tools.webconsole import pythoncall
 from rekall.plugins.tools.webconsole import runplugin
 
 from flask import Blueprint
@@ -80,12 +80,21 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
 
     def __init__(self, path, **kwargs):
         super(WebConsoleDocument, self).__init__(path, version="", **kwargs)
+        # The front end can request execution on cell ids to be interrupted by
+        # setting the cell id here.
+        self.aborted_cells = set()
 
     def Create(self, name):
         path = self._GetAbsolutePathName(name)
         self.EnsureDirectoryExists(os.path.dirname(path))
 
         return open(path, "wb")
+
+    def Encoder(self, data):
+        return yaml_utils.encode(data)
+
+    def Decoder(self, raw_data):
+        return yaml_utils.decode(raw_data)
 
     def FlushInventory(self):
         """Clean up deleted cells."""
@@ -115,7 +124,15 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
                 kwargs = {}
                 kwargs["session_id"] = session.get("session_id")
                 for k, v in session.get("state", {}).iteritems():
-                    kwargs[k] = v[0]
+                    item = v[0]
+                    if isinstance(item, dict):
+                        mro = item.get("mro")
+                        if mro:
+                            object_renderer = renderer.ObjectRenderer.FromMRO(
+                                mro, "JsonRenderer")(renderer="JsonRenderer")
+                            item = object_renderer.DecodeFromJsonSafe(item, {})
+
+                    kwargs[k] = item
 
                 new_session = self.session.clone(**kwargs)
                 self.session.session_list.append(new_session)
@@ -151,9 +168,8 @@ class WebConsole(plugin.Command):
     def args(cls, parser):
         super(WebConsole, cls).args(parser)
 
-        parser.add_argument("worksheet", required=False,
-                            help="The worksheet file name to use (optional). "
-                            "If not specified we start with a new file.")
+        parser.add_argument("worksheet", required=True,
+                            help="The worksheet directory name to use. ")
 
         parser.add_argument("--host", default="localhost",
                             help="Host for the web console to use.")
@@ -196,7 +212,8 @@ class WebConsole(plugin.Command):
             app = manuskript_server.InitializeApp(
                 plugins=[manuskript_plugins.PlainText,
                          manuskript_plugins.Markdown,
-                         pythoncall.RekallPythonCall,
+                         manuskript_plugins.Shell,
+                         manuskript_plugins.PythonCall,
                          runplugin.RekallRunPlugin,
                          RekallWebConsole],
                 config=dict(
@@ -214,8 +231,10 @@ class WebConsole(plugin.Command):
                 return response
             app.register_blueprint(bp)
 
-            server = pywsgi.WSGIServer((self.host, self.port), app,
-                                       handler_class=WebSocketHandler)
+            server = pywsgi.WSGIServer(
+                (self.host, self.port), app,
+                environ={'wsgi.multithread': True},
+                handler_class=WebSocketHandler)
 
             t = threading.Thread(target=self.server_post_activate_callback,
                                  args=(server,))

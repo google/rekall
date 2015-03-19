@@ -13,7 +13,7 @@
                                'rekall.runplugin.rekallTable.directive']);
 
   module.controller('RekallRunPluginController', function(
-    $scope, $filter, manuskriptNetworkService, manuskriptConfiguration,
+    $scope, $filter, $http, manuskriptNetworkService, manuskriptConfiguration,
     rekallPluginRegistryService, rekallJsonDecoderService) {
 
     $scope.configuration = manuskriptConfiguration;
@@ -30,7 +30,7 @@
         for (var key in $scope.plugins) {
           $scope.pluginsValues.push($scope.plugins[key]);
         }
-      });
+      }, $scope.node.source.session_id);
     };
 
     // If the plugin changes, we need to modify the arguments.
@@ -78,6 +78,7 @@
           onclose: function(msg) {  // jshint ignore:line
             // Rendering is complete - show the node.
             node.state = "show";
+            $scope.$evalAsync($scope.loadSessionsFromServer);
           },
           onmessage: function(jsonOutput) {
             for (var i = 0; i < jsonOutput.length; ++i) {
@@ -167,13 +168,17 @@
             $scope.node.source.arguments = {};
           }
         };
-      });
+      }, $scope.node.source.session_id);
     });
 
     $scope.minimizeToggle = function($event) {
       var body = $($event.target).parents(".panel").first().find(".panel-body");
       body.toggleClass("minimized");
       $event.stopPropagation();
+    };
+
+    $scope.cancelNode = function() {
+      $http.post("rekall/runplugin/cancel/" + $scope.node.id);
     };
 
     $scope.recalculate = function() {

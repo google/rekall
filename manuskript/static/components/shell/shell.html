@@ -1,0 +1,39 @@
+<div ng-controller="ShellController" class="shell">
+  <div class="container-fluid">
+    <div class="row source">
+      <div class="in">
+        <button type="button" class="btn btn-default"
+                ng-click="minimizeToggle($event)">
+          <span class="glyphicon glyphicon-resize-full"></span>
+        </button>
+
+        In [{{node.rendered.execution_count}}]:
+      </div>
+      <div>
+        <pre ng-if="node.state != 'edit'" ng-dblclick="editNode(node)"
+             class="readonly"
+             ng-class="{'bg-success': (node.rendered.result == '0'),
+                       'bg-danger': (node.rendered.result != '0')}"
+             >{{node.source}}</pre>
+        <div ng-if="node.state == 'edit'"
+             on-alt-enter="renderNode(node)" class="edit">
+          <textarea class="shell-textarea"
+                    focus="node.state == 'edit'"
+                    ng-model="node.source"></textarea>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+  </div>
+
+  <pre ng-if="node.rendered.stderr.length > 0"
+       class="shell-output infinite-scroll">{{node.rendered.stderr}}</pre>
+
+  <pre ng-if="node.rendered.stdout"
+       class="shell-output infinite-scroll">{{node.rendered.stdout}}</pre>
+
+  <div ng-if="node.rendered.result != '0'">
+    Return code: {{node.rendered.result[0]}}
+  </div>
+
+</div>

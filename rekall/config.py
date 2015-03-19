@@ -35,6 +35,7 @@ import collections
 import logging
 import yaml
 import os
+import tempfile
 
 from rekall import constants
 
@@ -146,14 +147,15 @@ class CommandMetadata(object):
 
 def GetHomeDir():
     return (os.environ.get("HOME") or      # Unix
-            os.environ.get("USERPROFILE")) # Windows
+            os.environ.get("USERPROFILE") or # Windows
+            tempfile.gettempdir()) # Fallback tmp dir.
 
 
 # This is the configuration file template which will be created if the user does
 # not have an existing file. The aim is not to exhaustively list all possible
 # options, rather to ensure that reasonable defaults are specified initially.
 DEFAULT_CONFIGURATION = dict(
-    profile_path=constants.PROFILE_REPOSITORIES,
+    repository_path=constants.PROFILE_REPOSITORIES,
 
     # By default we just drop the notebooks at the home directory.
     notebook_dir=GetHomeDir(),

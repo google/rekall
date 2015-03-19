@@ -1,5 +1,8 @@
 (function() {
-  var module = angular.module('manuskript.markdown.controller', ['manuskript.core']);
+  var module = angular.module('manuskript.markdown.controller', [
+    'manuskript.core',
+    'manuskript.core.autoFocus.directive',
+  ]);
 
   module.controller("MarkdownController", function($scope, $sce) {
 

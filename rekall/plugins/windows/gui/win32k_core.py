@@ -765,7 +765,7 @@ class Win32kPluginMixin(object):
 
         # For the address resolver to load this GUID.
         if win32k_profile:
-            self.session.SetParameter("win32k_profile", win32k_profile)
+            self.session.SetCache("win32k_profile", win32k_profile)
 
         resolver = self.session.address_resolver
         self.win32k_profile = resolver.LoadProfileForName("win32k")

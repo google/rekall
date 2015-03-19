@@ -122,6 +122,7 @@ class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
     # from this current session.
     SERIALIZABLE_STATE_PARAMETERS = [
         ("ept", u"IntParser"),
+        ("profile", u"FileName"),
         ("filename", u"FileName"),
         ("pagefile", u"FileName"),
         ("session_name", u"String"),
@@ -133,11 +134,9 @@ class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
         state["session_id"] = item.session_id
         state_dict = state["state"] = {}
         for parameter, type in self.SERIALIZABLE_STATE_PARAMETERS:
+            value = None
             if item.HasParameter(parameter):
                 value = item.GetParameter(parameter)
-
-            if value == None:
-                value = None
 
             state_dict[parameter] = (value, type)
 
@@ -251,7 +250,9 @@ class JsonHexdumpRenderer(json_renderer.StateBasedObjectRenderer):
 
     def GetState(self, item, **options):
         state = super(JsonHexdumpRenderer, self).GetState(item, **options)
-        state["value"] = [unicode(x.encode("hex")) for x in item.value]
+        state["value"] = " ".join(
+            [unicode(x.encode("hex")) for x in item.value])
+
         state["translated"] = u".".join([
             x if ord(x) < 127 and ord(x) > 32 else "." for x in item.value])
 
@@ -269,7 +270,7 @@ class JsonInstructionRenderer(json_renderer.StateBasedObjectRenderer):
 
 class JsonEnumerationRenderer(json_renderer.StateBasedObjectRenderer):
     """For enumerations store both their value and the enum name."""
-    renders_type = "Enumeration"
+    renders_type = ["Enumeration", "BitField"]
 
     def GetState(self, item, **_):
         return dict(enum=unicode(item),

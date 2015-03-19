@@ -38,7 +38,8 @@ from rekall.plugins.addrspaces import standard
 from pyaff4 import data_store
 from pyaff4 import zip
 from pyaff4 import lexicon
-from pyaff4 import plugins
+
+from pyaff4 import plugins  # pylint: disable=unused-import
 
 
 # Control the logging level for the pyaff4 library logger.

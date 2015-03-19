@@ -49,7 +49,7 @@ class WinSSDT(common.WindowsCommandPlugin):
         resolver = self.session.address_resolver
 
         for j, entry in enumerate(table):
-            function_address = table.obj_offset + (entry >> 4)
+            function_address = table.v() + (entry >> 4)
             renderer.table_row(
                 j, function_address,
                 resolver.format_address(

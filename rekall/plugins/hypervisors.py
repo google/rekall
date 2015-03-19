@@ -423,13 +423,11 @@ class VirtualMachine(object):
         session_override = {
             "ept": self.ept_list,
             "profile": None,
+            "session_name": u"VM %s" % u','.join(
+                [u'0x%X' % s for s in self.ept_list]),
         }
-        vm_session = self.base_session.clone(**session_override)
-        vm_session.session_name = u"VM %s" % u','.join(
-            [u'0x%X' % s for s in self.ept_list])
 
-        vm_session.Reset()
-        return vm_session
+        return self.base_session.clone(**session_override)
 
     def RunPlugin(self, plugin_name, *args, **kwargs):
         """Runs a plugin in the context of this virtual machine."""

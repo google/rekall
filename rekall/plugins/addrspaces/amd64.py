@@ -306,6 +306,9 @@ class VTxPagedMemory(AMD64PagedMemory):
         # Reset the DTB, in case a plugin or AS relies on us providing one.
         self.dtb = None
         ept_list = ept or self.session.GetParameter("ept")
+        if not isinstance(ept_list, (list, tuple)):
+            ept_list = [ept_list]
+
         self.as_assert(ept_list, "No EPT specified")
 
         this_ept = None
@@ -363,6 +366,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         super(XenParaVirtAMD64PagedMemory, self).__init__(**kwargs)
         self.page_offset = self.session.GetParameter("page_offset")
         self.m2p_mapping = {}
+        self.rebuilding_map = False
         if self.page_offset:
             self._RebuildM2PMapping()
 
@@ -403,36 +407,42 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         """
 
         logging.debug("Rebuilding the machine to physical mapping...")
-        p2m_top_location = self.session.profile.get_constant_object(
-            "p2m_top", "Pointer", vm=self).deref()
+        self.rebuilding_map = True
+        try:
+            p2m_top_location = self.session.profile.get_constant_object(
+                "p2m_top", "Pointer", vm=self).deref()
 
-        end_value = self.session.profile.get_constant("__bss_stop", False)
-        new_mapping = {}
-        for p2m_top in self._ReadP2M(p2m_top_location, self.P2M_TOP_PER_PAGE):
-            p2m_top_idx, p2m_top_entry = p2m_top
-            self.session.report_progress(
-                "Building m2p map %.02f%%" % (
-                    100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
+            end_value = self.session.profile.get_constant("__bss_stop", False)
+            new_mapping = {}
+            for p2m_top in self._ReadP2M(
+                    p2m_top_location, self.P2M_TOP_PER_PAGE):
+                p2m_top_idx, p2m_top_entry = p2m_top
+                self.session.report_progress(
+                    "Building m2p map %.02f%%" % (
+                        100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
 
-            if p2m_top_entry == end_value:
-                continue
-
-            for p2m_mid in self._ReadP2M(p2m_top_entry, self.P2M_MID_PER_PAGE):
-                p2m_mid_idx, p2m_mid_entry = p2m_mid
-                if p2m_mid_entry == end_value:
+                if p2m_top_entry == end_value:
                     continue
 
-                for p2m in self._ReadP2M(p2m_mid_entry, self.P2M_PER_PAGE):
-                    p2m_idx, mfn = p2m
-                    pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
-                           * self.P2M_PER_PAGE
-                           + p2m_mid_idx * self.P2M_PER_PAGE
-                           + p2m_idx)
+                for p2m_mid in self._ReadP2M(
+                        p2m_top_entry, self.P2M_MID_PER_PAGE):
+                    p2m_mid_idx, p2m_mid_entry = p2m_mid
+                    if p2m_mid_entry == end_value:
+                        continue
 
-                    new_mapping[mfn] = pfn
+                    for p2m in self._ReadP2M(p2m_mid_entry, self.P2M_PER_PAGE):
+                        p2m_idx, mfn = p2m
+                        pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
+                               * self.P2M_PER_PAGE
+                               + p2m_mid_idx * self.P2M_PER_PAGE
+                               + p2m_idx)
 
-        self.m2p_mapping = new_mapping
-        self.session.SetParameter("mapping", self.m2p_mapping)
+                        new_mapping[mfn] = pfn
+
+            self.m2p_mapping = new_mapping
+            self.session.SetCache("mapping", self.m2p_mapping)
+        finally:
+            self.rebuilding_map = False
 
     def m2p(self, machine_address):
         """Translates from a machine address to a physical address.
@@ -476,6 +486,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                 return self.profile.phys_addr(vaddr)
 
             # Try to update the mapping
-            self._RebuildM2PMapping()
+            if not self.rebuilding_map:
+                self._RebuildM2PMapping()
 
         return super(XenParaVirtAMD64PagedMemory, self).vtop(vaddr)

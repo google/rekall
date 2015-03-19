@@ -1019,7 +1019,7 @@ class NTFSPlugins(plugin.PhysicalASMixin, plugin.ProfileCommand):
         if self.ntfs == None:
             self.ntfs = NTFS(self.session.physical_address_space,
                              session=self.session)
-            self.session.SetParameter("ntfs", self.ntfs)
+            self.session.SetCache("ntfs", self.ntfs)
             self.session.ntfs = self.ntfs
 
 

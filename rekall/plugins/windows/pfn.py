@@ -97,7 +97,8 @@ class VtoP(common.WinProcessFilter):
     @classmethod
     def args(cls, parser):
         super(VtoP, cls).args(parser)
-        parser.add_argument("virtual_address", type="ArrayIntParser",
+        parser.add_argument("virtual_address", type="SymbolAddress",
+                            required=True,
                             help="The Virtual Address to examine.")
 
     def __init__(self, virtual_address=(), **kwargs):
@@ -809,31 +810,65 @@ class DTBScan2(common.WindowsCommandPlugin):
     This scanner uses the fact that the virtual address of the DTB is always the
     same. We walk over all the physical pages, assume each page is a DTB and try
     to resolve the constant to a physical address.
+
+    This plugin was written based on ideas and discussion with thomasdullien.
     """
 
     name = "dtbscan2"
 
+    def TestVAddr(self, test_as, vaddr, symbol_checks):
+        for vaddr, paddr in symbol_checks:
+            if test_as.vtop(vaddr) != paddr:
+                return False
+        return True
+
     def render(self, renderer):
-        kernel_base = self.session.GetParameter("kernel_base")
-        physical_kernel_base = self.kernel_address_space.vtop(kernel_base)
-        phys_as = self.physical_address_space
+        dtb_map = {}
+        pslist_plugin = self.session.plugins.pslist()
+        for task in pslist_plugin.filter_processes():
+            dtb = task.Pcb.DirectoryTableBase.v()
+            dtb_map[dtb] = task
+
+        symbols = ["nt", "nt!MmGetPhysicalMemoryRanges"]
+        if self.session.profile.metadata("arch") == "AMD64":
+            dtb_step = 0x1000
+            # Add _KUSER_SHARED_DATA
+            symbols.append(0xFFFFF78000000000)
+        else:
+            dtb_step = 0x20
+            symbols.append(0xFFDF0000)
+
+        symbol_checks = []
+        for symbol in symbols:
+            vaddr = self.session.address_resolver.get_address_by_name(symbol)
+            paddr = self.session.kernel_address_space.vtop(vaddr)
+            symbol_checks.append((vaddr, paddr))
 
         renderer.table_header([("DTB", "dtb", "[addrpad]"),
-                               ("Base", "dtb", "[addrpad]"),
-                               ("Phys", "dtb", "[addrpad]"),
+                               dict(name="Process", type="_EPROCESS"),
                               ])
 
-        # On 64 bit images DTBs are aligned to page boundaries.
-        dtb_step = 0x1000
+        descriptor = self.profile.get_constant_object(
+            "MmPhysicalMemoryBlock",
+            target="Pointer",
+            target_args=dict(
+                target="_PHYSICAL_MEMORY_DESCRIPTOR",
+                ))
 
-        for start, _, length in phys_as.get_available_addresses():
+        for memory_range in descriptor.Run:
+            start = memory_range.BasePage * 0x1000
+            length = memory_range.PageCount * 0x1000
+
             for page in range(start, start+length, dtb_step):
+                self.session.report_progress("Checking %#x", page)
                 test_as = self.session.kernel_address_space.__class__(
-                    dtb=page, base=phys_as)
+                    dtb=page, base=self.physical_address_space)
 
-                if test_as.vtop(kernel_base) == physical_kernel_base:
+                if self.TestVAddr(test_as, vaddr, symbol_checks):
                     renderer.table_row(
-                        page, kernel_base, test_as.vtop(kernel_base))
+                        page,
+                        dtb_map.get(page, obj.NoneObject("Unknown"))
+                    )
 
 
 class DTBScan(common.WinProcessFilter):

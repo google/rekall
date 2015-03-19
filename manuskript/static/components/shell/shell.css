@@ -1,0 +1,30 @@
+.cell .shell .source .CodeMirror-wrap .CodeMirror-code pre {
+    border-right: 1px solid #ccc; !important;
+}
+
+.cell .shell .in {
+    font-family: monospace;
+    float: left;
+    padding-right: 1em;
+}
+
+.cell .shell .out {
+    font-family: monospace;
+    overflow: hidden;
+}
+
+.shell .readonly .CodeMirror {
+    background: none;
+    border: none;
+}
+
+.shell .readonly .CodeMirror-lines {
+    background: none;
+    border: none;
+    cursor: default;
+}
+
+.shell-textarea {
+    width: 80%;
+    height: 10em;
+}

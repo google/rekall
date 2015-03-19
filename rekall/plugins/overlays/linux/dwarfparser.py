@@ -141,6 +141,9 @@ class DW_TAG_typedef(DIETag):
 
     def VType(self):
         """For typedefs we just substitute our base type."""
+        if self.type_id is None:
+            return self.name
+
         return self.types[self.type_id].VType()
 
 

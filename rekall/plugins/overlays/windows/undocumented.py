@@ -172,7 +172,7 @@ I386 = {
             target="Array",
             target_args=dict(
                 count=lambda x: x.ServiceLimit,
-                target="unsigned int",
+                target="long",
                 )
             )]],
         'CounterBaseTable' : [0x4, ['Pointer']],

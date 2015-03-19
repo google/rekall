@@ -45,6 +45,10 @@
         <samp tooltip="{{::object.reason}}" class="NoneObject">-</samp>
       </span>
 
+      <span ng-switch-when="None">
+        <samp class="NoneObject">-</samp>
+      </span>
+
       <span ng-switch-when="BaseObject">
         <samp>{{::object.type_name}} @<addrpad object="::object.offset" />
       </span>

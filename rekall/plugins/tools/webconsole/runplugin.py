@@ -35,9 +35,12 @@ from flask import jsonify
 from flask import json
 from flask import request
 
+import gevent
+
 from rekall.plugins.renderers import data_export
 from rekall import config
 from rekall import io_manager
+from rekall import plugin
 from rekall import utils
 from rekall.ui import json_renderer
 
@@ -111,9 +114,6 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
     # This renderer is private to the web console.
     name = None
 
-    spinner = r"/-\|"
-    last_spin = 0
-
     def __init__(self, ws=None, worksheet=None, cell_id=0, **kwargs):
         """Initialize a WebConsoleRenderer.
 
@@ -134,28 +134,6 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
 
         self.queue.append(message)
 
-    def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        if super(WebConsoleRenderer, self).RenderProgress():
-            if "%(" in message:
-                self.last_spin += 1
-                kwargs["spinner"] = self.spinner[
-                    self.last_spin % len(self.spinner)]
-
-                formatted_message = message % kwargs
-            elif args:
-                format_args = []
-                for arg in args:
-                    if callable(arg):
-                        format_args.append(arg())
-                    else:
-                        format_args.append(arg)
-
-                formatted_message = message % tuple(format_args)
-            else:
-                formatted_message = message
-
-            self.SendMessage(["p", formatted_message])
-
     def open(self, directory=None, filename=None, mode="rb"):
         if filename is None and directory is None:
             raise IOError("Must provide a filename")
@@ -174,6 +152,16 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
             return self.worksheet.Create(full_path)
 
         return self.worksheet.Open(full_path)
+
+    def RenderProgress(self, *args, **kwargs):
+        gevent.sleep(0)
+
+        if self.cell_id in self.worksheet.aborted_cells:
+            self.worksheet.aborted_cells.discard(self.cell_id)
+            raise plugin.Abort()
+
+        if super(WebConsoleRenderer, self).RenderProgress(*args, **kwargs):
+            print self.worksheet.aborted_cells
 
 
 def GenerateCacheKey(state):
@@ -194,7 +182,8 @@ class WebConsoleObjectRenderer(data_export.NativeDataExportObjectRenderer):
             renderer=self.renderer)
 
     def EncodeToJsonSafe(self, item, **options):
-        return self._GetDelegateObjectRenderer(item).EncodeToJsonSafe(
+        object_renderer = self.ForTarget(item, "DataExportRenderer")
+        return object_renderer(renderer=self.renderer).EncodeToJsonSafe(
             item, **options)
 
     def DecodeFromJsonSafe(self, value, options):
@@ -238,18 +227,23 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     @classmethod
     def PlugListPluginsIntoApp(cls, app):
 
-        @app.route("/rekall/plugins/all")
-        def list_all_plugins():  # pylint: disable=unused-variable
-            session = app.config["worksheet"].session
+        @app.route("/rekall/plugins/all/<session_id>")
+        def list_all_plugins(session_id):  # pylint: disable=unused-variable
+            worksheet = app.config["worksheet"]
+            session = worksheet.session.find_session(int(session_id))
             return jsonify(session.plugins.plugin_db.Serialize())
 
         @app.route("/rekall/symbol_search")
         def search_symbol():  # pylint: disable=unused-variable
             symbol = request.args.get("symbol", "")
+            session_id = int(request.args["session_id"])
+
             results = []
             if len(symbol) >= 3:
                 try:
-                    rekall_session = app.config["worksheet"].session
+                    rekall_session = app.config[
+                        "worksheet"].session.find_session(session_id)
+
                     results = sorted(
                         rekall_session.address_resolver.search_symbol(
                             symbol+"*"))
@@ -367,7 +361,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                 return
 
             worksheet = app.config['worksheet']
-            new_data = utils.PPrint(cells)
+            new_data = worksheet.Encoder(cells)
             old_data = worksheet.GetData("notebook_cells", raw=True)
             if old_data != new_data:
                 worksheet.StoreData("notebook_cells", new_data, raw=True)
@@ -439,18 +433,16 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
         @app.route("/worksheet/list_files")
         def list_files_in_worksheet_dir():  # pylint: disable=unused-variable
-            session = app.config['worksheet'].session
-            worksheet_dir = session.GetParameter("notebook_dir", ".")
-            full_path = os.path.normpath(os.path.join(
+            worksheet = app.config['worksheet']
+            session = worksheet.session
+            worksheet_dir = worksheet.location or "."
+            full_path = os.path.realpath(os.path.join(
                 worksheet_dir, request.args.get("path", "")))
 
-            if not os.path.isdir(full_path):
-                full_path = os.path.dirname(full_path)
-
-            if not full_path.startswith(worksheet_dir):
-                return "Can only access paths inside worksheet.", 403
-
             try:
+                if not os.path.isdir(full_path):
+                    full_path = os.path.dirname(full_path)
+
                 result = []
                 for filename in sorted(os.listdir(full_path)):
                     if filename.startswith("."):
@@ -467,7 +459,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                              type=file_type,
                              size=file_stat.st_size))
 
-                return jsonify(files=result)
+                return jsonify(files=result, path=full_path)
             except (IOError, OSError) as e:
                 return str(e), 500
 
@@ -514,6 +506,16 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     def PlugRunPluginsIntoApp(cls, app):
         sockets = Sockets(app)
 
+        @app.route("/rekall/runplugin/cancel/<cell_id>", methods=["POST"])
+        def cancel_execution(cell_id):  # pylint: disable=unused-variable
+            print "Canceling cell %s" % cell_id
+
+            worksheet = app.config["worksheet"]
+            # Signal the worksheet to abort this cell.
+            worksheet.aborted_cells.add(int(cell_id))
+
+            return "OK", 200
+
         @sockets.route("/rekall/runplugin")
         def rekall_run_plugin_socket(ws):  # pylint: disable=unused-variable
             cell = json.loads(ws.receive())
@@ -533,15 +535,19 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
 
             # Must provide the correct session to run this on.
             session_id = int(source.pop("session_id"))
+            session = worksheet.session.find_session(session_id)
 
             output = cStringIO.StringIO()
             renderer = WebConsoleRenderer(
-                session=worksheet.session, output=output, cell_id=cell_id,
+                session=session, output=output, cell_id=cell_id,
                 ws=ws, worksheet=worksheet)
+
+            # Clear the interruption state of this cell.
+            worksheet.aborted_cells.discard(cell_id)
 
             with renderer.start():
                 try:
-                    worksheet.session.find_session(session_id).RunPlugin(
+                    session.RunPlugin(
                         source["plugin"]["name"], renderer=renderer, **kwargs)
 
                 except Exception:

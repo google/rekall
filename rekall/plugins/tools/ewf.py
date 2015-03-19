@@ -313,11 +313,12 @@ class EWFFile(object):
             # This should be a ewf_table_entry object but the below is faster.
             try:
                 table_entry = table[chunk_id - start_chunk]
+
+                offset = table_entry & 0x7fffffff
+                next_offset = table[chunk_id - start_chunk + 1] & 0x7fffffff
+                compressed_chunk_size = next_offset - offset
             except IndexError:
                 return ""
-            offset = table_entry & 0x7fffffff
-            next_offset = table[chunk_id - start_chunk + 1] & 0x7fffffff
-            compressed_chunk_size = next_offset - offset
 
             data = self.address_space.read(
                 offset + table_header.base_offset, compressed_chunk_size)

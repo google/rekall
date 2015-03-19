@@ -21,11 +21,6 @@ class PythonCall(plugin.Plugin):
     @classmethod
     def PlugIntoApp(cls, app):
 
-        @app.route("/session/reset", methods=["POST"])
-        def session_reset():  # pylint: disable=unused-variable
-            app.config[cls.__name__] = shell = pythonshell.PythonShell()
-            cls.UpdatePythonShell(app, shell)
-
         @app.route("/controllers/pythoncall", methods=["POST"])
         def python_call():  # pylint: disable=unused-variable
             if cls.__name__ not in app.config:

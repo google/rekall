@@ -25,7 +25,6 @@ import ctypes
 import fcntl
 
 from rekall import addrspace
-from rekall import obj
 from rekall import session as rekall_session
 
 from rekall.plugins.addrspaces import standard
@@ -202,7 +201,7 @@ def pmem_get_profile(fd):
     mmap, size, desc_size = pmem_get_mmap(fd)
     session = rekall_session.Session()
     buffer_as = addrspace.BufferAddressSpace(data=mmap.raw, session=session)
-    session.SetParameter("default_address_space", buffer_as)
+    session.SetCache("default_address_space", buffer_as)
 
     return EFIProfile(session=session)
 
@@ -215,7 +214,7 @@ def pmem_parse_mmap(fd):
     mmap, size, desc_size = pmem_get_mmap(fd)
     session = rekall_session.Session()
     buffer_as = addrspace.BufferAddressSpace(data=mmap.raw, session=session)
-    session.SetParameter("default_address_space", buffer_as)
+    session.SetCache("default_address_space", buffer_as)
     profile = EFIProfile(session=session)
 
     for descriptor in profile.Array(

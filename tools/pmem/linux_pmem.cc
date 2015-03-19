@@ -21,48 +21,50 @@ AFF4Status LinuxPmemImager::ParseKcore(vector<KCoreRange> &ranges) {
   AFF4ScopedPtr<AFF4Stream> stream = resolver.AFF4FactoryOpen<AFF4Stream>(
       "/proc/kcore");
 
-  if(!stream) {
+  if (!stream) {
     LOG(ERROR) << "Unable to open /proc/kcore - Are you root?";
     return IO_ERROR;
   };
 
   Elf64_Ehdr header;
-  if(stream->ReadIntoBuffer(
-         (char *)&header, sizeof(header)) != sizeof(header)) {
+  if (stream->ReadIntoBuffer(
+          reinterpret_cast<char *>(&header),
+          sizeof(header)) != sizeof(header)) {
     LOG(ERROR) << "Unable to read /proc/kcore - Are you root?";
     return IO_ERROR;
   };
 
-  //Check the header for sanity.
-  if(header.ident[0] != ELFMAG0 ||
-     header.ident[1] != ELFMAG1 ||
-     header.ident[2] != ELFMAG2 ||
-     header.ident[3] != ELFMAG3 ||
-     header.ident[4] != ELFCLASS64 ||
-     header.ident[5] != ELFDATA2LSB ||
-     header.ident[6] != EV_CURRENT ||
-     header.type     != ET_CORE ||
-     header.machine  != EM_X86_64 ||
-     header.version  != EV_CURRENT ||
-     header.phentsize!= sizeof(Elf64_Phdr)){
+  // Check the header for sanity.
+  if (header.ident[0] != ELFMAG0 ||
+      header.ident[1] != ELFMAG1 ||
+      header.ident[2] != ELFMAG2 ||
+      header.ident[3] != ELFMAG3 ||
+      header.ident[4] != ELFCLASS64 ||
+      header.ident[5] != ELFDATA2LSB ||
+      header.ident[6] != EV_CURRENT ||
+      header.type     != ET_CORE ||
+      header.machine  != EM_X86_64 ||
+      header.version  != EV_CURRENT ||
+      header.phentsize != sizeof(Elf64_Phdr)) {
     LOG(ERROR) << "Unable to parse /proc/kcore - Are you root?";
     return INVALID_INPUT;
   };
 
   // Read the physical headers.
   stream->Seek(header.phoff, SEEK_SET);
-  for(int i=0; i<header.phnum; i++) {
+  for (int i = 0; i < header.phnum; i++) {
     Elf64_Phdr pheader;
-    if(stream->ReadIntoBuffer((char *)&pheader, sizeof(pheader)) != sizeof(pheader)) {
+    if (stream->ReadIntoBuffer(
+            reinterpret_cast<char *>(&pheader),
+            sizeof(pheader)) != sizeof(pheader)) {
       return IO_ERROR;
     };
 
-    if(pheader.type != PT_LOAD)
+    if (pheader.type != PT_LOAD)
       continue;
 
-    if(0xffff880000000000ULL <= pheader.vaddr &&
+    if (0xffff880000000000ULL <= pheader.vaddr &&
        pheader.vaddr <= 0xffffc7ffffffffffULL) {
-
       LOG(INFO) << "Found range " << std::hex << pheader.vaddr << " " <<
           std::hex << pheader.memsz << " At offset " << std::hex << pheader.off;
       KCoreRange range;
@@ -75,7 +77,7 @@ AFF4Status LinuxPmemImager::ParseKcore(vector<KCoreRange> &ranges) {
     };
   };
 
-  if(ranges.size() == 0) {
+  if (ranges.size() == 0) {
     LOG(INFO) << "No ranges found in /proc/kcore";
     return NOT_FOUND;
   };
@@ -87,19 +89,31 @@ AFF4Status LinuxPmemImager::ParseKcore(vector<KCoreRange> &ranges) {
 AFF4Status LinuxPmemImager::ImagePhysicalMemory() {
   std::cout << "Imaging memory\n";
   vector<KCoreRange> ranges;
+  AFF4Status res = ParseKcore(ranges);
 
-  if(ParseKcore(ranges)==STATUS_OK) {
-    LOG(INFO) << "Parsed " << ranges.size() << " ranges";
-    return ImageKcoreToMap(ranges);
+  if (res != STATUS_OK)
+    return res;
+
+  LOG(INFO) << "Parsed " << ranges.size() << " ranges";
+  res = ImageKcoreToMap(ranges);
+  if (res != STATUS_OK)
+    return res;
+
+  // Also capture these files by default.
+  if (inputs.size() == 0) {
+    LOG(INFO) << "Adding default file collections.";
+    inputs.push_back("/boot/*");
   };
-  return IO_ERROR;
+
+  res = process_input();
+  return res;
 };
 
 
 AFF4Status LinuxPmemImager::ImageKcoreToMap(vector<KCoreRange> &ranges) {
   URN output_urn;
   AFF4Status res = GetOutputVolumeURN(output_urn);
-  if(res != STATUS_OK)
+  if (res != STATUS_OK)
     return res;
 
   URN map_urn = output_urn.Append("/proc/kcore");
@@ -114,15 +128,15 @@ AFF4Status LinuxPmemImager::ImageKcoreToMap(vector<KCoreRange> &ranges) {
 
   AFF4ScopedPtr<AFF4Map> map_stream = AFF4Map::NewAFF4Map(
       &resolver, map_urn, output_urn);
-  if(!map_stream)
+  if (!map_stream)
     return IO_ERROR;
 
   AFF4ScopedPtr<AFF4Stream> kcore_stream = resolver.AFF4FactoryOpen<AFF4Stream>(
       "/proc/kcore");
-  if(!kcore_stream)
+  if (!kcore_stream)
     return IO_ERROR;
 
-  for(auto range: ranges) {
+  for (auto range : ranges) {
     kcore_stream->Seek(range.file_offset, SEEK_SET);
     map_stream->Seek(range.phys_offset, SEEK_SET);
     res = kcore_stream->CopyToStream(
@@ -130,7 +144,7 @@ AFF4Status LinuxPmemImager::ImageKcoreToMap(vector<KCoreRange> &ranges) {
         std::bind(&LinuxPmemImager::progress_renderer, this,
                   std::placeholders::_1, std::placeholders::_2));
 
-    if(res != STATUS_OK)
+    if (res != STATUS_OK)
       return res;
   };
 

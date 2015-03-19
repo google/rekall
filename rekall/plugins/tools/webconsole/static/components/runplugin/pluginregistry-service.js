@@ -1,9 +1,11 @@
 'use strict';
 (function() {
 
-  var module = angular.module('rekall.runplugin.pluginRegistry.service', []);
+  var module = angular.module('rekall.runplugin.pluginRegistry.service', [
+    'manuskript.configuration',
+  ]);
 
-  var serviceImplementation = function($http) {
+  var serviceImplementation = function($http, manuskriptConfiguration) {
     var firstLineOnly = function(str) {
       if (str) {
         return str.split('\n')[0];
@@ -12,17 +14,21 @@
       }
     };
 
-    this.getPlugins = function(successCallback) {
+    this.getPlugins = function(successCallback, session_id) {
       var self = this;
+      if (angular.isUndefined(session_id)) {
+        session_id = manuskriptConfiguration.default_session.session_id;
+      };
 
-      return $http.get('/rekall/plugins/all').success(function(response) {
-        for (var key in response) {
-          response[key].short_description = firstLineOnly(  // jshint ignore:line
-              response[key].description);
-        }
+      return $http.get('/rekall/plugins/all/' + session_id).success(
+          function(response) {
+            for (var key in response) {
+              response[key].short_description = firstLineOnly(  // jshint ignore:line
+                response[key].description);
+            }
 
-        successCallback(response);
-      });
+            successCallback(response);
+          });
     };
   };
 

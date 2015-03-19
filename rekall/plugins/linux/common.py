@@ -309,7 +309,7 @@ class LinProcessFilter(LinuxPlugin):
         self.cache = self.session.GetParameter("pslist_cache")
         if not self.cache:
             self.cache = {}
-            self.session.SetParameter("pslist_cache", self.cache)
+            self.session.SetCache("pslist_cache", self.cache)
 
         seen = set()
         for proc in self.list_from_task_head():

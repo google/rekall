@@ -46,7 +46,10 @@ class RobustEncoder(json.JSONEncoder):
         super(RobustEncoder, self).__init__(separators=(',', ':'))
 
     def default(self, o):
-        logging.error("Unable to encode %r as json, replacing with None", o)
+        import pdb; pdb.set_trace()
+        logging.error(
+            "Unable to encode %r (%s) as json, replacing with None", o,
+            type(o))
         return None
 
 
@@ -244,6 +247,16 @@ class StringRenderer(StateBasedObjectRenderer):
         except UnicodeError:
             # If we failed to encode it into utf8 we must base64 encode it.
             return dict(b64=unicode(item.encode("base64")).rstrip("\n"))
+
+    def EncodeToJsonSafe(self, item, **options):
+        # In many cases we receive a string but it can be represented as unicode
+        # object. To make it easier all round its better to continue handling it
+        # as a unicode object for JSON purposes.
+        try:
+            return item.decode("utf8", "strict")
+        except UnicodeError:
+            return super(StringRenderer, self).EncodeToJsonSafe(
+                item, **options)
 
 
 class BaseObjectRenderer(StateBasedObjectRenderer):
@@ -510,6 +523,9 @@ class JsonRenderer(renderer_module.BaseRenderer):
     # written to the json file.
     data = None
 
+    spinner = r"/-\|"
+    last_spin = 0
+
     def __init__(self, output=None, send_message_callback=None, **kwargs):
         super(JsonRenderer, self).__init__(**kwargs)
 
@@ -552,6 +568,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
                              tool_name="rekall",
                              cookie=self._object_id,
                              tool_version=constants.VERSION,
+                             session=self.encoder.Encode(self.session),
                             )
         self.SendMessage(
             ["m", self.metadata])
@@ -614,14 +631,13 @@ class JsonRenderer(renderer_module.BaseRenderer):
         self.flush()
 
     def RenderProgress(self, message=" %(spinner)s", *args, **kwargs):
-        if super(JsonRenderer, self).RenderProgress(**kwargs):
-            if not message:
-                return
-
-            # Only expand variables when we need to.
+        if super(JsonRenderer, self).RenderProgress():
             if "%(" in message:
-                kwargs["spinner"] = ""
-                message = message % kwargs
+                self.last_spin += 1
+                kwargs["spinner"] = self.spinner[
+                    self.last_spin % len(self.spinner)]
+
+                formatted_message = message % kwargs
             elif args:
                 format_args = []
                 for arg in args:
@@ -630,6 +646,10 @@ class JsonRenderer(renderer_module.BaseRenderer):
                     else:
                         format_args.append(arg)
 
-                message = message % tuple(format_args)
+                formatted_message = message % tuple(format_args)
+            else:
+                formatted_message = message
 
-            self.SendMessage(["p", message])
+            self.SendMessage(["p", formatted_message])
+
+            return True

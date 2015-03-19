@@ -561,13 +561,14 @@ def PPrint(data, depth=0):
         for item in data:
             result.append(PPrint(item, depth).strip())
 
-        return "[" + ", ".join(result) + "]"
+        res = "[" + ", ".join(result) + "]"
+        if len(res) > 80:
+            res = "[\n" + ", \n".join(result) + "]"
+
+        return res
 
     if isinstance(data, basestring):
-        try:
-            data = json.dumps(data.encode("ascii"))
-        except UnicodeError:
-            pass
+        return json.dumps(data)
 
     # JSON encodes None as null.
     elif data is None:

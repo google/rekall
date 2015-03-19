@@ -12,36 +12,36 @@
            type="text" rekall-int
            class="form-control input-sm rekall-input"
            ng-placeholder="argument.default"
-           ng-model="filledArguments[argument.name]"/>
+           ng-model="source.arguments[argument.name]"/>
 
         <input ng-switch-when="ArrayIntParser"
            type="text" rekall-int-array
            class="form-control input-sm rekall-input"
            ng-placeholder="argument.default"
-           ng-model="filledArguments[argument.name]"/>
+           ng-model="source.arguments[argument.name]"/>
 
         <select ng-switch-when="ChoiceArray" size=5 multiple
                 class="form-control input-sm rekall-input"
                 ng-placeholder="argument.default"
                 ng-options="choice for choice in argument.choices"
-                ng-model="filledArguments[argument.name]"/>
+                ng-model="source.arguments[argument.name]"/>
 
         <select ng-switch-when="Choices"
                 class="form-control input-sm rekall-input"
                 ng-placeholder="argument.default"
                 ng-options="choice for choice in argument.choices"
-                ng-model="filledArguments[argument.name]"/>
+                ng-model="source.arguments[argument.name]"/>
 
         <input ng-switch-when="Boolean"
                type="checkbox"
                class="input-sm rekall-input"
                ng-placeholder="argument.default"
-               ng-model="filledArguments[argument.name]"/>
+               ng-model="source.arguments[argument.name]"/>
 
         <span ng-switch-when="SymbolAddress">
           <input type="text"
                  placeholder="Symbol name or address"
-                 ng-model="filledArguments[argument.name]"
+                 ng-model="source.arguments[argument.name]"
                  typeahead="name for name in getSymbols($viewValue)"
                  typeahead-loading="loadingSymbols" class="form-control">
 
@@ -52,7 +52,7 @@
            type="text"
            class="form-control input-sm rekall-input"
            ng-placeholder="argument.default"
-           ng-model="filledArguments[argument.name]"/>
+           ng-model="source.arguments[argument.name]"/>
 
     </td>
   </tr>

@@ -10,7 +10,7 @@
             ng-click="delSession(session)"
             ><span class="glyphicon glyphicon-remove">
           </button>
-          {{session.state.session_name[0]}}
+          <rekall-object object="session.state.session_name[0]"/>
         </a>
       </div>
 
@@ -25,7 +25,8 @@
     <div class="col-sm-6  session-list">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">{{data.state.session_name[0]}} parameters</h3>
+          <h3 class="panel-title">
+            <rekall-object object="data.state.session_name[0]"/> parameters</h3>
         </div>
         <div class="panel-body">
           <div class="row-fluid" ng-if="data.state">
@@ -42,7 +43,7 @@
                            filename="value[0]"></rekall-filename>
 
                     <input ng-switch-default
-                           type="text" rekall-int
+                           type="text"
                            class="form-control input-sm rekall-input"
                            ng-model="value[0]"></input>
                   </span>

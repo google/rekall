@@ -49,6 +49,7 @@ renderer.CopyObjectRenderers((
     json_storage.JsonInstructionRenderer,
     json_renderer.StringRenderer,
     json_storage.UnixTimestampJsonObjectRenderer,
+    json_storage.JsonEnumerationRenderer,
 ), renderer="DataExportRenderer")
 
 
@@ -103,8 +104,8 @@ class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):
     renders_type = "BaseObject"
 
-    def EncodeToJsonSafe(self, item, **options):
-        result = super(DataExportBaseObjectRenderer, self).EncodeToJsonSafe(
+    def GetState(self, item, **options):
+        result = super(DataExportBaseObjectRenderer, self).GetState(
             item, **options)
 
         result.update(offset=item.obj_offset,
@@ -124,8 +125,8 @@ class DataExportPointerObjectRenderer(DataExportBaseObjectRenderer):
         return self.FromEncoded(item, "DataExportRenderer")(
             self.renderer).Summary(item, **options)
 
-    def EncodeToJsonSafe(self, item, **options):
-        result = super(DataExportPointerObjectRenderer, self).EncodeToJsonSafe(
+    def GetState(self, item, **options):
+        result = super(DataExportPointerObjectRenderer, self).GetState(
             item, **options)
 
         result["target"] = item.v()

@@ -98,7 +98,7 @@ class SessionList(BaseSessionCommand):
     def render(self, renderer):
         for session in self.session.session_list:
             renderer.format("%s [%d] %s\n" % (
-                (self.session == session) and "*" or " ",
+                "*" if (self.session == session) else " ",
                 session.session_id, session.session_name))
 
 

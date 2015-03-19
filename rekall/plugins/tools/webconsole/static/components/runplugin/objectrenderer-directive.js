@@ -82,9 +82,11 @@
     'Instruction': true,
     'Literal': true,
     'NativeType': true,
+    'None': true,
     'NoneObject': true,
     'PaddedAddress': true,
     'Pointer': true,
+    'Session': true,
     'Struct': true,
     'UnixTimeStamp': true,
     '_EPROCESS': true,
@@ -93,13 +95,16 @@
     'AttributedString': true,
     'HexDumpedString': true,
     'str': true,
-    'Session': true,
+    'List': true,
   };
 
   var getTemplate = function(item) {
     if (item == null) {
       return ""
     };
+
+    if (angular.isArray(item))
+      return "List";
 
     // Check the item's mro for specialized renderers.
     if (!(item instanceof Object)) {

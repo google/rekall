@@ -1,6 +1,9 @@
 <div ng-controller="MarkdownController">
   <div ng-if="node.state == 'edit'" on-alt-enter="renderNode(node)">
-    <code-editor ng-model="node.source" split-list language="markdown" focus="node.state == 'edit'"></code-editor>
+    <textarea ng-model="node.source" class="shell-textarea" auto-focus scroll-to
+              split-list ></textarea>
   </div>
-  <div ng-if="node.state != 'edit'" ng-bind-html="trustedHTMLString" ng-dblclick="editNode(node)"></div>
+  <div ng-if="node.state != 'edit'"
+       ng-bind-html="trustedHTMLString"
+       ng-dblclick="editNode(node)"></div>
 </div>

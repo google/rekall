@@ -49,7 +49,10 @@ class BaseScanner(object):
         self.address_space = address_space
         self.window_size = window_size
         self.constraints = None
-        self.profile = profile or self.session.profile
+        self.profile = profile
+        if profile is None:
+            self.profile = self.session.profile
+
         self.max_length = None
         self.base_offset = None
         self.scan_buffer_offset = None

@@ -48,7 +48,7 @@ from rekall.ui import json_renderer
 
 
 config.DeclareOption(
-    "--profile_path", default=[], type="ArrayStringParser",
+    "--repository_path", default=[], type="ArrayStringParser",
     help="Path to search for profiles. This can take "
     "any form supported by the IO Manager (e.g. zip files, "
     "directories, URLs etc)")
@@ -234,8 +234,6 @@ class Configuration(Cache):
         # Reset any caches.
         if self.session:
             self.session.Reset()
-            self.session.session_name = (self.Get('base_filename') or
-                                         self.session.session_name)
 
         # If a profile is not configured at this time, we need to auto-detect
         # it.
@@ -244,28 +242,18 @@ class Configuration(Cache):
             del self['profile']
             self['filename'] = filename
 
-            #self.session.GetParameter("profile")
-
         return filename
 
-    def _set_profile_path(self, profile_path, _):
+    def _set_repository_path(self, profile_path, _):
         # Flush the profile cache if we change the profile path.
         self.session.profile_cache = {}
 
         return profile_path
 
     def _set_profile(self, profile, _):
-        if profile == None:
-            return
-
-        # User specified the profile as a string.
-        if isinstance(profile, basestring):
-            profile = self.session.LoadProfile(profile)
-            if not profile:
-                raise RuntimeError(profile.reason)
-
-        elif not isinstance(profile, obj.Profile):
-            raise RuntimeError("Profile must be of type obj.Profile.")
+        profile_obj = self.session.LoadProfile(profile)
+        if profile_obj:
+            self.cache.Set("profile_obj", profile_obj)
 
         return profile
 
@@ -471,7 +459,8 @@ class Session(object):
 
         If False, a call to GetParameter() might trigger autodetection.
         """
-        return self.state.has_key(item) or self.state.cache.has_key(item)
+        return (self.state.get(item) is not None or
+                self.state.cache.get(item) is not None)
 
     def GetParameter(self, item, default=obj.NoneObject()):
         """Retrieves a stored parameter.
@@ -512,9 +501,17 @@ class Session(object):
         self.state.cache.Set(item, value)
 
     def SetParameter(self, item, value):
+        """Sets a session parameter.
+
+        NOTE! This method should only be used for setting user provided data. It
+        must not be used to set cached data - use SetCache() instead. Parameters
+        set with this method are not cleared as part of session.Reset() and are
+        copied to cloned sessions.
+        """
         self.state.Set(item, value)
 
     def _RunParameterHook(self, name):
+
         """Launches the registered parameter hook for name."""
         for cls in kb.ParameterHook.classes.values():
             if cls.name == name and cls.is_active(self):
@@ -610,10 +607,11 @@ class Session(object):
             logging.error("Invalid Args: %s", e)
 
         except plugin.PluginError as e:
-            plugin_obj.error_status = str(e)
-            ui_renderer.report_error(str(e))
+            if isinstance(plugin_obj, plugin.Command):
+                plugin_obj.error_status = str(e)
+                ui_renderer.report_error(str(e))
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, plugin.Abort):
             ui_renderer.report_error("Aborted")
             self.report_progress("Aborted!\r\n", force=True)
 
@@ -642,8 +640,8 @@ class Session(object):
         Args:
 
           name: A string which represents the canonical name for the profile. We
-              ask all repositories in the profile_path to resolve this name into
-              a profile.
+              ask all repositories in the repository_path to resolve this name
+              into a profile.
 
         Returns:
           a Profile() instance or a NoneObject()
@@ -687,10 +685,11 @@ class Session(object):
         # Traverse the profile path until one works.
         if not result:
             # The profile path is specified in search order.
-            profile_path = self.state.Get("profile_path") or []
+            repository_path = (self.state.Get("repository_path") or
+                               self.state.Get("profile_path") or [])
 
             # Add the last supported repository as the last fallback path.
-            for path in profile_path:
+            for path in repository_path:
                 try:
                     if path not in self.repository_managers:
                         self.repository_managers[path] = io_manager.Factory(
@@ -752,12 +751,24 @@ class Session(object):
 
     @property
     def profile(self):
-        res = self.GetParameter("profile")
+        res = self.GetParameter("profile_obj")
         return res
 
     @profile.setter
     def profile(self, value):
-        self.state.cache.Set('profile', value)
+        # Clear the profile object. Next access to it will trigger profile
+        # auto-detection.
+        if value == None:
+            self.state.cache.Set('profile_obj', value)
+
+        elif isinstance(value, basestring):
+            with self.state:
+                self.state.Set('profile', value)
+
+        elif isinstance(value, obj.Profile):
+            self.state.cache.Set('profile_obj', value)
+        else:
+            raise AttributeError("Type %s not allowed for profile" % value)
 
     def clone(self, **kwargs):
         new_state = self.state.copy()
@@ -767,9 +778,13 @@ class Session(object):
         # session_ids are automatically generated so we need to pop it.
         new_state.pop("session_id")
 
+        session_id = self._new_session_id()
         old_session_name = new_state.pop("session_name")
-        new_session_name = kwargs.pop("session_name", old_session_name)
-        new_session = self.__class__(session_name=new_session_name, **new_state)
+        new_session_name = kwargs.pop(
+            "session_name", kwargs.get(
+                "filename", "%s (%s)" % (old_session_name, session_id)))
+        new_session = self.__class__(
+            session_name=new_session_name, session_id=session_id, **new_state)
         new_session.Reset()
         new_session.locals = self.locals
 

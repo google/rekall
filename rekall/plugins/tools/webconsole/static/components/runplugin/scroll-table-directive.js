@@ -12,6 +12,7 @@
         collection: '=',
         headers: '=',
         height: '=',
+        session_id: '=',
       },
 
       templateUrl: '/rekall-webconsole/components/runplugin/scroll-table.html',
@@ -46,18 +47,20 @@
           if (!last_row_offset) return;
 
           // Calculate the bottom of the scrolled area relative to the page.
-          var bottom = (scroll_pane.scrollTop() +     // How many pixels of the inner
-                                                      // table are hidden off the top
-                                                      // of the scrolled pane.
-                        scroll_pane[0].offsetHeight + // The height of the scrolled pane.
-                        scroll_pane.offset().top);    // The top of the scrolled pane in
-                                                      // the page.
+          var bottom = (scroll_pane.scrollTop() +     // How many pixels of the
+                                                      // inner table are hidden
+                                                      // off the top of the
+                                                      // scrolled pane.
+                        scroll_pane[0].offsetHeight + // The height of the
+                                                      // scrolled pane.
+                        scroll_pane.offset().top);    // The top of the scrolled
+                                                      // pane in the page.
 
           // Last row is visible.
           return last_row_offset.top < bottom;
         };
 
-        // Check if the last row in the table is within the
+        // Check if the last row in the table is within the view port.
         var adjustScroll = function (done_callback, increment) {
           if(shouldAdjustScroll()) {
             $scope.end_row += increment || 1;

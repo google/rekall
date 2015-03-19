@@ -55,7 +55,9 @@ class CachingURLManager(io_manager.IOManager):
                 "add a cache_dir parameter to ~/.rekallrc.")
 
         # Cache dir may be specified relative to the home directory.
-        cache_dir = os.path.join(config.GetHomeDir(), cache_dir)
+        if config.GetHomeDir():
+            cache_dir = os.path.join(config.GetHomeDir(), cache_dir)
+
         if not os.access(cache_dir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
             try:
                 os.makedirs(cache_dir)

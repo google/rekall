@@ -359,9 +359,6 @@ class KernelASHook(kb.ParameterHook):
     name = "default_address_space"
 
     def calculate(self):
-        if not self.session.profile:
-            self.session.GetParameter("profile")
-
         if self.session.kernel_address_space:
             return self.session.kernel_address_space
 
@@ -370,7 +367,7 @@ class KernelASHook(kb.ParameterHook):
 
 class ProfileHook(kb.ParameterHook):
     """If the profile is not specified, we guess it."""
-    name = "profile"
+    name = "profile_obj"
 
     def ScanProfiles(self):
         address_space = self.session.physical_address_space
@@ -407,6 +404,7 @@ class ProfileHook(kb.ParameterHook):
 
         # Build and configure the scanner.
         scanner = scan.MultiStringScanner(
+            profile=obj.NoneObject(),
             address_space=address_space, needles=needles,
             session=self.session)
         scanner.progress_message = "Autodetecting profile: %(offset)#08x"
@@ -451,22 +449,34 @@ class ProfileHook(kb.ParameterHook):
 
     def calculate(self):
         """Try to find the correct profile by scanning for PDB files."""
+        # Clear the profile for the duration of the scan.
+        self.session.profile = obj.NoneObject("Unset")
+
         if not self.session.physical_address_space:
             # Try to load the physical_address_space so we can scan it.
             if not self.session.plugins.load_as().GetPhysicalAddressSpace():
                 # No physical address space - nothing to do here.
                 return obj.NoneObject("No Physical Address Space.")
 
-        # Clear the profile for the duration of the scan.
-        self.session.profile = obj.NoneObject("Unset")
+        # Allow the user to specify the profile to use on the command line.
+        profile_name = self.session.GetParameter("profile")
+        if profile_name:
+            profile_obj = self.session.LoadProfile(profile_name)
+            if profile_obj != None:
+                return profile_obj
 
         profile_obj = self.ScanProfiles()
         if not profile_obj:
-          raise RuntimeError(
-              "Unable to find a valid profile for this image. Try using -v "
-              "for more details.")
+            raise RuntimeError(
+                "Unable to find a valid profile for this image. Try using -v "
+                "for more details.")
 
         # Update the session profile.
         self.session.profile = profile_obj
+
+        # Store the name of the plugin to avoid auto detection in future.
+        if not self.session.GetParameter("profile"):
+            with self.session:
+                self.session.SetParameter("profile", profile_obj.name)
 
         return profile_obj

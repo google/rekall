@@ -572,7 +572,7 @@ class TcpipPluginMixin(object):
         super(TcpipPluginMixin, self).__init__(**kwargs)
         # For the address resolver to load this GUID.
         if tcpip_guid:
-            self.session.SetParameter("tcpip_guid", tcpip_guid)
+            self.session.SetCache("tcpip_guid", tcpip_guid)
 
         self.tcpip_profile = self.session.address_resolver.LoadProfileForName(
             "tcpip")

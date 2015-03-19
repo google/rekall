@@ -21,3 +21,18 @@
 #
 
 __author__ = "Mikhail Bushkov <realbushman@gmail.com>"
+
+
+from manuskript import plugins as manuskript_plugins
+
+
+class RekallPythonCall(manuskript_plugins.PythonCall):
+    """PythonCall extension that inserts Rekall session into local context."""
+
+    @classmethod
+    def UpdatePythonShell(cls, app, shell):
+        super(RekallPythonCall, cls).UpdatePythonShell(app, shell)
+
+        rekall_session = app.config["rekall_session"]
+        shell.local_context = rekall_session.locals # pylint: disable=protected-access
+        shell.global_context["session"] = rekall_session

@@ -94,7 +94,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      * @throws {NotRenderableNodeError} If given node is not renderable.
      */
     $scope.renderNode = function(node) {
-      if (node === undefined) {
+      if (angular.isUndefined(node)) {
         node = $scope.selection.node;
       }
 
@@ -246,7 +246,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
         $http.post("sessions/update", {
           sessions: manuskriptConfiguration.sessions,
         }).success(function(data) {
-          manuskriptConfiguration.sessions=data;
+          manuskriptConfiguration.sessions = data;
         });
       };
 
@@ -401,6 +401,22 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       }
     };
 
+    $scope.loadSessionsFromServer = function() {
+      manuskriptNetworkService.callServer('rekall/load_nodes', {
+        onmessage: function(result) {
+          manuskriptConfiguration.sessions = result.sessions;
+          manuskriptConfiguration.sessionsById = {}
+          for(var i=0; i < result.sessions.length; i++) {
+            manuskriptConfiguration.sessionsById[
+              result.sessions[i].session_id] = result.sessions[i];
+          };
+
+          if(angular.isUndefined(manuskriptConfiguration.default_session)) {
+            manuskriptConfiguration.default_session = result.sessions[0];
+          };
+        }});
+    };
+
     $scope.loadNodesFromServer = function() {
       $scope.removeAllNodes();
 
@@ -418,7 +434,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
               result.sessions[i].session_id] = result.sessions[i];
           };
 
-          if(manuskriptConfiguration.default_session === undefined) {
+          if(angular.isUndefined(manuskriptConfiguration.default_session)) {
             manuskriptConfiguration.default_session = result.sessions[0];
           };
 

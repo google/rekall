@@ -23,6 +23,7 @@
               }
             }).success(function(response){
               $scope.files = response.files;
+              $scope.directory = response.path;
             }).error(function (response) {
               $scope.error = response;
             });
@@ -31,18 +32,13 @@
         $scope.updatePath = function(file) {
           $scope.error = null;
           $scope.filename = file.path;
-
           if (file.type != "directory") {
             $scope.modal.close();
           };
         };
 
         $scope.previousDir = function() {
-          var components = $scope.filename.split("/");
-          if (components.length > 2) {
-            components.splice(components.length - 1, 1);
-            $scope.filename = components.join("/");
-          };
+          $scope.filename = $scope.directory + "/../";
         };
 
         elem.on('mousedown', function(event) {
@@ -82,6 +78,7 @@
 
         ngModel.$formatters.unshift(function(value) {
           if (value > 0x1000) {
+            value = parseInt(value);
             return "0x" + value.toString(16);
           } else {
             return value;
@@ -130,7 +127,8 @@
           if (angular.isArray(value)) {
             for (var i=0; i<value.length; i++) {
               if (value[i] > 0x1000) {
-                result.push("0x" + value[i].toString(16));
+                var data = parseInt(value[i]);
+                result.push("0x" + data.toString(16));
               } else {
                 result.push(value[i]);
               }
@@ -149,7 +147,7 @@
       templateUrl: '/rekall-webconsole/components/runplugin/pluginarguments.html',
       scope: {
         arguments: '=',
-        filledArguments: '='
+        source: '=',
       },
 
       link: function(scope, elem, attr) {
@@ -157,6 +155,7 @@
           return $http.get(location.href + 'rekall/symbol_search', {
             params: {
               symbol: value,
+              session_id: scope.source.session_id,
             }
           }).then(function(response){
             return response.data.results;
@@ -166,11 +165,11 @@
         // Prefill the defaults.
         for (var i=0; i<scope.arguments.length; i++) {
           var arg = scope.arguments[i];
-          if (scope.filledArguments !== undefined) {
-            var existing_value = scope.filledArguments[arg.name];
+          if (!angular.isUndefined(scope.source.arguments)) {
+            var existing_value = scope.source.arguments[arg.name];
 
             if (existing_value === null && arg.default !== null) {
-              scope.filledArguments[arg.name] = arg.default;
+              scope.source.arguments[arg.name] = arg.default;
             };
           };
         }

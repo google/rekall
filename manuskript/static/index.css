@@ -65,3 +65,7 @@ body {
 button.btn.btn-default[disabled] {
     opacity: 0.25;
 }
+
+#main {
+    padding-bottom: 50px;
+}

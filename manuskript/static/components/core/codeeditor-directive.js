@@ -60,7 +60,8 @@
 
           var options = {
             mode: scope.language,
-            viewportMargin: Infinity
+            viewportMargin: Infinity,
+            lineWrapping: true,
           };
 
           if (scope.readonly) {

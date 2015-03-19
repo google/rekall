@@ -42,6 +42,10 @@ class InvalidArgs(Error):
     """Invalid arguments."""
 
 
+class Abort(Error):
+    """Signal aborting of the plugin."""
+
+
 class Command(object):
     """A command can be run from the rekall command line.
 
@@ -191,7 +195,7 @@ class ProfileCommand(Command):
         # completing the available plugins we will trigger profile autodetection
         # in order to determine which plugins are active.
         profile = (super(ProfileCommand, cls).is_active(session) and
-                   session.GetParameter("profile") != None)
+                   session.profile != None)
         if cls.PROFILE_REQUIRED:
             return profile
 
@@ -210,8 +214,7 @@ class ProfileCommand(Command):
         # it. (The new profile must control the presence of other dependent
         # plugins and so forms part of the session's state.).
         if profile is not None:
-            with self.session:
-                self.session.SetParameter("profile", profile)
+            self.session.profile = profile
 
         self.profile = self.session.profile
         if self.PROFILE_REQUIRED and not self.profile:

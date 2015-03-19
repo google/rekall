@@ -1,8 +1,7 @@
 'use strict';
 (function() {
 
-  var module = angular.module('rekall.runplugin.jsonDecoder.service',
-                              []);
+  var module = angular.module('rekall.runplugin.jsonDecoder.service', []);
 
   var serviceImplementation = function($http) {
 
@@ -20,7 +19,9 @@
           return decoded;
         }
       } else if (item instanceof Object) {
-        var data = {};
+        var data = {
+          session_id: state.session_id,
+        };
         for (var key in item) {
           var value = item[key];
 
@@ -42,6 +43,11 @@
       }
 
       state.metadata = data[0];
+      if (angular.isUndefined(state.metadata.session)) {
+        state.session_id = 0;
+      } else {
+        state.session_id = state.metadata.session.session_id;
+      };
     };
 
     var sectionHandler = function(data, state) {
@@ -112,16 +118,17 @@
       var row = [];
       for (i = 0; i < lastElement.header.length; ++i) {
         var column = lastElement.header[i];
+
         var columnName = column.cname || column.name;
         var columnData = data[columnName];
 
-        if (columnData === undefined) {
-          continue;
-        };
-
         // TODO(mbushkov): Ideally, all elements should have mro set and we
         // should be able to render them based solely on their type.
-        if (column.formatstring === '[addr]' && columnData.mro === undefined) {
+        if (columnData == undefined) {
+          columnData = {mro: 'None'};
+
+        } else if (column.formatstring === '[addr]' &&
+                   columnData.mro === undefined) {
           columnData = {mro: 'Address',
                         value: columnData};
         } else if (column.formatstring === '[addrpad]' &&
@@ -201,7 +208,7 @@
       't': tableHandler,
       'r': rowHandler,
       'p': progressHandler,
-      'x': endHandler
+      'x': endHandler,
     };
 
     this.createEmptyState = function() {

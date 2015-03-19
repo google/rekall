@@ -18,7 +18,7 @@
 
 """This module implements renderers specific to Linux structures."""
 
-from rekall.ui import renderer
+from rekall.ui import json_renderer
 from rekall.ui import text
 
 
@@ -31,3 +31,11 @@ class kuid_t_TextObjectRenderer(text.TextObjectRenderer):
 
 class kgid_t_TextObjectRenderer(kuid_t_TextObjectRenderer):
     renders_type = "kgid_t"
+
+
+class kuid_t_JsonObjectRenderer(json_renderer.JsonObjectRenderer):
+    renders_type = ["kuid_t", "kgid_t"]
+    renderers = ["JsonRenderer", "DataExportRenderer"]
+
+    def EncodeToJsonSafe(self, task, **_):
+        return task.val.v()
