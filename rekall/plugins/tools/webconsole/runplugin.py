@@ -27,6 +27,7 @@ import cStringIO
 import hashlib
 import logging
 import os
+import Queue
 import stat
 import traceback
 import zipfile
@@ -36,6 +37,7 @@ from flask import json
 from flask import request
 
 import gevent
+from gevent import threadpool
 
 from rekall.plugins.renderers import data_export
 from rekall import config
@@ -114,7 +116,7 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
     # This renderer is private to the web console.
     name = None
 
-    def __init__(self, ws=None, worksheet=None, cell_id=0, **kwargs):
+    def __init__(self, output_queue=None, worksheet=None, cell_id=0, **kwargs):
         """Initialize a WebConsoleRenderer.
 
         Args:
@@ -123,16 +125,12 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
           cell_id: The cell id we are running under.
         """
         super(WebConsoleRenderer, self).__init__(**kwargs)
-        self.ws = ws
+        self.output_queue = output_queue
         self.cell_id = cell_id
         self.worksheet = worksheet
-        self.queue = []
 
     def SendMessage(self, message):
-        self.ws.send(json.dumps([message],
-                                cls=json_renderer.RobustEncoder))
-
-        self.queue.append(message)
+        self.output_queue.put(message)
 
     def open(self, directory=None, filename=None, mode="rb"):
         if filename is None and directory is None:
@@ -154,8 +152,6 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
         return self.worksheet.Open(full_path)
 
     def RenderProgress(self, *args, **kwargs):
-        gevent.sleep(0)
-
         if self.cell_id in self.worksheet.aborted_cells:
             self.worksheet.aborted_cells.discard(self.cell_id)
             raise plugin.Abort()
@@ -353,7 +349,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     @classmethod
     def PlugManageDocument(cls, app):
         sockets = Sockets(app)
-
+        
         @sockets.route("/rekall/document/upload")
         def upload_document(ws):  # pylint: disable=unused-variable
             cells = json.loads(ws.receive())
@@ -505,6 +501,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     @classmethod
     def PlugRunPluginsIntoApp(cls, app):
         sockets = Sockets(app)
+        thread_pool = threadpool.ThreadPool(5)
 
         @app.route("/rekall/runplugin/cancel/<cell_id>", methods=["POST"])
         def cancel_execution(cell_id):  # pylint: disable=unused-variable
@@ -538,24 +535,42 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             session = worksheet.session.find_session(session_id)
 
             output = cStringIO.StringIO()
+            output_queue = Queue.Queue()
             renderer = WebConsoleRenderer(
                 session=session, output=output, cell_id=cell_id,
-                ws=ws, worksheet=worksheet)
+                output_queue=output_queue, worksheet=worksheet)
 
             # Clear the interruption state of this cell.
             worksheet.aborted_cells.discard(cell_id)
 
-            with renderer.start():
-                try:
-                    session.RunPlugin(
-                        source["plugin"]["name"], renderer=renderer, **kwargs)
+            def HandleRequest():
+                with renderer.start():
+                    try:
+                        session.RunPlugin(
+                            source["plugin"]["name"],
+                            renderer=renderer, **kwargs)
 
-                except Exception:
-                    message = traceback.format_exc()
-                    renderer.report_error(message)
+                    except Exception:
+                        message = traceback.format_exc()
+                        renderer.report_error(message)
 
+            async_result = thread_pool.spawn(HandleRequest)
+
+            sent_messages = []
+            def HandleSentMessages():
+                while not async_result.ready():
+                    while not output_queue.empty():
+                        message = output_queue.get()
+                        sent_messages.append(message)
+                        ws.send(json.dumps([message],
+                                        cls=json_renderer.RobustEncoder))
+                    async_result.wait(0.1)
+                        
+            gevent.spawn(HandleSentMessages)
+            async_result.wait()
+                        
             # Cache the data in the worksheet.
-            worksheet.StoreData(cache_key, renderer.queue)
+            worksheet.StoreData(cache_key, sent_messages)
 
     @classmethod
     def PlugIntoApp(cls, app):
