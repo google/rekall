@@ -41,17 +41,16 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
             ('\xff\xff\x00\x00', {'mro': u'str:basestring:object',
                                   'b64': u'//8AAA=='}),
 
-            ("hello", {'mro': u'str:basestring:object',
-                       'str': u'hello'}),  # A string is converted into base64
-                                           # encoding.
+            ("hello", u'hello'),  # A string is converted into unicode if
+                                  # possible.
 
             (1, 1),     # Ints are already JSON serializable.
             (dict(foo=2), {'foo': 2}),
             (set([1, 2, 3]), {'mro': u'set:object', 'data': [1, 2, 3]}),
             ([1, 2, 3], [1, 2, 3]),
 
-            ([1, "hello", 3], [1, {'mro': u'str:basestring:object',
-                                   'str': u'hello'}, 3]),
+            ([1, "\xff\xff\x00\x00", 3], [1, {'mro': u'str:basestring:object',
+                                              'b64': u'//8AAA=='}, 3]),
 
             ]
 
@@ -113,3 +112,52 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
             # dereferencing.
             self.assertEqual(task.name, decoded_task.name)
             self.assertEqual(task.pid, decoded_task.pid)
+
+    def testAllObjectSerialization(self):
+        for vtype in self.session.profile.vtypes:
+            obj = self.session.profile.Object(vtype)
+            self.CheckObjectSerization(obj)
+
+        self.CheckObjectSerization(self.session)
+        self.CheckObjectSerization(self.session.profile)
+        self.CheckObjectSerization(self.session.kernel_address_space)
+        self.CheckObjectSerization(self.session.physical_address_space)
+
+        # Some native types.
+        self.CheckObjectSerization(set([1, 2, 3]))
+        self.CheckObjectSerization(dict(a=1, b=dict(a=1)))
+
+    def CheckObjectSerization(self, obj):
+        object_renderer_cls = json_renderer.JsonObjectRenderer.ForTarget(
+            obj, "JsonRenderer")
+
+        object_renderer = object_renderer_cls(session=self.session,
+                                              renderer="JsonRenderer")
+
+        encoded = object_renderer.EncodeToJsonSafe(obj, strict=True)
+
+        # Make sure it is json safe.
+        json.dumps(encoded)
+
+        # Now decode it.
+        decoding_object_renderer_cls = json_renderer.JsonObjectRenderer.FromEncoded(
+            encoded, "JsonRenderer")
+
+        self.assertEqual(decoding_object_renderer_cls, object_renderer_cls)
+        decoded = object_renderer.DecodeFromJsonSafe(encoded, {})
+        self.assertEqual(decoded, obj)
+
+        # Now check the DataExportRenderer.
+        object_renderer_cls = json_renderer.JsonObjectRenderer.ForTarget(
+            obj, "DataExportRenderer")
+
+
+        object_renderer = object_renderer_cls(session=self.session,
+                                              renderer="DataExportRenderer")
+
+        encoded = object_renderer.EncodeToJsonSafe(obj, strict=True)
+
+        # Make sure it is json safe.
+        json.dumps(encoded)
+
+        # Data Export is not decodable.

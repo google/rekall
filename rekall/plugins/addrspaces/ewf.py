@@ -53,7 +53,10 @@ class EWFAddressSpace(addrspace.BaseAddressSpace):
             session=self.session, address_space=self.base)
 
     def read(self, offset, length):
-        res = self.ewf_file.read(offset, length)
+        res = ""
+        if offset != None:
+            res = self.ewf_file.read(offset, length)
+
         if len(res) < length:
             res += "\x00" * (length - len(res))
 

@@ -46,7 +46,6 @@ class RobustEncoder(json.JSONEncoder):
         super(RobustEncoder, self).__init__(separators=(',', ':'))
 
     def default(self, o):
-        import pdb; pdb.set_trace()
         logging.error(
             "Unable to encode %r (%s) as json, replacing with None", o,
             type(o))
@@ -143,6 +142,9 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         # objects but we want to ensure we can serialize the session (albeit
         # with the loss of some of the attributes).
         logging.error("Unable to encode objects of type %s", type(item))
+        if "strict" in options:
+            raise EncodingError(
+                "Unable to encode objects of type %s" % type(item))
 
         return None
 

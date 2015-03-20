@@ -1266,10 +1266,6 @@ class _KTIMER(obj.Struct):
 
 def InitializeWindowsProfile(profile):
     """Install the basic windows overlays."""
-    profile.add_types({
-        'pointer64': ['NativeType', dict(format_string='<Q')]
-        })
-
     profile.add_classes({
         '_UNICODE_STRING': _UNICODE_STRING,
         '_EPROCESS': _EPROCESS,

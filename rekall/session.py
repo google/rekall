@@ -798,6 +798,30 @@ class Session(object):
 class JsonSerializableSession(Session):
     """A session which can serialize its state into a Json file."""
 
+    # We only serialize the following session variables since they make this
+    # session unique. When we unserialize we merge the other state variables
+    # from this current session.
+    SERIALIZABLE_STATE_PARAMETERS = [
+        ("ept", u"IntParser"),
+        ("profile", u"FileName"),
+        ("filename", u"FileName"),
+        ("pagefile", u"FileName"),
+        ("session_name", u"String"),
+        ("timezone", u"TimeZone"),
+    ]
+
+    def __eq__(self, other):
+        for field, _ in self.SERIALIZABLE_STATE_PARAMETERS:
+            if self.HasParameter(field):
+                # We have this field but the other does not.
+                if not other.HasParameter(field):
+                    return False
+
+                if self.GetParameter(field) != other.GetParameter(field):
+                    return False
+
+        return True
+
     def SaveToFile(self, filename):
         with open(filename, "wb") as fd:
             logging.info("Saving session to %s", filename)

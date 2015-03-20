@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # Rekall Memory Forensics
 # Copyright 2014 Google Inc. All Rights Reserved.
 #

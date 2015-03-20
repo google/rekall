@@ -291,6 +291,10 @@ class IA32PagedMemory(addrspace.PagedReader):
     def __str__(self):
         return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
 
+    def __eq__(self, other):
+        return (super(IA32PagedMemory, self).__eq__(other) and
+                self.dtb == other.dtb and self.base == other.base)
+
     def end(self):
         return (2 ** 32) - 1
 

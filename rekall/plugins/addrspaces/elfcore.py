@@ -61,6 +61,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         self.as_assert(self.elf64_hdr.e_type == "ET_CORE",
                        "Elf file is not a core file.")
         self.name = "%s|%s" % (self.__class__.__name__, self.base.name)
+
         # Iterate over all the program headers and map the runs.
         for segment in self.elf64_hdr.e_phoff:
             if segment.p_type == "PT_LOAD":

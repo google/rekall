@@ -562,8 +562,6 @@ def PPrint(data, depth=0):
             result.append(PPrint(item, depth).strip())
 
         res = "[" + ", ".join(result) + "]"
-        if len(res) > 80:
-            res = "[\n" + ", \n".join(result) + "]"
 
         return res
 
@@ -822,6 +820,10 @@ class SortedCollection(object):
         if i != len(self):
             return self._items[i]
         raise ValueError('No item found with key above: %r' % (k,))
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self._keys == other._keys and self._items == other._items)
 
 
 class RangedCollection(object):

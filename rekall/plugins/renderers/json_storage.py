@@ -110,30 +110,14 @@ class IA32PagedMemoryObjectRenderer(
         return state
 
 
-class MIPSPagedMemoryObjectRenderer(IA32PagedMemoryObjectRenderer):
-    renders_type = "MIPS32PagedMemory"
-
-
 class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = "Session"
-
-    # We only serialize the following session variables since they make this
-    # session unique. When we unserialize we merge the other state variables
-    # from this current session.
-    SERIALIZABLE_STATE_PARAMETERS = [
-        ("ept", u"IntParser"),
-        ("profile", u"FileName"),
-        ("filename", u"FileName"),
-        ("pagefile", u"FileName"),
-        ("session_name", u"String"),
-        ("timezone", u"TimeZone"),
-    ]
 
     def GetState(self, item, **options):
         state = super(SessionObjectRenderer, self).GetState(item, **options)
         state["session_id"] = item.session_id
         state_dict = state["state"] = {}
-        for parameter, type in self.SERIALIZABLE_STATE_PARAMETERS:
+        for parameter, type in item.SERIALIZABLE_STATE_PARAMETERS:
             value = None
             if item.HasParameter(parameter):
                 value = item.GetParameter(parameter)
@@ -150,9 +134,7 @@ class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
         result = session.Session.classes[mro[0]]()
         with result:
             for k, v in state["state"].iteritems():
-                result.SetParameter(k, v)
-
-            result.session_id = state["session_id"]
+                result.SetParameter(k, v[0])
 
         return result
 

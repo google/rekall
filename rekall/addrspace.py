@@ -225,6 +225,10 @@ class BaseAddressSpace(object):
         return "<%s @ %#x %s>" % (
             self.__class__.__name__, hash(self), self.name)
 
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                self.base == other.base)
+
 
 # This is a specialised AS for use internally - Its used to provide
 # transparent support for a string buffer so types can be
@@ -458,6 +462,10 @@ class RunBasedAddressSpace(PagedReader):
                 continue
 
             yield run_start, file_address, length
+
+    def __eq__(self, other):
+        return (super(RunBasedAddressSpace, self).__eq__(other) and
+                self.runs == other.runs)
 
 
 # TODO: Replace the RunBasedAddressSpace with this one since it is a super set.
