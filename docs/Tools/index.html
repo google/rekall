@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/releases.html">
+      Releases
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDownloads"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Downloads
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Tools/index.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-2">
+    
+ <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> docs
+ </a>
+
+ <a href='/docs/Tools/index.html' class="btn btn-default btn-lg btn-block">
+   Tools
+ </a>
+ <p>
+
+ 
+
+
+  </div>
+
+  <div class="col-md-10">
+    
+
+
+<h1>The Pmem Memory acquisition suite.</h1>
+
+<div class="abstract">
+
+</div>
+
+
+
+
+
+<p>Memory acquisition is the first step in memory analysis. Before any analysis can
+be done, we need to acquire the memory in the first place. There are a number of
+commercial solutions to acquire memory, but sadly open source solutions have
+been abandoned or not maintained (For example win32dd has been a popular
+solution many years ago but has now been commercialized and is no longer open
+source).</p>
+<p>We believe in open source forensic tools to make testing and transparency
+easier. We also believe that the availability of open source solutions spurs
+further development in the field and enables choices.</p>
+<p>That is the reason we feel an open source, well tested and capable forensic
+memory acquisition tool is essential - we call it the Pmem suite of tools. The
+pmem acquisition tool aims to provide a complete imaging solution for Windows,
+Linux and OSX.</p>
+<p>The following is a quick overview of how to use the pmem tools. For detailed
+information consult the source.</p>
+<h2>WinPmem</h2>
+<p>The windows memory acquisition tool is called WinPmem.</p>
+<p>These are the features it supports:</p>
+<ul>
+<li>Supports all windows versions from WinXP SP2 to Windows 8 in both i386 and
+amd64 flavours.</li>
+<li>Output formats include:</li>
+<li>Raw memory images.</li>
+<li>ELF Core dump files for use in rekall.</li>
+<li>
+<p>Output to stdout (in both the above formats) for piping through other tools
+   (e.g. ssh, ewfacquirestream etc).</p>
+</li>
+<li>
+<p>Memory acquisition using</p>
+</li>
+<li>MmMapIoSpace method.</li>
+<li>\Device\PhysicalMemory and ZwMapViewOfSection method.</li>
+<li>
+<p>PTE Remapping technique (default)</p>
+</li>
+<li>
+<p>Direct analysis of the running kernel using Rekall (Live memory analysis).</p>
+</li>
+<li>Optional Write support for manipulating kernel data structures from Rekall.</li>
+</ul>
+<h3>Download</h3>
+<p>The latest version can be found <a href="http://www.rekall-forensic.com/">here</a>. You
+will find the tool released in two versions:</p>
+<ul>
+<li>
+<p>winpmem-1.6.0.exe: is the recommended binary for general use. This binary
+  contains signed drivers so it can load on any windows system (even 64 bit
+  ones). This binary does not include write support for memory.</p>
+</li>
+<li>
+<p>winpmem_write-1.6.0.exe: is the binary with write support enabled. It is not
+  signed so it will only work on 32 bit windows or 64 bit windows with special
+  preparation (see below).</p>
+</li>
+</ul>
+<p>IMPORTANT: The recommended version for regular use is the one without write
+support. The version with write support can not be used on a regular system.</p>
+<div class="highlight"><pre><span class="nl">c:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">Winpmem</span> <span class="o">-</span> <span class="n">A</span> <span class="n">memory</span> <span class="n">imager</span> <span class="k">for</span> <span class="n">windows</span><span class="p">.</span>
+<span class="n">Copyright</span> <span class="n">Michael</span> <span class="n">Cohen</span> <span class="p">(</span><span class="n">scudette</span><span class="err">@</span><span class="n">gmail</span><span class="p">.</span><span class="n">com</span><span class="p">)</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
+
+<span class="n">Version</span> <span class="mf">1.6.0</span> <span class="n">May</span> <span class="mi">15</span> <span class="mi">2014</span>
+<span class="nl">Usage:</span>
+  <span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="p">[</span><span class="n">output</span> <span class="n">path</span><span class="p">]</span>
+
+<span class="nl">Option:</span>
+  <span class="o">-</span><span class="n">l</span>    <span class="n">Load</span> <span class="n">the</span> <span class="n">driver</span> <span class="n">and</span> <span class="n">exit</span><span class="p">.</span>
+  <span class="o">-</span><span class="n">u</span>    <span class="n">Unload</span> <span class="n">the</span> <span class="n">driver</span> <span class="n">and</span> <span class="n">exit</span><span class="p">.</span>
+  <span class="o">-</span><span class="n">d</span> <span class="p">[</span><span class="n">filename</span><span class="p">]</span>
+        <span class="n">Extract</span> <span class="n">driver</span> <span class="n">to</span> <span class="n">this</span> <span class="n">file</span> <span class="p">(</span><span class="n">Default</span> <span class="n">use</span> <span class="n">random</span> <span class="n">name</span><span class="p">).</span>
+  <span class="o">-</span><span class="n">h</span>    <span class="n">Display</span> <span class="n">this</span> <span class="n">help</span><span class="p">.</span>
+  <span class="o">-</span><span class="n">w</span>    <span class="n">Turn</span> <span class="n">on</span> <span class="n">write</span> <span class="n">mode</span><span class="p">.</span>
+  <span class="o">-</span><span class="mi">0</span>    <span class="n">Use</span> <span class="n">MmMapIoSpace</span> <span class="n">method</span><span class="p">.</span>
+  <span class="o">-</span><span class="mi">1</span>    <span class="n">Use</span> <span class="err">\\</span><span class="n">Device</span><span class="err">\</span><span class="n">PhysicalMemory</span> <span class="n">method</span> <span class="p">(</span><span class="n">Default</span> <span class="k">for</span> <span class="mi">32</span><span class="n">bit</span> <span class="n">OS</span><span class="p">).</span>
+  <span class="o">-</span><span class="mi">2</span>    <span class="n">Use</span> <span class="n">PTE</span> <span class="n">remapping</span> <span class="p">(</span><span class="n">AMD64</span> <span class="n">only</span> <span class="o">-</span> <span class="n">Default</span> <span class="k">for</span> <span class="mi">64</span><span class="n">bit</span> <span class="n">OS</span><span class="p">).</span>
+  <span class="o">-</span><span class="mi">3</span>    <span class="n">Use</span> <span class="n">PTE</span> <span class="n">remapping</span> <span class="n">with</span> <span class="n">PCI</span> <span class="n">instrospection</span> <span class="p">(</span><span class="n">AMD64</span> <span class="n">Only</span><span class="p">).</span>
+  <span class="o">-</span><span class="n">e</span>    <span class="n">Produce</span> <span class="n">an</span> <span class="n">ELF</span> <span class="n">core</span> <span class="n">dump</span><span class="p">.</span>
+
+<span class="nl">NOTE:</span> <span class="n">an</span> <span class="n">output</span> <span class="n">filename</span> <span class="n">of</span> <span class="o">-</span> <span class="n">will</span> <span class="n">write</span> <span class="n">the</span> <span class="n">image</span> <span class="n">to</span> <span class="n">STDOUT</span><span class="p">.</span>
+
+<span class="nl">Examples:</span>
+<span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="n">physmem</span><span class="p">.</span><span class="n">raw</span>
+<span class="n">Writes</span> <span class="n">an</span> <span class="n">image</span> <span class="n">to</span> <span class="n">physmem</span><span class="p">.</span><span class="n">raw</span>
+
+<span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">e</span> <span class="o">-</span> <span class="o">|</span> <span class="n">nc</span> <span class="mf">192.168.1.1</span> <span class="mi">80</span>
+<span class="n">Writes</span> <span class="n">an</span> <span class="n">elf</span> <span class="n">coredump</span> <span class="n">to</span> <span class="n">netcat</span> <span class="k">for</span> <span class="n">network</span> <span class="n">transport</span><span class="p">.</span>
+</pre></div>
+
+
+<h3>Examples</h3>
+<p>Writes a raw image to physmem.raw</p>
+<div class="highlight"><pre><span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="n">physmem</span><span class="p">.</span><span class="n">raw</span>
+</pre></div>
+
+
+<p>Writes a crashdump file to netcat for network transport. Output is supressed
+here because STDOUT is redirected.</p>
+<div class="highlight"><pre><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">d</span> <span class="o">-</span> <span class="o">|</span> <span class="n">nc</span> <span class="mf">192.168.1.1</span> <span class="mi">80</span>
+</pre></div>
+
+
+<p>Normally the driver will be automatically unloaded after the image is
+acquired. To allow Rekall to attach to the raw device for live analysis, we need
+to load the driver and exit:</p>
+<div class="highlight"><pre><span class="nl">c:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">winpmem</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">l</span>
+<span class="n">Loaded</span> <span class="n">Driver</span><span class="p">.</span>
+<span class="nl">c:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+</pre></div>
+
+
+<p>NOTE: Rekall does not usually need a profile when running on a windows image
+since it is autodetected.</p>
+<p>To unload the driver and exit:</p>
+<div class="highlight"><pre><span class="nl">c:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">winpmem</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">u</span>
+<span class="n">Driver</span> <span class="n">Unloaded</span><span class="p">.</span>
+</pre></div>
+
+
+<p>To acquire a raw image using the MmMapIoSpace method:</p>
+<div class="highlight"><pre><span class="nl">c:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="mi">1</span> <span class="n">myimage</span><span class="p">.</span><span class="n">raw</span>
+</pre></div>
+
+
+<p>To acquire an image in crashdump format:</p>
+<div class="highlight"><pre><span class="nl">c:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span><span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">d</span> <span class="n">c</span><span class="o">:</span><span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">test</span><span class="p">.</span><span class="n">dmp</span>
+<span class="n">Driver</span> <span class="n">Unloaded</span><span class="p">.</span>
+<span class="n">Loaded</span> <span class="n">Driver</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">mic</span><span class="err">\</span><span class="n">AppData</span><span class="err">\</span><span class="n">Local</span><span class="err">\</span><span class="n">Temp</span><span class="err">\</span><span class="n">win6C6</span><span class="p">.</span><span class="n">tmp</span><span class="p">.</span>
+<span class="n">Will</span> <span class="n">write</span> <span class="n">a</span> <span class="n">crash</span> <span class="n">dump</span> <span class="n">file</span>
+<span class="nl">CR3:</span> <span class="mh">0x0000187000</span>
+ <span class="mi">2</span> <span class="n">memory</span> <span class="n">ranges</span><span class="o">:</span>
+<span class="n">Start</span> <span class="mh">0x00001000</span> <span class="o">-</span> <span class="n">Length</span> <span class="mh">0x0009E000</span>
+<span class="n">Start</span> <span class="mh">0x00100000</span> <span class="o">-</span> <span class="n">Length</span> <span class="mh">0x6F6FB000</span>
+
+
+<span class="mo">00</span><span class="o">%</span> <span class="mh">0x00001000</span> <span class="p">.</span>
+
+<span class="mo">00</span><span class="o">%</span> <span class="mh">0x00100000</span> <span class="p">..................................................</span>
+<span class="mo">02</span><span class="o">%</span> <span class="mh">0x03300000</span> <span class="p">..................................................</span>
+<span class="mo">05</span><span class="o">%</span> <span class="mh">0x06500000</span> <span class="p">..................................................</span>
+<span class="o">*</span><span class="p">..</span>
+<span class="mi">92</span><span class="o">%</span> <span class="mh">0x67300000</span> <span class="p">..................................................</span>
+<span class="mi">95</span><span class="o">%</span> <span class="mh">0x6A500000</span> <span class="p">..................................................</span>
+<span class="mi">98</span><span class="o">%</span> <span class="mh">0x6D700000</span> <span class="p">.................................</span>
+<span class="n">Driver</span> <span class="n">Unloaded</span><span class="p">.</span>
+</pre></div>
+
+
+<h3>Experimental write support</h3>
+<p>As from Version 1.1, the winpmem drivers support writing to memory as well as
+reading. This capability is a great learning tool since many rootkit hiding
+techniques can be emulated by writing to memory directly. For example the
+following Rekall session illustrates changing the name of the binary:</p>
+<div class="highlight"><pre><span class="nl">c:</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">rekal</span> <span class="o">-</span><span class="n">f</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+
+<span class="nl">WinXPSP2x86:</span><span class="n">pmem</span> <span class="mo">03</span><span class="o">:</span><span class="mi">10</span><span class="o">:</span><span class="mi">40</span><span class="o">&gt;</span> <span class="n">task</span> <span class="o">=</span> <span class="n">session</span><span class="p">.</span><span class="n">profile</span><span class="p">.</span><span class="n">_EPROCESS</span><span class="p">(</span><span class="mh">0x82079c18</span><span class="p">)</span>
+<span class="nl">WinXPSP2x86:</span><span class="n">pmem</span> <span class="mo">03</span><span class="o">:</span><span class="mi">10</span><span class="o">:</span><span class="mi">57</span><span class="o">&gt;</span> <span class="n">task</span><span class="p">.</span><span class="n">ImageFileName</span>
+                    <span class="n">Out</span>    <span class="p">[</span><span class="n">String</span><span class="o">:</span><span class="n">ImageFileName</span><span class="p">]</span><span class="o">:</span> <span class="err">&#39;</span><span class="n">cmd</span><span class="p">.</span><span class="n">exe</span><span class="err">\</span><span class="n">x00</span><span class="err">&#39;</span>
+<span class="nl">WinXPSP2x86:</span><span class="n">pmem</span> <span class="mo">03</span><span class="o">:</span><span class="mi">11</span><span class="o">:</span><span class="mi">15</span><span class="o">&gt;</span> <span class="n">task</span><span class="p">.</span><span class="n">ImageFileName</span> <span class="o">=</span> <span class="s">&quot;foo.exe</span><span class="se">\x00</span><span class="s">&quot;</span>
+<span class="nl">WinXPSP2x86:</span><span class="n">pmem</span> <span class="mo">03</span><span class="o">:</span><span class="mi">11</span><span class="o">:</span><span class="mi">21</span><span class="o">&gt;</span> <span class="n">task</span><span class="p">.</span><span class="n">ImageFileName</span>
+                    <span class="n">Out</span>    <span class="p">[</span><span class="n">String</span><span class="o">:</span><span class="n">ImageFileName</span><span class="p">]</span><span class="o">:</span> <span class="err">&#39;</span><span class="n">foo</span><span class="p">.</span><span class="n">exe</span><span class="err">\</span><span class="n">x00</span><span class="err">&#39;</span>
+</pre></div>
+
+
+<p>Since this is a rather dangerous capability, the signed binary drivers have
+write support disabled. The unsigned binaries (really self signed with a test
+certificate) can not load on a regular system due to them being test self
+signed. You can allow the unsigned drivers to be loaded on a test system by
+issuing (see
+http://msdn.microsoft.com/en-us/library/windows/hardware/ff553484(v=vs.85).aspx):</p>
+<div class="highlight"><pre><span class="n">Bcdedit</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">set</span> <span class="n">TESTSIGNING</span> <span class="n">ON</span>
+</pre></div>
+
+
+<p>and reboot. You will see a small &ldquo;Test Mode&rdquo; text on the desktop to remind you
+that this machine is configured for test signed drivers.</p>
+<p>Alternatively you can test this on XP or Vista32 which have no driver signing
+restrictions.</p>
+<p>Once the correct driver is loaded, Write support must also be enabled at load
+time using the -w switch:</p>
+<div class="highlight"><pre><span class="n">winpmem_write</span><span class="o">-</span><span class="mf">1.5.2</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">w</span> <span class="o">-</span><span class="n">l</span>
+</pre></div>
+
+
+<p>This will load the drivers and turn on write support. Then we can run rekall
+interactively, as usual on the raw device:</p>
+<div class="highlight"><pre><span class="n">rekal</span> <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+</pre></div>
+
+
+<h2>OSXPMem - Mac OS X Physical Memory acquisition tool</h2>
+<p>The OSX Memory Imager was written by Johannes Stuettgen
+(johannes.stuettgen@gmail.com) as an open source tool to acquire physical memory
+on an Intel based Mac. It consists of 2 components:</p>
+<ul>
+<li>The usermode acquisition tool &lsquo;osxpmem&rsquo;, which parses the accessible sections
+  of physical memory and writes them to disk in a specific format.</li>
+<li>A generic kernel extension &lsquo;pmem.kext&rsquo;, that provides read only access to
+  physical memory. After loading it into the kernel it provides a device file
+  (&lsquo;/dev/pmem/&rsquo;), from which physical memory can be read.</li>
+</ul>
+<h2>Download</h2>
+<p>The binaries can be found <a href="http://www.rekall-forensic.com">here</a> or from the
+Rekall downloads page.</p>
+<h3>Usage</h3>
+<ul>
+<li>You need root access for this to work so first open a root shell (&lsquo;sudo su&rsquo;).</li>
+<li>Now unpack the archive (&lsquo;tar xvf OSXPMem.tar.gz&rsquo;). This creates a new
+  directory &lsquo;OSXPMem&rsquo; containing the binary &lsquo;osxpmem&rsquo;, as well as the
+  kernel extension &lsquo;pmem.kext&rsquo;.</li>
+<li>Enter the directory you just created (&lsquo;cd OSXPMem&rsquo;).</li>
+<li>Run the imager by passing it a file-name for the memory image.
+  (&lsquo;./osxpmem memory.dump&rsquo; will create a file named &lsquo;memory.dump&rsquo;).</li>
+</ul>
+<p>The imager supports multiple output formats, at the moment these are Mach-O, ELF
+and zero-padded RAW. You can select which output format to use by passing the
+&lsquo;&ndash;format&rsquo; option. For example to write a Mach-O image you would invoke
+&lsquo;./osxpmem &ndash;format mach memory.dump&rsquo;. The default output format is ELF.</p>
+<p>For more information on different command line switches run &lsquo;./osxpmem &ndash;help&rsquo;.</p>
+<h3>Common Pitfalls</h3>
+<ul>
+<li>
+<p>Mac OS X only allows kernel extension to load if they are owned by the user
+  &lsquo;root&rsquo; and the group &lsquo;wheel&rsquo;. The distribution package has this already set up
+  for you. However, if you accidentally extract the archive as a normal user
+  (eg.  omit &lsquo;sudo su&rsquo; before unpacking the tarball), permissions might become
+  corrupted and the loading of the driver will fail. In this case you can
+  correct the problem by running &lsquo;sudo chown -R root:wheel ./pmem.kext&rsquo; from
+  within the &lsquo;OSXPMem&rsquo; directory.</p>
+</li>
+<li>
+<p>If you try to run the imager from NFS or another networked file-system,
+  permissions might also become corrupted. If the imager reports a failure to
+  load the pmem driver, check the drivers permissions. If it is not owned by
+  user &lsquo;root&rsquo; and group &lsquo;wheel&rsquo; and step 1 can&rsquo;t correct this, try copying it
+  somewhere else and correct permissions there.</p>
+</li>
+</ul>
+<h3>Compatibility</h3>
+<p>Due to the nature of physical memory access many things are very platform
+dependent. The tool is designed to work on 64 bit Intel Macs. It can probably be
+compiled to work in 32 bit mode, the binary distribution however only contains
+64 bit binaries.</p>
+<p>Several low-level api&rsquo;s have changed in recent OS X versions. We have tested the
+imager and driver on OS X 10.7 and 10.8, on which they work flawlessly. It
+should also work on 10.6, but might encounter problems unloading the driver, as
+the unloading api in IOKit is new in 10.7.</p>
+<p>We have also successfully tested the tool in a VMWare Fusion OS X 10.7 machine,
+so it should work in virtualized environments.</p>
+
+<p>
+
+
+  </div>
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </div>
+ </body>
+</html>
+

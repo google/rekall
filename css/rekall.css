@@ -1,6 +1,15 @@
 img.logo {
+    padding-top: 2px;
     width: 128px;
     float: right;
+}
+
+img.small_logo {
+    height: 50px;
+}
+
+img.logo-large {
+    height: 150px;
 }
 
 .css-treeview .nav > li > a {
@@ -77,4 +86,160 @@ label.category {
 
 .highlighttable {
     width: 100%
+}
+
+
+.background {
+    min-height: 100%;
+    position: relative;
+    background-image: linear-gradient(
+        rgb(241, 241, 241) 0%,
+        rgba(235, 235, 235, 0) 21%,
+        rgba(245, 245, 245, 0) 81%,
+        rgb(248, 248, 248) 100%);
+}
+
+body, html {
+    height: 100%;
+}
+
+.footer {
+  bottom: 0;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: black;
+}
+
+.category-link {
+  color: #337ab7;
+}
+
+.page-background {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.embedded_doc {
+    padding-top: 50px;
+}
+
+.XXXbtn {
+  color:#428bca;
+  margin: 0 0 2px;
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -o-border-radius: 4px;
+  border-radius: 4px;
+  font-family: "Open Sans";
+  font-weight: 600;
+  height: auto;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffffff), color-stop(100%, #f2f2f2));
+  background-image: -webkit-linear-gradient(#ffffff, #f2f2f2);
+  background-image: -moz-linear-gradient(#ffffff, #f2f2f2);
+  background-image: -o-linear-gradient(#ffffff, #f2f2f2);
+  background-image: linear-gradient(#ffffff, #f2f2f2);
+}
+
+.Xbtn:hover, .Xbtn:focus {
+  color: black!important;
+  border: 1px solid #ddd!important;
+  background: white!important;
+}
+
+.improve-docs {
+    float: right;
+}
+
+.plugins {
+  color:#428bca;
+  margin: 0 0 2px;
+  overflow: hidden;
+  border: 1px solid #e5e5e5;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -o-border-radius: 4px;
+  background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffffff), color-stop(100%, #f2f2f2));
+  background-image: -webkit-linear-gradient(#ffffff, #f2f2f2);
+  background-image: -moz-linear-gradient(#ffffff, #f2f2f2);
+  background-image: -o-linear-gradient(#ffffff, #f2f2f2);
+  background-image: linear-gradient(#ffffff, #f2f2f2);
+  min-height: 0;
+  font-family: "Open Sans";
+  font-weight: 600;
+  height: auto;
+}
+
+.plugins  li  a {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.docs-search {
+    margin: 10px 0;
+    padding: 4px 0 4px 20px;
+    background: white;
+    border-radius: 20px;
+    vertical-align: middle;
+    float:right;
+}
+
+.docs-search > .search-query {
+    font-size: 14px;
+    border: 0;
+    width: 80%;
+    color: #555;
+}
+
+.docs-search > .search-icon {
+font-size: 15px;
+margin-right: 10px;
+}
+
+
+
+.hero-unit {
+  padding:100px 80px;
+  margin:0;
+}
+
+.center {
+  text-align: center;
+}
+
+.hero-unit h1 {
+  padding-top: 1.5em;
+  padding-bottom: 1em;
+  margin: 0;
+  font-size: 30px;
+  color: #535353;
+  font-family: 'helvetica neue', Helvetica, Arial;
+  font-weight: 300;
+}
+
+.hero-unit .btn-large {
+  font-size: 22px;
+  font-family: Helvetica;
+  font-weight: lighter;
+}
+
+.stage-buttons .btn {
+  margin:5px!important;
+}
+
+.about-container {
+  padding:30px 0 50px;
+}
+
+.about-cell h1 {
+    margin-top: 0px;
+}
+
+.dropdown-toggle {
+    cursor: pointer;
 }

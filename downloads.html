@@ -7,15 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px;
-      }
-    </style>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
-    <link href="/css/treeview.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
@@ -31,518 +26,202 @@ ript>
   <body>
 
 
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
 
-   <nav class="navbar navbar-inverse navbar-fixed-top"
-     role="navigation">
-     <div class="container-fluid">
-       <div class="navbar-header">
-         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-       </div>
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/releases.html">
+      Releases
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-       <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
 
-        <li>
-          <a class="" href="/index.html">
-            Home
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
 
-        <li>
-          <a class="" href="/about.html">
-            About
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
 
-        <li>
-          <a class="" href="/releases.html">
-            Releases
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-        <li>
-          <a class="" href="/blog.html">
-            Blog
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
 
-        <li>
-          <a class="" href="/docs.html">
-            Documentation
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
-        <li>
-          <a class="active" href="/downloads.html">
-            Downloads
-          </a>
-        </li>
+  </ul>
+ </li>
 
-        <li>
-          <a class="" href="/faq.html">
-            FAQ
-          </a>
-        </li>
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
 
-         </ul>
-         <form class="navbar-form navbar-right" role="search" action="/search.html">
-           <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Site Search">
-           </div>
-           <button type="submit" class="btn btn-default">
-             <span class="glyphicon glyphicon-search"></span>
-           </button>
-         </form>
-       </div> <!-- navbar-collapse -->
-     </div> <!-- container-fluid -->
-   </nav>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
 
-<div class="container-fluid">
-<div class="row">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="active dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDownloads"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Downloads
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/downloads.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
   <div class="col-md-2">
     
   </div>
 
-  <div class="col-md-8">
+  <div class="col-md-10">
+    
     <h1>Rekall Downloads.</h1>
 <p>The currently released version is <strong>v1.2.1 Col de la Croix</strong>. This is can be downloaded from
 <a href="https://github.com/google/rekall/releases">https://github.com/google/rekall/releases</a> or from this page.</p>
-<h3>Simply select the relevant download below to show release information.</h3>
-<div id='accordion' class='panel-group'>
-  <div class='panel panel-default'>
-    <div class="panel-heading">
-      <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion"
-         href="#af50a7a9bb5600e12a26d590671668fc5a285003">
-         Binary Releases of Rekall Memory Forensics.
-        </a>
-      </h4>
-    </div>
-    <div id="af50a7a9bb5600e12a26d590671668fc5a285003" class="panel-collapse collapse">
-      <div class="panel-body">
-         <h1>Binary Releases of Rekall Memory Forensics.</h1>
-<p>The following are windows installers for the Rekall memory analysis
-framework. These are completely self contained and do not require any other
-dependencies. They also include the WinPmem memory acquisition tool.</p>
-         
-<table class="table table-striped table-bordered table-hover">
-<thead>
-<tr><th>Filename</th><th>Description</th></tr>
-</thead>
-<tbody>
-
-<tr>
-  <td><a href='https://github.com/google/rekall/releases/v1.2.1/'>Rekall_1.2.1_Col de la Croix_x64_signed.exe</a></td>
-  <td>Windows 64 bit installer (Includes winpmem). This installer is digitally signed.</td>
-</tr>
-
-<tr>
-  <td><a href='https://github.com/google/rekall/archive/v1.2.1.tar.gz'>v1.2.1.tar.gz</a></td>
-  <td>Source.</td>
-</tr>
-</tbody></table>
-      </div>
-    </div>
-  </div>
-
-  <div class='panel panel-default'>
-    <div class="panel-heading">
-      <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion"
-         href="#e96b9e0b84e72a5e37c8cc4ca4a01aca2e18f7f2">
-         OSXPMem - Mac OS X Physical Memory acquisition tool
-        </a>
-      </h4>
-    </div>
-    <div id="e96b9e0b84e72a5e37c8cc4ca4a01aca2e18f7f2" class="panel-collapse collapse">
-      <div class="panel-body">
-         
-<div id="header">
-<h1>OSXPMem - Mac OS X Physical Memory acquisition tool</h1>
-<span id="author">Version: RC3</span><br />
-<span id="revdate">Supported OS X versions</span>
-<br /><span id="revremark">10.7 - 10.9.2
-Author: Johannes Stuettgen ()</span>
-</div>
-<div id="content">
-<div class="sect1">
-<h2 id="_summary">Summary:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The OSX Memory Imager is an open source tool to acquire physical memory on an
-Intel based Mac. It consists of 2 components:</p></div>
-<div class="paragraph"><p>The usermode acquisition tool <em>osxpmem</em>, which parses the accessible sections of
-physical memory and writes them to disk in a specific format.</p></div>
-<div class="paragraph"><p>A generic kernel extension <em>pmem.kext</em>, that provides read only
-access to physical memory. After loading it into the kernel it provides
-a device file (<em>/dev/pmem/</em>), from which physical memory can be read.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_usage">Usage:</h2>
-<div class="sectionbody">
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-You need root access for this to work so first open a root shell (<em>sudo su</em>).
-</p>
-</li>
-<li>
-<p>
-Now unpack the archive (<em>tar xvf OSXPMem.tar.gz</em>). This creates a new
-directory <em>OSXPMem</em> containing the binary <em>osxpmem</em>, as well as the
-kernel extension <em>pmem.kext</em>.
-</p>
-</li>
-<li>
-<p>
-Enter the directory you just created (<em>cd OSXPMem</em>).
-</p>
-</li>
-<li>
-<p>
-Run the imager by passing it a file-name for the memory image.
-(<em>./osxpmem memory.dump</em> will create a file named <em>memory.dump</em>).
-</p>
-</li>
-</ol></div>
-<div class="paragraph"><p>The imager supports multiple output formats, at the moment these are Mach-O, ELF
-and zero-padded RAW. You can select which output format to use by passing the
-<em>--format</em> option. For example to write a Mach-O image you would invoke
-<em>./osxpmem --format mach memory.dump</em>. The default output format is ELF.</p></div>
-<div class="paragraph"><p>For more information on different command line switches run <em>./osxpmem --help</em>.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_common_pitfalls">Common Pitfalls:</h2>
-<div class="sectionbody">
-<div class="olist arabic"><ol class="arabic">
-<li>
-<p>
-Mac OS X only allows kernel extension to load if they are owned by the user
-<em>root</em> and the group <em>wheel</em>. The distribution package has this already set up
-for you. However, if you accidentally extract the archive as a normal user (eg.
-omit <em>sudo su</em> before unpacking the tarball), permissions might become
-corrupted and the loading of the driver will fail. In this case you can correct
-the problem by running <em>sudo chown -R root:wheel ./pmem.kext</em> from within the
-<em>OSXPMem</em> directory.
-</p>
-</li>
-<li>
-<p>
-If you try to run the imager from NFS or another networked file-system,
-permissions might also become corrupted. If the imager reports a failure to load
-the pmem driver, check the drivers permissions. If it is not owned by user
-<em>root</em> and group <em>wheel</em> and step 1 can&#8217;t correct this, try copying it
-somewhere else and correct permissions there.
-</p>
-</li>
-<li>
-<p>
-When running OSXPmem from an external drive there will most certainly be
-permission problems. Some file-systems (e.g. FAT) don&#8217;t support ownership at all
-and OSXPmem just can&#8217;t load it&#8217;s kernel extension from there. You will have to
-copy the files onto the target system and launch it from there. If you are certain
-the file-system supports it you can also enable ownership either in finder by
-disabling ("Get Info" &#8594; "Sharing and permissions" &#8594; "Ignore ownership&#8230;") or
-by running "vsdbutil -a /Volumes/DRIVENAME" where DRIVENAME is the name of the
-external drive.
-</p>
-</li>
-</ol></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_compatibility">Compatibility:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Due to the nature of physical memory access many things are very platform
-dependent. The tool is designed to work on 64 bit Intel Macs. It can probably be
-compiled to work in 32 bit mode, the binary distribution however only contains
-64 bit binaries.</p></div>
-<div class="paragraph"><p>Several low-level api&#8217;s have changed in recent OS X versions. We have tested the
-imager and driver on OS X 10.7 through 10.9, on which they work flawlessly. It
-should also work on 10.6, but might encounter problems unloading the driver, as
-the unloading api in IOKit is new in 10.7.</p></div>
-<div class="paragraph"><p>We have also successfully tested the tool in a VMWare Fusion OS X 10.7 machine,
-so it should work in virtualized environments.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_building_from_source">Building from Source:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The project can only be built on Mac OS X, due to linking with Apple
-libraries and kernel headers. You also need the Apple Developer Kit installed,
-the easiest way to obtain this is by installing XCode.</p></div>
-<div class="paragraph"><p>Build the kext and imager with the provided Makefile by running <em>make</em>.
-This will create a directory <em>./build</em> and place the resulting binaries there.</p></div>
-<div class="paragraph"><p>There is also a bash script called <em>package.sh</em>, which will build the
-kernel extension and the imager, and package them into a compressed tarball.</p></div>
-<div class="paragraph"><p>You might need to adjust the <em>SDK_PATH</em> and <em>FRAMEWORK_PATH</em> in the Makefile, if
-they reside in different locations on your build system.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_codesigning">Codesigning:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>As of OS X 10.9, kernel extensions support codesigning. Unsigned extensions
-still load as of 10.9.2, but trigger a warning message to the user. In future
-versions, Apple plans to prevent loading of unsigned extensions. The binary
-releases of Rekall/PMEM are signed by one of the developers, however, if you
-build from source, you will need to supply your own signature.</p></div>
-<div class="paragraph"><p>Codesigning certificates are issued by Apple to members of the Mac Developer
-Programme who have been explictly approved for kext development.</p></div>
-</div>
-</div>
-</div>
-<div id="footnotes"><hr /></div>
-<div id="footer">
-<div id="footer-text">
-Last updated 2014-12-19 17:12:44 AEST
-</div>
-</div>
-<script src="/js/asciidoc.js"></script>
-         
-<table class="table table-striped table-bordered table-hover">
-<thead>
-<tr><th>Filename</th><th>Description</th></tr>
-</thead>
-<tbody>
-
-<tr>
-  <td><a href='https://github.com/google/rekall/releases/v1.0rc11/'>OSXPMem-RC3-signed.tar.gz</a></td>
-  <td>The OSXPmem acquisiton tool.</td>
-</tr>
-</tbody></table>
-      </div>
-    </div>
-  </div>
-
-  <div class='panel panel-default'>
-    <div class="panel-heading">
-      <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion"
-         href="#fc9e4bc577ee083ed5cb85a994711f37af81a0cd">
-         WinPMEM - A Windows Memory Acquisition Tool.
-        </a>
-      </h4>
-    </div>
-    <div id="fc9e4bc577ee083ed5cb85a994711f37af81a0cd" class="panel-collapse collapse">
-      <div class="panel-body">
-         <h1>WinPMEM - A Windows Memory Acquisition Tool.</h1>
-<p>Version 1.6.2</p>
-<p>Michael Cohen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;">&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;</a></p>
-<ul>
-<li>winpmem_1.6.2.exe: The officially supported winpmem binary memory imager. This
-  contains signed drivers for loading into 64 bit windows versions. The drivers
-  support only read mode for forensic analysis. Write support is disabled. This
-  version also includes the ability to acquire the pagefile.</li>
-</ul>
-         
-<table class="table table-striped table-bordered table-hover">
-<thead>
-<tr><th>Filename</th><th>Description</th></tr>
-</thead>
-<tbody>
-
-<tr>
-  <td><a href='https://github.com/google/rekall/releases/v1.2.1/'>winpmem_1.6.2.exe</a></td>
-  <td>Signed Official WinPmem Acquisition tool.</td>
-</tr>
-</tbody></table>
-      </div>
-    </div>
-  </div>
-
-  <div class='panel panel-default'>
-    <div class="panel-heading">
-      <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion"
-         href="#c9807daf931037c186c0c9d7f77be6e9fa353368">
-         Pmem- Linux Acquisition tool.
-        </a>
-      </h4>
-    </div>
-    <div id="c9807daf931037c186c0c9d7f77be6e9fa353368" class="panel-collapse collapse">
-      <div class="panel-body">
-         <h1>Pmem: Linux Acquisition tools.</h1>
-<ul>
-<li>The pmem tool is a simple kernel driver for physical memory acquisition. It
-  needs to be built on a linux system which kernel headers matching the acquired
-  kernel.</li>
-</ul>
-         
-<table class="table table-striped table-bordered table-hover">
-<thead>
-<tr><th>Filename</th><th>Description</th></tr>
-</thead>
-<tbody>
-
-<tr>
-  <td><a href='https://github.com/google/rekall/releases/v1.2.1/'>linux_pmem_1.0RC1.tgz</a></td>
-  <td>The standard pmem linux acquitiion tool.</td>
-</tr>
-</tbody></table>
-      </div>
-    </div>
-  </div>
-
-  <div class='panel panel-default'>
-    <div class="panel-heading">
-      <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion"
-         href="#3f124dc6c2a25c9b7466850dd69b26b16e7204c9">
-         LMAP - Linux Physical Memory acquisition tool
-        </a>
-      </h4>
-    </div>
-    <div id="3f124dc6c2a25c9b7466850dd69b26b16e7204c9" class="panel-collapse collapse">
-      <div class="panel-body">
-         
-<div id="header">
-</div>
-<div id="content">
-<div class="paragraph"><p>Author: Johannes Stuettgen (<a href="mailto:johannes.stuettgen@gmail.com">johannes.stuettgen@gmail.com</a>)</p></div>
-<div class="sect1">
-<h2 id="_summary">Summary:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>LMAP is a binary linux memory acquisition tool that works on any kernel and
-distribution without having to build anything on the target system.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_how_it_works">How it works:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Memory acquisition on Linux requires loading a kernel module. For stability
-reasons, this has to be compiled on the system where it will be loaded. LMAP
-avoids this requirement by bringing along a minimal memory acquisition kernel
-module that doesn&#8217;t use the kernel and thus is compatible with most kernel
-versions.</p></div>
-<div class="paragraph"><p>To ensure compatibility and stability on the target system LMAP borrows a
-compatible kernel module from the current system (it searches /lib/modules) as
-a host. LMAP then injects it&#8217;s code and data into a copy of the host in memory
-and loads the result into the kernel.</p></div>
-<div class="paragraph"><p>The integrated kernel module is kernel-independent and works on any Linux
-x86-64 system from kernel 2.6 to 3.X [2]. The usermode <em>lmap</em> binary is
-statically linked to avoid libc version dependencies. You can find further
-technical details in our paper published at DFRWS EU [1].</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_usage">Usage:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>Copy the <em>lmap</em> binary to a Linux system where memory should be acquired.</p></div>
-<div class="paragraph"><p>LMAP can dump memory directly and create an ELF coredump file using the <em>-a</em>
-option. It can also load the pmem module with the <em>-l</em> option, then acquire
-memory by reading from the created <em>/dev/pmem</em> device file (e.g. with <em>dd</em>).</p></div>
-<div class="paragraph"><p>There are multiple other options, a complete list can be found here or by
-running <em>lmap</em> without any options:</p></div>
-<div class="paragraph"><p>modes of operation:
-  -a dumpfile  Main use case. Find a suitable host module, use it to load pmem
-               and then dump memory into an ELF core dump file.
-  -l           Find a host, use it to load the acquisition module. The pmem
-               module can be used by seeking and reading the file <em>/dev/pmem</em>.
-  -d           Find a host and inject pmem, then dump the generated module
-               to the filesystem as <em>infected_module.ko</em>.
-  -f           Scan for and list suitable hosts, don&#8217;t inject or load anything.</p></div>
-<div class="paragraph"><p>optional arguments:
-  -o outfile   The output file for <em>-d</em> (default: infected_module.ko).
-  -i inputfile Don&#8217;t inject the bundled pmem module, use this one instead.
-  -h module    Don&#8217;t search for a suitable host module, use this one instead.
-  -p path      Path to kernel modules to scan for hosts.
-  -m           Print the systems physical memory map.
-  -v           Verbose, produces detailed debug logging.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_limitations">Limitations:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>LMAP relies on finding a valid kernel module on the target system that serves
-as a host for it&#8217;s pmem module. Not every module satisfies the requirements,
-so it might be possible that no suitable host module exists on the target. In
-that case you will have to compile a module (e.g. pmem) on the target itself,
-or on a build system with identical kernel version and config.</p></div>
-<div class="paragraph"><p>Also, some modules might be suitable hosts, but require other modules to
-function. For example the <em>pg.ko</em> and <em>pt.ko</em> modules import symbols from
-<em>paride.ko</em>. If LMAP fails to load it&#8217;s module and your <em>dmesg</em> output shows
-missing symbols, try another host by first scanning with <em>-f</em> and then selecting
-it with the <em>-h</em> option.</p></div>
-<div class="paragraph"><p>Ftrace is a kernel feature that patches all kernel and module functions with
-calls to certain tracing functions to enable debugging and performance
-monitoring. This is partially done at compile- and run-time. LMAP should always
-be built without ftrace, as it introduces symbol dependencies to ftrace and the
-generated module won&#8217;t be loadable into kernels compiled without ftrace. If the
-target system runs ftrace, LMAP is still able to load it&#8217;s module. However,
-ftrace will complain about not being able to hook into the module. This results
-in a warning in the targets kernel debug buffer:
-  <em>WARNING: CPU: &#8230; at &#8230; ftrace_bug &#8230;</em>
-This is normal and does not compromise lmap, the module or the acquisition
-process in any way. Note that ftrace shuts down after that, so you will need to
-reboot the machine if you intend to use ftrace for debugging after running LMAP.</p></div>
-<div class="paragraph"><p>If you&#8217;re using the <em>build.sh</em> script to build LMAP the CMake scripts will
-create a copy of your kernel headers and config in <em>build/kernel_headers</em>.
-Any FTRACE options enabled in your original kernel config will be disabled there
-and the pmem module will be compiled with this config to guarantee an FTRACE
-free build.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_compatibility">Compatibility:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>The entire tool suite is only compatible with x86-64 processors and binaries.
-32 Bit x86 and ARM support is still in development.</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_building_from_source">Building from Source:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>See the README in the projects root (<em>tools/linux/lmap</em>).</p></div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_references">References:</h2>
-<div class="sectionbody">
-<div class="paragraph"><p>[1] Stüttgen, Johannes, and Michael Cohen.
-  "Robust Linux Memory Acquisition with Minimal Target Impact"
-  Digital Investigation 11 (2014): P112-P119.</p></div>
-<div class="paragraph"><p>[2] Stüttgen, Johannes, and Michael Cohen.
-  "Anti-forensic resilient memory acquisition"
-  Digital Investigation 10 (2013): P105-P115.</p></div>
-</div>
-</div>
-</div>
-<div id="footnotes"><hr /></div>
-<div id="footer">
-<div id="footer-text">
-Last updated 2014-12-19 17:12:45 AEST
-</div>
-</div>
-<script src="/js/asciidoc.js"></script>
-         
-<table class="table table-striped table-bordered table-hover">
-<thead>
-<tr><th>Filename</th><th>Description</th></tr>
-</thead>
-<tbody>
-
-<tr>
-  <td><a href='https://github.com/google/rekall/releases/v1.2.1/'>lmap-0.5</a></td>
-  <td>The LMAP advanced Linux acquisition tool (Precompiled Binary).</td>
-</tr>
-</tbody></table>
-      </div>
-    </div>
-  </div>
-</div>
-  </div>
-  <div class="col-md-2 sidebar">
-    <img src="/img/Rekall.png" class="logo"></img>
-
-
+<h3>Simply select the relevant download below to show release information.</h3> <ul class="nav nav-sidebar">
+    <ul class='nav nav-pills nav-stacked'>
+        <li>
+          <a href='/downloads/Linux' class="category-link">
+            Linux
+          </a>
+        </li>
+        
+        <li>
+          <a href='/downloads/OSXPmem' class="category-link">
+            OSXPmem
+          </a>
+        </li>
+        
+        <li>
+          <a href='/downloads/Rekall' class="category-link">
+            Rekall
+          </a>
+        </li>
+        
+        <li>
+          <a href='/downloads/WinPMEM' class="category-link">
+            WinPMEM
+          </a>
+        </li>
+        </ul></ul>
   </div>
 </div>
 </div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
   <script>
    $(".activate_tooltip").tooltip();
   </script>
-  </body>
+  </div>
+ </body>
 </html>
 

@@ -1,4 +1,5 @@
 ---
+layout: download
 title: Pmem- Linux Acquisition tool.
 downloads:
   linux_pmem_1.0RC1.tgz: The standard pmem linux acquitiion tool.

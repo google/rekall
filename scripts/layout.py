@@ -15,78 +15,162 @@ FOOT = utils.GetInclude("_includes/foot.html").format(site=SITE)
 SIDEBAR = utils.GetInclude("_includes/sidebar.html")
 
 
+def default_menuitem(subpage=None, location=None):
+    """Generate a default menu item for a page."""
+    menuitem = subpage.menuitem
+    url = subpage.url
+    result = """
+        <li class="divider-vertical"></li>
+        """
+    active = ""
+    if location == subpage.url:
+        active = "active"
+
+    result += """
+    <li class="{active}">
+     <a href="{url}">
+      {menuitem}
+     </a>
+    </li>
+    """.format(active=active, menuitem=menuitem, url=url)
+
+    return result
+
+
+def drop_down_menu(page=None, location=None):
+    """Renders a drop down navigator to the subpage's 'root' directory."""
+    menuitem = page.menuitem
+    result = """
+        <li class="divider-vertical"></li>
+        """
+    active = ""
+    if location == page.url:
+        active = "active"
+
+    result += """
+    <li class="{active} dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenu{menuitem}"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    {menuitem}
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu{menuitem}">
+""".format(menuitem=menuitem, active=active)
+
+    for subpage in sorted(utils.ListPages(page.root), key=lambda x: x.order):
+        result += """
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="{url}">{title}</a></li>
+""".format(url=subpage.url, title=subpage.title)
+
+    result += """
+  </ul>
+ </li>
+"""
+
+    return result
+
+
 def navigation(page=None):
     """Render navigation bar."""
     items = []
     for subpage in utils.ListPages("/"):
         if subpage.menuitem:
-            items.append(
-                (subpage.order, subpage.menuitem, subpage.url))
+            items.append(subpage)
 
-    items.sort()
+    items.sort(key=lambda x: x.order)
 
     result = u"""
-   <nav class="navbar navbar-inverse navbar-fixed-top"
-     role="navigation">
-     <div class="container-fluid">
-       <div class="navbar-header">
-         <a class="navbar-brand" href="#">{site.name}</a>
-       </div>
-
-       <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
 """.format(site=SITE)
 
-    for _, menuitem, url in items:
-        active = ""
-        if url == page.url:
-            active = "active"
+    for subpage in items:
+        renderer = globals()[
+            subpage.get("menu_layout", "default_menuitem")]
+        result += renderer(subpage, location=page.url)
 
-        result += """
-        <li>
-          <a class="{active}" href="{url}">
-            {menuitem}
-          </a>
-        </li>
-""".format(active=active, menuitem=menuitem, url=url)
+    cwd = os.getcwd()
+    if not page.filename.startswith(cwd):
+        raise RuntimeError("must run script from root of tree")
 
     result += u"""
-         </ul>
-         <form class="navbar-form navbar-right" role="search" action="/search.html">
-           <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Site Search">
-           </div>
-           <button type="submit" class="btn btn-default">
-             <span class="glyphicon glyphicon-search"></span>
-           </button>
-         </form>
-       </div> <!-- navbar-collapse -->
-     </div> <!-- container-fluid -->
-   </nav>
-"""
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/{path}?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+""".format(path=page.filename[len(cwd)+1:])
+
     return result
 
 
 def default(page=None):
+    cwd = os.getcwd()
+    if not page.filename.startswith(cwd):
+        raise RuntimeError("must run script from root of tree")
+
+    sidebar = SIDEBAR.format(path=page.filename[len(cwd)+1:],
+                             title=page.title)
+
     return u"""
 {head}
 {nav}
-<div class="container-fluid">
-<div class="row">
+<div class="container-fluid page-background container">
+<div class="main">
   <div class="col-md-2">
     {page.navigator}
   </div>
 
-  <div class="col-md-8">
+  <div class="col-md-10">
     {page.content}
-  </div>
-  <div class="col-md-2 sidebar">
-    {sidebar}
   </div>
 </div>
 </div>
 {foot}
-""".format(head=HEAD, foot=FOOT, sidebar=SIDEBAR, page=page,
+""".format(head=HEAD, foot=FOOT, sidebar=sidebar, page=page,
+           nav=navigation(page))
+
+
+def full_page(page=None):
+    return u"""
+{head}
+{nav}
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-12">
+    {page.content}
+  </div>
+</div>
+</div>
+{foot}
+""".format(head=HEAD, foot=FOOT, page=page,
            nav=navigation(page))
 
 
@@ -140,55 +224,53 @@ def _list_subpages(path):
     return directories, files
 
 @utils.memoize
-def _render_categories(path, width):
+def _render_categories(path, location=None):
     directories, files = _list_subpages(path)
-
-    # First render the directories in the tree.
     result = ""
-    for page in directories:
-        inner_html = _render_categories(page.filename, width)
-        if inner_html:
-            result += """
-<li>
-  <input type="checkbox" id="item-{page.url}" />
-  <label for="item-{page.url}" class="category">
-    {basename}
-  </label>
-""".format(basename=os.path.basename(page.filename), page=page)
-
-            result += inner_html
-            result += "</li>"
 
     # Now render the files.
     for page in sorted(files, key=lambda x: x.title):
-        abbrev = page.title
-        tooltip = ""
-        if len(abbrev) > width:
-            abbrev = abbrev[:width] + " ..."
-            tooltip = "activate_tooltip"
+        if location == page.url:
+            result += "<li class='active'>"
+        else:
+            result += "<li>"
 
         result += """
-<li>
-   <a href='{page.url}' class="tree-link {tooltip}"  title="{page.title}">
-      {abbrev}
-   </a>
-</li>
-""".format(page=page, abbrev=abbrev, tooltip=tooltip)
+          <a href='{page.url}' class="category-link">
+            {title}
+          </a>
+        </li>
+        """.format(page=page, title=page.title)
 
     if result:
-        return "<ul class='nav nav-stacked'>%s</ul>" % result
+        result = "<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
+
+    # First render the files.
+    for page in sorted(directories, key=lambda x: x.title):
+        result += """
+        <li>
+          <a href='{page.url}' class="category-link">
+            {title}
+          </a>
+        </li>
+        """.format(page=page, title=os.path.basename(page.url))
+
+    if result:
+        result = "<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
+
+    return result
 
 
 def categories(page=None, path=None):
     """Write navigation menu for all the plugins."""
     path = path or page.root
 
-    result = "{page.content} <div class='css-treeview'>".format(
-        page=page)
+    result = """
+    {page.content} <ul class="nav nav-sidebar">
+    """.format(page=page)
 
-    width = page.width or 15
-    result += _render_categories(path, width)
-    result += "</div>"
+    result += _render_categories(path)
+    result += "</ul>"
 
     page.content = result
 
@@ -205,8 +287,7 @@ def embedded_doc(page=None):
     Also includes the doc nav bar on the left.
     """
     plugin_path = os.path.dirname(page.url)
-    width = page.width or 15
-    page.navigator = _MakeNavigatorForPlugin(plugin_path, width)
+    page.navigator = _MakeNavigatorForPlugin(plugin_path, location=page.url)
     return embedded(page)
 
 
@@ -218,7 +299,7 @@ def embedded(page=None):
     return u"""
 {head}
 {nav}
-<div class="container-fluid">
+<div class="container-fluid container">
 <div class="row-fluid">
   <div class="col-md-2">
     {page.navigator}
@@ -226,7 +307,7 @@ def embedded(page=None):
   </div>
   <div class="col-md-8" >
     {page.content}
-    <{tag} src="{page.download}" width="100%" type="{page.mime}">
+    <{tag} src="{page.download}" width="100%" type="{page.mime}" class="embedded_doc">
     </{tag}>
   </div>
   <div class="col-md-2 sidebar">
@@ -248,11 +329,12 @@ def embedded(page=None):
 
 
 @utils.memoize
-def _MakeNavigatorForPlugin(plugin_path, width):
+def _MakeNavigatorForPlugin(plugin_path, location=None):
     args = dict(prev_url=os.path.dirname(plugin_path),
                 plugin_name=os.path.basename(plugin_path),
                 plugin_url=plugin_path,
-                categories=_render_categories(plugin_path, width))
+                categories=_render_categories(
+                    plugin_path, location=location))
 
     args["prev"] = os.path.basename(args["prev_url"])
 
@@ -265,9 +347,9 @@ def _MakeNavigatorForPlugin(plugin_path, width):
    {plugin_name}
  </a>
  <p>
- <div class='css-treeview'>
-   {categories}
- </div>
+
+ {categories}
+
 """.format(**args)
 
 
@@ -311,7 +393,7 @@ def _plugin_navbar(page):
            next_plugin=files[idx+1].title)
 
         return """
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 {prev_button}
 {next_button}
 </nav>
@@ -368,8 +450,8 @@ def plugin(page=None):
 {page.plugin_navbar}
 """.format(page=page, table=table)
 
-    width = page.width or 15
-    page.navigator = _MakeNavigatorForPlugin(plugin_path, width)
+    page.navigator = _MakeNavigatorForPlugin(
+        plugin_path, location=page.url)
 
     return default(page)
 
@@ -402,48 +484,14 @@ def _MakeDownloadPageContentTable(page, release=None):
     return result
 
 
-def downloads(page=None):
-    """Create an automatic directory index for downloads."""
-    result = page.content + "\n<div id='accordion' class='panel-group'>"
-    release = page.release
-
-    readme_files = []
-    for root, _, files in os.walk(page.root_path, topdown=True):
-        for x in files:
-            _, ext = os.path.splitext(x)
-            if ext in [".md", ".adoc"]:
-                readme_files.append(
-                    utils.ParsePage(os.path.join(root, x)))
-
-    readme_files.sort(key=lambda x: x.get("order", 10))
-    for subpage in readme_files:
-        subpage.content_table = _MakeDownloadPageContentTable(
-            subpage, release)
-
-        subpage.tag = sha.sha(subpage.filename).hexdigest()
-        result += u"""
-  <div class='panel panel-default'>
-    <div class="panel-heading">
-      <h4 class="panel-title">
-        <a data-toggle="collapse" data-parent="#accordion"
-         href="#{page.tag}">
-         {page.title}
-        </a>
-      </h4>
-    </div>
-    <div id="{page.tag}" class="panel-collapse collapse">
-      <div class="panel-body">
-         {page.content}
-         {page.content_table}
-      </div>
-    </div>
-  </div>
-""".format(page=subpage)
-
-    # Close the accordion div.
-    result += """</div>"""
-
-    page.content = result
+def download(page=None):
+    page.content += """
+<a href="https://github.com/google/rekall/releases">
+ <button class="btn btn-large btn-success">
+   Go get it now!
+ </button>
+</a>
+"""
 
     return default(page)
 
@@ -476,7 +524,7 @@ def images(page=None):
         result += u"""
           <li  data-target="#carousel-example-generic"
                data-slide-to="{i}" class="{active}"></li>
-""".format(page=page, filename=filename, i=i, active=active)
+""".format(i=i, active=active)
 
     result += "</ol>"
 

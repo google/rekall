@@ -159,8 +159,17 @@ def ListPages(path):
         full_path = os.path.abspath("%s/%s" % (path, filename))
 
         if os.path.isdir(full_path):
-            yield Page(filename=full_path, type="directory",
-                       url=GetUrlFromFilename(filename))
+
+            page = Page(filename=full_path, type="directory",
+                        title=os.path.basename(filename),
+                        url=GetUrlFromFilename(full_path))
+
+            dir_page = ParsePage(os.path.join(full_path, "index.md"))
+            if dir_page:
+                dir_page.update(page)
+                yield dir_page
+            else:
+                yield page
 
         else:
             page = ParsePage(full_path)

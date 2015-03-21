@@ -1,10 +1,10 @@
 ---
-title: OSXPMem - Mac OS X Physical Memory acquisition tool
+layout: download
 release: v1.0rc11
 downloads:
   OSXPMem-RC3-signed.tar.gz: The OSXPmem acquisiton tool.
-
 ---
+
 OSXPMem - Mac OS X Physical Memory acquisition tool
 ===================================================
 Version: RC3
@@ -108,4 +108,3 @@ build from source, you will need to supply your own signature.
 
 Codesigning certificates are issued by Apple to members of the Mac Developer
 Programme who have been explictly approved for kext development.
-

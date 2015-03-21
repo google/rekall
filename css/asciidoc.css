@@ -30,6 +30,7 @@ ul, ol, li > p {
 }
 ul > li     { color: black; }
 ul > li > * { color: black; }
+ul > li > a { color: blue; }
 
 pre {
   padding: 0;

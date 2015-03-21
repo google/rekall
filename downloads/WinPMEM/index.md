@@ -1,4 +1,5 @@
 ---
+layout: download
 title: WinPMEM - A Windows Memory Acquisition Tool.
 downloads:
    winpmem_1.6.2.exe: Signed Official WinPmem Acquisition tool.

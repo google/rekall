@@ -7,15 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px;
-      }
-    </style>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
-    <link href="/css/treeview.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
@@ -31,74 +26,149 @@ ript>
   <body>
 
 
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
 
-   <nav class="navbar navbar-inverse navbar-fixed-top"
-     role="navigation">
-     <div class="container-fluid">
-       <div class="navbar-header">
-         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-       </div>
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/releases.html">
+      Releases
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-       <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
 
-        <li>
-          <a class="" href="/index.html">
-            Home
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
 
-        <li>
-          <a class="" href="/about.html">
-            About
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
 
-        <li>
-          <a class="" href="/releases.html">
-            Releases
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-        <li>
-          <a class="" href="/blog.html">
-            Blog
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
 
-        <li>
-          <a class="" href="/docs.html">
-            Documentation
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
-        <li>
-          <a class="" href="/downloads.html">
-            Downloads
-          </a>
-        </li>
+  </ul>
+ </li>
 
-        <li>
-          <a class="" href="/faq.html">
-            FAQ
-          </a>
-        </li>
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
 
-         </ul>
-         <form class="navbar-form navbar-right" role="search" action="/search.html">
-           <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Site Search">
-           </div>
-           <button type="submit" class="btn btn-default">
-             <span class="glyphicon glyphicon-search"></span>
-           </button>
-         </form>
-       </div> <!-- navbar-collapse -->
-     </div> <!-- container-fluid -->
-   </nav>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
 
-<div class="container-fluid">
-<div class="row">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDownloads"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Downloads
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/Entities/EntityFind.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
   <div class="col-md-2">
     
  <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
@@ -109,94 +179,81 @@ ript>
    Entities
  </a>
  <p>
- <div class='css-treeview'>
-   <ul class='nav nav-stacked'>
-<li>
-   <a href='/docs/Manual/Plugins/Entities/EntityAnalyze.html' class="tree-link "  title="analyze">
-      analyze
-   </a>
-</li>
 
-<li>
-   <a href='/docs/Manual/Plugins/Entities/EntityDescribe.html' class="tree-link "  title="describe">
-      describe
-   </a>
-</li>
+ <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
+          <a href='/docs/Manual/Plugins/Entities/EntityAnalyze.html' class="category-link">
+            analyze
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/EntityDescribe.html' class="category-link">
+            describe
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/EntityIFConfig.html' class="category-link">
+            eifconfig
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/EntityNetstat.html' class="category-link">
+            enetstat
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/ListEvents.html' class="category-link">
+            events
+          </a>
+        </li>
+        <li class='active'>
+          <a href='/docs/Manual/Plugins/Entities/EntityFind.html' class="category-link">
+            find
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/IPNetstat.html' class="category-link">
+            ipnetstat
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/ListTerminals.html' class="category-link">
+            list_terminals
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/LSOF.html' class="category-link">
+            lsof
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/Processes.html' class="category-link">
+            pslist
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/RenderingSampler.html' class="category-link">
+            render_sample
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/SocketNetstat.html' class="category-link">
+            sockets
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/Entities/ListZones.html' class="category-link">
+            zones
+          </a>
+        </li>
+        </ul></ul>
 
-<li>
-   <a href='/docs/Manual/Plugins/Entities/EntityIFConfig.html' class="tree-link "  title="eifconfig">
-      eifconfig
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/EntityNetstat.html' class="tree-link "  title="enetstat">
-      enetstat
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/ListEvents.html' class="tree-link "  title="events">
-      events
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/EntityFind.html' class="tree-link "  title="find">
-      find
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/IPNetstat.html' class="tree-link "  title="ipnetstat">
-      ipnetstat
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/ListTerminals.html' class="tree-link "  title="list_terminals">
-      list_terminals
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/LSOF.html' class="tree-link "  title="lsof">
-      lsof
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/Processes.html' class="tree-link "  title="pslist">
-      pslist
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/RenderingSampler.html' class="tree-link "  title="render_sample">
-      render_sample
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/SocketNetstat.html' class="tree-link "  title="sockets">
-      sockets
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/Entities/ListZones.html' class="tree-link "  title="zones">
-      zones
-   </a>
-</li>
-</ul>
- </div>
 
   </div>
 
-  <div class="col-md-8">
+  <div class="col-md-10">
     
 
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
@@ -224,27 +281,27 @@ ript>
 
 <div class="abstract">
 <p>Runs the query and displays results. Base class for saved searches.</p>
-<div class="highlight"><pre>This class is designed to be subclasses by saved searches. Subclasses may
-override the defaults for the following properties:
+<div class="highlight"><pre><span class="n">This</span> <span class="n">class</span> <span class="n">is</span> <span class="n">designed</span> <span class="n">to</span> <span class="n">be</span> <span class="n">subclasses</span> <span class="n">by</span> <span class="n">saved</span> <span class="n">searches</span><span class="p">.</span> <span class="n">Subclasses</span> <span class="n">may</span>
+<span class="n">override</span> <span class="n">the</span> <span class="n">defaults</span> <span class="k">for</span> <span class="n">the</span> <span class="n">following</span> <span class="n">properties</span><span class="o">:</span>
 
---query, search: The query that&#39;ll be run.
-(--)display_filter: Another query that&#39;ll be used to filter out unwanted
-                    results.
-(--)columns: A list of attributes to render in the output. Format as
-             &quot;Component/attribute&quot;.
-(--)sort: A list of columns to sort by. Sort is currently ASC. Same format
-          as above.
-(--)width: Width of the rendered table.
-(--)stream_results: If on, will render results as soon as they&#39;re available.
-                    This typically means the results will be incomplete. It
-                    is probably pointless to use this in combination with
-                    &#39;sort&#39; but no one will stop you.
+<span class="o">--</span><span class="n">query</span><span class="p">,</span> <span class="n">search</span><span class="o">:</span> <span class="n">The</span> <span class="n">query</span> <span class="n">that</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">be</span> <span class="n">run</span><span class="p">.</span>
+<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">display_filter</span><span class="o">:</span> <span class="n">Another</span> <span class="n">query</span> <span class="n">that</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">filter</span> <span class="n">out</span> <span class="n">unwanted</span>
+                    <span class="n">results</span><span class="p">.</span>
+<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">columns</span><span class="o">:</span> <span class="n">A</span> <span class="n">list</span> <span class="n">of</span> <span class="n">attributes</span> <span class="n">to</span> <span class="n">render</span> <span class="n">in</span> <span class="n">the</span> <span class="n">output</span><span class="p">.</span> <span class="n">Format</span> <span class="n">as</span>
+             <span class="s">&quot;Component/attribute&quot;</span><span class="p">.</span>
+<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">sort</span><span class="o">:</span> <span class="n">A</span> <span class="n">list</span> <span class="n">of</span> <span class="n">columns</span> <span class="n">to</span> <span class="n">sort</span> <span class="n">by</span><span class="p">.</span> <span class="n">Sort</span> <span class="n">is</span> <span class="n">currently</span> <span class="n">ASC</span><span class="p">.</span> <span class="n">Same</span> <span class="n">format</span>
+          <span class="n">as</span> <span class="n">above</span><span class="p">.</span>
+<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">width</span><span class="o">:</span> <span class="n">Width</span> <span class="n">of</span> <span class="n">the</span> <span class="n">rendered</span> <span class="n">table</span><span class="p">.</span>
+<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">stream_results</span><span class="o">:</span> <span class="n">If</span> <span class="n">on</span><span class="p">,</span> <span class="n">will</span> <span class="n">render</span> <span class="n">results</span> <span class="n">as</span> <span class="n">soon</span> <span class="n">as</span> <span class="n">they</span><span class="err">&#39;</span><span class="n">re</span> <span class="n">available</span><span class="p">.</span>
+                    <span class="n">This</span> <span class="n">typically</span> <span class="n">means</span> <span class="n">the</span> <span class="n">results</span> <span class="n">will</span> <span class="n">be</span> <span class="n">incomplete</span><span class="p">.</span> <span class="n">It</span>
+                    <span class="n">is</span> <span class="n">probably</span> <span class="n">pointless</span> <span class="n">to</span> <span class="n">use</span> <span class="n">this</span> <span class="n">in</span> <span class="n">combination</span> <span class="n">with</span>
+                    <span class="err">&#39;</span><span class="n">sort</span><span class="err">&#39;</span> <span class="n">but</span> <span class="n">no</span> <span class="n">one</span> <span class="n">will</span> <span class="n">stop</span> <span class="n">you</span><span class="p">.</span>
 
-Further arguments that can be supplied at runtime:
+<span class="n">Further</span> <span class="n">arguments</span> <span class="n">that</span> <span class="n">can</span> <span class="n">be</span> <span class="n">supplied</span> <span class="n">at</span> <span class="n">runtime</span><span class="o">:</span>
 
---explain: If set, an analysis of the query will be rendered and each
-           row in results will include a highlight of the part of the query
-           that matched it (obviously a heuristic, your mileage may vary).
+<span class="o">--</span><span class="n">explain</span><span class="o">:</span> <span class="n">If</span> <span class="n">set</span><span class="p">,</span> <span class="n">an</span> <span class="n">analysis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">query</span> <span class="n">will</span> <span class="n">be</span> <span class="n">rendered</span> <span class="n">and</span> <span class="n">each</span>
+           <span class="n">row</span> <span class="n">in</span> <span class="n">results</span> <span class="n">will</span> <span class="n">include</span> <span class="n">a</span> <span class="n">highlight</span> <span class="n">of</span> <span class="n">the</span> <span class="n">part</span> <span class="n">of</span> <span class="n">the</span> <span class="n">query</span>
+           <span class="n">that</span> <span class="n">matched</span> <span class="n">it</span> <span class="p">(</span><span class="n">obviously</span> <span class="n">a</span> <span class="n">heuristic</span><span class="p">,</span> <span class="n">your</span> <span class="n">mileage</span> <span class="n">may</span> <span class="n">vary</span><span class="p">).</span>
 </pre></div>
 </div>
 
@@ -265,7 +322,7 @@ Further arguments that can be supplied at runtime:
 
 <p>
 
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
@@ -290,16 +347,23 @@ Further arguments that can be supplied at runtime:
 
 
   </div>
-  <div class="col-md-2 sidebar">
-    <img src="/img/Rekall.png" class="logo"></img>
-
-
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
   </div>
-</div>
-</div>
+
   <script>
    $(".activate_tooltip").tooltip();
   </script>
-  </body>
+  </div>
+ </body>
 </html>
 

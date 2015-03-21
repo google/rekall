@@ -1,4 +1,5 @@
 ---
+layout: download
 title: Binary Releases of Rekall Memory Forensics.
 order: 1
 downloads:

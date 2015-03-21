@@ -1,5 +1,6 @@
 ---
 layout: categories
+menu_layout: drop_down_menu
 order: 3
 menuitem: Documentation
 root: docs/

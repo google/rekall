@@ -1,5 +1,4 @@
 ---
 layout: redirect
-target: /docs.html
+target: /
 ---
-

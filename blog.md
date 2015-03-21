@@ -1,6 +1,5 @@
 ---
 layout: blog_nav
-menuitem: Blog
+#menuitem: Blog
 order: 3
 ---
-

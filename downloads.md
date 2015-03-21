@@ -1,9 +1,10 @@
 ---
-layout: downloads
+layout: categories
 order: 5
 menuitem: Downloads
+menu_layout: drop_down_menu
 title: Rekall Downloads
-root_path: downloads/
+root: downloads/
 release: v1.2.1
 ---
 

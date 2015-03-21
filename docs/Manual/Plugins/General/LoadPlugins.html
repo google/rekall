@@ -7,15 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px;
-      }
-    </style>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
-    <link href="/css/treeview.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
@@ -31,74 +26,149 @@ ript>
   <body>
 
 
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
 
-   <nav class="navbar navbar-inverse navbar-fixed-top"
-     role="navigation">
-     <div class="container-fluid">
-       <div class="navbar-header">
-         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-       </div>
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/releases.html">
+      Releases
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-       <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
 
-        <li>
-          <a class="" href="/index.html">
-            Home
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
 
-        <li>
-          <a class="" href="/about.html">
-            About
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
 
-        <li>
-          <a class="" href="/releases.html">
-            Releases
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-        <li>
-          <a class="" href="/blog.html">
-            Blog
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
 
-        <li>
-          <a class="" href="/docs.html">
-            Documentation
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
-        <li>
-          <a class="" href="/downloads.html">
-            Downloads
-          </a>
-        </li>
+  </ul>
+ </li>
 
-        <li>
-          <a class="" href="/faq.html">
-            FAQ
-          </a>
-        </li>
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
 
-         </ul>
-         <form class="navbar-form navbar-right" role="search" action="/search.html">
-           <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Site Search">
-           </div>
-           <button type="submit" class="btn btn-default">
-             <span class="glyphicon glyphicon-search"></span>
-           </button>
-         </form>
-       </div> <!-- navbar-collapse -->
-     </div> <!-- container-fluid -->
-   </nav>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
 
-<div class="container-fluid">
-<div class="row">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDownloads"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Downloads
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/General/LoadPlugins.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
   <div class="col-md-2">
     
  <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
@@ -109,184 +179,156 @@ ript>
    General
  </a>
  <p>
- <div class='css-treeview'>
-   <ul class='nav nav-stacked'>
-<li>
-   <a href='/docs/Manual/Plugins/General/BuildIndex.html' class="tree-link "  title="build_index">
-      build_index
-   </a>
-</li>
 
-<li>
-   <a href='/docs/Manual/Plugins/General/ConvertProfile.html' class="tree-link "  title="convert_profile">
-      convert_profile
-   </a>
-</li>
+ <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
+          <a href='/docs/Manual/Plugins/General/BuildIndex.html' class="category-link">
+            build_index
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/ConvertProfile.html' class="category-link">
+            convert_profile
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/DT.html' class="category-link">
+            dt
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Dump.html' class="category-link">
+            dump
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/DwarfParser.html' class="category-link">
+            dwarfparser
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/EWFAcquire.html' class="category-link">
+            ewfacquire
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="category-link">
+            fetch_pdb
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Grep.html' class="category-link">
+            grep
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/GuessGUID.html' class="category-link">
+            guess_guid
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/ImageCopy.html' class="category-link">
+            imagecopy
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Info.html' class="category-link">
+            info
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/JSONParser.html' class="category-link">
+            json_render
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Lister.html' class="category-link">
+            l
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/LoadAddressSpace.html' class="category-link">
+            load_as
+          </a>
+        </li>
+        <li class='active'>
+          <a href='/docs/Manual/Plugins/General/LoadPlugins.html' class="category-link">
+            load_plugin
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Notebook.html' class="category-link">
+            notebook
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Printer.html' class="category-link">
+            p
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/ParsePDB.html' class="category-link">
+            parse_pdb
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/Rekall.html' class="category-link">
+            rekal
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/SessionDelete.html' class="category-link">
+            sdel
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/InteractiveShell.html' class="category-link">
+            shell
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/SessionList.html' class="category-link">
+            slist
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/SessionMod.html' class="category-link">
+            smod
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/SessionNew.html' class="category-link">
+            snew
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/SessionSwitch.html' class="category-link">
+            sswitch
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/VersionScan.html' class="category-link">
+            version_scan
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/VmScan.html' class="category-link">
+            vmscan
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/General/WebConsole.html' class="category-link">
+            webconsole
+          </a>
+        </li>
+        </ul></ul>
 
-<li>
-   <a href='/docs/Manual/Plugins/General/DT.html' class="tree-link "  title="dt">
-      dt
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Dump.html' class="tree-link "  title="dump">
-      dump
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/DwarfParser.html' class="tree-link "  title="dwarfparser">
-      dwarfparser
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/EWFAcquire.html' class="tree-link "  title="ewfacquire">
-      ewfacquire
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="tree-link "  title="fetch_pdb">
-      fetch_pdb
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Grep.html' class="tree-link "  title="grep">
-      grep
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/GuessGUID.html' class="tree-link "  title="guess_guid">
-      guess_guid
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/ImageCopy.html' class="tree-link "  title="imagecopy">
-      imagecopy
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Info.html' class="tree-link "  title="info">
-      info
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/JSONParser.html' class="tree-link "  title="json_render">
-      json_render
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Lister.html' class="tree-link "  title="l">
-      l
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/LoadAddressSpace.html' class="tree-link "  title="load_as">
-      load_as
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/LoadPlugins.html' class="tree-link "  title="load_plugin">
-      load_plugin
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Notebook.html' class="tree-link "  title="notebook">
-      notebook
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Printer.html' class="tree-link "  title="p">
-      p
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/ParsePDB.html' class="tree-link "  title="parse_pdb">
-      parse_pdb
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/Rekall.html' class="tree-link "  title="rekal">
-      rekal
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/SessionDelete.html' class="tree-link "  title="sdel">
-      sdel
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/InteractiveShell.html' class="tree-link "  title="shell">
-      shell
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/SessionList.html' class="tree-link "  title="slist">
-      slist
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/SessionMod.html' class="tree-link "  title="smod">
-      smod
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/SessionNew.html' class="tree-link "  title="snew">
-      snew
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/SessionSwitch.html' class="tree-link "  title="sswitch">
-      sswitch
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/VersionScan.html' class="tree-link "  title="version_scan">
-      version_scan
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/VmScan.html' class="tree-link "  title="vmscan">
-      vmscan
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/General/WebConsole.html' class="tree-link "  title="webconsole">
-      webconsole
-   </a>
-</li>
-</ul>
- </div>
 
   </div>
 
-  <div class="col-md-8">
+  <div class="col-md-10">
     
 
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
@@ -328,7 +370,7 @@ can already use the &ndash;plugin command line option.</p>
 
 <p>
 
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
@@ -353,16 +395,23 @@ can already use the &ndash;plugin command line option.</p>
 
 
   </div>
-  <div class="col-md-2 sidebar">
-    <img src="/img/Rekall.png" class="logo"></img>
-
-
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
   </div>
-</div>
-</div>
+
   <script>
    $(".activate_tooltip").tooltip();
   </script>
-  </body>
+  </div>
+ </body>
 </html>
 

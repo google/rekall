@@ -7,7 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"
+          rel="stylesheet">
     <style>
       body {
         padding-top: 60px;
@@ -31,71 +32,86 @@ ript>
   <body>
 
 
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
 
-   <nav class="navbar navbar-inverse navbar-fixed-top"
-     role="navigation">
-     <div class="container-fluid">
-       <div class="navbar-header">
-         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-       </div>
-
-       <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
-
-        <li>
-          <a class="" href="/index.html">
-            Home
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/index.html">
+          Home
+         </a>
         </li>
 
-        <li>
-          <a class="" href="/about.html">
-            About
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/about.html">
+          About
+         </a>
         </li>
 
-        <li>
-          <a class="" href="/releases.html">
-            Releases
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/releases.html">
+          Releases
+         </a>
         </li>
 
-        <li>
-          <a class="" href="/blog.html">
-            Blog
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/blog.html">
+          Blog
+         </a>
         </li>
 
-        <li>
-          <a class="" href="/docs.html">
-            Documentation
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/docs.html">
+          Documentation
+         </a>
         </li>
 
-        <li>
-          <a class="" href="/downloads.html">
-            Downloads
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/downloads.html">
+          Downloads
+         </a>
         </li>
 
-        <li>
-          <a class="" href="/faq.html">
-            FAQ
-          </a>
+        <li class="divider-vertical"></li>
+        
+        <li class="">
+         <a href="/faq.html">
+          FAQ
+         </a>
         </li>
 
-         </ul>
-         <form class="navbar-form navbar-right" role="search" action="/search.html">
-           <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Site Search">
-           </div>
-           <button type="submit" class="btn btn-default">
-             <span class="glyphicon glyphicon-search"></span>
-           </button>
-         </form>
-       </div> <!-- navbar-collapse -->
-     </div> <!-- container-fluid -->
-   </nav>
+       </ul>
+       <form class="navbar-form navbar-right" role="search"
+             action="/search.html">
+        <div class="form-group">
+         <input type="text" name="q" data-i-search-input="true"
+          class="form-control"
+          placeholder="Site Search">
+        </div>
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
 
 <div class="container-fluid">
 <div class="row">
@@ -121,6 +137,12 @@ ript>
   </div>
 </div>
 </div>
+  <footer class="footer">
+    <div class="container">
+      <p class="text-muted">Place sticky footer content here.</p>
+    </div>
+  </footer>
+
   <script>
    $(".activate_tooltip").tooltip();
   </script>

@@ -7,15 +7,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rekall Memory Forensic Framework">
 
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px;
-      }
-    </style>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/rekall.css" rel="stylesheet">
     <link href="/css/asciidoc.css" rel="stylesheet">
-    <link href="/css/treeview.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
     <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
@@ -31,74 +26,149 @@ ript>
   <body>
 
 
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
 
-   <nav class="navbar navbar-inverse navbar-fixed-top"
-     role="navigation">
-     <div class="container-fluid">
-       <div class="navbar-header">
-         <a class="navbar-brand" href="#">Rekall Memory Forensic Framework</a>
-       </div>
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/releases.html">
+      Releases
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-       <div class="navbar-collapse collapse">
-         <ul class="nav navbar-nav">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
 
-        <li>
-          <a class="" href="/index.html">
-            Home
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
 
-        <li>
-          <a class="" href="/about.html">
-            About
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
 
-        <li>
-          <a class="" href="/releases.html">
-            Releases
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-        <li>
-          <a class="" href="/blog.html">
-            Blog
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
 
-        <li>
-          <a class="" href="/docs.html">
-            Documentation
-          </a>
-        </li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
-        <li>
-          <a class="" href="/downloads.html">
-            Downloads
-          </a>
-        </li>
+  </ul>
+ </li>
 
-        <li>
-          <a class="" href="/faq.html">
-            FAQ
-          </a>
-        </li>
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
 
-         </ul>
-         <form class="navbar-form navbar-right" role="search" action="/search.html">
-           <div class="form-group">
-             <input type="text" name="q" class="form-control" placeholder="Site Search">
-           </div>
-           <button type="submit" class="btn btn-default">
-             <span class="glyphicon glyphicon-search"></span>
-           </button>
-         </form>
-       </div> <!-- navbar-collapse -->
-     </div> <!-- container-fluid -->
-   </nav>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
 
-<div class="container-fluid">
-<div class="row">
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDownloads"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Downloads
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/OSX/DarwinDumpCompressedPages.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
   <div class="col-md-2">
     
  <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
@@ -109,202 +179,171 @@ ript>
    OSX
  </a>
  <p>
- <div class='css-treeview'>
-   <ul class='nav nav-stacked'>
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinAddressResolver.html' class="tree-link activate_tooltip"  title="address_resolver">
-      address_resolve ...
-   </a>
-</li>
 
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinArp.html' class="tree-link "  title="arp">
-      arp
-   </a>
-</li>
+ <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinAddressResolver.html' class="category-link">
+            address_resolver
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinArp.html' class="category-link">
+            arp
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinBootParameters.html' class="category-link">
+            boot_cmdline
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinCheckSysCalls.html' class="category-link">
+            check_syscalls
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/CheckTrapTable.html' class="category-link">
+            check_trap_table
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinDeadProcesses.html' class="category-link">
+            dead_procs
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinDMSG.html' class="category-link">
+            dmesg
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinDumpZone.html' class="category-link">
+            dump_zone
+          </a>
+        </li>
+        <li class='active'>
+          <a href='/docs/Manual/Plugins/OSX/DarwinDumpCompressedPages.html' class="category-link">
+            dumpcompressedmemory
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinFindDTB.html' class="category-link">
+            find_dtb
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinFindKASLR.html' class="category-link">
+            find_kaslr
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinIFConfig.html' class="category-link">
+            ifconfig
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinIPFilters.html' class="category-link">
+            ip_filters
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinListFiles.html' class="category-link">
+            list_files
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinListZones.html' class="category-link">
+            list_zones
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinLsmod.html' class="category-link">
+            lsmod
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinLsof.html' class="category-link">
+            lsof
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinMachineInfo.html' class="category-link">
+            machine_info
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinMaps.html' class="category-link">
+            maps
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinMount.html' class="category-link">
+            mount
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinNetstat.html' class="category-link">
+            netstat
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinNotifiers.html' class="category-link">
+            notifiers
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinPhysicalMap.html' class="category-link">
+            phys_map
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinPSAUX.html' class="category-link">
+            psaux
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinPsList.html' class="category-link">
+            pslist
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DawrinPSTree.html' class="category-link">
+            pstree
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinPsxView.html' class="category-link">
+            psxview
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinRoute.html' class="category-link">
+            route
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinListSessions.html' class="category-link">
+            sessions
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinSysctl.html' class="category-link">
+            sysctl
+          </a>
+        </li>
+        <li>
+          <a href='/docs/Manual/Plugins/OSX/DarwinVadDump.html' class="category-link">
+            vaddump
+          </a>
+        </li>
+        </ul></ul>
 
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinBootParameters.html' class="tree-link "  title="boot_cmdline">
-      boot_cmdline
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinCheckSysCalls.html' class="tree-link "  title="check_syscalls">
-      check_syscalls
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/CheckTrapTable.html' class="tree-link activate_tooltip"  title="check_trap_table">
-      check_trap_tabl ...
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinDeadProcesses.html' class="tree-link "  title="dead_procs">
-      dead_procs
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinDMSG.html' class="tree-link "  title="dmesg">
-      dmesg
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinDumpZone.html' class="tree-link "  title="dump_zone">
-      dump_zone
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinDumpCompressedPages.html' class="tree-link activate_tooltip"  title="dumpcompressedmemory">
-      dumpcompressedm ...
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinFindDTB.html' class="tree-link "  title="find_dtb">
-      find_dtb
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinFindKASLR.html' class="tree-link "  title="find_kaslr">
-      find_kaslr
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinIFConfig.html' class="tree-link "  title="ifconfig">
-      ifconfig
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinIPFilters.html' class="tree-link "  title="ip_filters">
-      ip_filters
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinListFiles.html' class="tree-link "  title="list_files">
-      list_files
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinListZones.html' class="tree-link "  title="list_zones">
-      list_zones
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinLsmod.html' class="tree-link "  title="lsmod">
-      lsmod
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinLsof.html' class="tree-link "  title="lsof">
-      lsof
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinMachineInfo.html' class="tree-link "  title="machine_info">
-      machine_info
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinMaps.html' class="tree-link "  title="maps">
-      maps
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinMount.html' class="tree-link "  title="mount">
-      mount
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinNetstat.html' class="tree-link "  title="netstat">
-      netstat
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinNotifiers.html' class="tree-link "  title="notifiers">
-      notifiers
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinPhysicalMap.html' class="tree-link "  title="phys_map">
-      phys_map
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinPSAUX.html' class="tree-link "  title="psaux">
-      psaux
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinPsList.html' class="tree-link "  title="pslist">
-      pslist
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DawrinPSTree.html' class="tree-link "  title="pstree">
-      pstree
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinPsxView.html' class="tree-link "  title="psxview">
-      psxview
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinRoute.html' class="tree-link "  title="route">
-      route
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinListSessions.html' class="tree-link "  title="sessions">
-      sessions
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinSysctl.html' class="tree-link "  title="sysctl">
-      sysctl
-   </a>
-</li>
-
-<li>
-   <a href='/docs/Manual/Plugins/OSX/DarwinVadDump.html' class="tree-link "  title="vaddump">
-      vaddump
-   </a>
-</li>
-</ul>
- </div>
 
   </div>
 
-  <div class="col-md-8">
+  <div class="col-md-10">
     
 
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
@@ -351,7 +390,7 @@ ript>
 
 <p>
 
-<nav class="navbar navbar-default" role="navigation">
+<nav class="navbar navbar-default plugins" role="navigation">
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
@@ -376,16 +415,23 @@ ript>
 
 
   </div>
-  <div class="col-md-2 sidebar">
-    <img src="/img/Rekall.png" class="logo"></img>
-
-
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
   </div>
-</div>
-</div>
+
   <script>
    $(".activate_tooltip").tooltip();
   </script>
-  </body>
+  </div>
+ </body>
 </html>
 
