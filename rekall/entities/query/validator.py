@@ -55,6 +55,10 @@ class QueryValidator(visitor.QueryVisitor):
         return exp.return_types
 
     def visit_Literal(self, exp):
+        type_name = type(exp.value).__name__
+        if type_name in ["str", "unicode"]:
+            return frozenset(["str", "unicode"])
+
         return frozenset([type(exp.value).__name__])
 
     def visit_Binding(self, exp):
@@ -85,7 +89,7 @@ class QueryValidator(visitor.QueryVisitor):
             return self.error("Regex pattern must be string.", exp.regex)
 
         string_types = self.visit(exp.string)
-        if "str" not in string_types:
+        if not set(["str", "unicode"]) & string_types:
             return self.error(
                 "Cannot match regex with %s" % ",".join(string_types),
                 exp.string)

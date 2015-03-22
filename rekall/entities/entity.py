@@ -494,9 +494,15 @@ class Entity(object):
 
         # Entity component is merged using slightly simpler rules.
         component_cls = entity_component.Component.classes["Entity"]
-        new_entity_component = component_cls(
-            identity=x.Entity.identity | y.Entity.identity,
-            collectors=x.Entity.collectors | y.Entity.collectors)
+        try:
+            new_entity_component = component_cls(
+                identity=x.Entity.identity | y.Entity.identity,
+                collectors=x.Entity.collectors | y.Entity.collectors)
+        except identity.IdentityError as e:
+            # Consistency errors can mean the data is corrupt. There are no
+            # good solutions. Lets log the reject and get on with our lives.
+            logging.error("Entity rejected because of consistency error %s", e)
+            return self.components
 
         return type(x)(new_entity_component, *new_components)
 

@@ -702,11 +702,13 @@ class BuildProfileLocally(plugin.Command):
         super(BuildProfileLocally, cls).args(parser)
         parser.add_argument(
             "module_name",
-            help="The name of the module (without the .pdb extensilon).")
+            help="The name of the module (without the .pdb extensilon).",
+            required=True)
 
         parser.add_argument(
             "guid",
-            help="The guid of the module.")
+            help="The guid of the module.",
+            required=True)
 
     def __init__(self, module_name=None, guid=None, **kwargs):
         super(BuildProfileLocally, self).__init__(**kwargs)

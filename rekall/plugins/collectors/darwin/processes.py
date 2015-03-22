@@ -22,6 +22,8 @@ Darwin Process collectors.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+from rekall import utils
+
 from rekall.entities import definitions
 
 from rekall.plugins.collectors.darwin import common
@@ -119,7 +121,7 @@ class DarwinProcParser(common.DarwinEntityCollector):
                     created_at=proc.p_start.as_datetime()),
                 definitions.Process(
                     pid=proc.pid,
-                    command=str(proc.p_comm),
+                    command=utils.SmartUnicode(proc.p_comm),
                     user=user_identity,
                     cr3=cr3_ptr,
                     is_64bit=proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT",

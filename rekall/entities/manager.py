@@ -757,7 +757,16 @@ class EntityManager(object):
                 first_field = first_result.component_fields[0].name
                 attribute = "%s/%s" % (type(first_result).__name__,
                                        first_field)
-                identity = self.identify({attribute: first_result[0]})
+                try:
+                    identity = self.identify({attribute: first_result[0]})
+                except entity_id.IdentityError:
+                    logging.error(
+                        ("Invalid identity %s inferred from output of %s. "
+                        "Entity skipped. Full results: %s"),
+                        {attribute: first_result[0]},
+                        collector,
+                        results)
+                    continue
 
             entity, effect = self.register_components(
                 identity=identity,

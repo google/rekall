@@ -26,6 +26,10 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 from rekall.entities.query import expression
 
 
+class IdentityError(RuntimeError):
+    pass
+
+
 class Identity(object):
     """Uniquely identifies something like a process or a user.
 
@@ -45,7 +49,7 @@ class Identity(object):
         indices = []
         for key, val in identity_dict.iteritems():
             if val == None:
-                raise ValueError(
+                raise IdentityError(
                     "Identity index value for %s cannot be None." % key)
 
             indices.append((global_prefix, key, val))
@@ -115,7 +119,7 @@ class Identity(object):
         # we preserve the integrity of the database, but this is a programmer
         # error and likely means that the data isn't reliable anyway.
         if len(matching_keys) != len(matching_indices):
-            raise RuntimeError(
+            raise IdentityError(
                 "Identity logic error! Identity %s matches %s on %d keys, "
                 "but on %d values." % (
                     self, other, len(matching_keys), len(matching_indices)))
@@ -143,7 +147,7 @@ class Identity(object):
 
     def union(self, other):
         if self != other:
-            raise RuntimeError(
+            raise IdentityError(
                 "Attempting to merge identities %s and %s which are unequal.",
                 self, other)
 
