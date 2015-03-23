@@ -1,5 +1,8 @@
 language: python
 python: 2.7
+before-install:
+  - sudo apt-get install libsnappy-dev
+
 install:
   - git clone --depth=1 https://github.com/scudette/rekall-test.git
   - python setup.py install
