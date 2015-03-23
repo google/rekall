@@ -111,23 +111,50 @@ class IOManager(object):
     @property
     def inventory(self):
         if self._inventory is None:
-            self._inventory = self.GetData("inventory") or {
-                "$METADATA": dict(
-                    Type="Inventory",
-                    ProfileClass="Inventory"),
-                "$INVENTORY": {},
-            }
+            self._inventory = self.GetData("inventory")
 
         return self._inventory
 
+    def ValidateInventory(self):
+        try:
+            metadata = self.inventory.get("$METADATA")
+            if (metadata.get("ProfileClass") == "Inventory"
+                and metadata.get("Type") == "Inventory"):
+                return True
+        except (AttributeError, IndexError, ValueError):
+          pass
+
+        logging.warn(
+            'Inventory for repository "%s" seems malformed. Are you behind a '
+            'captive portal or proxy? If this is a custom repository, did you '
+            'forget to create an inventory? You must use the '
+            'tools/profiles/build_profile_repo.py tool with the --inventory '
+            'flag. If this warning is for the cache directory, just ignore it.',
+            self.location or self.urn)
+
+        # If the profile didn't validate, we still fix it so subsequent calls
+        # won't generate additional errors. StoreData and FlushInventory also
+        # rely on this behaviour.
+        if not self._inventory:
+            self._inventory = {
+                "$METADATA": dict(
+                    Type="Inventory",
+                    ProfileClass="Inventory"),
+                    "$INVENTORY": {},
+                }
+
+        return False
+
     def CheckInventory(self, path):
-        """Checks if path exists in the inventory.
+        """Checks the validity of the inventory and if the path exists in it.
 
         The inventory is a json object at the root of the repository which lists
         all the profiles in this repository. It allows us to determine quickly
         if a profile exists in this repository.
         """
-        return path in self.inventory.get("$INVENTORY")
+        if self.ValidateInventory():
+          return path in self.inventory.get("$INVENTORY")
+        return False
 
     def FlushInventory(self):
         """Write the inventory to the storage."""
@@ -267,14 +294,16 @@ class DirectoryIOManager(IOManager):
         self.canonical_name = os.path.basename(self.dump_dir)
 
     def CheckInventory(self, path):
-        """Checks if path exists in the inventory.
+        """Checks the validity of the inventory and if the path exists in it.
 
         The inventory is a json object at the root of the repository which lists
         all the profiles in this repository. It allows us to determine quickly
         if a profile exists in this repository.
         """
-        path = self._GetAbsolutePathName(path)
-        return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
+        if self.ValidateInventory():
+          path = self._GetAbsolutePathName(path)
+          return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
+        return False
 
     def check_dump_dir(self, dump_dir=None):
         if not dump_dir:
