@@ -30,9 +30,9 @@ import time
 import threading
 import webbrowser
 
+from rekall import constants
 from rekall import io_manager
 from rekall import plugin
-from rekall import utils
 from rekall import testlib
 from rekall import yaml_utils
 
@@ -112,7 +112,21 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
                 except ValueError:
                     continue
 
+    def StoreSessions(self):
+        """Store the sessions in the document."""
+        # Save all the sessions for next time.
+        self.StoreData("sessions", self.GetSessionsAsJson())
+        self.StoreData("metadata.rkl", self.metadata)
+
     def __enter__(self):
+        self.metadata = self.GetData("metadata.rkl")
+        if not self.metadata:
+            self.metadata = dict(
+                version=constants.VERSION,
+                codename=constants.CODENAME,
+                tool="Rekall Forensic"
+            )
+
         # Restore all the sessions from the document.
         sessions = self.GetData("sessions")
         if sessions:
@@ -153,9 +167,7 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
         return sessions
 
     def __exit__(self, exc_type, exc_value, trace):
-        """Store the sessions in the document."""
-        # Save all the sessions for next time.
-        self.StoreData("sessions", self.GetSessionsAsJson())
+        self.StoreSessions()
 
 
 class WebConsole(plugin.Command):
@@ -193,7 +205,7 @@ class WebConsole(plugin.Command):
         self.port = port
         self.debug = debug
         self.browser = browser
-        self.pre_load = worksheet
+        self.worksheet_path = worksheet
 
     def server_post_activate_callback(self, server):
         time.sleep(1)
@@ -242,33 +254,32 @@ class WebConsole(plugin.Command):
 
             server.serve_forever()
 
-    def render(self, renderer):
-        renderer.format("Starting Manuskript web console.\n")
-        renderer.format("Press Ctrl-c to return to the interactive shell.\n")
+    def render(self, renderer_obj):
+        renderer_obj.format("Starting Manuskript web console.\n")
+        renderer_obj.format(
+            "Press Ctrl-c to return to the interactive shell.\n")
 
-        if os.path.isdir(self.pre_load):
-            self.worksheet_fd = WebConsoleDocument(
-                self.pre_load, session=self.session)
+        # Handle the special file association .rkl
+        if (not os.path.isdir(self.worksheet_path) and
+            self.worksheet_path.endswith(".rkl")):
+            self.worksheet_path = os.path.dirname(self.worksheet_path)
 
-            return self._serve_wsgi()
 
-        with utils.TempDirectory() as temp_dir:
-            logging.info("Using working directory %s", temp_dir)
+        if os.path.isdir(self.worksheet_path):
+            # Change path to the worksheet_path to ensure relative filenames
+            # work.
+            cwd = os.getcwd()
+            try:
+                os.chdir(self.worksheet_path)
+                self.worksheet_fd = WebConsoleDocument(
+                    self.worksheet_path, session=self.session)
 
-            # We need to copy the pre load file into the working file.
-            if self.pre_load:
-                dst = os.path.join(temp_dir, os.path.basename(self.pre_load))
-                shutil.copy(self.pre_load, dst)
+                return self._serve_wsgi()
 
-                logging.info("Initialized from %s", self.pre_load)
+            finally:
+                os.chdir(cwd)
 
-                self.worksheet_fd = io_manager.ZipFileManager(
-                    dst, mode="a")
-            else:
-                self.worksheet_fd = io_manager.ZipFileManager(
-                    os.path.join(temp_dir, "rekall.zip"), mode="a")
-
-            self._serve_wsgi()
+        raise plugin.PluginError("Worksheet path must be a directory.")
 
 
 class TestWebConsole(testlib.DisabledTest):

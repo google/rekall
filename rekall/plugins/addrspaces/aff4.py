@@ -31,6 +31,7 @@ pip install pyaff4
 
 """
 import logging
+import os
 
 from rekall import addrspace
 from rekall.plugins.addrspaces import standard
@@ -38,6 +39,7 @@ from rekall.plugins.addrspaces import standard
 from pyaff4 import data_store
 from pyaff4 import zip
 from pyaff4 import lexicon
+from pyaff4 import rdfvalue
 
 from pyaff4 import plugins  # pylint: disable=unused-import
 
@@ -61,7 +63,25 @@ class AFF4StreamWrapper(object):
 
 class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                        addrspace.MultiRunBasedAddressSpace):
-    """Handle AFF4Map or AFF4Image type streams."""
+    """Handle AFF4Map or AFF4Image type streams.
+
+    Since AFF4 volumes may contain multiple streams, we allow the stream to be
+    specified inside the volume path. For example suppose the volume located at:
+
+    /home/mic/images/myimage.aff4
+
+    Contains a stream called PhysicalMemory, then we can specify the filename
+    as:
+
+    /home/mic/images/myimage.aff4/PhysicalMemory
+
+    If we just specified the path to the volume, then this address space will
+    pick the first AFF4 stream which has an aff4:category of
+    lexicon.AFF4_MEMORY_PHYSICAL.
+
+    So if you have more than one physical memory stream in the same volume, you
+    will need to specify the full path to the stream within the volume.
+    """
     __name = "aff4"
     __image = True
 
@@ -78,14 +98,50 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         self.image = None
         self.phys_base = self
-        try:
-            self._LoadAFF4Volume(path)
-        except IOError:
-            raise addrspace.ASAssertionError(
-                "Unable to open AFF4 volume")
-
-    def _LoadAFF4Volume(self, path):
         self.resolver = data_store.MemoryDataStore()
+
+        try:
+            volume_path, stream_path = self._LocateAFF4Volume(path)
+        except IOError:
+            raise addrspace.ASAssertionError("Unable to open AFF4 volume")
+
+        # filename is a volume, and there is no stream specified, just autoload
+        # the stream if possible.
+        if not stream_path:
+            try:
+                self._AutoLoadAFF4Volume(volume_path)
+                return
+            except IOError:
+                raise addrspace.ASAssertionError("Unable to open AFF4 volume")
+
+        # If the user asked for a specific stream just load that one. Note that
+        # you can still load the pagefile manually using the --pagefile
+        # parameter.
+        with zip.ZipFile.NewZipFile(self.resolver, volume_path) as volume:
+            self._LoadMemoryImage(volume.urn.Append(stream_path))
+
+    def _LocateAFF4Volume(self, filename):
+        stream_name = []
+        volume_path = filename
+        while volume_path:
+            try:
+                volume_urn = rdfvalue.URN.FromFileName(volume_path)
+                with self.resolver.AFF4FactoryOpen(volume_urn) as aff4_stream:
+                    if stream_name:
+                        return aff4_stream.urn, os.path.join(*stream_name)
+
+                    return aff4_stream.urn, None
+
+            except IOError:
+                volume_path, stream_component = os.path.split(volume_path)
+                if not stream_component:
+                    break
+
+                stream_name.insert(0, stream_component)
+
+        raise IOError("Not found")
+
+    def _AutoLoadAFF4Volume(self, path):
         with zip.ZipFile.NewZipFile(self.resolver, path):
             # We are searching for images with the physical memory category.
             for (subject, _, value) in self.resolver.QueryPredicate(

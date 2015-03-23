@@ -725,22 +725,25 @@ class DT(plugin.ProfileCommand):
             dict(name="Offset", type="TreeNode", max_depth=5,
                  child=dict(style="address"), width=20),
             ("Field", "field", "30"),
-            dict(name="Content", cname="content")])
+            dict(name="Content", cname="content", style="typed")])
 
         self._render_Struct(renderer, struct)
 
     def _render_Struct(self, renderer, struct, depth=0):
         fields = []
         # Print all the fields sorted by offset within the struct.
-        for k in struct.members:
+        for k in set(struct.members).union(struct.callable_members):
             member = getattr(struct, k)
             base_member = struct.m(k)
 
-            fields.append((
-                base_member.obj_offset - struct.obj_offset, k, member))
+            offset = base_member.obj_offset - struct.obj_offset
+            if offset == None:  # NoneObjects screw up sorting order here.
+                offset = -1
+
+            fields.append((offset, k, member))
 
         for offset, k, v in sorted(fields):
-            renderer.table_row(offset, k, repr(v), depth=depth)
+            renderer.table_row(offset, k, v, depth=depth)
             if isinstance(v, obj.Struct):
                 self._render_Struct(renderer, v, depth=depth+1)
 

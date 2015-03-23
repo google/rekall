@@ -21,6 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """Installation and deployment script."""
+__author__ = "Michael Cohen <scudette@gmail.com>"
 
 import sys
 
@@ -33,10 +34,6 @@ except ImportError:
 sys.path.insert(0, '.')
 
 from rekall import constants
-
-
-__author__ = "Michael Cohen <scudette@gmail.com>"
-
 
 rekall_description = "Rekall Memory Forensic Framework"
 
@@ -80,6 +77,7 @@ setup(
         "Flask >= 0.10.1",
         "Flask-Sockets >= 0",
         "gevent >= 1.0.1",
-        "gevent-websocket >= 0.9.3"
+        "gevent-websocket >= 0.9.3",
+        "PyAFF4 >= 0.12",
         ],
 )

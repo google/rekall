@@ -18,8 +18,8 @@
 #
 import time
 
-VERSION = "1.2.1"
-CODENAME = "Col de la Croix"
+VERSION = "1.3.0"
+CODENAME = "Dammastock"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORIES = [

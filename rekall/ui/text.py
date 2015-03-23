@@ -66,6 +66,7 @@ StyleEnum = utils.AttributeDict(
     address="address",
     value="value",
     compact="compact",
+    typed="typed",  # Also show type information.
     full="full",
     hexdump="hexdump",
     cow="cow")
@@ -377,6 +378,9 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         header_cell.append_line("-" * self.header_width)
 
         return header_cell
+
+    def render_typed(self, target, **options):
+        return Cell(repr(target), **options)
 
     def render_full(self, target, **options):
         return Cell(unicode(target), **options)

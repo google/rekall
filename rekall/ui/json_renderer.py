@@ -566,7 +566,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
         self.flush()
 
         # Save some metadata.
-        self.metadata = dict(plugin_name=plugin_name,
+        self.metadata = dict(plugin_name=unicode(plugin_name),
                              tool_name="rekall",
                              cookie=self._object_id,
                              tool_version=constants.VERSION,

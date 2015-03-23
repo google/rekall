@@ -287,6 +287,8 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                     "sdel", session_id=deleted_session_id)
 
             # Send the updated session list to the client again.
+            worksheet.StoreSessions()
+
             return json.dumps(worksheet.GetSessionsAsJson()), 200
 
     @classmethod
@@ -348,7 +350,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     @classmethod
     def PlugManageDocument(cls, app):
         sockets = Sockets(app)
-        
+
         @sockets.route("/rekall/document/upload")
         def upload_document(ws):  # pylint: disable=unused-variable
             cells = json.loads(ws.receive())
@@ -430,11 +432,12 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
         def list_files_in_worksheet_dir():  # pylint: disable=unused-variable
             worksheet = app.config['worksheet']
             session = worksheet.session
-            worksheet_dir = worksheet.location or "."
-            full_path = os.path.realpath(os.path.join(
-                worksheet_dir, request.args.get("path", "")))
 
             try:
+                worksheet_dir = os.path.abspath(worksheet.location or ".")
+                full_path = os.path.abspath(os.path.join(
+                    worksheet_dir, request.args.get("path", "")))
+
                 if not os.path.isdir(full_path):
                     full_path = os.path.dirname(full_path)
 
@@ -448,11 +451,27 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                     if stat.S_ISDIR(file_stat.st_mode):
                         file_type = "directory"
 
+                    full_file_path = os.path.join(full_path, filename)
+
+                    # If the path is within the worksheet - make it relative to
+                    # the worksheet.
+                    relative_file_path = os.path.relpath(
+                        full_file_path, worksheet_dir)
+
+                    if not relative_file_path.startswith(".."):
+                        full_file_path = relative_file_path
+
                     result.append(
                         dict(name=filename,
-                             path=os.path.join(full_path, filename),
+                             path=full_file_path,
                              type=file_type,
                              size=file_stat.st_size))
+
+                # If the path is within the worksheet - make it relative
+                # to the worksheet.
+                relative_path = os.path.relpath(full_path, worksheet_dir)
+                if not relative_path.startswith(".."):
+                    full_path = relative_path
 
                 return jsonify(files=result, path=full_path)
             except (IOError, OSError) as e:
@@ -564,7 +583,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             handle_messages_thread = gevent.spawn(HandleSentMessages)
 
             gevent.joinall([run_plugin_result, handle_messages_thread])
-                        
+
             # Cache the data in the worksheet.
             worksheet.StoreData(cache_key, sent_messages)
 

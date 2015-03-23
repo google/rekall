@@ -89,7 +89,7 @@ class InspectHeap(common.WinProcessFilter):
                         yield entry.Allocation
 
                 # Now do the low fragmentation heap.
-                for segment_info in heap.FrontEndHeap.LocalData[0].SegmentInfo:
+                for segment_info in heap.FrontEndHeap.LocalData[0].m("SegmentInfo"):
                     active_segment = segment_info.ActiveSubsegment
                     if active_segment:
                         allocation_length = active_segment.BlockSize * 16
@@ -142,7 +142,7 @@ class InspectHeap(common.WinProcessFilter):
             dict(name="Data", style="hexdump"),
         ])
 
-        for segment_info in heap.FrontEndHeap.LocalData[0].SegmentInfo:
+        for segment_info in heap.FrontEndHeap.LocalData[0].m("SegmentInfo"):
             active_segment = segment_info.ActiveSubsegment
             if active_segment:
                 # Size of bucket including header.
@@ -192,7 +192,7 @@ class InspectHeap(common.WinProcessFilter):
                             heap.FrontEndHeapType)
 
             renderer.table_header([
-                dict(name="Segment", type="TreeNode", width=13,
+                dict(name="Segment", type="TreeNode", width=18,
                      child=dict(style="address")),
                 ("End", "segment_end", "[addr]"),
                 ("Length", "length", "8"),

@@ -811,6 +811,9 @@ class JsonSerializableSession(Session):
     ]
 
     def __eq__(self, other):
+        if not isinstance(other, Session):
+            return False
+
         for field, _ in self.SERIALIZABLE_STATE_PARAMETERS:
             if self.HasParameter(field):
                 # We have this field but the other does not.

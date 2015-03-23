@@ -172,5 +172,5 @@ def BuildTestSignedBinaries():
 
 
 CleanUpOldFiles()
-BuildTestSignedBinaries()
+#BuildTestSignedBinaries()
 BuildSignedProductionBinaries()
