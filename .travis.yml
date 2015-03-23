@@ -1,6 +1,6 @@
 language: python
 python: 2.7
-before-install:
+before_install:
   - sudo apt-get install libsnappy-dev
 
 install:
