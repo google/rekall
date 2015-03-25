@@ -10,6 +10,7 @@
       restrict: 'E',
       scope: {
         element: '=',
+        minimized: '='
       },
 
       // Render a complex format expression. For example: "Process

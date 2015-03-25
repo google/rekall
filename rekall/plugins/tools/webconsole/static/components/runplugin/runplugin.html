@@ -98,16 +98,16 @@
 
   <div ng-if="node.state != 'edit'" class="panel panel-default">
     <div class="plugin-description panel-heading">
-      <div tooltip="{{node.source.plugin.short_description}}" class="panel-title">
+      <div class="panel-title">
         <div class="btn-group">
           <button type="button" class="btn btn-default"
                   tooltip="Expand or Collapse Cell" tooltip-append-to-body
-                  ng-click="minimizeToggle($event)">
+                  ng-click="viewSettings.minimized = !viewSettings.minimized">
             <span class="glyphicon glyphicon-resize-full"></span>
           </button>
 
           <button type="button" class="btn btn-default"
-                  ng-hide="node.state=='edit'"
+                  ng-hide="node.state == 'edit'"
                   tooltip="Edit plugin" tooltip-append-to-body
                   ng-click="editNode(node)">
             <span class="glyphicon glyphicon-edit"></span>
@@ -138,7 +138,7 @@
             <rekall-object
                object="configuration.sessionsById[node.source.session_id]"/>
           </button>
-          {{node.source.plugin.name}}
+          <span tooltip="{{node.source.plugin.short_description}}">{{node.source.plugin.name}}</span>
           <span ng-if="node.source.arguments">
             <span ng-repeat="(key, value) in node.source.arguments">
               <var>{{key}}</var> =
@@ -179,7 +179,9 @@
 
             <div ng-if="element.type == 'format'">
               <div class="freeFormat">
-                <rekall-free-format element="element" />
+                <rekall-free-format
+                   element="element"
+                   minimized="viewSettings.minimized" />
               </div>
             </div>
 
@@ -188,9 +190,10 @@
             </div>
 
             <div ng-if="element.type == 'table'">
-              <scroll-table collection="element.rows"
-                            headers="element.header">
-              </scroll-table>
+              <rekall-paged-table
+                 collection="element.rows"
+                 headers="element.header"
+                 minimized="viewSettings.minimized" />
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@
                                'rekall.runplugin.jsonDecoder.service',
                                'rekall.runplugin.objectActions.init',
                                'rekall.runplugin.objectActions.service',
+                               'rekall.runplugin.rekallPagedTable.directive',
                                'rekall.runplugin.pluginArguments.directive',
                                'rekall.runplugin.pluginRegistry.service',
                                'rekall.runplugin.rekallTable.directive']);
@@ -20,6 +21,9 @@
 
     $scope.search = {
       pluginName: null
+    };
+    $scope.viewSettings = {
+      minimized: true
     };
 
     // Updates the plugins
@@ -170,12 +174,6 @@
         };
       }, $scope.node.source.session_id);
     });
-
-    $scope.minimizeToggle = function($event) {
-      var body = $($event.target).parents(".panel").first().find(".panel-body");
-      body.toggleClass("minimized");
-      $event.stopPropagation();
-    };
 
     $scope.cancelNode = function() {
       $http.post("rekall/runplugin/cancel/" + $scope.node.id);
