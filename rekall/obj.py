@@ -197,6 +197,9 @@ class NoneObject(object):
     def __repr__(self):
         return "<%s>" % self.FormatReason()
 
+    def __setitem__(self, item, other):
+        return
+
     def __format__(self, formatstring):
         """We suppress output for all format operators."""
         formatstring = formatstring.replace("d", "s")

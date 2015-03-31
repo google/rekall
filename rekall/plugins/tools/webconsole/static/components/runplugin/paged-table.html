@@ -1,9 +1,37 @@
 <div class="paged-table-container">
-  <div class="text-center horizontally-padded" ng-if="rowGroups.length > pageSize">
-    <pager total-items="rowGroups.length"
-           items-per-page="pageSize"
-           page="paginationSelectedPage"
-           on-select-page="selectPage(page)" />
+  <div class="navbar navbar-default table-nav">
+    <div class="pull-left btn-group expand-table-control">
+      <button class="btn btn-default"
+              tooltip="Toggle Table Size."
+              ng-click="toggleMinimize()"
+              >
+        <span class="glyphicon glyphicon-resize-vertical" aria-hidden="true"></span>
+      </button>
+    </div>
+
+
+    <nav class="">
+      <ul class="btn-group pull-right pagination expand-table-control">
+        <li ng-class="{'disabled': paginationSelectedPage==1}">
+          <a href="#"
+             ng-click="selectPage(paginationSelectedPage-1)"
+             >Prev
+          </a>
+        </li>
+
+        <li class="btn btn-info disabled">
+          {{paginationSelectedPage}} / {{totalPages}}
+        </li>
+
+        <li ng-class="{'disabled': paginationSelectedPage==totalPages}">
+          <a href="#"
+             ng-click="selectPage(paginationSelectedPage+1)"
+             >Next
+          </a>
+        </li>
+      </div>
+    </nav>
+
   </div>
 
   <table class="table table-condensed table-striped table-hover">

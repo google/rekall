@@ -119,10 +119,10 @@ class IOManager(object):
         try:
             metadata = self.inventory.get("$METADATA")
             if (metadata.get("ProfileClass") == "Inventory"
-                and metadata.get("Type") == "Inventory"):
+                    and metadata.get("Type") == "Inventory"):
                 return True
         except (AttributeError, IndexError, ValueError):
-          pass
+            pass
 
         logging.warn(
             'Inventory for repository "%s" seems malformed. Are you behind a '
@@ -140,8 +140,8 @@ class IOManager(object):
                 "$METADATA": dict(
                     Type="Inventory",
                     ProfileClass="Inventory"),
-                    "$INVENTORY": {},
-                }
+                "$INVENTORY": {},
+            }
 
         return False
 
@@ -153,7 +153,8 @@ class IOManager(object):
         if a profile exists in this repository.
         """
         if self.ValidateInventory():
-          return path in self.inventory.get("$INVENTORY")
+            return path in self.inventory.get("$INVENTORY")
+
         return False
 
     def FlushInventory(self):
@@ -301,8 +302,8 @@ class DirectoryIOManager(IOManager):
         if a profile exists in this repository.
         """
         if self.ValidateInventory():
-          path = self._GetAbsolutePathName(path)
-          return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
+            path = self._GetAbsolutePathName(path)
+            return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
         return False
 
     def check_dump_dir(self, dump_dir=None):

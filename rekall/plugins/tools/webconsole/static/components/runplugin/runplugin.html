@@ -102,12 +102,13 @@
         <div class="btn-group">
           <button type="button" class="btn btn-default"
                   tooltip="Expand or Collapse Cell" tooltip-append-to-body
-                  ng-click="viewSettings.minimized = !viewSettings.minimized">
+                  ng-click="minimizeToggle($event)">
             <span class="glyphicon glyphicon-resize-full"></span>
           </button>
 
           <button type="button" class="btn btn-default"
                   ng-hide="node.state == 'edit'"
+                  ng-if="app_config.mode!='static'"
                   tooltip="Edit plugin" tooltip-append-to-body
                   ng-click="editNode(node)">
             <span class="glyphicon glyphicon-edit"></span>
@@ -121,6 +122,7 @@
           </button>
 
           <button type="button" class="btn btn-default"
+                  ng-if="app_config.mode!='static'"
                   tooltip="Recalculate" tooltip-append-to-body
                   ng-click="recalculate()">
             <span class="glyphicon glyphicon-repeat"></span>
@@ -150,7 +152,7 @@
     </div>
 
     <div ng-if="node.state == 'show' || node.state == 'render'"
-         class="panel-body">
+         class="panel-body infinite-scroll">
       <div scroll-to=".scroll-anchor"
            class="progress progress-striped active scroll-anchor"
            ng-if="node.state == 'render'">
@@ -167,7 +169,7 @@
         </div>
       </div>
 
-      <div ng-if="node.rendered">
+      <div ng-if="node.rendered" class="plugin-content">
         <div class="panel panel-default">
           <div ng-repeat="element in node.rendered" preserve-scope>
 

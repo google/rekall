@@ -23,6 +23,7 @@
 __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
 import logging
+import json
 import os
 import shutil
 import sys
@@ -62,7 +63,7 @@ class RekallWebConsole(manuskript_plugin.Plugin):
     ANGULAR_MODULE = "rekall.webconsole"
 
     JS_FILES = [
-        "/rekall-webconsole/webconsole.js",
+        "rekall-webconsole/webconsole.js",
         ]
 
 
@@ -118,7 +119,7 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
         self.StoreData("sessions", self.GetSessionsAsJson())
         self.StoreData("metadata.rkl", self.metadata)
 
-    def __enter__(self):
+    def LoadSession(self):
         self.metadata = self.GetData("metadata.rkl")
         if not self.metadata:
             self.metadata = dict(
@@ -154,6 +155,10 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
             # Now switch to the first session in the list.
             self.session = self.session.session_list[0]
 
+    def __enter__(self):
+        self.LoadSession()
+        return self
+
     def GetSessionsAsJson(self):
         sessions = []
         for session in self.session.session_list:
@@ -171,7 +176,6 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
 
 
 class WebConsole(plugin.Command):
-
     """Launch the web-based Rekall console."""
 
     __name = "webconsole"
@@ -198,14 +202,115 @@ class WebConsole(plugin.Command):
                             help="Open webconsole in the default "
                             "browser.")
 
+        parser.add_argument("--export", default=None, type="String",
+                            help="When specified we export a static page to "
+                            "this path.")
+
+        parser.add_argument(
+            "--export-root-url-path", default=None, type="String",
+            help="The filesystem path where the root URL will be during "
+            "static export.")
+
+    PLUGINS = [manuskript_plugins.PlainText,
+               manuskript_plugins.Markdown,
+               manuskript_plugins.Shell,
+               manuskript_plugins.PythonCall,
+               runplugin.RekallRunPlugin,
+               RekallWebConsole]
+
     def __init__(self, worksheet=None, host="localhost", port=0, debug=False,
-                 browser=False, **kwargs):
+                 browser=False, export=None, export_root_url_path=".",
+                 **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
         self.debug = debug
         self.browser = browser
-        self.worksheet_path = worksheet
+        self.worksheet_path = os.path.abspath(worksheet)
+        if export is not None:
+            export = os.path.abspath(export)
+
+        if export_root_url_path is not None:
+            export_root_url_path = os.path.abspath(export_root_url_path)
+
+        self.export = export
+        self.export_root_url_path = export_root_url_path
+
+    def _copytree(self, src, dst):
+        """A variant of shutil.copytree.
+
+        This version is simpler does not copy files which are not changed.
+        """
+        names = os.listdir(src)
+        # Make sure the directory exists.
+        try:
+            os.makedirs(dst)
+        except EnvironmentError:
+            pass
+
+        for name in names:
+            srcname = os.path.join(src, name)
+            dstname = os.path.join(dst, name)
+            try:
+                if os.path.isdir(srcname):
+                    self._copytree(srcname, dstname)
+
+                else:
+                    src_m_time = int(os.stat(srcname).st_mtime)
+                    if (not os.path.isfile(dstname) or
+                            src_m_time != int(os.stat(dstname).st_mtime)):
+                        shutil.copy2(srcname, dstname)
+                        logging.debug("Copied %s->%s", srcname, dstname)
+
+            except EnvironmentError, why:
+                logging.debug("Unable to copy %s->%s: %s",
+                              srcname, dstname, why)
+
+    def Export(self, path):
+        output_io_manager = WebConsoleDocument(path, mode="w")
+
+        output_io_manager.StoreData(
+            "index.html",
+            manuskript_server.ExpandManuskriptHeaders(
+                self.PLUGINS, root_url="/", mode='static'),
+            raw=True)
+
+        cells = self.worksheet_fd.GetData("notebook_cells") or []
+        result = dict(filename=self.worksheet_fd.location,
+                      sessions=self.worksheet_fd.GetData("sessions"),
+                      cells=cells)
+
+        output_io_manager.StoreData("worksheet/load_nodes",
+                                    json.dumps(result), raw=True)
+
+        # Copy the static directories.
+        self._copytree(STATIC_PATH, os.path.join(
+            self.export_root_url_path, "rekall-webconsole"))
+
+        self._copytree(manuskript_server.STATIC_PATH, os.path.join(
+            self.export_root_url_path, "static"))
+
+        for cell in cells:
+            data = None
+            if cell["type"] == "rekallplugin":
+                data = self.worksheet_fd.GetData("%s.data" % cell["id"])
+            elif cell["type"] == "shell":
+                data = self.worksheet_fd.GetData("%s/shell" % cell["id"])
+            elif cell["type"] == "pythoncall":
+                data = self.worksheet_fd.GetData("%s/python" % cell["id"])
+            elif cell["type"] == 'fileupload':
+                # Copy all the files out.
+                for item in cell.get("source", {}).get("files", []):
+                    item_name = "%s/%s" % (cell["id"], item.get("name"))
+                    file_data = self.worksheet_fd.GetData(
+                        item_name, raw=True)
+                    if file_data:
+                        output_io_manager.StoreData(
+                            "worksheet/" + item_name, file_data, raw=True)
+
+            if data:
+                output_io_manager.StoreData("worksheet/%s.json" % cell["id"],
+                                            json.dumps(data), raw=True)
 
     def server_post_activate_callback(self, server):
         time.sleep(1)
@@ -222,12 +327,7 @@ class WebConsole(plugin.Command):
     def _serve_wsgi(self):
         with self.worksheet_fd:
             app = manuskript_server.InitializeApp(
-                plugins=[manuskript_plugins.PlainText,
-                         manuskript_plugins.Markdown,
-                         manuskript_plugins.Shell,
-                         manuskript_plugins.PythonCall,
-                         runplugin.RekallRunPlugin,
-                         RekallWebConsole],
+                plugins=self.PLUGINS,
                 config=dict(
                     worksheet=self.worksheet_fd,
                 ))
@@ -241,6 +341,19 @@ class WebConsole(plugin.Command):
             def add_header(response):  # pylint: disable=unused-variable
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 return response
+
+            app.register_blueprint(bp)
+
+            # Use blueprint as an easy way to serve static files.
+            bp = Blueprint('worksheet', __name__,
+                           static_url_path="/worksheet",
+                           static_folder=self.worksheet_path)
+
+            @bp.after_request
+            def add_header(response):  # pylint: disable=unused-variable
+                response.headers['Cache-Control'] = 'no-cache, no-store'
+                return response
+
             app.register_blueprint(bp)
 
             server = pywsgi.WSGIServer(
@@ -264,7 +377,6 @@ class WebConsole(plugin.Command):
             self.worksheet_path.endswith(".rkl")):
             self.worksheet_path = os.path.dirname(self.worksheet_path)
 
-
         if os.path.isdir(self.worksheet_path):
             # Change path to the worksheet_path to ensure relative filenames
             # work.
@@ -273,6 +385,9 @@ class WebConsole(plugin.Command):
                 os.chdir(self.worksheet_path)
                 self.worksheet_fd = WebConsoleDocument(
                     self.worksheet_path, session=self.session)
+
+                if self.export is not None:
+                    return self.Export(self.export)
 
                 return self._serve_wsgi()
 

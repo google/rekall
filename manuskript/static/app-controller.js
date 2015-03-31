@@ -7,7 +7,10 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 (function() {
 
   var confModule = angular.module('manuskript.configuration', []);
-  confModule.value('manuskriptConfiguration', {});
+
+  // Incorporate configuration from the HTML generator into the global app
+  // configuration. This will be available everywhere as scope.app-config .
+  confModule.value('manuskriptConfiguration', $('html').data());
 
   var module = angular.module('manuskript.app.controller', [
     'manuskript.core',
@@ -23,6 +26,8 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     $scope, $modal, $timeout, $sce, $upload, $http, hotkeys,
     manuskriptCoreNodePluginRegistryService, manuskriptNetworkService,
     manuskriptConfiguration) {
+
+    $scope.app_config = manuskriptConfiguration;
 
     $scope.margin_width = 2;
     $scope.main_width = 8;
@@ -80,6 +85,9 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
      * @param node - Node to edit.
      */
     $scope.editNode = function(node) {
+      if ($scope.app_config.mode == "static")
+        return;
+
       $scope.selection.node = node;
 
       // Maintain a copy of the old state so we can check for changes.
@@ -387,7 +395,8 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       if (pluginDescriptor.templateUrl) {
         return $sce.trustAsResourceUrl(pluginDescriptor.templateUrl);
       } else {
-        return $sce.trustAsResourceUrl("static/components/" + node.type + "/" + node.type + ".html");
+        return $sce.trustAsResourceUrl(
+          "/static/components/" + node.type + "/" + node.type + ".html");
       }
     };
 
@@ -402,45 +411,46 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
     };
 
     $scope.loadSessionsFromServer = function() {
-      manuskriptNetworkService.callServer('rekall/load_nodes', {
-        onmessage: function(result) {
-          manuskriptConfiguration.sessions = result.sessions;
-          manuskriptConfiguration.sessionsById = {}
-          for(var i=0; i < result.sessions.length; i++) {
-            manuskriptConfiguration.sessionsById[
-              result.sessions[i].session_id] = result.sessions[i];
-          };
+      $http.get('worksheet/load_nodes').success(function(result) {
+        manuskriptConfiguration.sessions = result.sessions;
+        manuskriptConfiguration.sessionsById = {}
+        for(var i=0; i < result.sessions.length; i++) {
+          var session_id = result.sessions[i].session_id;
+          manuskriptConfiguration.sessionsById[session_id] = result.sessions[i];
+          manuskriptConfiguration.sessionsById["" + session_id] =
+            result.sessions[i];
+        };
 
-          if(angular.isUndefined(manuskriptConfiguration.default_session)) {
-            manuskriptConfiguration.default_session = result.sessions[0];
-          };
-        }});
+        if(angular.isUndefined(manuskriptConfiguration.default_session)) {
+          manuskriptConfiguration.default_session = result.sessions[0];
+        };
+      });
     };
 
     $scope.loadNodesFromServer = function() {
       $scope.removeAllNodes();
 
-      manuskriptNetworkService.callServer('rekall/load_nodes', {
-        onmessage: function(result) {
-          if (result.filename) {
-            var components = result.filename.split("/");
-            $scope.worksheet_filename = components[components.length-1];
-          }
-          $scope.nodes = result.cells;
-          manuskriptConfiguration.sessions = result.sessions;
-          manuskriptConfiguration.sessionsById = {}
-          for(var i=0; i < result.sessions.length; i++) {
-            manuskriptConfiguration.sessionsById[
-              result.sessions[i].session_id] = result.sessions[i];
-          };
+      $http.get('worksheet/load_nodes').success(function(result) {
+        if (result.filename) {
+          var components = result.filename.split("/");
+          $scope.worksheet_filename = components[components.length-1];
+        }
+        $scope.nodes = result.cells;
+        manuskriptConfiguration.sessions = result.sessions;
+        manuskriptConfiguration.sessionsById = {}
+        for(var i=0; i < result.sessions.length; i++) {
+          var session_id = result.sessions[i].session_id;
+          manuskriptConfiguration.sessionsById[session_id] = result.sessions[i];
+          manuskriptConfiguration.sessionsById["" + session_id] =
+            result.sessions[i];
+        };
 
-          if(angular.isUndefined(manuskriptConfiguration.default_session)) {
-            manuskriptConfiguration.default_session = result.sessions[0];
-          };
+        if(angular.isUndefined(manuskriptConfiguration.default_session)) {
+          manuskriptConfiguration.default_session = result.sessions[0];
+        };
 
-          $scope.renderAllNodes();
-          $scope.$apply();
-        }});
+        $scope.renderAllNodes();
+      });
     };
 
     $scope.uploadDocument = function() {

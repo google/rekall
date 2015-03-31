@@ -4,7 +4,7 @@
                                'manuskript.pythoncall.renderer.service']);
 
   module.controller("PythonCallController", function(
-      $scope,
+      $scope, $http,
       manuskriptPythonCallRendererService) {
 
     /**
@@ -27,14 +27,22 @@
      */
     $scope.pushSources = function() {
       manuskriptPythonCallRendererService.Render(
-	  $scope.node.source,
-          '/controllers/pythoncall',
-	  function(data) {
-	    $scope.node.rendered = angular.fromJson(data)["data"];
-            $scope.showNode($scope.node);
-	  },
-	  function() {
-	  });
+        {
+          source: $scope.node.source,
+          cell_id: $scope.node.id
+        },
+        '/controllers/pythoncall',
+	function(data) {
+	  $scope.node.rendered = angular.fromJson(data);
+          $scope.showNode($scope.node);
+	},
+	function() {
+          $http.get("worksheet/" + $scope.node.id + ".json").success(
+            function(data) {
+	      $scope.node.rendered = angular.fromJson(data);
+              $scope.showNode($scope.node);
+            });
+	});
     };
 
     /**

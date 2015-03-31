@@ -141,7 +141,7 @@ class WebConsoleRenderer(data_export.DataExportRenderer):
 
         # Store files under this cell_id This prevents this cell's files from
         # being mixed with other cell's files.
-        full_path = "%s/files/%s" % (self.cell_id, filename)
+        full_path = "%s/%s" % (self.cell_id, filename)
 
         # Export the fact that we wrote a file using the special "f" command.
         self.SendMessage(["file", filename, full_path])
@@ -295,7 +295,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
     @classmethod
     def DownloadManager(cls, app):
 
-        @app.route("/files/<cell_id>/<filename>")
+        @app.route("/worksheet/<cell_id>/<filename>")
         def get_file(cell_id, filename):  # pylint: disable=unused-variable
             """Serve embedded files from the worksheet."""
             worksheet = app.config['worksheet']
@@ -364,15 +364,16 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             if old_data != new_data:
                 worksheet.StoreData("notebook_cells", new_data, raw=True)
 
-        @sockets.route("/rekall/load_nodes")
-        def rekall_load_nodes(ws):  # pylint: disable=unused-variable
+
+        @app.route("/worksheet/load_nodes")
+        def rekall_load_nodes():  # pylint: disable=unused-variable
             worksheet = app.config["worksheet"]
             cells = worksheet.GetData("notebook_cells") or []
             result = dict(filename=worksheet.location,
                           sessions=worksheet.GetSessionsAsJson(),
                           cells=cells)
 
-            ws.send(json.dumps(result))
+            return json.dumps(result), 200
 
         @app.route("/worksheet/load_file")
         def load_new_worksheet():  # pylint: disable=unused-variable
@@ -538,11 +539,11 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             worksheet = app.config["worksheet"]
 
             # If the data is cached locally just return it.
-            cache_key = "%s/%s" % (cell_id, GenerateCacheKey(source))
-            cache = worksheet.GetData(cache_key)
-            if cache:
+            cache_key = GenerateCacheKey(source)
+            cache = worksheet.GetData("%s.data" % cell_id)
+            if cache and cache.get("cache_key") == cache_key:
                 logging.debug("Dumping request from cache")
-                ws.send(json.dumps(cache))
+                ws.send(json.dumps(cache.get("data")))
                 return
 
             kwargs = source.get("arguments", {})
@@ -586,7 +587,9 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
             gevent.joinall([run_plugin_result, handle_messages_thread])
 
             # Cache the data in the worksheet.
-            worksheet.StoreData(cache_key, sent_messages)
+            worksheet.StoreData("%s.data" % cell_id, dict(
+                cache_key=cache_key,
+                data=sent_messages))
 
     @classmethod
     def PlugIntoApp(cls, app):

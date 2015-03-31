@@ -12,15 +12,16 @@ class Plugin(object):
         pass
 
     @classmethod
-    def GenerateHTML(cls):
+    def GenerateHTML(cls, root_url="/"):
         out = StringIO.StringIO()
-
         for js_file in cls.JS_FILES:
-            out.write("""<script src="%s"></script>\n""" % js_file)
+            js_file = js_file.lstrip("/")
+            out.write('<script src="%s%s"></script>\n' % (root_url, js_file))
 
         for css_file in cls.CSS_FILES:
-            out.write("""<link rel="stylesheet" href="%s"></link>\n""" %
-                      css_file)
+            css_file = css_file.lstrip("/")
+            out.write('<link rel="stylesheet" href="%s%s"></link>\n' % (
+                root_url, css_file))
 
         if cls.ANGULAR_MODULE:
             out.write("""

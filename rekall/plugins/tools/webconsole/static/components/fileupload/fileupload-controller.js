@@ -1,9 +1,11 @@
 'use strict';
 (function() {
-  var module = angular.module('rekall.fileupload.controller',
-                              ['manuskript.core']);
+  var module = angular.module('rekall.fileupload.controller', [
+    'manuskript.core',
+  ]);
 
-  module.controller("FileUploadController", function($scope, $upload) {
+  module.controller("FileUploadController", function(
+    $scope, $upload) {
     if ($scope.node.rendered == null) {
       $scope.node.rendered = [];
     };

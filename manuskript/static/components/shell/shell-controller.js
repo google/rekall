@@ -14,13 +14,21 @@
      * response.
      */
     $scope.pushSources = function(node) {
-      $http.post('controllers/shell', {
-        cell_id: node.id,
-	source: angular.copy($scope.node.source),
-      }).success(function(data) {
-        $scope.node.rendered = angular.fromJson(data);
-        $scope.showNode($scope.node);
-      });
+      if($scope.app_config.mode == 'static') {
+        $http.get("worksheet/" + node.id + ".json").success(function (data) {
+          $scope.node.rendered = angular.fromJson(data);
+          $scope.showNode($scope.node);
+        });
+
+      } else {
+        $http.post('controllers/shell', {
+          cell_id: node.id,
+	  source: angular.copy($scope.node.source),
+        }).success(function(data) {
+          $scope.node.rendered = angular.fromJson(data);
+          $scope.showNode($scope.node);
+        }).error(function () {});
+      };
     };
 
     /**

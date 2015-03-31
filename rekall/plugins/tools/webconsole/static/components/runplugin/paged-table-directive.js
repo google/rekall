@@ -10,15 +10,19 @@
       scope: {
         collection: '=',
         headers: '=',
-        minimized: '='
       },
       templateUrl: '/rekall-webconsole/components/runplugin/paged-table.html',
       link: function(scope, element, attrs) {
-        scope.paginationSelectedPage = 1;
         scope.pageSize = 10;
         scope.rowGroups = [];
-        scope.pageRows = [];          
+        scope.pageRows = [];
         scope.paginationSelectedPage = 1;
+        scope.minimized = true;
+        scope.totalPages = 0;
+
+        scope.toggleMinimize = function() {
+          scope.minimized = !scope.minimized;
+        };
 
         scope.$watchCollection('collection', function(newCollection, oldCollection) {
           var currentGroup;
@@ -34,7 +38,7 @@
           } else {
             oldLength = 0;
           }
-          
+
           for (var i = oldLength; i < scope.collection.length; ++i) {
             var item = scope.collection[i];
             if (item.branch && item.depth === 0) {
@@ -65,13 +69,16 @@
           function() {
             var pageNumber = scope.paginationSelectedPage - 1;
             scope.pageRows = [];
-          
+
             var pageGroups = scope.rowGroups.slice(
               pageNumber * scope.pageSize, (pageNumber + 1) * scope.pageSize);
             for (var i = 0; i < pageGroups.length; ++i) {
               var pageGroup = pageGroups[i];
               scope.pageRows.push.apply(scope.pageRows, pageGroup);
             }
+
+            scope.totalPages = parseInt(
+              scope.rowGroups.length / scope.pageSize) + 1;
           });
 
         scope.$watch('minimized', function() {
@@ -79,7 +86,9 @@
         });
 
         scope.selectPage = function(pageNumber) {
-          scope.paginationSelectedPage = pageNumber;
+          if (pageNumber > 0 && pageNumber <= scope.totalPages) {
+            scope.paginationSelectedPage = pageNumber;
+          };
         }
 
         scope.toggleTreeNode = function(branchRow) {

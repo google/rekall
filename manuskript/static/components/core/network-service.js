@@ -12,8 +12,8 @@
 	socket.send(angular.toJson(kwargs.params || {}));
       };
 
-      socket.onerror = function(error) {  // jshint ignore:line
-	// TDO(mbushkov): implement proper error handling
+      if (kwargs.onerror) {
+        socket.onerror = kwargs.onerror;
       };
 
       if (kwargs.onclose) {

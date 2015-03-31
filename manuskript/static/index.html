@@ -1,53 +1,13 @@
 <html ng-app="manuskript.app">
   <head>
-    <!-- third-party stylesheets -->
-    <link rel="stylesheet" href="static/bower_components/bootstrap/dist/css/bootstrap.css">
-    <link rel="stylesheet" href="static/bower_components/codemirror/lib/codemirror.css">
-    <link rel="stylesheet" href="static/bower_components/angular-hotkeys/build/hotkeys.min.css">
-
-    <!-- internal stylesheets -->
-    <link rel="stylesheet" href="static/index.css">
-
-    <!-- third-party dependencies -->
-    <script src="static/bower_components/jquery/dist/jquery.js"></script>
-    <script src="static/bower_components/file-saver/FileSaver.js"></script>
-    <script src="static/bower_components/ng-file-upload/angular-file-upload-shim.js"></script>
-    <script src="static/bower_components/angular/angular.js"></script>
-    <script src="static/bower_components/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="static/bower_components/markdown/lib/markdown.js"></script>
-    <script src="static/bower_components/codemirror/lib/codemirror.js"></script>
-    <script src="static/bower_components/codemirror/mode/python/python.js"></script>
-    <script src="static/bower_components/codemirror/mode/markdown/markdown.js"></script>
-    <script src="static/bower_components/codemirror/mode/xml/xml.js"></script>
-    <script src="static/bower_components/angular-resource/angular-resource.js"></script>
-    <script src="static/bower_components/angular-animate/angular-animate.js"></script>
-    <script src="static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
-    <script src="static/bower_components/ng-file-upload/angular-file-upload.js"></script>
-    <script src="static/bower_components/angular-hotkeys/build/hotkeys.min.js"></script>
-
-    <!-- internal dependencies -->
-    <script src="static/components/core/addnode-dialog-controller.js"></script>
-    <script src="static/components/core/codeeditor-directive.js"></script>
-    <script src="static/components/core/core.js"></script>
-    <script src="static/components/core/fastrepeat-directive.js"></script>
-    <script src="static/components/core/fileinput-directive.js"></script>
-    <script src="static/components/core/file-selector-controller.js"></script>
-    <script src="static/components/core/network-service.js"></script>
-    <script src="static/components/core/nodepluginregistry-service.js"></script>
-    <script src="static/components/core/onaltenter-directive.js"></script>
-    <script src="static/components/core/scrollto-directive.js"></script>
-    <script src="static/components/core/autofocus-directive.js"></script>
-    <script src="static/components/core/splitlist-directive.js"></script>
-
-    <!-- manuskript-plugins -->
-    <script src="static/load-controller.js"></script>
-    <script src="static/app-controller.js"></script>
-    <script src="static/app.js"></script>
+    <meta charset="UTF-8">
+    <!-- manuskript-headers -->
   </head>
   <body ng-controller="ManuskriptAppController">
-
     <!-- Navigation bar -->
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-default navbar-fixed-top"
+         role="navigation"
+         >
       <div class="container-fluid">
         <div class="col-md-{{margin_width}}">
           <span class="label label-info">
@@ -57,15 +17,17 @@
 
         <div class="col-md-{{main_width}}">
           <!-- Toolbar -->
-          <div class="btn-group btn-group-sm">
+          <div class="btn-group btn-group-sm"
+               ng-if="app_config.mode!='static'"
+               >
             <div class="btn btn-default navbar-btn"
-               tooltip="Manage session." tooltip-placement="bottom"
-               tooltip-append-to-body
-               ng-click="manageSession()">
+                 tooltip="Manage session." tooltip-placement="bottom"
+                 tooltip-append-to-body
+                 ng-click="manageSession()">
               <span class="glyphicon glyphicon-off"></span> Session
             </div>
-
-            <button type="button" class="btn btn-default navbar-btn" ng-click="addNode()">
+            <button type="button" class="btn btn-default navbar-btn"
+                    ng-click="addNode()">
               <span class="glyphicon glyphicon-plus"></span> Cell
             </button>
             <div class="btn-group btn-group-sm">
@@ -88,7 +50,9 @@
             </div>
           </div>
 
-          <div class="btn-group">
+          <div class="btn-group"
+               ng-if="app_config.mode!='static'"
+               >
             <div class="btn btn-default upload"
                tooltip="Open an existing worksheet." tooltip-placement="bottom"
                tooltip-append-to-body
@@ -118,7 +82,9 @@
             </div>
           </div>
 
-          <div class="btn-group right-padded">
+          <div class="btn-group right-padded"
+               ng-if="app_config.mode!='static'"
+               >
             <button type="button" class="btn btn-default"
                     ng-disabled="selection.node == null || selection.node.state == 'edit'"
                     ng-click="editNode(selection.node)">
@@ -132,13 +98,17 @@
             </button>
           </div>
 
-          <div class="btn-group right-padded">
-            <button type="button" class="btn btn-default" ng-disabled="!canMoveNodeUp(selection.node)"
+          <div class="btn-group right-padded"
+               >
+            <button type="button" class="btn btn-default"
+                    ng-disabled="!canMoveNodeUp(selection.node)"
+                    ng-if="app_config.mode!='static'"
                     ng-click="moveNodeUp(selection.node)">
               <span class="glyphicon glyphicon-arrow-up"></span>
             </button>
             <button type="button" class="btn btn-default"
                     ng-disabled="!canMoveNodeDown(selection.node)"
+                    ng-if="app_config.mode!='static'"
                     ng-click="moveNodeDown(selection.node)">
               <span class="glyphicon glyphicon-arrow-down"></span>
             </button>
@@ -148,7 +118,9 @@
             </button>
           </div>
 
-          <div class="btn-group">
+          <div class="btn-group"
+               ng-if="app_config.mode!='static'"
+               >
             <button type="button" class="btn btn-default"
                     ng-disabled="0 && selection.node == null"
                     ng-click="loadNodesFromServer()">
@@ -176,7 +148,7 @@
             </h1>
             <div class="alert alert-success" role="alert">Add a new Cell to get started</div>
             <div class="rekall-logo">
-              <img src="/rekall-webconsole/images/Rekall.png"
+              <img src="%(root_url)srekall-webconsole/images/Rekall.png"
                    class="img-thumbnail" />
             </div>
           </div>

@@ -140,3 +140,27 @@ samp.pre {
     padding-left: 1em;
     padding-right: 1em;
 }
+
+.plugin-content {
+    width: 100%;
+}
+
+.expand-table-control {
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 7px;
+    margin-bottom: 7px;
+}
+
+.expand-table-control li, .expand-table-control button {
+    height: 34px;
+};
+
+.table-nav {
+    margin: 0px;
+    min-height: 0px;
+}
+
+.table-nav .pager {
+    margin-bottom: 0px;
+}

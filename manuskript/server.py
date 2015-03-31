@@ -2,7 +2,6 @@ import os
 import StringIO
 
 from flask import Flask
-from flask import current_app
 from flask import helpers
 
 from manuskript import plugins as manuskript_plugins
@@ -30,6 +29,22 @@ class WebconsoleWSGIServer(serving.BaseWSGIServer):
             self.post_activate_callback(self)
 
 
+def ExpandManuskriptHeaders(plugins, root_url="/", **opts):
+    """Generate the headers to go into the manuskript <head> tag."""
+    app = manuskript_plugins.MainApp
+    app.CONFIG.update(opts)
+
+    components = [manuskript_plugins.AppDeps] + plugins + [app]
+
+    header = "\n".join([p.GenerateHTML() for p in components])
+
+    with open(os.path.join(STATIC_PATH, "index.html")) as fd:
+        contents = fd.read() % dict(root_url=root_url)
+        contents = contents.replace(
+            "<!-- manuskript-headers -->", header)
+
+        return contents
+
 def InitializeApp(plugins=None, config=None):
     if not plugins:
         plugins = DEFAULT_PLUGINS
@@ -38,22 +53,14 @@ def InitializeApp(plugins=None, config=None):
         config = {}
 
     app = Flask(__name__, static_folder=STATIC_PATH)
-    app.config["manuskript_plugins"] = plugins
 
     # Configure index route
     @app.route("/")
     def index():  # pylint: disable=unused-variable
-        plugins_snippets = [p.GenerateHTML()
-                            for p in current_app.config['manuskript_plugins']]
-
-        with open(os.path.join(STATIC_PATH, "index.html")) as fd:
-            contents = fd.read()
-            contents = contents.replace("<!-- manuskript-plugins -->",
-                                        "\n".join(plugins_snippets))
-
-        return helpers.send_file(StringIO.StringIO(contents),
-                                 mimetype="text/html",
-                                 conditional=True)
+        return helpers.send_file(
+            StringIO.StringIO(ExpandManuskriptHeaders(plugins)),
+            mimetype="text/html",
+            conditional=True)
 
     # Turn off caching for easier development/debugging
     @app.after_request

@@ -1,8 +1,21 @@
+
+import hashlib
+import json
+import logging
+
 from flask import jsonify
 from flask import request
 
 from manuskript import plugin
 from manuskript import pythonshell
+
+def GenerateCacheKey(state):
+    data = json.dumps(state, sort_keys=True)
+    hash = hashlib.md5(data).hexdigest()
+    try:
+        return "%s-python" % (hash)
+    except KeyError:
+        return hash
 
 
 class PythonCall(plugin.Plugin):
@@ -27,8 +40,21 @@ class PythonCall(plugin.Plugin):
                 app.config[cls.__name__] = shell = pythonshell.PythonShell()
                 cls.UpdatePythonShell(app, shell)
             shell = app.config[cls.__name__]
+            cell = request.get_json()
+            cell_id = cell["cell_id"]
 
             source_code = request.get_json()["source"]
+            worksheet = app.config["worksheet"]
+
+            # If the data is cached locally just return it.
+            cache_key = "%s/%s" % (cell_id, GenerateCacheKey(source_code))
+            cache_filename = "%s/python" % cell_id
+
+            cache = worksheet.GetData(cache_filename)
+            if cache and cache["cache_key"] == cache_key:
+                logging.debug("Dumping request from cache")
+                return json.dumps(cache)
+
 
             result = None
             error = None
@@ -51,10 +77,15 @@ class PythonCall(plugin.Plugin):
                 result_lines = []
                 error_lines = str(error).split("\n")
 
-            response = jsonify(data=dict(stdout=stdout_lines,
-                                         stderr=stderr_lines,
-                                         result=result_lines,
-                                         error=error_lines,
-                                         is_parsing_error=is_parsing_error,
-                                         execution_count=shell.execution_count))
-            return response
+            result = dict(stdout=stdout_lines,
+                          stderr=stderr_lines,
+                          result=result_lines,
+                          error=error_lines,
+                          cache_key=cache_key,
+                          is_parsing_error=is_parsing_error,
+                          execution_count=shell.execution_count)
+
+            # Cache the data in the worksheet.
+            worksheet.StoreData(cache_filename, result)
+
+            return jsonify(result)

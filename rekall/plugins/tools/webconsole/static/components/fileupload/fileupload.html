@@ -13,13 +13,14 @@
 
           <button type="button" class="btn btn-default"
                   ng-hide="node.state=='edit'"
+                  ng-if="app_config.mode != 'static'"
                   tooltip="Edit plugin" data-container="body"
                   ng-click="editNode(node)">
             <span class="glyphicon glyphicon-edit"></span>
           </button>
 
           <button type="button" class="btn btn-success"
-                  ng-hide="node.state!='edit'"
+                  ng-hide="node.state != 'edit'"
                   ng-click="renderNode()">
             <span class="glyphicon glyphicon-ok"></span>
           </button>
@@ -27,14 +28,14 @@
           <div class="btn btn-default upload"
                data-multiple="true"
                tooltip="Upload new image" data-container="body"
-               onclick="this.value = null"
+               onclick="this.value = null"  ng-if="app_config.mode != 'static'"
                ng-file-select="onFileSelect($files)"
                >
             <span class="glyphicon glyphicon-upload"></span>
           </div>
 
           <a target="_self" class="btn btn-default"
-             ng-if="node.source.files.length"
+             ng-if="node.source.files.length && app_config.mode != 'static'"
              tooltip="Download all files" data-container="body"
              href="/downloads/{{node.id}}?filename={{node.source.caption}}">
             <span class="glyphicon glyphicon-download"></span>
@@ -42,17 +43,21 @@
 
           <button type="button" class="btn btn-default"
                   ng-disabled="selected==null"
+                  ng-if="app_config.mode != 'static'"
                   ng-click="removeFile()">
             <span class="glyphicon glyphicon-trash"></span>
           </button>
         </div>
-        <div ng-if="node.state == 'edit'" class="edit" on-alt-enter="renderNode(node)">
+        <div ng-if="node.state == 'edit'"
+             class="edit"
+             on-alt-enter="renderNode(node)">
           <code-editor language="plaintext"  ng-model="node.source.caption"
                        focus="node.state == 'edit'">
           </code-editor>
         </div>
 
-        <div ng-if="node.state != 'edit'" class="readonly" ng-dblclick="editNode(node)">
+        <div ng-if="node.state != 'edit'" class="readonly"
+             ng-dblclick="editNode(node)">
           <h3>{{node.rendered.caption}}</h3>
         </div>
 
@@ -63,7 +68,7 @@
                class="well well-sm rekall-embedded-image
                       rekall-zoom-{{node.source.size}}">
             <img ng-switch-when="image/jpeg"
-                 src="files/{{node.id}}/{{file.name}}?type={{file.type}}"/>
+                 src="worksheet/{{node.id}}/{{file.name}}?type={{file.type}}"/>
 
             <button ng-switch-default class="btn btn-default">
               <span class="glyphicon glyphicon-file" />

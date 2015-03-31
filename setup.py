@@ -78,6 +78,6 @@ setup(
         "Flask-Sockets >= 0",
         "gevent >= 1.0.1",
         "gevent-websocket >= 0.9.3",
-        "PyAFF4 >= 0.12",
+        "PyAFF4 >= 0.13",
         ],
 )
