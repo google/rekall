@@ -18,7 +18,7 @@
 #
 import time
 
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 CODENAME = "Dammastock"
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 

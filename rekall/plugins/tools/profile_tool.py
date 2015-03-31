@@ -99,6 +99,7 @@ from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.overlays.linux import dwarfdump
 from rekall.plugins.overlays.linux import dwarfparser
+from rekall.plugins.windows import common
 
 
 class ProfileConverter(object):
@@ -261,7 +262,7 @@ class LinuxConverter(ProfileConverter):
 
 
 class OSXConverter(LinuxConverter):
-    """Automatic converted for Volatility OSX style profiles.
+    """Automatic conversion from Volatility OSX style profiles.
 
     You can generate one of those using the instructions here:
     http://code.google.com/p/volatility/wiki/MacMemoryForensics#Building_a_Profile
@@ -314,25 +315,6 @@ class OSXConverter(LinuxConverter):
                 return self.WriteProfile(profile_file)
 
         raise RuntimeError("Unknown profile format.")
-
-
-class WindowsConverter(ProfileConverter):
-    """A converter from Volatility windows profiles.
-
-    This converter must be manually specified.
-    """
-
-    def Convert(self):
-        if not self.profile_class:
-            raise RuntimeError("Profile class implementation not provided.")
-
-        # The input file is a python file with a data structure in it.
-        with open(self.input, "rb") as fd:
-            l = {}
-            exec(fd.read(), {}, l)
-
-        profile_file = self.BuildProfile({}, l["ntkrnlmp_types"])
-        self.WriteProfile(profile_file)
 
 
 class ConvertProfile(core.OutputFileMixin, plugin.Command):
@@ -708,39 +690,81 @@ class BuildProfileLocally(plugin.Command):
         parser.add_argument(
             "guid",
             help="The guid of the module.",
-            required=True)
+            required=False)
 
     def __init__(self, module_name=None, guid=None, **kwargs):
         super(BuildProfileLocally, self).__init__(**kwargs)
         self.module_name = module_name
         self.guid = guid
 
-    def render(self, renderer):
-        profile_name = "{0}/GUID/{1}".format(self.module_name, self.guid)
-        renderer.format("Fetching Profile {0}", profile_name)
+    def _fetch_and_parse(self, module_name, guid):
+        """Fetch the profile from the symbol server.
 
-        dump_dir = "/tmp/"
-        fetch_pdb = self.session.RunPlugin(
-            "fetch_pdb",
-            pdb_filename="%s.pdb" % self.module_name,
-            guid=self.guid, dump_dir=dump_dir)
+        Raises:
+          IOError if the profile is not found on the symbol server or can not be
+          retrieved.
 
-        if fetch_pdb.error_status:
-            raise RuntimeError(
-                "Failed fetching the pdb file: %s" % renderer.error_status)
+        Returns:
+           the profile data.
+        """
+        with utils.TempDirectory() as dump_dir:
+            pdb_filename = "%s.pdb" % module_name
+            fetch_pdb_plugin = self.session.plugins.fetch_pdb(
+                pdb_filename=pdb_filename,
+                guid=guid, dump_dir=dump_dir)
 
-        out_file = os.path.join(dump_dir, "%s.json" % self.guid)
-        parse_pdb = self.session.RunPlugin(
-            "parse_pdb",
-            pdb_filename=os.path.join(dump_dir, "%s.pdb" % self.module_name),
-            output_filename="%s.json" % self.guid,
-            dump_dir=dump_dir)
+            # Store the PDB file somewhere.
+            pdb_pathname = os.path.join(dump_dir, pdb_filename)
+            with open(pdb_pathname, "wb") as outfd:
+                outfd.write(fetch_pdb_plugin.FetchPDBFile(
+                    module_name, guid))
 
-        if parse_pdb.error_status:
-            raise RuntimeError(
-                "Failed parsing pdb file: %s" % renderer.error_status)
+            parse_pdb = self.session.plugins.parse_pdb(
+                pdb_filename=pdb_pathname,
+                dump_dir=dump_dir)
+
+            return parse_pdb.parse_pdb()
+
+    def fetch_and_parse(self, module_name=None, guid=None):
+        if module_name is None:
+            module_name = self.module_name
+
+        if guid is None:
+            guid = self.guid
+
+        # Allow the user to specify the required profile by name.
+        m = re.match("([^/]+)/GUID/([^/]+)$", module_name)
+        if m:
+            module_name = m.group(1)
+            guid = m.group(2)
+
+        if not guid or not module_name:
+            raise TypeError("GUID not specified.")
+
+        profile_name = "{0}/GUID/{1}".format(module_name, guid)
 
         # Get the first repository to write to.
         repository = self.session.repository_managers.values()[0]
-        data = json.load(open(out_file))
-        repository.StoreData(profile_name, data)
+        if module_name != "nt":
+            data = self._fetch_and_parse(module_name, guid)
+            return repository.StoreData(profile_name, data)
+
+        for module_name in common.KERNEL_NAMES:
+            if module_name.endswith(".pdb"):
+                module_name, _ = os.path.splitext(module_name)
+            try:
+                data = self._fetch_and_parse(module_name, guid)
+                logging.warning(
+                    "Profile %s fetched and built. Please "
+                    "consider reporting this profile to the "
+                    "Rekall team so we may add it to the public "
+                    "profile repository.", profile_name)
+
+                return repository.StoreData(profile_name, data)
+            except IOError:
+                pass
+
+        raise IOError("Profile not found")
+
+    def render(self, renderer):
+        self.fetch_and_parse(self.module_name, self.guid)

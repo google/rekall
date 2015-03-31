@@ -168,8 +168,8 @@ class SessionMod(plugin.Command):
                             help="The name of a program to page output "
                             "(e.g. notepad or less).")
 
-    def __init__(self, session=None, **kwargs):
-        super(SessionMod, self).__init__(session=session)
+    def __init__(self, **kwargs):
+        super(SessionMod, self).__init__(session=kwargs.pop("session"))
         self.kwargs = kwargs
 
     def render(self, renderer):

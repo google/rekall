@@ -157,7 +157,9 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
             module = self.modules_by_name[module_name]
 
-            module_profile = self.session.LoadProfile(profile)
+            module_profile = (self.session.LoadProfile(profile) or
+                              self._build_local_profile(module_name, profile))
+
             module_profile.image_base = module.base
 
             # Merge in the kernel profile into this profile.
@@ -166,11 +168,14 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             self.profiles[module_name] = module_profile
 
             return module_profile
-        except ValueError:
+
+        except (ValueError, KeyError):
             # Cache the fact that we did not find this profile.
             self.profiles[module_name] = None
             logging.debug("Unable to resolve symbols in module %s",
                           module_name)
+
+            return obj.NoneObject()
 
     def LoadProfileForDll(self, module_base, module_name):
         self._EnsureInitialized()
@@ -187,18 +192,38 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         # TODO: Apply profile index to detect the profile.
         guid_age = pe_helper.RSDS.GUID_AGE
         if guid_age:
-            profile = self.session.LoadProfile("%s/GUID/%s" % (
-                module_name, guid_age))
+            profile_name = "%s/GUID/%s" % (module_name, guid_age)
+            profile = (self.session.LoadProfile(profile_name) or
+                       self._build_local_profile(module_name, profile_name))
 
-            profile.name = module_name
-            profile.image_base = module_base
             if profile:
+                profile.name = module_name
+                profile.image_base = module_base
+
                 self.profiles[module_name] = profile
                 return profile
 
         result = self._build_profile_from_exports(module_base, module_name)
         self.profiles[module_name] = result
         return result
+
+    # Build these modules locally even if autodetect_build_local is "basic".
+    TRACKED_MODULES = set(["tcpip", "win32k", "ntdll"])
+
+    def _build_local_profile(self, module_name, profile_name):
+        """Fetch a build a local profile from the symbol server."""
+        mode = self.session.GetParameter("autodetect_build_local")
+        if mode == "full" or (mode == "basic" and
+                              module_name in self.TRACKED_MODULES):
+            build_local_profile = self.session.plugins.build_local_profile()
+            try:
+                logging.debug("Will build local profile %s", profile_name)
+                build_local_profile.fetch_and_parse(profile_name)
+                return self.session.LoadProfile(profile_name, use_cache=False)
+            except IOError:
+                pass
+
+        return obj.NoneObject()
 
     def _build_profile_from_exports(self, module_base, module_name):
         """Create a dummy profile from PE exports."""
@@ -273,7 +298,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         """
         self._EnsureInitialized()
 
-        profile = self.session.LoadProfile(profile_name)
+        profile = self.session.LoadProfile(profile_name, use_cache=False)
         module_base = self._resolve_module_base_address(module_name)
         if module_base:
             profile.image_base = module_base

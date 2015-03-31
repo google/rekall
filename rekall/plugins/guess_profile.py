@@ -64,6 +64,21 @@ class DetectionMethod(object):
 
     def VerifyProfile(self, profile_name):
         profile = self.session.LoadProfile(profile_name)
+
+        # If the user allows it we can just try to fetch and build the profile
+        # locally.
+        if profile == None and self.session.GetParameter(
+                "autodetect_build_local") in ("full", "basic"):
+            build_local_profile = self.session.plugins.build_local_profile()
+            try:
+                logging.debug("Will build local profile %s", profile_name)
+                build_local_profile.fetch_and_parse(profile_name)
+                profile = self.session.LoadProfile(
+                    profile_name, use_cache=False)
+
+            except IOError:
+                pass
+
         if profile != None:
             return self._ApplyFindDTB(self.find_dtb_impl, profile)
 
@@ -114,6 +129,12 @@ config.DeclareOption("autodetect_threshold", default=1.0,
                      help="Worst acceptable match for profile autodetection." +
                      " (Default 1.0)",
                      type="Float")
+
+config.DeclareOption("autodetect_build_local", default="basic",
+                     group="Autodetection Overrides",
+                     choices=["full", "basic", "none"],
+                     help="Attempts to fetch and build profile locally.",
+                     type="Choices")
 
 config.DeclareOption("autodetect_scan_length", default=1000000000,
                      group="Autodetection Overrides",

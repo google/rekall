@@ -39,7 +39,7 @@ from rekall.plugins import core
 
 # Windows kernel pdb filenames.
 KERNEL_NAMES = set(
-    ["ntoskrnl.pdb", "ntkrnlmp.pdb", "ntkrnlpa.pdb",
+    ["ntkrnlmp.pdb", "ntkrnlpa.pdb", "ntoskrnl.pdb",
      "ntkrpamp.pdb"])
 
 

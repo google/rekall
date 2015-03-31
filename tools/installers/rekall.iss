@@ -1,4 +1,4 @@
-#define REKALL_VERSION '1.3.0'
+#define REKALL_VERSION '1.3.1'
 #define REKALL_CODENAME 'Dammastock'
 
 [Files]

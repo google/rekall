@@ -368,6 +368,9 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             kwargs["nargs"] = "+" if required else "*"
             kwargs["choices"] = list(kwargs["choices"])
 
+        elif arg_type == "Choices":
+            kwargs["choices"] = list(kwargs["choices"])
+
         # Skip option if not critical.
         critical_arg = kwargs.pop("critical", False)
         if critical and critical_arg:

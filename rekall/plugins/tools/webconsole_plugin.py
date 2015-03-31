@@ -25,6 +25,7 @@ __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 import logging
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -101,17 +102,18 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
         """Clean up deleted cells."""
         cells = self.GetData("notebook_cells")
         if cells:
-            directories_to_leave = [int(cell["id"]) for cell in cells]
+            cells_to_leave = set([str(cell["id"]) for cell in cells])
             for path in os.listdir(self.dump_dir):
-                try:
-                    # Cell directories are integers (timestamp).
-                    cell_id = int(path)
-                    if cell_id not in directories_to_leave:
-                        logging.debug("Trimming cell %s", path)
-                        shutil.rmtree(self._GetAbsolutePathName(path))
-
-                except ValueError:
+                m = re.match(r"^(\d+)\.data$", path)
+                if m and m.group(1) not in cells_to_leave:
+                    logging.debug("Trimming cell file %s", path)
+                    os.unlink(self._GetAbsolutePathName(path))
                     continue
+
+                m = re.match(r"^\d+$", path)
+                if m and path not in cells_to_leave:
+                    logging.debug("Trimming cell directory %s", path)
+                    shutil.rmtree(self._GetAbsolutePathName(path))
 
     def StoreSessions(self):
         """Store the sessions in the document."""

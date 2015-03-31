@@ -88,6 +88,7 @@ import re
 import logging
 import ntpath
 import os
+import platform
 import subprocess
 import urllib2
 
@@ -157,32 +158,68 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
             self.pdb_filename = self.filename
             self.guid = self.guid.upper()
 
-        for url in self.SYM_URLS:
-            basename = ntpath.splitext(self.pdb_filename)[0]
-            url += "/%s/%s/%s.pd_" % (self.pdb_filename,
-                                      self.guid, basename)
+        # Write the file data to the renderer.
+        pdb_file_data = self.FetchPDBFile(self.pdb_filename, self.guid)
+        with renderer.open(filename=self.pdb_filename,
+                           directory=self.dump_dir,
+                           mode="wb") as fd:
+            fd.write(pdb_file_data)
 
-            renderer.format("Trying to fetch {0}\n", url)
+    def FetchPDBFile(self, pdb_filename, guid):
+        # Ensure the pdb filename has the correct extension.
+        if not pdb_filename.endswith(".pdb"):
+            pdb_filename += ".pdb"
+
+        for url in self.SYM_URLS:
+            basename = ntpath.splitext(pdb_filename)[0]
+            url += "/%s/%s/%s.pd_" % (pdb_filename, guid, basename)
+
+            self.session.report_progress("Trying to fetch %s\n", url)
             request = urllib2.Request(url, None, headers={
                 'User-Agent': self.USER_AGENT})
 
-            data = urllib2.urlopen(request).read()
-            renderer.format("Received {0} bytes\n", len(data))
+            url_handler = urllib2.urlopen(request)
+            with utils.TempDirectory() as temp_dir:
+                compressed_output_file = os.path.join(
+                    temp_dir, "%s.pd_" % basename)
 
-            output_file = "%s.pd_" % basename
-            with renderer.open(filename=output_file,
-                               directory=self.dump_dir,
-                               mode="wb") as fd:
-                fd.write(data)
+                output_file = os.path.join(
+                    temp_dir, "%s.pdb" % basename)
 
-            try:
-                subprocess.check_call(["cabextract",
-                                       os.path.basename(output_file)],
-                                      cwd=self.dump_dir)
-            except subprocess.CalledProcessError:
-                renderer.report_error(
-                    "Failed to decompress output file {0}. "
-                    "Ensure cabextract is installed.\n", output_file)
+                # Download the compressed file to a temp file.
+                with open(compressed_output_file, "wb") as outfd:
+                    while True:
+                        data = url_handler.read(8192)
+                        if not data:
+                            break
+
+                        outfd.write(data)
+                        self.session.report_progress(
+                            "%s: Downloaded %s bytes", basename, outfd.tell())
+
+                # Now try to decompress it with system tools. This might fail.
+                try:
+                    if platform.system() == "Windows":
+                        # This should already be installed on windows systems.
+                        subprocess.check_call(
+                            ["expand", compressed_output_file, output_file],
+                            cwd=self.dump_dir)
+                    else:
+                        # In Linux we just hope the cabextract program was
+                        # installed.
+                        subprocess.check_call(
+                            ["cabextract", compressed_output_file],
+                            cwd=self.dump_dir)
+
+                except subprocess.CalledProcessError:
+                    raise RuntimeError(
+                        "Failed to decompress output file %s. "
+                        "Ensure cabextract is installed.\n" % output_file)
+
+                # We read the entire file into memory here - it should not be
+                # larger than approximately 10mb.
+                with open(output_file, "rb") as fd:
+                    return fd.read(50 * 1024 * 1024)
 
 
 class TestFetchPDB(testlib.DisabledTest):
@@ -1044,6 +1081,13 @@ class PDBParser(object):
         except KeyError:
             return obj.NoneObject("Index not known")
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.address_space.close()
+
+
 
 class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
     """Parse the PDB streams."""
@@ -1161,49 +1205,57 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
 
         return vtypes
 
+    def parse_pdb(self):
+        with self.tpi:
+            vtypes = {}
+
+            for i, (struct_name, definition) in enumerate(self.tpi.Structs()):
+                self.session.report_progress(
+                    " Exporting %s: %s", i, struct_name)
+
+                struct_name = str(struct_name)
+                existing_definition = vtypes.get(struct_name)
+                if existing_definition:
+                    # Merge the old definition into the new definition.
+                    definition[1].update(existing_definition[1])
+
+                vtypes[struct_name] = definition
+
+            self.metadata.update(dict(
+                ProfileClass=self.profile_class,
+                Type="Profile",
+                PDBFile=os.path.basename(self.filename),
+                ))
+
+            self.metadata.update(self.tpi.metadata)
+
+            # Demangle all constants.
+            demangler = pe_vtypes.Demangler(self.metadata)
+            constants = {}
+            for name, value in self.tpi.constants.iteritems():
+                constants[demangler.DemangleName(name)] = value
+
+            functions = {}
+            for name, value in self.tpi.functions.iteritems():
+                functions[demangler.DemangleName(name)] = value
+
+            vtypes = self.PostProcessVTypes(vtypes)
+
+            result = {
+                "$METADATA": self.metadata,
+                "$STRUCTS": vtypes,
+                "$ENUMS": self.tpi.enums,
+                }
+
+            if not self.concise:
+                result["$REVENUMS"] = self.tpi.rev_enums
+                result["$CONSTANTS"] = constants
+                result["$FUNCTIONS"] = functions
+
+            return result
+
     def render(self, renderer):
-        vtypes = {}
-
-        for i, (struct_name, definition) in enumerate(self.tpi.Structs()):
-            self.session.report_progress(" Exporting %s: %s", i, struct_name)
-            struct_name = str(struct_name)
-            existing_definition = vtypes.get(struct_name)
-            if existing_definition:
-                # Merge the old definition into the new definition.
-                definition[1].update(existing_definition[1])
-
-            vtypes[struct_name] = definition
-
-        self.metadata.update(dict(
-            ProfileClass=self.profile_class,
-            Type="Profile",
-            PDBFile=os.path.basename(self.filename),
-            ))
-
-        self.metadata.update(self.tpi.metadata)
-
-        # Demangle all constants.
-        demangler = pe_vtypes.Demangler(self.metadata)
-        constants = {}
-        for name, value in self.tpi.constants.iteritems():
-            constants[demangler.DemangleName(name)] = value
-
-        functions = {}
-        for name, value in self.tpi.functions.iteritems():
-            functions[demangler.DemangleName(name)] = value
-
-        vtypes = self.PostProcessVTypes(vtypes)
-
-        result = {
-            "$METADATA": self.metadata,
-            "$STRUCTS": vtypes,
-            "$ENUMS": self.tpi.enums,
-            }
-
-        if not self.concise:
-            result["$REVENUMS"] = self.tpi.rev_enums
-            result["$CONSTANTS"] = constants
-            result["$FUNCTIONS"] = functions
+        result = self.parse_pdb()
 
         if self.output_filename:
             with renderer.open(filename=self.output_filename,

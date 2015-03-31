@@ -41,10 +41,14 @@ config.DeclareOption(
     help="Location of the profile cache directory.")
 
 
-class CachingURLManager(io_manager.IOManager):
+class CachingManager(io_manager.IOManager):
+
+    # We wrap this io manager class
+    DELEGATE = io_manager.URLManager
+
     # If the cache is available we should be selected before the regular
-    # URLManager.
-    order = io_manager.URLManager.order - 10
+    # manager.
+    order = DELEGATE.order - 10
 
     def __init__(self, session=None, **kwargs):
         cache_dir = session.GetParameter("cache_dir")
@@ -67,11 +71,11 @@ class CachingURLManager(io_manager.IOManager):
 
         # We use an IO manager to manage the cache directory directly.
         self.cache_io_manager = io_manager.DirectoryIOManager(urn=cache_dir)
-        self.url_manager = io_manager.URLManager(session=session, **kwargs)
+        self.url_manager = self.DELEGATE(session=session, **kwargs)
 
         self.CheckUpstreamRepository()
 
-        super(CachingURLManager, self).__init__(session=session, **kwargs)
+        super(CachingManager, self).__init__(session=session, **kwargs)
 
     def __str__(self):
         return "Local Cache %s" % self.cache_io_manager
@@ -118,3 +122,7 @@ class CachingURLManager(io_manager.IOManager):
 
         if modified:
             self.cache_io_manager.FlushInventory()
+
+
+class CacheDirectoryManager(CachingManager):
+    DELEGATE = io_manager.DirectoryIOManager
