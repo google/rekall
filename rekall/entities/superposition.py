@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+# pylint: disable=protected-access
+
 """
 The Rekall Entity Layer.
 """
@@ -96,7 +98,12 @@ class BaseSuperposition(object):
         results = [unicode(variant) for variant in self]
         return "%s (%d values)" % (", ".join(results), len(results))
 
-    # pylint: disable=protected-access
+    def __repr__(self):
+        return "%s(typedesc=%s, variants=%s)" % (
+            type(self).__name__,
+            repr(self.typedesc),
+            repr(list(iter(self))))
+
     def issuperset(self, other):
         other, isscalar = self.coerce(other)
         if isscalar:
@@ -104,7 +111,6 @@ class BaseSuperposition(object):
 
         return self._backing_container.issuperset(other._backing_container)
 
-    # pylint: disable=protected-access
     def issubset(self, other):
         other, isscalar = self.coerce(other)
         if isscalar:
@@ -121,11 +127,11 @@ class BaseSuperposition(object):
     def __eq__(self, other):
         other, isscalar = self.coerce(other)
         if isscalar:
-            if len(self) != 1:
-                return False
-
             for variant in self:
-                return variant == other
+                if variant == other:
+                    return True
+
+            return False
 
         return (sorted(self._backing_container) ==
                 sorted(other._backing_container))

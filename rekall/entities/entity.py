@@ -83,7 +83,7 @@ class Entity(object):
     Resource/handle can have multiple values, because a single file/socket can
     be opened by multiple handles owned by multiple processes.
 
-    MemoryObject/type can be a superposition in case of unions, or things that
+    Struct/type can be a superposition in case of unions, or things that
     are stored as a void pointer and cast depending on contextual state.
 
     User/real_name can often be a superposition because of variable formatting
@@ -478,19 +478,30 @@ class Entity(object):
         y = other.components
 
         # Skipping component idx 0 (Entity)
-        for idx in xrange(1, len(x)):
-            cx = x[idx]
-            cy = y[idx]
-            if not cx:
-                if cy:
-                    new_components.append(cy)
+        try:
+            for idx in xrange(1, len(x)):
+                cx = x[idx]
+                cy = y[idx]
+                if not cx:
+                    if cy:
+                        new_components.append(cy)
+                    else:
+                        new_components.append(None)
                 else:
-                    new_components.append(None)
-            else:
-                if cy:
-                    new_components.append(cx.union(cy))
-                else:
-                    new_components.append(cx)
+                    if cy:
+                        new_components.append(cx.union(cy))
+                    else:
+                        new_components.append(cx)
+        except TypeError as e:
+            # Merging may encounter type enforcement errors. Such errors mean
+            # either that a collector is using faulty assumptions (canonical
+            # example is assuming handles on Windows are unique to a process,
+            # and using the process identity in the Handle component) or that
+            # the image is inconsistent.
+            # The best we can do is reject the faulty data and hope for the
+            # best.
+            logging.error("Entity rejected because of a type error %s", e)
+            return self.components
 
         # Entity component is merged using slightly simpler rules.
         component_cls = entity_component.Component.classes["Entity"]
@@ -558,6 +569,12 @@ class IdentityDescriptor(types.TypeDescriptor):
             raise TypeError(
                 ("Object passed to coerce is not an identity. Additionally, "
                  "calling repr(object) raised %s.") % e)
+
+        if isinstance(value, superposition.BaseSuperposition):
+            raise TypeError(
+                ("Object being coerced as identity is a superposition: %s. "
+                 "Identity superpositions in attributes are not allowed.") %
+                value_repr)
 
         raise TypeError("%s is not an identity." % value_repr)
 

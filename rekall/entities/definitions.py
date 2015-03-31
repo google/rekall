@@ -51,9 +51,9 @@ Named = component.DeclareComponent(
     component.Field("kind", unicode, "Human-readable type", width=16))
 
 
-MemoryObject = component.DeclareComponent(
-    "MemoryObject", "Stores base objects, mostly structs.",
-    component.Field("base_object", types.BaseObjectDescriptor(),
+Struct = component.DeclareComponent(
+    "Struct", "Stores base objects, mostly structs.",
+    component.Field("base", types.BaseObjectDescriptor(),
                     "An instance of BaseObject."),
     component.Field("type", unicode, "Class name of the base object."),
     component.Field("state", {"freed", "allocated"},
@@ -171,7 +171,9 @@ Endpoint = component.DeclareComponent(
     component.Alias("outbound", alias="&Connection/source",
                     docstring="Connection from this endpoint to others."),
     component.Field("interface", entity.IdentityDescriptor(),
-                    "Associated network interface, if known."))
+                    "Associated network interface, if known."),
+    component.Field("addressing_family", {"INET", "INET6", "UNIX"},
+                    "Addressing family determines L3 protocol."))
 
 
 Connection = component.DeclareComponent(
@@ -198,8 +200,21 @@ Connection = component.DeclareComponent(
         "datagram or packet as captured."))
 
 
+ExperimentalSocket = component.DeclareComponent(
+    "ExperimentalSocket", "A socket",
+    component.Field("endpoint", entity.IdentityDescriptor(),
+                    "The endpoint this socket is attached to."),
+    component.Field("state", {"listening", "closed", "established",
+                              "closing", "establishing"},
+                    "State the socket is in."),
+    component.Field("bytes_received", int, "Bytes in."),
+    component.Field("bytes_sent", int, "Bytes out."),
+    component.Field("packets_received", int, "Packets in."),
+    component.Field("packets_sent", int, "Packets out."))
+
+
 Socket = component.DeclareComponent(
-    "Socket", "A UNIX domain socket",
+    "Socket", "A socket",
     component.Field("address", unicode, "Memory address of the socket."),
     component.Field("connected", unicode,
                     "Memory address of other socket in pair."),

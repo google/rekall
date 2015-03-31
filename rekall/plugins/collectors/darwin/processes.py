@@ -56,7 +56,7 @@ class DarwinProcParentInferor(common.DarwinEntityCollector):
             to_decorate.append(process)
 
         for process in to_decorate:
-            ppid = process["MemoryObject/base_object"].p_ppid
+            ppid = process["Struct/base"].p_ppid
             parent = by_pid.get(ppid, None)
             if parent is None:
                 continue
@@ -79,14 +79,14 @@ class DarwinProcParser(common.DarwinEntityCollector):
                "User",
                "Timestamps",
                "Named/kind=process",
-               "MemoryObject/type=session"]
+               "Struct/type=session"]
 
-    collect_args = dict(procs="MemoryObject/type is 'proc'")
+    collect_args = dict(procs="Struct/type is 'proc'")
 
     def collect(self, hint, procs):
         manager = self.manager
         for entity in procs:
-            proc = entity["MemoryObject/base_object"]
+            proc = entity["Struct/base"]
             user_identity = manager.identify({
                 "User/uid": proc.p_uid})
             process_identity = manager.identify({
@@ -98,10 +98,10 @@ class DarwinProcParser(common.DarwinEntityCollector):
             session = proc.p_pgrp.pg_session
             if session:
                 session_identity = manager.identify({
-                    "MemoryObject/base_object": session})
+                    "Struct/base": session})
 
-                yield definitions.MemoryObject(base_object=session,
-                                               type="session")
+                yield definitions.Struct(base=session,
+                                         type="session")
             else:
                 session_identity = None
 
@@ -147,7 +147,7 @@ class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
     """
 
     _name = "pgrphash"
-    outputs = ["MemoryObject/type=proc"]
+    outputs = ["Struct/type=proc"]
 
     def collect(self, hint):
         # Note that _pgrphash is initialized through:
@@ -176,8 +176,8 @@ class DarwinPgrpHashProcessCollector(common.DarwinEntityCollector):
             for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
                 for proc in pgrp.pg_members.lh_first.walk_list(
                         "p_pglist.le_next"):
-                    yield definitions.MemoryObject(
-                        base_object=proc,
+                    yield definitions.Struct(
+                        base=proc,
                         type="proc")
 
 
@@ -191,7 +191,7 @@ class DarwinTaskProcessCollector(common.DarwinEntityCollector):
     """
 
     _name = "tasks"
-    outputs = ["MemoryObject/type=proc"]
+    outputs = ["Struct/type=proc"]
 
     def collect(self, hint):
         tasks = self.profile.get_constant_object(
@@ -204,8 +204,8 @@ class DarwinTaskProcessCollector(common.DarwinEntityCollector):
             if not proc:
                 continue
 
-            yield definitions.MemoryObject(
-                base_object=proc,
+            yield definitions.Struct(
+                base=proc,
                 type="proc")
 
 
@@ -218,14 +218,14 @@ class DarwinAllprocProcessCollector(common.DarwinEntityCollector):
     """
 
     _name = "allproc"
-    outputs = ["MemoryObject/type=proc"]
+    outputs = ["Struct/type=proc"]
 
     def collect(self, hint):
         allproc = self.profile.get_constant_object(
             "_allproc", target="proclist")
         for proc in allproc.lh_first.p_list:
-            yield definitions.MemoryObject(
-                base_object=proc,
+            yield definitions.Struct(
+                base=proc,
                 type="proc")
 
 
@@ -251,7 +251,7 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
     # table.
 
     _name = "pidhash"
-    outputs = ["MemoryObject/type=proc"]
+    outputs = ["Struct/type=proc"]
 
     def collect(self, hint):
         pid_hash_table = self.profile.get_constant_object(
@@ -269,15 +269,15 @@ class DarwinPidHashProcessCollector(common.DarwinEntityCollector):
                 if not proc:
                     continue
 
-                yield definitions.MemoryObject(
-                    base_object=proc,
+                yield definitions.Struct(
+                    base=proc,
                     type="proc")
 
 
 class DarwinDeadProcessCollector(zones.DarwinZoneElementCollector):
     """Lists dead processes using the proc allocation zone."""
 
-    outputs = ["MemoryObject/type=proc"]
+    outputs = ["Struct/type=proc"]
     zone_name = "proc"
     type_name = "proc"
 

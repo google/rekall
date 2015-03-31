@@ -33,9 +33,9 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
 
     _name = "handles"
     outputs = ["Handle",
-               "MemoryObject/type=fileproc",
-               "MemoryObject/type=vnode",
-               "MemoryObject/type=socket"]
+               "Struct/type=fileproc",
+               "Struct/type=vnode",
+               "Struct/type=socket"]
     collect_args = dict(processes="has component Process")
     filter_input = True
 
@@ -44,7 +44,7 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
     def collect(self, hint, processes):
         manager = self.manager
         for process in processes:
-            proc = process["MemoryObject/base_object"]
+            proc = process["Struct/base"]
 
             for fd, fileproc, flags in proc.get_open_files():
                 fg_data = fileproc.autocast_fg_data()
@@ -60,14 +60,14 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                 # memory objects already being out there when they parse them
                 # for resource (File/Socket/etc.) specific information.
                 resource_identity = manager.identify({
-                    "MemoryObject/base_object": fg_data})
+                    "Struct/base": fg_data})
                 handle_identity = manager.identify({
-                    "MemoryObject/base_object": fileproc})
+                    "Struct/base": fileproc})
 
                 yield [
                     resource_identity,
-                    definitions.MemoryObject(
-                        base_object=fg_data,
+                    definitions.Struct(
+                        base=fg_data,
                         type=fg_data.obj_type)]
 
                 yield [
@@ -77,8 +77,8 @@ class DarwinHandleCollector(common.DarwinEntityCollector):
                         fd=fd,
                         flags=flags,
                         resource=resource_identity),
-                    definitions.MemoryObject(
-                        base_object=fileproc,
+                    definitions.Struct(
+                        base=fileproc,
                         type="fileproc")]
 
 
@@ -87,13 +87,13 @@ class DarwinFileCollector(common.DarwinEntityCollector):
 
     outputs = ["File", "Permissions", "Timestamps", "Named"]
     _name = "files"
-    collect_args = dict(vnodes="MemoryObject/type is 'vnode'")
+    collect_args = dict(vnodes="Struct/type is 'vnode'")
     filter_input = True
 
     def collect(self, hint, vnodes):
         manager = self.manager
         for entity in vnodes:
-            vnode = entity["MemoryObject/base_object"]
+            vnode = entity["Struct/base"]
             path = vnode.full_path
 
             components = [entity.identity,

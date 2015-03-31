@@ -58,9 +58,7 @@ class ListZones(entities.EntityFind):
 
 
 class TestListZones(testlib.SortedComparison):
-    PARAMETERS = dict(
-        commandline="zones"
-    )
+    PARAMETERS = dict(commandline="zones")
 
 
 class ListEvents(entities.EntityFind):
@@ -68,13 +66,12 @@ class ListEvents(entities.EntityFind):
     search = "has component Event"
     columns = ["Event/timestamp", "Event/category", "Event/actor",
                "Event/action", "Event/target"]
-    sort = ["Event/timestamp", "Event/category", "Event/action"]
+    sort = ["Event/timestamp", "Event/category", "Event/action",
+            "Event/actor", "Event/target"]
 
 
 class TestListEvents(testlib.SortedComparison):
-    PARAMETERS = dict(
-        commandline="events"
-    )
+    PARAMETERS = dict(commandline="events")
 
 
 class Processes(DarwinOnlyMixin, entities.EntityFind):
@@ -92,7 +89,7 @@ class LSOF(DarwinOnlyMixin, entities.EntityFind):
     width = 150
     search = ("Handle/resource matches "
               "(has component File or has component Connection or "
-              "has component MemoryObject) "
+              "has component Struct) "
               "and Handle/process->Process/user matches "
               "(has component User)")
     columns = ["Handle/process", "Handle/process->Process/user", "Handle/fd",
@@ -118,9 +115,7 @@ class DarwinListFiles(DarwinOnlyMixin, entities.EntityFind):
 
 
 class TestDarwinListFiles(testlib.SortedComparison):
-    PARAMETERS = dict(
-        commandline="list_files"
-    )
+    PARAMETERS = dict(commandline="list_files")
 
 
 class IPNetstat(entities.EntityFind):
@@ -144,7 +139,10 @@ class IPNetstat(entities.EntityFind):
                "Connection/handles->Handle/process"]
     sort = ["Connection/source->OSILayer3/protocol",
             "Connection/source->OSILayer4/protocol",
-            "Connection/source->OSILayer3/address"]
+            "Connection/destination->OSILayer3/address",
+            "Connection/destination->OSILayer4/port",
+            "Connection/source->OSILayer3/address",
+            "Connection/source->OSILayer4/port"]
 
 
 class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):

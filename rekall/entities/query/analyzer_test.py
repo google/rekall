@@ -33,12 +33,12 @@ class AnalyzerTest(testlib.RekallBaseUnitTestCase):
         self.assertDepends(query, ["Process/command=foobar"], [], ["Process"])
 
     def testExclusions(self):
-        query = "MemoryObject/type is not 'socket'"
-        self.assertDepends(query, ["MemoryObject"],
-                           ["MemoryObject/type=socket"])
+        query = "Struct/type is not 'socket'"
+        self.assertDepends(query, ["Struct"],
+                           ["Struct/type=socket"])
 
     def testMutuallyExclusive(self):
-        query = ("MemoryObject/type is 'socket' and "
-                 "MemoryObject/type is not 'socket'")
-        self.assertDepends(query, ["MemoryObject"], [],
-                           ["MemoryObject/type=socket"])
+        query = ("Struct/type is 'socket' and "
+                 "Struct/type is not 'socket'")
+        self.assertDepends(query, ["Struct"], [],
+                           ["Struct/type=socket"])

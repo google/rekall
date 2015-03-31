@@ -36,12 +36,12 @@ class Dependency(object):
     certain component (e.g. to run 'Process/pid is 5') the Process component
     definitely needs to be collected, or on collectors that also happen to
     always set a certain attribute to a specific value (e.g.
-    'MemoryObject/type is 'vnode'' will depend on collectors that declare they
-    produce MemoryObject and set the type to 'vnode').
+    'Struct/type is 'vnode'' will depend on collectors that declare they
+    produce Struct and set the type to 'vnode').
 
     The latter can also be used to exclude collectors from running - for
-    example, if the query is for 'MemoryObject/type is 'vnode'' then there is no
-    point running a collector that declares it will produce MemoryObject but
+    example, if the query is for 'Struct/type is 'vnode'' then there is no
+    point running a collector that declares it will produce Struct but
     always set type to 'socket'.
 
     There are two subclasses: DependencySet is an implementation detail; see
@@ -217,9 +217,9 @@ class QueryAnalyzer(visitor.QueryVisitor):
     do better and return more granular dependencies.
 
     2) A query may depend on a specific attribute being set to a constant value
-    (a Literal). For example, 'MemoryObject/type is 'socket'' will depend on
-    collectors that either just declare that they collect MemoryObject, but
-    collectors that explicitly declare they set MemoryObject/type to values
+    (a Literal). For example, 'Struct/type is 'socket'' will depend on
+    collectors that either just declare that they collect Struct, but
+    collectors that explicitly declare they set Struct/type to values
     other than 'socket' will be excluded.
     """
 
@@ -295,7 +295,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
 
     def visit_Complement(self, expr):
         # If we're dealing with simple dependencies, we can just flip the
-        # flag from inclusion to exclusion (e.g. MemoryObject/type !=
+        # flag from inclusion to exclusion (e.g. Struct/type !=
         # 'socket').
         value = self.visit(expr.value)
         if isinstance(value, SimpleDependency):
@@ -314,7 +314,7 @@ class QueryAnalyzer(visitor.QueryVisitor):
         # This is a hacky special case - in case the query we're analyzing is
         # looking for a specific base object, our dependency should actually be
         # on the type of the object instead of the memory offset.
-        if attribute_path == "MemoryObject/base_object":
+        if attribute_path == "Struct/base":
             dependency.attribute = "type"
             dependency.value = value.obj_type
         else:

@@ -249,10 +249,6 @@ class EntityManager(object):
                     entities was updated and entities may have merged.
                 EffectEnum.Added: A new entity was added.
         """
-        if self.session:
-            self.session.report_progress(
-                "Collecting %(collector)s %(spinner)s",
-                collector=source_collector)
 
         kwargs = {}
         for component in components:
@@ -739,6 +735,13 @@ class EntityManager(object):
         if collector_input is None:
             collector_input = {}
 
+        result_counter = 0
+
+        if self.session:
+            self.session.report_progress(
+                "Collecting %(collector)s %(spinner)s",
+                collector=collector.name)
+
         for results in collector.collect(hint=hint, **collector_input):
             if not isinstance(results, list):
                 # Just one component yielded.
@@ -762,7 +765,7 @@ class EntityManager(object):
                 except entity_id.IdentityError:
                     logging.error(
                         ("Invalid identity %s inferred from output of %s. "
-                        "Entity skipped. Full results: %s"),
+                         "Entity skipped. Full results: %s"),
                         {attribute: first_result[0]},
                         collector,
                         results)
@@ -772,5 +775,12 @@ class EntityManager(object):
                 identity=identity,
                 components=results,
                 source_collector=collector.name)
+
+            result_counter += 1
+            if result_counter % 100 == 0 and self.session:
+                self.session.report_progress(
+                    "Collecting %(collector)s %(spinner)s (%(count)d results)",
+                    collector=collector.name,
+                    count=result_counter)
 
             yield entity, effect

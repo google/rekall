@@ -23,7 +23,6 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import logging
 import re
 
-from rekall import config
 from rekall import kb
 from rekall import obj
 from rekall import plugin
@@ -31,8 +30,6 @@ from rekall import scan
 from rekall import utils
 
 from rekall.plugins import core
-
-from rekall.entities.query import expression
 
 # A few notes on XNU's (64bit) memory layout:
 #
@@ -80,11 +77,13 @@ from rekall.entities.query import expression
 LOW_4GB_MASK = 0x00000000ffffffff
 KERNEL_MIN_ADDRESS = 0xffffff8000000000
 
+
 def ID_MAP_VTOP(x):
     return x & LOW_4GB_MASK
 
 # On x64, only 48 bits of the pointer are addressable.
 X64_POINTER_MASK = 0x0000ffffffffffff
+
 
 def MOUNTAIN_LION_OR_LATER(profile):
     return bool(profile.get_constant("_BootPML4", False))
@@ -116,8 +115,8 @@ class CatfishOffsetHook(kb.ParameterHook):
 
     def calculate(self):
         for hit in CatfishScanner(
-            address_space=self.session.physical_address_space,
-            session=self.session).scan():
+                address_space=self.session.physical_address_space,
+                session=self.session).scan():
             return hit
 
 
@@ -186,15 +185,15 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
         one, this function will yield subsequent ones by scanning the physical
         address space, starting with the offset of the cached first hit.
 
-        The caller is responsible for updating the session cache with the correct
-        offset.
+        The caller is responsible for updating the session cache with the
+        correct offset.
         """
         first_hit = self.session.GetParameter("catfish_offset")
         yield first_hit
 
         for hit in CatfishScanner(
-            address_space=self.session.physical_address_space,
-            session=self.session).scan(offset=first_hit+1):
+                address_space=self.session.physical_address_space,
+                session=self.session).scan(offset=first_hit + 1):
             yield hit
 
     def vm_kernel_slide_hits(self):
@@ -455,7 +454,6 @@ class DarwinProcessFilter(DarwinPlugin):
             "--method", choices=list(cls.METHODS), nargs="+",
             help="Method to list processes (Default uses all methods).")
 
-
     def __init__(self, pid=None, proc_regex=None, phys_proc=None, proc=None,
                  first=None, method=None, **kwargs):
         """Filters processes by parameters.
@@ -522,7 +520,7 @@ class DarwinProcessFilter(DarwinPlugin):
         """List deallocated proc structs using the zone allocator."""
         # Find the proc zone from the allocator.
         proc_zone = self.session.manager.find_first(
-            "AllocationZone/name is 'proc'")["MemoryObject/base_object"]
+            "AllocationZone/name is 'proc'")["Struct/base"]
 
         # Walk over the free list and get all the proc objects.
         obj_list = proc_zone.free_elements.walk_list("next")
@@ -589,14 +587,14 @@ class DarwinProcessFilter(DarwinPlugin):
                     target="pgrphashhead",
                     count=self.profile.get_constant_object(
                         "_pgrphash", "unsigned long") + 1
-                    )
                 )
             )
+        )
 
         for slot in pgr_hash_table.deref():
             for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
                 for proc in pgrp.pg_members.lh_first.walk_list(
-                    "p_pglist.le_next"):
+                        "p_pglist.le_next"):
                     seen.add(proc)
 
         return seen
@@ -630,9 +628,9 @@ class DarwinProcessFilter(DarwinPlugin):
                     target="pidhashhead",
                     count=self.profile.get_constant_object(
                         "_pidhash", "unsigned long") + 1
-                    )
                 )
             )
+        )
 
         for plist in pid_hash_table.deref():
             for proc in plist.lh_first.walk_list("p_hash.le_next"):
@@ -650,9 +648,7 @@ class DarwinProcessFilter(DarwinPlugin):
                 continue
 
             procs = self.cache.setdefault(method, handler(self))
-            logging.debug(
-                "Listed {} processes using {}".format(len(procs), method)
-            )
+            logging.debug("Listed %d processes using %s", len(procs), method)
 
             seen.update(procs)
 
@@ -682,9 +678,8 @@ class DarwinProcessFilter(DarwinPlugin):
                     yield proc
 
                 elif self.proc_regex and self.proc_regex.match(
-                    utils.SmartUnicode(proc.p_comm)):
+                        utils.SmartUnicode(proc.p_comm)):
                     yield proc
-
 
     def virtual_process_from_physical_offset(self, physical_offset):
         """Tries to return an proc in virtual space from a physical offset.
@@ -708,7 +703,6 @@ class DarwinProcessFilter(DarwinPlugin):
 
         # Now we get the proc_struct object from the list entry.
         return our_list_entry.dereference_as("proc_struct", "procs")
-
 
     METHODS = {
         "allproc": list_using_allproc,

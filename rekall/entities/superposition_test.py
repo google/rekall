@@ -16,6 +16,21 @@ class SuperpositionTest(testlib.RekallBaseUnitTestCase):
             impl.merge_values(("foo", "bar"), types.TypeFactory(str)),
             superposition.HashableSuperposition)
 
+    def testContains(self):
+        """Superpositions should compare with scalars."""
+        s = superposition.HashableSuperposition(
+            variants={"foo", "bar"},
+            typedesc=str)
+
+        self.assertTrue(s in ["foo", "bar", "fuzz"])
+        self.assertTrue(s not in ["fuzz"])
+
+        # TODO: This will fail right now! Turns out, achieving this sort of
+        # behavior is kind of difficult. Maybe the magic behavior of
+        # superpositions should be revisited - it's causing lots of unexpected
+        # issues.
+        # self.assertFalse(s in ["bar"])
+
     def testHashable(self):
         impl = superposition.HashableSuperposition
         s1 = impl.merge_values(variants=("foo", "bar", "foo"),

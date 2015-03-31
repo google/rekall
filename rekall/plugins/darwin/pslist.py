@@ -18,19 +18,17 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import os
 
 from rekall.plugins import core
 from rekall.plugins.darwin import common
 
-from rekall.entities.query import expression
 
 class DarwinPsxView(common.DarwinPlugin):
     __name = "psxview"
 
     def render(self, renderer):
         collectors = self.session.entities.analyze(
-            "MemoryObject/type == 'proc'")["collectors"]
+            "Struct/type == 'proc'")["collectors"]
         collector_names = sorted([collector.name for collector in collectors])
 
         headers = [
@@ -50,7 +48,7 @@ class DarwinPsxView(common.DarwinPlugin):
                 self.session.entities.find("has component Process"),
                 key=lambda e: e["Process/pid"]):
             row = [
-                entity["MemoryObject/base_object"],
+                entity["Struct/base"],
                 entity["Process/command"],
                 entity["Process/pid"]]
 
@@ -79,7 +77,7 @@ class DawrinPSTree(common.DarwinPlugin):
 
         # Find the kernel process.
         root_proc = self.session.entities.find_first(
-            "Process/pid is 0")["MemoryObject/base_object"]
+            "Process/pid is 0")["Struct/base"]
 
         for proc, level in self.recurse_proc(root_proc, 0):
             renderer.table_row(
@@ -113,7 +111,7 @@ class DarwinMaps(common.DarwinProcessFilter):
 
         for proc in self.filter_processes():
             for map in proc.task.map.hdr.walk_list(
-                "links.next", include_current=False):
+                    "links.next", include_current=False):
 
                 # Format the map permissions nicesly.
                 protection = (
@@ -133,6 +131,7 @@ class DarwinMaps(common.DarwinProcessFilter):
                     "sub_map" if map.is_sub_map else vnode.path,
                 )
 
+
 class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
     """Dump the VMA memory for a process."""
 
@@ -150,7 +149,7 @@ class DarwinVadDump(core.DirectoryDumperMixin, common.DarwinProcessFilter):
             name = proc.p_comm
 
             for vma in proc.task.map.hdr.walk_list(
-                "links.next", include_current=False):
+                    "links.next", include_current=False):
                 filename = "{0}.{1}.{2:08x}-{3:08x}.dmp".format(
                     name, proc.p_pid, vma.links.start, vma.links.end)
 
@@ -186,9 +185,9 @@ class DarwinListSessions(common.DarwinPlugin):
                 target_args=dict(
                     target="sesshashhead",
                     count=session_hash_table_size.v()
-                    )
                 )
             )
+        )
 
         # We iterate over the table and then over each list.
         for sesshashhead in session_hash_table:
@@ -206,12 +205,12 @@ class DarwinPSAUX(common.DarwinProcessFilter):
 
     def render(self, renderer):
         renderer.table_header([
-                ("Pid", "pid", "8"),
-                ("Name", "name", "20"),
-                ("Stack", "stack", "[addrpad]"),
-                ("Length", "length", "8"),
-                ("Argc", "argc", "8"),
-                ("Arguments", "argv", "[wrap:80]")])
+            ("Pid", "pid", "8"),
+            ("Name", "name", "20"),
+            ("Stack", "stack", "[addrpad]"),
+            ("Length", "length", "8"),
+            ("Argc", "argc", "8"),
+            ("Arguments", "argv", "[wrap:80]")])
 
         for proc in self.filter_processes():
             renderer.table_row(

@@ -57,7 +57,7 @@ class DarwinDeadProcesses(common.DarwinPlugin):
     def render(self, renderer):
         # Find the proc zone from the allocator.
         proc_zone = self.session.entities.find_first(
-            "AllocationZone/name is 'proc'")["MemoryObject/base_object"]
+            "AllocationZone/name is 'proc'")["Struct/base"]
 
         # Walk over the free list and get all proc objects.
         procs = []

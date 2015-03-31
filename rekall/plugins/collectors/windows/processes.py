@@ -1,6 +1,6 @@
 # Rekall Memory Forensics
 #
-# Copyright 2014 Google Inc. All Rights Reserved.
+# Copyright 2015 Google Inc. All Rights Reserved.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,39 +22,19 @@ Windows process collectors.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from rekall.entities import collector
 from rekall.entities import definitions
 
 from rekall.plugins.collectors.windows import common
 
 
-class WindowsHandleCollector(common.WindowsEntityCollector):
-    _name = "handles"
-    outputs = ["MemoryObject/type=_EPROCESS"]
-
-    collect_args = dict(eprocesses="MemoryObject/type is '_EPROCESS'")
-
-    run_cost = collector.CostEnum.VeryHighCost
-
-    def collect(self, hint, eprocesses):
-        for entity in eprocesses:
-            eproc = entity["MemoryObject/base_object"]
-            for handle in eproc.ObjectTable.handles():
-                resource_type = handle.get_object_type(eproc.obj_vm)
-
-                if resource_type == "Process":
-                    yield definitions.MemoryObject(base_object=eproc,
-                                                   type="_EPROCESS")
-
-
 class WindowsProcessParser(common.WindowsEntityCollector):
     _name = "proc"
     outputs = ["Process", "Named/kind=Process", "Timestamps"]
-    collect_args = dict(procs="MemoryObject/type is '_EPROCESS'")
+    collect_args = dict(procs="Struct/type is '_EPROCESS'")
 
     def collect(self, hint, procs):
         for entity in procs:
-            eproc = entity["MemoryObject/base_object"]
+            eproc = entity["Struct/base"]
             yield [
                 entity.identity | self.manager.identify({"Process/pid":
                                                          eproc.pid}),
@@ -66,8 +46,9 @@ class WindowsProcessParser(common.WindowsEntityCollector):
                                     command=eproc.name,
                                     is_64bit=eproc.IsWow64),
 
-                definitions.Timestamps(created_at=eproc.CreateTime,
-                                       destroyed_at=eproc.ExitTime),
+                definitions.Timestamps(
+                    created_at=eproc.CreateTime.as_datetime(),
+                    destroyed_at=eproc.ExitTime.as_datetime()),
 
                 definitions.Named(name=eproc.name,
                                   kind="Process")]
@@ -75,18 +56,18 @@ class WindowsProcessParser(common.WindowsEntityCollector):
 
 class WindowsPsActiveProcessHeadCollector(common.WindowsEntityCollector):
     _name = "PsActiveProcessHead"
-    outputs = ["MemoryObject/type=_EPROCESS"]
+    outputs = ["Struct/type=_EPROCESS"]
 
     def collect(self, hint):
         phead = self.session.GetParameter("PsActiveProcessHead")
         for proc in phead.list_of_type("_EPROCESS", "ActiveProcessLinks"):
-            yield definitions.MemoryObject(type="_EPROCESS",
-                                           base_object=proc)
+            yield definitions.Struct(type="_EPROCESS",
+                                     base=proc)
 
 
 class WindowsPspCidProcessCollector(common.WindowsEntityCollector):
     _name = "PspCidTable"
-    outputs = ["MemoryObject/type=_EPROCESS"]
+    outputs = ["Struct/type=_EPROCESS"]
 
     def collect(self, hint):
         PspCidTable = self.profile.get_constant_object(
@@ -98,6 +79,6 @@ class WindowsPspCidProcessCollector(common.WindowsEntityCollector):
         # Walk the handle table
         for handle in PspCidTable.handles():
             if handle.get_object_type() == "Process":
-                yield definitions.MemoryObject(
+                yield definitions.Struct(
                     type="_EPROCESS",
-                    base_object=handle.dereference_as("_EPROCESS"))
+                    base=handle.dereference_as("_EPROCESS"))

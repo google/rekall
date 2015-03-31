@@ -21,4 +21,7 @@ echo "Working directory is $(pwd)"
 
 git diff master --name-only | grep -F '.py' | xargs -I{} autopep8 --ignore E309,E711 -i -r {}
 
+# Run the unit test suite.
+./tools/testing/test_suite.py -c ../test/unit/tests.config
+
 git diff master --name-only | grep -F '.py' | xargs -I{} pylint --rcfile tools/devel/pylintrc {}

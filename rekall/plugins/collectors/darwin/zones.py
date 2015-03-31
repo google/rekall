@@ -30,7 +30,7 @@ from rekall.plugins.collectors.darwin import common
 
 class DarwinZoneCollector(common.DarwinEntityCollector):
     """Lists all allocation zones."""
-    outputs = ["AllocationZone", "MemoryObject/type=zone"]
+    outputs = ["AllocationZone", "Struct/type=zone"]
 
     def collect(self, hint):
         first_zone = self.profile.get_constant_object(
@@ -48,8 +48,8 @@ class DarwinZoneCollector(common.DarwinEntityCollector):
                     element_size=zone.elem_size,
                     tracks_pages=bool(zone.m("use_page_list")),
                     allows_foreign=bool(zone.allows_foreign)),
-                definitions.MemoryObject(
-                    base_object=zone,
+                definitions.Struct(
+                    base=zone,
                     type="zone")]
 
 
@@ -65,8 +65,8 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
     def collect(self, hint, zones):
         for element, state in self.collect_base_objects(
                 zone_name=self.zone_name, zones=zones):
-            yield definitions.MemoryObject(
-                base_object=element,
+            yield definitions.Struct(
+                base=element,
                 type=self.type_name,
                 state=state)
 
@@ -75,7 +75,7 @@ class DarwinZoneElementCollector(common.DarwinEntityCollector):
         for entity in zones:
             if entity["AllocationZone/name"] == zone_name:
                 zone_entity = entity
-                zone = entity["MemoryObject/base_object"]
+                zone = entity["Struct/base"]
                 break
 
         if zone is None:
@@ -209,7 +209,7 @@ class DarwinZoneBufferCollector(DarwinZoneElementCollector):
 
 
 class DarwinZoneVnodeCollector(DarwinZoneElementCollector):
-    outputs = ["MemoryObject/type=vnode"]
+    outputs = ["Struct/type=vnode"]
     zone_name = "vnodes"
     type_name = "vnode"
 

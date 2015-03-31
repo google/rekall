@@ -49,7 +49,7 @@ class DarwinIfnetCollector(common.DarwinEntityCollector):
       https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L816
     """
 
-    outputs = ["MemoryObject/type=ifnet"]
+    outputs = ["Struct/type=ifnet"]
 
     def collect(self, hint):
         ifnet_head = self.profile.get_constant_object(
@@ -60,20 +60,20 @@ class DarwinIfnetCollector(common.DarwinEntityCollector):
 
         for ifnet in ifnet_head.walk_list("if_link.tqe_next"):
             yield [
-                definitions.MemoryObject(
-                    base_object=ifnet,
+                definitions.Struct(
+                    base=ifnet,
                     type="ifnet")]
 
 
 class DarwinNetworkInterfaceParser(common.DarwinEntityCollector):
 
-    collect_args = dict(ifnets="MemoryObject/type is 'ifnet'")
+    collect_args = dict(ifnets="Struct/type is 'ifnet'")
     outputs = ["NetworkInterface", "Endpoint/local=True", "OSILayer2",
                "OSILayer3"]
 
     def collect(self, hint, ifnets):
         for entity in ifnets:
-            ifnet = entity["MemoryObject/base_object"]
+            ifnet = entity["Struct/base"]
 
             yield [
                 entity.identity,
@@ -120,7 +120,7 @@ class DarwinNetworkInterfaceParser(common.DarwinEntityCollector):
 
 
 class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
-    outputs = ["MemoryObject/type=socket"]
+    outputs = ["Struct/type=socket"]
     zone_name = "socket"
     type_name = "socket"
 
@@ -131,7 +131,7 @@ class DarwinSocketZoneCollector(zones.DarwinZoneElementCollector):
 class DarwinSocketLastAccess(common.DarwinEntityCollector):
     outputs = ["Event"]
     collect_args = dict(processes="has component Process",
-                        sockets="MemoryObject/type is 'socket'")
+                        sockets="Struct/type is 'socket'")
     complete_input = True
 
     def collect(self, hint, processes, sockets):
@@ -140,7 +140,7 @@ class DarwinSocketLastAccess(common.DarwinEntityCollector):
             by_pid[process["Process/pid"]] = process
 
         for socket in sockets:
-            base_socket = socket["MemoryObject/base_object"]
+            base_socket = socket["Struct/base"]
             process = by_pid.get(base_socket.last_pid)
 
             # There is no guarantee the process with last_pid is still alive.
@@ -174,15 +174,15 @@ class DarwinSocketParser(common.DarwinEntityCollector):
         "Timestamps",
         "File/type=socket",
         "Named",
-        "MemoryObject/type=vnode"]
+        "Struct/type=vnode"]
 
-    collect_args = dict(sockets="MemoryObject/type is 'socket'")
+    collect_args = dict(sockets="Struct/type is 'socket'")
 
     filter_input = True
 
     def collect(self, hint, sockets):
         for socket in sockets:
-            base_socket = socket["MemoryObject/base_object"]
+            base_socket = socket["Struct/base"]
             family = str(base_socket.addressing_family).replace("AF_", "")
 
             if family in ("INET", "INET6"):
@@ -253,8 +253,8 @@ class DarwinSocketParser(common.DarwinEntityCollector):
                         definitions.Named(
                             name=path,
                             kind="Socket"),
-                        definitions.MemoryObject(
-                            base_object=base_socket.vnode.deref(),
+                        definitions.Struct(
+                            base=base_socket.vnode.deref(),
                             type="vnode")]
             else:
                 yield [
@@ -272,7 +272,7 @@ class UnpListCollector(common.DarwinEntityCollector):
         github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
     """
 
-    outputs = ["MemoryObject/type=socket", "Named/kind=Unix Socket"]
+    outputs = ["Struct/type=socket", "Named/kind=Unix Socket"]
 
     def collect(self, hint):
         for head_const in ["_unp_dhead", "_unp_shead"]:
@@ -282,8 +282,8 @@ class UnpListCollector(common.DarwinEntityCollector):
 
             for unp in lhead.lh_first.walk_list("unp_link.le_next"):
                 yield [
-                    definitions.MemoryObject(
-                        base_object=unp.unp_socket,
+                    definitions.Struct(
+                        base=unp.unp_socket,
                         type="socket"),
                     definitions.Named(
                         kind="Unix Socket")]

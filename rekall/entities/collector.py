@@ -68,7 +68,7 @@ class EntityCollector(object):
     The collector may also specify a value it guarantees will be set on the
     entities it yields. The format for doing so is:
 
-    outputs = ["MemoryObject/type=proc"]
+    outputs = ["Struct/type=proc"]
 
     The collector is not required to actually deliver on all of its promises,
     but it is not allowed to yield something it didn't promise.
@@ -83,13 +83,13 @@ class EntityCollector(object):
 
     # ProcessParser wants proc structs. Its collect method will now receive
     # a keyword arg 'procs' populated with entities matching the query.
-    collect_args = {"procs": "MemoryObject/type is 'proc'"}
+    collect_args = {"procs": "Struct/type is 'proc'"}
 
     # Socket/process relationship inference wants sockets and processes.
     # Its collect method will now receive two keyword args - 'processes' with
     # process entities, and 'sockets' with base object entities.
     collect_args = {"processes": "has component Process",
-                    "sockets": "MemoryObject/type" is 'socket'}
+                    "sockets": "Struct/type" is 'socket'}
 
     ### self.filter_input (ivar, optional):
     Costly collectors can flip this variable to True, which will cause the
@@ -233,7 +233,7 @@ class EntityCollector(object):
 
         In the simplest case, yield one component at a time. To indicate two
         (or more) components are related, yield both in a list (for example,
-        Process and the MemoryObject wrapping the proc struct representing it
+        Process and the Struct wrapping the proc struct representing it
         in kernel).
 
         Unless an identity is specified explicitly, one will be created
@@ -254,7 +254,7 @@ class EntityCollector(object):
         # Yielding the process component and the BSD proc struct:
         yield [
             manager.Process(pid=proc.p_pid, ...),
-            manager.MemoryObject(base_object=proc, ...),
+            manager.Struct(base=proc, ...),
         ]
 
         # In both above examples, the identity will be "Process/pid=(PID here)."
@@ -262,7 +262,7 @@ class EntityCollector(object):
         yield [
             manager.Entity(identity=ProcessIdentity(...)),
             manager.Process(pid=proc.p_pid, ...),
-            manager.MemoryObject(base_object=proc, ...),
+            manager.Struct(base=proc, ...),
         ]
 
         Optimization hints:

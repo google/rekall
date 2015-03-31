@@ -220,7 +220,6 @@ class EnumDescriptor(TypeDescriptor):
         if value == None:
             return value
 
-        value = str(value)
         if value not in self.legal_values:
             raise TypeError(
                 "%s is not a valid value for enum %s" % (value,

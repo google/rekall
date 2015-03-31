@@ -49,7 +49,7 @@ class DarwinTerminalUserInferor3000(common.DarwinEntityCollector):
 
 
 class DarwinTTYZoneCollector(zones.DarwinZoneElementCollector):
-    outputs = ["MemoryObject/type=tty"]
+    outputs = ["Struct/type=tty"]
     zone_name = "ttys"
     type_name = "tty"
 
@@ -61,11 +61,11 @@ class DarwinClistParser(common.DarwinEntityCollector):
     outputs = ["Buffer/purpose=terminal_input",
                "Buffer/purpose=terminal_output"]
 
-    collect_args = dict(clists="MemoryObject/type is 'clist'")
+    collect_args = dict(clists="Struct/type is 'clist'")
 
     def collect(self, hint, clists):
         for entity in clists:
-            clist = entity["MemoryObject/base_object"]
+            clist = entity["Struct/base"]
             yield [entity.identity,
                    definitions.Buffer(kind="ring",
                                       state="freed",
@@ -76,39 +76,39 @@ class DarwinClistParser(common.DarwinEntityCollector):
 
 
 class DarwinTTYParser(common.DarwinEntityCollector):
-    outputs = ["Terminal", "MemoryObject/type=vnode", "MemoryObject/type=clist",
+    outputs = ["Terminal", "Struct/type=vnode", "Struct/type=clist",
                "Buffer/purpose=terminal_input",
                "Buffer/purpose=terminal_output"]
-    collect_args = dict(ttys="MemoryObject/type is 'tty'")
+    collect_args = dict(ttys="Struct/type is 'tty'")
 
     def collect(self, hint, ttys):
         for entity in ttys:
             file_identity = None
             session_identity = None
 
-            tty = entity["MemoryObject/base_object"]
+            tty = entity["Struct/base"]
             session = tty.t_session.deref()
             vnode = session.s_ttyvp
 
             if session:
                 session_identity = self.manager.identify({
-                    "MemoryObject/base_object": session})
+                    "Struct/base": session})
 
             if vnode:
                 # Look, it has a vnode!
-                yield definitions.MemoryObject(base_object=vnode,
-                                               type="vnode")
+                yield definitions.Struct(base=vnode,
+                                         type="vnode")
                 file_identity = self.manager.identify({
-                    "MemoryObject/base_object": vnode})
+                    "Struct/base": vnode})
 
             # Yield just the stubs of the input and output ring buffers.
             # DarwinClistParser will grab these if it cares.
-            yield [definitions.MemoryObject(base_object=tty.t_rawq,
-                                            type="clist"),
+            yield [definitions.Struct(base=tty.t_rawq,
+                                      type="clist"),
                    definitions.Buffer(purpose="terminal_input",
                                       context=entity.identity)]
-            yield [definitions.MemoryObject(base_object=tty.t_outq,
-                                            type="clist"),
+            yield [definitions.Struct(base=tty.t_outq,
+                                      type="clist"),
                    definitions.Buffer(purpose="terminal_output",
                                       context=entity.identity)]
 
@@ -126,14 +126,14 @@ class DarwinSessionParser(common.DarwinEntityCollector):
 
     outputs = ["Session",
                "User",
-               "MemoryObject/type=tty",
-               "MemoryObject/type=proc"]
+               "Struct/type=tty",
+               "Struct/type=proc"]
 
-    collect_args = dict(sessions="MemoryObject/type is 'session'")
+    collect_args = dict(sessions="Struct/type is 'session'")
 
     def collect(self, hint, sessions):
         for entity in sessions:
-            session = entity["MemoryObject/base_object"]
+            session = entity["Struct/base"]
 
             # Have to sanitize the usernames to prevent issues when comparing
             # them later.
@@ -152,12 +152,12 @@ class DarwinSessionParser(common.DarwinEntityCollector):
                 "Session/sid": sid}) | entity.identity
 
             if session.s_ttyp:
-                yield definitions.MemoryObject(
-                    base_object=session.s_ttyp,
+                yield definitions.Struct(
+                    base=session.s_ttyp,
                     type="tty")
 
-            yield definitions.MemoryObject(
-                base_object=session.s_leader.deref(),
+            yield definitions.Struct(
+                base=session.s_leader.deref(),
                 type="proc")
 
             yield [session_identity,
@@ -172,7 +172,7 @@ class DarwinSessionParser(common.DarwinEntityCollector):
 class DarwinSessionZoneCollector(zones.DarwinZoneElementCollector):
     """Collects sessions from the sessions allocation zone."""
 
-    outputs = ["MemoryObject/type=session"]
+    outputs = ["Struct/type=session"]
     zone_name = "session"
     type_name = "session"
 
@@ -183,7 +183,7 @@ class DarwinSessionZoneCollector(zones.DarwinZoneElementCollector):
 class DarwinSessionCollector(common.DarwinEntityCollector):
     """Collects sessions."""
 
-    outputs = ["MemoryObject/type=session"]
+    outputs = ["Struct/type=session"]
 
     def collect(self, hint):
         session_hash_table_size = self.profile.get_constant_object(
@@ -201,6 +201,6 @@ class DarwinSessionCollector(common.DarwinEntityCollector):
 
         for sesshashhead in session_hash_table:
             for session in sesshashhead.lh_first.walk_list("s_hash.le_next"):
-                yield definitions.MemoryObject(
-                    base_object=session,
+                yield definitions.Struct(
+                    base=session,
                     type="session")

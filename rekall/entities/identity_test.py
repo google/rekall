@@ -12,12 +12,12 @@ class IdentityTest(testlib.RekallBaseUnitTestCase):
         x = identity.Identity.from_dict(
             "LOCALHOST",
             {"Process/pid": 1,
-             "MemoryObject/base_object": 0xf00ba4})
+             "Struct/base": 0xf00ba4})
 
         y = identity.Identity.from_dict(
             "LOCALHOST",
             {"Process/pid": 1,
-             "MemoryObject/base_object": 0xc001d00d})
+             "Struct/base": 0xc001d00d})
 
         self.assertRaises(RuntimeError, x.__eq__, y)
 
@@ -27,11 +27,11 @@ class IdentityTest(testlib.RekallBaseUnitTestCase):
         x = identity.Identity.from_dict(
             "LOCALHOST",
             {("Process/pid", "Timestamps/created_at"): (1, 1337),
-             "MemoryObject/base_object": 0xf00ba4})
+             "Struct/base": 0xf00ba4})
 
         y = identity.Identity.from_dict(
             "LOCALHOST",
             {("Process/pid", "Timestamps/created_at"): (1, 1234),
-             "MemoryObject/base_object": 0xc001d00d})
+             "Struct/base": 0xc001d00d})
 
         self.assertNotEqual(x, y)
