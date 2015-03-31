@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.collectors.events</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.collectors-module.html">Package&nbsp;collectors</a> ::
+        Module&nbsp;events
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.collectors.events-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.collectors.events-module.html">Module rekall.plugins.collectors.events</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-docstring">The Rekall Memory Forensics entity layer.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.entities=rekall.entities-module.html,Variable rekall.entities.collector.EntityCollector.entities=rekall.entities.collector.EntityCollector-class.html#entities,Variable rekall.entities.manager.EntityManager.entities=rekall.entities.manager.EntityManager-class.html#entities,Module rekall.plugins.common.entities=rekall.plugins.common.entities-module.html,Module rekall.plugins.renderers.entities=rekall.plugins.renderers.entities-module.html"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-1', 'entities', 'link-1');">entities</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Module rekall.entities.definitions=rekall.entities.definitions-module.html"><a title="rekall.entities.definitions" class="py-name" href="#" onclick="return doclink('link-2', 'definitions', 'link-2');">definitions</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-3" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-3', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-4', 'entities', 'link-1');">entities</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.entities.collector=rekall.entities.collector-module.html"><a title="rekall.entities.collector" class="py-name" href="#" onclick="return doclink('link-5', 'collector', 'link-5');">collector</a></tt> </tt>
+<a name="EventInferenceCollector"></a><div id="EventInferenceCollector-def"><a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt> <a class="py-toggle" href="#" id="EventInferenceCollector-toggle" onclick="return toggle('EventInferenceCollector');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.collectors.events.EventInferenceCollector-class.html">EventInferenceCollector</a><tt class="py-op">(</tt><tt class="py-base-class">collector</tt><tt class="py-op">.</tt><tt class="py-base-class">EntityCollector</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EventInferenceCollector-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="EventInferenceCollector-expanded"><a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">    <tt class="py-docstring">"""Generates Events from entities that have Timestamps."""</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.outputs=rekall.entities.collector.EntityCollector-class.html#outputs,Variable rekall.plugins.collectors.ballast.BallastGenerator.outputs=rekall.plugins.collectors.ballast.BallastGenerator-class.html#outputs,Variable rekall.plugins.collectors.darwin.common.UserNamer.outputs=rekall.plugins.collectors.darwin.common.UserNamer-class.html#outputs,Variable rekall.plugins.collectors.darwin.handles.DarwinFileCollector.outputs=rekall.plugins.collectors.darwin.handles.DarwinFileCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.outputs=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector.outputs=rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.outputs=rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.outputs=rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketParser.outputs=rekall.plugins.collectors.darwin.networking.DarwinSocketParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector.outputs=rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.UnpListCollector.outputs=rekall.plugins.collectors.darwin.networking.UnpListCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.outputs=rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParser.outputs=rekall.plugins.collectors.darwin.processes.DarwinProcParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinClistParser.outputs=rekall.plugins.collectors.darwin.sessions.DarwinClistParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector.outputs=rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.outputs=rekall.plugins.collectors.darwin.sessions.DarwinSessionParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector.outputs=rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.outputs=rekall.plugins.collectors.darwin.sessions.DarwinTTYParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector.outputs=rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.outputs=rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000-class.html#outputs,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.outputs=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneCollector.outputs=rekall.plugins.collectors.darwin.zones.DarwinZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector.outputs=rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector-class.html#outputs,Variable rekall.plugins.collectors.events.EventInferenceCollector.outputs=rekall.plugins.collectors.events.EventInferenceCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.handles.WindowsHandleCollector.outputs=rekall.plugins.collectors.windows.handles.WindowsHandleCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.outputs=rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.BasePoolCollector.outputs=rekall.plugins.collectors.windows.pool.BasePoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector.outputs=rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector.outputs=rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector.outputs=rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.processes.WindowsProcessParser.outputs=rekall.plugins.collectors.windows.processes.WindowsProcessParser-class.html#outputs,Variable rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector.outputs=rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector.outputs=rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector-class.html#outputs"><a title="rekall.entities.collector.EntityCollector.outputs
+rekall.plugins.collectors.ballast.BallastGenerator.outputs
+rekall.plugins.collectors.darwin.common.UserNamer.outputs
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.outputs
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.outputs
+rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector.outputs
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector.outputs
+rekall.plugins.collectors.darwin.networking.UnpListCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.outputs
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.outputs
+rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneCollector.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector.outputs
+rekall.plugins.collectors.events.EventInferenceCollector.outputs
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.outputs
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.outputs
+rekall.plugins.collectors.windows.pool.BasePoolCollector.outputs
+rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector.outputs
+rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector.outputs
+rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector.outputs
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.outputs
+rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector.outputs
+rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector.outputs" class="py-name" href="#" onclick="return doclink('link-6', 'outputs', 'link-6');">outputs</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"Event"</tt><tt class="py-op">]</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.collect_args=rekall.entities.collector.EntityCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.common.UserNamer.collect_args=rekall.plugins.collectors.darwin.common.UserNamer-class.html#collect_args,Variable rekall.plugins.collectors.darwin.handles.DarwinFileCollector.collect_args=rekall.plugins.collectors.darwin.handles.DarwinFileCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.collect_args=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.collect_args=rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.collect_args=rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess-class.html#collect_args,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketParser.collect_args=rekall.plugins.collectors.darwin.networking.DarwinSocketParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.collect_args=rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor-class.html#collect_args,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParser.collect_args=rekall.plugins.collectors.darwin.processes.DarwinProcParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinClistParser.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinClistParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinSessionParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinTTYParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000-class.html#collect_args,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.collect_args=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.collect_args=rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html#collect_args,Variable rekall.plugins.collectors.events.EventInferenceCollector.collect_args=rekall.plugins.collectors.events.EventInferenceCollector-class.html#collect_args,Variable rekall.plugins.collectors.windows.handles.WindowsHandleCollector.collect_args=rekall.plugins.collectors.windows.handles.WindowsHandleCollector-class.html#collect_args,Variable rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.collect_args=rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser-class.html#collect_args,Variable rekall.plugins.collectors.windows.processes.WindowsProcessParser.collect_args=rekall.plugins.collectors.windows.processes.WindowsProcessParser-class.html#collect_args"><a title="rekall.entities.collector.EntityCollector.collect_args
+rekall.plugins.collectors.darwin.common.UserNamer.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.collect_args
+rekall.plugins.collectors.events.EventInferenceCollector.collect_args
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.collect_args
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.collect_args
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.collect_args" class="py-name" href="#" onclick="return doclink('link-7', 'collect_args', 'link-7');">collect_args</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt id="link-8" class="py-name"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-8', 'entities', 'link-1');">entities</a></tt><tt class="py-op">=</tt><tt class="py-string">"has component Timestamps"</tt><tt class="py-op">)</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">    <tt id="link-9" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.run_cost=rekall.entities.collector.EntityCollector-class.html#run_cost,Variable rekall.plugins.collectors.darwin.common.UserNamer.run_cost=rekall.plugins.collectors.darwin.common.UserNamer-class.html#run_cost,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.run_cost=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#run_cost,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.run_cost=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#run_cost,Variable rekall.plugins.collectors.events.EventInferenceCollector.run_cost=rekall.plugins.collectors.events.EventInferenceCollector-class.html#run_cost,Variable rekall.plugins.collectors.windows.handles.WindowsHandleCollector.run_cost=rekall.plugins.collectors.windows.handles.WindowsHandleCollector-class.html#run_cost,Variable rekall.plugins.collectors.windows.pool.BasePoolCollector.run_cost=rekall.plugins.collectors.windows.pool.BasePoolCollector-class.html#run_cost"><a title="rekall.entities.collector.EntityCollector.run_cost
+rekall.plugins.collectors.darwin.common.UserNamer.run_cost
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.run_cost
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.run_cost
+rekall.plugins.collectors.events.EventInferenceCollector.run_cost
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.run_cost
+rekall.plugins.collectors.windows.pool.BasePoolCollector.run_cost" class="py-name" href="#" onclick="return doclink('link-9', 'run_cost', 'link-9');">run_cost</a></tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name"><a title="rekall.entities.collector" class="py-name" href="#" onclick="return doclink('link-10', 'collector', 'link-5');">collector</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Class rekall.entities.collector.CostEnum=rekall.entities.collector.CostEnum-class.html"><a title="rekall.entities.collector.CostEnum" class="py-name" href="#" onclick="return doclink('link-11', 'CostEnum', 'link-11');">CostEnum</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Variable rekall.entities.collector.CostEnum.NoCost=rekall.entities.collector.CostEnum-class.html#NoCost"><a title="rekall.entities.collector.CostEnum.NoCost" class="py-name" href="#" onclick="return doclink('link-12', 'NoCost', 'link-12');">NoCost</a></tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">classmethod</tt> </tt>
+<a name="EventInferenceCollector.is_active"></a><div id="EventInferenceCollector.is_active-def"><a name="L38"></a><tt class="py-lineno">38</tt> <a class="py-toggle" href="#" id="EventInferenceCollector.is_active-toggle" onclick="return toggle('EventInferenceCollector.is_active');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.collectors.events.EventInferenceCollector-class.html#is_active">is_active</a><tt class="py-op">(</tt><tt class="py-param">cls</tt><tt class="py-op">,</tt> <tt class="py-param">session</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EventInferenceCollector.is_active-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="EventInferenceCollector.is_active-expanded"><a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+</div><a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">    <tt class="py-comment"># pylint: disable=protected-access</tt> </tt>
+<a name="EventInferenceCollector.collect"></a><div id="EventInferenceCollector.collect-def"><a name="L42"></a><tt class="py-lineno">42</tt> <a class="py-toggle" href="#" id="EventInferenceCollector.collect-toggle" onclick="return toggle('EventInferenceCollector.collect');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.collectors.events.EventInferenceCollector-class.html#collect">collect</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">hint</tt><tt class="py-op">,</tt> <tt class="py-param">entities</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EventInferenceCollector.collect-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="EventInferenceCollector.collect-expanded"><a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">        <tt id="link-13" class="py-name" targets="Module rekall.entities.manager=rekall.entities.manager-module.html"><a title="rekall.entities.manager" class="py-name" href="#" onclick="return doclink('link-13', 'manager', 'link-13');">manager</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.entities.manager" class="py-name" href="#" onclick="return doclink('link-14', 'manager', 'link-13');">manager</a></tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-15" class="py-name" targets="Module rekall.entities.entity=rekall.entities.entity-module.html"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-15', 'entity', 'link-15');">entity</a></tt> <tt class="py-keyword">in</tt> <tt id="link-16" class="py-name"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-16', 'entities', 'link-1');">entities</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">field</tt> <tt class="py-keyword">in</tt> <tt id="link-17" class="py-name"><a title="rekall.entities.definitions" class="py-name" href="#" onclick="return doclink('link-17', 'definitions', 'link-2');">definitions</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Variable rekall.entities.component.ComponentContainer.Timestamps=rekall.entities.component.ComponentContainer-class.html#Timestamps"><a title="rekall.entities.component.ComponentContainer.Timestamps" class="py-name" href="#" onclick="return doclink('link-18', 'Timestamps', 'link-18');">Timestamps</a></tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Variable rekall.entities.component.Component.component_fields=rekall.entities.component.Component-class.html#component_fields"><a title="rekall.entities.component.Component.component_fields" class="py-name" href="#" onclick="return doclink('link-19', 'component_fields', 'link-19');">component_fields</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">                <tt class="py-name">timestamp</tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt id="link-20" class="py-name"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-20', 'entity', 'link-15');">entity</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Variable rekall.entities.query.sql.SQLGenerator.components=rekall.entities.query.sql.SQLGenerator-class.html#components"><a title="rekall.entities.query.sql.SQLGenerator.components" class="py-name" href="#" onclick="return doclink('link-21', 'components', 'link-21');">components</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.entities.component.ComponentContainer.Timestamps" class="py-name" href="#" onclick="return doclink('link-22', 'Timestamps', 'link-18');">Timestamps</a></tt><tt class="py-op">,</tt> <tt class="py-name">field</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.entities.collector.EntityCollector.name=rekall.entities.collector.EntityCollector-class.html#name,Variable rekall.entities.entity.Entity.name=rekall.entities.entity.Entity-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name=rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace-class.html#name,Variable rekall.plugins.common.address_resolver.AddressResolverMixin.name=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#name,Variable rekall.plugins.common.inspection.MemoryTranslation.name=rekall.plugins.common.inspection.MemoryTranslation-class.html#name,Variable rekall.plugins.common.searches.ListEvents.name=rekall.plugins.common.searches.ListEvents-class.html#name,Variable rekall.plugins.common.searches.ListInterfaces.name=rekall.plugins.common.searches.ListInterfaces-class.html#name,Variable rekall.plugins.common.searches.ListZones.name=rekall.plugins.common.searches.ListZones-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.filesystems.ntfs.FLS.name=rekall.plugins.filesystems.ntfs.FLS-class.html#name,Variable rekall.plugins.filesystems.ntfs.FStat.name=rekall.plugins.filesystems.ntfs.FStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.IDump.name=rekall.plugins.filesystems.ntfs.IDump-class.html#name,Variable rekall.plugins.filesystems.ntfs.IExport.name=rekall.plugins.filesystems.ntfs.IExport-class.html#name,Variable rekall.plugins.filesystems.ntfs.ILS.name=rekall.plugins.filesystems.ntfs.ILS-class.html#name,Variable rekall.plugins.filesystems.ntfs.IStat.name=rekall.plugins.filesystems.ntfs.IStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.NTFSDetector.name=rekall.plugins.filesystems.ntfs.NTFSDetector-class.html#name,Variable rekall.plugins.guess_profile.DarwinIndexDetector.name=rekall.plugins.guess_profile.DarwinIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.DetectionMethod.name=rekall.plugins.guess_profile.DetectionMethod-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.LinuxBannerDetector.name=rekall.plugins.guess_profile.LinuxBannerDetector-class.html#name,Variable rekall.plugins.guess_profile.PEImageFileDetector.name=rekall.plugins.guess_profile.PEImageFileDetector-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.guess_profile.WindowsIndexDetector.name=rekall.plugins.guess_profile.WindowsIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsRSDSDetector.name=rekall.plugins.guess_profile.WindowsRSDSDetector-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKernelSlide.name=rekall.plugins.linux.common.LinuxFindKernelSlide-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name=rekall.plugins.linux.common.LinuxKernelPageOffsetHook-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelSlideHook.name=rekall.plugins.linux.common.LinuxKernelSlideHook-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.renderers.data_export.DataExportRenderer.name=rekall.plugins.renderers.data_export.DataExportRenderer-class.html#name,Variable rekall.plugins.renderers.xls.XLSRenderer.name=rekall.plugins.renderers.xls.XLSRenderer-class.html#name,Variable rekall.plugins.tools.ewf.EWFAcquire.name=rekall.plugins.tools.ewf.EWFAcquire-class.html#name,Variable rekall.plugins.tools.ipython.InteractiveShell.name=rekall.plugins.tools.ipython.InteractiveShell-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.tools.profile_tool.BuildProfileLocally.name=rekall.plugins.tools.profile_tool.BuildProfileLocally-class.html#name,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name=rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer-class.html#name,Variable rekall.plugins.windows.cache.DumpFiles.name=rekall.plugins.windows.cache.DumpFiles-class.html#name,Variable rekall.plugins.windows.cache.EnumerateVacbs.name=rekall.plugins.windows.cache.EnumerateVacbs-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.dns.WinDNSCache.name=rekall.plugins.windows.dns.WinDNSCache-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name=rekall.plugins.windows.heap_analysis.FindReferenceAlloc-class.html#name,Variable rekall.plugins.windows.heap_analysis.InspectHeap.name=rekall.plugins.windows.heap_analysis.InspectHeap-class.html#name,Variable rekall.plugins.windows.heap_analysis.ShowAllocation.name=rekall.plugins.windows.heap_analysis.ShowAllocation-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.malware.apihooks.CheckPEHooks.name=rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.EATHooks.name=rekall.plugins.windows.malware.apihooks.EATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.IATHooks.name=rekall.plugins.windows.malware.apihooks.IATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.InlineHooks.name=rekall.plugins.windows.malware.apihooks.InlineHooks-class.html#name,Variable rekall.plugins.windows.malware.callbacks.Callbacks.name=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#name,Variable rekall.plugins.windows.malware.cmdhistory.Consoles.name=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#name,Variable rekall.plugins.windows.malware.yarascan.WinYaraScan.name=rekall.plugins.windows.malware.yarascan.WinYaraScan-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pagefile.Pagefiles.name=rekall.plugins.windows.pagefile.Pagefiles-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Services.name=rekall.plugins.windows.registry.printkey.Services-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name,Variable rekall.plugins.windows.vadinfo.VADMap.name=rekall.plugins.windows.vadinfo.VADMap-class.html#name,Variable rekall.ui.json_renderer.JsonRenderer.name=rekall.ui.json_renderer.JsonRenderer-class.html#name,Variable rekall.ui.renderer.BaseRenderer.name=rekall.ui.renderer.BaseRenderer-class.html#name,Variable rekall.ui.text.TestRenderer.name=rekall.ui.text.TestRenderer-class.html#name,Variable rekall.ui.text.TextColumn.name=rekall.ui.text.TextColumn-class.html#name,Variable rekall.ui.text.TextRenderer.name=rekall.ui.text.TextRenderer-class.html#name,Variable rekall.ui.text.WideTextRenderer.name=rekall.ui.text.WideTextRenderer-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.entities.collector.EntityCollector.name
+rekall.entities.entity.Entity.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.searches.ListEvents.name
+rekall.plugins.common.searches.ListInterfaces.name
+rekall.plugins.common.searches.ListZones.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.windows.vadinfo.VADMap.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-23', 'name', 'link-23');">name</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">                <tt class="py-name">action</tt> <tt class="py-op">=</tt> <tt class="py-name">field</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.entities.collector.EntityCollector.name
+rekall.entities.entity.Entity.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.searches.ListEvents.name
+rekall.plugins.common.searches.ListInterfaces.name
+rekall.plugins.common.searches.ListZones.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.windows.vadinfo.VADMap.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-24', 'name', 'link-23');">name</a></tt><tt class="py-op">.</tt><tt class="py-name">replace</tt><tt class="py-op">(</tt><tt class="py-string">"_at"</tt><tt class="py-op">,</tt> <tt class="py-string">""</tt><tt class="py-op">)</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">timestamp</tt><tt class="py-op">:</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">                    <tt class="py-keyword">continue</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line"> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">                <tt class="py-name">event_identity</tt> <tt class="py-op">=</tt> <tt id="link-25" class="py-name"><a title="rekall.entities.manager" class="py-name" href="#" onclick="return doclink('link-25', 'manager', 'link-13');">manager</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method rekall.entities.manager.EntityManager.identify()=rekall.entities.manager.EntityManager-class.html#identify"><a title="rekall.entities.manager.EntityManager.identify" class="py-name" href="#" onclick="return doclink('link-26', 'identify', 'link-26');">identify</a></tt><tt class="py-op">(</tt><tt class="py-op">{</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-string">"Event/timestamp"</tt><tt class="py-op">,</tt> <tt class="py-string">"Event/action"</tt><tt class="py-op">,</tt> <tt class="py-string">"Event/target"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">timestamp</tt><tt class="py-op">,</tt> <tt class="py-name">action</tt><tt class="py-op">,</tt> <tt id="link-27" class="py-name"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-27', 'entity', 'link-15');">entity</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Variable rekall.entities.entity.Entity.identity=rekall.entities.entity.Entity-class.html#identity,Module rekall.entities.identity=rekall.entities.identity-module.html"><a title="rekall.entities.entity.Entity.identity
+rekall.entities.identity" class="py-name" href="#" onclick="return doclink('link-28', 'identity', 'link-28');">identity</a></tt><tt class="py-op">)</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">timestamp</tt><tt class="py-op">:</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line">                    <tt class="py-keyword">yield</tt> <tt class="py-op">[</tt><tt class="py-name">event_identity</tt><tt class="py-op">,</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">                           <tt id="link-29" class="py-name"><a title="rekall.entities.definitions" class="py-name" href="#" onclick="return doclink('link-29', 'definitions', 'link-2');">definitions</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Variable rekall.entities.component.ComponentContainer.Event=rekall.entities.component.ComponentContainer-class.html#Event"><a title="rekall.entities.component.ComponentContainer.Event" class="py-name" href="#" onclick="return doclink('link-30', 'Event', 'link-30');">Event</a></tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">=</tt><tt id="link-31" class="py-name"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-31', 'entity', 'link-15');">entity</a></tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.entities.entity.Entity.identity
+rekall.entities.identity" class="py-name" href="#" onclick="return doclink('link-32', 'identity', 'link-28');">identity</a></tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line">                                             <tt class="py-name">timestamp</tt><tt class="py-op">=</tt><tt class="py-name">timestamp</tt><tt class="py-op">,</tt> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line">                                             <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-name">action</tt><tt class="py-op">)</tt><tt class="py-op">]</tt> </tt>
+</div></div><a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:02 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

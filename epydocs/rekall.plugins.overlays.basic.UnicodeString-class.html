@@ -64,12 +64,12 @@
 <h1 class="epydoc">Class UnicodeString</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_unicodestr" name="class_hierarchy_for_unicodestr">
-<area shape="rect" id="node1" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="5,5,99,32"/>
-<area shape="rect" id="node2" href="rekall.obj.NativeType-class.html" title="obj.NativeType" alt="" coords="73,61,167,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.basic.String-class.html" title="String" alt="" coords="159,117,209,144"/>
-<area shape="rect" id="node3" href="rekall.obj.NumericProxyMixIn-class.html" title="obj.NumericProxyMixIn" alt="" coords="123,5,253,32"/>
-<area shape="rect" id="node4" href="rekall.obj.StringProxyMixIn-class.html" title="obj.StringProxyMixIn" alt="" coords="191,61,308,88"/>
-<area shape="rect" id="node6" href="rekall.plugins.overlays.basic.UnicodeString-class.html" title="UnicodeString" alt="" coords="140,173,228,200"/>
+<area shape="rect" id="node1" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="5,6,99,29"/>
+<area shape="rect" id="node2" href="rekall.obj.NativeType-class.html" title="obj.NativeType" alt="" coords="73,59,167,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.basic.String-class.html" title="String" alt="" coords="160,113,211,135"/>
+<area shape="rect" id="node3" href="rekall.obj.NumericProxyMixIn-class.html" title="obj.NumericProxyMixIn" alt="" coords="123,6,252,29"/>
+<area shape="rect" id="node4" href="rekall.obj.StringProxyMixIn-class.html" title="obj.StringProxyMixIn" alt="" coords="191,59,309,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.basic.UnicodeString-class.html" title="UnicodeString" alt="" coords="141,166,229,189"/>
 </map>
   <img src="class_hierarchy_for_unicodestr.gif" alt='' usemap="#class_hierarchy_for_unicodestr" ismap="ismap" class="graph-without-title" />
 </center>
@@ -172,6 +172,22 @@
           <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.UnicodeString-class.html#__unicode__" class="summary-sig-name">__unicode__</a>(<span class="summary-sig-arg">self</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.__unicode__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.UnicodeString-class.html#__len__" class="summary-sig-name">__len__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.__len__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1237,6 +1253,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="get_text_renderer"></a><span class="summary-sig-name">get_text_renderer</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.get_text_renderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="is_valid"></a><span class="summary-sig-name">is_valid</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
@@ -1355,7 +1388,16 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.overlays.basic.UnicodeString-class.html#obj_size" class="summary-name">obj_size</a><br />
-      This is equivalent to strlen().
+      This is equivalent to strlen() plus the terminator.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.basic.String-class.html#indices" class="summary-name">indices</a><br />
+      Returns (usually 1) representation(s) of self usable as dict keys.
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.String-class.html">rekall.plugins.overlays.basic.String</a>)</em>
     </td>
   </tr>
 <tr>
@@ -1498,6 +1540,29 @@ Args:
   </dl>
 </td></tr></table>
 </div>
+<a name="__len__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__len__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Length operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnicodeString.__len__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugins.overlays.basic.String-class.html#__len__">String.__len__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="__repr__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1562,7 +1627,7 @@ Args:
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <h3 class="epydoc">obj_size</h3>
-  <p>This is equivalent to strlen().</p>
+  <p>This is equivalent to strlen() plus the terminator.</p>
   <dl class="fields">
     <dt>Get Method:</dt>
     <dd class="value"><span class="summary-sig"><i>unreachable</i>.obj_size(<span class="summary-sig-arg">self</span>)</span>
@@ -1602,7 +1667,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:50 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:39 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

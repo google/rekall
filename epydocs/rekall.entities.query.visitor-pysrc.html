@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.entities.query.visitor</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.entities-module.html">Package&nbsp;entities</a> ::
+        <a href="rekall.entities.query-module.html">Package&nbsp;query</a> ::
+        Module&nbsp;visitor
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.entities.query.visitor-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.entities.query.visitor-module.html">Module rekall.entities.query.visitor</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-docstring">The Rekall Entity Layer.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Package rekall.plugins.windows.registry=rekall.plugins.windows.registry-module.html,Module rekall.plugins.windows.registry.registry=rekall.plugins.windows.registry.registry-module.html,Module rekall.registry=rekall.registry-module.html"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.registry.registry
+rekall.registry" class="py-name" href="#" onclick="return doclink('link-1', 'registry', 'link-1');">registry</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor"></a><div id="QueryVisitor-def"><a name="L28"></a><tt class="py-lineno">28</tt> <a class="py-toggle" href="#" id="QueryVisitor-toggle" onclick="return toggle('QueryVisitor');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html">QueryVisitor</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="QueryVisitor-expanded"><a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">    <tt id="link-2" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.__abstract=rekall.addrspace.BaseAddressSpace-class.html#__abstract,Variable rekall.addrspace.BufferAddressSpace.__abstract=rekall.addrspace.BufferAddressSpace-class.html#__abstract,Variable rekall.addrspace.MultiRunBasedAddressSpace.__abstract=rekall.addrspace.MultiRunBasedAddressSpace-class.html#__abstract,Variable rekall.addrspace.PagedReader.__abstract=rekall.addrspace.PagedReader-class.html#__abstract,Variable rekall.addrspace.RunBasedAddressSpace.__abstract=rekall.addrspace.RunBasedAddressSpace-class.html#__abstract,Variable rekall.entities.collector.EntityCollector.__abstract=rekall.entities.collector.EntityCollector-class.html#__abstract,Variable rekall.entities.component.Component.__abstract=rekall.entities.component.Component-class.html#__abstract,Variable rekall.entities.query.expression.Expression.__abstract=rekall.entities.query.expression.Expression-class.html#__abstract,Variable rekall.entities.query.expression.OrderedSet.__abstract=rekall.entities.query.expression.OrderedSet-class.html#__abstract,Variable rekall.entities.query.expression.Relation.__abstract=rekall.entities.query.expression.Relation-class.html#__abstract,Variable rekall.entities.query.expression.ValueExpression.__abstract=rekall.entities.query.expression.ValueExpression-class.html#__abstract,Variable rekall.entities.query.expression.VariadicExpression.__abstract=rekall.entities.query.expression.VariadicExpression-class.html#__abstract,Variable rekall.entities.query.visitor.QueryVisitor.__abstract=rekall.entities.query.visitor.QueryVisitor-class.html#__abstract,Variable rekall.io_manager.IOManager.__abstract=rekall.io_manager.IOManager-class.html#__abstract,Variable rekall.kb.ParameterHook.__abstract=rekall.kb.ParameterHook-class.html#__abstract,Variable rekall.plugin.Command.__abstract=rekall.plugin.Command-class.html#__abstract,Variable rekall.plugin.ProfileCommand.__abstract=rekall.plugin.ProfileCommand-class.html#__abstract,Variable rekall.plugins.collectors.darwin.common.DarwinEntityCollector.__abstract=rekall.plugins.collectors.darwin.common.DarwinEntityCollector-class.html#__abstract,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.__abstract=rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html#__abstract,Variable rekall.plugins.collectors.windows.common.WindowsEntityCollector.__abstract=rekall.plugins.collectors.windows.common.WindowsEntityCollector-class.html#__abstract,Variable rekall.plugins.collectors.windows.pool.BasePoolCollector.__abstract=rekall.plugins.collectors.windows.pool.BasePoolCollector-class.html#__abstract,Variable rekall.plugins.common.entities.FindBatch.__abstract=rekall.plugins.common.entities.FindBatch-class.html#__abstract,Variable rekall.plugins.core.FindDTB.__abstract=rekall.plugins.core.FindDTB-class.html#__abstract,Variable rekall.plugins.darwin.common.AbstractDarwinCommandPlugin.__abstract=rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html#__abstract,Variable rekall.plugins.darwin.common.DarwinPlugin.__abstract=rekall.plugins.darwin.common.DarwinPlugin-class.html#__abstract,Variable rekall.plugins.darwin.common.DarwinProcessFilter.__abstract=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__abstract,Variable rekall.plugins.filesystems.ntfs.NTFSPlugins.__abstract=rekall.plugins.filesystems.ntfs.NTFSPlugins-class.html#__abstract,Variable rekall.plugins.linux.bash.BashProfile32.__abstract=rekall.plugins.linux.bash.BashProfile32-class.html#__abstract,Variable rekall.plugins.linux.bash.BashProfile64.__abstract=rekall.plugins.linux.bash.BashProfile64-class.html#__abstract,Variable rekall.plugins.linux.common.AbstractLinuxCommandPlugin.__abstract=rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html#__abstract,Variable rekall.plugins.linux.common.LinProcessFilter.__abstract=rekall.plugins.linux.common.LinProcessFilter-class.html#__abstract,Variable rekall.plugins.linux.common.LinuxPlugin.__abstract=rekall.plugins.linux.common.LinuxPlugin-class.html#__abstract,Variable rekall.plugins.tools.profile_tool.ProfileConverter.__abstract=rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__abstract,Variable rekall.plugins.tools.webconsole_plugin.WebConsoleDocument.__abstract=rekall.plugins.tools.webconsole_plugin.WebConsoleDocument-class.html#__abstract,Variable rekall.plugins.windows.address_resolver.PECommandPlugin.__abstract=rekall.plugins.windows.address_resolver.PECommandPlugin-class.html#__abstract,Variable rekall.plugins.windows.common.AbstractWindowsCommandPlugin.__abstract=rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html#__abstract,Variable rekall.plugins.windows.common.PoolScannerPlugin.__abstract=rekall.plugins.windows.common.PoolScannerPlugin-class.html#__abstract,Variable rekall.plugins.windows.common.WinProcessFilter.__abstract=rekall.plugins.windows.common.WinProcessFilter-class.html#__abstract,Variable rekall.plugins.windows.common.WindowsCommandPlugin.__abstract=rekall.plugins.windows.common.WindowsCommandPlugin-class.html#__abstract,Variable rekall.plugins.windows.disassembler.Disassembler.__abstract=rekall.plugins.windows.disassembler.Disassembler-class.html#__abstract,Variable rekall.plugins.windows.registry.registry.HiveBaseAddressSpace.__abstract=rekall.plugins.windows.registry.registry.HiveBaseAddressSpace-class.html#__abstract,Variable rekall.plugins.windows.registry.registry.RegistryPlugin.__abstract=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#__abstract,Variable rekall.scan.ScannerCheck.__abstract=rekall.scan.ScannerCheck-class.html#__abstract,Variable rekall.testlib.RekallBaseUnitTestCase.__abstract=rekall.testlib.RekallBaseUnitTestCase-class.html#__abstract,Variable rekall.testlib.SimpleTestCase.__abstract=rekall.testlib.SimpleTestCase-class.html#__abstract,Variable rekall.testlib.SortedComparison.__abstract=rekall.testlib.SortedComparison-class.html#__abstract,Variable rekall.ui.text.BaseCell.__abstract=rekall.ui.text.BaseCell-class.html#__abstract"><a title="rekall.addrspace.BaseAddressSpace.__abstract
+rekall.addrspace.BufferAddressSpace.__abstract
+rekall.addrspace.MultiRunBasedAddressSpace.__abstract
+rekall.addrspace.PagedReader.__abstract
+rekall.addrspace.RunBasedAddressSpace.__abstract
+rekall.entities.collector.EntityCollector.__abstract
+rekall.entities.component.Component.__abstract
+rekall.entities.query.expression.Expression.__abstract
+rekall.entities.query.expression.OrderedSet.__abstract
+rekall.entities.query.expression.Relation.__abstract
+rekall.entities.query.expression.ValueExpression.__abstract
+rekall.entities.query.expression.VariadicExpression.__abstract
+rekall.entities.query.visitor.QueryVisitor.__abstract
+rekall.io_manager.IOManager.__abstract
+rekall.kb.ParameterHook.__abstract
+rekall.plugin.Command.__abstract
+rekall.plugin.ProfileCommand.__abstract
+rekall.plugins.collectors.darwin.common.DarwinEntityCollector.__abstract
+rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.__abstract
+rekall.plugins.collectors.windows.common.WindowsEntityCollector.__abstract
+rekall.plugins.collectors.windows.pool.BasePoolCollector.__abstract
+rekall.plugins.common.entities.FindBatch.__abstract
+rekall.plugins.core.FindDTB.__abstract
+rekall.plugins.darwin.common.AbstractDarwinCommandPlugin.__abstract
+rekall.plugins.darwin.common.DarwinPlugin.__abstract
+rekall.plugins.darwin.common.DarwinProcessFilter.__abstract
+rekall.plugins.filesystems.ntfs.NTFSPlugins.__abstract
+rekall.plugins.linux.bash.BashProfile32.__abstract
+rekall.plugins.linux.bash.BashProfile64.__abstract
+rekall.plugins.linux.common.AbstractLinuxCommandPlugin.__abstract
+rekall.plugins.linux.common.LinProcessFilter.__abstract
+rekall.plugins.linux.common.LinuxPlugin.__abstract
+rekall.plugins.tools.profile_tool.ProfileConverter.__abstract
+rekall.plugins.tools.webconsole_plugin.WebConsoleDocument.__abstract
+rekall.plugins.windows.address_resolver.PECommandPlugin.__abstract
+rekall.plugins.windows.common.AbstractWindowsCommandPlugin.__abstract
+rekall.plugins.windows.common.PoolScannerPlugin.__abstract
+rekall.plugins.windows.common.WinProcessFilter.__abstract
+rekall.plugins.windows.common.WindowsCommandPlugin.__abstract
+rekall.plugins.windows.disassembler.Disassembler.__abstract
+rekall.plugins.windows.registry.registry.HiveBaseAddressSpace.__abstract
+rekall.plugins.windows.registry.registry.RegistryPlugin.__abstract
+rekall.scan.ScannerCheck.__abstract
+rekall.testlib.RekallBaseUnitTestCase.__abstract
+rekall.testlib.SimpleTestCase.__abstract
+rekall.testlib.SortedComparison.__abstract
+rekall.ui.text.BaseCell.__abstract" class="py-name" href="#" onclick="return doclink('link-2', '__abstract', 'link-2');">__abstract</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">    <tt class="py-name">__metaclass__</tt> <tt class="py-op">=</tt> <tt id="link-3" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.registry.registry
+rekall.registry" class="py-name" href="#" onclick="return doclink('link-3', 'registry', 'link-1');">registry</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Class rekall.registry.MetaclassRegistry=rekall.registry.MetaclassRegistry-class.html"><a title="rekall.registry.MetaclassRegistry" class="py-name" href="#" onclick="return doclink('link-4', 'MetaclassRegistry', 'link-4');">MetaclassRegistry</a></tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor.__init__"></a><div id="QueryVisitor.__init__-def"><a name="L32"></a><tt class="py-lineno">32</tt> <a class="py-toggle" href="#" id="QueryVisitor.__init__-toggle" onclick="return toggle('QueryVisitor.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">query</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor.__init__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="QueryVisitor.__init__-expanded"><a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Package rekall.entities.query=rekall.entities.query-module.html,Variable rekall.entities.query.efilter.Parser.query=rekall.entities.query.efilter.Parser-class.html#query,Variable rekall.entities.query.expression.QueryError.query=rekall.entities.query.expression.QueryError-class.html#query,Module rekall.entities.query.query=rekall.entities.query.query-module.html,Variable rekall.plugins.common.entities.EntityFind.query=rekall.plugins.common.entities.EntityFind-class.html#query"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-5', 'query', 'link-5');">query</a></tt> <tt class="py-op">=</tt> <tt id="link-6" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-6', 'query', 'link-5');">query</a></tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Module rekall.entities.query.expression=rekall.entities.query.expression-module.html,Variable rekall.entities.query.expression.Let.expression=rekall.entities.query.expression.Let-class.html#expression,Variable rekall.entities.query.query.Query.expression=rekall.entities.query.query.Query-class.html#expression"><a title="rekall.entities.query.expression
+rekall.entities.query.expression.Let.expression
+rekall.entities.query.query.Query.expression" class="py-name" href="#" onclick="return doclink('link-7', 'expression', 'link-7');">expression</a></tt> <tt class="py-op">=</tt> <tt id="link-8" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-8', 'query', 'link-5');">query</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="rekall.entities.query.expression
+rekall.entities.query.expression.Let.expression
+rekall.entities.query.query.Query.expression" class="py-name" href="#" onclick="return doclink('link-9', 'expression', 'link-7');">expression</a></tt> </tt>
+</div><a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor.__hash__"></a><div id="QueryVisitor.__hash__-def"><a name="L36"></a><tt class="py-lineno">36</tt> <a class="py-toggle" href="#" id="QueryVisitor.__hash__-toggle" onclick="return toggle('QueryVisitor.__hash__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html#__hash__">__hash__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor.__hash__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="QueryVisitor.__hash__-expanded"><a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">hash</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt id="link-10" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#type"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-10', 'type', 'link-10');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-11', 'query', 'link-5');">query</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor.__eq__"></a><div id="QueryVisitor.__eq__-def"><a name="L39"></a><tt class="py-lineno">39</tt> <a class="py-toggle" href="#" id="QueryVisitor.__eq__-toggle" onclick="return toggle('QueryVisitor.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor.__eq__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="QueryVisitor.__eq__-expanded"><a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">,</tt> <tt id="link-12" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-12', 'type', 'link-10');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-13', 'query', 'link-5');">query</a></tt> <tt class="py-op">==</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-14', 'query', 'link-5');">query</a></tt> </tt>
+</div><a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor.__ne__"></a><div id="QueryVisitor.__ne__-def"><a name="L42"></a><tt class="py-lineno">42</tt> <a class="py-toggle" href="#" id="QueryVisitor.__ne__-toggle" onclick="return toggle('QueryVisitor.__ne__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html#__ne__">__ne__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor.__ne__-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="QueryVisitor.__ne__-expanded"><a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.__eq__()=rekall.addrspace.BaseAddressSpace-class.html#__eq__,Method rekall.addrspace.RunBasedAddressSpace.__eq__()=rekall.addrspace.RunBasedAddressSpace-class.html#__eq__,Method rekall.entities.component.Component.__eq__()=rekall.entities.component.Component-class.html#__eq__,Method rekall.entities.entity.Entity.__eq__()=rekall.entities.entity.Entity-class.html#__eq__,Method rekall.entities.ext.indexset.IndexSet.__eq__()=rekall.entities.ext.indexset.IndexSet-class.html#__eq__,Method rekall.entities.identity.Identity.__eq__()=rekall.entities.identity.Identity-class.html#__eq__,Method rekall.entities.query.analyzer.SimpleDependency.__eq__()=rekall.entities.query.analyzer.SimpleDependency-class.html#__eq__,Method rekall.entities.query.expression.Expression.__eq__()=rekall.entities.query.expression.Expression-class.html#__eq__,Method rekall.entities.query.query.Query.__eq__()=rekall.entities.query.query.Query-class.html#__eq__,Method rekall.entities.query.visitor.QueryVisitor.__eq__()=rekall.entities.query.visitor.QueryVisitor-class.html#__eq__,Method rekall.entities.superposition.BaseSuperposition.__eq__()=rekall.entities.superposition.BaseSuperposition-class.html#__eq__,Method rekall.entities.types.TypeDescriptor.__eq__()=rekall.entities.types.TypeDescriptor-class.html#__eq__,Method rekall.obj.Array.__eq__()=rekall.obj.Array-class.html#__eq__,Method rekall.obj.BaseAddressComparisonMixIn.__eq__()=rekall.obj.BaseAddressComparisonMixIn-class.html#__eq__,Method rekall.obj.BaseObject.__eq__()=rekall.obj.BaseObject-class.html#__eq__,Method rekall.obj.NoneObject.__eq__()=rekall.obj.NoneObject-class.html#__eq__,Method rekall.obj.NumericProxyMixIn.__eq__()=rekall.obj.NumericProxyMixIn-class.html#__eq__,Method rekall.obj.Pointer.__eq__()=rekall.obj.Pointer-class.html#__eq__,Method rekall.obj.StringProxyMixIn.__eq__()=rekall.obj.StringProxyMixIn-class.html#__eq__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__eq__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__eq__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__eq__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__eq__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__eq__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__eq__,Method rekall.plugins.overlays.basic.Enumeration.__eq__()=rekall.plugins.overlays.basic.Enumeration-class.html#__eq__,Method rekall.plugins.overlays.linux.vfs.File.__eq__()=rekall.plugins.overlays.linux.vfs.File-class.html#__eq__,Method rekall.plugins.overlays.linux.vfs.MountPoint.__eq__()=rekall.plugins.overlays.linux.vfs.MountPoint-class.html#__eq__,Method rekall.session.JsonSerializableSession.__eq__()=rekall.session.JsonSerializableSession-class.html#__eq__,Method rekall.utils.SortedCollection.__eq__()=rekall.utils.SortedCollection-class.html#__eq__"><a title="rekall.addrspace.BaseAddressSpace.__eq__
+rekall.addrspace.RunBasedAddressSpace.__eq__
+rekall.entities.component.Component.__eq__
+rekall.entities.entity.Entity.__eq__
+rekall.entities.ext.indexset.IndexSet.__eq__
+rekall.entities.identity.Identity.__eq__
+rekall.entities.query.analyzer.SimpleDependency.__eq__
+rekall.entities.query.expression.Expression.__eq__
+rekall.entities.query.query.Query.__eq__
+rekall.entities.query.visitor.QueryVisitor.__eq__
+rekall.entities.superposition.BaseSuperposition.__eq__
+rekall.entities.types.TypeDescriptor.__eq__
+rekall.obj.Array.__eq__
+rekall.obj.BaseAddressComparisonMixIn.__eq__
+rekall.obj.BaseObject.__eq__
+rekall.obj.NoneObject.__eq__
+rekall.obj.NumericProxyMixIn.__eq__
+rekall.obj.Pointer.__eq__
+rekall.obj.StringProxyMixIn.__eq__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__eq__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__eq__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__eq__
+rekall.plugins.overlays.basic.Enumeration.__eq__
+rekall.plugins.overlays.linux.vfs.File.__eq__
+rekall.plugins.overlays.linux.vfs.MountPoint.__eq__
+rekall.session.JsonSerializableSession.__eq__
+rekall.utils.SortedCollection.__eq__" class="py-name" href="#" onclick="return doclink('link-15', '__eq__', 'link-15');">__eq__</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor.run"></a><div id="QueryVisitor.run-def"><a name="L45"></a><tt class="py-lineno">45</tt> <a class="py-toggle" href="#" id="QueryVisitor.run-toggle" onclick="return toggle('QueryVisitor.run');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html#run">run</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor.run-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="QueryVisitor.run-expanded"><a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.entities.query.matcher.QueryMatcher.visit()=rekall.entities.query.matcher.QueryMatcher-class.html#visit,Method rekall.entities.query.visitor.QueryVisitor.visit()=rekall.entities.query.visitor.QueryVisitor-class.html#visit"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-16', 'visit', 'link-16');">visit</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.entities.query.expression
+rekall.entities.query.expression.Let.expression
+rekall.entities.query.query.Query.expression" class="py-name" href="#" onclick="return doclink('link-17', 'expression', 'link-7');">expression</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line"> </tt>
+<a name="QueryVisitor.visit"></a><div id="QueryVisitor.visit-def"><a name="L48"></a><tt class="py-lineno">48</tt> <a class="py-toggle" href="#" id="QueryVisitor.visit-toggle" onclick="return toggle('QueryVisitor.visit');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.visitor.QueryVisitor-class.html#visit">visit</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expression</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="QueryVisitor.visit-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="QueryVisitor.visit-expanded"><a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">        <tt class="py-comment"># Walk the MRO and try to find a closest match for handler.</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">cls</tt> <tt class="py-keyword">in</tt> <tt id="link-18" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-18', 'type', 'link-10');">type</a></tt><tt class="py-op">(</tt><tt id="link-19" class="py-name"><a title="rekall.entities.query.expression
+rekall.entities.query.expression.Let.expression
+rekall.entities.query.query.Query.expression" class="py-name" href="#" onclick="return doclink('link-19', 'expression', 'link-7');">expression</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">mro</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">            <tt class="py-name">handler_name</tt> <tt class="py-op">=</tt> <tt class="py-string">"visit_%s"</tt> <tt class="py-op">%</tt> <tt class="py-name">cls</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">            <tt id="link-20" class="py-name" targets="Variable rekall.entities.query.efilter.Operator.handler=rekall.entities.query.efilter.Operator-class.html#handler"><a title="rekall.entities.query.efilter.Operator.handler" class="py-name" href="#" onclick="return doclink('link-20', 'handler', 'link-20');">handler</a></tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-name">handler_name</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line"> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">callable</tt><tt class="py-op">(</tt><tt id="link-21" class="py-name"><a title="rekall.entities.query.efilter.Operator.handler" class="py-name" href="#" onclick="return doclink('link-21', 'handler', 'link-20');">handler</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt id="link-22" class="py-name"><a title="rekall.entities.query.efilter.Operator.handler" class="py-name" href="#" onclick="return doclink('link-22', 'handler', 'link-20');">handler</a></tt><tt class="py-op">(</tt><tt id="link-23" class="py-name"><a title="rekall.entities.query.expression
+rekall.entities.query.expression.Let.expression
+rekall.entities.query.query.Query.expression" class="py-name" href="#" onclick="return doclink('link-23', 'expression', 'link-7');">expression</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line"> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">        <tt class="py-comment"># No appropriate handler for this class. Explode.</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line">        <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line">            <tt class="py-string">"%s has no handler for %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line">                <tt id="link-24" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-24', 'type', 'link-10');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">,</tt> <tt id="link-25" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-25', 'type', 'link-10');">type</a></tt><tt class="py-op">(</tt><tt id="link-26" class="py-name"><a title="rekall.entities.query.expression
+rekall.entities.query.expression.Let.expression
+rekall.entities.query.query.Query.expression" class="py-name" href="#" onclick="return doclink('link-26', 'expression', 'link-7');">expression</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:03 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

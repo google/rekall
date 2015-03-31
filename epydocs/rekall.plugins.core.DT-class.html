@@ -63,17 +63,17 @@
 <h1 class="epydoc">Class DT</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.core-pysrc.html#DT">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_dt" name="class_hierarchy_for_dt">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
-<area shape="rect" id="node2" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
-<area shape="rect" id="node3" href="rekall.plugins.core.DT-class.html" title="DT" alt="" coords="53,117,91,144"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
+<area shape="rect" id="node2" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.core.DT-class.html" title="DT" alt="" coords="53,113,89,135"/>
 </map>
   <img src="class_hierarchy_for_dt.gif" alt='' usemap="#class_hierarchy_for_dt" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
-<p>Print a symbol.</p>
-  <p>Really just a convenience function for instantiating the object over 
-  the dummy address space.</p>
+<p>Print a struct or other symbol.</p>
+  <p>Really just a convenience function for instantiating the object and 
+  printing all its members.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -118,11 +118,30 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.core.DT-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">target</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">offset</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">address_space</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Prints an object to the screen.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DT.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_Struct"></a><span class="summary-sig-name">render_Struct</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>,
+        <span class="summary-sig-arg">struct</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DT.render_Struct">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -141,6 +160,24 @@
       Produce results on the renderer given.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DT.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -196,7 +233,6 @@
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
       <code>__sizeof__</code>,
       <code>__subclasshook__</code>
@@ -315,14 +351,22 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="PROFILE_REQUIRED"></a><span class="summary-name">PROFILE_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
- 'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
+ 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
+nCommand'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -331,15 +375,24 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'address_resolver': &lt;class 'rekall.plugins.windows.address_resolver.P\
-EAddressResolver'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+ 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
+uxAddressResolver'&gt;,
+ 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
  'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
 AnalyzeStruct'&gt;,
  'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="error_status"></a><span class="summary-name">error_status</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -427,7 +480,8 @@ AnalyzeStruct'&gt;,
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">target</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">profile</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">offset</span>=<span class="sig-default">0</span>,
+        <span class="sig-arg">address_space</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -560,7 +614,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:46 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:31 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

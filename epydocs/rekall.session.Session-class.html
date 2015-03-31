@@ -62,9 +62,9 @@
 <h1 class="epydoc">Class Session</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.session-pysrc.html#Session">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_session" name="class_hierarchy_for_session">
-<area shape="rect" id="node1" href="rekall.session.InteractiveSession-class.html" title="InteractiveSession" alt="" coords="19,117,125,144"/>
-<area shape="rect" id="node2" href="rekall.session.JsonSerializableSession-class.html" title="JsonSerializableSession" alt="" coords="5,61,139,88"/>
-<area shape="rect" id="node3" href="rekall.session.Session-class.html" title="Session" alt="" coords="43,5,101,32"/>
+<area shape="rect" id="node1" href="rekall.session.InteractiveSession-class.html" title="InteractiveSession" alt="" coords="18,113,125,135"/>
+<area shape="rect" id="node2" href="rekall.session.JsonSerializableSession-class.html" title="JsonSerializableSession" alt="" coords="5,59,139,82"/>
+<area shape="rect" id="node3" href="rekall.session.Session-class.html" title="Session" alt="" coords="43,6,100,29"/>
 </map>
   <img src="class_hierarchy_for_session.gif" alt='' usemap="#class_hierarchy_for_session" ismap="ismap" class="graph-without-title" />
 </center>
@@ -181,45 +181,29 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#UpdateFromConfigObject" class="summary-sig-name">UpdateFromConfigObject</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      This method is called whenever the config object was updated.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateFromConfigObject">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#UpdateRunners" class="summary-sig-name">UpdateRunners</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Updates the plugins container with active plugins.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateRunners">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="__getattr__"></a><span class="summary-sig-name">__getattr__</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">attr</span>)</span><br />
       This will only get called if the attribute does not exist.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.__getattr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#HasParameter" class="summary-sig-name">HasParameter</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Returns if the session has the specified parameter set.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.HasParameter">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -252,9 +236,29 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="SetParameter"></a><span class="summary-sig-name">SetParameter</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="SetCache"></a><span class="summary-sig-name">SetCache</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
-        <span class="summary-sig-arg">value</span>)</span></td>
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Store something in the cache.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.SetCache">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#SetParameter" class="summary-sig-name">SetParameter</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Sets a session parameter.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.SetParameter">source&nbsp;code</a></span>
             
@@ -291,9 +295,9 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.session.Session-class.html#LoadProfile" class="summary-sig-name">LoadProfile</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">use_cache</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Try to load a profile directly from a filename.</td>
+      Try to load a profile directly by its name.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.LoadProfile">source&nbsp;code</a></span>
             
@@ -349,6 +353,23 @@
       Get a renderer for this session.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.GetRenderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="clone"></a><span class="summary-sig-name">clone</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.clone">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -463,6 +484,22 @@ sion'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.session.Session-class.html#repository_managers" class="summary-name">repository_managers</a><br />
+      The IO managers that are used to fetch profiles from the profile 
+      repository.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#default_address_space" class="summary-name">default_address_space</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.session.Session-class.html#address_resolver" class="summary-name">address_resolver</a><br />
       A convenience accessor for the address resolver implementation.
     </td>
@@ -516,43 +553,23 @@ sion'&gt;,
   </dl>
 </td></tr></table>
 </div>
-<a name="UpdateFromConfigObject"></a>
+<a name="HasParameter"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">UpdateFromConfigObject</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">HasParameter</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">item</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateFromConfigObject">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.session-pysrc.html#Session.HasParameter">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>This method is called whenever the config object was updated.</p>
-  <p>We are expected to re-check the config and re-initialize this 
-  session.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="UpdateRunners"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">UpdateRunners</span>(<span class="sig-arg">self</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.session-pysrc.html#Session.UpdateRunners">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Updates the plugins container with active plugins.</p>
-  <p>Active plugins may change based on the profile/filename etc.</p>
+  <p>Returns if the session has the specified parameter set.</p>
+  <p>If False, a call to GetParameter() might trigger autodetection.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -584,6 +601,31 @@ sion'&gt;,
   example through the GUI or the command line. Therefore when resolving a 
   parameter, we first check in the state, and only if the parameter does 
   not exist, we check the cache.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="SetParameter"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">SetParameter</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">item</span>,
+        <span class="sig-arg">value</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.session-pysrc.html#Session.SetParameter">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Sets a session parameter.</p>
+  <p>NOTE! This method should only be used for setting user provided data. 
+  It must not be used to set cached data - use SetCache() instead. 
+  Parameters set with this method are not cleared as part of 
+  session.Reset() and are copied to cloned sessions.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -628,7 +670,7 @@ Args:
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">LoadProfile</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">filename</span>,
+        <span class="sig-arg">name</span>,
         <span class="sig-arg">use_cache</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -637,12 +679,13 @@ Args:
   </tr></table>
   
   <pre class="literalblock">
-Try to load a profile directly from a filename.
+Try to load a profile directly by its name.
 
 Args:
-  filename: A string which will be used to get an io_manager
-    container. If it contains a path sepearator we open the file
-    directly, otherwise we search in the profile_path specification.
+
+  name: A string which represents the canonical name for the profile. We
+      ask all repositories in the repository_path to resolve this name
+      into a profile.
 
 Returns:
   a Profile() instance or a NoneObject()
@@ -732,6 +775,37 @@ sion'&gt;<code class="variable-op">,</code>
     <span class="table-header">Property Details</span></td>
 </tr>
 </table>
+<a name="repository_managers"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">repository_managers</h3>
+  <p>The IO managers that are used to fetch profiles from the profile 
+  repository.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.repository_managers(<span class="summary-sig-arg">self</span>)</span>
+        - The IO managers that are used to fetch profiles from the profile 
+repository.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="default_address_space"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">default_address_space</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.default_address_space(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="address_resolver"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -800,7 +874,7 @@ sion'&gt;<code class="variable-op">,</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:03 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:59 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

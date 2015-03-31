@@ -64,13 +64,13 @@
 <h1 class="epydoc">Class PEAddressResolver</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEAddressResolver">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_peaddressr" name="class_hierarchy_for_peaddressr">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
-<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="163,61,285,88"/>
-<area shape="rect" id="node7" href="rekall.plugins.windows.address_resolver.PECommandPlugin-class.html" title="PECommandPlugin" alt="" coords="167,117,281,144"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="309,61,437,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html" title="common.address_resolver.AddressResolverMixin" alt="" coords="305,117,561,144"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html" title="PEAddressResolver" alt="" coords="269,173,387,200"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
+<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="163,59,285,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.address_resolver.PECommandPlugin-class.html" title="PECommandPlugin" alt="" coords="167,113,281,135"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="310,59,439,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html" title="common.address_resolver.AddressResolverMixin" alt="" coords="305,113,561,135"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html" title="PEAddressResolver" alt="" coords="269,166,385,189"/>
 </map>
   <img src="class_hierarchy_for_peaddressr.gif" alt='' usemap="#class_hierarchy_for_peaddressr" ismap="ismap" class="graph-without-title" />
 </center>
@@ -208,6 +208,41 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html#search_symbol" class="summary-sig-name">search_symbol</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pattern</span>)</span><br />
+      Searches symbols for the pattern.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEAddressResolver.search_symbol">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Render into a string using the text renderer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEAddressResolver.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#FindContainingModule" class="summary-sig-name">FindContainingModule</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">address</span>)</span><br />
       Finds the name of the module containing the specified address.
@@ -227,11 +262,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Render into a string using the text renderer.
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__str__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -317,25 +352,6 @@
       
     </td>
   </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#search_symbol" class="summary-sig-name">search_symbol</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pattern</span>)</span><br />
-      Searches symbols for the pattern.
-      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.search_symbol">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -346,7 +362,6 @@
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
       <code>__sizeof__</code>,
       <code>__subclasshook__</code>
@@ -467,9 +482,25 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#ADDRESS_NAME_REGEX" class="summary-name">ADDRESS_NAME_REGEX</a> = <code title="re.compile(r'(?P&lt;deref&gt;\*)?((?P&lt;address&gt;0x[0-9A-Fa-f]+)|(?P&lt;module&gt;[A-\
-Za-z_0-9\.]+)!?(?P&lt;symbol&gt;[^ \+-]+)?)(?P&lt;op&gt; *[\+-] *)?(?P&lt;offset&gt;[0-9\
-a-fA-Fx]+)?')">re.compile(r'<code class="re-group">(?P&lt;</code><code class="re-ref">deref</code><code class="re-group">&gt;</code>\*<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(</code><code class="re-group">(?P&lt;</code><code class="re-ref">address</code><code class="re-group">&gt;</code>0<code class="variable-ellipsis">...</code></code>
+Za-z_0-9\.\\]+)!?(?P&lt;symbol&gt;[^ \+-]+)?)(?P&lt;op&gt; *[\+-] *)?(?P&lt;offset&gt;[0\
+-9a-fA-Fx]+)?')">re.compile(r'<code class="re-group">(?P&lt;</code><code class="re-ref">deref</code><code class="re-group">&gt;</code>\*<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(</code><code class="re-group">(?P&lt;</code><code class="re-ref">address</code><code class="re-group">&gt;</code>0<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PHYSICAL_AS_REQUIRED"></a><span class="summary-name">PHYSICAL_AS_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.PhysicalASMixin-class.html">rekall.plugin.PhysicalASMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PROFILE_REQUIRED"></a><span class="summary-name">PROFILE_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em>
     </td>
   </tr>
 <tr>
@@ -482,8 +513,8 @@ nalyzeStruct'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
- 'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
+ 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
+nCommand'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -492,15 +523,24 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'address_resolver': &lt;class 'rekall.plugins.windows.address_resolver.P\
-EAddressResolver'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+ 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
+uxAddressResolver'&gt;,
+ 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
  'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
 AnalyzeStruct'&gt;,
  'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="error_status"></a><span class="summary-name">error_status</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -516,7 +556,8 @@ AnalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="name"></a><span class="summary-name">name</span> = <code title="'address_resolver'"><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code></code>
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'address_resolver'"><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code></code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em>
     </td>
   </tr>
@@ -657,6 +698,57 @@ AnalyzeStruct'&gt;,
   </dl>
 </td></tr></table>
 </div>
+<a name="search_symbol"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">search_symbol</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">pattern</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEAddressResolver.search_symbol">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Searches symbols for the pattern.</p>
+  <p>pattern may contain wild cards (*). Note that currently a module name 
+  is required. Example pattern:</p>
+  <p>nt!Ps*</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#search_symbol">common.address_resolver.AddressResolverMixin.search_symbol</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEAddressResolver.__str__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Render into a string using the text renderer.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__str__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="ImplementationByClass"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -737,7 +829,7 @@ AnalyzeStruct'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:56 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:48 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

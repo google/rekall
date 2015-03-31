@@ -282,11 +282,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#win7_x86_dynamic_overlays" class="summary-name">win7_x86_dynamic_overlays</a> = <code title="{'_TCP_LISTENER': [None,
-                   {'CreateTime': [&lt;function offset_cb at 0x33e7758&gt;,
-                                   ['WinFileTime', {}]],
-                    'Owner': [&lt;function offset_cb at 0x33e76e0&gt;,
-                              ['Pointer', {'target': '_EPROCESS'}]]}]}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_LISTENER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateT</code><code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugins.overlays.windows.tcpip_vtypes-module.html#win7_x86_dynamic_overlays" class="summary-name">win7_x86_dynamic_overlays</a> = <code title="{'_TCP_LISTENER': {'CreateTime': [['Disassembler',
+                                   {'length': 300,
+                                    'rules': ['LEA EAX, [EBX+$out]',
+                                              'PUSH EAX',
+                                              'CALL DWORD *KeQuerySyst\
+emTime'],
+                                    'start': 'tcpip.sys!_TcpCreateList\
+ener@8',
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_LISTENER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -576,11 +580,15 @@
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_LISTENER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
-                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;function offset_cb at 0x33e7758&gt;<code class="variable-op">,</code>
-                                   <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">WinFileTime</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                    <code class="variable-quote">'</code><code class="variable-string">Owner</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;function offset_cb at 0x33e76e0&gt;<code class="variable-op">,</code>
-                              <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">}</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">_TCP_LISTENER</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CreateTime</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Disassembler</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code>300<code class="variable-op">,</code>
+                                    <code class="variable-quote">'</code><code class="variable-string">rules</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">LEA EAX, [EBX+$out]</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                              <code class="variable-quote">'</code><code class="variable-string">PUSH EAX</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                              <code class="variable-quote">'</code><code class="variable-string">CALL DWORD *KeQuerySyst</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">emTime</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                                    <code class="variable-quote">'</code><code class="variable-string">start</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">tcpip.sys!_TcpCreateList</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">ener@8</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -618,7 +626,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

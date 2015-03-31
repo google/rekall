@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.renderers.tests</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.renderers-module.html">Package&nbsp;renderers</a> ::
+        Module&nbsp;tests
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.renderers.tests-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.renderers.tests-module.html">Module rekall.plugins.renderers.tests</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">1</tt>  <tt class="py-line"><tt class="py-comment"># pylint: disable=unused-import</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.renderers=rekall.plugins.renderers-module.html,Variable rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers=rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Dependency_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers=rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Entity_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Identity_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Query_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers=rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers=rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers=rekall.plugins.renderers.windows.UNICODE_STRING_Text-class.html#renderers,Variable rekall.plugins.renderers.xls.XLSObjectRenderer.renderers=rekall.plugins.renderers.xls.XLSObjectRenderer-class.html#renderers,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#renderers,Variable rekall.ui.json_renderer.JsonObjectRenderer.renderers=rekall.ui.json_renderer.JsonObjectRenderer-class.html#renderers,Variable rekall.ui.renderer.ObjectRenderer.renderers=rekall.ui.renderer.ObjectRenderer-class.html#renderers,Variable rekall.ui.text.TextObjectRenderer.renderers=rekall.ui.text.TextObjectRenderer-class.html#renderers"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-2', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.plugins.renderers.visual_aides_test=rekall.plugins.renderers.visual_aides_test-module.html"><a title="rekall.plugins.renderers.visual_aides_test" class="py-name" href="#" onclick="return doclink('link-3', 'visual_aides_test', 'link-3');">visual_aides_test</a></tt> </tt>
+<a name="L3"></a><tt class="py-lineno">3</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:04 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

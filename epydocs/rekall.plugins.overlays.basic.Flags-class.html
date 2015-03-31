@@ -64,12 +64,12 @@
 <h1 class="epydoc">Class Flags</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_flags" name="class_hierarchy_for_flags">
-<area shape="rect" id="node1" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="51,5,144,32"/>
-<area shape="rect" id="node2" href="rekall.obj.NativeType-class.html" title="obj.NativeType" alt="" coords="119,61,212,88"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.basic.Flags-class.html" title="Flags" alt="" coords="141,117,189,144"/>
-<area shape="rect" id="node3" href="rekall.obj.NumericProxyMixIn-class.html" title="obj.NumericProxyMixIn" alt="" coords="168,5,299,32"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.linux.linux.InodePermission-class.html" title="linux.linux.InodePermission" alt="" coords="5,173,155,200"/>
-<area shape="rect" id="node6" href="rekall.plugins.overlays.linux.linux.PermissionFlags-class.html" title="linux.linux.PermissionFlags" alt="" coords="179,173,325,200"/>
+<area shape="rect" id="node1" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="52,6,145,29"/>
+<area shape="rect" id="node2" href="rekall.obj.NativeType-class.html" title="obj.NativeType" alt="" coords="120,59,213,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.basic.Flags-class.html" title="Flags" alt="" coords="143,113,191,135"/>
+<area shape="rect" id="node3" href="rekall.obj.NumericProxyMixIn-class.html" title="obj.NumericProxyMixIn" alt="" coords="169,6,299,29"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.linux.linux.InodePermission-class.html" title="linux.linux.InodePermission" alt="" coords="5,166,153,189"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.linux.linux.PermissionFlags-class.html" title="linux.linux.PermissionFlags" alt="" coords="179,166,327,189"/>
 </map>
   <img src="class_hierarchy_for_flags.gif" alt='' usemap="#class_hierarchy_for_flags" ismap="ismap" class="graph-without-title" />
 </center>
@@ -149,9 +149,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.Flags-class.html#__unicode__" class="summary-sig-name">__unicode__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.Flags-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags.__unicode__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -165,10 +166,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.Flags-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      repr(x)</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.Flags-class.html#write" class="summary-sig-name">write</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Writes the data back into the address space</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags.__repr__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags.write">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1104,6 +1106,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.__unicode__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="__xor__"></a><span class="summary-sig-name">__xor__</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">*args</span>,
         <span class="summary-sig-arg">**kw</span>)</span>
@@ -1197,6 +1216,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="get_text_renderer"></a><span class="summary-sig-name">get_text_renderer</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.get_text_renderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="is_valid"></a><span class="summary-sig-name">is_valid</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
@@ -1254,25 +1290,6 @@
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.reference">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.NativeType-class.html#write" class="summary-sig-name">write</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">data</span>)</span><br />
-      Writes the data back into the address space
-      <em>(Inherited from <a href="rekall.obj.NativeType-class.html">rekall.obj.NativeType</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#NativeType.write">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1341,6 +1358,15 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.overlays.basic.Flags-class.html#obj_size" class="summary-name">obj_size</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.BaseObject-class.html#indices" class="summary-name">indices</a><br />
+      Returns (usually 1) representation(s) of self usable as dict keys.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
     </td>
   </tr>
 <tr>
@@ -1459,28 +1485,6 @@ Args:
   </dl>
 </td></tr></table>
 </div>
-<a name="__unicode__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__unicode__</span>(<span class="sig-arg">self</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags.__unicode__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.obj.BaseObject-class.html#__unicode__">obj.BaseObject.__unicode__</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="__repr__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1500,6 +1504,30 @@ Args:
   <dl class="fields">
     <dt>Overrides:
         object.__repr__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="write"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">write</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#Flags.write">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Writes the data back into the address space</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.obj.BaseObject-class.html#write">obj.BaseObject.write</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -1561,7 +1589,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:50 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:38 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

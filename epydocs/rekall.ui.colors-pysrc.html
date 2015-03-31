@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.ui.colors</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.ui-module.html">Package&nbsp;ui</a> ::
+        Module&nbsp;colors
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.ui.colors-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.ui.colors-module.html">Module rekall.ui.colors</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2015 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">Various functions for handling colors. Used mainly for visualizing output</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">of plugins with heatmaps (for now).</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">Most of the code below is made to match this color chart:</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">http://en.wikipedia.org/wiki/File:Xterm_256color_chart.svg</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">The colorspace conversions are thin wrappers around colorsys, except for</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-docstring">the code to handle XTerm colors, which is my own work.</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">colorsys</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="ArbitraryStepFunction"></a><div id="ArbitraryStepFunction-def"><a name="L35"></a><tt class="py-lineno"> 35</tt> <a class="py-toggle" href="#" id="ArbitraryStepFunction-toggle" onclick="return toggle('ArbitraryStepFunction');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#ArbitraryStepFunction">ArbitraryStepFunction</a><tt class="py-op">(</tt><tt class="py-param">value</tt><tt class="py-op">,</tt> <tt class="py-param">steps</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ArbitraryStepFunction-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ArbitraryStepFunction-expanded"><a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">    <tt class="py-keyword">for</tt> <tt class="py-name">step</tt><tt class="py-op">,</tt> <tt class="py-name">ceiling</tt> <tt class="py-keyword">in</tt> <tt class="py-name">enumerate</tt><tt class="py-op">(</tt><tt class="py-name">steps</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt id="link-0" class="py-name" targets="Class int=int-class.html"><a title="int" class="py-name" href="#" onclick="return doclink('link-0', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt id="link-1" class="py-name" targets="Variable rekall.entities.query.expression.ValueExpression.value=rekall.entities.query.expression.ValueExpression-class.html#value"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-1', 'value', 'link-1');">value</a></tt><tt class="py-op">)</tt> <tt class="py-op">&lt;=</tt> <tt class="py-name">ceiling</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">step</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt class="py-keyword">raise</tt> <tt class="py-name">ValueError</tt><tt class="py-op">(</tt><tt class="py-string">"Maximum value of %d exceeded with %d."</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">steps</tt><tt class="py-op">[</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">                                                                <tt id="link-2" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-2', 'value', 'link-1');">value</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable rekall.ui.colors.XTERM16=rekall.ui.colors-module.html#XTERM16"><a title="rekall.ui.colors.XTERM16" class="py-name" href="#" onclick="return doclink('link-3', 'XTERM16', 'link-3');">XTERM16</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">           <tt class="py-op">(</tt><tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">           <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0xc0</tt><tt class="py-op">,</tt> <tt class="py-number">0xc0</tt><tt class="py-op">,</tt> <tt class="py-number">0xc0</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">,</tt> <tt class="py-number">0x80</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">           <tt class="py-op">(</tt><tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">           <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-number">0x00</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">           <tt class="py-op">(</tt><tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"><tt class="py-string">"""XTerm has 16 special colors, as listed above."""</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt id="link-4" class="py-name" targets="Variable rekall.ui.colors.XTERM_CHANNEL_STEPS=rekall.ui.colors-module.html#XTERM_CHANNEL_STEPS"><a title="rekall.ui.colors.XTERM_CHANNEL_STEPS" class="py-name" href="#" onclick="return doclink('link-4', 'XTERM_CHANNEL_STEPS', 'link-4');">XTERM_CHANNEL_STEPS</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0x5f</tt><tt class="py-op">,</tt> <tt class="py-number">0x87</tt><tt class="py-op">,</tt> <tt class="py-number">0xaf</tt><tt class="py-op">,</tt> <tt class="py-number">0xd7</tt><tt class="py-op">,</tt> <tt class="py-number">0xff</tt><tt class="py-op">]</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-string">"""XTerm color space is sparse at low luminosity."""</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
+<a name="ChannelStepFunction"></a><div id="ChannelStepFunction-def"><a name="L57"></a><tt class="py-lineno"> 57</tt> <a class="py-toggle" href="#" id="ChannelStepFunction-toggle" onclick="return toggle('ChannelStepFunction');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#ChannelStepFunction">ChannelStepFunction</a><tt class="py-op">(</tt><tt class="py-param">intensity</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ChannelStepFunction-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="ChannelStepFunction-expanded"><a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-5" class="py-name" targets="Function rekall.ui.colors.ArbitraryStepFunction()=rekall.ui.colors-module.html#ArbitraryStepFunction"><a title="rekall.ui.colors.ArbitraryStepFunction" class="py-name" href="#" onclick="return doclink('link-5', 'ArbitraryStepFunction', 'link-5');">ArbitraryStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">intensity</tt><tt class="py-op">,</tt> <tt id="link-6" class="py-name"><a title="rekall.ui.colors.XTERM_CHANNEL_STEPS" class="py-name" href="#" onclick="return doclink('link-6', 'XTERM_CHANNEL_STEPS', 'link-4');">XTERM_CHANNEL_STEPS</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"> </tt>
+<a name="GreyscaleStepFunction"></a><div id="GreyscaleStepFunction-def"><a name="L61"></a><tt class="py-lineno"> 61</tt> <a class="py-toggle" href="#" id="GreyscaleStepFunction-toggle" onclick="return toggle('GreyscaleStepFunction');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#GreyscaleStepFunction">GreyscaleStepFunction</a><tt class="py-op">(</tt><tt class="py-param">intensity</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GreyscaleStepFunction-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="GreyscaleStepFunction-expanded"><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-7" class="py-name"><a title="rekall.ui.colors.ArbitraryStepFunction" class="py-name" href="#" onclick="return doclink('link-7', 'ArbitraryStepFunction', 'link-5');">ArbitraryStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">intensity</tt><tt class="py-op">,</tt> <tt class="py-name">xrange</tt><tt class="py-op">(</tt><tt class="py-number">0x8</tt><tt class="py-op">,</tt> <tt class="py-number">0xef</tt><tt class="py-op">,</tt> <tt class="py-number">0xa</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-comment"># Color-space conversions:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"> </tt>
+<a name="RGBToXTerm"></a><div id="RGBToXTerm-def"><a name="L68"></a><tt class="py-lineno"> 68</tt> <a class="py-toggle" href="#" id="RGBToXTerm-toggle" onclick="return toggle('RGBToXTerm');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#RGBToXTerm">RGBToXTerm</a><tt class="py-op">(</tt><tt class="py-param">red</tt><tt class="py-op">,</tt> <tt class="py-param">green</tt><tt class="py-op">,</tt> <tt class="py-param">blue</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RGBToXTerm-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RGBToXTerm-expanded"><a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">    <tt class="py-docstring">"""Convert RGB values (0-255) to the closes XTerm color."""</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">    <tt class="py-name">sred</tt> <tt class="py-op">=</tt> <tt id="link-8" class="py-name" targets="Function rekall.ui.colors.ChannelStepFunction()=rekall.ui.colors-module.html#ChannelStepFunction"><a title="rekall.ui.colors.ChannelStepFunction" class="py-name" href="#" onclick="return doclink('link-8', 'ChannelStepFunction', 'link-8');">ChannelStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">red</tt><tt class="py-op">)</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">    <tt class="py-name">sgreen</tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="rekall.ui.colors.ChannelStepFunction" class="py-name" href="#" onclick="return doclink('link-9', 'ChannelStepFunction', 'link-8');">ChannelStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">green</tt><tt class="py-op">)</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">    <tt class="py-name">sblue</tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name"><a title="rekall.ui.colors.ChannelStepFunction" class="py-name" href="#" onclick="return doclink('link-10', 'ChannelStepFunction', 'link-8');">ChannelStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">blue</tt><tt class="py-op">)</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">    <tt class="py-comment"># Greyscale starts at xterm 232 and has 12 shades. Black and white are part</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">    <tt class="py-comment"># of the 16-color range at the base of the spectrum.</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">sred</tt> <tt class="py-op">==</tt> <tt class="py-name">sgreen</tt> <tt class="py-op">==</tt> <tt class="py-name">sblue</tt><tt class="py-op">:</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-name">avg</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">red</tt> <tt class="py-op">+</tt> <tt class="py-name">green</tt> <tt class="py-op">+</tt> <tt class="py-name">blue</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">3</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">avg</tt> <tt class="py-op">&lt;</tt> <tt class="py-number">0x8</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-number">0</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">avg</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0xee</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-number">15</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-number">232</tt> <tt class="py-op">+</tt> <tt id="link-11" class="py-name" targets="Function rekall.ui.colors.GreyscaleStepFunction()=rekall.ui.colors-module.html#GreyscaleStepFunction"><a title="rekall.ui.colors.GreyscaleStepFunction" class="py-name" href="#" onclick="return doclink('link-11', 'GreyscaleStepFunction', 'link-11');">GreyscaleStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">avg</tt><tt class="py-op">)</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-number">16</tt>  <tt class="py-comment"># base offset</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-op">+</tt> <tt id="link-12" class="py-name"><a title="rekall.ui.colors.ChannelStepFunction" class="py-name" href="#" onclick="return doclink('link-12', 'ChannelStepFunction', 'link-8');">ChannelStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">blue</tt><tt class="py-op">)</tt>  <tt class="py-comment"># Blue increases in the inner loop.</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">            <tt class="py-op">+</tt> <tt id="link-13" class="py-name"><a title="rekall.ui.colors.ChannelStepFunction" class="py-name" href="#" onclick="return doclink('link-13', 'ChannelStepFunction', 'link-8');">ChannelStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">green</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-number">6</tt>  <tt class="py-comment"># Green increases in the middle.</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">            <tt class="py-op">+</tt> <tt id="link-14" class="py-name"><a title="rekall.ui.colors.ChannelStepFunction" class="py-name" href="#" onclick="return doclink('link-14', 'ChannelStepFunction', 'link-8');">ChannelStepFunction</a></tt><tt class="py-op">(</tt><tt class="py-name">red</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-number">6</tt> <tt class="py-op">**</tt> <tt class="py-number">2</tt><tt class="py-op">)</tt>  <tt class="py-comment"># Outer loop for red.</tt> </tt>
+</div><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="XTermToRGB"></a><div id="XTermToRGB-def"><a name="L91"></a><tt class="py-lineno"> 91</tt> <a class="py-toggle" href="#" id="XTermToRGB-toggle" onclick="return toggle('XTermToRGB');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#XTermToRGB">XTermToRGB</a><tt class="py-op">(</tt><tt class="py-param">xterm</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="XTermToRGB-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="XTermToRGB-expanded"><a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">    <tt class="py-docstring">"""Convert the XTerm color (0-255) to an RGB equivalent."""</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">xterm</tt> <tt class="py-op">&lt;</tt> <tt class="py-number">16</tt><tt class="py-op">:</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-15" class="py-name"><a title="rekall.ui.colors.XTERM16" class="py-name" href="#" onclick="return doclink('link-15', 'XTERM16', 'link-3');">XTERM16</a></tt><tt class="py-op">[</tt><tt class="py-name">xterm</tt><tt class="py-op">]</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt class="py-name">xterm</tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">232</tt><tt class="py-op">:</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-comment"># Greyscale</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">        <tt id="link-16" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-16', 'value', 'link-1');">value</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-name">xterm</tt> <tt class="py-op">-</tt> <tt class="py-number">231</tt><tt class="py-op">)</tt> <tt class="py-op">*</tt> <tt class="py-number">0x08</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-17" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-17', 'value', 'link-1');">value</a></tt><tt class="py-op">,</tt> <tt id="link-18" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-18', 'value', 'link-1');">value</a></tt><tt class="py-op">,</tt> <tt id="link-19" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-19', 'value', 'link-1');">value</a></tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">    <tt class="py-name">xterm</tt> <tt class="py-op">-=</tt> <tt class="py-number">16</tt>  <tt class="py-comment"># Base of 256-color space.</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">    <tt class="py-name">red</tt><tt class="py-op">,</tt> <tt class="py-name">r</tt> <tt class="py-op">=</tt> <tt class="py-name">divmod</tt><tt class="py-op">(</tt><tt class="py-name">xterm</tt><tt class="py-op">,</tt> <tt class="py-number">6</tt> <tt class="py-op">**</tt> <tt class="py-number">2</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">    <tt class="py-name">green</tt><tt class="py-op">,</tt> <tt class="py-name">blue</tt> <tt class="py-op">=</tt> <tt class="py-name">divmod</tt><tt class="py-op">(</tt><tt class="py-name">r</tt><tt class="py-op">,</tt> <tt class="py-number">6</tt><tt class="py-op">)</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt id="link-20" class="py-name"><a title="rekall.ui.colors.XTERM_CHANNEL_STEPS" class="py-name" href="#" onclick="return doclink('link-20', 'XTERM_CHANNEL_STEPS', 'link-4');">XTERM_CHANNEL_STEPS</a></tt><tt class="py-op">[</tt><tt class="py-name">red</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt id="link-21" class="py-name"><a title="rekall.ui.colors.XTERM_CHANNEL_STEPS" class="py-name" href="#" onclick="return doclink('link-21', 'XTERM_CHANNEL_STEPS', 'link-4');">XTERM_CHANNEL_STEPS</a></tt><tt class="py-op">[</tt><tt class="py-name">green</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt id="link-22" class="py-name"><a title="rekall.ui.colors.XTERM_CHANNEL_STEPS" class="py-name" href="#" onclick="return doclink('link-22', 'XTERM_CHANNEL_STEPS', 'link-4');">XTERM_CHANNEL_STEPS</a></tt><tt class="py-op">[</tt><tt class="py-name">blue</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="RGBToHSL"></a><div id="RGBToHSL-def"><a name="L110"></a><tt class="py-lineno">110</tt> <a class="py-toggle" href="#" id="RGBToHSL-toggle" onclick="return toggle('RGBToHSL');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#RGBToHSL">RGBToHSL</a><tt class="py-op">(</tt><tt class="py-param">red</tt><tt class="py-op">,</tt> <tt class="py-param">green</tt><tt class="py-op">,</tt> <tt class="py-param">blue</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RGBToHSL-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RGBToHSL-expanded"><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">    <tt class="py-name">hue</tt><tt class="py-op">,</tt> <tt class="py-name">luminosity</tt><tt class="py-op">,</tt> <tt class="py-name">saturation</tt> <tt class="py-op">=</tt> <tt class="py-name">colorsys</tt><tt class="py-op">.</tt><tt class="py-name">rgb_to_hls</tt><tt class="py-op">(</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">        <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">red</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">green</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">blue</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">hue</tt><tt class="py-op">,</tt> <tt class="py-name">saturation</tt><tt class="py-op">,</tt> <tt class="py-name">luminosity</tt> </tt>
+</div><a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"> </tt>
+<a name="RGBToYIQ"></a><div id="RGBToYIQ-def"><a name="L117"></a><tt class="py-lineno">117</tt> <a class="py-toggle" href="#" id="RGBToYIQ-toggle" onclick="return toggle('RGBToYIQ');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#RGBToYIQ">RGBToYIQ</a><tt class="py-op">(</tt><tt class="py-param">red</tt><tt class="py-op">,</tt> <tt class="py-param">green</tt><tt class="py-op">,</tt> <tt class="py-param">blue</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RGBToYIQ-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RGBToYIQ-expanded"><a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">colorsys</tt><tt class="py-op">.</tt><tt class="py-name">rgb_to_yiq</tt><tt class="py-op">(</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">red</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">green</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">0xff</tt><tt class="py-op">,</tt> <tt class="py-name">float</tt><tt class="py-op">(</tt><tt class="py-name">blue</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"> </tt>
+<a name="HSLToRGB"></a><div id="HSLToRGB-def"><a name="L122"></a><tt class="py-lineno">122</tt> <a class="py-toggle" href="#" id="HSLToRGB-toggle" onclick="return toggle('HSLToRGB');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#HSLToRGB">HSLToRGB</a><tt class="py-op">(</tt><tt class="py-param">hue</tt><tt class="py-op">,</tt> <tt class="py-param">saturation</tt><tt class="py-op">,</tt> <tt class="py-param">luminosity</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="HSLToRGB-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="HSLToRGB-expanded"><a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">    <tt class="py-name">red</tt><tt class="py-op">,</tt> <tt class="py-name">green</tt><tt class="py-op">,</tt> <tt class="py-name">blue</tt> <tt class="py-op">=</tt> <tt class="py-name">colorsys</tt><tt class="py-op">.</tt><tt class="py-name">hls_to_rgb</tt><tt class="py-op">(</tt><tt class="py-name">hue</tt><tt class="py-op">,</tt> <tt class="py-name">luminosity</tt><tt class="py-op">,</tt> <tt class="py-name">saturation</tt><tt class="py-op">)</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-23" class="py-name"><a title="int" class="py-name" href="#" onclick="return doclink('link-23', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt class="py-name">red</tt> <tt class="py-op">*</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-24" class="py-name"><a title="int" class="py-name" href="#" onclick="return doclink('link-24', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt class="py-name">green</tt> <tt class="py-op">*</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-25" class="py-name"><a title="int" class="py-name" href="#" onclick="return doclink('link-25', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt class="py-name">blue</tt> <tt class="py-op">*</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"> </tt>
+<a name="YIQToRGB"></a><div id="YIQToRGB-def"><a name="L127"></a><tt class="py-lineno">127</tt> <a class="py-toggle" href="#" id="YIQToRGB-toggle" onclick="return toggle('YIQToRGB');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#YIQToRGB">YIQToRGB</a><tt class="py-op">(</tt><tt class="py-param">y</tt><tt class="py-op">,</tt> <tt class="py-param">i</tt><tt class="py-op">,</tt> <tt class="py-param">q</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="YIQToRGB-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="YIQToRGB-expanded"><a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">    <tt class="py-name">red</tt><tt class="py-op">,</tt> <tt class="py-name">green</tt><tt class="py-op">,</tt> <tt class="py-name">blue</tt> <tt class="py-op">=</tt> <tt class="py-name">colorsys</tt><tt class="py-op">.</tt><tt class="py-name">yiq_to_rgb</tt><tt class="py-op">(</tt><tt id="link-26" class="py-name" targets="Variable rekall.plugins.core.AddressMap.y=rekall.plugins.core.AddressMap-class.html#y"><a title="rekall.plugins.core.AddressMap.y" class="py-name" href="#" onclick="return doclink('link-26', 'y', 'link-26');">y</a></tt><tt class="py-op">,</tt> <tt id="link-27" class="py-name" targets="Variable rekall.plugins.darwin.WKdm.i=rekall.plugins.darwin.WKdm-module.html#i,Variable rekall.plugins.filesystems.lznt1.i=rekall.plugins.filesystems.lznt1-module.html#i,Variable rekall.ui.text.Colorizer.i=rekall.ui.text.Colorizer-class.html#i"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-27', 'i', 'link-27');">i</a></tt><tt class="py-op">,</tt> <tt class="py-name">q</tt><tt class="py-op">)</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-28" class="py-name"><a title="int" class="py-name" href="#" onclick="return doclink('link-28', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt class="py-name">red</tt> <tt class="py-op">*</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-29" class="py-name"><a title="int" class="py-name" href="#" onclick="return doclink('link-29', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt class="py-name">green</tt> <tt class="py-op">*</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt id="link-30" class="py-name"><a title="int" class="py-name" href="#" onclick="return doclink('link-30', 'int', 'link-0');">int</a></tt><tt class="py-op">(</tt><tt class="py-name">blue</tt> <tt class="py-op">*</tt> <tt class="py-number">0xff</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"><tt class="py-comment"># Text-color heuristics:</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="YIQTextForBackground"></a><div id="YIQTextForBackground-def"><a name="L135"></a><tt class="py-lineno">135</tt> <a class="py-toggle" href="#" id="YIQTextForBackground-toggle" onclick="return toggle('YIQTextForBackground');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#YIQTextForBackground">YIQTextForBackground</a><tt class="py-op">(</tt><tt class="py-param">y</tt><tt class="py-op">,</tt> <tt class="py-param">i</tt><tt class="py-op">,</tt> <tt class="py-param">q</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="YIQTextForBackground-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="YIQTextForBackground-expanded"><a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">    <tt class="py-docstring">"""Compute the foreground color, given the background color."""</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">    <tt class="py-comment"># Y is luma, which is basically the sum of gamma-adjusted RGB channels.</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">    <tt class="py-comment"># The Y channel is intentionally weighted towards the red end of the</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">    <tt class="py-comment"># spectrum and high luminosities; I and Q are chromatic channels and carry</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">    <tt class="py-comment"># no luminosity information.</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">    <tt class="py-comment"># Perceptually, white text on red background of equivalent luminosity</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">    <tt class="py-comment"># is more readable than white text on blue or green backgrounds, hence</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">    <tt class="py-comment"># the formula below. (For greyscale this is basically identical to</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">    <tt class="py-comment"># the HSL luminosity channel, using threshold of .5, because of the gamma</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">    <tt class="py-comment"># compression's nonlinearity.)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt id="link-31" class="py-name"><a title="rekall.plugins.core.AddressMap.y" class="py-name" href="#" onclick="return doclink('link-31', 'y', 'link-26');">y</a></tt> <tt class="py-op">*</tt> <tt class="py-number">2</tt> <tt class="py-op">-</tt> <tt id="link-32" class="py-name"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-32', 'i', 'link-27');">i</a></tt> <tt class="py-op">-</tt> <tt class="py-name">q</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">.8</tt> <tt class="py-keyword">else</tt> <tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"> </tt>
+<a name="RGBTextForBackground"></a><div id="RGBTextForBackground-def"><a name="L149"></a><tt class="py-lineno">149</tt> <a class="py-toggle" href="#" id="RGBTextForBackground-toggle" onclick="return toggle('RGBTextForBackground');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#RGBTextForBackground">RGBTextForBackground</a><tt class="py-op">(</tt><tt class="py-param">red</tt><tt class="py-op">,</tt> <tt class="py-param">green</tt><tt class="py-op">,</tt> <tt class="py-param">blue</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="RGBTextForBackground-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="RGBTextForBackground-expanded"><a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">    <tt class="py-docstring">"""Compute the foreground color, given the background color."""</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">    <tt class="py-name">hsl</tt> <tt class="py-op">=</tt> <tt id="link-33" class="py-name" targets="Function rekall.ui.colors.RGBToYIQ()=rekall.ui.colors-module.html#RGBToYIQ"><a title="rekall.ui.colors.RGBToYIQ" class="py-name" href="#" onclick="return doclink('link-33', 'RGBToYIQ', 'link-33');">RGBToYIQ</a></tt><tt class="py-op">(</tt><tt class="py-name">red</tt><tt class="py-op">,</tt> <tt class="py-name">green</tt><tt class="py-op">,</tt> <tt class="py-name">blue</tt><tt class="py-op">)</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">    <tt id="link-34" class="py-name" targets="Module rekall.ui.text=rekall.ui.text-module.html"><a title="rekall.ui.text" class="py-name" href="#" onclick="return doclink('link-34', 'text', 'link-34');">text</a></tt> <tt class="py-op">=</tt> <tt id="link-35" class="py-name" targets="Function rekall.ui.colors.YIQTextForBackground()=rekall.ui.colors-module.html#YIQTextForBackground"><a title="rekall.ui.colors.YIQTextForBackground" class="py-name" href="#" onclick="return doclink('link-35', 'YIQTextForBackground', 'link-35');">YIQTextForBackground</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">hsl</tt><tt class="py-op">)</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">    <tt class="py-name">r</tt><tt class="py-op">,</tt> <tt class="py-name">g</tt><tt class="py-op">,</tt> <tt class="py-name">b</tt> <tt class="py-op">=</tt> <tt id="link-36" class="py-name" targets="Function rekall.ui.colors.YIQToRGB()=rekall.ui.colors-module.html#YIQToRGB"><a title="rekall.ui.colors.YIQToRGB" class="py-name" href="#" onclick="return doclink('link-36', 'YIQToRGB', 'link-36');">YIQToRGB</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt id="link-37" class="py-name"><a title="rekall.ui.text" class="py-name" href="#" onclick="return doclink('link-37', 'text', 'link-34');">text</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">r</tt><tt class="py-op">,</tt> <tt class="py-name">g</tt><tt class="py-op">,</tt> <tt class="py-name">b</tt> </tt>
+</div><a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"> </tt>
+<a name="XTermTextForBackground"></a><div id="XTermTextForBackground-def"><a name="L157"></a><tt class="py-lineno">157</tt> <a class="py-toggle" href="#" id="XTermTextForBackground-toggle" onclick="return toggle('XTermTextForBackground');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#XTermTextForBackground">XTermTextForBackground</a><tt class="py-op">(</tt><tt class="py-param">xterm</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="XTermTextForBackground-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="XTermTextForBackground-expanded"><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">    <tt class="py-docstring">"""Compute the foreground color, given the background color."""</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">    <tt class="py-name">rgb</tt> <tt class="py-op">=</tt> <tt id="link-38" class="py-name" targets="Function rekall.ui.colors.XTermToRGB()=rekall.ui.colors-module.html#XTermToRGB"><a title="rekall.ui.colors.XTermToRGB" class="py-name" href="#" onclick="return doclink('link-38', 'XTermToRGB', 'link-38');">XTermToRGB</a></tt><tt class="py-op">(</tt><tt class="py-name">xterm</tt><tt class="py-op">)</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">    <tt class="py-name">fg</tt> <tt class="py-op">=</tt> <tt id="link-39" class="py-name" targets="Function rekall.ui.colors.RGBTextForBackground()=rekall.ui.colors-module.html#RGBTextForBackground"><a title="rekall.ui.colors.RGBTextForBackground" class="py-name" href="#" onclick="return doclink('link-39', 'RGBTextForBackground', 'link-39');">RGBTextForBackground</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">rgb</tt><tt class="py-op">)</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-40" class="py-name" targets="Function rekall.ui.colors.RGBToXTerm()=rekall.ui.colors-module.html#RGBToXTerm"><a title="rekall.ui.colors.RGBToXTerm" class="py-name" href="#" onclick="return doclink('link-40', 'RGBToXTerm', 'link-40');">RGBToXTerm</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">fg</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"><tt class="py-comment"># Functions to color heatmaps:</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"> </tt>
+<a name="BlendRGB"></a><div id="BlendRGB-def"><a name="L167"></a><tt class="py-lineno">167</tt> <a class="py-toggle" href="#" id="BlendRGB-toggle" onclick="return toggle('BlendRGB');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#BlendRGB">BlendRGB</a><tt class="py-op">(</tt><tt class="py-param">x</tt><tt class="py-op">,</tt> <tt class="py-param">y</tt><tt class="py-op">,</tt> <tt class="py-param">wx</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-param">wy</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="BlendRGB-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="BlendRGB-expanded"><a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">    <tt class="py-docstring">"""Blend RGB colors x and y, optionally using assigned weights wx and wy."""</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">    <tt class="py-name">t</tt> <tt class="py-op">=</tt> <tt class="py-name">wx</tt> <tt class="py-op">+</tt> <tt class="py-name">wy</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-op">(</tt><tt id="link-41" class="py-name" targets="Variable rekall.plugins.core.AddressMap.x=rekall.plugins.core.AddressMap-class.html#x,Variable rekall.plugins.filesystems.lznt1.x=rekall.plugins.filesystems.lznt1-module.html#x,Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-41', 'x', 'link-41');">x</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> <tt class="py-op">*</tt> <tt class="py-name">wx</tt> <tt class="py-op">+</tt> <tt id="link-42" class="py-name"><a title="rekall.plugins.core.AddressMap.y" class="py-name" href="#" onclick="return doclink('link-42', 'y', 'link-26');">y</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> <tt class="py-op">*</tt> <tt class="py-name">wy</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">t</tt><tt class="py-op">,</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt id="link-43" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-43', 'x', 'link-41');">x</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> <tt class="py-op">*</tt> <tt class="py-name">wx</tt> <tt class="py-op">+</tt> <tt id="link-44" class="py-name"><a title="rekall.plugins.core.AddressMap.y" class="py-name" href="#" onclick="return doclink('link-44', 'y', 'link-26');">y</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> <tt class="py-op">*</tt> <tt class="py-name">wy</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">t</tt><tt class="py-op">,</tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt id="link-45" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-45', 'x', 'link-41');">x</a></tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt> <tt class="py-op">*</tt> <tt class="py-name">wx</tt> <tt class="py-op">+</tt> <tt id="link-46" class="py-name"><a title="rekall.plugins.core.AddressMap.y" class="py-name" href="#" onclick="return doclink('link-46', 'y', 'link-26');">y</a></tt><tt class="py-op">[</tt><tt class="py-number">2</tt><tt class="py-op">]</tt> <tt class="py-op">*</tt> <tt class="py-name">wy</tt><tt class="py-op">)</tt> <tt class="py-op">/</tt> <tt class="py-name">t</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"> </tt>
+<a name="HeatToHSL"></a><div id="HeatToHSL-def"><a name="L175"></a><tt class="py-lineno">175</tt> <a class="py-toggle" href="#" id="HeatToHSL-toggle" onclick="return toggle('HeatToHSL');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#HeatToHSL">HeatToHSL</a><tt class="py-op">(</tt><tt class="py-param">heat</tt><tt class="py-op">,</tt> <tt class="py-param">greyscale</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="HeatToHSL-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="HeatToHSL-expanded"><a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">    <tt class="py-docstring">"""Given heat (0-1.0), compute the color to represent it on a heatmap.</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"><tt class="py-docstring">    Arguments:</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-docstring">        Greyscale: If True, use luminosity instead of hue.</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-47" class="py-name" targets="Variable rekall.plugins.renderers.visual_aides.MemoryMap.greyscale=rekall.plugins.renderers.visual_aides.MemoryMap-class.html#greyscale"><a title="rekall.plugins.renderers.visual_aides.MemoryMap.greyscale" class="py-name" href="#" onclick="return doclink('link-47', 'greyscale', 'link-47');">greyscale</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">        <tt class="py-name">saturation</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-name">hue</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">        <tt class="py-name">luminosity</tt> <tt class="py-op">=</tt> <tt class="py-name">heat</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line">        <tt class="py-name">saturation</tt> <tt class="py-op">=</tt> <tt class="py-number">1.0</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">        <tt class="py-name">luminosity</tt> <tt class="py-op">=</tt> <tt class="py-number">.5</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">        <tt class="py-name">hue</tt> <tt class="py-op">=</tt> <tt class="py-number">.5</tt> <tt class="py-op">-</tt> <tt class="py-op">(</tt><tt class="py-name">heat</tt> <tt class="py-op">*</tt> <tt class="py-number">.5</tt><tt class="py-op">)</tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line"> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">hue</tt><tt class="py-op">,</tt> <tt class="py-name">saturation</tt><tt class="py-op">,</tt> <tt class="py-name">luminosity</tt> </tt>
+</div><a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"> </tt>
+<a name="HeatToRGB"></a><div id="HeatToRGB-def"><a name="L193"></a><tt class="py-lineno">193</tt> <a class="py-toggle" href="#" id="HeatToRGB-toggle" onclick="return toggle('HeatToRGB');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#HeatToRGB">HeatToRGB</a><tt class="py-op">(</tt><tt class="py-param">heat</tt><tt class="py-op">,</tt> <tt class="py-param">greyscale</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="HeatToRGB-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="HeatToRGB-expanded"><a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt id="link-48" class="py-name" targets="Function rekall.ui.colors.HSLToRGB()=rekall.ui.colors-module.html#HSLToRGB"><a title="rekall.ui.colors.HSLToRGB" class="py-name" href="#" onclick="return doclink('link-48', 'HSLToRGB', 'link-48');">HSLToRGB</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt id="link-49" class="py-name" targets="Function rekall.ui.colors.HeatToHSL()=rekall.ui.colors-module.html#HeatToHSL"><a title="rekall.ui.colors.HeatToHSL" class="py-name" href="#" onclick="return doclink('link-49', 'HeatToHSL', 'link-49');">HeatToHSL</a></tt><tt class="py-op">(</tt><tt class="py-name">heat</tt><tt class="py-op">,</tt> <tt id="link-50" class="py-name"><a title="rekall.plugins.renderers.visual_aides.MemoryMap.greyscale" class="py-name" href="#" onclick="return doclink('link-50', 'greyscale', 'link-47');">greyscale</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"> </tt>
+<a name="HeatToXTerm"></a><div id="HeatToXTerm-def"><a name="L197"></a><tt class="py-lineno">197</tt> <a class="py-toggle" href="#" id="HeatToXTerm-toggle" onclick="return toggle('HeatToXTerm');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.ui.colors-module.html#HeatToXTerm">HeatToXTerm</a><tt class="py-op">(</tt><tt class="py-param">heat</tt><tt class="py-op">,</tt> <tt class="py-param">greyscale</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="HeatToXTerm-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="HeatToXTerm-expanded"><a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line">    <tt class="py-name">hsl</tt> <tt class="py-op">=</tt> <tt id="link-51" class="py-name"><a title="rekall.ui.colors.HeatToHSL" class="py-name" href="#" onclick="return doclink('link-51', 'HeatToHSL', 'link-49');">HeatToHSL</a></tt><tt class="py-op">(</tt><tt class="py-name">heat</tt><tt class="py-op">,</tt> <tt id="link-52" class="py-name"><a title="rekall.plugins.renderers.visual_aides.MemoryMap.greyscale" class="py-name" href="#" onclick="return doclink('link-52', 'greyscale', 'link-47');">greyscale</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">    <tt class="py-name">rgb</tt> <tt class="py-op">=</tt> <tt id="link-53" class="py-name"><a title="rekall.ui.colors.HSLToRGB" class="py-name" href="#" onclick="return doclink('link-53', 'HSLToRGB', 'link-48');">HSLToRGB</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">hsl</tt><tt class="py-op">)</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">    <tt class="py-name">xterm</tt> <tt class="py-op">=</tt> <tt id="link-54" class="py-name"><a title="rekall.ui.colors.RGBToXTerm" class="py-name" href="#" onclick="return doclink('link-54', 'RGBToXTerm', 'link-40');">RGBToXTerm</a></tt><tt class="py-op">(</tt><tt class="py-op">*</tt><tt class="py-name">rgb</tt><tt class="py-op">)</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">xterm</tt> </tt>
+</div><a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:03 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -65,10 +65,10 @@
 <h1 class="epydoc">Class fileproc</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#fileproc">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_fileproc" name="class_hierarchy_for_fileproc">
-<area shape="rect" id="node1" href="rekall.obj.BaseAddressComparisonMixIn-class.html" title="obj.BaseAddressComparisonMixIn" alt="" coords="5,5,189,32"/>
-<area shape="rect" id="node3" href="rekall.obj.Struct-class.html" title="obj.Struct" alt="" coords="145,61,212,88"/>
-<area shape="rect" id="node2" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="213,5,307,32"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html" title="fileproc" alt="" coords="151,117,207,144"/>
+<area shape="rect" id="node1" href="rekall.obj.BaseAddressComparisonMixIn-class.html" title="obj.BaseAddressComparisonMixIn" alt="" coords="5,6,189,29"/>
+<area shape="rect" id="node3" href="rekall.obj.Struct-class.html" title="obj.Struct" alt="" coords="145,59,212,82"/>
+<area shape="rect" id="node2" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="215,6,308,29"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html" title="fileproc" alt="" coords="151,113,205,135"/>
 </map>
   <img src="class_hierarchy_for_fileproc.gif" alt='' usemap="#class_hierarchy_for_fileproc" ismap="ismap" class="graph-without-title" />
 </center>
@@ -112,6 +112,24 @@
       Returns the correct struct with fg_type-specific information.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#fileproc.autocast_fg_data">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GetData"></a><span class="summary-sig-name">GetData</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the raw data of this struct.
+      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.GetData">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -512,6 +530,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="get_text_renderer"></a><span class="summary-sig-name">get_text_renderer</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.get_text_renderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="is_valid"></a><span class="summary-sig-name">is_valid</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
@@ -680,14 +715,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html#DTYPE_TO_HUMAN" class="summary-name">DTYPE_TO_HUMAN</a> = <code title="{'DTYPE_ATALK': '&lt;unknown&gt;',
+        <a href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html#DTYPE_TO_HUMAN" class="summary-name">DTYPE_TO_HUMAN</a> = <code title="{'-': 'INVALID',
+ 'DTYPE_ATALK': '&lt;unknown&gt;',
  'DTYPE_FSEVENTS': 'FS Events',
  'DTYPE_KQUEUE': 'kernel queue',
  'DTYPE_PIPE': 'pipe',
  'DTYPE_PSXSEM': 'POSIX Semaphore',
  'DTYPE_PSXSHM': 'POSIX Shared Mem.',
  'DTYPE_SOCKET': 'socket',
- 'DTYPE_VNODE': 'vnode'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DTYPE_ATALK</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">&lt;unknown&gt;</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">DTYPE_FSEVENTS</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">-</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">INVALID</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">DTYPE_ATALK</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">&lt;unknown&gt;</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -735,6 +771,15 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html#human_type" class="summary-name">human_type</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Struct-class.html#indices" class="summary-name">indices</a><br />
+      Returns (usually 1) representation(s) of self usable as dict keys.
+      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em>
     </td>
   </tr>
 <tr>
@@ -831,14 +876,15 @@ socket. For everything else, we return a NoneObject.
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DTYPE_ATALK</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">&lt;unknown&gt;</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">-</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">INVALID</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">DTYPE_ATALK</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">&lt;unknown&gt;</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DTYPE_FSEVENTS</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">FS Events</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DTYPE_KQUEUE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">kernel queue</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DTYPE_PIPE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">pipe</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DTYPE_PSXSEM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">POSIX Semaphore</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DTYPE_PSXSHM</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">POSIX Shared Mem.</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DTYPE_SOCKET</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">socket</code><code class="variable-quote">'</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">DTYPE_VNODE</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">vnode</code><code class="variable-quote">'</code><code class="variable-group">}</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -929,7 +975,7 @@ socket. For everything else, we return a NoneObject.
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:51 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:39 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

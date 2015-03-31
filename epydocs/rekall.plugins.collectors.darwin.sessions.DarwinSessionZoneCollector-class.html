@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.collectors-module.html">Package&nbsp;collectors</a> ::
+        <a href="rekall.plugins.collectors.darwin-module.html">Package&nbsp;darwin</a> ::
+        <a href="rekall.plugins.collectors.darwin.sessions-module.html">Module&nbsp;sessions</a> ::
+        Class&nbsp;DarwinSessionZoneCollector
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class DarwinSessionZoneCollector</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.collectors.darwin.sessions-pysrc.html#DarwinSessionZoneCollector">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_darwinsess_3" name="class_hierarchy_for_darwinsess_3">
+<area shape="rect" id="node1" href="rekall.entities.collector.EntityCollector-class.html" title="entities.collector.EntityCollector" alt="" coords="17,6,185,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.collectors.darwin.common.DarwinEntityCollector-class.html" title="common.DarwinEntityCollector" alt="" coords="17,59,185,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html" title="zones.DarwinZoneElementCollector" alt="" coords="5,113,197,135"/>
+<area shape="rect" id="node3" href="rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector-class.html" title="DarwinSessionZoneCollector" alt="" coords="21,166,180,189"/>
+</map>
+  <img src="class_hierarchy_for_darwinsess_3.gif" alt='' usemap="#class_hierarchy_for_darwinsess_3" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Collects sessions from the sessions allocation zone.</p>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html" class="summary-name">top_level_class</a><br />
+      Base class for entity collectors.
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="validate_element"></a><span class="summary-sig-name">validate_element</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">session</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.collectors.darwin.sessions-pysrc.html#DarwinSessionZoneCollector.validate_element">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.entities.collector.EntityCollector-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">entity_manager</span>=<span class="summary-sig-default">None</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.collector-pysrc.html#EntityCollector.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html#collect" class="summary-sig-name">collect</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hint</span>,
+        <span class="summary-sig-arg">zones</span>)</span><br />
+      Override to yield components - analogous to 'calculate', but typed.
+      <em>(Inherited from <a href="rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html">rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.collectors.darwin.zones-pysrc.html#DarwinZoneElementCollector.collect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="collect_base_objects"></a><span class="summary-sig-name">collect_base_objects</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">zone_name</span>,
+        <span class="summary-sig-arg">zones</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html">rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.collectors.darwin.zones-pysrc.html#DarwinZoneElementCollector.collect_base_objects">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.entities.collector.EntityCollector-class.html#input_filter" class="summary-sig-name">input_filter</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">hint</span>,
+        <span class="summary-sig-arg">entities</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Filter the ingest set.
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.collector-pysrc.html#EntityCollector.input_filter">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.entities.collector.EntityCollector-class.html#prebuild" class="summary-sig-name">prebuild</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">components</span>,
+        <span class="summary-sig-arg">keys</span>)</span><br />
+      Prebuilds identity based on data in components.
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.collector-pysrc.html#EntityCollector.prebuild">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.collectors.darwin.sessions-pysrc.html#DarwinSessionZoneCollector.ImplementationByClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.collectors.darwin.sessions-pysrc.html#DarwinSessionZoneCollector.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.collectors.darwin.common.DarwinEntityCollector-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.collectors.darwin.common.DarwinEntityCollector-class.html">rekall.plugins.collectors.darwin.common.DarwinEntityCollector</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.collectors.darwin.common-pysrc.html#DarwinEntityCollector.is_active">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="outputs"></a><span class="summary-name">outputs</span> = <code title="['Struct/type=session']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Struct/type=session</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="zone_name"></a><span class="summary-name">zone_name</span> = <code title="'session'"><code class="variable-quote">'</code><code class="variable-string">session</code><code class="variable-quote">'</code></code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="type_name"></a><span class="summary-name">type_name</span> = <code title="'session'"><code class="variable-quote">'</code><code class="variable-string">session</code><code class="variable-quote">'</code></code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="DELIMITER"></a><span class="summary-name">DELIMITER</span> = <code title="re.compile(r'[/=]')">re.compile(r'<code class="re-group">[</code>/=<code class="re-group">]</code>')</code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#classes" class="summary-name">classes</a> = <code title="{'BallastGenerator': &lt;class 'rekall.plugins.collectors.ballast.Ballast\
+Generator'&gt;,
+ 'DarwinAllprocProcessCollector': &lt;class 'rekall.plugins.collectors.da\
+rwin.processes.DarwinAllprocProcessCollector'&gt;,
+ 'DarwinClistParser': &lt;class 'rekall.plugins.collectors.darwin.session\
+s.DarwinClistParser'&gt;,
+ 'DarwinDeadProcessCollector': &lt;class 'rekall.plugins.collectors.darwi\
+n.processes.DarwinDeadProcessCollector'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BallastGenerator</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.collecto<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{&lt;property object at 0x2b8d0b108788&gt;: &lt;class 'rekall.plugins.collector\
+s.windows.processes.WindowsPspCidProcessCollector'&gt;}"><code class="variable-group">{</code>&lt;property object at 0x2b8d0b108788&gt;<code class="variable-op">: </code>&lt;class<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="collect_args"></a><span class="summary-name">collect_args</span> = <code title="{'zones': 'has component AllocationZone'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">zones</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">has component AllocationZone</code><code class="variable-quote">'</code><code class="variable-group">}</code></code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html">rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="collect_queries"></a><span class="summary-name">collect_queries</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="complete_input"></a><span class="summary-name">complete_input</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="enforce_hint"></a><span class="summary-name">enforce_hint</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="filter_input"></a><span class="summary-name">filter_input</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'EntityCollector'"><code class="variable-quote">'</code><code class="variable-string">EntityCollector</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="run_cost"></a><span class="summary-name">run_cost</span> = <code title="2">2</code>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#entities" class="summary-name">entities</a><br />
+      Returns this collector's entities.
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#is_collected" class="summary-name">is_collected</a><br />
+      Set to True after self.collect runs with no hints.
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#name" class="summary-name">name</a>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#profile" class="summary-name">profile</a>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.collector.EntityCollector-class.html#promises" class="summary-name">promises</a>
+      <em>(Inherited from <a href="rekall.entities.collector.EntityCollector-class.html">rekall.entities.collector.EntityCollector</a>)</em>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="ImplementationByClass"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.collectors.darwin.sessions-pysrc.html#DarwinSessionZoneCollector.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.entities.collector.EntityCollector-class.html#ImplementationByClass">entities.collector.EntityCollector.ImplementationByClass</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ImplementationByName"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.collectors.darwin.sessions-pysrc.html#DarwinSessionZoneCollector.ImplementationByName">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.entities.collector.EntityCollector-class.html#ImplementationByName">entities.collector.EntityCollector.ImplementationByName</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:29 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

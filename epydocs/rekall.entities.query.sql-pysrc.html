@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.entities.query.sql</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.entities-module.html">Package&nbsp;entities</a> ::
+        <a href="rekall.entities.query-module.html">Package&nbsp;query</a> ::
+        Module&nbsp;sql
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.entities.query.sql-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.entities.query.sql-module.html">Module rekall.entities.query.sql</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-docstring">The Rekall Entity Layer.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.entities=rekall.entities-module.html,Variable rekall.entities.collector.EntityCollector.entities=rekall.entities.collector.EntityCollector-class.html#entities,Variable rekall.entities.manager.EntityManager.entities=rekall.entities.manager.EntityManager-class.html#entities,Module rekall.plugins.common.entities=rekall.plugins.common.entities-module.html,Module rekall.plugins.renderers.entities=rekall.plugins.renderers.entities-module.html"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-1', 'entities', 'link-1');">entities</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.entities.query=rekall.entities.query-module.html,Variable rekall.entities.query.efilter.Parser.query=rekall.entities.query.efilter.Parser-class.html#query,Variable rekall.entities.query.expression.QueryError.query=rekall.entities.query.expression.QueryError-class.html#query,Module rekall.entities.query.query=rekall.entities.query.query-module.html,Variable rekall.plugins.common.entities.EntityFind.query=rekall.plugins.common.entities.EntityFind-class.html#query"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-2', 'query', 'link-2');">query</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.entities.query.visitor=rekall.entities.query.visitor-module.html"><a title="rekall.entities.query.visitor" class="py-name" href="#" onclick="return doclink('link-3', 'visitor', 'link-3');">visitor</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator"></a><div id="SQLGenerator-def"><a name="L28"></a><tt class="py-lineno">28</tt> <a class="py-toggle" href="#" id="SQLGenerator-toggle" onclick="return toggle('SQLGenerator');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html">SQLGenerator</a><tt class="py-op">(</tt><tt class="py-base-class">visitor</tt><tt class="py-op">.</tt><tt class="py-base-class">QueryVisitor</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="SQLGenerator-expanded"><a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">    <tt class="py-docstring">"""Proof-of-concept SQL generator from query AST.</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"><tt class="py-docstring">    The assumed database schema is such that there is one table per each</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"><tt class="py-docstring">    component with one column per each attribute. And additional column per</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-docstring">    component-table contains the unique entity ID which serves both as a shared</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"><tt class="py-docstring">    foreign key and the surrogate primary key of the component-table.</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"><tt class="py-docstring">    The Entities table is a relation of string representations of indices,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"><tt class="py-docstring">    serving as the natural primary key, and the entity IDs.</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"><tt class="py-docstring">    This is currently a non-complete implementation of the query AST and will</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"><tt class="py-docstring">    develop as an SQL layer is added.</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line"> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">    <tt id="link-4" class="py-name" targets="Variable rekall.entities.query.sql.SQLGenerator.components=rekall.entities.query.sql.SQLGenerator-class.html#components"><a title="rekall.entities.query.sql.SQLGenerator.components" class="py-name" href="#" onclick="return doclink('link-4', 'components', 'link-4');">components</a></tt> <tt class="py-op">=</tt> <tt id="link-5" class="py-name" targets="Variable rekall.entities.query.expression.Membership.set=rekall.entities.query.expression.Membership-class.html#set"><a title="rekall.entities.query.expression.Membership.set" class="py-name" href="#" onclick="return doclink('link-5', 'set', 'link-5');">set</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.run"></a><div id="SQLGenerator.run-def"><a name="L45"></a><tt class="py-lineno">45</tt> <a class="py-toggle" href="#" id="SQLGenerator.run-toggle" onclick="return toggle('SQLGenerator.run');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#run">run</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.run-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.run-expanded"><a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">        <tt class="py-name">where</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Method rekall.entities.query.matcher.QueryMatcher.visit()=rekall.entities.query.matcher.QueryMatcher-class.html#visit,Method rekall.entities.query.visitor.QueryVisitor.visit()=rekall.entities.query.visitor.QueryVisitor-class.html#visit"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-6', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-7', 'query', 'link-2');">query</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">        <tt class="py-name">joins</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"NATURAL INNER JOIN %s"</tt> <tt class="py-op">%</tt> <tt id="link-8" class="py-name" targets="Variable rekall.plugins.core.AddressMap.x=rekall.plugins.core.AddressMap-class.html#x,Variable rekall.plugins.filesystems.lznt1.x=rekall.plugins.filesystems.lznt1-module.html#x,Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-8', 'x', 'link-8');">x</a></tt> <tt class="py-keyword">for</tt> <tt id="link-9" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-9', 'x', 'link-8');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="rekall.entities.query.sql.SQLGenerator.components" class="py-name" href="#" onclick="return doclink('link-10', 'components', 'link-4');">components</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"SELECT * FROM Entities %s WHERE %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">            <tt class="py-string">" "</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">joins</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">where</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_ValueExpression"></a><div id="SQLGenerator.visit_ValueExpression-def"><a name="L51"></a><tt class="py-lineno">51</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_ValueExpression-toggle" onclick="return toggle('SQLGenerator.visit_ValueExpression');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_ValueExpression">visit_ValueExpression</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_ValueExpression-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_ValueExpression-expanded"><a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Variable rekall.entities.query.expression.ValueExpression.value=rekall.entities.query.expression.ValueExpression-class.html#value"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-11', 'value', 'link-11');">value</a></tt> </tt>
+</div><a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Literal"></a><div id="SQLGenerator.visit_Literal-def"><a name="L54"></a><tt class="py-lineno">54</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Literal-toggle" onclick="return toggle('SQLGenerator.visit_Literal');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Literal">visit_Literal</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Literal-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Literal-expanded"><a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">        <tt class="py-name">val</tt> <tt class="py-op">=</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-12', 'value', 'link-11');">value</a></tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line"> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">val</tt><tt class="py-op">,</tt> <tt class="py-name">str</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-string">"\"%s\""</tt> <tt class="py-op">%</tt> <tt class="py-name">val</tt> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">isinstance</tt><tt class="py-op">(</tt><tt class="py-name">val</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt id="link-13" class="py-name" targets="Class int=int-class.html"><a title="int" class="py-name" href="#" onclick="return doclink('link-13', 'int', 'link-13');">int</a></tt><tt class="py-op">,</tt> <tt class="py-name">long</tt><tt class="py-op">,</tt> <tt class="py-name">float</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">val</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_ComponentLiteral"></a><div id="SQLGenerator.visit_ComponentLiteral-def"><a name="L63"></a><tt class="py-lineno">63</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_ComponentLiteral-toggle" onclick="return toggle('SQLGenerator.visit_ComponentLiteral');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_ComponentLiteral">visit_ComponentLiteral</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_ComponentLiteral-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_ComponentLiteral-expanded"><a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.entities.query.sql.SQLGenerator.components" class="py-name" href="#" onclick="return doclink('link-14', 'components', 'link-4');">components</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.add()=rekall.entities.ext.indexset.IndexSet-class.html#add,Method rekall.entities.superposition.BaseSuperposition.add()=rekall.entities.superposition.BaseSuperposition-class.html#add,Method rekall.entities.superposition.ListSuperposition.add()=rekall.entities.superposition.ListSuperposition-class.html#add"><a title="rekall.entities.ext.indexset.IndexSet.add
+rekall.entities.superposition.BaseSuperposition.add
+rekall.entities.superposition.ListSuperposition.add" class="py-name" href="#" onclick="return doclink('link-15', 'add', 'link-15');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-16', 'value', 'link-11');">value</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"1"</tt> </tt>
+</div><a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Intersection"></a><div id="SQLGenerator.visit_Intersection-def"><a name="L67"></a><tt class="py-lineno">67</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Intersection-toggle" onclick="return toggle('SQLGenerator.visit_Intersection');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Intersection">visit_Intersection</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Intersection-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Intersection-expanded"><a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line">        <tt class="py-name">vals</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-17', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-18', 'x', 'link-8');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-19" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-19', 'x', 'link-8');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Variable rekall.entities.query.expression.Expression.children=rekall.entities.query.expression.Expression-class.html#children"><a title="rekall.entities.query.expression.Expression.children" class="py-name" href="#" onclick="return doclink('link-20', 'children', 'link-20');">children</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">") AND ("</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">vals</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Union"></a><div id="SQLGenerator.visit_Union-def"><a name="L71"></a><tt class="py-lineno">71</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Union-toggle" onclick="return toggle('SQLGenerator.visit_Union');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Union">visit_Union</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Union-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Union-expanded"><a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line">        <tt class="py-name">vals</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-21', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-22', 'x', 'link-8');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-23" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-23', 'x', 'link-8');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="rekall.entities.query.expression.Expression.children" class="py-name" href="#" onclick="return doclink('link-24', 'children', 'link-20');">children</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L73"></a><tt class="py-lineno">73</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">") OR ("</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">vals</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L74"></a><tt class="py-lineno">74</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Equivalence"></a><div id="SQLGenerator.visit_Equivalence-def"><a name="L75"></a><tt class="py-lineno">75</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Equivalence-toggle" onclick="return toggle('SQLGenerator.visit_Equivalence');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Equivalence">visit_Equivalence</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Equivalence-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Equivalence-expanded"><a name="L76"></a><tt class="py-lineno">76</tt>  <tt class="py-line">        <tt class="py-name">first</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-25', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.entities.query.expression.Expression.children" class="py-name" href="#" onclick="return doclink('link-26', 'children', 'link-20');">children</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L77"></a><tt class="py-lineno">77</tt>  <tt class="py-line">        <tt class="py-name">comparisons</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L78"></a><tt class="py-lineno">78</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">expr</tt> <tt class="py-keyword">in</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.entities.query.expression.Expression.children" class="py-name" href="#" onclick="return doclink('link-27', 'children', 'link-20');">children</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno">79</tt>  <tt class="py-line">            <tt class="py-name">comparisons</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"%s = %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">first</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-28', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt class="py-name">expr</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno">80</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">" AND "</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">comparisons</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L81"></a><tt class="py-lineno">81</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Complement"></a><div id="SQLGenerator.visit_Complement-def"><a name="L82"></a><tt class="py-lineno">82</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Complement-toggle" onclick="return toggle('SQLGenerator.visit_Complement');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Complement">visit_Complement</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Complement-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Complement-expanded"><a name="L83"></a><tt class="py-lineno">83</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"NOT(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-29', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.entities.query.expression.ValueExpression.value" class="py-name" href="#" onclick="return doclink('link-30', 'value', 'link-11');">value</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L84"></a><tt class="py-lineno">84</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Addition"></a><div id="SQLGenerator.visit_Addition-def"><a name="L85"></a><tt class="py-lineno">85</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Addition-toggle" onclick="return toggle('SQLGenerator.visit_Addition');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Addition">visit_Addition</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Addition-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Addition-expanded"><a name="L86"></a><tt class="py-lineno">86</tt>  <tt class="py-line">        <tt class="py-name">pairs</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-31', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt id="link-32" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-32', 'x', 'link-8');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-33" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-33', 'x', 'link-8');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.entities.query.expression.Expression.children" class="py-name" href="#" onclick="return doclink('link-34', 'children', 'link-20');">children</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L87"></a><tt class="py-lineno">87</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">" + "</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">pairs</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L88"></a><tt class="py-lineno">88</tt>  <tt class="py-line"> </tt>
+<a name="SQLGenerator.visit_Multiplication"></a><div id="SQLGenerator.visit_Multiplication-def"><a name="L89"></a><tt class="py-lineno">89</tt> <a class="py-toggle" href="#" id="SQLGenerator.visit_Multiplication-toggle" onclick="return toggle('SQLGenerator.visit_Multiplication');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.sql.SQLGenerator-class.html#visit_Multiplication">visit_Multiplication</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">expr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SQLGenerator.visit_Multiplication-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SQLGenerator.visit_Multiplication-expanded"><a name="L90"></a><tt class="py-lineno">90</tt>  <tt class="py-line">        <tt class="py-name">pairs</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="rekall.entities.query.matcher.QueryMatcher.visit
+rekall.entities.query.visitor.QueryVisitor.visit" class="py-name" href="#" onclick="return doclink('link-35', 'visit', 'link-6');">visit</a></tt><tt class="py-op">(</tt><tt id="link-36" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-36', 'x', 'link-8');">x</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt id="link-37" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-37', 'x', 'link-8');">x</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">expr</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.entities.query.expression.Expression.children" class="py-name" href="#" onclick="return doclink('link-38', 'children', 'link-20');">children</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L91"></a><tt class="py-lineno">91</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">" * "</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">pairs</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L92"></a><tt class="py-lineno">92</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:15 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

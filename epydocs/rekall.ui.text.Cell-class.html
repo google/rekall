@@ -63,20 +63,15 @@
 <h1 class="epydoc">Class Cell</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_cell" name="class_hierarchy_for_cell">
-<area shape="rect" id="node1" href="rekall.ui.text.Cell-class.html" title="Cell" alt="" coords="5,5,45,32"/>
+<area shape="rect" id="node1" href="rekall.ui.text.BaseCell-class.html" title="BaseCell" alt="" coords="5,6,69,29"/>
+<area shape="rect" id="node2" href="rekall.ui.text.Cell-class.html" title="Cell" alt="" coords="17,59,56,82"/>
 </map>
   <img src="class_hierarchy_for_cell.gif" alt='' usemap="#class_hierarchy_for_cell" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
-<p>A Cell represents a single entry in a table.</p>
-  <p>Cells always have a fixed number of characters in width and may have 
-  arbitrary number of characters (lines) for a height.</p>
-  <p>The TextTable consists of an array of Cells:</p>
-  <p>Cell Cell Cell Cell  &lt;----- Headers. Cell Cell Cell Cell  &lt;-----
-  Table rows.</p>
-  <p>The ObjectRenderer is responsible for turning an arbitrary object into
-  a Cell object.</p>
+<p>A cell for text, knows how to wrap, preserve paragraphs and 
+  colorize.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -92,7 +87,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.text.Cell-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="rekall.ui.text.Cell-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">highlights</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">colorizer</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">padding</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.__init__">source&nbsp;code</a></span>
@@ -109,12 +109,80 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="Justify"></a><span class="summary-sig-name">Justify</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="justify_line"></a><span class="summary-sig-name">justify_line</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">line</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.justify_line">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="highlight_line"></a><span class="summary-sig-name">highlight_line</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">line</span>,
+        <span class="summary-sig-arg">offset</span>,
+        <span class="summary-sig-arg">last_highlight</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.highlight_line">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.text.Cell-class.html#rebuild" class="summary-sig-name">rebuild</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.rebuild">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.text.Cell-class.html#dirty" class="summary-sig-name">dirty</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.dirty">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.text.Cell-class.html#rewrap" class="summary-sig-name">rewrap</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">align</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">l</code><code class="variable-quote">'</code></span>)</span><br />
-      Fix up the width of all lines so they are the same.</td>
+        <span class="summary-sig-arg">align</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**_</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.Justify">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.rewrap">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -128,9 +196,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__iter__"></a><span class="summary-sig-name">__iter__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="append_line"></a><span class="summary-sig-name">append_line</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">line</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.__iter__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.append_line">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -144,10 +213,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="append"></a><span class="summary-sig-name">append</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">value</span>)</span></td>
+          <td><span class="summary-sig"><a href="rekall.ui.text.Cell-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.append">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -161,9 +230,27 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="__iter__"></a><span class="summary-sig-name">__iter__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.__unicode__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#BaseCell.__iter__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#BaseCell.__unicode__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -181,7 +268,6 @@
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
       <code>__sizeof__</code>,
       <code>__str__</code>,
@@ -190,87 +276,28 @@
     </td>
   </tr>
 </table>
-<!-- ==================== CLASS METHODS ==================== -->
-<a name="section-ClassMethods"></a>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Class Methods</span></td>
+    <span class="table-header">Class Variables</span></td>
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="wrap"></a><span class="summary-sig-name">wrap</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">value</span>,
-        <span class="summary-sig-arg">width</span>)</span><br />
-      A constructor which creates a Cell by wrapping a long string.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.wrap">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a name="mode"></a><span class="summary-name">mode</span> = <code title="'stretch'"><code class="variable-quote">'</code><code class="variable-string">stretch</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="Strip"></a><span class="summary-sig-name">Strip</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">cell</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.Strip">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="FromString"></a><span class="summary-sig-name">FromString</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">value</span>,
-        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">0</span>,
-        <span class="summary-sig-arg">align</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">l</code><code class="variable-quote">'</code></span>,
-        <span class="summary-sig-arg">**_</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.FromString">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="Join"></a><span class="summary-sig-name">Join</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">*cells</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Construct a new Cell which is the result of combining Cells.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.Join">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a name="width_explicit"></a><span class="summary-name">width_explicit</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em>
     </td>
   </tr>
 </table>
@@ -286,16 +313,32 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text.Cell-class.html#width" class="summary-name">width</a><br />
-      Return the maximum width of this Cell in characters.
+        <a href="rekall.ui.text.Cell-class.html#height" class="summary-name">height</a><br />
+      The number of chars this Cell takes in height.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text.Cell-class.html#height" class="summary-name">height</a><br />
-      The number of chars this Cell takes in height.
+        <a href="rekall.ui.text.BaseCell-class.html#align" class="summary-name">align</a>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.text.BaseCell-class.html#lines" class="summary-name">lines</a>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.text.BaseCell-class.html#width" class="summary-name">width</a>
+      <em>(Inherited from <a href="rekall.ui.text.BaseCell-class.html">rekall.ui.text.BaseCell</a>)</em>
     </td>
   </tr>
   <tr>
@@ -322,7 +365,12 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">value</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">highlights</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">colorizer</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">padding</span>=<span class="sig-default">0</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -339,6 +387,99 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="rebuild"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">rebuild</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.rebuild">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.text.BaseCell-class.html#rebuild">BaseCell.rebuild</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="dirty"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">dirty</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.dirty">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.text.BaseCell-class.html#dirty">BaseCell.dirty</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="rewrap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">rewrap</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">width</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">align</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**_</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.rewrap">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.text.BaseCell-class.html#rewrap">BaseCell.rewrap</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__repr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#Cell.__repr__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>repr(x)</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__repr__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== PROPERTY DETAILS ==================== -->
 <a name="section-PropertyDetails"></a>
@@ -349,21 +490,6 @@
     <span class="table-header">Property Details</span></td>
 </tr>
 </table>
-<a name="width"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">width</h3>
-  <p>Return the maximum width of this Cell in characters.</p>
-  <dl class="fields">
-    <dt>Get Method:</dt>
-    <dd class="value"><span class="summary-sig"><i>unreachable</i>.width(<span class="summary-sig-arg">self</span>)</span>
-        - Return the maximum width of this Cell in characters.
-    </dd>
-  </dl>
-</td></tr></table>
-</div>
 <a name="height"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -411,7 +537,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:04 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:00 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

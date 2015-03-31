@@ -63,7 +63,7 @@
 <h1 class="epydoc">Class Colorizer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.text-pysrc.html#Colorizer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_colorizer" name="class_hierarchy_for_colorizer">
-<area shape="rect" id="node1" href="rekall.ui.text.Colorizer-class.html" title="Colorizer" alt="" coords="5,5,69,32"/>
+<area shape="rect" id="node1" href="rekall.ui.text.Colorizer-class.html" title="Colorizer" alt="" coords="5,6,69,29"/>
 </map>
   <img src="class_hierarchy_for_colorizer.gif" alt='' usemap="#class_hierarchy_for_colorizer" ismap="ismap" class="graph-without-title" />
 </center>
@@ -87,7 +87,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.text.Colorizer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">stream</span>,
-        <span class="summary-sig-arg">nocolor</span>=<span class="summary-sig-default">False</span>)</span><br />
+        <span class="summary-sig-arg">color</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">auto</code><code class="variable-quote">'</code></span>)</span><br />
       Initialize a colorizer.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#Colorizer.__init__">source&nbsp;code</a></span>
@@ -168,21 +168,21 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="COLORS"></a><span class="summary-name">COLORS</span> = <code title="'BLACK BLUE GREEN CYAN RED MAGENTA YELLOW WHITE'"><code class="variable-quote">'</code><code class="variable-string">BLACK BLUE GREEN CYAN RED MAGENTA YELLOW WHITE</code><code class="variable-quote">'</code></code>
+        <a name="COLORS"></a><span class="summary-name">COLORS</span> = <code title="u'BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE'"><code class="variable-quote">u'</code><code class="variable-string">BLACK RED GREEN YELLOW BLUE MAGENTA CYAN WHITE</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text.Colorizer-class.html#COLOR_MAP" class="summary-name">COLOR_MAP</a> = <code title="{'BLACK': 0,
- 'BLUE': 1,
- 'CYAN': 3,
- 'GREEN': 2,
- 'MAGENTA': 5,
- 'RED': 4,
- 'WHITE': 7,
- 'YELLOW': 6}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">BLUE</code><code class="variable-quote">'</code><code class="variable-op">: </code>1<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-op">: </code>3<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">MA</code><code class="variable-ellipsis">...</code></code>
+        <a href="rekall.ui.text.Colorizer-class.html#COLOR_MAP" class="summary-name">COLOR_MAP</a> = <code title="{u'BLACK': 0,
+ u'BLUE': 4,
+ u'CYAN': 6,
+ u'GREEN': 2,
+ u'MAGENTA': 5,
+ u'RED': 1,
+ u'WHITE': 7,
+ u'YELLOW': 3}"><code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">BLUE</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-op">: </code>6<code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -203,7 +203,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="x"></a><span class="summary-name">x</span> = <code title="'WHITE'"><code class="variable-quote">'</code><code class="variable-string">WHITE</code><code class="variable-quote">'</code></code>
+        <a name="x"></a><span class="summary-name">x</span> = <code title="u'WHITE'"><code class="variable-quote">u'</code><code class="variable-string">WHITE</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
@@ -241,7 +241,7 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">stream</span>,
-        <span class="sig-arg">nocolor</span>=<span class="sig-default">False</span>)</span>
+        <span class="sig-arg">color</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">auto</code><code class="variable-quote">'</code></span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -255,7 +255,7 @@ Initialize a colorizer.
 Args:
   stream: The stream to write to.
 
-  nocolor: If True we suppress using colors, even if the output stream
+  color: If &quot;no&quot; we suppress using colors, even if the output stream
      can support them.
 
 </pre>
@@ -288,14 +288,14 @@ Args:
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">BLUE</code><code class="variable-quote">'</code><code class="variable-op">: </code>1<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-op">: </code>3<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">MAGENTA</code><code class="variable-quote">'</code><code class="variable-op">: </code>5<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">RED</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">WHITE</code><code class="variable-quote">'</code><code class="variable-op">: </code>7<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">YELLOW</code><code class="variable-quote">'</code><code class="variable-op">: </code>6<code class="variable-group">}</code>
+<code class="variable-group">{</code><code class="variable-quote">u'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">BLUE</code><code class="variable-quote">'</code><code class="variable-op">: </code>4<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-op">: </code>6<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">MAGENTA</code><code class="variable-quote">'</code><code class="variable-op">: </code>5<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">RED</code><code class="variable-quote">'</code><code class="variable-op">: </code>1<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">WHITE</code><code class="variable-quote">'</code><code class="variable-op">: </code>7<code class="variable-op">,</code>
+ <code class="variable-quote">u'</code><code class="variable-string">YELLOW</code><code class="variable-quote">'</code><code class="variable-op">: </code>3<code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -333,7 +333,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:04 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:00 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

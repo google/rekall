@@ -64,9 +64,9 @@
 <h1 class="epydoc">Class PoolScanConnFast</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.connscan-pysrc.html#PoolScanConnFast">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_poolscanco" name="class_hierarchy_for_poolscanco">
-<area shape="rect" id="node1" href="rekall.plugins.windows.common.PoolScanner-class.html" title="common.PoolScanner" alt="" coords="5,61,131,88"/>
-<area shape="rect" id="node2" href="rekall.plugins.windows.connscan.PoolScanConnFast-class.html" title="PoolScanConnFast" alt="" coords="11,117,125,144"/>
-<area shape="rect" id="node3" href="rekall.scan.BaseScanner-class.html" title="scan.BaseScanner" alt="" coords="13,5,123,32"/>
+<area shape="rect" id="node1" href="rekall.plugins.windows.common.PoolScanner-class.html" title="common.PoolScanner" alt="" coords="5,59,131,82"/>
+<area shape="rect" id="node2" href="rekall.plugins.windows.connscan.PoolScanConnFast-class.html" title="PoolScanConnFast" alt="" coords="11,113,125,135"/>
+<area shape="rect" id="node3" href="rekall.scan.BaseScanner-class.html" title="scan.BaseScanner" alt="" coords="13,6,123,29"/>
 </map>
   <img src="class_hierarchy_for_poolscanco.gif" alt='' usemap="#class_hierarchy_for_poolscanco" ismap="ismap" class="graph-without-title" />
 </center>
@@ -117,7 +117,8 @@
         <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">address_space</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">window_size</span>=<span class="summary-sig-default">8</span>,
-        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">checks</span>=<span class="summary-sig-default">None</span>)</span><br />
       The base scanner.
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em></td>
           <td align="right" valign="top">
@@ -282,7 +283,8 @@ not match.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.windows.connscan.PoolScanConnFast-class.html#checks" class="summary-name">checks</a> = <code title="[('PoolTagCheck', {'tag': 'TCPT'}),
- ('CheckPoolSize', {'condition': &lt;function &lt;lambda&gt; at 0x33f2230&gt;}),
+ ('CheckPoolSize',
+  {'condition': &lt;function &lt;lambda&gt; at 0x2b8d0d193410&gt;}),
  ('CheckPoolType', {'free': True, 'non_paged': True}),
  ('CheckPoolIndex', {'value': 0})]"><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">PoolTagCheck</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">tag</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">TCPT</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CheckPoolSize</code><code class="variable-quote">'</code><code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
     </td>
@@ -298,7 +300,7 @@ nner'&gt;,
 '&gt;,
  'CertScanner': &lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;\
 ,
- 'ConsoleScanner': &lt;class 'rekall.plugins.windows.malware.cmdhistory.C\
+ 'ConfiguredPoolScanner': &lt;class 'rekall.plugins.collectors.windows.po\
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
@@ -324,6 +326,14 @@ nner'&gt;,
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'BaseScanner'"><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="progress_message"></a><span class="summary-name">progress_message</span> = <code title="'Scanning 0x%(offset)08X with %(name)s'"><code class="variable-quote">'</code><code class="variable-string">Scanning 0x%(offset)08X with %(name)s</code><code class="variable-quote">'</code></code>
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
   </tr>
@@ -424,7 +434,8 @@ nner'&gt;,
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">PoolTagCheck</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">tag</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">TCPT</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-op">,</code>
- <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CheckPoolSize</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">condition</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function &lt;lambda&gt; at 0x33f2230&gt;<code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CheckPoolSize</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+  <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">condition</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function &lt;lambda&gt; at 0x2b8d0d193410&gt;<code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-op">,</code>
  <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CheckPoolType</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">free</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">non_paged</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-op">,</code>
  <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CheckPoolIndex</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">value</code><code class="variable-quote">'</code><code class="variable-op">: </code>0<code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-group">]</code>
 </pre></td></tr></table>
@@ -464,7 +475,7 @@ nner'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:56 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:49 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

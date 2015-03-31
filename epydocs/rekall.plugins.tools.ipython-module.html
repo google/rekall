@@ -77,25 +77,48 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.tools.ipython.Notebook-class.html" class="summary-name">Notebook</a><br />
-      Launch the IPython notebook.
+        <a href="rekall.plugins.tools.ipython.BaseSessionCommand-class.html" class="summary-name">BaseSessionCommand</a><br />
+      Base class for all session management plugins.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.tools.ipython.TestNoteBook-class.html" class="summary-name">TestNoteBook</a><br />
-      Disable the test for this command to avoid bringing up the 
-        notebook.
+        <a href="rekall.plugins.tools.ipython.SessionList-class.html" class="summary-name">SessionList</a><br />
+      List the sessions available.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.tools.ipython.Rekall-class.html" class="summary-name">Rekall</a><br />
-      Starts or modifies a new rekall analysis session.
+        <a href="rekall.plugins.tools.ipython.SessionSwitch-class.html" class="summary-name">SessionSwitch</a><br />
+      Changes the current session to the session with session_id.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.ipython.SessionNew-class.html" class="summary-name">SessionNew</a><br />
+      Creates a new session by cloning the current one.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.ipython.SessionDelete-class.html" class="summary-name">SessionDelete</a><br />
+      Delete a session.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.ipython.SessionMod-class.html" class="summary-name">SessionMod</a><br />
+      Modifies parameters of the current analysis session.
     </td>
   </tr>
 <tr>
@@ -112,6 +135,64 @@
     </td><td class="summary">
         <a href="rekall.plugins.tools.ipython.PagingLimitHook-class.html" class="summary-name">PagingLimitHook</a><br />
       If no paging_limit specified, calculate it from cursors.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.ipython.InteractiveShell-class.html" class="summary-name">InteractiveShell</a><br />
+      An interactive shell for Rekall.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.tools.ipython.TestInteractiveShell-class.html" class="summary-name">TestInteractiveShell</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.ipython-module.html#IPython012Support" class="summary-sig-name">IPython012Support</a>(<span class="summary-sig-arg">user_session</span>)</span><br />
+      Launch the ipython session for post 0.12 versions.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.ipython-pysrc.html#IPython012Support">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.ipython-module.html#NativePythonSupport" class="summary-sig-name">NativePythonSupport</a>(<span class="summary-sig-arg">user_session</span>)</span><br />
+      Launch the rekall session using the native python interpreter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.ipython-pysrc.html#NativePythonSupport">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
     </td>
   </tr>
 </table>
@@ -131,6 +212,66 @@
     </td>
   </tr>
 </table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Function Details</span></td>
+</tr>
+</table>
+<a name="IPython012Support"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">IPython012Support</span>(<span class="sig-arg">user_session</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.tools.ipython-pysrc.html#IPython012Support">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Launch the ipython session for post 0.12 versions.
+
+Returns:
+  False if we failed to use IPython. True if the session was run and exited.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="NativePythonSupport"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">NativePythonSupport</span>(<span class="sig-arg">user_session</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.tools.ipython-pysrc.html#NativePythonSupport">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Launch the rekall session using the native python interpreter.
+
+Returns:
+  False if we failed to use IPython. True if the session was run and exited.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -162,7 +303,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

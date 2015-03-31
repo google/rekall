@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.entities.query.matcher_test</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.entities-module.html">Package&nbsp;entities</a> ::
+        <a href="rekall.entities.query-module.html">Package&nbsp;query</a> ::
+        Module&nbsp;matcher_test
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.entities.query.matcher_test-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.entities.query.matcher_test-module.html">Module rekall.entities.query.matcher_test</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.testlib=rekall.testlib-module.html"><a title="rekall.testlib" class="py-name" href="#" onclick="return doclink('link-1', 'testlib', 'link-1');">testlib</a></tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.entities=rekall.entities-module.html,Variable rekall.entities.collector.EntityCollector.entities=rekall.entities.collector.EntityCollector-class.html#entities,Variable rekall.entities.manager.EntityManager.entities=rekall.entities.manager.EntityManager-class.html#entities,Module rekall.plugins.common.entities=rekall.plugins.common.entities-module.html,Module rekall.plugins.renderers.entities=rekall.plugins.renderers.entities-module.html"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-3', 'entities', 'link-3');">entities</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package rekall.entities.query=rekall.entities.query-module.html,Variable rekall.entities.query.efilter.Parser.query=rekall.entities.query.efilter.Parser-class.html#query,Variable rekall.entities.query.expression.QueryError.query=rekall.entities.query.expression.QueryError-class.html#query,Module rekall.entities.query.query=rekall.entities.query.query-module.html,Variable rekall.plugins.common.entities.EntityFind.query=rekall.plugins.common.entities.EntityFind-class.html#query"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-4', 'query', 'link-4');">query</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-5', 'query', 'link-4');">query</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">entity_query</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"> </tt>
+<a name="MatcherTest"></a><div id="MatcherTest-def"><a name="L6"></a><tt class="py-lineno"> 6</tt> <a class="py-toggle" href="#" id="MatcherTest-toggle" onclick="return toggle('MatcherTest');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.query.matcher_test.MatcherTest-class.html">MatcherTest</a><tt class="py-op">(</tt><tt class="py-base-class">testlib</tt><tt class="py-op">.</tt><tt class="py-base-class">RekallBaseUnitTestCase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MatcherTest-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="MatcherTest-expanded"><a name="MatcherTest.assertQueryMatches"></a><div id="MatcherTest.assertQueryMatches-def"><a name="L7"></a><tt class="py-lineno"> 7</tt> <a class="py-toggle" href="#" id="MatcherTest.assertQueryMatches-toggle" onclick="return toggle('MatcherTest.assertQueryMatches');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.matcher_test.MatcherTest-class.html#assertQueryMatches">assertQueryMatches</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">query</tt><tt class="py-op">,</tt> <tt class="py-param">bindings</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MatcherTest.assertQueryMatches-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="MatcherTest.assertQueryMatches-expanded"><a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line">        <tt id="link-6" class="py-name" targets="Method rekall.obj.BaseObject.m()=rekall.obj.BaseObject-class.html#m,Method rekall.obj.Pointer.m()=rekall.obj.Pointer-class.html#m,Method rekall.obj.Struct.m()=rekall.obj.Struct-class.html#m"><a title="rekall.obj.BaseObject.m
+rekall.obj.Pointer.m
+rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-6', 'm', 'link-6');">m</a></tt> <tt class="py-op">=</tt> <tt class="py-name">entity_query</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Class rekall.entities.query.query.Query=rekall.entities.query.query.Query-class.html"><a title="rekall.entities.query.query.Query" class="py-name" href="#" onclick="return doclink('link-7', 'Query', 'link-7');">Query</a></tt><tt class="py-op">(</tt><tt id="link-8" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-8', 'query', 'link-4');">query</a></tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Method rekall.entities.query.query.Query.execute()=rekall.entities.query.query.Query-class.html#execute"><a title="rekall.entities.query.query.Query.execute" class="py-name" href="#" onclick="return doclink('link-9', 'execute', 'link-9');">execute</a></tt><tt class="py-op">(</tt><tt class="py-string">"QueryMatcher"</tt><tt class="py-op">,</tt> <tt class="py-string">"match"</tt><tt class="py-op">,</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line">                                              <tt class="py-name">bindings</tt><tt class="py-op">=</tt><tt class="py-name">bindings</tt><tt class="py-op">)</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertIsNotNone</tt><tt class="py-op">(</tt><tt id="link-10" class="py-name"><a title="rekall.obj.BaseObject.m
+rekall.obj.Pointer.m
+rekall.obj.Struct.m" class="py-name" href="#" onclick="return doclink('link-10', 'm', 'link-6');">m</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"> </tt>
+<a name="MatcherTest.testBasic"></a><div id="MatcherTest.testBasic-def"><a name="L12"></a><tt class="py-lineno">12</tt> <a class="py-toggle" href="#" id="MatcherTest.testBasic-toggle" onclick="return toggle('MatcherTest.testBasic');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.matcher_test.MatcherTest-class.html#testBasic">testBasic</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MatcherTest.testBasic-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="MatcherTest.testBasic-expanded"><a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line">        <tt id="link-11" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-11', 'query', 'link-4');">query</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Process/pid is 1"</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">        <tt class="py-name">bindings</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-string">"Process/pid"</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">}</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method rekall.entities.query.efilter_test.ParserTest.assertQueryMatches()=rekall.entities.query.efilter_test.ParserTest-class.html#assertQueryMatches,Method rekall.entities.query.efilter_test.TokenizerTest.assertQueryMatches()=rekall.entities.query.efilter_test.TokenizerTest-class.html#assertQueryMatches,Method rekall.entities.query.matcher_test.MatcherTest.assertQueryMatches()=rekall.entities.query.matcher_test.MatcherTest-class.html#assertQueryMatches"><a title="rekall.entities.query.efilter_test.ParserTest.assertQueryMatches
+rekall.entities.query.efilter_test.TokenizerTest.assertQueryMatches
+rekall.entities.query.matcher_test.MatcherTest.assertQueryMatches" class="py-name" href="#" onclick="return doclink('link-12', 'assertQueryMatches', 'link-12');">assertQueryMatches</a></tt><tt class="py-op">(</tt><tt id="link-13" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-13', 'query', 'link-4');">query</a></tt><tt class="py-op">,</tt> <tt class="py-name">bindings</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"> </tt>
+<a name="MatcherTest.testRecursion"></a><div id="MatcherTest.testRecursion-def"><a name="L17"></a><tt class="py-lineno">17</tt> <a class="py-toggle" href="#" id="MatcherTest.testRecursion-toggle" onclick="return toggle('MatcherTest.testRecursion');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.query.matcher_test.MatcherTest-class.html#testRecursion">testRecursion</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MatcherTest.testRecursion-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="MatcherTest.testRecursion-expanded"><a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line">        <tt class="py-name">bindings</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-string">"Process/parent"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt><tt class="py-string">"Process/pid"</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">}</tt><tt class="py-op">}</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line">        <tt id="link-14" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-14', 'query', 'link-4');">query</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Process/parent matches Process/pid is 1"</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.entities.query.efilter_test.ParserTest.assertQueryMatches
+rekall.entities.query.efilter_test.TokenizerTest.assertQueryMatches
+rekall.entities.query.matcher_test.MatcherTest.assertQueryMatches" class="py-name" href="#" onclick="return doclink('link-15', 'assertQueryMatches', 'link-12');">assertQueryMatches</a></tt><tt class="py-op">(</tt><tt id="link-16" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-16', 'query', 'link-4');">query</a></tt><tt class="py-op">,</tt> <tt class="py-name">bindings</tt><tt class="py-op">)</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line">        <tt id="link-17" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-17', 'query', 'link-4');">query</a></tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-string">"any Process/parent matches (Process/pid is 1 or "</tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">                 <tt class="py-string">"Process/command is 'foo')"</tt><tt class="py-op">)</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.entities.query.efilter_test.ParserTest.assertQueryMatches
+rekall.entities.query.efilter_test.TokenizerTest.assertQueryMatches
+rekall.entities.query.matcher_test.MatcherTest.assertQueryMatches" class="py-name" href="#" onclick="return doclink('link-18', 'assertQueryMatches', 'link-12');">assertQueryMatches</a></tt><tt class="py-op">(</tt><tt id="link-19" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-19', 'query', 'link-4');">query</a></tt><tt class="py-op">,</tt> <tt class="py-name">bindings</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:16 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

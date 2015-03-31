@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.entities.query.efilter</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.entities-module.html">Package&nbsp;entities</a> ::
+        <a href="rekall.entities.query-module.html">Package&nbsp;query</a> ::
+        Module&nbsp;efilter
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.entities.query.efilter-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module efilter</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html">source&nbsp;code</a></span></p>
+<p>The Rekall Entity Layer.</p>
+
+<hr />
+<div class="fields">      <p><strong>Author:</strong>
+        Adam Sindelar &lt;adamsh@google.com&gt;
+      </p>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter.Operator-class.html" class="summary-name">Operator</a><br />
+      Operator(precedence, assoc, handler, docstring)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter.Token-class.html" class="summary-name">Token</a><br />
+      Represents a result from the tokenizer.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter.Pattern-class.html" class="summary-name">Pattern</a><br />
+      A token pattern.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter.ParseError-class.html" class="summary-name">ParseError</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter.Tokenizer-class.html" class="summary-name">Tokenizer</a><br />
+      Context-free tokenizer for the efilter language.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter.Parser-class.html" class="summary-name">Parser</a><br />
+      Parses the efilter language into the query AST.
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ComplementEquivalence"></a><span class="summary-sig-name">ComplementEquivalence</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#ComplementEquivalence">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ComplementMembership"></a><span class="summary-sig-name">ComplementMembership</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#ComplementMembership">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ReverseStrictOrderedSet"></a><span class="summary-sig-name">ReverseStrictOrderedSet</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#ReverseStrictOrderedSet">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ReversePartialOrderedSet"></a><span class="summary-sig-name">ReversePartialOrderedSet</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#ReversePartialOrderedSet">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="NegateValue"></a><span class="summary-sig-name">NegateValue</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#NegateValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="FlattenComponentLiteral"></a><span class="summary-sig-name">FlattenComponentLiteral</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#FlattenComponentLiteral">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="TransformLetAny"></a><span class="summary-sig-name">TransformLetAny</span>(<span class="summary-sig-arg">let</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#TransformLetAny">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="TransformLetEach"></a><span class="summary-sig-name">TransformLetEach</span>(<span class="summary-sig-arg">let</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#TransformLetEach">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="EnumAsPattern"></a><span class="summary-sig-name">EnumAsPattern</span>(<span class="summary-sig-arg">strings</span>)</span><br />
+      Return a regex that'll match any of the strings in order.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.entities.query.efilter-pysrc.html#EnumAsPattern">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter-module.html#INFIX" class="summary-name">INFIX</a> = <code title="OrderedDict([('-&gt;', Operator(precedence=2, assoc='left', handler=&lt;clas\
+s 'rekall.entities.query.expression.Let'&gt;, docstring=&quot;Shorthand for 'm\
+atches'.&quot;)), ('+', Operator(precedence=3, assoc='left', handler=&lt;class\
+ 'rekall.entities.query.expression.Sum'&gt;, docstring='Arithmetic additi\
+on.')), ('-', Operator(precedence=3, assoc='left', handler=&lt;class 'rek\
+all.entities.query.expression.Difference'&gt;, docstring='Arithmetic subt\
+raction.')), ('*', Operator(precedence=5, assoc='left', handler=&lt;class\
+ 'rekall.entities.query.expression.Product'&gt;, docstring='Arithmetic mu\
+...">OrderedDict([('-&gt;', Operator(precedence=2, assoc='left<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.entities.query.efilter-module.html#PREFIX" class="summary-name">PREFIX</a> = <code title="{'-': Operator(precedence=4, assoc=None, handler=&lt;function NegateValue\
+ at 0x2b8d0b0b2320&gt;, docstring='Unary -.'),
+ 'any': Operator(precedence=1, assoc=None, handler=&lt;function Transform\
+LetAny at 0x2b8d0b0b2410&gt;, docstring=&quot;Following 'matches' should succe\
+ed if any left-hand value matches.&quot;),
+ 'each': Operator(precedence=1, assoc=None, handler=&lt;function Transfor\
+mLetEach at 0x2b8d0b0b2488&gt;, docstring=&quot;Following 'matches' should onl\
+y succeed if all left-hand values match.&quot;),
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">-</code><code class="variable-quote">'</code><code class="variable-op">: </code>Operator(precedence=4, assoc=None, handler=&lt;fun<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.entities.query'"><code class="variable-quote">'</code><code class="variable-string">rekall.entities.query</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="INFIX"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">INFIX</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+OrderedDict([('-&gt;', Operator(precedence=2, assoc='left', handler=&lt;clas<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+s 'rekall.entities.query.expression.Let'&gt;, docstring=&quot;Shorthand for 'm<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+atches'.&quot;)), ('+', Operator(precedence=3, assoc='left', handler=&lt;class<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ 'rekall.entities.query.expression.Sum'&gt;, docstring='Arithmetic additi<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+on.')), ('-', Operator(precedence=3, assoc='left', handler=&lt;class 'rek<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+all.entities.query.expression.Difference'&gt;, docstring='Arithmetic subt<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+raction.')), ('*', Operator(precedence=5, assoc='left', handler=&lt;class<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ 'rekall.entities.query.expression.Product'&gt;, docstring='Arithmetic mu<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="PREFIX"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">PREFIX</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">-</code><code class="variable-quote">'</code><code class="variable-op">: </code>Operator(precedence=4, assoc=None, handler=&lt;function NegateValue<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ at 0x2b8d0b0b2320&gt;, docstring='Unary -.')<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">any</code><code class="variable-quote">'</code><code class="variable-op">: </code>Operator(precedence=1, assoc=None, handler=&lt;function Transform<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+LetAny at 0x2b8d0b0b2410&gt;, docstring=&quot;Following 'matches' should succe<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ed if any left-hand value matches.&quot;)<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">each</code><code class="variable-quote">'</code><code class="variable-op">: </code>Operator(precedence=1, assoc=None, handler=&lt;function Transfor<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+mLetEach at 0x2b8d0b0b2488&gt;, docstring=&quot;Following 'matches' should onl<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+y succeed if all left-hand values match.&quot;)<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:19 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

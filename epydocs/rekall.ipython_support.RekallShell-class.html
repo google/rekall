@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.ipython_support.RekallShell</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.ipython_support-module.html">Module&nbsp;ipython_support</a> ::
+        Class&nbsp;RekallShell
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.ipython_support.RekallShell-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class RekallShell</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ipython_support-pysrc.html#RekallShell">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_rekallshel" name="class_hierarchy_for_rekallshel">
+<area shape="rect" id="node1" href="javascript:void(0);" title="??._NewBase" alt="" coords="105,6,193,29"/>
+<area shape="rect" id="node7" href="javascript:void(0);" title="IPython.utils.traitlets.HasTraits" alt="" coords="67,59,231,82"/>
+<area shape="rect" id="node2" href="javascript:void(0);" title="IPython.config.configurable.Configurable" alt="" coords="42,113,256,135"/>
+<area shape="rect" id="node3" href="javascript:void(0);" title="IPython.config.configurable.SingletonConfigurable" alt="" coords="20,166,277,189"/>
+<area shape="rect" id="node4" href="javascript:void(0);" title="IPython.core.interactiveshell.InteractiveShell" alt="" coords="35,219,264,242"/>
+<area shape="rect" id="node6" href="javascript:void(0);" title="IPython.terminal.interactiveshell.TerminalInteractiveShell" alt="" coords="5,273,293,295"/>
+<area shape="rect" id="node5" href="javascript:void(0);" title="IPython.terminal.embed.InteractiveShellEmbed" alt="" coords="27,326,271,349"/>
+<area shape="rect" id="node8" href="rekall.ipython_support.RekallShell-class.html" title="RekallShell" alt="" coords="112,379,185,402"/>
+</map>
+  <img src="class_hierarchy_for_rekallshel.gif" alt='' usemap="#class_hierarchy_for_rekallshel" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.embed.InteractiveShellEmbed</code></b>:
+      <code>__call__</code>,
+      <code>__init__</code>,
+      <code>init_magics</code>,
+      <code>init_sys_modules</code>,
+      <code>mainloop</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.interactiveshell.TerminalInteractiveShell</code></b>:
+      <code>ask_exit</code>,
+      <code>edit_syntax_error</code>,
+      <code>exit</code>,
+      <code>init_alias</code>,
+      <code>init_display_formatter</code>,
+      <code>init_term_title</code>,
+      <code>interact</code>,
+      <code>raw_input</code>,
+      <code>showindentationerror</code>,
+      <code>system</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.core.interactiveshell.InteractiveShell</code></b>:
+      <code>ask_yes_no</code>,
+      <code>atexit_operations</code>,
+      <code>auto_rewrite_input</code>,
+      <code>cleanup</code>,
+      <code>clear_main_mod_cache</code>,
+      <code>complete</code>,
+      <code>debugger</code>,
+      <code>define_macro</code>,
+      <code>del_var</code>,
+      <code>drop_by_id</code>,
+      <code>enable_matplotlib</code>,
+      <code>enable_pylab</code>,
+      <code>ev</code>,
+      <code>ex</code>,
+      <code>excepthook</code>,
+      <code>extract_input_lines</code>,
+      <code>find_cell_magic</code>,
+      <code>find_line_magic</code>,
+      <code>find_magic</code>,
+      <code>find_user_code</code>,
+      <code>get_exception_only</code>,
+      <code>get_ipython</code>,
+      <code>getoutput</code>,
+      <code>init_builtins</code>,
+      <code>init_completer</code>,
+      <code>init_create_namespaces</code>,
+      <code>init_data_pub</code>,
+      <code>init_display_pub</code>,
+      <code>init_displayhook</code>,
+      <code>init_encoding</code>,
+      <code>init_environment</code>,
+      <code>init_events</code>,
+      <code>init_extension_manager</code>,
+      <code>init_history</code>,
+      <code>init_hooks</code>,
+      <code>init_inspector</code>,
+      <code>init_instance_attrs</code>,
+      <code>init_io</code>,
+      <code>init_ipython_dir</code>,
+      <code>init_logger</code>,
+      <code>init_logstart</code>,
+      <code>init_payload</code>,
+      <code>init_pdb</code>,
+      <code>init_prefilter</code>,
+      <code>init_profile_dir</code>,
+      <code>init_prompts</code>,
+      <code>init_pushd_popd_magic</code>,
+      <code>init_readline</code>,
+      <code>init_syntax_highlighting</code>,
+      <code>init_traceback_handlers</code>,
+      <code>init_user_ns</code>,
+      <code>init_virtualenv</code>,
+      <code>magic</code>,
+      <code>mktempfile</code>,
+      <code>new_main_mod</code>,
+      <code>object_inspect</code>,
+      <code>object_inspect_text</code>,
+      <code>pre_readline</code>,
+      <code>prepare_user_module</code>,
+      <code>push</code>,
+      <code>refill_readline_hist</code>,
+      <code>register_magic_function</code>,
+      <code>register_post_execute</code>,
+      <code>reset</code>,
+      <code>reset_selective</code>,
+      <code>restore_sys_module_state</code>,
+      <code>run_ast_nodes</code>,
+      <code>run_cell</code>,
+      <code>run_cell_magic</code>,
+      <code>run_code</code>,
+      <code>run_line_magic</code>,
+      <code>runcode</code>,
+      <code>safe_execfile</code>,
+      <code>safe_execfile_ipy</code>,
+      <code>safe_run_module</code>,
+      <code>save_sys_module_state</code>,
+      <code>set_autoindent</code>,
+      <code>set_completer_frame</code>,
+      <code>set_custom_completer</code>,
+      <code>set_custom_exc</code>,
+      <code>set_hook</code>,
+      <code>set_next_input</code>,
+      <code>set_readline_completer</code>,
+      <code>show_banner</code>,
+      <code>show_usage</code>,
+      <code>show_usage_error</code>,
+      <code>showsyntaxerror</code>,
+      <code>showtraceback</code>,
+      <code>system_piped</code>,
+      <code>system_raw</code>,
+      <code>transform_ast</code>,
+      <code>user_expressions</code>,
+      <code>var_expand</code>,
+      <code>write</code>,
+      <code>write_err</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.Configurable</code></b>:
+      <code>update_config</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.utils.traitlets.HasTraits</code></b>:
+      <code>on_trait_change</code>,
+      <code>trait_metadata</code>,
+      <code>trait_names</code>,
+      <code>traits</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.SingletonConfigurable</code></b>:
+      <code>clear_instance</code>,
+      <code>initialized</code>,
+      <code>instance</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.Configurable</code></b>:
+      <code>class_config_section</code>,
+      <code>class_get_help</code>,
+      <code>class_get_trait_help</code>,
+      <code>class_print_help</code>,
+      <code>section_names</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.utils.traitlets.HasTraits</code></b>:
+      <code>class_trait_names</code>,
+      <code>class_traits</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Static Methods</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.interactiveshell.TerminalInteractiveShell</code></b>:
+      <code>enable_gui</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.utils.traitlets.HasTraits</code></b>:
+      <code>__new__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ipython_support.RekallShell-class.html#display_banner" class="summary-name">display_banner</a> = <code title="'''
+----------------------------------------------------------------------\
+------
+The Rekall Memory Forensic framework 1.3.1 (Dammastock).
+
+&quot;We can remember it for you wholesale!&quot;
+
+This program is free software; you can redistribute it and/or modify i\
+..."><code class="variable-quote">'</code><code class="variable-string">\n------------------------------------------</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.embed.InteractiveShellEmbed</code></b>:
+      <code>dummy_mode</code>,
+      <code>embedded</code>,
+      <code>embedded_active</code>,
+      <code>exit_msg</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.interactiveshell.TerminalInteractiveShell</code></b>:
+      <code>autoedit_syntax</code>,
+      <code>confirm_exit</code>,
+      <code>editor</code>,
+      <code>pager</code>,
+      <code>screen_length</code>,
+      <code>term_title</code>,
+      <code>usage</code>,
+      <code>using_paste_magics</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.core.interactiveshell.InteractiveShell</code></b>:
+      <code>alias_manager</code>,
+      <code>ast_node_interactivity</code>,
+      <code>ast_transformers</code>,
+      <code>autocall</code>,
+      <code>autoindent</code>,
+      <code>automagic</code>,
+      <code>banner1</code>,
+      <code>banner2</code>,
+      <code>builtin_trap</code>,
+      <code>cache_size</code>,
+      <code>color_info</code>,
+      <code>colors</code>,
+      <code>colors_force</code>,
+      <code>data_pub_class</code>,
+      <code>debug</code>,
+      <code>deep_reload</code>,
+      <code>default_user_namespaces</code>,
+      <code>disable_failing_post_execute</code>,
+      <code>display_formatter</code>,
+      <code>display_page</code>,
+      <code>display_pub_class</code>,
+      <code>display_trap</code>,
+      <code>displayhook_class</code>,
+      <code>execution_count</code>,
+      <code>exit_now</code>,
+      <code>exiter</code>,
+      <code>extension_manager</code>,
+      <code>filename</code>,
+      <code>history_length</code>,
+      <code>history_manager</code>,
+      <code>input_splitter</code>,
+      <code>input_transformer_manager</code>,
+      <code>ipython_dir</code>,
+      <code>logappend</code>,
+      <code>logfile</code>,
+      <code>logstart</code>,
+      <code>magics_manager</code>,
+      <code>multiline_history</code>,
+      <code>object_info_string_level</code>,
+      <code>payload_manager</code>,
+      <code>pdb</code>,
+      <code>prefilter_manager</code>,
+      <code>profile_dir</code>,
+      <code>prompt_in1</code>,
+      <code>prompt_in2</code>,
+      <code>prompt_out</code>,
+      <code>prompts_pad_left</code>,
+      <code>pylab_gui_select</code>,
+      <code>quiet</code>,
+      <code>readline_delims</code>,
+      <code>readline_parse_and_bind</code>,
+      <code>readline_remove_delims</code>,
+      <code>readline_use</code>,
+      <code>separate_in</code>,
+      <code>separate_out</code>,
+      <code>separate_out2</code>,
+      <code>show_rewritten_input</code>,
+      <code>wildcards_case_sensitive</code>,
+      <code>xmode</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.Configurable</code></b>:
+      <code>config</code>,
+      <code>parent</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.interactiveshell.TerminalInteractiveShell</code></b>:
+      <code>usable_screen_length</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.core.interactiveshell.InteractiveShell</code></b>:
+      <code>all_ns_refs</code>,
+      <code>banner</code>,
+      <code>call_pdb</code>,
+      <code>profile</code>,
+      <code>user_global_ns</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="display_banner"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">display_banner</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-quote">'''</code><code class="variable-string"></code>
+<code class="variable-string">----------------------------------------------------------------------</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">------</code>
+<code class="variable-string">The Rekall Memory Forensic framework 1.3.1 (Dammastock).</code>
+<code class="variable-string"></code>
+<code class="variable-string">&quot;We can remember it for you wholesale!&quot;</code>
+<code class="variable-string"></code>
+<code class="variable-string">This program is free software; you can redistribute it and/or modify i</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:24 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.filesystems.ntfs</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.filesystems-module.html">Package&nbsp;filesystems</a> ::
+        Module&nbsp;ntfs
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.filesystems.ntfs-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module ntfs</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.filesystems.ntfs-pysrc.html">source&nbsp;code</a></span></p>
+<pre class="literalblock">
+This file implements support for parsing NTFS filesystem in Rekall.
+
+Simply select the ntfs profile with an ntfs image - you might need to also
+specify the --file_offset (or -o) parameter.
+
+$ rekal -v --profile ntfs -f ~/images/ntfs1-gen2.E01
+
+[1] Default session 13:56:54&gt; fls
+ MFT   Seq           Created                  File Mod                   MFT Mod                   Access              Size    Filename
+----- ----- ------------------------- ------------------------- ------------------------- ------------------------- ---------- --------
+    4     4 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000       36000 $AttrDef
+    8     8 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000           0 $BadClus
+    6     6 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000      126112 $Bitmap
+    7     7 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000        8192 $Boot
+   11    11 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000           0 $Extend
+    2     2 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000     4685824 $LogFile
+    0     1 2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000  2008-12-31 22:44:02+0000       65536 $MFT
+...
+
+</pre>
+
+<!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.Error-class.html" class="summary-name">Error</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.ParseError-class.html" class="summary-name">ParseError</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFSParseError-class.html" class="summary-name">NTFSParseError</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFSDetector-class.html" class="summary-name">NTFSDetector</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.INDEX_NODE_HEADER-class.html" class="summary-name">INDEX_NODE_HEADER</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.FixupAddressSpace-class.html" class="summary-name">FixupAddressSpace</a><br />
+      An address space to implement record fixup.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.RunListAddressSpace-class.html" class="summary-name">RunListAddressSpace</a><br />
+      An address space which is initialized from a runlist.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.MFT_ENTRY-class.html" class="summary-name">MFT_ENTRY</a><br />
+      An MFT Entry.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFS_BOOT_SECTOR-class.html" class="summary-name">NTFS_BOOT_SECTOR</a><br />
+      A class to parse and access the NTFS boot sector.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE-class.html" class="summary-name">NTFS_ATTRIBUTE</a><br />
+      The NTFS attribute.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.STANDARD_INDEX_HEADER-class.html" class="summary-name">STANDARD_INDEX_HEADER</a><br />
+      The index header must manage its own fixups.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFSProfile-class.html" class="summary-name">NTFSProfile</a><br />
+      A profile for the NTFS.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFS-class.html" class="summary-name">NTFS</a><br />
+      A class to manage the NTFS filesystem parser.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.NTFSPlugins-class.html" class="summary-name">NTFSPlugins</a><br />
+      Base class for ntfs plugins.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.FileBaseCommandMixin-class.html" class="summary-name">FileBaseCommandMixin</a><br />
+      Mixin for commands which take filenames- delegate to inode 
+        commands.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.MFTPluginsMixin-class.html" class="summary-name">MFTPluginsMixin</a><br />
+      A mixin for plugins which work on mft entries.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.FStat-class.html" class="summary-name">FStat</a><br />
+      Print information by filename.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.IStat-class.html" class="summary-name">IStat</a><br />
+      Print information related to an MFT entry.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.FLS-class.html" class="summary-name">FLS</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.ILS-class.html" class="summary-name">ILS</a><br />
+      List files in an NTFS image.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.IDump-class.html" class="summary-name">IDump</a><br />
+      Dump a part of an MFT file.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.IExport-class.html" class="summary-name">IExport</a><br />
+      Extracts files from NTFS.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.TestIExport-class.html" class="summary-name">TestIExport</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.TestIStat-class.html" class="summary-name">TestIStat</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.TestFStat-class.html" class="summary-name">TestFStat</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs.TestIDump-class.html" class="summary-name">TestIDump</a>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="LOGGER"></a><span class="summary-name">LOGGER</span> = <code title="logging.getLogger(&quot;ntfs.lznt1&quot;)">logging.getLogger(&quot;ntfs.lznt1&quot;)</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs-module.html#FILE_FLAGS" class="summary-name">FILE_FLAGS</a> = <code title="{'ARCHIVE': 32,
+ 'COMPRESSED': 2048,
+ 'DEVICE': 64,
+ 'ENCRYPTED': 16384,
+ 'HIDDEN': 2,
+ 'NORMAL': 128,
+ 'NOT_INDEXED': 8192,
+ 'OFFLINE': 4096,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ARCHIVE</code><code class="variable-quote">'</code><code class="variable-op">: </code>32<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">COMPRESSED</code><code class="variable-quote">'</code><code class="variable-op">: </code>2048<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">DEVICE</code><code class="variable-quote">'</code><code class="variable-op">: </code>64<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.filesystems.ntfs-module.html#ntfs_vtypes" class="summary-name">ntfs_vtypes</a> = <code title="{'ATTRIBUTE_LIST_ENTRY': [&lt;function &lt;lambda&gt; at 0x2b8d1014c9b0&gt;,
+                          {'attribute': &lt;function &lt;lambda&gt; at 0x2b8d10\
+14caa0&gt;,
+                           'attribute_id': [24, ['byte']],
+                           'length': [4, ['unsigned short int']],
+                           'mftReference': [16,
+                                            ['BitField',
+                                             {'end_bit': 48, 'start_bi\
+...">{'NTFS_BOOT_SECTOR': [512, {&quot;oemname&quot;: [3, [&quot;Str<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.filesystems'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.filesystems</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Variables Details</span></td>
+</tr>
+</table>
+<a name="FILE_FLAGS"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">FILE_FLAGS</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ARCHIVE</code><code class="variable-quote">'</code><code class="variable-op">: </code>32<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">COMPRESSED</code><code class="variable-quote">'</code><code class="variable-op">: </code>2048<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">DEVICE</code><code class="variable-quote">'</code><code class="variable-op">: </code>64<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">ENCRYPTED</code><code class="variable-quote">'</code><code class="variable-op">: </code>16384<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">HIDDEN</code><code class="variable-quote">'</code><code class="variable-op">: </code>2<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">NORMAL</code><code class="variable-quote">'</code><code class="variable-op">: </code>128<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">NOT_INDEXED</code><code class="variable-quote">'</code><code class="variable-op">: </code>8192<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">OFFLINE</code><code class="variable-quote">'</code><code class="variable-op">: </code>4096<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ntfs_vtypes"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">ntfs_vtypes</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ATTRIBUTE_LIST_ENTRY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;function &lt;lambda&gt; at 0x2b8d1014c9b0&gt;<code class="variable-op">,</code>
+                          <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">attribute</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function &lt;lambda&gt; at 0x2b8d10<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+14caa0&gt;<code class="variable-op">,</code>
+                           <code class="variable-quote">'</code><code class="variable-string">attribute_id</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>24<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">byte</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                           <code class="variable-quote">'</code><code class="variable-string">length</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned short int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                           <code class="variable-quote">'</code><code class="variable-string">mftReference</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>16<code class="variable-op">,</code>
+                                            <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">BitField</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                             <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">end_bit</code><code class="variable-quote">'</code><code class="variable-op">: </code>48<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">start_bi</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

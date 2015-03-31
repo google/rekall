@@ -61,22 +61,65 @@
 </table>
 <h1 class="epydoc">Source Code for <a href="rekall.plugins.collectors.darwin-module.html">Package rekall.plugins.collectors.darwin</a></h1>
 <pre class="py-src">
-<a name="L1"></a><tt class="py-lineno">1</tt>  <tt class="py-line"><tt class="py-docstring">"""Collectors specific to OS X"""</tt> </tt>
-<a name="L2"></a><tt class="py-lineno">2</tt>  <tt class="py-line"> </tt>
-<a name="L3"></a><tt class="py-lineno">3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable rekall.components.Entity.collectors=rekall.components.Entity-class.html#collectors,Variable rekall.entity.Entity.collectors=rekall.entity.Entity-class.html#collectors,Variable rekall.obj.Profile.collectors=rekall.obj.Profile-class.html#collectors,Package rekall.plugins.collectors=rekall.plugins.collectors-module.html"><a title="rekall.components.Entity.collectors
-rekall.entity.Entity.collectors
-rekall.obj.Profile.collectors
-rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-2', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins.collectors.darwin=rekall.plugins.collectors.darwin-module.html,Module rekall.plugins.collectors.darwin.darwin=rekall.plugins.collectors.darwin.darwin-module.html,Package rekall.plugins.darwin=rekall.plugins.darwin-module.html,Package rekall.plugins.overlays.darwin=rekall.plugins.overlays.darwin-module.html,Module rekall.plugins.overlays.darwin.darwin=rekall.plugins.overlays.darwin.darwin-module.html"><a title="rekall.plugins.collectors.darwin
-rekall.plugins.collectors.darwin.darwin
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-docstring">"""Collectors specific to OS X"""</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable rekall.entities.entity.Entity.collectors=rekall.entities.entity.Entity-class.html#collectors,Variable rekall.entities.manager.EntityManager.collectors=rekall.entities.manager.EntityManager-class.html#collectors,Package rekall.plugins.collectors=rekall.plugins.collectors-module.html"><a title="rekall.entities.entity.Entity.collectors
+rekall.entities.manager.EntityManager.collectors
+rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-2', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins.collectors.darwin=rekall.plugins.collectors.darwin-module.html,Package rekall.plugins.darwin=rekall.plugins.darwin-module.html,Package rekall.plugins.overlays.darwin=rekall.plugins.overlays.darwin-module.html,Module rekall.plugins.overlays.darwin.darwin=rekall.plugins.overlays.darwin.darwin-module.html"><a title="rekall.plugins.collectors.darwin
 rekall.plugins.darwin
 rekall.plugins.overlays.darwin
-rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-3', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name"><a title="rekall.plugins.collectors.darwin
-rekall.plugins.collectors.darwin.darwin
+rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-3', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.plugins.collectors.darwin.common=rekall.plugins.collectors.darwin.common-module.html,Module rekall.plugins.collectors.windows.common=rekall.plugins.collectors.windows.common-module.html,Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.collectors.darwin.common
+rekall.plugins.collectors.windows.common
+rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-4', 'common', 'link-4');">common</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-5', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-6', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.entities.entity.Entity.collectors
+rekall.entities.manager.EntityManager.collectors
+rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-7', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.plugins.collectors.darwin
 rekall.plugins.darwin
 rekall.plugins.overlays.darwin
-rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-4', 'darwin', 'link-3');">darwin</a></tt> </tt>
-<a name="L4"></a><tt class="py-lineno">4</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-8', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name" targets="Module rekall.plugins.collectors.darwin.handles=rekall.plugins.collectors.darwin.handles-module.html,Module rekall.plugins.collectors.windows.handles=rekall.plugins.collectors.windows.handles-module.html,Method rekall.plugins.windows.gui.userhandles.UserHandles.handles()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#handles,Module rekall.plugins.windows.handles=rekall.plugins.windows.handles-module.html"><a title="rekall.plugins.collectors.darwin.handles
+rekall.plugins.collectors.windows.handles
+rekall.plugins.windows.gui.userhandles.UserHandles.handles
+rekall.plugins.windows.handles" class="py-name" href="#" onclick="return doclink('link-9', 'handles', 'link-9');">handles</a></tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-10" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-10', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-11', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="rekall.entities.entity.Entity.collectors
+rekall.entities.manager.EntityManager.collectors
+rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-12', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins.collectors.darwin
+rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-13', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-14" class="py-name" targets="Module rekall.plugins.collectors.darwin.networking=rekall.plugins.collectors.darwin.networking-module.html,Module rekall.plugins.collectors.windows.networking=rekall.plugins.collectors.windows.networking-module.html,Module rekall.plugins.darwin.networking=rekall.plugins.darwin.networking-module.html"><a title="rekall.plugins.collectors.darwin.networking
+rekall.plugins.collectors.windows.networking
+rekall.plugins.darwin.networking" class="py-name" href="#" onclick="return doclink('link-14', 'networking', 'link-14');">networking</a></tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-15" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-15', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-16', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.entities.entity.Entity.collectors
+rekall.entities.manager.EntityManager.collectors
+rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-17', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.collectors.darwin
+rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-18', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-19" class="py-name" targets="Module rekall.plugins.collectors.darwin.processes=rekall.plugins.collectors.darwin.processes-module.html,Module rekall.plugins.collectors.windows.processes=rekall.plugins.collectors.windows.processes-module.html"><a title="rekall.plugins.collectors.darwin.processes
+rekall.plugins.collectors.windows.processes" class="py-name" href="#" onclick="return doclink('link-19', 'processes', 'link-19');">processes</a></tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-20" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-20', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-21', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.entities.entity.Entity.collectors
+rekall.entities.manager.EntityManager.collectors
+rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-22', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.plugins.collectors.darwin
+rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-23', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-24" class="py-name" targets="Module rekall.plugins.collectors.darwin.sessions=rekall.plugins.collectors.darwin.sessions-module.html,Module rekall.plugins.windows.gui.sessions=rekall.plugins.windows.gui.sessions-module.html"><a title="rekall.plugins.collectors.darwin.sessions
+rekall.plugins.windows.gui.sessions" class="py-name" href="#" onclick="return doclink('link-24', 'sessions', 'link-24');">sessions</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-25" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-25', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-26', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.entities.entity.Entity.collectors
+rekall.entities.manager.EntityManager.collectors
+rekall.plugins.collectors" class="py-name" href="#" onclick="return doclink('link-27', 'collectors', 'link-2');">collectors</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.collectors.darwin
+rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin" class="py-name" href="#" onclick="return doclink('link-28', 'darwin', 'link-3');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-29" class="py-name" targets="Module rekall.plugins.collectors.darwin.zones=rekall.plugins.collectors.darwin.zones-module.html,Module rekall.plugins.darwin.zones=rekall.plugins.darwin.zones-module.html"><a title="rekall.plugins.collectors.darwin.zones
+rekall.plugins.darwin.zones" class="py-name" href="#" onclick="return doclink('link-29', 'zones', 'link-29');">zones</a></tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -114,7 +157,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:14 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:08 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.entities.ext.indexset</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.entities-module.html">Package&nbsp;entities</a> ::
+        <a href="rekall.entities.ext-module.html">Package&nbsp;ext</a> ::
+        Module&nbsp;indexset
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.entities.ext.indexset-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.entities.ext.indexset-module.html">Module rekall.entities.ext.indexset</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">Primitive types not found in Python.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">This module implements a set-like container that supports multiple hashable</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">elems per entry.</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="IndexSet"></a><div id="IndexSet-def"><a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt> <a class="py-toggle" href="#" id="IndexSet-toggle" onclick="return toggle('IndexSet');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html">IndexSet</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="IndexSet-expanded"><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt id="link-0" class="py-name" targets="Variable rekall.entities.ext.indexset.IndexSet._backing_dict=rekall.entities.ext.indexset.IndexSet-class.html#_backing_dict"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-0', '_backing_dict', 'link-0');">_backing_dict</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt id="link-1" class="py-name" targets="Variable rekall.entities.ext.indexset.IndexSet._elem_count=rekall.entities.ext.indexset.IndexSet-class.html#_elem_count"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-1', '_elem_count', 'link-1');">_elem_count</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__init__"></a><div id="IndexSet.__init__-def"><a name="L33"></a><tt class="py-lineno"> 33</tt> <a class="py-toggle" href="#" id="IndexSet.__init__-toggle" onclick="return toggle('IndexSet.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">elems</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__init__-expanded"><a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-2', '_backing_dict', 'link-0');">_backing_dict</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-3', '_elem_count', 'link-1');">_elem_count</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">elems</tt><tt class="py-op">:</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.add()=rekall.entities.ext.indexset.IndexSet-class.html#add,Method rekall.entities.superposition.BaseSuperposition.add()=rekall.entities.superposition.BaseSuperposition-class.html#add,Method rekall.entities.superposition.ListSuperposition.add()=rekall.entities.superposition.ListSuperposition-class.html#add"><a title="rekall.entities.ext.indexset.IndexSet.add
+rekall.entities.superposition.BaseSuperposition.add
+rekall.entities.superposition.ListSuperposition.add" class="py-name" href="#" onclick="return doclink('link-4', 'add', 'link-4');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.add"></a><div id="IndexSet.add-def"><a name="L39"></a><tt class="py-lineno"> 39</tt> <a class="py-toggle" href="#" id="IndexSet.add-toggle" onclick="return toggle('IndexSet.add');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#add">add</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">elem</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.add-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.add-expanded"><a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">        <tt class="py-name">duplicate_entry</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-5" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.index=rekall.plugins.common.profile_index.Index-class.html#index,Module rekall.plugins.windows.index=rekall.plugins.windows.index-module.html,Method rekall.utils.SortedCollection.index()=rekall.utils.SortedCollection-class.html#index"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-5', 'index', 'link-5');">index</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Variable rekall.entities.entity.Entity.indices=rekall.entities.entity.Entity-class.html#indices,Variable rekall.entities.ext.indexset.IndexSet.indices=rekall.entities.ext.indexset.IndexSet-class.html#indices,Variable rekall.entities.identity.Identity.indices=rekall.entities.identity.Identity-class.html#indices,Variable rekall.entities.superposition.IndexedSuperposition.indices=rekall.entities.superposition.IndexedSuperposition-class.html#indices,Variable rekall.obj.BaseObject.indices=rekall.obj.BaseObject-class.html#indices,Variable rekall.obj.Pointer.indices=rekall.obj.Pointer-class.html#indices,Variable rekall.obj.Struct.indices=rekall.obj.Struct-class.html#indices,Variable rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices=rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE-class.html#indices,Variable rekall.plugins.overlays.basic.String.indices=rekall.plugins.overlays.basic.String-class.html#indices"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-6', 'indices', 'link-6');">indices</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-7" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-7', 'index', 'link-5');">index</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-8', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">                <tt class="py-name">duplicate_entry</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-9', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">[</tt><tt id="link-10" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-10', 'index', 'link-5');">index</a></tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">elem</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">duplicate_entry</tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-11', '_elem_count', 'link-1');">_elem_count</a></tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+</div><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.get"></a><div id="IndexSet.get-def"><a name="L50"></a><tt class="py-lineno"> 50</tt> <a class="py-toggle" href="#" id="IndexSet.get-toggle" onclick="return toggle('IndexSet.get');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#get">get</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">elem</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.get-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.get-expanded"><a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">        <tt id="link-12" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-12', 'indices', 'link-6');">indices</a></tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">,</tt> <tt class="py-string">"indices"</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-13" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-13', 'indices', 'link-6');">indices</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-14" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-14', 'index', 'link-5');">index</a></tt> <tt class="py-keyword">in</tt> <tt id="link-15" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-15', 'indices', 'link-6');">indices</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-16', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Method rekall.entities.entity.Entity.get()=rekall.entities.entity.Entity-class.html#get,Method rekall.entities.ext.indexset.IndexSet.get()=rekall.entities.ext.indexset.IndexSet-class.html#get,Method rekall.entities.superposition.EntitySuperposition.get()=rekall.entities.superposition.EntitySuperposition-class.html#get,Class Method rekall.plugins.windows.disassembler.DisasmFactory.get()=rekall.plugins.windows.disassembler.DisasmFactory-class.html#get,Method rekall.session.DynamicNameSpace.get()=rekall.session.DynamicNameSpace-class.html#get"><a title="rekall.entities.entity.Entity.get
+rekall.entities.ext.indexset.IndexSet.get
+rekall.entities.superposition.EntitySuperposition.get
+rekall.plugins.windows.disassembler.DisasmFactory.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-17', 'get', 'link-17');">get</a></tt><tt class="py-op">(</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-18', 'index', 'link-5');">index</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">result</tt><tt class="py-op">:</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+</div><a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.remove"></a><div id="IndexSet.remove-def"><a name="L62"></a><tt class="py-lineno"> 62</tt> <a class="py-toggle" href="#" id="IndexSet.remove-toggle" onclick="return toggle('IndexSet.remove');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#remove">remove</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">elem</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.remove-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.remove-expanded"><a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt id="link-19" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-19', 'indices', 'link-6');">indices</a></tt> <tt class="py-op">=</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">,</tt> <tt class="py-string">"indices"</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-20" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-20', 'indices', 'link-6');">indices</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt class="py-name">KeyError</tt><tt class="py-op">(</tt><tt class="py-string">"%s elem is not in %s."</tt><tt class="py-op">,</tt> <tt class="py-name">repr</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">repr</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-21" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-21', 'index', 'link-5');">index</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-22', 'indices', 'link-6');">indices</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-keyword">del</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-23', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">[</tt><tt id="link-24" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-24', 'index', 'link-5');">index</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-25', '_elem_count', 'link-1');">_elem_count</a></tt> <tt class="py-op">-=</tt> <tt class="py-number">1</tt> </tt>
+</div><a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.discard"></a><div id="IndexSet.discard-def"><a name="L72"></a><tt class="py-lineno"> 72</tt> <a class="py-toggle" href="#" id="IndexSet.discard-toggle" onclick="return toggle('IndexSet.discard');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#discard">discard</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">elem</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.discard-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.discard-expanded"><a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.remove()=rekall.entities.ext.indexset.IndexSet-class.html#remove,Method rekall.utils.SortedCollection.remove()=rekall.utils.SortedCollection-class.html#remove"><a title="rekall.entities.ext.indexset.IndexSet.remove
+rekall.utils.SortedCollection.remove" class="py-name" href="#" onclick="return doclink('link-26', 'remove', 'link-26');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt> <tt class="py-name">KeyError</tt><tt class="py-op">:</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+</div><a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.pop"></a><div id="IndexSet.pop-def"><a name="L78"></a><tt class="py-lineno"> 78</tt> <a class="py-toggle" href="#" id="IndexSet.pop-toggle" onclick="return toggle('IndexSet.pop');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#pop">pop</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.pop-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.pop-expanded"><a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-name">popped_elem</tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-27', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">.</tt><tt class="py-name">itervalues</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-name">popped_elem</tt> <tt class="py-op">=</tt> <tt class="py-name">elem</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">            <tt class="py-keyword">break</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.remove
+rekall.utils.SortedCollection.remove" class="py-name" href="#" onclick="return doclink('link-28', 'remove', 'link-26');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">popped_elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">popped_elem</tt> </tt>
+</div><a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.clear"></a><div id="IndexSet.clear-def"><a name="L87"></a><tt class="py-lineno"> 87</tt> <a class="py-toggle" href="#" id="IndexSet.clear-toggle" onclick="return toggle('IndexSet.clear');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#clear">clear</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.clear-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.clear-expanded"><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-29', '_backing_dict', 'link-0');">_backing_dict</a></tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-30', '_elem_count', 'link-1');">_elem_count</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+</div><a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.get_index"></a><div id="IndexSet.get_index-def"><a name="L91"></a><tt class="py-lineno"> 91</tt> <a class="py-toggle" href="#" id="IndexSet.get_index-toggle" onclick="return toggle('IndexSet.get_index');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#get_index">get_index</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">index</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.get_index-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.get_index-expanded"><a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-31', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.entities.entity.Entity.get
+rekall.entities.ext.indexset.IndexSet.get
+rekall.entities.superposition.EntitySuperposition.get
+rekall.plugins.windows.disassembler.DisasmFactory.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-32', 'get', 'link-17');">get</a></tt><tt class="py-op">(</tt><tt id="link-33" class="py-name"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index
+rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-33', 'index', 'link-5');">index</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="IndexSet.indices"></a><div id="IndexSet.indices-def"><a name="L95"></a><tt class="py-lineno"> 95</tt> <a class="py-toggle" href="#" id="IndexSet.indices-toggle" onclick="return toggle('IndexSet.indices');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#indices">indices</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.indices-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.indices-expanded"><a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-34', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">.</tt><tt id="link-35" class="py-name" targets="Method rekall.session.DynamicNameSpace.keys()=rekall.session.DynamicNameSpace-class.html#keys"><a title="rekall.session.DynamicNameSpace.keys" class="py-name" href="#" onclick="return doclink('link-35', 'keys', 'link-35');">keys</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="IndexSet.values"></a><div id="IndexSet.values-def"><a name="L99"></a><tt class="py-lineno"> 99</tt> <a class="py-toggle" href="#" id="IndexSet.values-toggle" onclick="return toggle('IndexSet.values');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#values">values</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.values-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.values-expanded"><a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.isdisjoint"></a><div id="IndexSet.isdisjoint-def"><a name="L102"></a><tt class="py-lineno">102</tt> <a class="py-toggle" href="#" id="IndexSet.isdisjoint-toggle" onclick="return toggle('IndexSet.isdisjoint');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#isdisjoint">isdisjoint</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.isdisjoint-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.isdisjoint-expanded"><a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.intersection()=rekall.entities.ext.indexset.IndexSet-class.html#intersection"><a title="rekall.entities.ext.indexset.IndexSet.intersection" class="py-name" href="#" onclick="return doclink('link-36', 'intersection', 'link-36');">intersection</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.issubset"></a><div id="IndexSet.issubset-def"><a name="L105"></a><tt class="py-lineno">105</tt> <a class="py-toggle" href="#" id="IndexSet.issubset-toggle" onclick="return toggle('IndexSet.issubset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#issubset">issubset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.issubset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.issubset-expanded"><a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">:</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+</div><a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.issuperset"></a><div id="IndexSet.issuperset-def"><a name="L112"></a><tt class="py-lineno">112</tt> <a class="py-toggle" href="#" id="IndexSet.issuperset-toggle" onclick="return toggle('IndexSet.issuperset');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#issuperset">issuperset</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.issuperset-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.issuperset-expanded"><a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.issubset()=rekall.entities.ext.indexset.IndexSet-class.html#issubset,Method rekall.entities.superposition.BaseSuperposition.issubset()=rekall.entities.superposition.BaseSuperposition-class.html#issubset"><a title="rekall.entities.ext.indexset.IndexSet.issubset
+rekall.entities.superposition.BaseSuperposition.issubset" class="py-name" href="#" onclick="return doclink('link-37', 'issubset', 'link-37');">issubset</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.update"></a><div id="IndexSet.update-def"><a name="L115"></a><tt class="py-lineno">115</tt> <a class="py-toggle" href="#" id="IndexSet.update-toggle" onclick="return toggle('IndexSet.update');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#update">update</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.update-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.update-expanded"><a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">:</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.add
+rekall.entities.superposition.BaseSuperposition.add
+rekall.entities.superposition.ListSuperposition.add" class="py-name" href="#" onclick="return doclink('link-38', 'add', 'link-4');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> </tt>
+</div><a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.union"></a><div id="IndexSet.union-def"><a name="L124"></a><tt class="py-lineno">124</tt> <a class="py-toggle" href="#" id="IndexSet.union-toggle" onclick="return toggle('IndexSet.union');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#union">union</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.union-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.union-expanded"><a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt id="link-39" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#type"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-39', 'type', 'link-39');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-40" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-40', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">.</tt><tt class="py-name">itervalues</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">result</tt><tt class="py-op">:</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">            <tt class="py-name">result</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.add
+rekall.entities.superposition.BaseSuperposition.add
+rekall.entities.superposition.ListSuperposition.add" class="py-name" href="#" onclick="return doclink('link-41', 'add', 'link-4');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+</div><a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.intersection"></a><div id="IndexSet.intersection-def"><a name="L134"></a><tt class="py-lineno">134</tt> <a class="py-toggle" href="#" id="IndexSet.intersection-toggle" onclick="return toggle('IndexSet.intersection');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#intersection">intersection</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.intersection-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.intersection-expanded"><a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt id="link-42" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-42', 'type', 'link-39');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">:</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">                <tt class="py-name">result</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.add
+rekall.entities.superposition.BaseSuperposition.add
+rekall.entities.superposition.ListSuperposition.add" class="py-name" href="#" onclick="return doclink('link-43', 'add', 'link-4');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+</div><a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.intersection_update"></a><div id="IndexSet.intersection_update-def"><a name="L142"></a><tt class="py-lineno">142</tt> <a class="py-toggle" href="#" id="IndexSet.intersection_update-toggle" onclick="return toggle('IndexSet.intersection_update');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#intersection_update">intersection_update</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.intersection_update-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.intersection_update-expanded"><a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.remove
+rekall.utils.SortedCollection.remove" class="py-name" href="#" onclick="return doclink('link-44', 'remove', 'link-26');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> </tt>
+</div><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.difference"></a><div id="IndexSet.difference-def"><a name="L149"></a><tt class="py-lineno">149</tt> <a class="py-toggle" href="#" id="IndexSet.difference-toggle" onclick="return toggle('IndexSet.difference');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#difference">difference</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.difference-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.difference-expanded"><a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt id="link-45" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-45', 'type', 'link-39');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">:</tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">                <tt class="py-name">result</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.add
+rekall.entities.superposition.BaseSuperposition.add
+rekall.entities.superposition.ListSuperposition.add" class="py-name" href="#" onclick="return doclink('link-46', 'add', 'link-4');">add</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+</div><a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.difference_update"></a><div id="IndexSet.difference_update-def"><a name="L157"></a><tt class="py-lineno">157</tt> <a class="py-toggle" href="#" id="IndexSet.difference_update-toggle" onclick="return toggle('IndexSet.difference_update');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#difference_update">difference_update</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.difference_update-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.difference_update-expanded"><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">other</tt><tt class="py-op">:</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.remove
+rekall.utils.SortedCollection.remove" class="py-name" href="#" onclick="return doclink('link-47', 'remove', 'link-26');">remove</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line"> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> </tt>
+</div><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__contains__"></a><div id="IndexSet.__contains__-def"><a name="L163"></a><tt class="py-lineno">163</tt> <a class="py-toggle" href="#" id="IndexSet.__contains__-toggle" onclick="return toggle('IndexSet.__contains__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__contains__">__contains__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">elem</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__contains__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__contains__-expanded"><a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="rekall.entities.entity.Entity.get
+rekall.entities.ext.indexset.IndexSet.get
+rekall.entities.superposition.EntitySuperposition.get
+rekall.plugins.windows.disassembler.DisasmFactory.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-48', 'get', 'link-17');">get</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">True</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">False</tt> </tt>
+</div><a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__repr__"></a><div id="IndexSet.__repr__-def"><a name="L169"></a><tt class="py-lineno">169</tt> <a class="py-toggle" href="#" id="IndexSet.__repr__-toggle" onclick="return toggle('IndexSet.__repr__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__repr__">__repr__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__repr__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__repr__-expanded"><a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-string">"FrozenSet(%s)"</tt> <tt class="py-op">%</tt> <tt class="py-string">", "</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-name">repr</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__len__"></a><div id="IndexSet.__len__-def"><a name="L172"></a><tt class="py-lineno">172</tt> <a class="py-toggle" href="#" id="IndexSet.__len__-toggle" onclick="return toggle('IndexSet.__len__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__len__">__len__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__len__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__len__-expanded"><a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-49', '_elem_count', 'link-1');">_elem_count</a></tt> </tt>
+</div><a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__iter__"></a><div id="IndexSet.__iter__-def"><a name="L175"></a><tt class="py-lineno">175</tt> <a class="py-toggle" href="#" id="IndexSet.__iter__-toggle" onclick="return toggle('IndexSet.__iter__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__iter__">__iter__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__iter__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__iter__-expanded"><a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">        <tt class="py-name">seen</tt> <tt class="py-op">=</tt> <tt id="link-50" class="py-name" targets="Variable rekall.entities.query.expression.Membership.set=rekall.entities.query.expression.Membership-class.html#set"><a title="rekall.entities.query.expression.Membership.set" class="py-name" href="#" onclick="return doclink('link-50', 'set', 'link-50');">set</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._backing_dict" class="py-name" href="#" onclick="return doclink('link-51', '_backing_dict', 'link-0');">_backing_dict</a></tt><tt class="py-op">.</tt><tt class="py-name">itervalues</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">            <tt id="link-52" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-52', 'indices', 'link-6');">indices</a></tt> <tt class="py-op">=</tt> <tt id="link-53" class="py-name"><a title="rekall.entities.query.expression.Membership.set" class="py-name" href="#" onclick="return doclink('link-53', 'set', 'link-50');">set</a></tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-54', 'indices', 'link-6');">indices</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">seen</tt> <tt class="py-op">&amp;</tt> <tt id="link-55" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-55', 'indices', 'link-6');">indices</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-name">elem</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">            <tt class="py-name">seen</tt> <tt class="py-op">|=</tt> <tt id="link-56" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-56', 'indices', 'link-6');">indices</a></tt> </tt>
+</div><a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__eq__"></a><div id="IndexSet.__eq__-def"><a name="L186"></a><tt class="py-lineno">186</tt> <a class="py-toggle" href="#" id="IndexSet.__eq__-toggle" onclick="return toggle('IndexSet.__eq__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__eq__">__eq__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__eq__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__eq__-expanded"><a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-57', 'indices', 'link-6');">indices</a></tt><tt class="py-op">)</tt> <tt class="py-op">==</tt> <tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-58', 'indices', 'link-6');">indices</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__ne__"></a><div id="IndexSet.__ne__-def"><a name="L189"></a><tt class="py-lineno">189</tt> <a class="py-toggle" href="#" id="IndexSet.__ne__-toggle" onclick="return toggle('IndexSet.__ne__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__ne__">__ne__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__ne__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__ne__-expanded"><a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.__eq__()=rekall.addrspace.BaseAddressSpace-class.html#__eq__,Method rekall.addrspace.RunBasedAddressSpace.__eq__()=rekall.addrspace.RunBasedAddressSpace-class.html#__eq__,Method rekall.entities.component.Component.__eq__()=rekall.entities.component.Component-class.html#__eq__,Method rekall.entities.entity.Entity.__eq__()=rekall.entities.entity.Entity-class.html#__eq__,Method rekall.entities.ext.indexset.IndexSet.__eq__()=rekall.entities.ext.indexset.IndexSet-class.html#__eq__,Method rekall.entities.identity.Identity.__eq__()=rekall.entities.identity.Identity-class.html#__eq__,Method rekall.entities.query.analyzer.SimpleDependency.__eq__()=rekall.entities.query.analyzer.SimpleDependency-class.html#__eq__,Method rekall.entities.query.expression.Expression.__eq__()=rekall.entities.query.expression.Expression-class.html#__eq__,Method rekall.entities.query.query.Query.__eq__()=rekall.entities.query.query.Query-class.html#__eq__,Method rekall.entities.query.visitor.QueryVisitor.__eq__()=rekall.entities.query.visitor.QueryVisitor-class.html#__eq__,Method rekall.entities.superposition.BaseSuperposition.__eq__()=rekall.entities.superposition.BaseSuperposition-class.html#__eq__,Method rekall.entities.types.TypeDescriptor.__eq__()=rekall.entities.types.TypeDescriptor-class.html#__eq__,Method rekall.obj.Array.__eq__()=rekall.obj.Array-class.html#__eq__,Method rekall.obj.BaseAddressComparisonMixIn.__eq__()=rekall.obj.BaseAddressComparisonMixIn-class.html#__eq__,Method rekall.obj.BaseObject.__eq__()=rekall.obj.BaseObject-class.html#__eq__,Method rekall.obj.NoneObject.__eq__()=rekall.obj.NoneObject-class.html#__eq__,Method rekall.obj.NumericProxyMixIn.__eq__()=rekall.obj.NumericProxyMixIn-class.html#__eq__,Method rekall.obj.Pointer.__eq__()=rekall.obj.Pointer-class.html#__eq__,Method rekall.obj.StringProxyMixIn.__eq__()=rekall.obj.StringProxyMixIn-class.html#__eq__,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.__eq__()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#__eq__,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__eq__()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#__eq__,Method rekall.plugins.addrspaces.standard.FDAddressSpace.__eq__()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#__eq__,Method rekall.plugins.overlays.basic.Enumeration.__eq__()=rekall.plugins.overlays.basic.Enumeration-class.html#__eq__,Method rekall.plugins.overlays.linux.vfs.File.__eq__()=rekall.plugins.overlays.linux.vfs.File-class.html#__eq__,Method rekall.plugins.overlays.linux.vfs.MountPoint.__eq__()=rekall.plugins.overlays.linux.vfs.MountPoint-class.html#__eq__,Method rekall.session.JsonSerializableSession.__eq__()=rekall.session.JsonSerializableSession-class.html#__eq__,Method rekall.utils.SortedCollection.__eq__()=rekall.utils.SortedCollection-class.html#__eq__"><a title="rekall.addrspace.BaseAddressSpace.__eq__
+rekall.addrspace.RunBasedAddressSpace.__eq__
+rekall.entities.component.Component.__eq__
+rekall.entities.entity.Entity.__eq__
+rekall.entities.ext.indexset.IndexSet.__eq__
+rekall.entities.identity.Identity.__eq__
+rekall.entities.query.analyzer.SimpleDependency.__eq__
+rekall.entities.query.expression.Expression.__eq__
+rekall.entities.query.query.Query.__eq__
+rekall.entities.query.visitor.QueryVisitor.__eq__
+rekall.entities.superposition.BaseSuperposition.__eq__
+rekall.entities.types.TypeDescriptor.__eq__
+rekall.obj.Array.__eq__
+rekall.obj.BaseAddressComparisonMixIn.__eq__
+rekall.obj.BaseObject.__eq__
+rekall.obj.NoneObject.__eq__
+rekall.obj.NumericProxyMixIn.__eq__
+rekall.obj.Pointer.__eq__
+rekall.obj.StringProxyMixIn.__eq__
+rekall.plugins.addrspaces.intel.IA32PagedMemory.__eq__
+rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.__eq__
+rekall.plugins.addrspaces.standard.FDAddressSpace.__eq__
+rekall.plugins.overlays.basic.Enumeration.__eq__
+rekall.plugins.overlays.linux.vfs.File.__eq__
+rekall.plugins.overlays.linux.vfs.MountPoint.__eq__
+rekall.session.JsonSerializableSession.__eq__
+rekall.utils.SortedCollection.__eq__" class="py-name" href="#" onclick="return doclink('link-59', '__eq__', 'link-59');">__eq__</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__nonzero__"></a><div id="IndexSet.__nonzero__-def"><a name="L192"></a><tt class="py-lineno">192</tt> <a class="py-toggle" href="#" id="IndexSet.__nonzero__-toggle" onclick="return toggle('IndexSet.__nonzero__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__nonzero__">__nonzero__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__nonzero__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__nonzero__-expanded"><a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet._elem_count" class="py-name" href="#" onclick="return doclink('link-60', '_elem_count', 'link-1');">_elem_count</a></tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt> </tt>
+</div><a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__lt__"></a><div id="IndexSet.__lt__-def"><a name="L195"></a><tt class="py-lineno">195</tt> <a class="py-toggle" href="#" id="IndexSet.__lt__-toggle" onclick="return toggle('IndexSet.__lt__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__lt__">__lt__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__lt__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__lt__-expanded"><a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> <tt class="py-op">!=</tt> <tt class="py-name">other</tt> <tt class="py-keyword">and</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.issubset
+rekall.entities.superposition.BaseSuperposition.issubset" class="py-name" href="#" onclick="return doclink('link-61', 'issubset', 'link-37');">issubset</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__gt__"></a><div id="IndexSet.__gt__-def"><a name="L198"></a><tt class="py-lineno">198</tt> <a class="py-toggle" href="#" id="IndexSet.__gt__-toggle" onclick="return toggle('IndexSet.__gt__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__gt__">__gt__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__gt__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__gt__-expanded"><a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt> <tt class="py-op">!=</tt> <tt class="py-name">other</tt> <tt class="py-keyword">and</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name" targets="Method rekall.entities.component.Component.issuperset()=rekall.entities.component.Component-class.html#issuperset,Method rekall.entities.entity.Entity.issuperset()=rekall.entities.entity.Entity-class.html#issuperset,Method rekall.entities.ext.indexset.IndexSet.issuperset()=rekall.entities.ext.indexset.IndexSet-class.html#issuperset,Method rekall.entities.superposition.BaseSuperposition.issuperset()=rekall.entities.superposition.BaseSuperposition-class.html#issuperset,Method rekall.entities.superposition.EntitySuperposition.issuperset()=rekall.entities.superposition.EntitySuperposition-class.html#issuperset"><a title="rekall.entities.component.Component.issuperset
+rekall.entities.entity.Entity.issuperset
+rekall.entities.ext.indexset.IndexSet.issuperset
+rekall.entities.superposition.BaseSuperposition.issuperset
+rekall.entities.superposition.EntitySuperposition.issuperset" class="py-name" href="#" onclick="return doclink('link-62', 'issuperset', 'link-62');">issuperset</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__le__"></a><div id="IndexSet.__le__-def"><a name="L201"></a><tt class="py-lineno">201</tt> <a class="py-toggle" href="#" id="IndexSet.__le__-toggle" onclick="return toggle('IndexSet.__le__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__le__">__le__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__le__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__le__-expanded"><a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.issubset
+rekall.entities.superposition.BaseSuperposition.issubset" class="py-name" href="#" onclick="return doclink('link-63', 'issubset', 'link-37');">issubset</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__ge__"></a><div id="IndexSet.__ge__-def"><a name="L204"></a><tt class="py-lineno">204</tt> <a class="py-toggle" href="#" id="IndexSet.__ge__-toggle" onclick="return toggle('IndexSet.__ge__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__ge__">__ge__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__ge__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__ge__-expanded"><a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="rekall.entities.component.Component.issuperset
+rekall.entities.entity.Entity.issuperset
+rekall.entities.ext.indexset.IndexSet.issuperset
+rekall.entities.superposition.BaseSuperposition.issuperset
+rekall.entities.superposition.EntitySuperposition.issuperset" class="py-name" href="#" onclick="return doclink('link-64', 'issuperset', 'link-62');">issuperset</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__or__"></a><div id="IndexSet.__or__-def"><a name="L207"></a><tt class="py-lineno">207</tt> <a class="py-toggle" href="#" id="IndexSet.__or__-toggle" onclick="return toggle('IndexSet.__or__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__or__">__or__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__or__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__or__-expanded"><a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-65" class="py-name" targets="Method rekall.entities.component.Component.union()=rekall.entities.component.Component-class.html#union,Method rekall.entities.entity.Entity.union()=rekall.entities.entity.Entity-class.html#union,Method rekall.entities.ext.indexset.IndexSet.union()=rekall.entities.ext.indexset.IndexSet-class.html#union,Method rekall.entities.identity.Identity.union()=rekall.entities.identity.Identity-class.html#union,Method rekall.entities.superposition.BaseSuperposition.union()=rekall.entities.superposition.BaseSuperposition-class.html#union,Method rekall.entities.superposition.ListSuperposition.union()=rekall.entities.superposition.ListSuperposition-class.html#union"><a title="rekall.entities.component.Component.union
+rekall.entities.entity.Entity.union
+rekall.entities.ext.indexset.IndexSet.union
+rekall.entities.identity.Identity.union
+rekall.entities.superposition.BaseSuperposition.union
+rekall.entities.superposition.ListSuperposition.union" class="py-name" href="#" onclick="return doclink('link-65', 'union', 'link-65');">union</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__sub__"></a><div id="IndexSet.__sub__-def"><a name="L210"></a><tt class="py-lineno">210</tt> <a class="py-toggle" href="#" id="IndexSet.__sub__-toggle" onclick="return toggle('IndexSet.__sub__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__sub__">__sub__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__sub__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__sub__-expanded"><a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.difference()=rekall.entities.ext.indexset.IndexSet-class.html#difference"><a title="rekall.entities.ext.indexset.IndexSet.difference" class="py-name" href="#" onclick="return doclink('link-66', 'difference', 'link-66');">difference</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__and__"></a><div id="IndexSet.__and__-def"><a name="L213"></a><tt class="py-lineno">213</tt> <a class="py-toggle" href="#" id="IndexSet.__and__-toggle" onclick="return toggle('IndexSet.__and__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__and__">__and__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__and__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__and__-expanded"><a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="rekall.entities.ext.indexset.IndexSet.intersection" class="py-name" href="#" onclick="return doclink('link-67', 'intersection', 'link-36');">intersection</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__ior__"></a><div id="IndexSet.__ior__-def"><a name="L216"></a><tt class="py-lineno">216</tt> <a class="py-toggle" href="#" id="IndexSet.__ior__-toggle" onclick="return toggle('IndexSet.__ior__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__ior__">__ior__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__ior__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__ior__-expanded"><a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name" targets="Method rekall.entities.entity.Entity.update()=rekall.entities.entity.Entity-class.html#update,Method rekall.entities.ext.indexset.IndexSet.update()=rekall.entities.ext.indexset.IndexSet-class.html#update,Method rekall.entities.query.analyzer.DependencySet.update()=rekall.entities.query.analyzer.DependencySet-class.html#update"><a title="rekall.entities.entity.Entity.update
+rekall.entities.ext.indexset.IndexSet.update
+rekall.entities.query.analyzer.DependencySet.update" class="py-name" href="#" onclick="return doclink('link-68', 'update', 'link-68');">update</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__iand__"></a><div id="IndexSet.__iand__-def"><a name="L219"></a><tt class="py-lineno">219</tt> <a class="py-toggle" href="#" id="IndexSet.__iand__-toggle" onclick="return toggle('IndexSet.__iand__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__iand__">__iand__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__iand__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__iand__-expanded"><a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-69" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.intersection_update()=rekall.entities.ext.indexset.IndexSet-class.html#intersection_update"><a title="rekall.entities.ext.indexset.IndexSet.intersection_update" class="py-name" href="#" onclick="return doclink('link-69', 'intersection_update', 'link-69');">intersection_update</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"> </tt>
+<a name="IndexSet.__isub__"></a><div id="IndexSet.__isub__-def"><a name="L222"></a><tt class="py-lineno">222</tt> <a class="py-toggle" href="#" id="IndexSet.__isub__-toggle" onclick="return toggle('IndexSet.__isub__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.ext.indexset.IndexSet-class.html#__isub__">__isub__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">other</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="IndexSet.__isub__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="IndexSet.__isub__-expanded"><a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-70" class="py-name" targets="Method rekall.entities.ext.indexset.IndexSet.difference_update()=rekall.entities.ext.indexset.IndexSet-class.html#difference_update"><a title="rekall.entities.ext.indexset.IndexSet.difference_update" class="py-name" href="#" onclick="return doclink('link-70', 'difference_update', 'link-70');">difference_update</a></tt><tt class="py-op">(</tt><tt class="py-name">other</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:15 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

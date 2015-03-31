@@ -64,11 +64,11 @@
 <h1 class="epydoc">Class AddressResolverMixin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_addressres" name="class_hierarchy_for_addressres">
-<area shape="rect" id="node1" href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html" title="AddressResolverMixin" alt="" coords="473,5,599,32"/>
-<area shape="rect" id="node2" href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html" title="darwin.address_resolver.DarwinAddressResolver" alt="" coords="5,61,261,88"/>
-<area shape="rect" id="node3" href="rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html" title="linux.address_resolver.LinuxAddressResolver" alt="" coords="285,61,523,88"/>
-<area shape="rect" id="node4" href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html" title="windows.address_resolver.PEAddressResolver" alt="" coords="547,61,792,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.address_resolver.WindowsAddressResolver-class.html" title="windows.address_resolver.WindowsAddressResolver" alt="" coords="816,61,1091,88"/>
+<area shape="rect" id="node1" href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html" title="AddressResolverMixin" alt="" coords="474,6,600,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html" title="darwin.address_resolver.DarwinAddressResolver" alt="" coords="5,59,261,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html" title="linux.address_resolver.LinuxAddressResolver" alt="" coords="287,59,523,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.windows.address_resolver.PEAddressResolver-class.html" title="windows.address_resolver.PEAddressResolver" alt="" coords="547,59,793,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.address_resolver.WindowsAddressResolver-class.html" title="windows.address_resolver.WindowsAddressResolver" alt="" coords="819,59,1093,82"/>
 </map>
   <img src="class_hierarchy_for_addressres.gif" alt='' usemap="#class_hierarchy_for_addressres" ismap="ismap" class="graph-without-title" />
 </center>
@@ -261,7 +261,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="name"></a><span class="summary-name">name</span> = <code title="'address_resolver'"><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code></code>
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'address_resolver'"><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code></code><br />
+      hash(x)
     </td>
   </tr>
 <tr>
@@ -269,8 +270,8 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#ADDRESS_NAME_REGEX" class="summary-name">ADDRESS_NAME_REGEX</a> = <code title="re.compile(r'(?P&lt;deref&gt;\*)?((?P&lt;address&gt;0x[0-9A-Fa-f]+)|(?P&lt;module&gt;[A-\
-Za-z_0-9\.]+)!?(?P&lt;symbol&gt;[^ \+-]+)?)(?P&lt;op&gt; *[\+-] *)?(?P&lt;offset&gt;[0-9\
-a-fA-Fx]+)?')">re.compile(r'<code class="re-group">(?P&lt;</code><code class="re-ref">deref</code><code class="re-group">&gt;</code>\*<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(</code><code class="re-group">(?P&lt;</code><code class="re-ref">address</code><code class="re-group">&gt;</code>0<code class="variable-ellipsis">...</code></code>
+Za-z_0-9\.\\]+)!?(?P&lt;symbol&gt;[^ \+-]+)?)(?P&lt;op&gt; *[\+-] *)?(?P&lt;offset&gt;[0\
+-9a-fA-Fx]+)?')">re.compile(r'<code class="re-group">(?P&lt;</code><code class="re-ref">deref</code><code class="re-group">&gt;</code>\*<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(</code><code class="re-group">(?P&lt;</code><code class="re-ref">address</code><code class="re-group">&gt;</code>0<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 </table>
@@ -443,8 +444,8 @@ Returns:
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 re.compile(r'<code class="re-group">(?P&lt;</code><code class="re-ref">deref</code><code class="re-group">&gt;</code>\*<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(</code><code class="re-group">(?P&lt;</code><code class="re-ref">address</code><code class="re-group">&gt;</code>0x<code class="re-group">[</code>0<code class="re-op">-</code>9A<code class="re-op">-</code>Fa<code class="re-op">-</code>f<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code><code class="re-op">|</code><code class="re-group">(?P&lt;</code><code class="re-ref">module</code><code class="re-group">&gt;</code><code class="re-group">[</code>A<code class="re-op">-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-Za<code class="re-op">-</code>z_0<code class="re-op">-</code>9\.<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code>!<code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">symbol</code><code class="re-group">&gt;</code><code class="re-group">[</code><code class="re-op">^</code> \+-<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">)</code><code class="re-group">(?P&lt;</code><code class="re-ref">op</code><code class="re-group">&gt;</code> <code class="re-op">*</code><code class="re-group">[</code>\+-<code class="re-group">]</code> <code class="re-op">*</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">offset</code><code class="re-group">&gt;</code><code class="re-group">[</code>0<code class="re-op">-</code>9<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-a<code class="re-op">-</code>fA<code class="re-op">-</code>Fx<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code>')
+Za<code class="re-op">-</code>z_0<code class="re-op">-</code>9\.\\<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code>!<code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">symbol</code><code class="re-group">&gt;</code><code class="re-group">[</code><code class="re-op">^</code> \+-<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">)</code><code class="re-group">(?P&lt;</code><code class="re-ref">op</code><code class="re-group">&gt;</code> <code class="re-op">*</code><code class="re-group">[</code>\+-<code class="re-group">]</code> <code class="re-op">*</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">offset</code><code class="re-group">&gt;</code><code class="re-group">[</code>0<code class="re-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="re-op">-</code>9a<code class="re-op">-</code>fA<code class="re-op">-</code>Fx<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code>')
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -482,7 +483,7 @@ a<code class="re-op">-</code>fA<code class="re-op">-</code>Fx<code class="re-gro
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:46 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:30 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -65,7 +65,7 @@
 <h1 class="epydoc">Class DWARFParser</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.linux.dwarfdump-pysrc.html#DWARFParser">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_dwarfparse" name="class_hierarchy_for_dwarfparse">
-<area shape="rect" id="node1" href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html" title="DWARFParser" alt="" coords="5,5,99,32"/>
+<area shape="rect" id="node1" href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html" title="DWARFParser" alt="" coords="5,6,99,29"/>
 </map>
   <img src="class_hierarchy_for_dwarfparse.gif" alt='' usemap="#class_hierarchy_for_dwarfparse" ismap="ismap" class="graph-without-title" />
 </center>
@@ -87,7 +87,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.linux.dwarfdump-pysrc.html#DWARFParser.__init__">source&nbsp;code</a></span>
@@ -106,7 +107,7 @@
         <tr>
           <td><span class="summary-sig"><a name="resolve"></a><span class="summary-sig-name">resolve</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">memb</span>)</span><br />
-      Lookup anonymouse member and replace it with a well known one.</td>
+      Lookup anonymous member and replace it with a well known one.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.linux.dwarfdump-pysrc.html#DWARFParser.resolve">source&nbsp;code</a></span>
             
@@ -324,7 +325,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="sz2tp"></a><span class="summary-name">sz2tp</span> = <code title="{1: 'char', 2: 'short', 4: 'long', 8: 'long long'}"><code class="variable-group">{</code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">char</code><code class="variable-quote">'</code><code class="variable-op">, </code>2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">short</code><code class="variable-quote">'</code><code class="variable-op">, </code>4<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">long</code><code class="variable-quote">'</code><code class="variable-op">, </code>8<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">long long</code><code class="variable-quote">'</code><code class="variable-group">}</code></code>
+        <a href="rekall.plugins.overlays.linux.dwarfdump.DWARFParser-class.html#dwarf_header_regex2" class="summary-name">dwarf_header_regex2</a> = <code title="re.compile(r'&lt;(?P&lt;level&gt;\d+)&gt;&lt;(?P&lt;statement_id&gt;0x[0-9a-fA-F]+(\+0x[0-9\
+a-fA-F]+)?)&gt;&lt;(?P&lt;kind&gt;\w+)&gt;')">re.compile(r'&lt;<code class="re-group">(?P&lt;</code><code class="re-ref">level</code><code class="re-group">&gt;</code>\d<code class="re-op">+</code><code class="re-group">)</code>&gt;&lt;<code class="re-group">(?P&lt;</code><code class="re-ref">statem</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="sz2tp"></a><span class="summary-name">sz2tp</span> = <code title="{1: 'char', 2: 'short', 4: 'int', 8: 'long long'}"><code class="variable-group">{</code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">char</code><code class="variable-quote">'</code><code class="variable-op">, </code>2<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">short</code><code class="variable-quote">'</code><code class="variable-op">, </code>4<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-op">, </code>8<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">long long</code><code class="variable-quote">'</code><code class="variable-group">}</code></code>
     </td>
   </tr>
 <tr>
@@ -375,7 +384,8 @@
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">data</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -463,6 +473,25 @@ re.compile(r'\s<code class="re-op">*</code><code class="re-group">(?P&lt;</code>
   </dl>
 </td></tr></table>
 </div>
+<a name="dwarf_header_regex2"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">dwarf_header_regex2</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+re.compile(r'&lt;<code class="re-group">(?P&lt;</code><code class="re-ref">level</code><code class="re-group">&gt;</code>\d<code class="re-op">+</code><code class="re-group">)</code>&gt;&lt;<code class="re-group">(?P&lt;</code><code class="re-ref">statement_id</code><code class="re-group">&gt;</code>0x<code class="re-group">[</code>0<code class="re-op">-</code>9a<code class="re-op">-</code>fA<code class="re-op">-</code>F<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">(</code>\+0x<code class="re-group">[</code>0<code class="re-op">-</code>9<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+a<code class="re-op">-</code>fA<code class="re-op">-</code>F<code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">)</code>&gt;&lt;<code class="re-group">(?P&lt;</code><code class="re-ref">kind</code><code class="re-group">&gt;</code>\w<code class="re-op">+</code><code class="re-group">)</code>&gt;')
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="tp2vol"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -521,7 +550,7 @@ re.compile(r'\s<code class="re-op">*</code><code class="re-group">(?P&lt;</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:51 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:40 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -63,9 +63,9 @@
 <h1 class="epydoc">Class CellRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.text-pysrc.html#CellRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_cellrender" name="class_hierarchy_for_cellrender">
-<area shape="rect" id="node1" href="rekall.ui.renderer.ObjectRenderer-class.html" title="renderer.ObjectRenderer" alt="" coords="5,5,147,32"/>
-<area shape="rect" id="node3" href="rekall.ui.text.TextObjectRenderer-class.html" title="TextObjectRenderer" alt="" coords="17,61,135,88"/>
-<area shape="rect" id="node2" href="rekall.ui.text.CellRenderer-class.html" title="CellRenderer" alt="" coords="33,117,119,144"/>
+<area shape="rect" id="node1" href="rekall.ui.renderer.ObjectRenderer-class.html" title="renderer.ObjectRenderer" alt="" coords="5,6,147,29"/>
+<area shape="rect" id="node3" href="rekall.ui.text.TextObjectRenderer-class.html" title="TextObjectRenderer" alt="" coords="17,59,135,82"/>
+<area shape="rect" id="node2" href="rekall.ui.text.CellRenderer-class.html" title="CellRenderer" alt="" coords="33,113,119,135"/>
 </map>
   <img src="class_hierarchy_for_cellrender.gif" alt='' usemap="#class_hierarchy_for_cellrender" ismap="ismap" class="graph-without-title" />
 </center>
@@ -135,13 +135,130 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.text.TextObjectRenderer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#DelegateObjectRenderer" class="summary-sig-name">DelegateObjectRenderer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Create an object renderer for an item based on this object renderer.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.DelegateObjectRenderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**options</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="format_address"></a><span class="summary-sig-name">format_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
       <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.format_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_address"></a><span class="summary-sig-name">render_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_compact"></a><span class="summary-sig-name">render_compact</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_full">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_cow"></a><span class="summary-sig-name">render_cow</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*_</span>,
+        <span class="summary-sig-arg">**__</span>)</span><br />
+      Renders Bessy the cow.
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_cow">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_full"></a><span class="summary-sig-name">render_full</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_full">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -157,11 +274,72 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.text.TextObjectRenderer-class.html#render_header" class="summary-sig-name">render_header</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">style</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">full</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">hex_width</span>=<span class="summary-sig-default">0</span>,
         <span class="summary-sig-arg">**options</span>)</span><br />
       This should be overloaded to return the header Cell.
       <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_header">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_hexdump"></a><span class="summary-sig-name">render_hexdump</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">hex_width</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">highlights</span>=<span class="summary-sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
+        <span class="summary-sig-arg">**_</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_hexdump">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_typed"></a><span class="summary-sig-name">render_typed</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_typed">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_value"></a><span class="summary-sig-name">render_value</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_full">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -356,14 +534,22 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="DEFAULT_STYLE"></a><span class="summary-name">DEFAULT_STYLE</span> = <code title="'full'"><code class="variable-quote">'</code><code class="variable-string">full</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes" class="summary-name">classes</a> = <code title="{'ArrayObjectRenderer': &lt;class 'rekall.plugins.renderers.json_storage.\
 ArrayObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
+ 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
+nderer'&gt;,
  'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
 eAddressSpaceObjectRenderer'&gt;,
- 'BaseObjectRenderer': &lt;class 'rekall.ui.json_renderer.BaseObjectRende\
-rer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -402,6 +588,14 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.text.TextObjectRenderer-class.html#address_size" class="summary-name">address_size</a>
+      <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em>
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -438,8 +632,14 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
   <pre class="literalblock">
 Render the target suitably.
 
+The default implementation calls a render_STYLE method based on the
+style keyword arg.
+
 Args:
   target: The object to be rendered.
+
+  style: A value from StyleEnum, specifying how the object should
+      be renderered.
 
   options: A dict containing rendering options. The options are created
     from the column options, overriden by the row options and finally
@@ -539,7 +739,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:04 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:00 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

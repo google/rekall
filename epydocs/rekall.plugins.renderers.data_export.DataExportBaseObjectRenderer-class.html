@@ -64,15 +64,15 @@
 <h1 class="epydoc">Class DataExportBaseObjectRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportBaseObjectRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_dataexport" name="class_hierarchy_for_dataexport">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html" title="DataExportBaseObjectRenderer" alt="" coords="217,229,393,256"/>
-<area shape="rect" id="node3" href="rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer-class.html" title="DataExportPointerObjectRenderer" alt="" coords="5,285,192,312"/>
-<area shape="rect" id="node4" href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html" title="windows.EPROCESSDataExport" alt="" coords="216,285,395,312"/>
-<area shape="rect" id="node6" href="rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html" title="windows.UNICODE_STRINGDataExport" alt="" coords="419,285,635,312"/>
-<area shape="rect" id="node2" href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html" title="DataExportObjectRenderer" alt="" coords="229,173,381,200"/>
-<area shape="rect" id="node5" href="rekall.plugins.renderers.windows.STRINGDataExport-class.html" title="windows.STRINGDataExport" alt="" coords="447,341,607,368"/>
-<area shape="rect" id="node7" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="205,61,405,88"/>
-<area shape="rect" id="node8" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="188,117,423,144"/>
-<area shape="rect" id="node9" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="228,5,383,32"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html" title="DataExportBaseObjectRenderer" alt="" coords="217,219,393,242"/>
+<area shape="rect" id="node3" href="rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer-class.html" title="DataExportPointerObjectRenderer" alt="" coords="5,273,192,295"/>
+<area shape="rect" id="node4" href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html" title="windows.EPROCESSDataExport" alt="" coords="216,273,395,295"/>
+<area shape="rect" id="node6" href="rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html" title="windows.UNICODE_STRINGDataExport" alt="" coords="419,273,636,295"/>
+<area shape="rect" id="node2" href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html" title="DataExportObjectRenderer" alt="" coords="229,166,381,189"/>
+<area shape="rect" id="node5" href="rekall.plugins.renderers.windows.STRINGDataExport-class.html" title="windows.STRINGDataExport" alt="" coords="447,326,608,349"/>
+<area shape="rect" id="node7" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="205,59,405,82"/>
+<area shape="rect" id="node8" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="188,113,421,135"/>
+<area shape="rect" id="node9" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="228,6,381,29"/>
 </map>
   <img src="class_hierarchy_for_dataexport.gif" alt='' usemap="#class_hierarchy_for_dataexport" ismap="ismap" class="graph-without-title" />
 </center>
@@ -119,12 +119,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html#EncodeToJsonSafe" class="summary-sig-name">EncodeToJsonSafe</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html#GetState" class="summary-sig-name">GetState</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
-        <span class="summary-sig-arg">**options</span>)</span><br />
-      Convert the item into a JSON safe item.</td>
+        <span class="summary-sig-arg">**options</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportBaseObjectRenderer.EncodeToJsonSafe">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportBaseObjectRenderer.GetState">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -158,12 +157,33 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="GetState"></a><span class="summary-sig-name">GetState</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#DelegateObjectRenderer" class="summary-sig-name">DelegateObjectRenderer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Create an object renderer for an item based on this object renderer.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.DelegateObjectRenderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#EncodeToJsonSafe" class="summary-sig-name">EncodeToJsonSafe</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
-        <span class="summary-sig-arg">**_</span>)</span>
+        <span class="summary-sig-arg">details</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">**options</span>)</span><br />
+      Convert the item into a JSON safe item.
       <em>(Inherited from <a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html">rekall.ui.json_renderer.StateBasedObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#StateBasedObjectRenderer.GetState">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#StateBasedObjectRenderer.EncodeToJsonSafe">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -463,10 +483,10 @@
 ArrayObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
+ 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
+nderer'&gt;,
  'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
 eAddressSpaceObjectRenderer'&gt;,
- 'BaseObjectRenderer': &lt;class 'rekall.ui.json_renderer.BaseObjectRende\
-rer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -522,43 +542,26 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="EncodeToJsonSafe"></a>
+<a name="GetState"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">EncodeToJsonSafe</span>(<span class="sig-arg">self</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetState</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">item</span>,
         <span class="sig-arg">**options</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportBaseObjectRenderer.EncodeToJsonSafe">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportBaseObjectRenderer.GetState">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Convert the item into a JSON safe item.
-
-JSON is only capable of encoding some simple types (dict, list, int,
-float, unicode strings etc). This method is called to convert the item
-to one of these representations. Note that this method will be called on
-the ObjectRenderer instance with a renders_type attribute which appears
-on the item's MRO.
-
-Args:
-  item: A python object derived from the class mentioned in the
-    renders_type attribite.
-
-Returns:
-  A JSON serializable object (e.g. dict, list, unicode string etc).
-
-</pre>
+  
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.ui.json_renderer.JsonObjectRenderer-class.html#EncodeToJsonSafe">ui.json_renderer.JsonObjectRenderer.EncodeToJsonSafe</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
+        <a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#GetState">ui.json_renderer.StateBasedObjectRenderer.GetState</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -643,7 +646,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:53 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:43 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

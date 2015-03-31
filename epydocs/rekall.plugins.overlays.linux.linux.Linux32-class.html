@@ -65,10 +65,10 @@
 <h1 class="epydoc">Class Linux32</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux32">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_linux32" name="class_hierarchy_for_linux32">
-<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="25,5,95,32"/>
-<area shape="rect" id="node2" href="rekall.plugins.overlays.basic.BasicClasses-class.html" title="basic.BasicClasses" alt="" coords="5,61,115,88"/>
-<area shape="rect" id="node3" href="rekall.plugins.overlays.linux.linux.Linux-class.html" title="Linux" alt="" coords="37,117,83,144"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.Linux32-class.html" title="Linux32" alt="" coords="31,173,89,200"/>
+<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="25,6,95,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.overlays.basic.BasicClasses-class.html" title="basic.BasicClasses" alt="" coords="5,59,115,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.linux.linux.Linux-class.html" title="Linux" alt="" coords="37,113,83,135"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.Linux32-class.html" title="Linux32" alt="" coords="31,166,88,189"/>
 </map>
   <img src="class_hierarchy_for_linux32.gif" alt='' usemap="#class_hierarchy_for_linux32" ismap="ismap" class="graph-without-title" />
 </center>
@@ -132,6 +132,42 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="GetPageOffset"></a><span class="summary-sig-name">GetPageOffset</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Gets the page offset without accounting for relocations or KASLR.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.GetPageOffset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GetRelocationDelta"></a><span class="summary-sig-name">GetRelocationDelta</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns the number of bytes the kernel base is shifted.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.GetRelocationDelta">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#Object" class="summary-sig-name">Object</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">type_name</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">offset</span>=<span class="summary-sig-default">None</span>,
@@ -139,7 +175,6 @@
         <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">parent</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">context</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       A function which instantiates the object named in type_name (as
 a string) from the type in profile passing optional args of
@@ -261,26 +296,6 @@ kwargs.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_classes">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#add_collector" class="summary-sig-name">add_collector</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">components</span>,
-        <span class="summary-sig-arg">collector</span>)</span><br />
-      Add a collector for a particular entity component.
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_collector">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -462,32 +477,13 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_collectors"></a><span class="summary-sig-name">get_collectors</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">component</span>)</span><br />
-      Get collectors that yield a particular component.
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constant</span>,
+        <span class="summary-sig-arg">is_address</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Retrieve a constant from the profile.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_collectors">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">is_address</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Gets the constant from the profile, correcting for KASLR.
-      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.get_constant">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_constant">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -866,6 +862,25 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux-class.html#phys_addr" class="summary-sig-name">phys_addr</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">va</span>)</span><br />
+      Returns the physical address of a given virtual address va.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.phys_addr">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="set_metadata"></a><span class="summary-sig-name">set_metadata</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">value</span>)</span>
@@ -1018,13 +1033,13 @@ kwargs.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.obj.Profile-class.html#classes" class="summary-name">classes</a> = <code title="{'BasicClasses': &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
- 'BasicPEProfile': &lt;class 'rekall.plugins.overlays.windows.windows.Bas\
-icPEProfile'&gt;,
+ 'BasicPEProfile': &lt;class 'rekall.plugins.overlays.windows.pe_vtypes.B\
+asicPEProfile'&gt;,
  'ConHost64': &lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos\
 t64'&gt;,
  'ConHost86': &lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos\
 t86'&gt;,
- 'CrashDump32Profile': &lt;class 'rekall.plugins.overlays.windows.crashdu\
+ 'Conhost': &lt;class 'rekall.plugins.windows.malware.cmdhistory.Conhost'\
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BasicClasses</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.overlays.bas<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
@@ -1033,16 +1048,7 @@ t86'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.mspdb.PDBProfile'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.mspdb.PD<code class="variable-ellipsis">...</code></code>
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="collectors"></a><span class="summary-name">collectors</span> = <code title="None">None</code><br />
-      hash(x)
+        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.filesystems.ntfs.NTFSProfile'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.filesystems.nt<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
@@ -1196,7 +1202,7 @@ t86'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:52 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:41 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

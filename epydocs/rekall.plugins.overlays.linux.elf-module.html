@@ -120,14 +120,14 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.overlays.linux.elf-module.html#elf_overlays" class="summary-name">elf_overlays</a> = <code title="{'elf64_hdr': [None,
-               {'e_phoff': [None,
+               {'e_ident': [None,
+                            ['Signature',
+                             {'value': '\x7fELF\x02\x01\x01'}]],
+                'e_phoff': [None,
                             ['Pointer',
                              {'target': 'Array',
                               'target_args': {'count': &lt;function &lt;lamb\
-da&gt; at 0x313bcf8&gt;,
-                                              'target': 'elf64_phdr',
-                                              'target_size': &lt;function\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">elf64_hdr</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">e_phoff</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Point</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">elf64_hdr</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">e_ident</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Signa</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -186,13 +186,13 @@ da&gt; at 0x313bcf8&gt;,
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">elf64_hdr</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
-               <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">e_phoff</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+               <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">e_ident</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                            <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Signature</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                             <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">value</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">\x7fELF\x02\x01\x01</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                <code class="variable-quote">'</code><code class="variable-string">e_phoff</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
                             <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                              <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                               <code class="variable-quote">'</code><code class="variable-string">target_args</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">count</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function &lt;lamb<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-da&gt; at 0x313bcf8&gt;<code class="variable-op">,</code>
-                                              <code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">elf64_phdr</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                                              <code class="variable-quote">'</code><code class="variable-string">target_size</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;function<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -231,7 +231,7 @@ da&gt; at 0x313bcf8&gt;<code class="variable-op">,</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

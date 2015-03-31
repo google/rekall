@@ -63,8 +63,8 @@
 <h1 class="epydoc">Class ProfileHook</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_profilehoo" name="class_hierarchy_for_profilehoo">
-<area shape="rect" id="node1" href="rekall.kb.ParameterHook-class.html" title="kb.ParameterHook" alt="" coords="5,5,117,32"/>
-<area shape="rect" id="node2" href="rekall.plugins.guess_profile.ProfileHook-class.html" title="ProfileHook" alt="" coords="23,61,100,88"/>
+<area shape="rect" id="node1" href="rekall.kb.ParameterHook-class.html" title="kb.ParameterHook" alt="" coords="4,6,115,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.guess_profile.ProfileHook-class.html" title="ProfileHook" alt="" coords="21,59,97,82"/>
 </map>
   <img src="class_hierarchy_for_profilehoo.gif" alt='' usemap="#class_hierarchy_for_profilehoo" ismap="ismap" class="graph-without-title" />
 </center>
@@ -107,77 +107,6 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Instance Methods</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="VerifyDarwinProfile"></a><span class="summary-sig-name">VerifyDarwinProfile</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">profile_name</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.VerifyDarwinProfile">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="VerifyLinuxProfile"></a><span class="summary-sig-name">VerifyLinuxProfile</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">profile_name</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.VerifyLinuxProfile">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.guess_profile.ProfileHook-class.html#VerifyWinProfile" class="summary-sig-name">VerifyWinProfile</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">profile_name</span>)</span><br />
-      Check that this profile works with this image.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.VerifyWinProfile">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.guess_profile.ProfileHook-class.html#ApplyFindDTB" class="summary-sig-name">ApplyFindDTB</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">find_dtb_cls</span>,
-        <span class="summary-sig-arg">profile</span>)</span><br />
-      Verify profile by trying to use it to load the dtb.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.ApplyFindDTB">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -322,22 +251,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="name"></a><span class="summary-name">name</span> = <code title="'profile'"><code class="variable-quote">'</code><code class="variable-string">profile</code><code class="variable-quote">'</code></code><br />
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'profile_obj'"><code class="variable-quote">'</code><code class="variable-string">profile_obj</code><code class="variable-quote">'</code></code><br />
       hash(x)
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugins.guess_profile.ProfileHook-class.html#KERNEL_NAMES" class="summary-name">KERNEL_NAMES</a> = <code title="set(['ntkrnlmp.pdb', 'ntkrnlpa.pdb', 'ntkrpamp.pdb', 'ntoskrnl.pdb'])"><code class="variable-group">set([</code><code class="variable-quote">'</code><code class="variable-string">ntkrnlmp.pdb</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">ntkrnlpa.pdb</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">ntkrpamp.</code><code class="variable-ellipsis">...</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugins.guess_profile.ProfileHook-class.html#LINUX_TEMPLATE" class="summary-name">LINUX_TEMPLATE</a> = <code title="re.compile(r'Linux version (\d+\.\d+\.\d+[^ ]+)')">re.compile(r'Linux version <code class="re-group">(</code>\d<code class="re-op">+</code>\.\d<code class="re-op">+</code>\.\d<code class="re-op">+</code><code class="re-group">[^</code> <code class="re-group">]</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -346,12 +261,12 @@
     </td><td class="summary">
         <a href="rekall.kb.ParameterHook-class.html#classes" class="summary-name">classes</a> = <code title="{'CatfishOffsetHook': &lt;class 'rekall.plugins.darwin.common.CatfishOffs\
 etHook'&gt;,
- 'KASLRHook': &lt;class 'rekall.plugins.linux.common.KASLRHook'&gt;,
  'KDBGHook': &lt;class 'rekall.plugins.windows.common.KDBGHook'&gt;,
  'KernelASHook': &lt;class 'rekall.plugins.guess_profile.KernelASHook'&gt;,
  'KernelBaseHook': &lt;class 'rekall.plugins.windows.kernel.KernelBaseHoo\
 k'&gt;,
  'KernelSlideHook': &lt;class 'rekall.plugins.darwin.common.KernelSlideHo\
+ok'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CatfishOffsetHook</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.darwin.<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
     </td>
@@ -415,51 +330,6 @@ oduleList'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="VerifyWinProfile"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">VerifyWinProfile</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">profile_name</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.VerifyWinProfile">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Check that this profile works with this image.</p>
-  <p>Currently we construct a valid DTB with this profile. This might have 
-  trouble distinguishing profiles which are fairly close (e.g. Win7 
-  versions).</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="ApplyFindDTB"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ApplyFindDTB</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">find_dtb_cls</span>,
-        <span class="sig-arg">profile</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.guess_profile-pysrc.html#ProfileHook.ApplyFindDTB">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Verify profile by trying to use it to load the dtb.</p>
-  <p>If this succeeds the profile is likely correct.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
 <a name="calculate"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -531,52 +401,6 @@ oduleList'&gt;,
 </td></tr></table>
 </div>
 <br />
-<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
-<a name="section-ClassVariableDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Class Variable Details</span></td>
-</tr>
-</table>
-<a name="KERNEL_NAMES"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">KERNEL_NAMES</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-<code class="variable-group">set([</code><code class="variable-quote">'</code><code class="variable-string">ntkrnlmp.pdb</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">ntkrnlpa.pdb</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">ntkrpamp.pdb</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">ntoskrnl.pdb</code><code class="variable-quote">'</code><code class="variable-group">])</code>
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="LINUX_TEMPLATE"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">LINUX_TEMPLATE</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-re.compile(r'Linux version <code class="re-group">(</code>\d<code class="re-op">+</code>\.\d<code class="re-op">+</code>\.\d<code class="re-op">+</code><code class="re-group">[^</code> <code class="re-group">]</code><code class="re-op">+</code><code class="re-group">)</code>')
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
-<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -608,7 +432,7 @@ re.compile(r'Linux version <code class="re-group">(</code>\d<code class="re-op">
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:48 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:35 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -64,10 +64,14 @@
 <h1 class="epydoc">Class VtoP</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.pfn-pysrc.html#VtoP">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_vtop" name="class_hierarchy_for_vtop">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
-<area shape="rect" id="node3" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="163,61,285,88"/>
-<area shape="rect" id="node4" href="rekall.plugins.windows.pfn.VtoP-class.html" title="VtoP" alt="" coords="125,117,171,144"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
+<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="287,113,409,135"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="154,166,341,189"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="36,113,263,135"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="175,219,321,242"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.pfn.VtoP-class.html" title="VtoP" alt="" coords="225,273,271,295"/>
 </map>
   <img src="class_hierarchy_for_vtop.gif" alt='' usemap="#class_hierarchy_for_vtop" ismap="ismap" class="graph-without-title" />
 </center>
@@ -117,8 +121,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.pfn.VtoP-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">virtual_address</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">address_space</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">virtual_address</span>=<span class="summary-sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Prints information about the virtual to physical translation.</td>
           <td align="right" valign="top">
@@ -155,11 +158,68 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.pfn.VtoP-class.html#render_pte" class="summary-sig-name">render_pte</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">renderer</span>,
+        <span class="summary-sig-arg">vaddr</span>)</span><br />
+      Analyze the PTE in detail.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.pfn-pysrc.html#VtoP.render_pte">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.pfn.VtoP-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">renderer</span>)</span><br />
       Produce results on the renderer given.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.pfn-pysrc.html#VtoP.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_address"></a><span class="summary-sig-name">render_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>,
+        <span class="summary-sig-arg">vaddr</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.pfn-pysrc.html#VtoP.render_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -191,6 +251,24 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="filter_processes"></a><span class="summary-sig-name">filter_processes</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Filters eprocess list using phys_eprocess and pids lists.
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.filter_processes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#get_plugin" class="summary-sig-name">get_plugin</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
@@ -198,6 +276,153 @@
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.get_plugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_eprocess"></a><span class="summary-sig-name">list_eprocess</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      List processes using chosen methods.
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_eprocess">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_from_PsActiveProcessHead"></a><span class="summary-sig-name">list_from_PsActiveProcessHead</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_PsActiveProcessHead">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_from_csrss_handles"></a><span class="summary-sig-name">list_from_csrss_handles</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Enumerate processes using the csrss.exe handle table
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_csrss_handles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_from_eprocess"></a><span class="summary-sig-name">list_from_eprocess</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_eprocess">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_from_handle_tables"></a><span class="summary-sig-name">list_from_handle_tables</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_handle_tables">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_from_pspcid"></a><span class="summary-sig-name">list_from_pspcid</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Enumerate processes by walking the PspCidTable
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_pspcid">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="list_from_sessions"></a><span class="summary-sig-name">list_from_sessions</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
+      List processes using the SessionProcessLinks.
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_sessions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.WinProcessFilter-class.html#virtual_process_from_physical_offset" class="summary-sig-name">virtual_process_from_physical_offset</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">physical_offset</span>)</span><br />
+      Tries to return an eprocess in virtual space from a physical offset.
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.virtual_process_from_physical_offset">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -215,7 +440,6 @@
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
       <code>__sizeof__</code>,
       <code>__subclasshook__</code>
@@ -308,12 +532,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugin.ProfileCommand-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
-      Checks we are active.
-      <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em></td>
+      We are only active if the profile is windows.
+      <em>(Inherited from <a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html">rekall.plugins.windows.common.AbstractWindowsCommandPlugin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#ProfileCommand.is_active">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsCommandPlugin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -341,14 +565,43 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.plugins.windows.common.WinProcessFilter-class.html#METHODS" class="summary-name">METHODS</a> = <code title="OrderedDict([('PsActiveProcessHead', &lt;function list_from_PsActiveProce\
+ssHead at 0x2b8d0cd3ecf8&gt;), ('CSRSS', &lt;function list_from_csrss_handle\
+s at 0x2b8d0cd3ede8&gt;), ('PspCidTable', &lt;function list_from_pspcid at 0\
+x2b8d0cd3eed8&gt;), ('Sessions', &lt;function list_from_sessions at 0x2b8d0c\
+d3ef50&gt;), ('Handles', &lt;function list_from_handle_tables at 0x2b8d0cd3e\
+e60&gt;)])">OrderedDict([('PsActiveProcessHead', &lt;function list_<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PHYSICAL_AS_REQUIRED"></a><span class="summary-name">PHYSICAL_AS_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.PhysicalASMixin-class.html">rekall.plugin.PhysicalASMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PROFILE_REQUIRED"></a><span class="summary-name">PROFILE_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
  'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
  'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
- 'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
+ 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
+nCommand'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -357,15 +610,24 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'address_resolver': &lt;class 'rekall.plugins.windows.address_resolver.P\
-EAddressResolver'&gt;,
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+ 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
+uxAddressResolver'&gt;,
+ 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
  'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
 AnalyzeStruct'&gt;,
  'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="error_status"></a><span class="summary-name">error_status</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -452,8 +714,7 @@ AnalyzeStruct'&gt;,
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">virtual_address</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">address_space</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">virtual_address</span>=<span class="sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -477,6 +738,31 @@ Args:
     <dt>Overrides:
         object.__init__
     </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="render_pte"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">render_pte</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">address</span>,
+        <span class="sig-arg">value</span>,
+        <span class="sig-arg">renderer</span>,
+        <span class="sig-arg">vaddr</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.pfn-pysrc.html#VtoP.render_pte">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Analyze the PTE in detail.</p>
+  <p>This follows the algorithm in 
+  WindowsAMD64PagedMemory.get_phys_addr().</p>
+  <dl class="fields">
   </dl>
 </td></tr></table>
 </div>
@@ -596,7 +882,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:01 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:55 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.renderers.linux</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.renderers-module.html">Package&nbsp;renderers</a> ::
+        Module&nbsp;linux
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.renderers.linux-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.renderers.linux-module.html">Module rekall.plugins.renderers.linux</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-docstring">"""This module implements renderers specific to Linux structures."""</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.ui=rekall.ui-module.html"><a title="rekall.ui" class="py-name" href="#" onclick="return doclink('link-1', 'ui', 'link-1');">ui</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Module rekall.ui.json_renderer=rekall.ui.json_renderer-module.html"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-2', 'json_renderer', 'link-2');">json_renderer</a></tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-3" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-3', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name"><a title="rekall.ui" class="py-name" href="#" onclick="return doclink('link-4', 'ui', 'link-1');">ui</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.ui.text=rekall.ui.text-module.html"><a title="rekall.ui.text" class="py-name" href="#" onclick="return doclink('link-5', 'text', 'link-5');">text</a></tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="kuid_t_TextObjectRenderer"></a><div id="kuid_t_TextObjectRenderer-def"><a name="L25"></a><tt class="py-lineno">25</tt> <a class="py-toggle" href="#" id="kuid_t_TextObjectRenderer-toggle" onclick="return toggle('kuid_t_TextObjectRenderer');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html">kuid_t_TextObjectRenderer</a><tt class="py-op">(</tt><tt class="py-base-class">text</tt><tt class="py-op">.</tt><tt class="py-base-class">TextObjectRenderer</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="kuid_t_TextObjectRenderer-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="kuid_t_TextObjectRenderer-expanded"><a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line">    <tt id="link-6" class="py-name" targets="Variable rekall.plugins.renderers.base_objects.BaseBoolTextRenderer.renders_type=rekall.plugins.renderers.base_objects.BaseBoolTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.BaseObjectTextRenderer.renders_type=rekall.plugins.renderers.base_objects.BaseObjectTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.DatetimeTextRenderer.renders_type=rekall.plugins.renderers.base_objects.DatetimeTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.EnumerationTextRenderer.renders_type=rekall.plugins.renderers.base_objects.EnumerationTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.FlagsTextRenderer.renders_type=rekall.plugins.renderers.base_objects.FlagsTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.FunctionTextRenderer.renders_type=rekall.plugins.renderers.base_objects.FunctionTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.ListRenderer.renders_type=rekall.plugins.renderers.base_objects.ListRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.NativeTypeTextRenderer.renders_type=rekall.plugins.renderers.base_objects.NativeTypeTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.NoneObjectTextRenderer.renders_type=rekall.plugins.renderers.base_objects.NoneObjectTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.NoneTextRenderer.renders_type=rekall.plugins.renderers.base_objects.NoneTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.PointerTextRenderer.renders_type=rekall.plugins.renderers.base_objects.PointerTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.PythonBoolTextRenderer.renders_type=rekall.plugins.renderers.base_objects.PythonBoolTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.StringTextRenderer.renders_type=rekall.plugins.renderers.base_objects.StringTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.StructTextRenderer.renders_type=rekall.plugins.renderers.base_objects.StructTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renders_type=rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.base_objects.VoidTextRenderer.renders_type=rekall.plugins.renderers.base_objects.VoidTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer.renders_type=rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.renders_type=rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer-class.html#renders_type,Variable rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer.renders_type=rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renders_type=rekall.plugins.renderers.entities.Dependency_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renders_type=rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renders_type=rekall.plugins.renderers.entities.Entity_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renders_type=rekall.plugins.renderers.entities.Identity_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.entities.Query_TextObjectRenderer.renders_type=rekall.plugins.renderers.entities.Query_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.ArrayObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.ArrayObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.JsonAttributedStringRenderer.renders_type=rekall.plugins.renderers.json_storage.JsonAttributedStringRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.JsonEnumerationRenderer.renders_type=rekall.plugins.renderers.json_storage.JsonEnumerationRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.JsonHexdumpRenderer.renders_type=rekall.plugins.renderers.json_storage.JsonHexdumpRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.JsonInstructionRenderer.renders_type=rekall.plugins.renderers.json_storage.JsonInstructionRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.NoneObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.NoneObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.PointerObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.PointerObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.ProfileObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.ProfileObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.SessionObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.SessionObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.SetObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.SetObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer.renders_type=rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.linux.kgid_t_TextObjectRenderer.renders_type=rekall.plugins.renderers.linux.kgid_t_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renders_type=rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renders_type=rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.virtualization.VTxPagedMemoryObjectRenderer.renders_type=rekall.plugins.renderers.virtualization.VTxPagedMemoryObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.renders_type=rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer-class.html#renders_type,Variable rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer.renders_type=rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renders_type=rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.visual_aides.MapLegendRenderer.renders_type=rekall.plugins.renderers.visual_aides.MapLegendRenderer-class.html#renders_type,Variable rekall.plugins.renderers.visual_aides.MemoryMapTextRenderer.renders_type=rekall.plugins.renderers.visual_aides.MemoryMapTextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.windows.EPROCESSDataExport.renders_type=rekall.plugins.renderers.windows.EPROCESSDataExport-class.html#renders_type,Variable rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renders_type=rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renders_type=rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renders_type=rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer-class.html#renders_type,Variable rekall.plugins.renderers.windows.SID_Text.renders_type=rekall.plugins.renderers.windows.SID_Text-class.html#renders_type,Variable rekall.plugins.renderers.windows.STRINGDataExport.renders_type=rekall.plugins.renderers.windows.STRINGDataExport-class.html#renders_type,Variable rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.renders_type=rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html#renders_type,Variable rekall.plugins.renderers.windows.UNICODE_STRING_Text.renders_type=rekall.plugins.renderers.windows.UNICODE_STRING_Text-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSDateTimeRenderer.renders_type=rekall.plugins.renderers.xls.XLSDateTimeRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSEProcessRenderer.renders_type=rekall.plugins.renderers.xls.XLSEProcessRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSNativeTypeRenderer.renders_type=rekall.plugins.renderers.xls.XLSNativeTypeRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSNoneObjectRenderer.renders_type=rekall.plugins.renderers.xls.XLSNoneObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSObjectRenderer.renders_type=rekall.plugins.renderers.xls.XLSObjectRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSPointerRenderer.renders_type=rekall.plugins.renderers.xls.XLSPointerRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSStringRenderer.renders_type=rekall.plugins.renderers.xls.XLSStringRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLSStructRenderer.renders_type=rekall.plugins.renderers.xls.XLSStructRenderer-class.html#renders_type,Variable rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer.renders_type=rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer-class.html#renders_type,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renders_type=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#renders_type,Variable rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer.renders_type=rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer-class.html#renders_type,Variable rekall.ui.json_renderer.BaseObjectRenderer.renders_type=rekall.ui.json_renderer.BaseObjectRenderer-class.html#renders_type,Variable rekall.ui.json_renderer.JSTreeNodeRenderer.renders_type=rekall.ui.json_renderer.JSTreeNodeRenderer-class.html#renders_type,Variable rekall.ui.json_renderer.StateBasedObjectRenderer.renders_type=rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#renders_type,Variable rekall.ui.json_renderer.StringRenderer.renders_type=rekall.ui.json_renderer.StringRenderer-class.html#renders_type,Variable rekall.ui.renderer.ObjectRenderer.renders_type=rekall.ui.renderer.ObjectRenderer-class.html#renders_type,Variable rekall.ui.text.AttributedStringRenderer.renders_type=rekall.ui.text.AttributedStringRenderer-class.html#renders_type,Variable rekall.ui.text.CellRenderer.renders_type=rekall.ui.text.CellRenderer-class.html#renders_type,Variable rekall.ui.text.TextObjectRenderer.renders_type=rekall.ui.text.TextObjectRenderer-class.html#renders_type,Variable rekall.ui.text.TreeNodeObjectRenderer.renders_type=rekall.ui.text.TreeNodeObjectRenderer-class.html#renders_type"><a title="rekall.plugins.renderers.base_objects.BaseBoolTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.BaseObjectTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.DatetimeTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.EnumerationTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.FlagsTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.FunctionTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.ListRenderer.renders_type
+rekall.plugins.renderers.base_objects.NativeTypeTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.NoneObjectTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.NoneTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.PointerTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.PythonBoolTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.StringTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.StructTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renders_type
+rekall.plugins.renderers.base_objects.VoidTextRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.ArrayObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonAttributedStringRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonEnumerationRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonHexdumpRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonInstructionRenderer.renders_type
+rekall.plugins.renderers.json_storage.NoneObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.PointerObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.ProfileObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.SessionObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.SetObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kgid_t_TextObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VTxPagedMemoryObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renders_type
+rekall.plugins.renderers.visual_aides.MapLegendRenderer.renders_type
+rekall.plugins.renderers.visual_aides.MemoryMapTextRenderer.renders_type
+rekall.plugins.renderers.windows.EPROCESSDataExport.renders_type
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renders_type
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renders_type
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renders_type
+rekall.plugins.renderers.windows.SID_Text.renders_type
+rekall.plugins.renderers.windows.STRINGDataExport.renders_type
+rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.renders_type
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renders_type
+rekall.plugins.renderers.xls.XLSDateTimeRenderer.renders_type
+rekall.plugins.renderers.xls.XLSEProcessRenderer.renders_type
+rekall.plugins.renderers.xls.XLSNativeTypeRenderer.renders_type
+rekall.plugins.renderers.xls.XLSNoneObjectRenderer.renders_type
+rekall.plugins.renderers.xls.XLSObjectRenderer.renders_type
+rekall.plugins.renderers.xls.XLSPointerRenderer.renders_type
+rekall.plugins.renderers.xls.XLSStringRenderer.renders_type
+rekall.plugins.renderers.xls.XLSStructRenderer.renders_type
+rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer.renders_type
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renders_type
+rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer.renders_type
+rekall.ui.json_renderer.BaseObjectRenderer.renders_type
+rekall.ui.json_renderer.JSTreeNodeRenderer.renders_type
+rekall.ui.json_renderer.StateBasedObjectRenderer.renders_type
+rekall.ui.json_renderer.StringRenderer.renders_type
+rekall.ui.renderer.ObjectRenderer.renders_type
+rekall.ui.text.AttributedStringRenderer.renders_type
+rekall.ui.text.CellRenderer.renders_type
+rekall.ui.text.TextObjectRenderer.renders_type
+rekall.ui.text.TreeNodeObjectRenderer.renders_type" class="py-name" href="#" onclick="return doclink('link-6', 'renders_type', 'link-6');">renders_type</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"kuid_t"</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">    <tt id="link-7" class="py-name" targets="Package rekall.plugins.renderers=rekall.plugins.renderers-module.html,Variable rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers=rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Dependency_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers=rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Entity_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Identity_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Query_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers=rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers=rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers=rekall.plugins.renderers.windows.UNICODE_STRING_Text-class.html#renderers,Variable rekall.plugins.renderers.xls.XLSObjectRenderer.renderers=rekall.plugins.renderers.xls.XLSObjectRenderer-class.html#renderers,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#renderers,Variable rekall.ui.json_renderer.JsonObjectRenderer.renderers=rekall.ui.json_renderer.JsonObjectRenderer-class.html#renderers,Variable rekall.ui.renderer.ObjectRenderer.renderers=rekall.ui.renderer.ObjectRenderer-class.html#renderers,Variable rekall.ui.text.TextObjectRenderer.renderers=rekall.ui.text.TextObjectRenderer-class.html#renderers"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-7', 'renderers', 'link-7');">renderers</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"TextRenderer"</tt><tt class="py-op">,</tt> <tt class="py-string">"TestRenderer"</tt><tt class="py-op">,</tt> <tt class="py-string">"WideTextRenderer"</tt><tt class="py-op">]</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"> </tt>
+<a name="kuid_t_TextObjectRenderer.render_row"></a><div id="kuid_t_TextObjectRenderer.render_row-def"><a name="L29"></a><tt class="py-lineno">29</tt> <a class="py-toggle" href="#" id="kuid_t_TextObjectRenderer.render_row-toggle" onclick="return toggle('kuid_t_TextObjectRenderer.render_row');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html#render_row">render_row</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">target</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">_</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="kuid_t_TextObjectRenderer.render_row-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="kuid_t_TextObjectRenderer.render_row-expanded"><a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-8" class="py-name"><a title="rekall.ui.text" class="py-name" href="#" onclick="return doclink('link-8', 'text', 'link-5');">text</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Class rekall.ui.text.Cell=rekall.ui.text.Cell-class.html"><a title="rekall.ui.text.Cell" class="py-name" href="#" onclick="return doclink('link-9', 'Cell', 'link-9');">Cell</a></tt><tt class="py-op">(</tt><tt class="py-name">unicode</tt><tt class="py-op">(</tt><tt class="py-name">target</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"> </tt>
+<a name="kgid_t_TextObjectRenderer"></a><div id="kgid_t_TextObjectRenderer-def"><a name="L32"></a><tt class="py-lineno">32</tt> <a class="py-toggle" href="#" id="kgid_t_TextObjectRenderer-toggle" onclick="return toggle('kgid_t_TextObjectRenderer');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.renderers.linux.kgid_t_TextObjectRenderer-class.html">kgid_t_TextObjectRenderer</a><tt class="py-op">(</tt><tt class="py-base-class">kuid_t_TextObjectRenderer</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="kgid_t_TextObjectRenderer-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="kgid_t_TextObjectRenderer-expanded"><a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">    <tt id="link-10" class="py-name"><a title="rekall.plugins.renderers.base_objects.BaseBoolTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.BaseObjectTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.DatetimeTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.EnumerationTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.FlagsTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.FunctionTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.ListRenderer.renders_type
+rekall.plugins.renderers.base_objects.NativeTypeTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.NoneObjectTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.NoneTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.PointerTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.PythonBoolTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.StringTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.StructTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renders_type
+rekall.plugins.renderers.base_objects.VoidTextRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.ArrayObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonAttributedStringRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonEnumerationRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonHexdumpRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonInstructionRenderer.renders_type
+rekall.plugins.renderers.json_storage.NoneObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.PointerObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.ProfileObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.SessionObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.SetObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kgid_t_TextObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VTxPagedMemoryObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renders_type
+rekall.plugins.renderers.visual_aides.MapLegendRenderer.renders_type
+rekall.plugins.renderers.visual_aides.MemoryMapTextRenderer.renders_type
+rekall.plugins.renderers.windows.EPROCESSDataExport.renders_type
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renders_type
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renders_type
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renders_type
+rekall.plugins.renderers.windows.SID_Text.renders_type
+rekall.plugins.renderers.windows.STRINGDataExport.renders_type
+rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.renders_type
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renders_type
+rekall.plugins.renderers.xls.XLSDateTimeRenderer.renders_type
+rekall.plugins.renderers.xls.XLSEProcessRenderer.renders_type
+rekall.plugins.renderers.xls.XLSNativeTypeRenderer.renders_type
+rekall.plugins.renderers.xls.XLSNoneObjectRenderer.renders_type
+rekall.plugins.renderers.xls.XLSObjectRenderer.renders_type
+rekall.plugins.renderers.xls.XLSPointerRenderer.renders_type
+rekall.plugins.renderers.xls.XLSStringRenderer.renders_type
+rekall.plugins.renderers.xls.XLSStructRenderer.renders_type
+rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer.renders_type
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renders_type
+rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer.renders_type
+rekall.ui.json_renderer.BaseObjectRenderer.renders_type
+rekall.ui.json_renderer.JSTreeNodeRenderer.renders_type
+rekall.ui.json_renderer.StateBasedObjectRenderer.renders_type
+rekall.ui.json_renderer.StringRenderer.renders_type
+rekall.ui.renderer.ObjectRenderer.renders_type
+rekall.ui.text.AttributedStringRenderer.renders_type
+rekall.ui.text.CellRenderer.renders_type
+rekall.ui.text.TextObjectRenderer.renders_type
+rekall.ui.text.TreeNodeObjectRenderer.renders_type" class="py-name" href="#" onclick="return doclink('link-10', 'renders_type', 'link-6');">renders_type</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"kgid_t"</tt> </tt>
+</div><a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"> </tt>
+<a name="kuid_t_JsonObjectRenderer"></a><div id="kuid_t_JsonObjectRenderer-def"><a name="L36"></a><tt class="py-lineno">36</tt> <a class="py-toggle" href="#" id="kuid_t_JsonObjectRenderer-toggle" onclick="return toggle('kuid_t_JsonObjectRenderer');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html">kuid_t_JsonObjectRenderer</a><tt class="py-op">(</tt><tt class="py-base-class">json_renderer</tt><tt class="py-op">.</tt><tt class="py-base-class">JsonObjectRenderer</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="kuid_t_JsonObjectRenderer-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="kuid_t_JsonObjectRenderer-expanded"><a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">    <tt id="link-11" class="py-name"><a title="rekall.plugins.renderers.base_objects.BaseBoolTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.BaseObjectTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.DatetimeTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.EnumerationTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.FlagsTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.FunctionTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.ListRenderer.renders_type
+rekall.plugins.renderers.base_objects.NativeTypeTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.NoneObjectTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.NoneTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.PointerTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.PythonBoolTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.StringTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.StructTextRenderer.renders_type
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renders_type
+rekall.plugins.renderers.base_objects.VoidTextRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.renders_type
+rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renders_type
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.ArrayObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.FileAddressSpaceObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonAttributedStringRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonEnumerationRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonHexdumpRenderer.renders_type
+rekall.plugins.renderers.json_storage.JsonInstructionRenderer.renders_type
+rekall.plugins.renderers.json_storage.NoneObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.PointerObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.ProfileObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.SessionObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.SetObjectRenderer.renders_type
+rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kgid_t_TextObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renders_type
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VTxPagedMemoryObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer.renders_type
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renders_type
+rekall.plugins.renderers.visual_aides.MapLegendRenderer.renders_type
+rekall.plugins.renderers.visual_aides.MemoryMapTextRenderer.renders_type
+rekall.plugins.renderers.windows.EPROCESSDataExport.renders_type
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renders_type
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renders_type
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renders_type
+rekall.plugins.renderers.windows.SID_Text.renders_type
+rekall.plugins.renderers.windows.STRINGDataExport.renders_type
+rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.renders_type
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renders_type
+rekall.plugins.renderers.xls.XLSDateTimeRenderer.renders_type
+rekall.plugins.renderers.xls.XLSEProcessRenderer.renders_type
+rekall.plugins.renderers.xls.XLSNativeTypeRenderer.renders_type
+rekall.plugins.renderers.xls.XLSNoneObjectRenderer.renders_type
+rekall.plugins.renderers.xls.XLSObjectRenderer.renders_type
+rekall.plugins.renderers.xls.XLSPointerRenderer.renders_type
+rekall.plugins.renderers.xls.XLSStringRenderer.renders_type
+rekall.plugins.renderers.xls.XLSStructRenderer.renders_type
+rekall.plugins.renderers.xls.XLS_UNICODE_STRING_Renderer.renders_type
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renders_type
+rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer.renders_type
+rekall.ui.json_renderer.BaseObjectRenderer.renders_type
+rekall.ui.json_renderer.JSTreeNodeRenderer.renders_type
+rekall.ui.json_renderer.StateBasedObjectRenderer.renders_type
+rekall.ui.json_renderer.StringRenderer.renders_type
+rekall.ui.renderer.ObjectRenderer.renders_type
+rekall.ui.text.AttributedStringRenderer.renders_type
+rekall.ui.text.CellRenderer.renders_type
+rekall.ui.text.TextObjectRenderer.renders_type
+rekall.ui.text.TreeNodeObjectRenderer.renders_type" class="py-name" href="#" onclick="return doclink('link-11', 'renders_type', 'link-6');">renders_type</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"kuid_t"</tt><tt class="py-op">,</tt> <tt class="py-string">"kgid_t"</tt><tt class="py-op">]</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">    <tt id="link-12" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-12', 'renderers', 'link-7');">renderers</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"JsonRenderer"</tt><tt class="py-op">,</tt> <tt class="py-string">"DataExportRenderer"</tt><tt class="py-op">]</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"> </tt>
+<a name="kuid_t_JsonObjectRenderer.EncodeToJsonSafe"></a><div id="kuid_t_JsonObjectRenderer.EncodeToJsonSafe-def"><a name="L40"></a><tt class="py-lineno">40</tt> <a class="py-toggle" href="#" id="kuid_t_JsonObjectRenderer.EncodeToJsonSafe-toggle" onclick="return toggle('kuid_t_JsonObjectRenderer.EncodeToJsonSafe');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#EncodeToJsonSafe">EncodeToJsonSafe</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">task</tt><tt class="py-op">,</tt> <tt class="py-op">**</tt><tt class="py-param">_</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="kuid_t_JsonObjectRenderer.EncodeToJsonSafe-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="kuid_t_JsonObjectRenderer.EncodeToJsonSafe-expanded"><a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">val</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method rekall.obj.BaseObject.v()=rekall.obj.BaseObject-class.html#v,Method rekall.obj.BitField.v()=rekall.obj.BitField-class.html#v,Method rekall.obj.NativeType.v()=rekall.obj.NativeType-class.html#v,Method rekall.obj.Pointer.v()=rekall.obj.Pointer-class.html#v,Method rekall.obj.Struct.v()=rekall.obj.Struct-class.html#v,Method rekall.obj.Void.v()=rekall.obj.Void-class.html#v,Method rekall.plugins.overlays.basic.Enumeration.v()=rekall.plugins.overlays.basic.Enumeration-class.html#v,Method rekall.plugins.overlays.basic.Flags.v()=rekall.plugins.overlays.basic.Flags-class.html#v,Method rekall.plugins.overlays.basic.Ipv4Address.v()=rekall.plugins.overlays.basic.Ipv4Address-class.html#v,Method rekall.plugins.overlays.basic.Ipv6Address.v()=rekall.plugins.overlays.basic.Ipv6Address-class.html#v,Method rekall.plugins.overlays.basic.MacAddress.v()=rekall.plugins.overlays.basic.MacAddress-class.html#v,Method rekall.plugins.overlays.basic.String.v()=rekall.plugins.overlays.basic.String-class.html#v,Method rekall.plugins.overlays.basic.UnicodeString.v()=rekall.plugins.overlays.basic.UnicodeString-class.html#v,Method rekall.plugins.overlays.basic.WinFileTime.v()=rekall.plugins.overlays.basic.WinFileTime-class.html#v,Method rekall.plugins.overlays.basic.timeval.v()=rekall.plugins.overlays.basic.timeval-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#v,Method rekall.plugins.windows.pfn.ValueEnumeration.v()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#v,Method rekall.session.InteractiveSession.v()=rekall.session.InteractiveSession-class.html#v"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-13', 'v', 'link-13');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:16 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

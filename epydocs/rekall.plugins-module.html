@@ -73,18 +73,23 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.accelerated-module.html">rekall.plugins.addrspaces.accelerated</a></strong>: <em class="summary">The module provides alternate implementations utilizing C extension
         modules.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.aff4-module.html">rekall.plugins.addrspaces.aff4</a></strong>: <em class="summary">This Address Space allows us to open aff4 images.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.amd64-module.html">rekall.plugins.addrspaces.amd64</a></strong>: <em class="summary">This is based on Jesse Kornblum's patch to clean up the standard 
         AS's.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.crash-module.html">rekall.plugins.addrspaces.crash</a></strong>: <em class="summary">An Address Space for processing crash dump files.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.elfcore-module.html">rekall.plugins.addrspaces.elfcore</a></strong>: <em class="summary">An Address Space for processing ELF64 coredumps.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.ewf-module.html">rekall.plugins.addrspaces.ewf</a></strong>: <em class="summary">This Address Space allows us to open ewf files</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.hibernate-module.html">rekall.plugins.addrspaces.hibernate</a></strong>: <em class="summary">A Hiber file Address Space</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.intel-module.html">rekall.plugins.addrspaces.intel</a></strong>: <em class="summary">This is Jesse Kornblum's patch to clean up the standard AS's.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.macho-module.html">rekall.plugins.addrspaces.macho</a></strong>: <em class="summary">An Address Space for processing MACH-O coredumps.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.mips-module.html">rekall.plugins.addrspaces.mips</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.mmap_address_space-module.html">rekall.plugins.addrspaces.mmap_address_space</a></strong>: <em class="summary">These are standard address spaces supported by Rekall Memory 
         Forensics</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.pagefile-module.html">rekall.plugins.addrspaces.pagefile</a></strong>: <em class="summary">This address space overlays a pagefile into the physical address 
+        space.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.pmem-module.html">rekall.plugins.addrspaces.pmem</a></strong>: <em class="summary">Address spaces specific to pmem live here.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.standard-module.html">rekall.plugins.addrspaces.standard</a></strong>: <em class="summary">These are standard address spaces supported by Rekall Memory 
         Forensics</em>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.vboxelf-module.html">rekall.plugins.addrspaces.vboxelf</a></strong>: <em class="summary">An Address Space for processing ELF64 coredumps.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.vmem-module.html">rekall.plugins.addrspaces.vmem</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.win32-module.html">rekall.plugins.addrspaces.win32</a></strong>: <em class="summary">This is a windows specific address space.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.addrspaces.xpress-module.html">rekall.plugins.addrspaces.xpress</a></strong>    </li>
@@ -92,10 +97,25 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.collectors-module.html">rekall.plugins.collectors</a></strong>: <em class="summary">Entity collectors.</em>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.ballast-module.html">rekall.plugins.collectors.ballast</a></strong>: <em class="summary">The Rekall Memory Forensics entity layer.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin-module.html">rekall.plugins.collectors.darwin</a></strong>: <em class="summary">Collectors specific to OS X</em>
     <ul>
-    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.darwin-module.html">rekall.plugins.collectors.darwin.darwin</a></strong>: <em class="summary">Common Darwin collectors.</em>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.networking-module.html">rekall.plugins.collectors.darwin.networking</a></strong>: <em class="summary">Collectors for sockets and other network-related things.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.common-module.html">rekall.plugins.collectors.darwin.common</a></strong>: <em class="summary">Darwin entity collectors - common code.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.handles-module.html">rekall.plugins.collectors.darwin.handles</a></strong>: <em class="summary">Collectors for files, handles, sockets and similar.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.networking-module.html">rekall.plugins.collectors.darwin.networking</a></strong>: <em class="summary">Collectors for sockets, interfaces, etc.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.processes-module.html">rekall.plugins.collectors.darwin.processes</a></strong>: <em class="summary">Darwin Process collectors.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.sessions-module.html">rekall.plugins.collectors.darwin.sessions</a></strong>: <em class="summary">Darwin Session collectors.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.darwin.zones-module.html">rekall.plugins.collectors.darwin.zones</a></strong>: <em class="summary">Collectors that deal with Darwin zone allocator.</em>    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.events-module.html">rekall.plugins.collectors.events</a></strong>: <em class="summary">The Rekall Memory Forensics entity layer.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.windows-module.html">rekall.plugins.collectors.windows</a></strong>: <em class="summary">Collectors specific to Windows</em>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.windows.common-module.html">rekall.plugins.collectors.windows.common</a></strong>: <em class="summary">Windows entity collectors - common code.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.windows.handles-module.html">rekall.plugins.collectors.windows.handles</a></strong>: <em class="summary">Windows handles collectors.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.windows.networking-module.html">rekall.plugins.collectors.windows.networking</a></strong>: <em class="summary">Windows networking collectors.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.windows.pool-module.html">rekall.plugins.collectors.windows.pool</a></strong>: <em class="summary">Collectors that scan the pool allocator.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.collectors.windows.processes-module.html">rekall.plugins.collectors.windows.processes</a></strong>: <em class="summary">Windows process collectors.</em>    </li>
     </ul>
     </li>
     </ul>
@@ -103,13 +123,19 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.common-module.html">rekall.plugins.common</a></strong>: <em class="summary">Plugins that are not OS-specific</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.common.address_resolver-module.html">rekall.plugins.common.address_resolver</a></strong>: <em class="summary">The module implements the base class for address resolution.</em>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.common.networking-module.html">rekall.plugins.common.networking</a></strong>: <em class="summary">Networking plugins that are not OS-specific live here.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.bovine-module.html">rekall.plugins.common.bovine</a></strong>: <em class="summary">The plugins in this module are mainly used to visually test 
+        renderers.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.entities-module.html">rekall.plugins.common.entities</a></strong>: <em class="summary">Various plugins that make entities testable and easier to profile.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.inspection-module.html">rekall.plugins.common.inspection</a></strong>: <em class="summary">This module implements some general purpose plugins for inspecting 
+        the state of memory images.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.common.profile_index-module.html">rekall.plugins.common.profile_index</a></strong>: <em class="summary">This module implements profile indexing.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.searches-module.html">rekall.plugins.common.searches</a></strong>: <em class="summary">Various plugins that make entities testable and easier to profile.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.common.terminals-module.html">rekall.plugins.common.terminals</a></strong>: <em class="summary">OS-independent plugins for working with terminals.</em>    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core-module.html">rekall.plugins.core</a></strong>: <em class="summary">This module implements core plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.core_test-module.html">rekall.plugins.core_test</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.darwin-module.html">rekall.plugins.darwin</a></strong>: <em class="summary">OSX Specific plugins.</em>
+    <li> <strong class="uidlink"><a href="rekall.plugins.darwin-module.html">rekall.plugins.darwin</a></strong>: <em class="summary">OS X Specific plugins.</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.WKdm-module.html">rekall.plugins.darwin.WKdm</a></strong>: <em class="summary">A WKdm decompressor.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.address_resolver-module.html">rekall.plugins.darwin.address_resolver</a></strong>: <em class="summary">The module implements an OSX specific address resolution plugin.</em>    </li>
@@ -123,6 +149,12 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.networking-module.html">rekall.plugins.darwin.networking</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.pslist-module.html">rekall.plugins.darwin.pslist</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.darwin.zones-module.html">rekall.plugins.darwin.zones</a></strong>: <em class="summary">Plugins for inspecting memory allocation zones.</em>    </li>
+    </ul>
+    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.filesystems-module.html">rekall.plugins.filesystems</a></strong>
+    <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.filesystems.lznt1-module.html">rekall.plugins.filesystems.lznt1</a></strong>: <em class="summary">Decompression support for the LZNT1 compression algorithm.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.filesystems.ntfs-module.html">rekall.plugins.filesystems.ntfs</a></strong>: <em class="summary">This file implements support for parsing NTFS filesystem in Rekall.</em>    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.guess_profile-module.html">rekall.plugins.guess_profile</a></strong>: <em class="summary">This module guesses the current profile using various heuristics.</em>    </li>
@@ -185,8 +217,8 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.common-module.html">rekall.plugins.overlays.windows.common</a></strong>: <em class="summary">Common windows overlays and classes.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.crashdump-module.html">rekall.plugins.overlays.windows.crashdump</a></strong>: <em class="summary">This file adds support for windows debugging related data.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.heap-module.html">rekall.plugins.overlays.windows.heap</a></strong>: <em class="summary">The module implements user mode heap overlays.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.kdbg_vtypes-module.html">rekall.plugins.overlays.windows.kdbg_vtypes</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.ntfs-module.html">rekall.plugins.overlays.windows.ntfs</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.overlays.windows.pe_vtypes-module.html">rekall.plugins.overlays.windows.pe_vtypes</a></strong>: <em class="summary">References: http://msdn.microsoft.com/en-us/magazine/ms809762.aspx 
         http://msdn.microsoft.com/en-us/magazine/cc301805.aspx 
         http://code.google.com/p/corkami/downloads/detail?name=pe-20110117.pdf
@@ -205,8 +237,15 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.renderers-module.html">rekall.plugins.renderers</a></strong>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.base_objects-module.html">rekall.plugins.renderers.base_objects</a></strong>: <em class="summary">This module implements base object renderers.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.renderers.data_export-module.html">rekall.plugins.renderers.data_export</a></strong>: <em class="summary">This module implements the data export renderer.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.entities-module.html">rekall.plugins.renderers.entities</a></strong>: <em class="summary">This module implements entity renderers.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.renderers.json_storage-module.html">rekall.plugins.renderers.json_storage</a></strong>: <em class="summary">This file implements ObjectRenderers for the JsonRenderer.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.linux-module.html">rekall.plugins.renderers.linux</a></strong>: <em class="summary">This module implements renderers specific to Linux structures.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.tests-module.html">rekall.plugins.renderers.tests</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.virtualization-module.html">rekall.plugins.renderers.virtualization</a></strong>: <em class="summary">This module implements renderers specific to virtualization.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.visual_aides-module.html">rekall.plugins.renderers.visual_aides</a></strong>: <em class="summary">This module implements various visual aides and their renderers.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.renderers.visual_aides_test-module.html">rekall.plugins.renderers.visual_aides_test</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.renderers.windows-module.html">rekall.plugins.renderers.windows</a></strong>: <em class="summary">This module implements renderers specific to windows structures.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.renderers.xls-module.html">rekall.plugins.renderers.xls</a></strong>: <em class="summary">This file implements an xls renderer based on the openpyxl project.</em>    </li>
     </ul>
@@ -214,6 +253,8 @@
     <li> <strong class="uidlink"><a href="rekall.plugins.tests-module.html">rekall.plugins.tests</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools-module.html">rekall.plugins.tools</a></strong>
     <ul>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.caching_url_manager-module.html">rekall.plugins.tools.caching_url_manager</a></strong>: <em class="summary">This file implements a caching URL manager.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.ewf-module.html">rekall.plugins.tools.ewf</a></strong>: <em class="summary">This file provides read/write support for EWF files.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.ipython-module.html">rekall.plugins.tools.ipython</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_test-module.html">rekall.plugins.tools.json_test</a></strong>: <em class="summary">Tests for json encoding/decoding.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.json_tools-module.html">rekall.plugins.tools.json_tools</a></strong>: <em class="summary">Tools for manipulating json output.</em>    </li>
@@ -224,6 +265,7 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.pythoncall-module.html">rekall.plugins.tools.webconsole.pythoncall</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.runplugin-module.html">rekall.plugins.tools.webconsole.runplugin</a></strong>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole.shell-module.html">rekall.plugins.tools.webconsole.shell</a></strong>    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.tools.webconsole_plugin-module.html">rekall.plugins.tools.webconsole_plugin</a></strong>    </li>
@@ -233,16 +275,18 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.address_resolver-module.html">rekall.plugins.windows.address_resolver</a></strong>: <em class="summary">The module implements the windows specific address resolution 
         plugin.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.cache-module.html">rekall.plugins.windows.cache</a></strong>: <em class="summary">This module adds plugins to inspect the windows cache manager.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.common-module.html">rekall.plugins.windows.common</a></strong>: <em class="summary">This plugin contains CORE classes used by lots of other plugins</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.connections-module.html">rekall.plugins.windows.connections</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.connections_test-module.html">rekall.plugins.windows.connections_test</a></strong>: <em class="summary">Tests for the connections plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.connscan-module.html">rekall.plugins.windows.connscan</a></strong>: <em class="summary">This module implements the fast connection scanning</em>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.connscan_test-module.html">rekall.plugins.windows.connscan_test</a></strong>: <em class="summary">Tests for the ConnScan plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.crashinfo-module.html">rekall.plugins.windows.crashinfo</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.disassembler-module.html">rekall.plugins.windows.disassembler</a></strong>: <em class="summary">Provides the primitives needed to disassemble code using distorm3.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.disassembler-module.html">rekall.plugins.windows.disassembler</a></strong>: <em class="summary">Provides the primitives needed to disassemble code using capstone, 
+        unless it's not available on the system, then the code falls back 
+        to using diStorm3.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.dns-module.html">rekall.plugins.windows.dns</a></strong>: <em class="summary">This module implements plugins to inspect Window's DNS resolver 
+        cache.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.dumpcerts-module.html">rekall.plugins.windows.dumpcerts</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan-module.html">rekall.plugins.windows.filescan</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.filescan_test-module.html">rekall.plugins.windows.filescan_test</a></strong>: <em class="summary">Tests for the FileScan plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui-module.html">rekall.plugins.windows.gui</a></strong>: <em class="summary">These plugins implement analysis of the win32k graphic subsystem.</em>
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.gui.atoms-module.html">rekall.plugins.windows.gui.atoms</a></strong>    </li>
@@ -268,7 +312,7 @@
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.handles-module.html">rekall.plugins.windows.handles</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.handles_test-module.html">rekall.plugins.windows.handles_test</a></strong>: <em class="summary">Tests for the handles plugins.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.heap_analysis-module.html">rekall.plugins.windows.heap_analysis</a></strong>: <em class="summary">The module implements user mode heap analysis.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.index-module.html">rekall.plugins.windows.index</a></strong>: <em class="summary">This module implements profile indexing.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.interactive-module.html">rekall.plugins.windows.interactive</a></strong>
     <ul>
@@ -276,7 +320,6 @@
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.kdbgscan-module.html">rekall.plugins.windows.kdbgscan</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.kdbgscan_test-module.html">rekall.plugins.windows.kdbgscan_test</a></strong>: <em class="summary">Tests for the kdbgscan plugin.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.kernel-module.html">rekall.plugins.windows.kernel</a></strong>: <em class="summary">This module discovers the kernel base address.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.kpcr-module.html">rekall.plugins.windows.kpcr</a></strong>: <em class="summary">This plugin is used for displaying information about the Kernel 
         Processor Control Blocks.</em>    </li>
@@ -285,31 +328,23 @@
     <ul>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.apihooks-module.html">rekall.plugins.windows.malware.apihooks</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.callbacks-module.html">rekall.plugins.windows.malware.callbacks</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.callbacks_test-module.html">rekall.plugins.windows.malware.callbacks_test</a></strong>: <em class="summary">Tests for the callback plugin.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.cmdhistory-module.html">rekall.plugins.windows.malware.cmdhistory</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.cmdhistory_test-module.html">rekall.plugins.windows.malware.cmdhistory_test</a></strong>: <em class="summary">Tests for the cmdhistory plugin.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree-module.html">rekall.plugins.windows.malware.devicetree</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.devicetree_test-module.html">rekall.plugins.windows.malware.devicetree_test</a></strong>: <em class="summary">Tests for the devicetree plugin.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan-module.html">rekall.plugins.windows.malware.impscan</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.impscan_test-module.html">rekall.plugins.windows.malware.impscan_test</a></strong>: <em class="summary">Tests for the impscan plugin.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.malfind-module.html">rekall.plugins.windows.malware.malfind</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview-module.html">rekall.plugins.windows.malware.psxview</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.psxview_test-module.html">rekall.plugins.windows.malware.psxview_test</a></strong>: <em class="summary">Tests for the psxview plugin.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.svcscan-module.html">rekall.plugins.windows.malware.svcscan</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.svcscan_test-module.html">rekall.plugins.windows.malware.svcscan_test</a></strong>: <em class="summary">Tests for the svcscan plugin.</em>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.tests-module.html">rekall.plugins.windows.malware.tests</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.timers-module.html">rekall.plugins.windows.malware.timers</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan-module.html">rekall.plugins.windows.malware.yarascan</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.malware.yarascan_test-module.html">rekall.plugins.windows.malware.yarascan_test</a></strong>: <em class="summary">Tests for the yarascan plugins.</em>    </li>
     </ul>
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.misc-module.html">rekall.plugins.windows.misc</a></strong>: <em class="summary">Miscelaneous information gathering plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modscan-module.html">rekall.plugins.windows.modscan</a></strong>: <em class="summary">This module implements the fast module scanning</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules-module.html">rekall.plugins.windows.modules</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.modules_test-module.html">rekall.plugins.windows.modules_test</a></strong>: <em class="summary">Tests for the modules plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.netscan-module.html">rekall.plugins.windows.netscan</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.network-module.html">rekall.plugins.windows.network</a></strong>: <em class="summary">This module extracts network information using kernel object 
         inspection.</em>    </li>
+    <li> <strong class="uidlink"><a href="rekall.plugins.windows.pagefile-module.html">rekall.plugins.windows.pagefile</a></strong>: <em class="summary">This file adds pagefile support.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pas2kas-module.html">rekall.plugins.windows.pas2kas</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn-module.html">rekall.plugins.windows.pfn</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.pfn_test-module.html">rekall.plugins.windows.pfn_test</a></strong>: <em class="summary">Tests for the pfn plugins.</em>    </li>
@@ -334,7 +369,6 @@
     </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.ssdt-module.html">rekall.plugins.windows.ssdt</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods-module.html">rekall.plugins.windows.taskmods</a></strong>    </li>
-    <li> <strong class="uidlink"><a href="rekall.plugins.windows.taskmods_test-module.html">rekall.plugins.windows.taskmods_test</a></strong>: <em class="summary">Tests for the taskmod plugins.</em>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.tests-module.html">rekall.plugins.windows.tests</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo-module.html">rekall.plugins.windows.vadinfo</a></strong>    </li>
     <li> <strong class="uidlink"><a href="rekall.plugins.windows.vadinfo_test-module.html">rekall.plugins.windows.vadinfo_test</a></strong>: <em class="summary">Tests for the vadinfo plugins.</em>    </li>
@@ -392,7 +426,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:19 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

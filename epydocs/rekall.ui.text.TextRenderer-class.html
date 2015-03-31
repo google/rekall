@@ -63,10 +63,10 @@
 <h1 class="epydoc">Class TextRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_textrender" name="class_hierarchy_for_textrender">
-<area shape="rect" id="node1" href="rekall.ui.renderer.BaseRenderer-class.html" title="renderer.BaseRenderer" alt="" coords="43,5,179,32"/>
-<area shape="rect" id="node3" href="rekall.ui.text.TextRenderer-class.html" title="TextRenderer" alt="" coords="67,61,155,88"/>
-<area shape="rect" id="node2" href="rekall.ui.text.TestRenderer-class.html" title="TestRenderer" alt="" coords="5,117,93,144"/>
-<area shape="rect" id="node4" href="rekall.ui.text.WideTextRenderer-class.html" title="WideTextRenderer" alt="" coords="117,117,229,144"/>
+<area shape="rect" id="node1" href="rekall.ui.renderer.BaseRenderer-class.html" title="renderer.BaseRenderer" alt="" coords="43,6,180,29"/>
+<area shape="rect" id="node3" href="rekall.ui.text.TextRenderer-class.html" title="TextRenderer" alt="" coords="67,59,156,82"/>
+<area shape="rect" id="node2" href="rekall.ui.text.TestRenderer-class.html" title="TestRenderer" alt="" coords="5,113,93,135"/>
+<area shape="rect" id="node4" href="rekall.ui.text.WideTextRenderer-class.html" title="WideTextRenderer" alt="" coords="118,113,231,135"/>
 </map>
   <img src="class_hierarchy_for_textrender.gif" alt='' usemap="#class_hierarchy_for_textrender" ismap="ismap" class="graph-without-title" />
 </center>
@@ -146,10 +146,29 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.text.TextRenderer-class.html#section" class="summary-sig-name">section</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">50</span>)</span><br />
+      Start a new section.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextRenderer.section">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.ui.text.TextRenderer-class.html#format" class="summary-sig-name">format</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">formatstring</span>,
         <span class="summary-sig-arg">*data</span>)</span><br />
-      Write formatted data.</td>
+      Parse and interpolate the format string.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextRenderer.format">source&nbsp;code</a></span>
             
@@ -390,26 +409,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#section" class="summary-sig-name">section</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">width</span>=<span class="summary-sig-default">50</span>)</span><br />
-      Start a new section.
-      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.section">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#start" class="summary-sig-name">start</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">plugin_name</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">kwargs</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -581,8 +580,7 @@ er'&gt;,
  'json': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
  'test': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
  'text': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
+ 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
   </tr>
@@ -682,6 +680,33 @@ er'&gt;,
   </dl>
 </td></tr></table>
 </div>
+<a name="section"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">section</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">width</span>=<span class="sig-default">50</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.text-pysrc.html#TextRenderer.section">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Start a new section.</p>
+  <p>Sections are used to separate distinct entries (e.g. reports of 
+  different files).</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#section">renderer.BaseRenderer.section</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="format"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -698,15 +723,19 @@ er'&gt;,
     </td>
   </tr></table>
   
-  <p>Write formatted data.</p>
-  <p>For renderers that need access to the raw data (e.g. to check for 
-  NoneObjects), it is preferred to call this method directly rather than to
-  format the string in the plugin itself.</p>
-  <p>By default we just call the format string directly.</p>
+  <p>Parse and interpolate the format string.</p>
+  <p>A format string consists of a string with interpolation markers 
+  embedded. The syntax for an interpolation marker is 
+  {pos:opt1=value,opt2=value}, where pos is the position of the data 
+  element to interpolate, and opt1, opt2 are the options to provide the 
+  object renderer.</p>
+  <p>For example:</p>
+  <p>renderer.format(&quot;Process {0:style=compact}&quot;, task)</p>
+  <p>For backwards compatibility we support the following syntaxes: {0:#x} 
+  equivalent to {0:style=address} {1:d} equivalent to {1}</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.ui.renderer.BaseRenderer-class.html#format">renderer.BaseRenderer.format</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -776,7 +805,7 @@ er'&gt;,
   
   <p>Table header renders the title row of a table.</p>
   <p>This also stores the header types to ensure everything is formatted 
-  appropriately.  It must be a list of tuples rather than a dict for 
+  appropriately.  It must be a list of specs rather than a dict for 
   ordering purposes.</p>
   <dl class="fields">
     <dt>Overrides:
@@ -807,7 +836,7 @@ Outputs a single row of a table.
 
 Text tables support these additional kwargs:
   highlight: Highlights this raw according to the color scheme (e.g.
-  important, good...)
+             important, good...)
 
 </pre>
   <dl class="fields">
@@ -949,7 +978,7 @@ Text tables support these additional kwargs:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:04 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:00 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

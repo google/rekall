@@ -1,0 +1,839 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.entities.collector</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.entities-module.html">Package&nbsp;entities</a> ::
+        Module&nbsp;collector
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.entities.collector-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.entities.collector-module.html">Module rekall.entities.collector</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2014 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">The Rekall Entity Layer.</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-name">__author__</tt> <tt class="py-op">=</tt> <tt class="py-string">"Adam Sindelar &lt;adamsh@google.com&gt;"</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">re</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Package rekall.plugins.windows.registry=rekall.plugins.windows.registry-module.html,Module rekall.plugins.windows.registry.registry=rekall.plugins.windows.registry.registry-module.html,Module rekall.registry=rekall.registry-module.html"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.registry.registry
+rekall.registry" class="py-name" href="#" onclick="return doclink('link-1', 'registry', 'link-1');">registry</a></tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.entities=rekall.entities-module.html,Variable rekall.entities.collector.EntityCollector.entities=rekall.entities.collector.EntityCollector-class.html#entities,Variable rekall.entities.manager.EntityManager.entities=rekall.entities.manager.EntityManager-class.html#entities,Module rekall.plugins.common.entities=rekall.plugins.common.entities-module.html,Module rekall.plugins.renderers.entities=rekall.plugins.renderers.entities-module.html"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-3', 'entities', 'link-3');">entities</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package rekall.entities.query=rekall.entities.query-module.html,Variable rekall.entities.query.efilter.Parser.query=rekall.entities.query.efilter.Parser-class.html#query,Variable rekall.entities.query.expression.QueryError.query=rekall.entities.query.expression.QueryError-class.html#query,Module rekall.entities.query.query=rekall.entities.query.query-module.html,Variable rekall.plugins.common.entities.EntityFind.query=rekall.plugins.common.entities.EntityFind-class.html#query"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-4', 'query', 'link-4');">query</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.entities.query.analyzer=rekall.entities.query.analyzer-module.html"><a title="rekall.entities.query.analyzer" class="py-name" href="#" onclick="return doclink('link-5', 'analyzer', 'link-5');">analyzer</a></tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-6" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-6', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-7', 'entities', 'link-3');">entities</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-8', 'query', 'link-4');">query</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name"><a title="rekall.entities.query
+rekall.entities.query.efilter.Parser.query
+rekall.entities.query.expression.QueryError.query
+rekall.entities.query.query
+rekall.plugins.common.entities.EntityFind.query" class="py-name" href="#" onclick="return doclink('link-9', 'query', 'link-4');">query</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">entity_query</tt> </tt>
+<a name="CostEnum"></a><div id="CostEnum-def"><a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt> <a class="py-toggle" href="#" id="CostEnum-toggle" onclick="return toggle('CostEnum');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.collector.CostEnum-class.html">CostEnum</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="CostEnum-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="CostEnum-expanded"><a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">    <tt id="link-10" class="py-name" targets="Variable rekall.entities.collector.CostEnum.NoCost=rekall.entities.collector.CostEnum-class.html#NoCost"><a title="rekall.entities.collector.CostEnum.NoCost" class="py-name" href="#" onclick="return doclink('link-10', 'NoCost', 'link-10');">NoCost</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">    <tt id="link-11" class="py-name" targets="Variable rekall.entities.collector.CostEnum.LowCost=rekall.entities.collector.CostEnum-class.html#LowCost"><a title="rekall.entities.collector.CostEnum.LowCost" class="py-name" href="#" onclick="return doclink('link-11', 'LowCost', 'link-11');">LowCost</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">    <tt id="link-12" class="py-name" targets="Variable rekall.entities.collector.CostEnum.NormalCost=rekall.entities.collector.CostEnum-class.html#NormalCost"><a title="rekall.entities.collector.CostEnum.NormalCost" class="py-name" href="#" onclick="return doclink('link-12', 'NormalCost', 'link-12');">NormalCost</a></tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">    <tt id="link-13" class="py-name" targets="Variable rekall.entities.collector.CostEnum.HighCost=rekall.entities.collector.CostEnum-class.html#HighCost"><a title="rekall.entities.collector.CostEnum.HighCost" class="py-name" href="#" onclick="return doclink('link-13', 'HighCost', 'link-13');">HighCost</a></tt> <tt class="py-op">=</tt> <tt class="py-number">3</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt id="link-14" class="py-name" targets="Variable rekall.entities.collector.CostEnum.VeryHighCost=rekall.entities.collector.CostEnum-class.html#VeryHighCost"><a title="rekall.entities.collector.CostEnum.VeryHighCost" class="py-name" href="#" onclick="return doclink('link-14', 'VeryHighCost', 'link-14');">VeryHighCost</a></tt> <tt class="py-op">=</tt> <tt class="py-number">4</tt> </tt>
+</div><a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="EffectEnum"></a><div id="EffectEnum-def"><a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt> <a class="py-toggle" href="#" id="EffectEnum-toggle" onclick="return toggle('EffectEnum');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.collector.EffectEnum-class.html">EffectEnum</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EffectEnum-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EffectEnum-expanded"><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">    <tt class="py-docstring">"""Various outcomes of registering an entity."""</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">    <tt id="link-15" class="py-name" targets="Variable rekall.entities.collector.EffectEnum.Enqueued=rekall.entities.collector.EffectEnum-class.html#Enqueued"><a title="rekall.entities.collector.EffectEnum.Enqueued" class="py-name" href="#" onclick="return doclink('link-15', 'Enqueued', 'link-15');">Enqueued</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt>  <tt class="py-comment"># Entity was enqueued for processing.</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">    <tt id="link-16" class="py-name" targets="Variable rekall.entities.collector.EffectEnum.Added=rekall.entities.collector.EffectEnum-class.html#Added"><a title="rekall.entities.collector.EffectEnum.Added" class="py-name" href="#" onclick="return doclink('link-16', 'Added', 'link-16');">Added</a></tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt>  <tt class="py-comment"># Result is a new entity.</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">    <tt id="link-17" class="py-name" targets="Variable rekall.entities.collector.EffectEnum.Merged=rekall.entities.collector.EffectEnum-class.html#Merged"><a title="rekall.entities.collector.EffectEnum.Merged" class="py-name" href="#" onclick="return doclink('link-17', 'Merged', 'link-17');">Merged</a></tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt>  <tt class="py-comment"># Result is an udpated (merged) entity.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">    <tt id="link-18" class="py-name" targets="Variable rekall.entities.collector.EffectEnum.Duplicate=rekall.entities.collector.EffectEnum-class.html#Duplicate"><a title="rekall.entities.collector.EffectEnum.Duplicate" class="py-name" href="#" onclick="return doclink('link-18', 'Duplicate', 'link-18');">Duplicate</a></tt> <tt class="py-op">=</tt> <tt class="py-number">3</tt>  <tt class="py-comment"># No new data.</tt> </tt>
+</div><a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"> </tt>
+<a name="EntityCollector"></a><div id="EntityCollector-def"><a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt> <a class="py-toggle" href="#" id="EntityCollector-toggle" onclick="return toggle('EntityCollector');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html">EntityCollector</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="EntityCollector-expanded"><a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">    <tt class="py-docstring">"""Base class for entity collectors.</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"><tt class="py-docstring">    EntityCollector subclasses need to override the 'collect' method and the</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-docstring">    'outputs' ivar. EntityCollector takes care of registering collected</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"><tt class="py-docstring">    entities with the EntityManager, deciding whether the collector should be</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring">    called for manager-driven queries and ensuring collection is only done once</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">    per cache lifetime.</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">    Intended subclass overrides:</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">    ============================</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">    ### self.outputs (ivar, required):</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">    Override with a list of collection promises. Each promise should represent</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring">    a component the collector yields on a call to collect, like so:</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">    outputs = ["Process", "Timestamps"]</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">    The collector may also specify a value it guarantees will be set on the</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">    entities it yields. The format for doing so is:</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-docstring">    outputs = ["Struct/type=proc"]</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"><tt class="py-docstring">    The collector is not required to actually deliver on all of its promises,</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"><tt class="py-docstring">    but it is not allowed to yield something it didn't promise.</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"><tt class="py-docstring">    ### self.collect_args (ivar, optional):</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-docstring">    Collectors can specify the kind of input they want using a dictionary of</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-docstring">    queries describing the input, keyed on the names of kwargs they should be</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-docstring">    supplied as. The manager may call collectors with dependencies more than</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-docstring">    once, as new data becomes available.</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"><tt class="py-docstring">    Examples:</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-docstring">    # ProcessParser wants proc structs. Its collect method will now receive</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-docstring">    # a keyword arg 'procs' populated with entities matching the query.</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-docstring">    collect_args = {"procs": "Struct/type is 'proc'"}</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-docstring">    # Socket/process relationship inference wants sockets and processes.</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring">    # Its collect method will now receive two keyword args - 'processes' with</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">    # process entities, and 'sockets' with base object entities.</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">    collect_args = {"processes": "has component Process",</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring">                    "sockets": "Struct/type" is 'socket'}</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">    ### self.filter_input (ivar, optional):</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">    Costly collectors can flip this variable to True, which will cause the</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">    manager to call self.input_filter to prefilter the ingestion set, giving</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-docstring">    the collector the opportunity to filter out entities it has parsed before.</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"><tt class="py-docstring">    ### self.run_cost (ivar, optional):</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-docstring">    Should be set to a CostEnum value, estimating how expensive the collector is</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-docstring">    in terms of performance.</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-docstring">    ### self.enforce_hint (ivar, optional):</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"><tt class="py-docstring">    If True, the manager will always supply a hint to the collect function. If</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"><tt class="py-docstring">    False, the manager will only supply a hint when it's collecting for</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"><tt class="py-docstring">    artifacts.</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-docstring">    ### self.complete_input (ivar, optional):</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-docstring">    If True, will cause the manager to always call the collect method with all</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-docstring">    available results for the ingestion queries, even if they've been sent</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-docstring">    before and haven't been updated since. The results can still be filtered</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-docstring">    with filter_input.</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">    <tt id="link-19" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.outputs=rekall.entities.collector.EntityCollector-class.html#outputs,Variable rekall.plugins.collectors.ballast.BallastGenerator.outputs=rekall.plugins.collectors.ballast.BallastGenerator-class.html#outputs,Variable rekall.plugins.collectors.darwin.common.UserNamer.outputs=rekall.plugins.collectors.darwin.common.UserNamer-class.html#outputs,Variable rekall.plugins.collectors.darwin.handles.DarwinFileCollector.outputs=rekall.plugins.collectors.darwin.handles.DarwinFileCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.outputs=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector.outputs=rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.outputs=rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.outputs=rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketParser.outputs=rekall.plugins.collectors.darwin.networking.DarwinSocketParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector.outputs=rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.networking.UnpListCollector.outputs=rekall.plugins.collectors.darwin.networking.UnpListCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.outputs=rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParser.outputs=rekall.plugins.collectors.darwin.processes.DarwinProcParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector.outputs=rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinClistParser.outputs=rekall.plugins.collectors.darwin.sessions.DarwinClistParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector.outputs=rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.outputs=rekall.plugins.collectors.darwin.sessions.DarwinSessionParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector.outputs=rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.outputs=rekall.plugins.collectors.darwin.sessions.DarwinTTYParser-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector.outputs=rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.outputs=rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000-class.html#outputs,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.outputs=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneCollector.outputs=rekall.plugins.collectors.darwin.zones.DarwinZoneCollector-class.html#outputs,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector.outputs=rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector-class.html#outputs,Variable rekall.plugins.collectors.events.EventInferenceCollector.outputs=rekall.plugins.collectors.events.EventInferenceCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.handles.WindowsHandleCollector.outputs=rekall.plugins.collectors.windows.handles.WindowsHandleCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.outputs=rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.BasePoolCollector.outputs=rekall.plugins.collectors.windows.pool.BasePoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector.outputs=rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector.outputs=rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector.outputs=rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.processes.WindowsProcessParser.outputs=rekall.plugins.collectors.windows.processes.WindowsProcessParser-class.html#outputs,Variable rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector.outputs=rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector-class.html#outputs,Variable rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector.outputs=rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector-class.html#outputs"><a title="rekall.entities.collector.EntityCollector.outputs
+rekall.plugins.collectors.ballast.BallastGenerator.outputs
+rekall.plugins.collectors.darwin.common.UserNamer.outputs
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.outputs
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.outputs
+rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector.outputs
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector.outputs
+rekall.plugins.collectors.darwin.networking.UnpListCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.outputs
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.outputs
+rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneCollector.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector.outputs
+rekall.plugins.collectors.events.EventInferenceCollector.outputs
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.outputs
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.outputs
+rekall.plugins.collectors.windows.pool.BasePoolCollector.outputs
+rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector.outputs
+rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector.outputs
+rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector.outputs
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.outputs
+rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector.outputs
+rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector.outputs" class="py-name" href="#" onclick="return doclink('link-19', 'outputs', 'link-19');">outputs</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt>  <tt class="py-comment"># Subclasses must override. See above.</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">    <tt id="link-20" class="py-name" targets="Variable rekall.entities.collector.EntityCollector._promises=rekall.entities.collector.EntityCollector-class.html#_promises"><a title="rekall.entities.collector.EntityCollector._promises" class="py-name" href="#" onclick="return doclink('link-20', '_promises', 'link-20');">_promises</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt>  <tt class="py-comment"># Promises (SimpleDependency) generated from outputs.</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">    <tt id="link-21" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.collect_args=rekall.entities.collector.EntityCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.common.UserNamer.collect_args=rekall.plugins.collectors.darwin.common.UserNamer-class.html#collect_args,Variable rekall.plugins.collectors.darwin.handles.DarwinFileCollector.collect_args=rekall.plugins.collectors.darwin.handles.DarwinFileCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.collect_args=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.collect_args=rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.collect_args=rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess-class.html#collect_args,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketParser.collect_args=rekall.plugins.collectors.darwin.networking.DarwinSocketParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.collect_args=rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor-class.html#collect_args,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParser.collect_args=rekall.plugins.collectors.darwin.processes.DarwinProcParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinClistParser.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinClistParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinSessionParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinTTYParser-class.html#collect_args,Variable rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.collect_args=rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000-class.html#collect_args,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.collect_args=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#collect_args,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.collect_args=rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html#collect_args,Variable rekall.plugins.collectors.events.EventInferenceCollector.collect_args=rekall.plugins.collectors.events.EventInferenceCollector-class.html#collect_args,Variable rekall.plugins.collectors.windows.handles.WindowsHandleCollector.collect_args=rekall.plugins.collectors.windows.handles.WindowsHandleCollector-class.html#collect_args,Variable rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.collect_args=rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser-class.html#collect_args,Variable rekall.plugins.collectors.windows.processes.WindowsProcessParser.collect_args=rekall.plugins.collectors.windows.processes.WindowsProcessParser-class.html#collect_args"><a title="rekall.entities.collector.EntityCollector.collect_args
+rekall.plugins.collectors.darwin.common.UserNamer.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.collect_args
+rekall.plugins.collectors.events.EventInferenceCollector.collect_args
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.collect_args
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.collect_args
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.collect_args" class="py-name" href="#" onclick="return doclink('link-21', 'collect_args', 'link-21');">collect_args</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt>  <tt class="py-comment"># Subclasses may override.</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">    <tt id="link-22" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.collect_queries=rekall.entities.collector.EntityCollector-class.html#collect_queries"><a title="rekall.entities.collector.EntityCollector.collect_queries" class="py-name" href="#" onclick="return doclink('link-22', 'collect_queries', 'link-22');">collect_queries</a></tt> <tt class="py-op">=</tt> <tt class="py-name">None</tt>  <tt class="py-comment"># Will be populated automatically on init.</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">    <tt id="link-23" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.run_cost=rekall.entities.collector.EntityCollector-class.html#run_cost,Variable rekall.plugins.collectors.darwin.common.UserNamer.run_cost=rekall.plugins.collectors.darwin.common.UserNamer-class.html#run_cost,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.run_cost=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#run_cost,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.run_cost=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#run_cost,Variable rekall.plugins.collectors.events.EventInferenceCollector.run_cost=rekall.plugins.collectors.events.EventInferenceCollector-class.html#run_cost,Variable rekall.plugins.collectors.windows.handles.WindowsHandleCollector.run_cost=rekall.plugins.collectors.windows.handles.WindowsHandleCollector-class.html#run_cost,Variable rekall.plugins.collectors.windows.pool.BasePoolCollector.run_cost=rekall.plugins.collectors.windows.pool.BasePoolCollector-class.html#run_cost"><a title="rekall.entities.collector.EntityCollector.run_cost
+rekall.plugins.collectors.darwin.common.UserNamer.run_cost
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.run_cost
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.run_cost
+rekall.plugins.collectors.events.EventInferenceCollector.run_cost
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.run_cost
+rekall.plugins.collectors.windows.pool.BasePoolCollector.run_cost" class="py-name" href="#" onclick="return doclink('link-23', 'run_cost', 'link-23');">run_cost</a></tt> <tt class="py-op">=</tt> <tt id="link-24" class="py-name" targets="Class rekall.entities.collector.CostEnum=rekall.entities.collector.CostEnum-class.html"><a title="rekall.entities.collector.CostEnum" class="py-name" href="#" onclick="return doclink('link-24', 'CostEnum', 'link-24');">CostEnum</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.entities.collector.CostEnum.NormalCost" class="py-name" href="#" onclick="return doclink('link-25', 'NormalCost', 'link-12');">NormalCost</a></tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">    <tt id="link-26" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.enforce_hint=rekall.entities.collector.EntityCollector-class.html#enforce_hint,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.enforce_hint=rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector-class.html#enforce_hint"><a title="rekall.entities.collector.EntityCollector.enforce_hint
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.enforce_hint" class="py-name" href="#" onclick="return doclink('link-26', 'enforce_hint', 'link-26');">enforce_hint</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">    <tt id="link-27" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.filter_input=rekall.entities.collector.EntityCollector-class.html#filter_input,Variable rekall.plugins.collectors.darwin.handles.DarwinFileCollector.filter_input=rekall.plugins.collectors.darwin.handles.DarwinFileCollector-class.html#filter_input,Variable rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.filter_input=rekall.plugins.collectors.darwin.handles.DarwinHandleCollector-class.html#filter_input,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketParser.filter_input=rekall.plugins.collectors.darwin.networking.DarwinSocketParser-class.html#filter_input"><a title="rekall.entities.collector.EntityCollector.filter_input
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.filter_input
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.filter_input
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.filter_input" class="py-name" href="#" onclick="return doclink('link-27', 'filter_input', 'link-27');">filter_input</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">    <tt id="link-28" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.complete_input=rekall.entities.collector.EntityCollector-class.html#complete_input,Variable rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.complete_input=rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess-class.html#complete_input,Variable rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.complete_input=rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor-class.html#complete_input,Variable rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.complete_input=rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000-class.html#complete_input"><a title="rekall.entities.collector.EntityCollector.complete_input
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.complete_input
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.complete_input
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.complete_input" class="py-name" href="#" onclick="return doclink('link-28', 'complete_input', 'link-28');">complete_input</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">    <tt class="py-name">__metaclass__</tt> <tt class="py-op">=</tt> <tt id="link-29" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.registry.registry
+rekall.registry" class="py-name" href="#" onclick="return doclink('link-29', 'registry', 'link-1');">registry</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Class rekall.registry.MetaclassRegistry=rekall.registry.MetaclassRegistry-class.html"><a title="rekall.registry.MetaclassRegistry" class="py-name" href="#" onclick="return doclink('link-30', 'MetaclassRegistry', 'link-30');">MetaclassRegistry</a></tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">    <tt id="link-31" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.__abstract=rekall.addrspace.BaseAddressSpace-class.html#__abstract,Variable rekall.addrspace.BufferAddressSpace.__abstract=rekall.addrspace.BufferAddressSpace-class.html#__abstract,Variable rekall.addrspace.MultiRunBasedAddressSpace.__abstract=rekall.addrspace.MultiRunBasedAddressSpace-class.html#__abstract,Variable rekall.addrspace.PagedReader.__abstract=rekall.addrspace.PagedReader-class.html#__abstract,Variable rekall.addrspace.RunBasedAddressSpace.__abstract=rekall.addrspace.RunBasedAddressSpace-class.html#__abstract,Variable rekall.entities.collector.EntityCollector.__abstract=rekall.entities.collector.EntityCollector-class.html#__abstract,Variable rekall.entities.component.Component.__abstract=rekall.entities.component.Component-class.html#__abstract,Variable rekall.entities.query.expression.Expression.__abstract=rekall.entities.query.expression.Expression-class.html#__abstract,Variable rekall.entities.query.expression.OrderedSet.__abstract=rekall.entities.query.expression.OrderedSet-class.html#__abstract,Variable rekall.entities.query.expression.Relation.__abstract=rekall.entities.query.expression.Relation-class.html#__abstract,Variable rekall.entities.query.expression.ValueExpression.__abstract=rekall.entities.query.expression.ValueExpression-class.html#__abstract,Variable rekall.entities.query.expression.VariadicExpression.__abstract=rekall.entities.query.expression.VariadicExpression-class.html#__abstract,Variable rekall.entities.query.visitor.QueryVisitor.__abstract=rekall.entities.query.visitor.QueryVisitor-class.html#__abstract,Variable rekall.io_manager.IOManager.__abstract=rekall.io_manager.IOManager-class.html#__abstract,Variable rekall.kb.ParameterHook.__abstract=rekall.kb.ParameterHook-class.html#__abstract,Variable rekall.plugin.Command.__abstract=rekall.plugin.Command-class.html#__abstract,Variable rekall.plugin.ProfileCommand.__abstract=rekall.plugin.ProfileCommand-class.html#__abstract,Variable rekall.plugins.collectors.darwin.common.DarwinEntityCollector.__abstract=rekall.plugins.collectors.darwin.common.DarwinEntityCollector-class.html#__abstract,Variable rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.__abstract=rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector-class.html#__abstract,Variable rekall.plugins.collectors.windows.common.WindowsEntityCollector.__abstract=rekall.plugins.collectors.windows.common.WindowsEntityCollector-class.html#__abstract,Variable rekall.plugins.collectors.windows.pool.BasePoolCollector.__abstract=rekall.plugins.collectors.windows.pool.BasePoolCollector-class.html#__abstract,Variable rekall.plugins.common.entities.FindBatch.__abstract=rekall.plugins.common.entities.FindBatch-class.html#__abstract,Variable rekall.plugins.core.FindDTB.__abstract=rekall.plugins.core.FindDTB-class.html#__abstract,Variable rekall.plugins.darwin.common.AbstractDarwinCommandPlugin.__abstract=rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html#__abstract,Variable rekall.plugins.darwin.common.DarwinPlugin.__abstract=rekall.plugins.darwin.common.DarwinPlugin-class.html#__abstract,Variable rekall.plugins.darwin.common.DarwinProcessFilter.__abstract=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__abstract,Variable rekall.plugins.filesystems.ntfs.NTFSPlugins.__abstract=rekall.plugins.filesystems.ntfs.NTFSPlugins-class.html#__abstract,Variable rekall.plugins.linux.bash.BashProfile32.__abstract=rekall.plugins.linux.bash.BashProfile32-class.html#__abstract,Variable rekall.plugins.linux.bash.BashProfile64.__abstract=rekall.plugins.linux.bash.BashProfile64-class.html#__abstract,Variable rekall.plugins.linux.common.AbstractLinuxCommandPlugin.__abstract=rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html#__abstract,Variable rekall.plugins.linux.common.LinProcessFilter.__abstract=rekall.plugins.linux.common.LinProcessFilter-class.html#__abstract,Variable rekall.plugins.linux.common.LinuxPlugin.__abstract=rekall.plugins.linux.common.LinuxPlugin-class.html#__abstract,Variable rekall.plugins.tools.profile_tool.ProfileConverter.__abstract=rekall.plugins.tools.profile_tool.ProfileConverter-class.html#__abstract,Variable rekall.plugins.tools.webconsole_plugin.WebConsoleDocument.__abstract=rekall.plugins.tools.webconsole_plugin.WebConsoleDocument-class.html#__abstract,Variable rekall.plugins.windows.address_resolver.PECommandPlugin.__abstract=rekall.plugins.windows.address_resolver.PECommandPlugin-class.html#__abstract,Variable rekall.plugins.windows.common.AbstractWindowsCommandPlugin.__abstract=rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html#__abstract,Variable rekall.plugins.windows.common.PoolScannerPlugin.__abstract=rekall.plugins.windows.common.PoolScannerPlugin-class.html#__abstract,Variable rekall.plugins.windows.common.WinProcessFilter.__abstract=rekall.plugins.windows.common.WinProcessFilter-class.html#__abstract,Variable rekall.plugins.windows.common.WindowsCommandPlugin.__abstract=rekall.plugins.windows.common.WindowsCommandPlugin-class.html#__abstract,Variable rekall.plugins.windows.disassembler.Disassembler.__abstract=rekall.plugins.windows.disassembler.Disassembler-class.html#__abstract,Variable rekall.plugins.windows.registry.registry.HiveBaseAddressSpace.__abstract=rekall.plugins.windows.registry.registry.HiveBaseAddressSpace-class.html#__abstract,Variable rekall.plugins.windows.registry.registry.RegistryPlugin.__abstract=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#__abstract,Variable rekall.scan.ScannerCheck.__abstract=rekall.scan.ScannerCheck-class.html#__abstract,Variable rekall.testlib.RekallBaseUnitTestCase.__abstract=rekall.testlib.RekallBaseUnitTestCase-class.html#__abstract,Variable rekall.testlib.SimpleTestCase.__abstract=rekall.testlib.SimpleTestCase-class.html#__abstract,Variable rekall.testlib.SortedComparison.__abstract=rekall.testlib.SortedComparison-class.html#__abstract,Variable rekall.ui.text.BaseCell.__abstract=rekall.ui.text.BaseCell-class.html#__abstract"><a title="rekall.addrspace.BaseAddressSpace.__abstract
+rekall.addrspace.BufferAddressSpace.__abstract
+rekall.addrspace.MultiRunBasedAddressSpace.__abstract
+rekall.addrspace.PagedReader.__abstract
+rekall.addrspace.RunBasedAddressSpace.__abstract
+rekall.entities.collector.EntityCollector.__abstract
+rekall.entities.component.Component.__abstract
+rekall.entities.query.expression.Expression.__abstract
+rekall.entities.query.expression.OrderedSet.__abstract
+rekall.entities.query.expression.Relation.__abstract
+rekall.entities.query.expression.ValueExpression.__abstract
+rekall.entities.query.expression.VariadicExpression.__abstract
+rekall.entities.query.visitor.QueryVisitor.__abstract
+rekall.io_manager.IOManager.__abstract
+rekall.kb.ParameterHook.__abstract
+rekall.plugin.Command.__abstract
+rekall.plugin.ProfileCommand.__abstract
+rekall.plugins.collectors.darwin.common.DarwinEntityCollector.__abstract
+rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.__abstract
+rekall.plugins.collectors.windows.common.WindowsEntityCollector.__abstract
+rekall.plugins.collectors.windows.pool.BasePoolCollector.__abstract
+rekall.plugins.common.entities.FindBatch.__abstract
+rekall.plugins.core.FindDTB.__abstract
+rekall.plugins.darwin.common.AbstractDarwinCommandPlugin.__abstract
+rekall.plugins.darwin.common.DarwinPlugin.__abstract
+rekall.plugins.darwin.common.DarwinProcessFilter.__abstract
+rekall.plugins.filesystems.ntfs.NTFSPlugins.__abstract
+rekall.plugins.linux.bash.BashProfile32.__abstract
+rekall.plugins.linux.bash.BashProfile64.__abstract
+rekall.plugins.linux.common.AbstractLinuxCommandPlugin.__abstract
+rekall.plugins.linux.common.LinProcessFilter.__abstract
+rekall.plugins.linux.common.LinuxPlugin.__abstract
+rekall.plugins.tools.profile_tool.ProfileConverter.__abstract
+rekall.plugins.tools.webconsole_plugin.WebConsoleDocument.__abstract
+rekall.plugins.windows.address_resolver.PECommandPlugin.__abstract
+rekall.plugins.windows.common.AbstractWindowsCommandPlugin.__abstract
+rekall.plugins.windows.common.PoolScannerPlugin.__abstract
+rekall.plugins.windows.common.WinProcessFilter.__abstract
+rekall.plugins.windows.common.WindowsCommandPlugin.__abstract
+rekall.plugins.windows.disassembler.Disassembler.__abstract
+rekall.plugins.windows.registry.registry.HiveBaseAddressSpace.__abstract
+rekall.plugins.windows.registry.registry.RegistryPlugin.__abstract
+rekall.scan.ScannerCheck.__abstract
+rekall.testlib.RekallBaseUnitTestCase.__abstract
+rekall.testlib.SimpleTestCase.__abstract
+rekall.testlib.SortedComparison.__abstract
+rekall.ui.text.BaseCell.__abstract" class="py-name" href="#" onclick="return doclink('link-31', '__abstract', 'link-31');">__abstract</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">    <tt id="link-32" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.DELIMITER=rekall.entities.collector.EntityCollector-class.html#DELIMITER"><a title="rekall.entities.collector.EntityCollector.DELIMITER" class="py-name" href="#" onclick="return doclink('link-32', 'DELIMITER', 'link-32');">DELIMITER</a></tt> <tt class="py-op">=</tt> <tt class="py-name">re</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name" targets="Method rekall.plugins.overlays.linux.dwarfparser.DWARFParser.compile()=rekall.plugins.overlays.linux.dwarfparser.DWARFParser-class.html#compile"><a title="rekall.plugins.overlays.linux.dwarfparser.DWARFParser.compile" class="py-name" href="#" onclick="return doclink('link-33', 'compile', 'link-33');">compile</a></tt><tt class="py-op">(</tt><tt class="py-string">r"[\/=]"</tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"> </tt>
+<a name="EntityCollector.__init__"></a><div id="EntityCollector.__init__-def"><a name="L131"></a><tt class="py-lineno">131</tt> <a class="py-toggle" href="#" id="EntityCollector.__init__-toggle" onclick="return toggle('EntityCollector.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">entity_manager</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.__init__-expanded"><a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Module rekall.entities.manager=rekall.entities.manager-module.html"><a title="rekall.entities.manager" class="py-name" href="#" onclick="return doclink('link-34', 'manager', 'link-34');">manager</a></tt> <tt class="py-op">=</tt> <tt class="py-name">entity_manager</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-35" class="py-name" targets="Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-35', 'session', 'link-35');">session</a></tt> <tt class="py-op">=</tt> <tt class="py-name">entity_manager</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-36', 'session', 'link-35');">session</a></tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_indices_seen</tt> <tt class="py-op">=</tt> <tt id="link-37" class="py-name" targets="Variable rekall.entities.query.expression.Membership.set=rekall.entities.query.expression.Membership-class.html#set"><a title="rekall.entities.query.expression.Membership.set" class="py-name" href="#" onclick="return doclink('link-37', 'set', 'link-37');">set</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.entities.collector.EntityCollector.collect_queries" class="py-name" href="#" onclick="return doclink('link-38', 'collect_queries', 'link-22');">collect_queries</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_ensure_compile_queries</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="EntityCollector.profile"></a><div id="EntityCollector.profile-def"><a name="L139"></a><tt class="py-lineno">139</tt> <a class="py-toggle" href="#" id="EntityCollector.profile-toggle" onclick="return toggle('EntityCollector.profile');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#profile">profile</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.profile-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.profile-expanded"><a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-39', 'session', 'link-35');">session</a></tt><tt class="py-op">.</tt><tt id="link-40" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.profile=rekall.entities.collector.EntityCollector-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.entities.collector.EntityCollector.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-40', 'profile', 'link-40');">profile</a></tt> </tt>
+</div><a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="EntityCollector.name"></a><div id="EntityCollector.name-def"><a name="L143"></a><tt class="py-lineno">143</tt> <a class="py-toggle" href="#" id="EntityCollector.name-toggle" onclick="return toggle('EntityCollector.name');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#name">name</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.name-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.name-expanded"><a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">getattr</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt> <tt class="py-string">"_name"</tt><tt class="py-op">,</tt> <tt id="link-41" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#type"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-41', 'type', 'link-41');">type</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="EntityCollector.promises"></a><div id="EntityCollector.promises-def"><a name="L147"></a><tt class="py-lineno">147</tt> <a class="py-toggle" href="#" id="EntityCollector.promises-toggle" onclick="return toggle('EntityCollector.promises');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#promises">promises</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.promises-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.promises-expanded"><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_ensure_compile_promises</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.entities.collector.EntityCollector._promises" class="py-name" href="#" onclick="return doclink('link-42', '_promises', 'link-20');">_promises</a></tt> </tt>
+</div><a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"> </tt>
+<a name="EntityCollector._ensure_compile_promises"></a><div id="EntityCollector._ensure_compile_promises-def"><a name="L151"></a><tt class="py-lineno">151</tt> <a class="py-toggle" href="#" id="EntityCollector._ensure_compile_promises-toggle" onclick="return toggle('EntityCollector._ensure_compile_promises');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#_ensure_compile_promises">_ensure_compile_promises</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector._ensure_compile_promises-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector._ensure_compile_promises-expanded"><a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.entities.collector.EntityCollector._promises" class="py-name" href="#" onclick="return doclink('link-43', '_promises', 'link-20');">_promises</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.entities.collector.EntityCollector._promises" class="py-name" href="#" onclick="return doclink('link-44', '_promises', 'link-20');">_promises</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt id="link-45" class="py-name"><a title="rekall.entities.query.analyzer" class="py-name" href="#" onclick="return doclink('link-45', 'analyzer', 'link-5');">analyzer</a></tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Class rekall.entities.query.analyzer.SimpleDependency=rekall.entities.query.analyzer.SimpleDependency-class.html"><a title="rekall.entities.query.analyzer.SimpleDependency" class="py-name" href="#" onclick="return doclink('link-46', 'SimpleDependency', 'link-46');">SimpleDependency</a></tt><tt class="py-op">.</tt><tt id="link-47" class="py-name" targets="Method rekall.entities.manager.EntityManager.parse()=rekall.entities.manager.EntityManager-class.html#parse,Class Method rekall.entities.query.analyzer.SimpleDependency.parse()=rekall.entities.query.analyzer.SimpleDependency-class.html#parse,Method rekall.entities.query.efilter.Parser.parse()=rekall.entities.query.efilter.Parser-class.html#parse,Method rekall.entities.query.efilter.Tokenizer.parse()=rekall.entities.query.efilter.Tokenizer-class.html#parse"><a title="rekall.entities.manager.EntityManager.parse
+rekall.entities.query.analyzer.SimpleDependency.parse
+rekall.entities.query.efilter.Parser.parse
+rekall.entities.query.efilter.Tokenizer.parse" class="py-name" href="#" onclick="return doclink('link-47', 'parse', 'link-47');">parse</a></tt><tt class="py-op">(</tt><tt class="py-name">output</tt><tt class="py-op">)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">                              <tt class="py-keyword">for</tt> <tt class="py-name">output</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="rekall.entities.collector.EntityCollector.outputs
+rekall.plugins.collectors.ballast.BallastGenerator.outputs
+rekall.plugins.collectors.darwin.common.UserNamer.outputs
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.outputs
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.outputs
+rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector.outputs
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.outputs
+rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector.outputs
+rekall.plugins.collectors.darwin.networking.UnpListCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinAllprocProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinDeadProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinPgrpHashProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinPidHashProcessCollector.outputs
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.outputs
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.outputs
+rekall.plugins.collectors.darwin.processes.DarwinTaskProcessCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinSessionZoneCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTTYZoneCollector.outputs
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneCollector.outputs
+rekall.plugins.collectors.darwin.zones.DarwinZoneVnodeCollector.outputs
+rekall.plugins.collectors.events.EventInferenceCollector.outputs
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.outputs
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.outputs
+rekall.plugins.collectors.windows.pool.BasePoolCollector.outputs
+rekall.plugins.collectors.windows.pool.TcpEndpointPoolCollector.outputs
+rekall.plugins.collectors.windows.pool.TcpListenerPoolCollector.outputs
+rekall.plugins.collectors.windows.pool.UdpEndpointPoolCollector.outputs
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.outputs
+rekall.plugins.collectors.windows.processes.WindowsPsActiveProcessHeadCollector.outputs
+rekall.plugins.collectors.windows.processes.WindowsPspCidProcessCollector.outputs" class="py-name" href="#" onclick="return doclink('link-48', 'outputs', 'link-19');">outputs</a></tt><tt class="py-op">]</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-comment"># All collectors return Entity.</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="rekall.entities.collector.EntityCollector._promises" class="py-name" href="#" onclick="return doclink('link-49', '_promises', 'link-20');">_promises</a></tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt id="link-50" class="py-name"><a title="rekall.entities.query.analyzer" class="py-name" href="#" onclick="return doclink('link-50', 'analyzer', 'link-5');">analyzer</a></tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="rekall.entities.query.analyzer.SimpleDependency" class="py-name" href="#" onclick="return doclink('link-51', 'SimpleDependency', 'link-46');">SimpleDependency</a></tt><tt class="py-op">(</tt><tt class="py-string">"Entity"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"> </tt>
+<a name="EntityCollector._ensure_compile_queries"></a><div id="EntityCollector._ensure_compile_queries-def"><a name="L159"></a><tt class="py-lineno">159</tt> <a class="py-toggle" href="#" id="EntityCollector._ensure_compile_queries-toggle" onclick="return toggle('EntityCollector._ensure_compile_queries');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#_ensure_compile_queries">_ensure_compile_queries</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector._ensure_compile_queries-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector._ensure_compile_queries-expanded"><a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="rekall.entities.collector.EntityCollector.collect_queries" class="py-name" href="#" onclick="return doclink('link-52', 'collect_queries', 'link-22');">collect_queries</a></tt> <tt class="py-keyword">or</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="rekall.entities.collector.EntityCollector.collect_args
+rekall.plugins.collectors.darwin.common.UserNamer.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.collect_args
+rekall.plugins.collectors.events.EventInferenceCollector.collect_args
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.collect_args
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.collect_args
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.collect_args" class="py-name" href="#" onclick="return doclink('link-53', 'collect_args', 'link-21');">collect_args</a></tt> <tt class="py-keyword">is</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-54" class="py-name" targets="Variable rekall.plugins.darwin.checks.OIDInfo.arg=rekall.plugins.darwin.checks.OIDInfo-class.html#arg"><a title="rekall.plugins.darwin.checks.OIDInfo.arg" class="py-name" href="#" onclick="return doclink('link-54', 'arg', 'link-54');">arg</a></tt><tt class="py-op">,</tt> <tt id="link-55" class="py-name" targets="Variable rekall.entities.query.query.Query.source=rekall.entities.query.query.Query-class.html#source"><a title="rekall.entities.query.query.Query.source" class="py-name" href="#" onclick="return doclink('link-55', 'source', 'link-55');">source</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="rekall.entities.collector.EntityCollector.collect_args
+rekall.plugins.collectors.darwin.common.UserNamer.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinFileCollector.collect_args
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess.collect_args
+rekall.plugins.collectors.darwin.networking.DarwinSocketParser.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParentInferor.collect_args
+rekall.plugins.collectors.darwin.processes.DarwinProcParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinClistParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinSessionParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTTYParser.collect_args
+rekall.plugins.collectors.darwin.sessions.DarwinTerminalUserInferor3000.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.collect_args
+rekall.plugins.collectors.darwin.zones.DarwinZoneElementCollector.collect_args
+rekall.plugins.collectors.events.EventInferenceCollector.collect_args
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.collect_args
+rekall.plugins.collectors.windows.networking.WindowsUDPEndpointParser.collect_args
+rekall.plugins.collectors.windows.processes.WindowsProcessParser.collect_args" class="py-name" href="#" onclick="return doclink('link-56', 'collect_args', 'link-21');">collect_args</a></tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.entities.collector.EntityCollector.collect_queries" class="py-name" href="#" onclick="return doclink('link-57', 'collect_queries', 'link-22');">collect_queries</a></tt><tt class="py-op">[</tt><tt id="link-58" class="py-name"><a title="rekall.plugins.darwin.checks.OIDInfo.arg" class="py-name" href="#" onclick="return doclink('link-58', 'arg', 'link-54');">arg</a></tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">entity_query</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name" targets="Class rekall.entities.query.query.Query=rekall.entities.query.query.Query-class.html"><a title="rekall.entities.query.query.Query" class="py-name" href="#" onclick="return doclink('link-59', 'Query', 'link-59');">Query</a></tt><tt class="py-op">(</tt><tt id="link-60" class="py-name"><a title="rekall.entities.query.query.Query.source" class="py-name" href="#" onclick="return doclink('link-60', 'source', 'link-55');">source</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="EntityCollector.is_collected"></a><div id="EntityCollector.is_collected-def"><a name="L167"></a><tt class="py-lineno">167</tt> <a class="py-toggle" href="#" id="EntityCollector.is_collected-toggle" onclick="return toggle('EntityCollector.is_collected');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#is_collected">is_collected</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.is_collected-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.is_collected-expanded"><a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">        <tt class="py-docstring">"""Set to True after self.collect runs with no hints.</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"><tt class="py-docstring">        Running collect with a non-null hint will not flip this."""</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.entities.collector.EntityCollector.name=rekall.entities.collector.EntityCollector-class.html#name,Variable rekall.entities.entity.Entity.name=rekall.entities.entity.Entity-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name=rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace-class.html#name,Variable rekall.plugins.common.address_resolver.AddressResolverMixin.name=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#name,Variable rekall.plugins.common.inspection.MemoryTranslation.name=rekall.plugins.common.inspection.MemoryTranslation-class.html#name,Variable rekall.plugins.common.searches.ListEvents.name=rekall.plugins.common.searches.ListEvents-class.html#name,Variable rekall.plugins.common.searches.ListInterfaces.name=rekall.plugins.common.searches.ListInterfaces-class.html#name,Variable rekall.plugins.common.searches.ListZones.name=rekall.plugins.common.searches.ListZones-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.filesystems.ntfs.FLS.name=rekall.plugins.filesystems.ntfs.FLS-class.html#name,Variable rekall.plugins.filesystems.ntfs.FStat.name=rekall.plugins.filesystems.ntfs.FStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.IDump.name=rekall.plugins.filesystems.ntfs.IDump-class.html#name,Variable rekall.plugins.filesystems.ntfs.IExport.name=rekall.plugins.filesystems.ntfs.IExport-class.html#name,Variable rekall.plugins.filesystems.ntfs.ILS.name=rekall.plugins.filesystems.ntfs.ILS-class.html#name,Variable rekall.plugins.filesystems.ntfs.IStat.name=rekall.plugins.filesystems.ntfs.IStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.NTFSDetector.name=rekall.plugins.filesystems.ntfs.NTFSDetector-class.html#name,Variable rekall.plugins.guess_profile.DarwinIndexDetector.name=rekall.plugins.guess_profile.DarwinIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.DetectionMethod.name=rekall.plugins.guess_profile.DetectionMethod-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.LinuxBannerDetector.name=rekall.plugins.guess_profile.LinuxBannerDetector-class.html#name,Variable rekall.plugins.guess_profile.PEImageFileDetector.name=rekall.plugins.guess_profile.PEImageFileDetector-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.guess_profile.WindowsIndexDetector.name=rekall.plugins.guess_profile.WindowsIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsRSDSDetector.name=rekall.plugins.guess_profile.WindowsRSDSDetector-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKernelSlide.name=rekall.plugins.linux.common.LinuxFindKernelSlide-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name=rekall.plugins.linux.common.LinuxKernelPageOffsetHook-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelSlideHook.name=rekall.plugins.linux.common.LinuxKernelSlideHook-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.renderers.data_export.DataExportRenderer.name=rekall.plugins.renderers.data_export.DataExportRenderer-class.html#name,Variable rekall.plugins.renderers.xls.XLSRenderer.name=rekall.plugins.renderers.xls.XLSRenderer-class.html#name,Variable rekall.plugins.tools.ewf.EWFAcquire.name=rekall.plugins.tools.ewf.EWFAcquire-class.html#name,Variable rekall.plugins.tools.ipython.InteractiveShell.name=rekall.plugins.tools.ipython.InteractiveShell-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.tools.profile_tool.BuildProfileLocally.name=rekall.plugins.tools.profile_tool.BuildProfileLocally-class.html#name,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name=rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer-class.html#name,Variable rekall.plugins.windows.cache.DumpFiles.name=rekall.plugins.windows.cache.DumpFiles-class.html#name,Variable rekall.plugins.windows.cache.EnumerateVacbs.name=rekall.plugins.windows.cache.EnumerateVacbs-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.dns.WinDNSCache.name=rekall.plugins.windows.dns.WinDNSCache-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name=rekall.plugins.windows.heap_analysis.FindReferenceAlloc-class.html#name,Variable rekall.plugins.windows.heap_analysis.InspectHeap.name=rekall.plugins.windows.heap_analysis.InspectHeap-class.html#name,Variable rekall.plugins.windows.heap_analysis.ShowAllocation.name=rekall.plugins.windows.heap_analysis.ShowAllocation-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.malware.apihooks.CheckPEHooks.name=rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.EATHooks.name=rekall.plugins.windows.malware.apihooks.EATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.IATHooks.name=rekall.plugins.windows.malware.apihooks.IATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.InlineHooks.name=rekall.plugins.windows.malware.apihooks.InlineHooks-class.html#name,Variable rekall.plugins.windows.malware.callbacks.Callbacks.name=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#name,Variable rekall.plugins.windows.malware.cmdhistory.Consoles.name=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#name,Variable rekall.plugins.windows.malware.yarascan.WinYaraScan.name=rekall.plugins.windows.malware.yarascan.WinYaraScan-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pagefile.Pagefiles.name=rekall.plugins.windows.pagefile.Pagefiles-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Services.name=rekall.plugins.windows.registry.printkey.Services-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name,Variable rekall.plugins.windows.vadinfo.VADMap.name=rekall.plugins.windows.vadinfo.VADMap-class.html#name,Variable rekall.ui.json_renderer.JsonRenderer.name=rekall.ui.json_renderer.JsonRenderer-class.html#name,Variable rekall.ui.renderer.BaseRenderer.name=rekall.ui.renderer.BaseRenderer-class.html#name,Variable rekall.ui.text.TestRenderer.name=rekall.ui.text.TestRenderer-class.html#name,Variable rekall.ui.text.TextColumn.name=rekall.ui.text.TextColumn-class.html#name,Variable rekall.ui.text.TextRenderer.name=rekall.ui.text.TextRenderer-class.html#name,Variable rekall.ui.text.WideTextRenderer.name=rekall.ui.text.WideTextRenderer-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.entities.collector.EntityCollector.name
+rekall.entities.entity.Entity.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.searches.ListEvents.name
+rekall.plugins.common.searches.ListInterfaces.name
+rekall.plugins.common.searches.ListZones.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.windows.vadinfo.VADMap.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-61', 'name', 'link-61');">name</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="rekall.entities.manager" class="py-name" href="#" onclick="return doclink('link-62', 'manager', 'link-34');">manager</a></tt><tt class="py-op">.</tt><tt id="link-63" class="py-name" targets="Variable rekall.entities.manager.EntityManager.finished_collectors=rekall.entities.manager.EntityManager-class.html#finished_collectors"><a title="rekall.entities.manager.EntityManager.finished_collectors" class="py-name" href="#" onclick="return doclink('link-63', 'finished_collectors', 'link-63');">finished_collectors</a></tt> </tt>
+</div><a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line"> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line">    <tt class="py-comment"># pylint: disable=unused-argument</tt> </tt>
+<a name="EntityCollector.input_filter"></a><div id="EntityCollector.input_filter-def"><a name="L174"></a><tt class="py-lineno">174</tt> <a class="py-toggle" href="#" id="EntityCollector.input_filter-toggle" onclick="return toggle('EntityCollector.input_filter');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#input_filter">input_filter</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">hint</tt><tt class="py-op">,</tt> <tt class="py-param">entities</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.input_filter-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.input_filter-expanded"><a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">        <tt class="py-docstring">"""Filter the ingest set. Use to prevent parsing the same thing twice.</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"><tt class="py-docstring">        Default implementation of the ingest filter will keep a set of entities</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"><tt class="py-docstring">        it has processed before and filter those out. Subclasses can override.</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line"><tt class="py-docstring">        NOTE: Ingest filter is disabled by default - subclasses that wish the</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line"><tt class="py-docstring">        manager to enable it must signal so by setting filter_input to True.</tt> </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-64" class="py-name" targets="Module rekall.entities.entity=rekall.entities.entity-module.html"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-64', 'entity', 'link-64');">entity</a></tt> <tt class="py-keyword">in</tt> <tt id="link-65" class="py-name"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-65', 'entities', 'link-3');">entities</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt id="link-66" class="py-name"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-66', 'entity', 'link-64');">entity</a></tt><tt class="py-op">.</tt><tt id="link-67" class="py-name" targets="Variable rekall.entities.entity.Entity.indices=rekall.entities.entity.Entity-class.html#indices,Variable rekall.entities.ext.indexset.IndexSet.indices=rekall.entities.ext.indexset.IndexSet-class.html#indices,Variable rekall.entities.identity.Identity.indices=rekall.entities.identity.Identity-class.html#indices,Variable rekall.entities.superposition.IndexedSuperposition.indices=rekall.entities.superposition.IndexedSuperposition-class.html#indices,Variable rekall.obj.BaseObject.indices=rekall.obj.BaseObject-class.html#indices,Variable rekall.obj.Pointer.indices=rekall.obj.Pointer-class.html#indices,Variable rekall.obj.Struct.indices=rekall.obj.Struct-class.html#indices,Variable rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices=rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE-class.html#indices,Variable rekall.plugins.overlays.basic.String.indices=rekall.plugins.overlays.basic.String-class.html#indices"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-67', 'indices', 'link-67');">indices</a></tt> <tt class="py-op">&amp;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_indices_seen</tt><tt class="py-op">:</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">                <tt class="py-keyword">yield</tt> <tt id="link-68" class="py-name"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-68', 'entity', 'link-64');">entity</a></tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_indices_seen</tt> <tt class="py-op">|=</tt> <tt id="link-69" class="py-name"><a title="rekall.entities.entity" class="py-name" href="#" onclick="return doclink('link-69', 'entity', 'link-64');">entity</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="rekall.entities.entity.Entity.indices
+rekall.entities.ext.indexset.IndexSet.indices
+rekall.entities.identity.Identity.indices
+rekall.entities.superposition.IndexedSuperposition.indices
+rekall.obj.BaseObject.indices
+rekall.obj.Pointer.indices
+rekall.obj.Struct.indices
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.indices
+rekall.plugins.overlays.basic.String.indices" class="py-name" href="#" onclick="return doclink('link-70', 'indices', 'link-67');">indices</a></tt> </tt>
+</div><a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"> </tt>
+<a name="EntityCollector.prebuild"></a><div id="EntityCollector.prebuild-def"><a name="L189"></a><tt class="py-lineno">189</tt> <a class="py-toggle" href="#" id="EntityCollector.prebuild-toggle" onclick="return toggle('EntityCollector.prebuild');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#prebuild">prebuild</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">components</tt><tt class="py-op">,</tt> <tt class="py-param">keys</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.prebuild-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.prebuild-expanded"><a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line">        <tt class="py-docstring">"""Prebuilds identity based on data in components.</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring">        In the olden days, identities could be arbitrary and were not tied</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">        to data in the entity. The current API (Manager.identify) theoretically</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring">        still allows creation of identities with arbitrary indices, but that's</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring">        slow, as the data in the entity and the identity then has to be</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring">        type-coerced separately. This method is the new API and only coerces</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">        data once.</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">        Arguments:</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-docstring">            components: Instances of Component that the collector is going to</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"><tt class="py-docstring">                        yield.</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"><tt class="py-docstring">            keys: List of attributes that will be used to build the identity.</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"><tt class="py-docstring">        Returns tuple of:</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"><tt class="py-docstring">        - The identity.</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"><tt class="py-docstring">        - List that can be yielded from Collector.collect, which includes the</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"><tt class="py-docstring">          identity.</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">        <tt class="py-name">index_values</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-71" class="py-name" targets="Variable rekall.utils.SortedCollection.key=rekall.utils.SortedCollection-class.html#key"><a title="rekall.utils.SortedCollection.key" class="py-name" href="#" onclick="return doclink('link-71', 'key', 'link-71');">key</a></tt> <tt class="py-keyword">in</tt> <tt id="link-72" class="py-name" targets="Method rekall.session.DynamicNameSpace.keys()=rekall.session.DynamicNameSpace-class.html#keys"><a title="rekall.session.DynamicNameSpace.keys" class="py-name" href="#" onclick="return doclink('link-72', 'keys', 'link-72');">keys</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line">            <tt id="link-73" class="py-name" targets="Variable rekall.entities.component.Component.component_name=rekall.entities.component.Component-class.html#component_name"><a title="rekall.entities.component.Component.component_name" class="py-name" href="#" onclick="return doclink('link-73', 'component_name', 'link-73');">component_name</a></tt><tt class="py-op">,</tt> <tt class="py-name">field_name</tt> <tt class="py-op">=</tt> <tt id="link-74" class="py-name"><a title="rekall.utils.SortedCollection.key" class="py-name" href="#" onclick="return doclink('link-74', 'key', 'link-71');">key</a></tt><tt class="py-op">.</tt><tt class="py-name">split</tt><tt class="py-op">(</tt><tt class="py-string">"/"</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">            <tt class="py-comment"># Find the component.</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt id="link-75" class="py-name" targets="Module rekall.entities.component=rekall.entities.component-module.html"><a title="rekall.entities.component" class="py-name" href="#" onclick="return doclink('link-75', 'component', 'link-75');">component</a></tt> <tt class="py-keyword">in</tt> <tt id="link-76" class="py-name" targets="Variable rekall.entities.query.sql.SQLGenerator.components=rekall.entities.query.sql.SQLGenerator-class.html#components"><a title="rekall.entities.query.sql.SQLGenerator.components" class="py-name" href="#" onclick="return doclink('link-76', 'components', 'link-76');">components</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt id="link-77" class="py-name"><a title="rekall.entities.component" class="py-name" href="#" onclick="return doclink('link-77', 'component', 'link-75');">component</a></tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="rekall.entities.component.Component.component_name" class="py-name" href="#" onclick="return doclink('link-78', 'component_name', 'link-73');">component_name</a></tt> <tt class="py-op">==</tt> <tt id="link-79" class="py-name"><a title="rekall.entities.component.Component.component_name" class="py-name" href="#" onclick="return doclink('link-79', 'component_name', 'link-73');">component_name</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">                    <tt class="py-name">index_values</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt id="link-80" class="py-name"><a title="rekall.entities.component" class="py-name" href="#" onclick="return doclink('link-80', 'component', 'link-75');">component</a></tt><tt class="py-op">[</tt><tt class="py-name">field_name</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">                    <tt class="py-keyword">break</tt> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line"> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">        <tt id="link-81" class="py-name" targets="Variable rekall.entities.entity.Entity.identity=rekall.entities.entity.Entity-class.html#identity,Module rekall.entities.identity=rekall.entities.identity-module.html"><a title="rekall.entities.entity.Entity.identity
+rekall.entities.identity" class="py-name" href="#" onclick="return doclink('link-81', 'identity', 'link-81');">identity</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="rekall.entities.manager" class="py-name" href="#" onclick="return doclink('link-82', 'manager', 'link-34');">manager</a></tt><tt class="py-op">.</tt><tt id="link-83" class="py-name" targets="Method rekall.entities.manager.EntityManager.identify_no_cast()=rekall.entities.manager.EntityManager-class.html#identify_no_cast"><a title="rekall.entities.manager.EntityManager.identify_no_cast" class="py-name" href="#" onclick="return doclink('link-83', 'identify_no_cast', 'link-83');">identify_no_cast</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">            <tt class="py-op">{</tt><tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt id="link-84" class="py-name"><a title="rekall.session.DynamicNameSpace.keys" class="py-name" href="#" onclick="return doclink('link-84', 'keys', 'link-72');">keys</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> <tt class="py-name">tuple</tt><tt class="py-op">(</tt><tt class="py-name">index_values</tt><tt class="py-op">)</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-85" class="py-name"><a title="rekall.entities.entity.Entity.identity
+rekall.entities.identity" class="py-name" href="#" onclick="return doclink('link-85', 'identity', 'link-81');">identity</a></tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt id="link-86" class="py-name"><a title="rekall.entities.entity.Entity.identity
+rekall.entities.identity" class="py-name" href="#" onclick="return doclink('link-86', 'identity', 'link-81');">identity</a></tt><tt class="py-op">]</tt> <tt class="py-op">+</tt> <tt class="py-name">list</tt><tt class="py-op">(</tt><tt id="link-87" class="py-name"><a title="rekall.entities.query.sql.SQLGenerator.components" class="py-name" href="#" onclick="return doclink('link-87', 'components', 'link-76');">components</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line"> </tt>
+<a name="EntityCollector.collect"></a><div id="EntityCollector.collect-def"><a name="L223"></a><tt class="py-lineno">223</tt> <a class="py-toggle" href="#" id="EntityCollector.collect-toggle" onclick="return toggle('EntityCollector.collect');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#collect">collect</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">hint</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.collect-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.collect-expanded"><a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">        <tt class="py-docstring">"""Override to yield components - analogous to 'calculate', but typed.</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"><tt class="py-docstring">        Subclasses should override this to yield components that represent the</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line"><tt class="py-docstring">        data they collect. For example, a pslist collector would yield Process</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"><tt class="py-docstring">        components. Only components listed in self.outputs should be yielded</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line"><tt class="py-docstring">        and no other.</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"><tt class="py-docstring">        Output format:</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line"><tt class="py-docstring">        ==============</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line"><tt class="py-docstring">        In the simplest case, yield one component at a time. To indicate two</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line"><tt class="py-docstring">        (or more) components are related, yield both in a list (for example,</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line"><tt class="py-docstring">        Process and the Struct wrapping the proc struct representing it</tt> </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line"><tt class="py-docstring">        in kernel).</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line"><tt class="py-docstring">        Unless an identity is specified explicitly, one will be created</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line"><tt class="py-docstring">        automatically by taking the first field of the first component and</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"><tt class="py-docstring">        instantiating an identity with it.</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line"><tt class="py-docstring">        To specify an identity explicitly, yield the Entity component as first</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"><tt class="py-docstring">        in the list and provide the identity in its 'identity' field.</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"><tt class="py-docstring">        Examples:</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line"><tt class="py-docstring">        =========</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line"><tt class="py-docstring">        # Yielding just one component at a time:</tt> </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line"><tt class="py-docstring">        yield manager.Process(</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line"><tt class="py-docstring">            pid=proc.p_pid,</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line"><tt class="py-docstring">            ...)</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line"><tt class="py-docstring">        # Yielding the process component and the BSD proc struct:</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line"><tt class="py-docstring">        yield [</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line"><tt class="py-docstring">            manager.Process(pid=proc.p_pid, ...),</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line"><tt class="py-docstring">            manager.Struct(base=proc, ...),</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line"><tt class="py-docstring">        ]</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line"><tt class="py-docstring">        # In both above examples, the identity will be "Process/pid=(PID here)."</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line"><tt class="py-docstring">        # Specifying an explicit identity would look like this:</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line"><tt class="py-docstring">        yield [</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line"><tt class="py-docstring">            manager.Entity(identity=ProcessIdentity(...)),</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line"><tt class="py-docstring">            manager.Process(pid=proc.p_pid, ...),</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line"><tt class="py-docstring">            manager.Struct(base=proc, ...),</tt> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line"><tt class="py-docstring">        ]</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line"><tt class="py-docstring">        Optimization hints:</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line"><tt class="py-docstring">        ===================</tt> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line"><tt class="py-docstring">        A hint may be passed to the collect method, in which case the collector</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line"><tt class="py-docstring">        may elect to only collect some information it's capable of collecting</tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line"><tt class="py-docstring">        and not all. For example, a hint to the pslist collector may specify</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line"><tt class="py-docstring">        that the caller only cares about processes listed by walking the</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line"><tt class="py-docstring">        process head list. The format of the hint is currently not specified.</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">        <tt class="py-keyword">pass</tt> </tt>
+</div><a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line"> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">classmethod</tt> </tt>
+<a name="EntityCollector.is_active"></a><div id="EntityCollector.is_active-def"><a name="L280"></a><tt class="py-lineno">280</tt> <a class="py-toggle" href="#" id="EntityCollector.is_active-toggle" onclick="return toggle('EntityCollector.is_active');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#is_active">is_active</a><tt class="py-op">(</tt><tt class="py-param">cls</tt><tt class="py-op">,</tt> <tt class="py-param">session</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.is_active-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.is_active-expanded"><a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">cls</tt><tt class="py-op">.</tt><tt id="link-88" class="py-name"><a title="rekall.entities.collector.EntityCollector.run_cost
+rekall.plugins.collectors.darwin.common.UserNamer.run_cost
+rekall.plugins.collectors.darwin.handles.DarwinHandleCollector.run_cost
+rekall.plugins.collectors.darwin.zones.DarwinZoneBufferCollector.run_cost
+rekall.plugins.collectors.events.EventInferenceCollector.run_cost
+rekall.plugins.collectors.windows.handles.WindowsHandleCollector.run_cost
+rekall.plugins.collectors.windows.pool.BasePoolCollector.run_cost" class="py-name" href="#" onclick="return doclink('link-88', 'run_cost', 'link-23');">run_cost</a></tt> <tt class="py-op">&lt;=</tt> <tt id="link-89" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-89', 'session', 'link-35');">session</a></tt><tt class="py-op">.</tt><tt id="link-90" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-90', 'GetParameter', 'link-90');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"max_collector_cost"</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line"> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">    <tt class="py-decorator">@</tt><tt class="py-decorator">property</tt> </tt>
+<a name="EntityCollector.entities"></a><div id="EntityCollector.entities-def"><a name="L284"></a><tt class="py-lineno">284</tt> <a class="py-toggle" href="#" id="EntityCollector.entities-toggle" onclick="return toggle('EntityCollector.entities');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.entities.collector.EntityCollector-class.html#entities">entities</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="EntityCollector.entities-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="EntityCollector.entities-expanded"><a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">        <tt class="py-docstring">"""Returns this collector's entities."""</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-91" class="py-name"><a title="rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-91', 'session', 'link-35');">session</a></tt><tt class="py-op">.</tt><tt id="link-92" class="py-name"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-92', 'entities', 'link-3');">entities</a></tt><tt class="py-op">.</tt><tt id="link-93" class="py-name" targets="Method rekall.entities.manager.EntityManager.find_by_collector()=rekall.entities.manager.EntityManager-class.html#find_by_collector"><a title="rekall.entities.manager.EntityManager.find_by_collector" class="py-name" href="#" onclick="return doclink('link-93', 'find_by_collector', 'link-93');">find_by_collector</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.entities.collector.EntityCollector.name
+rekall.entities.entity.Entity.name
+rekall.kb.ParameterHook.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.searches.ListEvents.name
+rekall.plugins.common.searches.ListInterfaces.name
+rekall.plugins.common.searches.ListZones.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.windows.vadinfo.VADMap.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-94', 'name', 'link-61');">name</a></tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:01 2015
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -82,23 +82,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.config.IntParser-class.html" class="summary-name">IntParser</a><br />
-      Class to parse ints either in hex or as ints.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.config.ArrayIntParser-class.html" class="summary-name">ArrayIntParser</a><br />
-      Parse input as a comma separated list of integers.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.config.ArrayStringParser-class.html" class="summary-name">ArrayStringParser</a>
+        <a href="rekall.config.CommandMetadata-class.html" class="summary-name">CommandMetadata</a><br />
+      A class that carried a plugin's configuration.
     </td>
   </tr>
 </table>
@@ -149,6 +134,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="CreateDefaultConfigFile"></a><span class="summary-sig-name">CreateDefaultConfigFile</span>()</span><br />
+      Creates a default config file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.config-pysrc.html#CreateDefaultConfigFile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="MergeConfigOptions"></a><span class="summary-sig-name">MergeConfigOptions</span>(<span class="summary-sig-arg">state</span>)</span><br />
       Read the config file and apply the config options to the session.</td>
           <td align="right" valign="top">
@@ -166,14 +168,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.config-module.html#DeclareOption" class="summary-sig-name">DeclareOption</a>(<span class="summary-sig-arg">short_name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">group</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Declare a config option for command line and config file.</td>
+          <td><span class="summary-sig"><a name="RemoveGlobalOptions"></a><span class="summary-sig-name">RemoveGlobalOptions</span>(<span class="summary-sig-arg">state</span>)</span><br />
+      Remove all global options from state dictionary.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.config-pysrc.html#DeclareOption">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.config-pysrc.html#RemoveGlobalOptions">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -187,10 +185,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="RegisterArgParser"></a><span class="summary-sig-name">RegisterArgParser</span>(<span class="summary-sig-arg">parser</span>)</span><br />
-      Register the options into the parser.</td>
+          <td><span class="summary-sig"><a name="DeclareOption"></a><span class="summary-sig-name">DeclareOption</span>(<span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Declare a config option for command line and config file.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.config-pysrc.html#RegisterArgParser">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.config-pysrc.html#DeclareOption">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -211,25 +210,18 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.config-module.html#DEFAULT_CONFIGURATION" class="summary-name">DEFAULT_CONFIGURATION</a> = <code title="{'notebook_dir': '/home/scudette',
- 'profile_path': ['https://raw.githubusercontent.com/google/rekall-pro\
-files/master',
-                  'http://profiles.rekall-forensic.com']}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">notebook_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">/home/scudette</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">pr</code><code class="variable-ellipsis">...</code></code>
+        <a href="rekall.config-module.html#DEFAULT_CONFIGURATION" class="summary-name">DEFAULT_CONFIGURATION</a> = <code title="{'cache_dir': '.rekall_cache',
+ 'notebook_dir': '/home/scudette',
+ 'repository_path': ['https://raw.githubusercontent.com/google/rekall-\
+profiles/master',
+                     'http://profiles.rekall-forensic.com']}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cache_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">.rekall_cache</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">notebo</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.config-module.html#OPTIONS" class="summary-name">OPTIONS</a> = <code title="[('Output control',
-  'v',
-  'verbose',
-  False,
-  {'action': 'store_true', 'help': 'Set logging to debug level.'}),
- ('Output control',
-  'q',
-  'quiet',
-..."><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">Output control</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">v</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">verbose</code><code class="variable-quote">'</code><code class="variable-op">, </code>False<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">action</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
+        <a name="OPTIONS"></a><span class="summary-name">OPTIONS</span> = <code title="CommandMetadata()">CommandMetadata()</code>
     </td>
   </tr>
 <tr>
@@ -277,41 +269,6 @@ Return:
   </dl>
 </td></tr></table>
 </div>
-<a name="DeclareOption"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">DeclareOption</span>(<span class="sig-arg">short_name</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">name</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">default</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">group</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.config-pysrc.html#DeclareOption">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Declare a config option for command line and config file.
-
-Arguments:
-    short_name: The one-letter name of the flag (like -v).
-    name: The long name of the flag (like --verbose).
-    default: The default value.
-    group: Arguments from the same group are rendered together.
-
-    The remaining keyword arguments are passed on to the argument parser
-    (see RekallArgParser).
-
-</pre>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
 <br />
 <!-- ==================== VARIABLES DETAILS ==================== -->
 <a name="section-VariablesDetails"></a>
@@ -334,36 +291,11 @@ Arguments:
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">notebook_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">/home/scudette</code><code class="variable-quote">'</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">profile_path</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">https://raw.githubusercontent.com/google/rekall-pro</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-<code class="variable-string">files/master</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                  <code class="variable-quote">'</code><code class="variable-string">http://profiles.rekall-forensic.com</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">}</code>
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
-<a name="OPTIONS"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">OPTIONS</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-<code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">Output control</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-  <code class="variable-quote">'</code><code class="variable-string">v</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-  <code class="variable-quote">'</code><code class="variable-string">verbose</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-  False<code class="variable-op">,</code>
-  <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">action</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">store_true</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">help</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Set logging to debug level.</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">)</code><code class="variable-op">,</code>
- <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">Output control</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-  <code class="variable-quote">'</code><code class="variable-string">q</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-  <code class="variable-quote">'</code><code class="variable-string">quiet</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-<code class="variable-ellipsis">...</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cache_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">.rekall_cache</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">notebook_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">/home/scudette</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">repository_path</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">https://raw.githubusercontent.com/google/rekall-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-string">profiles/master</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                     <code class="variable-quote">'</code><code class="variable-string">http://profiles.rekall-forensic.com</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -401,7 +333,7 @@ Arguments:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:19 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -106,7 +106,31 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.utils.FileLock-class.html" class="summary-name">FileLock</a><br />
+      A self releasing file lock.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.utils.TempDirectory-class.html" class="summary-name">TempDirectory</a><br />
       A self cleaning temporary directory.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.utils.AttributedString-class.html" class="summary-name">AttributedString</a><br />
+      This is just a container for a string and some metadata.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.utils.HexDumpedString-class.html" class="summary-name">HexDumpedString</a><br />
+      A string which should be hex dumped.
     </td>
   </tr>
 <tr>
@@ -123,6 +147,21 @@
     </td><td class="summary">
         <a href="rekall.utils.SortedCollection-class.html" class="summary-name">SortedCollection</a><br />
       Sequence sorted by a key function.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.utils.RangedCollection-class.html" class="summary-name">RangedCollection</a><br />
+      A convenience wrapper around SortedCollection for ranges.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.utils.JITIterator-class.html" class="summary-name">JITIterator</a>
     </td>
   </tr>
 </table>
@@ -361,6 +400,82 @@
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.utils-module.html#CopyFDs" class="summary-sig-name">CopyFDs</a>(<span class="summary-sig-arg">in_fd</span>,
+        <span class="summary-sig-arg">out_fd</span>,
+        <span class="summary-sig-arg">length</span>=<span class="summary-sig-default">18446744073709551616</span>)</span><br />
+      Copy from one fd to another.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.utils-pysrc.html#CopyFDs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="CopyAStoFD"></a><span class="summary-sig-name">CopyAStoFD</span>(<span class="summary-sig-arg">in_as</span>,
+        <span class="summary-sig-arg">out_fd</span>,
+        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">length</span>=<span class="summary-sig-default">18446744073709551616</span>,
+        <span class="summary-sig-arg">cb</span>=<span class="summary-sig-default">&lt;function &lt;lambda&gt; at 0x2b8d0ab16668&gt;</span>)</span><br />
+      Copy an address space into a file-like object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.utils-pysrc.html#CopyAStoFD">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.utils-module.html#issubclass" class="summary-sig-name">issubclass</a>(<span class="summary-sig-arg">obj</span>,
+        <span class="summary-sig-arg">cls</span>)</span><br />
+      A sane implementation of issubclass.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.utils-pysrc.html#issubclass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="XOR"></a><span class="summary-sig-name">XOR</span>(<span class="summary-sig-arg">string1</span>,
+        <span class="summary-sig-arg">string2</span>)</span><br />
+      Returns string1 xor string2.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.utils-pysrc.html#XOR">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 </table>
 <!-- ==================== VARIABLES ==================== -->
 <a name="section-Variables"></a>
@@ -458,6 +573,65 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="CopyFDs"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">CopyFDs</span>(<span class="sig-arg">in_fd</span>,
+        <span class="sig-arg">out_fd</span>,
+        <span class="sig-arg">length</span>=<span class="sig-default">18446744073709551616</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.utils-pysrc.html#CopyFDs">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Copy from one fd to another.</p>
+  <p>If length is specified, we stop when we copied this many bytes. We 
+  always stop when in_fd reaches EOF.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="issubclass"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">issubclass</span>(<span class="sig-arg">obj</span>,
+        <span class="sig-arg">cls</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.utils-pysrc.html#issubclass">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+A sane implementation of issubclass.
+
+See http://bugs.python.org/issue10569
+
+Python bare issubclass must be protected by an isinstance test first since
+it can only work on types and raises when provided something which is not a
+type.
+
+Args:
+  obj: Any object or class.
+  cls: The class to check against.
+
+Returns:
+  True if obj is a subclass of cls and False otherwise.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== VARIABLES DETAILS ==================== -->
 <a name="section-VariablesDetails"></a>
@@ -518,7 +692,7 @@ re.compile(r'#define\s<code class="re-op">+</code><code class="re-group">(</code
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:42 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

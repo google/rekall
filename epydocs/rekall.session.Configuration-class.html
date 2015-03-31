@@ -62,15 +62,56 @@
 <h1 class="epydoc">Class Configuration</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.session-pysrc.html#Configuration">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_configurat" name="class_hierarchy_for_configurat">
-<area shape="rect" id="node1" href="javascript:void(0);" title="dict" alt="" coords="37,5,75,32"/>
-<area shape="rect" id="node4" href="rekall.utils.AttributeDict-class.html" title="utils.AttributeDict" alt="" coords="5,61,107,88"/>
-<area shape="rect" id="node2" href="rekall.session.Cache-class.html" title="Cache" alt="" coords="29,117,83,144"/>
-<area shape="rect" id="node3" href="rekall.session.Configuration-class.html" title="Configuration" alt="" coords="13,173,99,200"/>
+<area shape="rect" id="node1" href="javascript:void(0);" title="dict" alt="" coords="37,6,75,29"/>
+<area shape="rect" id="node4" href="rekall.utils.AttributeDict-class.html" title="utils.AttributeDict" alt="" coords="5,59,107,82"/>
+<area shape="rect" id="node2" href="rekall.session.Cache-class.html" title="Cache" alt="" coords="29,113,83,135"/>
+<area shape="rect" id="node3" href="rekall.session.Configuration-class.html" title="Configuration" alt="" coords="13,166,99,189"/>
 </map>
   <img src="class_hierarchy_for_configurat.gif" alt='' usemap="#class_hierarchy_for_configurat" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
+<pre class="literalblock">
+The session's configuration is managed through this object.
+
+The session can be configured using the SetParameter() method. However,
+sometimes when a certain parameter is modified, some code needs to run in
+response. For example, if the filename is modified, the profile must be
+recalculated.
+
+It is not sufficient to attach setter methods to every such parameter
+though, because there is no guarantee which order these parameters are
+configured. For example, suppose we want to set both the filename and the
+profile:
+
+session.SetParameter(&quot;filename&quot;, filename)
+session.SetParameter(&quot;profile&quot;, &quot;nt/...&quot;)
+
+Since the profile is explicitly set we should not guess it, but if a simple
+set hook is used, there is no way for the _set_filename() hook to determine
+that the profile is explicitly given. So what will happen now is that the
+filename will be changed, then a profile will be autodetected, then it will
+be immediately overwritten with the user set profile.
+
+To avoid this issue we use a context manager to essentially group
+SetParameter() calls into an indivisible unit. The hooks are all run _after_
+all the parameters are set:
+
+with session:
+    session.SetParameter(&quot;filename&quot;, filename)
+    session.SetParameter(&quot;profile&quot;, &quot;nt/...&quot;)
+
+Now the _set_filename() hook can see that the profile is explicitly set so
+it should not be auto-detected.
+
+Upon entering the context manager, we create a new temporary place to store
+configuration parameters. Then, when exiting the context manager we ensure
+that those parameters with hooks are called. The hooks are passed the newly
+set parameters. Each hook returns the value that will actually be set in the
+session (so the hook may actually modify the value).
+
+</pre>
+
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -129,6 +170,24 @@ new empty dictionary
         <span class="summary-sig-arg">value</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Configuration.Set">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.session.Configuration-class.html#__delitem__" class="summary-sig-name">__delitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      del x[y]</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Configuration.__delitem__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -252,7 +311,7 @@ new empty dictionary
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.session.Cache-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      str(x)
+      Print the contents somewhat concisely.
       <em>(Inherited from <a href="rekall.session.Cache-class.html">rekall.session.Cache</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Cache.__str__">source&nbsp;code</a></span>
@@ -268,7 +327,6 @@ new empty dictionary
     <p class="indent-wrapped-lines"><b>Inherited from <code>dict</code></b>:
       <code>__cmp__</code>,
       <code>__contains__</code>,
-      <code>__delitem__</code>,
       <code>__eq__</code>,
       <code>__ge__</code>,
       <code>__getattribute__</code>,
@@ -446,6 +504,31 @@ new empty dictionary
   </dl>
 </td></tr></table>
 </div>
+<a name="__delitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__delitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">item</span>)</span>
+    <br /><em class="fname">(Index deletion operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.session-pysrc.html#Configuration.__delitem__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>del x[y]</p>
+  <dl class="fields">
+    <dt>Overrides:
+        dict.__delitem__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -478,7 +561,7 @@ new empty dictionary
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:03 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:58 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -42,10 +42,11 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
-        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
-        <a href="rekall.plugins.renderers-module.html">Package&nbsp;renderers</a> ::
-        <a href="rekall.plugins.renderers.xls-module.html">Module&nbsp;xls</a> ::
+        rekall ::
+        plugins ::
+        renderers ::
+        xls ::
+        XLSRenderer ::
         Class&nbsp;XLSRenderer
       </span>
     </td>
@@ -64,8 +65,8 @@
 <h1 class="epydoc">Class XLSRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_xlsrendere" name="class_hierarchy_for_xlsrendere">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.xls.XLSRenderer-class.html" title="XLSRenderer" alt="" coords="35,61,123,88"/>
-<area shape="rect" id="node2" href="rekall.ui.renderer.BaseRenderer-class.html" title="ui.renderer.BaseRenderer" alt="" coords="5,5,152,32"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.xls.XLSRenderer-class.html" title="XLSRenderer" alt="" coords="5,6,93,29"/>
+<area shape="rect" id="node2" href="rekall.ui.renderer.BaseRenderer-class.html" title="ui.renderer.BaseRenderer" alt="" coords="118,6,265,29"/>
 </map>
   <img src="class_hierarchy_for_xlsrendere.gif" alt='' usemap="#class_hierarchy_for_xlsrendere" ismap="ismap" class="graph-without-title" />
 </center>
@@ -436,10 +437,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.renderers.xls.XLSRenderer-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+          <td><span class="summary-sig"><a name="ImplementationByClass"></a><span class="summary-sig-name">ImplementationByClass</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSRenderer.ImplementationByClass">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ImplementationByClass">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -453,10 +455,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.renderers.xls.XLSRenderer-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+          <td><span class="summary-sig"><a name="ImplementationByName"></a><span class="summary-sig-name">ImplementationByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSRenderer.ImplementationByName">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.ImplementationByName">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -477,7 +480,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="name"></a><span class="summary-name">name</span> = <code title="'xls'"><code class="variable-quote">'</code><code class="variable-string">xls</code><code class="variable-quote">'</code></code><br />
+        <a name="name"></a><span class="summary-name">name</span> = <code title="&quot;xls&quot;">&quot;xls&quot;</code><br />
       hash(x)
     </td>
   </tr>
@@ -508,8 +511,7 @@ er'&gt;,
  'json': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
  'test': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
  'text': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
+ 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
   </tr>
@@ -738,60 +740,12 @@ Args:
   
   <p>Table header renders the title row of a table.</p>
   <p>This also stores the header types to ensure everything is formatted 
-  appropriately.  It must be a list of tuples rather than a dict for 
+  appropriately.  It must be a list of specs rather than a dict for 
   ordering purposes.</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.ui.renderer.BaseRenderer-class.html#table_header">ui.renderer.BaseRenderer.table_header</a>
         <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="ImplementationByClass"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">name</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSRenderer.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.ui.renderer.BaseRenderer-class.html#ImplementationByClass">ui.renderer.BaseRenderer.ImplementationByClass</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="ImplementationByName"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">name</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSRenderer.ImplementationByName">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.ui.renderer.BaseRenderer-class.html#ImplementationByName">ui.renderer.BaseRenderer.ImplementationByName</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -828,7 +782,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:54 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:45 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

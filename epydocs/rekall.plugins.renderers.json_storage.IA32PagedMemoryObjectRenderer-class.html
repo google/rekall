@@ -64,11 +64,11 @@
 <h1 class="epydoc">Class IA32PagedMemoryObjectRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.json_storage-pysrc.html#IA32PagedMemoryObjectRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_ia32pagedm_3" name="class_hierarchy_for_ia32pagedm_3">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer-class.html" title="IA32PagedMemoryObjectRenderer" alt="" coords="47,229,236,256"/>
-<area shape="rect" id="node2" href="rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer-class.html" title="ui.json_renderer.BaseAddressSpaceObjectRenderer" alt="" coords="5,173,277,200"/>
-<area shape="rect" id="node3" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="41,61,241,88"/>
-<area shape="rect" id="node4" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="24,117,259,144"/>
-<area shape="rect" id="node5" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="64,5,219,32"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.json_storage.IA32PagedMemoryObjectRenderer-class.html" title="IA32PagedMemoryObjectRenderer" alt="" coords="45,219,235,242"/>
+<area shape="rect" id="node2" href="rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer-class.html" title="ui.json_renderer.BaseAddressSpaceObjectRenderer" alt="" coords="4,166,275,189"/>
+<area shape="rect" id="node3" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="39,59,240,82"/>
+<area shape="rect" id="node4" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="23,113,256,135"/>
+<area shape="rect" id="node5" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="63,6,216,29"/>
 </map>
   <img src="class_hierarchy_for_ia32pagedm_3.gif" alt='' usemap="#class_hierarchy_for_ia32pagedm_3" ismap="ismap" class="graph-without-title" />
 </center>
@@ -153,8 +153,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#DelegateObjectRenderer" class="summary-sig-name">DelegateObjectRenderer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Create an object renderer for an item based on this object renderer.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.DelegateObjectRenderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#EncodeToJsonSafe" class="summary-sig-name">EncodeToJsonSafe</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
+        <span class="summary-sig-arg">details</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">**options</span>)</span><br />
       Convert the item into a JSON safe item.
       <em>(Inherited from <a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html">rekall.ui.json_renderer.StateBasedObjectRenderer</a>)</em></td>
@@ -459,10 +479,10 @@
 ArrayObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
+ 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
+nderer'&gt;,
  'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
 eAddressSpaceObjectRenderer'&gt;,
- 'BaseObjectRenderer': &lt;class 'rekall.ui.json_renderer.BaseObjectRende\
-rer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -622,7 +642,7 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:53 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:44 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -64,21 +64,26 @@
 <a name="L1"></a><tt class="py-lineno">1</tt>  <tt class="py-line"><tt class="py-docstring">"""Linux support for DWARF profiles."""</tt> </tt>
 <a name="L2"></a><tt class="py-lineno">2</tt>  <tt class="py-line"> </tt>
 <a name="L3"></a><tt class="py-lineno">3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable rekall.obj.Profile.overlays=rekall.obj.Profile-class.html#overlays,Package rekall.plugins.overlays=rekall.plugins.overlays-module.html,Variable rekall.plugins.overlays.windows.crashdump.overlays=rekall.plugins.overlays.windows.crashdump-module.html#overlays,Variable rekall.plugins.overlays.windows.tcpip_vtypes.overlays=rekall.plugins.overlays.windows.tcpip_vtypes-module.html#overlays"><a title="rekall.obj.Profile.overlays
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Variable rekall.obj.Profile.overlays=rekall.obj.Profile-class.html#overlays,Package rekall.plugins.overlays=rekall.plugins.overlays-module.html,Variable rekall.plugins.overlays.windows.crashdump.overlays=rekall.plugins.overlays.windows.crashdump-module.html#overlays,Variable rekall.plugins.overlays.windows.heap.overlays=rekall.plugins.overlays.windows.heap-module.html#overlays,Variable rekall.plugins.overlays.windows.tcpip_vtypes.overlays=rekall.plugins.overlays.windows.tcpip_vtypes-module.html#overlays"><a title="rekall.obj.Profile.overlays
 rekall.plugins.overlays
 rekall.plugins.overlays.windows.crashdump.overlays
-rekall.plugins.overlays.windows.tcpip_vtypes.overlays" class="py-name" href="#" onclick="return doclink('link-2', 'overlays', 'link-2');">overlays</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins.linux=rekall.plugins.linux-module.html,Package rekall.plugins.overlays.linux=rekall.plugins.overlays.linux-module.html,Module rekall.plugins.overlays.linux.linux=rekall.plugins.overlays.linux.linux-module.html"><a title="rekall.plugins.linux
+rekall.plugins.overlays.windows.heap.overlays
+rekall.plugins.overlays.windows.tcpip_vtypes.overlays" class="py-name" href="#" onclick="return doclink('link-2', 'overlays', 'link-2');">overlays</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins.linux=rekall.plugins.linux-module.html,Package rekall.plugins.overlays.linux=rekall.plugins.overlays.linux-module.html,Module rekall.plugins.overlays.linux.linux=rekall.plugins.overlays.linux.linux-module.html,Module rekall.plugins.renderers.linux=rekall.plugins.renderers.linux-module.html"><a title="rekall.plugins.linux
 rekall.plugins.overlays.linux
-rekall.plugins.overlays.linux.linux" class="py-name" href="#" onclick="return doclink('link-3', 'linux', 'link-3');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.plugins.overlays.linux.elf=rekall.plugins.overlays.linux.elf-module.html"><a title="rekall.plugins.overlays.linux.elf" class="py-name" href="#" onclick="return doclink('link-4', 'elf', 'link-4');">elf</a></tt> </tt>
+rekall.plugins.overlays.linux.linux
+rekall.plugins.renderers.linux" class="py-name" href="#" onclick="return doclink('link-3', 'linux', 'link-3');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.plugins.overlays.linux.elf=rekall.plugins.overlays.linux.elf-module.html"><a title="rekall.plugins.overlays.linux.elf" class="py-name" href="#" onclick="return doclink('link-4', 'elf', 'link-4');">elf</a></tt> </tt>
 <a name="L4"></a><tt class="py-lineno">4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-5', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-6', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.obj.Profile.overlays
 rekall.plugins.overlays
 rekall.plugins.overlays.windows.crashdump.overlays
+rekall.plugins.overlays.windows.heap.overlays
 rekall.plugins.overlays.windows.tcpip_vtypes.overlays" class="py-name" href="#" onclick="return doclink('link-7', 'overlays', 'link-2');">overlays</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.plugins.linux
 rekall.plugins.overlays.linux
-rekall.plugins.overlays.linux.linux" class="py-name" href="#" onclick="return doclink('link-8', 'linux', 'link-3');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name"><a title="rekall.plugins.linux
+rekall.plugins.overlays.linux.linux
+rekall.plugins.renderers.linux" class="py-name" href="#" onclick="return doclink('link-8', 'linux', 'link-3');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name"><a title="rekall.plugins.linux
 rekall.plugins.overlays.linux
-rekall.plugins.overlays.linux.linux" class="py-name" href="#" onclick="return doclink('link-9', 'linux', 'link-3');">linux</a></tt> </tt>
+rekall.plugins.overlays.linux.linux
+rekall.plugins.renderers.linux" class="py-name" href="#" onclick="return doclink('link-9', 'linux', 'link-3');">linux</a></tt> </tt>
 <a name="L5"></a><tt class="py-lineno">5</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
@@ -117,7 +122,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:14 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:16 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

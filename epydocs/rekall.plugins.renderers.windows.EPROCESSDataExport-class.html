@@ -64,12 +64,12 @@
 <h1 class="epydoc">Class EPROCESSDataExport</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.windows-pysrc.html#EPROCESSDataExport">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_eprocessda" name="class_hierarchy_for_eprocessda">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html" title="data_export.DataExportBaseObjectRenderer" alt="" coords="5,229,240,256"/>
-<area shape="rect" id="node3" href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html" title="EPROCESSDataExport" alt="" coords="56,285,189,312"/>
-<area shape="rect" id="node2" href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html" title="data_export.DataExportObjectRenderer" alt="" coords="17,173,228,200"/>
-<area shape="rect" id="node4" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="23,61,223,88"/>
-<area shape="rect" id="node5" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="5,117,240,144"/>
-<area shape="rect" id="node6" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="45,5,200,32"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html" title="data_export.DataExportBaseObjectRenderer" alt="" coords="5,219,240,242"/>
+<area shape="rect" id="node3" href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html" title="EPROCESSDataExport" alt="" coords="55,273,189,295"/>
+<area shape="rect" id="node2" href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html" title="data_export.DataExportObjectRenderer" alt="" coords="17,166,228,189"/>
+<area shape="rect" id="node4" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="22,59,223,82"/>
+<area shape="rect" id="node5" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="5,113,239,135"/>
+<area shape="rect" id="node6" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="45,6,199,29"/>
 </map>
   <img src="class_hierarchy_for_eprocessda.gif" alt='' usemap="#class_hierarchy_for_eprocessda" ismap="ismap" class="graph-without-title" />
 </center>
@@ -174,12 +174,31 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="GetState"></a><span class="summary-sig-name">GetState</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>,
-        <span class="summary-sig-arg">**_</span>)</span>
-      <em>(Inherited from <a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html">rekall.ui.json_renderer.StateBasedObjectRenderer</a>)</em></td>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#DelegateObjectRenderer" class="summary-sig-name">DelegateObjectRenderer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Create an object renderer for an item based on this object renderer.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#StateBasedObjectRenderer.GetState">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.DelegateObjectRenderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html#GetState" class="summary-sig-name">GetState</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html">rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportBaseObjectRenderer.GetState">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -459,10 +478,10 @@
 ArrayObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
+ 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
+nderer'&gt;,
  'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
 eAddressSpaceObjectRenderer'&gt;,
- 'BaseObjectRenderer': &lt;class 'rekall.ui.json_renderer.BaseObjectRende\
-rer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -664,7 +683,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:54 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:45 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

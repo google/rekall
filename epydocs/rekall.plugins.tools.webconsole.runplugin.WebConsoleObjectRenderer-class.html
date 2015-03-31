@@ -45,7 +45,7 @@
         <a href="rekall-module.html">Package&nbsp;rekall</a> ::
         <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
         <a href="rekall.plugins.tools-module.html">Package&nbsp;tools</a> ::
-        <a href="rekall.plugins.tools.webconsole-module.html">Module&nbsp;webconsole</a> ::
+        <a href="rekall.plugins.tools.webconsole-module.html">Package&nbsp;webconsole</a> ::
         <a href="rekall.plugins.tools.webconsole.runplugin-module.html">Module&nbsp;runplugin</a> ::
         Class&nbsp;WebConsoleObjectRenderer
       </span>
@@ -64,13 +64,13 @@
 <!-- ==================== CLASS DESCRIPTION ==================== -->
 <h1 class="epydoc">Class WebConsoleObjectRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.tools.webconsole.runplugin-pysrc.html#WebConsoleObjectRenderer">source&nbsp;code</a></span></p>
 <center>
-<center>  <map id="class_hierarchy_for_webconsole_4" name="class_hierarchy_for_webconsole_4">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html" title="renderers.data_export.NativeDataExportObjectRenderer" alt="" coords="5,117,296,144"/>
-<area shape="rect" id="node2" href="rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html" title="WebConsoleObjectRenderer" alt="" coords="72,173,229,200"/>
-<area shape="rect" id="node3" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="51,61,251,88"/>
-<area shape="rect" id="node4" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="73,5,228,32"/>
+<center>  <map id="class_hierarchy_for_webconsole" name="class_hierarchy_for_webconsole">
+<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html" title="renderers.data_export.NativeDataExportObjectRenderer" alt="" coords="5,113,296,135"/>
+<area shape="rect" id="node2" href="rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html" title="WebConsoleObjectRenderer" alt="" coords="71,166,229,189"/>
+<area shape="rect" id="node3" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="50,59,251,82"/>
+<area shape="rect" id="node4" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="73,6,227,29"/>
 </map>
-  <img src="class_hierarchy_for_webconsole_4.gif" alt='' usemap="#class_hierarchy_for_webconsole_4" ismap="ismap" class="graph-without-title" />
+  <img src="class_hierarchy_for_webconsole.gif" alt='' usemap="#class_hierarchy_for_webconsole" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
@@ -140,6 +140,25 @@
       Decode the item from its Json safe representation.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.webconsole.runplugin-pysrc.html#WebConsoleObjectRenderer.DecodeFromJsonSafe">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#DelegateObjectRenderer" class="summary-sig-name">DelegateObjectRenderer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Create an object renderer for an item based on this object renderer.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.DelegateObjectRenderer">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -448,10 +467,10 @@
 ArrayObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
+ 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
+nderer'&gt;,
  'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
 eAddressSpaceObjectRenderer'&gt;,
- 'BaseObjectRenderer': &lt;class 'rekall.ui.json_renderer.BaseObjectRende\
-rer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -659,7 +678,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:55 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:47 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

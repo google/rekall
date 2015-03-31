@@ -62,148 +62,63 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module networking</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html">source&nbsp;code</a></span></p>
-<p>Collectors for sockets and other network-related things.</p>
+<p>Collectors for sockets, interfaces, etc.</p>
 
 <hr />
 <div class="fields">      <p><strong>Author:</strong>
         Adam Sindelar &lt;adamsh@google.com&gt;
       </p>
-</div><!-- ==================== FUNCTIONS ==================== -->
-<a name="section-Functions"></a>
+</div><!-- ==================== CLASSES ==================== -->
+<a name="section-Classes"></a>
 <table class="summary" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr bgcolor="#70b0f0" class="table-header">
   <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Functions</span></td>
+    <span class="table-header">Classes</span></td>
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="ParseSocket"></a><span class="summary-sig-name">ParseSocket</span>(<span class="summary-sig-arg">socket</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#ParseSocket">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rekall.plugins.collectors.darwin.networking.DarwinIfnetCollector-class.html" class="summary-name">DarwinIfnetCollector</a><br />
+      Walks the global list of interfaces.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="ParseVnode"></a><span class="summary-sig-name">ParseVnode</span>(<span class="summary-sig-arg">vnode</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#ParseVnode">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rekall.plugins.collectors.darwin.networking.DarwinNetworkInterfaceParser-class.html" class="summary-name">DarwinNetworkInterfaceParser</a>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.collectors.darwin.networking-module.html#UnixSocketCollector" class="summary-sig-name">UnixSocketCollector</a>(<span class="summary-sig-arg">profile</span>)</span><br />
-      Walks the global unpcb lists and returns just the sockets.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#UnixSocketCollector">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rekall.plugins.collectors.darwin.networking.DarwinSocketZoneCollector-class.html" class="summary-name">DarwinSocketZoneCollector</a>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="FileprocHandleCollector"></a><span class="summary-sig-name">FileprocHandleCollector</span>(<span class="summary-sig-arg">profile</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#FileprocHandleCollector">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rekall.plugins.collectors.darwin.networking.DarwinSocketLastAccess-class.html" class="summary-name">DarwinSocketLastAccess</a>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="HandleSocketCollector"></a><span class="summary-sig-name">HandleSocketCollector</span>(<span class="summary-sig-arg">profile</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#HandleSocketCollector">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rekall.plugins.collectors.darwin.networking.DarwinSocketParser-class.html" class="summary-name">DarwinSocketParser</a><br />
+      Searches for all memory objects that are sockets and parses them.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="HandleVnodeCollector"></a><span class="summary-sig-name">HandleVnodeCollector</span>(<span class="summary-sig-arg">profile</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#HandleVnodeCollector">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="ParseNetworkInterface"></a><span class="summary-sig-name">ParseNetworkInterface</span>(<span class="summary-sig-arg">interface</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#ParseNetworkInterface">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.collectors.darwin.networking-module.html#NetworkInterfaces" class="summary-sig-name">NetworkInterfaces</a>(<span class="summary-sig-arg">profile</span>)</span><br />
-      Walks the global list of interfaces.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#NetworkInterfaces">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
+        <a href="rekall.plugins.collectors.darwin.networking.UnpListCollector-class.html" class="summary-name">UnpListCollector</a><br />
+      Walks the global unpcb lists and returns the unix sockets.
     </td>
   </tr>
 </table>
@@ -223,84 +138,6 @@
     </td>
   </tr>
 </table>
-<!-- ==================== FUNCTION DETAILS ==================== -->
-<a name="section-FunctionDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Function Details</span></td>
-</tr>
-</table>
-<a name="UnixSocketCollector"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">UnixSocketCollector</span>(<span class="sig-arg">profile</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#UnixSocketCollector">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Walks the global unpcb lists and returns just the sockets.
-
-Yields:
-  DarwinUnixSocket entities.
-
-See here:
-  https://github.com/opensource-apple/xnu/blob/10.9/bsd/kern/uipc_usrreq.c#L121
-
-</pre>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="NetworkInterfaces"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">NetworkInterfaces</span>(<span class="sig-arg">profile</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.collectors.darwin.networking-pysrc.html#NetworkInterfaces">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Walks the global list of interfaces.
-
-The head of the list of network interfaces is a kernel global [1].
-The struct we use [2] is just the public part of the data [3]. Addresses
-are related to an interface in a N:1 relationship [4]. AF-specific data
-is a normal sockaddr struct.
-
-Yields:
-  Network interfaces.
-
-References:
-  1:
-  https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/dlil.c#L254
-  2:
-  https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L528
-  3:
-  https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/dlil.c#L188
-  4:
-  https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L816
-
-</pre>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -332,7 +169,7 @@ References:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

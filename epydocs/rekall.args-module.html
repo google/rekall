@@ -60,6 +60,9 @@
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module args</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.args-pysrc.html">source&nbsp;code</a></span></p>
 <p>This module manages the command line parsing logic.</p>
+  <p>Rekall uses the argparse module for command line parsing, however this
+  module contains so many bugs it might be worth to implement our own 
+  parser in future.</p>
 
 <hr />
 <div class="fields">      <p><strong>Author:</strong>
@@ -77,13 +80,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.args.MockArgParser-class.html" class="summary-name">MockArgParser</a>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.args.RekallHelpFormatter-class.html" class="summary-name">RekallHelpFormatter</a>
     </td>
   </tr>
@@ -92,6 +88,29 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.args.RekallArgParser-class.html" class="summary-name">RekallArgParser</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.args.IntParser-class.html" class="summary-name">IntParser</a><br />
+      Class to parse ints either in hex or as ints.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.args.ArrayIntParser-class.html" class="summary-name">ArrayIntParser</a><br />
+      Parse input as a comma separated list of integers.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.args.ArrayStringParser-class.html" class="summary-name">ArrayStringParser</a>
     </td>
   </tr>
 </table>
@@ -125,11 +144,49 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="LoadProfileIntoSession"></a><span class="summary-sig-name">LoadProfileIntoSession</span>(<span class="summary-sig-arg">parser</span>,
+          <td><span class="summary-sig"><a name="ParseGlobalArgs"></a><span class="summary-sig-name">ParseGlobalArgs</span>(<span class="summary-sig-arg">parser</span>,
         <span class="summary-sig-arg">argv</span>,
-        <span class="summary-sig-arg">user_session</span>)</span></td>
+        <span class="summary-sig-arg">user_session</span>)</span><br />
+      Parse some session wide args which must be done before anything else.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.args-pysrc.html#LoadProfileIntoSession">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.args-pysrc.html#ParseGlobalArgs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.args-module.html#FindPlugin" class="summary-sig-name">FindPlugin</a>(<span class="summary-sig-arg">argv</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">user_session</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Search the argv for the first occurrence of a valid plugin name.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.args-pysrc.html#FindPlugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.args-module.html#ConfigureCommandLineParser" class="summary-sig-name">ConfigureCommandLineParser</a>(<span class="summary-sig-arg">command_metadata</span>,
+        <span class="summary-sig-arg">parser</span>,
+        <span class="summary-sig-arg">critical</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Apply the plugin configuration to an argparse parser.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.args-pysrc.html#ConfigureCommandLineParser">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -168,10 +225,92 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="DISAMBIGUATE_OPTIONS"></a><span class="summary-name">DISAMBIGUATE_OPTIONS</span> = <code title="['profile']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">profile</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall'"><code class="variable-quote">'</code><code class="variable-string">rekall</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Function Details</span></td>
+</tr>
+</table>
+<a name="FindPlugin"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">FindPlugin</span>(<span class="sig-arg">argv</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">user_session</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.args-pysrc.html#FindPlugin">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Search the argv for the first occurrence of a valid plugin name.</p>
+  <p>Returns a mutated argv where the plugin is moved to the front. If a 
+  plugin is not found we assume the plugin is &quot;shell&quot; (i.e. the 
+  interactive session).</p>
+  <p>This maintains backwards compatibility with the old global/plugin 
+  specific options. In the current implementation, the plugin name should 
+  probably come first:</p>
+  <p>rekal pslist -v -f foo.elf --pid 4</p>
+  <p>but this still works:</p>
+  <p>rekal -v -f foo.elf pslist --pid 4</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="ConfigureCommandLineParser"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ConfigureCommandLineParser</span>(<span class="sig-arg">command_metadata</span>,
+        <span class="sig-arg">parser</span>,
+        <span class="sig-arg">critical</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.args-pysrc.html#ConfigureCommandLineParser">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Apply the plugin configuration to an argparse parser.
+
+This method is the essential glue between the abstract plugin metadata and
+argparse.
+
+The main intention is to de-couple the plugin's args definition from arg
+parser's specific implementation. The plugin then conveys semantic meanings
+about its arguments rather than argparse implementation specific
+details. Note that args are parsed through other mechanisms in a number of
+cases so this gives us flexibility to implement arbitrary parsing:
+
+- Directly provided to the plugin in the constructor.
+- Parsed from json from the web console.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -203,7 +342,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:41 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:19 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

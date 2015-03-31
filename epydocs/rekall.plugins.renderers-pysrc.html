@@ -64,75 +64,220 @@
 <a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># pylint: disable=unused-import</tt> </tt>
 <a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"> </tt>
 <a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.renderers=rekall.plugins.renderers-module.html,Variable rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.BoolRenderer.renderers=rekall.plugins.renderers.windows.BoolRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.NoneRendererText.renderers=rekall.plugins.renderers.windows.NoneRendererText-class.html#renderers,Variable rekall.plugins.renderers.windows.UnixTimestampObjectRenderer.renderers=rekall.plugins.renderers.windows.UnixTimestampObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.xls.XLSObjectRenderer.renderers=rekall.plugins.renderers.xls.XLSObjectRenderer-class.html#renderers,Variable rekall.plugins.tools.webconsole.WebConsoleObjectRenderer.renderers=rekall.plugins.tools.webconsole.WebConsoleObjectRenderer-class.html#renderers,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#renderers,Variable rekall.ui.json_renderer.JsonObjectRenderer.renderers=rekall.ui.json_renderer.JsonObjectRenderer-class.html#renderers,Variable rekall.ui.renderer.ObjectRenderer.renderers=rekall.ui.renderer.ObjectRenderer-class.html#renderers,Variable rekall.ui.text.TextObjectRenderer.renderers=rekall.ui.text.TextObjectRenderer-class.html#renderers"><a title="rekall.plugins.renderers
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.renderers=rekall.plugins.renderers-module.html,Variable rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers=rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Dependency_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers=rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Entity_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Identity_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers=rekall.plugins.renderers.entities.Query_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers=rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers=rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers=rekall.plugins.renderers.windows.UNICODE_STRING_Text-class.html#renderers,Variable rekall.plugins.renderers.xls.XLSObjectRenderer.renderers=rekall.plugins.renderers.xls.XLSObjectRenderer-class.html#renderers,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#renderers,Variable rekall.ui.json_renderer.JsonObjectRenderer.renderers=rekall.ui.json_renderer.JsonObjectRenderer-class.html#renderers,Variable rekall.ui.renderer.ObjectRenderer.renderers=rekall.ui.renderer.ObjectRenderer-class.html#renderers,Variable rekall.ui.text.TextObjectRenderer.renderers=rekall.ui.text.TextObjectRenderer-class.html#renderers"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
 rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
 rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
-rekall.plugins.renderers.windows.BoolRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
-rekall.plugins.renderers.windows.NoneRendererText.renderers
-rekall.plugins.renderers.windows.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
 rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
-rekall.plugins.tools.webconsole.WebConsoleObjectRenderer.renderers
 rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
 rekall.ui.json_renderer.JsonObjectRenderer.renderers
 rekall.ui.renderer.ObjectRenderer.renderers
-rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-2', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.plugins.renderers.data_export=rekall.plugins.renderers.data_export-module.html"><a title="rekall.plugins.renderers.data_export" class="py-name" href="#" onclick="return doclink('link-3', 'data_export', 'link-3');">data_export</a></tt> </tt>
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-2', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.plugins.renderers.base_objects=rekall.plugins.renderers.base_objects-module.html"><a title="rekall.plugins.renderers.base_objects" class="py-name" href="#" onclick="return doclink('link-3', 'base_objects', 'link-3');">base_objects</a></tt> </tt>
 <a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-4', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-5', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
 rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
 rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
-rekall.plugins.renderers.windows.BoolRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
-rekall.plugins.renderers.windows.NoneRendererText.renderers
-rekall.plugins.renderers.windows.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
 rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
-rekall.plugins.tools.webconsole.WebConsoleObjectRenderer.renderers
 rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
 rekall.ui.json_renderer.JsonObjectRenderer.renderers
 rekall.ui.renderer.ObjectRenderer.renderers
-rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-6', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Module rekall.plugins.renderers.json_storage=rekall.plugins.renderers.json_storage-module.html"><a title="rekall.plugins.renderers.json_storage" class="py-name" href="#" onclick="return doclink('link-7', 'json_storage', 'link-7');">json_storage</a></tt> </tt>
-<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"> </tt>
-<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
-<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line">    <tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-8', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="rekall.plugins
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-6', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Module rekall.plugins.renderers.data_export=rekall.plugins.renderers.data_export-module.html"><a title="rekall.plugins.renderers.data_export" class="py-name" href="#" onclick="return doclink('link-7', 'data_export', 'link-7');">data_export</a></tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-8', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-9', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
 rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
 rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
-rekall.plugins.renderers.windows.BoolRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
-rekall.plugins.renderers.windows.NoneRendererText.renderers
-rekall.plugins.renderers.windows.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
 rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
-rekall.plugins.tools.webconsole.WebConsoleObjectRenderer.renderers
 rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
 rekall.ui.json_renderer.JsonObjectRenderer.renderers
 rekall.ui.renderer.ObjectRenderer.renderers
-rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-10', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-11" class="py-name" targets="Module rekall.plugins.renderers.xls=rekall.plugins.renderers.xls-module.html"><a title="rekall.plugins.renderers.xls" class="py-name" href="#" onclick="return doclink('link-11', 'xls', 'link-11');">xls</a></tt> </tt>
-<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-keyword">except</tt> <tt class="py-name">ImportError</tt><tt class="py-op">:</tt> </tt>
-<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
-<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"> </tt>
-<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-12" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-12', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-10', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-11" class="py-name" targets="Package rekall.entities=rekall.entities-module.html,Variable rekall.entities.collector.EntityCollector.entities=rekall.entities.collector.EntityCollector-class.html#entities,Variable rekall.entities.manager.EntityManager.entities=rekall.entities.manager.EntityManager-class.html#entities,Module rekall.plugins.common.entities=rekall.plugins.common.entities-module.html,Module rekall.plugins.renderers.entities=rekall.plugins.renderers.entities-module.html"><a title="rekall.entities
+rekall.entities.collector.EntityCollector.entities
+rekall.entities.manager.EntityManager.entities
+rekall.plugins.common.entities
+rekall.plugins.renderers.entities" class="py-name" href="#" onclick="return doclink('link-11', 'entities', 'link-11');">entities</a></tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-12" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-12', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-13', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
 rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
 rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
-rekall.plugins.renderers.windows.BoolRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
 rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
-rekall.plugins.renderers.windows.NoneRendererText.renderers
-rekall.plugins.renderers.windows.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
 rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
-rekall.plugins.tools.webconsole.WebConsoleObjectRenderer.renderers
 rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
 rekall.ui.json_renderer.JsonObjectRenderer.renderers
 rekall.ui.renderer.ObjectRenderer.renderers
-rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-14', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-15" class="py-name" targets="Package rekall.plugins.overlays.windows=rekall.plugins.overlays.windows-module.html,Module rekall.plugins.overlays.windows.windows=rekall.plugins.overlays.windows.windows-module.html,Module rekall.plugins.renderers.windows=rekall.plugins.renderers.windows-module.html,Package rekall.plugins.windows=rekall.plugins.windows-module.html,Method rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows()=rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html#windows"><a title="rekall.plugins.overlays.windows
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-14', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-15" class="py-name" targets="Module rekall.plugins.renderers.json_storage=rekall.plugins.renderers.json_storage-module.html"><a title="rekall.plugins.renderers.json_storage" class="py-name" href="#" onclick="return doclink('link-15', 'json_storage', 'link-15');">json_storage</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-16" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-16', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-17', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-18', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-19" class="py-name" targets="Package rekall.plugins.linux=rekall.plugins.linux-module.html,Package rekall.plugins.overlays.linux=rekall.plugins.overlays.linux-module.html,Module rekall.plugins.overlays.linux.linux=rekall.plugins.overlays.linux.linux-module.html,Module rekall.plugins.renderers.linux=rekall.plugins.renderers.linux-module.html"><a title="rekall.plugins.linux
+rekall.plugins.overlays.linux
+rekall.plugins.overlays.linux.linux
+rekall.plugins.renderers.linux" class="py-name" href="#" onclick="return doclink('link-19', 'linux', 'link-19');">linux</a></tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-20" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-20', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-21', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-22', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-23" class="py-name" targets="Module rekall.plugins.renderers.virtualization=rekall.plugins.renderers.virtualization-module.html"><a title="rekall.plugins.renderers.virtualization" class="py-name" href="#" onclick="return doclink('link-23', 'virtualization', 'link-23');">virtualization</a></tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-24" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-24', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-25', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-26', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-27" class="py-name" targets="Module rekall.plugins.renderers.visual_aides=rekall.plugins.renderers.visual_aides-module.html"><a title="rekall.plugins.renderers.visual_aides" class="py-name" href="#" onclick="return doclink('link-27', 'visual_aides', 'link-27');">visual_aides</a></tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-28" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-28', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-29', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-30', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-31" class="py-name" targets="Package rekall.plugins.collectors.windows=rekall.plugins.collectors.windows-module.html,Package rekall.plugins.overlays.windows=rekall.plugins.overlays.windows-module.html,Module rekall.plugins.overlays.windows.windows=rekall.plugins.overlays.windows.windows-module.html,Module rekall.plugins.renderers.windows=rekall.plugins.renderers.windows-module.html,Package rekall.plugins.windows=rekall.plugins.windows-module.html,Method rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows()=rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html#windows"><a title="rekall.plugins.collectors.windows
+rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-15', 'windows', 'link-15');">windows</a></tt> </tt>
-<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-31', 'windows', 'link-31');">windows</a></tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">    <tt class="py-keyword">from</tt> <tt id="link-32" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-32', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-33', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.UnixTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Dependency_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_DataExportObjectRenderer.renderers
+rekall.plugins.renderers.entities.Entity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Identity_TextObjectRenderer.renderers
+rekall.plugins.renderers.entities.Query_TextObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-34', 'renderers', 'link-2');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-35" class="py-name" targets="Module rekall.plugins.renderers.xls=rekall.plugins.renderers.xls-module.html"><a title="rekall.plugins.renderers.xls" class="py-name" href="#" onclick="return doclink('link-35', 'xls', 'link-35');">xls</a></tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-keyword">except</tt> <tt class="py-name">ImportError</tt><tt class="py-op">:</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -170,7 +315,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:06:13 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:06 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

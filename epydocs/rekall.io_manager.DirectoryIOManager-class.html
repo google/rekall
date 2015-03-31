@@ -62,14 +62,22 @@
 <h1 class="epydoc">Class DirectoryIOManager</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.io_manager-pysrc.html#DirectoryIOManager">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_directoryi" name="class_hierarchy_for_directoryi">
-<area shape="rect" id="node1" href="rekall.io_manager.DirectoryIOManager-class.html" title="DirectoryIOManager" alt="" coords="5,61,123,88"/>
-<area shape="rect" id="node2" href="rekall.io_manager.IOManager-class.html" title="IOManager" alt="" coords="27,5,101,32"/>
+<area shape="rect" id="node1" href="rekall.io_manager.DirectoryIOManager-class.html" title="DirectoryIOManager" alt="" coords="89,59,207,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.tools.webconsole_plugin.WebConsoleDocument-class.html" title="plugins.tools.webconsole_plugin.WebConsoleDocument" alt="" coords="5,113,291,135"/>
+<area shape="rect" id="node2" href="rekall.io_manager.IOManager-class.html" title="IOManager" alt="" coords="110,6,185,29"/>
 </map>
   <img src="class_hierarchy_for_directoryi.gif" alt='' usemap="#class_hierarchy_for_directoryi" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
 <p>An IOManager which stores everything in files.</p>
+  <p>We prefer to store the profile file as a gzip compressed file within a
+  versioned directory. For example the profile:</p>
+  <p>nt/GUID/BF9E190359784C2D8796CF5537B238B42</p>
+  <p>will be stored in:</p>
+  <p>$urn/nt/GUID/BF9E190359784C2D8796CF5537B238B42.gz</p>
+  <p>Where $urn is the path where the DirectoryIOManager was initialized 
+  with.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -115,9 +123,27 @@
           <td><span class="summary-sig"><a href="rekall.io_manager.DirectoryIOManager-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">urn</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+      Initialize the IOManager.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.io_manager-pysrc.html#DirectoryIOManager.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.io_manager.DirectoryIOManager-class.html#CheckInventory" class="summary-sig-name">CheckInventory</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">path</span>)</span><br />
+      Checks the validity of the inventory and if the path exists in it.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#DirectoryIOManager.CheckInventory">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -235,8 +261,64 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="Decoder"></a><span class="summary-sig-name">Decoder</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">raw</span>)</span>
+      <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.Decoder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="Encoder"></a><span class="summary-sig-name">Encoder</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.Encoder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="FlushInventory"></a><span class="summary-sig-name">FlushInventory</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Write the inventory to the storage.
+      <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.FlushInventory">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.io_manager.IOManager-class.html#GetData" class="summary-sig-name">GetData</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span><br />
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">raw</span>=<span class="summary-sig-default">False</span>)</span><br />
       Get the data object stored at container member.
       <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
           <td align="right" valign="top">
@@ -257,11 +339,29 @@
           <td><span class="summary-sig"><a href="rekall.io_manager.IOManager-class.html#StoreData" class="summary-sig-name">StoreData</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">data</span>,
+        <span class="summary-sig-arg">raw</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">**options</span>)</span><br />
       Stores the data in the named container member.
       <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.StoreData">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ValidateInventory"></a><span class="summary-sig-name">ValidateInventory</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.ValidateInventory">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -379,9 +479,13 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.io_manager.IOManager-class.html#classes" class="summary-name">classes</a> = <code title="{'DirectoryIOManager': &lt;class 'rekall.io_manager.DirectoryIOManager'&gt;,
+        <a href="rekall.io_manager.IOManager-class.html#classes" class="summary-name">classes</a> = <code title="{'CacheDirectoryManager': &lt;class 'rekall.plugins.tools.caching_url_man\
+ager.CacheDirectoryManager'&gt;,
+ 'CachingManager': &lt;class 'rekall.plugins.tools.caching_url_manager.Ca\
+chingManager'&gt;,
+ 'DirectoryIOManager': &lt;class 'rekall.io_manager.DirectoryIOManager'&gt;,
  'URLManager': &lt;class 'rekall.io_manager.URLManager'&gt;,
- 'ZipFileManager': &lt;class 'rekall.io_manager.ZipFileManager'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DirectoryIOManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.io_manager.Dir<code class="variable-ellipsis">...</code></code>
+ 'ZipFileManager': &lt;class 'rekall.io_manager.ZipFileManager'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CacheDirectoryManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.too<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em>
     </td>
   </tr>
@@ -389,7 +493,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="classes_by_name"></a><span class="summary-name">classes_by_name</span> = <code title="{None: &lt;class 'rekall.io_manager.URLManager'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.io_manager.URLManager'&gt;<code class="variable-group">}</code></code>
+        <a href="rekall.io_manager.IOManager-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.caching_url_manager.CacheDirectory\
+Manager'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.caching_<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em>
     </td>
   </tr>
@@ -418,6 +523,14 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.io_manager.IOManager-class.html#inventory" class="summary-name">inventory</a>
+      <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em>
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -452,11 +565,58 @@
     </td>
   </tr></table>
   
-  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <pre class="literalblock">
+Initialize the IOManager.
+
+Args:
+
+  urn: The path to the IO manager. This might contain a scheme or
+       protocol specific to a certain IO manager implementation.
+
+  mode: Can be &quot;r&quot; or &quot;w&quot;.
+
+  session: The session object.
+
+  pretty_print: If specified we dump sorted yaml data - this ends up
+  being more compressible in reality.
+
+  version: The required version of the repository. The IOManager is free
+       to implement arbitrary storage for different versions if
+       required. Versioning the repository allows us to update the
+       repository file format transparently without affecting older
+       Rekall versions.
+
+</pre>
   <dl class="fields">
     <dt>Overrides:
         object.__init__
         <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="CheckInventory"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">CheckInventory</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">path</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.io_manager-pysrc.html#DirectoryIOManager.CheckInventory">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks the validity of the inventory and if the path exists in it.</p>
+  <p>The inventory is a json object at the root of the repository which 
+  lists all the profiles in this repository. It allows us to determine 
+  quickly if a profile exists in this repository.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.io_manager.IOManager-class.html#CheckInventory">IOManager.CheckInventory</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -659,7 +819,7 @@ Raises:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:43 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:24 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

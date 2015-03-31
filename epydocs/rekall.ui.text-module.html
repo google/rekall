@@ -75,14 +75,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text.Formatter-class.html" class="summary-name">Formatter</a><br />
-      A formatter which supports extended formating specs.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.ui.text.Pager-class.html" class="summary-name">Pager</a><br />
       A wrapper around a pager.
     </td>
@@ -107,6 +99,13 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.ui.text.AttributedStringRenderer-class.html" class="summary-name">AttributedStringRenderer</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.ui.text.CellRenderer-class.html" class="summary-name">CellRenderer</a><br />
       This renders a Cell object into a Cell object.
     </td>
@@ -115,15 +114,24 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text.NoneObjectTextRenderer-class.html" class="summary-name">NoneObjectTextRenderer</a><br />
-      NoneObjects will be rendered with a single dash '-'.
+        <a href="rekall.ui.text.BaseCell-class.html" class="summary-name">BaseCell</a><br />
+      A Cell represents a single entry in a table.
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text.NoneTextRenderer-class.html" class="summary-name">NoneTextRenderer</a>
+        <a href="rekall.ui.text.JoinedCell-class.html" class="summary-name">JoinedCell</a><br />
+      Joins child cells sideways (left to right).
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.text.StackedCell-class.html" class="summary-name">StackedCell</a><br />
+      Vertically stack child cells on top of each other.
     </td>
   </tr>
 <tr>
@@ -131,7 +139,8 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.ui.text.Cell-class.html" class="summary-name">Cell</a><br />
-      A Cell represents a single entry in a table.
+      A cell for text, knows how to wrap, preserve paragraphs and 
+        colorize.
     </td>
   </tr>
 <tr>
@@ -192,6 +201,31 @@
     </td>
   </tr>
 </table>
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Functions</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ParseFormatSpec"></a><span class="summary-sig-name">ParseFormatSpec</span>(<span class="summary-sig-arg">formatstring</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#ParseFormatSpec">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
 <!-- ==================== VARIABLES ==================== -->
 <a name="section-Variables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -212,9 +246,26 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.text-module.html#HIGHLIGHT_SCHEME" class="summary-name">HIGHLIGHT_SCHEME</a> = <code title="{'good': ('GREEN', None),
- 'important': ('WHITE', 'RED'),
- 'neutral': (None, None)}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">good</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">, </code>None<code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">important</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">WH</code><code class="variable-ellipsis">...</code></code>
+        <a href="rekall.ui.text-module.html#HIGHLIGHT_SCHEME" class="summary-name">HIGHLIGHT_SCHEME</a> = <code title="{'good': (u'GREEN', None),
+ 'important': (u'WHITE', u'RED'),
+ 'neutral': (None, None)}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">good</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">, </code>None<code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">important</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.text-module.html#StyleEnum" class="summary-name">StyleEnum</a> = <code title="{'compact': 'compact', 'hexdump': 'hexdump', 'full': 'full', 'cow': 'c\
+ow', 'address': 'address', 'typed': 'typed', 'value': 'value'}">{'compact': 'compact', 'hexdump': 'hexdump', 'full<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.ui.text-module.html#FORMAT_SPECIFIER_RE" class="summary-name">FORMAT_SPECIFIER_RE</a> = <code title="re.compile(r'(?x)(?P&lt;fill&gt;[^\{\}&lt;&gt;=\^#bcdeEfFgGnLorsxX0-9])?(?P&lt;align&gt;\
+[&lt;&gt;=\^])?(?P&lt;sign&gt;[\+- ])?(?P&lt;hash&gt;#)?(?P&lt;zerofill&gt;0)?(?P&lt;width&gt;\d+)?(\
+?P&lt;comma&gt;,)?(?P&lt;precision&gt;.\d+)?(?P&lt;type&gt;[bcdeEfFgGnorsxXL%])?')">re.compile(r'<code class="re-flags">(?x)</code><code class="re-group">(?P&lt;</code><code class="re-ref">fill</code><code class="re-group">&gt;</code><code class="re-group">[</code><code class="re-op">^</code>\{\}&lt;&gt;=\^#bc<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -246,9 +297,48 @@
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">good</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">, </code>None<code class="variable-group">)</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">important</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">WHITE</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">RED</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">good</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">, </code>None<code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">important</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-string">WHITE</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">RED</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">neutral</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">(</code>None<code class="variable-op">, </code>None<code class="variable-group">)</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="StyleEnum"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">StyleEnum</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'compact': 'compact', 'hexdump': 'hexdump', 'full': 'full', 'cow': 'c<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ow', 'address': 'address', 'typed': 'typed', 'value': 'value'}
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="FORMAT_SPECIFIER_RE"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">FORMAT_SPECIFIER_RE</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+re.compile(r'<code class="re-flags">(?x)</code><code class="re-group">(?P&lt;</code><code class="re-ref">fill</code><code class="re-group">&gt;</code><code class="re-group">[</code><code class="re-op">^</code>\{\}&lt;&gt;=\^#bcdeEfFgGnLorsxX0<code class="re-op">-</code>9<code class="re-group">]</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">align</code><code class="re-group">&gt;</code><code class="re-group"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="re-group">[</code>&lt;&gt;=\^<code class="re-group">]</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">sign</code><code class="re-group">&gt;</code><code class="re-group">[</code>\+- <code class="re-group">]</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">hash</code><code class="re-group">&gt;</code>#<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">zerofill</code><code class="re-group">&gt;</code>0<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">width</code><code class="re-group">&gt;</code>\d<code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="re-group">?P&lt;</code><code class="re-ref">comma</code><code class="re-group">&gt;</code>,<code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">precision</code><code class="re-group">&gt;</code>.\d<code class="re-op">+</code><code class="re-group">)</code><code class="re-op">?</code><code class="re-group">(?P&lt;</code><code class="re-ref">type</code><code class="re-group">&gt;</code><code class="re-group">[</code>bcdeEfFgGnorsxXL%<code class="re-group">]</code><code class="re-group">)</code><code class="re-op">?</code>')
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -286,7 +376,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:42 2014
+    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
