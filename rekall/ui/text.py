@@ -52,8 +52,10 @@ config.DeclareOption(
     help="The number of output lines before we invoke the pager.")
 
 config.DeclareOption(
-    "--nocolors", default=False, type="Boolean", group="Interface",
-    help="If set suppress outputting colors.")
+    "--colors", default="auto", type="Choices",
+    choices=["auto", "yes", "no"],
+    group="Interface", help="Color control. If set to auto only output "
+    "colors when connected to a terminal.")
 
 
 HIGHLIGHT_SCHEME = dict(
@@ -152,7 +154,7 @@ class Pager(object):
 
         self.colorizer = Colorizer(
             self.term_fd,
-            nocolor=self.session.GetParameter("nocolors"),
+            color=self.session.GetParameter("colors"),
         )
 
     def __enter__(self):
@@ -258,29 +260,32 @@ class Colorizer(object):
 
     terminal_capable = False
 
-    def __init__(self, stream, nocolor=False):
+    def __init__(self, stream, color="auto"):
         """Initialize a colorizer.
 
         Args:
           stream: The stream to write to.
 
-          nocolor: If True we suppress using colors, even if the output stream
+          color: If "no" we suppress using colors, even if the output stream
              can support them.
         """
         if stream is None:
             stream = sys.stdout
 
-        if nocolor:
+        # We currently do not support Win32 colors.
+        if curses is None or color == "no":
             self.terminal_capable = False
-            return
 
-        try:
-            if curses and stream.isatty():
-                curses.setupterm()
+        elif color == "yes":
+            self.terminal_capable = True
 
-                self.terminal_capable = True
-        except AttributeError:
-            pass
+        elif color == "auto":
+            try:
+                if curses and stream.isatty():
+                    curses.setupterm()
+                    self.terminal_capable = True
+            except AttributeError:
+                pass
 
     def tparm(self, capabilities, *args):
         """A simplified version of tigetstr without terminal delays."""
@@ -858,14 +863,16 @@ class Cell(BaseCell):
                 if fg is not None:
                     if isinstance(fg, basestring):
                         fg = self.colorizer.COLOR_MAP[fg]
+
                     escape_seq += self.colorizer.tparm(
-                        ["setf", "setaf"], fg)
+                        ["setaf", "setf"], fg)
 
                 if bg is not None:
                     if isinstance(bg, basestring):
                         bg = self.colorizer.COLOR_MAP[bg]
+
                     escape_seq += self.colorizer.tparm(
-                        ["setb", "setab"], bg)
+                        ["setab", "setb"], bg)
 
                 if bold:
                     escape_seq += self.colorizer.tparm(["bold"])
@@ -1228,7 +1235,7 @@ class TextRenderer(renderer_module.BaseRenderer):
 
         self.colorizer = Colorizer(
             self.fd,
-            nocolor=self.session.GetParameter("nocolors"))
+            color=self.session.GetParameter("colors"))
 
     def section(self, name=None, width=50):
         if name is None:

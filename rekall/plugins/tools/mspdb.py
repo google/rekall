@@ -203,13 +203,13 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                         # This should already be installed on windows systems.
                         subprocess.check_call(
                             ["expand", compressed_output_file, output_file],
-                            cwd=self.dump_dir)
+                            cwd=temp_dir)
                     else:
                         # In Linux we just hope the cabextract program was
                         # installed.
                         subprocess.check_call(
                             ["cabextract", compressed_output_file],
-                            cwd=self.dump_dir)
+                            cwd=temp_dir)
 
                 except subprocess.CalledProcessError:
                     raise RuntimeError(

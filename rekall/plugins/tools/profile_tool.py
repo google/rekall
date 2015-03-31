@@ -744,7 +744,7 @@ class BuildProfileLocally(plugin.Command):
         profile_name = "{0}/GUID/{1}".format(module_name, guid)
 
         # Get the first repository to write to.
-        repository = self.session.repository_managers.values()[0]
+        repository = self.session.repository_managers[0][1]
         if module_name != "nt":
             data = self._fetch_and_parse(module_name, guid)
             return repository.StoreData(profile_name, data)
@@ -761,8 +761,8 @@ class BuildProfileLocally(plugin.Command):
                     "profile repository.", profile_name)
 
                 return repository.StoreData(profile_name, data)
-            except IOError:
-                pass
+            except IOError, e:
+                logging.error("Error: %s", e)
 
         raise IOError("Profile not found")
 

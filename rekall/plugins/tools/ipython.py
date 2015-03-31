@@ -147,7 +147,7 @@ class SessionMod(plugin.Command):
 
     Any session parameters can be set here. For example:
 
-    smod nocolors=True, paging_limit=10, pager="less"
+    smod colors="no", paging_limit=10, pager="less"
 
     """
     __name = "smod"

@@ -392,15 +392,12 @@ class Session(object):
         # on this object.
         self.plugins = PluginContainer(self)
 
-        # These are the IO managers that are used to fetch profiles from the
-        # profile repository.
-        self.repository_managers = {}
-
         # When the session switches process context we store various things in
         # this cache, so we can restore the context quickly. The cache is
         # indexed by the current process_context which can be found from
         # session.GetParameter("process_context").
         self.context_cache = {}
+        self._repository_managers = []
 
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
@@ -410,6 +407,25 @@ class Session(object):
 
             for k, v in kwargs.items():
                 self.state.Set(k, v)
+
+    @property
+    def repository_managers(self):
+        """The IO managers that are used to fetch profiles from the profile
+        repository.
+
+        """
+        if self._repository_managers:
+            return self._repository_managers
+
+        # The profile path is specified in search order.
+        repository_path = (self.state.Get("repository_path") or
+                           self.state.Get("profile_path") or [])
+
+        for path in repository_path:
+            self._repository_managers.append(
+                (path, io_manager.Factory(path, session=self)))
+
+        return self._repository_managers
 
     def __enter__(self):
         # Allow us to update the state context manager.
@@ -684,19 +700,9 @@ class Session(object):
 
         # Traverse the profile path until one works.
         if not result:
-            # The profile path is specified in search order.
-            repository_path = (self.state.Get("repository_path") or
-                               self.state.Get("profile_path") or [])
-
             # Add the last supported repository as the last fallback path.
-            for path in repository_path:
+            for path, manager in self.repository_managers:
                 try:
-                    if path not in self.repository_managers:
-                        self.repository_managers[path] = io_manager.Factory(
-                            path, session=self)
-
-                    manager = self.repository_managers[path]
-
                     # The inventory allows us to fail fetching the profile
                     # quickly - without making the round trip.
                     if not manager.CheckInventory(name):
