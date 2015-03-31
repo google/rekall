@@ -19,7 +19,7 @@ profile repository locally and then just use it from your local machine. Since
 the profile repository is a git repository you can just check it out:
 
 ```
-git clone https://github.com/google/rekall-profiles.git
+git clone --depth 1 https://github.com/google/rekall-profiles.git
 ```
 
 You can then just keep it up to date by running:
@@ -114,6 +114,3 @@ $ rekal --profile ./ntkrnlmp.json -f ~/images/win7.elf pslist
 
 The same technique can be used to generate symbols for other profiles which
 might be needed - for example **tcpip.pdb** or **win32k.pdb**.
-
-
-

@@ -56,12 +56,23 @@ ript>
     
         <li class="divider-vertical"></li>
         
-    <li class="">
-     <a href="/releases.html">
-      Releases
-     </a>
-    </li>
-    
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.1 Dammastock.</a></li>
+
+  </ul>
+ </li>
+
         <li class="divider-vertical"></li>
         
     <li class=" dropdown">
@@ -74,15 +85,17 @@ ript>
   </a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
@@ -110,29 +123,6 @@ ript>
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
-
-  </ul>
- </li>
-
-        <li class="divider-vertical"></li>
-        
-    <li class=" dropdown">
-     <a class="dropdown-toggle"
-      id="dropdownMenuDownloads"
-      data-toggle="dropdown"
-      aria-expanded="true">
-    Downloads
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
 
   </ul>
  </li>
@@ -181,6 +171,27 @@ GUI for Rekall we didn&rsquo;t want it to just be pretty but we wanted to make t
 improve the analysis workflow and make it easier to share the results. We were
 sick of running the same plugin on the same image many times, grepping for
 results and viewing everything through &ldquo;less&rdquo;.</p>
+<h2>Starting up the web console.</h2>
+<p>The web console uses a directory to place its files. It therefore needs to be
+started with a path to an existing directory. You can make an empty directory
+first, or simply use an existing Rekall directory. On windows, the installer
+creates a file association with the <code>metadata.rkl</code> file within the web console
+to automatically open the directory.</p>
+<div class="highlight"><pre><span class="nv">$ </span>mkdir /tmp/my_worksheet/
+<span class="nv">$ </span>rekal webconsole --browser /tmp/my_worksheet/
+</pre></div>
+
+
+<p>This will start the server on a random port (the server is bound to the loopback
+interface by default) and then spawn a new browser window to view it. You can
+use the <code>--port</code> argument to specify a specific port.</p>
+<p>NOTE: The Rekall web console provides arbitrary code execution through the
+<code>shell</code> and <code>pythoncode</code> cell types. Do not expose the web console to untrusted
+users. Ensure the adequate security is provided (either by restricting access to
+localhost, or by restricting access via iptable rules, or additional
+authentication+SSL).</p>
+<p>The first thing you should do is configure the first session by clicking on the
+&ldquo;Session&rdquo; button. You can add the image filename and also name the session here.</p>
 <h2>Screenshots</h2>
 <div  id="carousel-example-generic"  class="carousel slide" data-ride="carousel">
 <ol class="carousel-indicators">
@@ -204,11 +215,12 @@ results and viewing everything through &ldquo;less&rdquo;.</p>
 
           <li  data-target="#carousel-example-generic"
                data-slide-to="6" class=""></li>
-
-          <li  data-target="#carousel-example-generic"
-               data-slide-to="7" class=""></li>
 </ol><div class="carousel-inner">
        <div class="item active">
+          <img src="/docs/GUI//fig0.jpg"/>
+       </div>
+
+       <div class="item ">
           <img src="/docs/GUI//fig1.jpg"/>
        </div>
 
@@ -230,14 +242,6 @@ results and viewing everything through &ldquo;less&rdquo;.</p>
 
        <div class="item ">
           <img src="/docs/GUI//fig6.jpg"/>
-       </div>
-
-       <div class="item ">
-          <img src="/docs/GUI//index.html"/>
-       </div>
-
-       <div class="item ">
-          <img src="/docs/GUI//index.md"/>
        </div>
 </div>
   <!-- Controls -->

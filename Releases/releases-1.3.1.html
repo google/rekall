@@ -56,12 +56,23 @@ ript>
     
         <li class="divider-vertical"></li>
         
-    <li class="">
-     <a href="/releases.html">
-      Releases
-     </a>
-    </li>
-    
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.1 Dammastock.</a></li>
+
+  </ul>
+ </li>
+
         <li class="divider-vertical"></li>
         
     <li class=" dropdown">
@@ -74,15 +85,17 @@ ript>
   </a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
@@ -116,29 +129,6 @@ ript>
 
         <li class="divider-vertical"></li>
         
-    <li class=" dropdown">
-     <a class="dropdown-toggle"
-      id="dropdownMenuDownloads"
-      data-toggle="dropdown"
-      aria-expanded="true">
-    Downloads
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
-
-  </ul>
- </li>
-
-        <li class="divider-vertical"></li>
-        
     <li class="">
      <a href="/faq.html">
       FAQ
@@ -146,7 +136,7 @@ ript>
     </li>
     
        <li>
-        <a href="https://github.com/google/rekall/edit/gh-pages/downloads/Rekall/index.md?message=Describe%20your%20change..."
+        <a href="https://github.com/google/rekall/edit/gh-pages/Releases/releases-1.3.1.md?message=Describe%20your%20change..."
            data-toggle="tooltip"
            data-placement="bottom"
            title="Improve this page"
@@ -174,10 +164,78 @@ ript>
   </div>
 
   <div class="col-md-10">
-    <h1>Binary Releases of Rekall Memory Forensics.</h1>
-<p>The following are windows installers for the Rekall memory analysis
-framework. These are completely self contained and do not require any other
-dependencies. They also include the WinPmem memory acquisition tool.</p>
+    <h1>Rekall Memory Forensic Releases</h1>
+<h2>Version 1.3.1 Dammastock.</h2>
+<p>This release was made at the Rekall Memory Forensic Workshop at DFRWS. For the
+first time, we ran this workshop completely from the interactive Rekall web
+console. It was an astounding success, and an impressive medium to deliver an
+interactive workshop (Check it out
+<a href="http://memory-analysis.rekall-forensic.com">here</a> ).</p>
+<h3>Release Highlights</h3>
+<dl>
+<dt>Memory Acquisition</dt>
+<dd>The major thrust for this release was the updating of the Pmem Acquisition tools
+  to <a href="http://www.aff4.org">AFF4</a>. In addition to the stable WinPmem 1.6.2, we have
+  made available an experimental pre-release of the WinPmem 2.0 series.</dd>
+</dl>
+<p>The new imagers feature:</p>
+<ol>
+<li>A consistent interface. The same command line arguments used for all operating systems.</li>
+<li>The new memory image format we have standardized on is AFF4. This allows us
+   to store multiple streams in the image, such as the page file and additional
+   files.</li>
+<li>The pmem imagers are able to embed different files inside the final AFF4
+   image, such as the kernel image and miscellaneous binaries.</li>
+</ol>
+<p>Note that the new imagers are still considered pre-release. Please test but
+continue using the old imagers for critical work.</p>
+<dl>
+<dt>GUI Web Console</dt>
+<dd>The GUI was expanded to accommodate multiple sessions. A Rekall session is an
+  object encapsulating all we know about a specific image. With multiple session
+  support in the GUI, we are able to write a single web console document which
+  runs plugins on multiple images simultaneously.</dd>
+</dl>
+<ul>
+<li>The GUI was also adapted to allow for the export of static versions of the
+  document, which can be hosted on a simple web server.</li>
+</ul>
+<dl>
+<dt>Windows</dt>
+<dd>Rekall will now automatically fetch missing profiles from the Microsoft Symbol
+  Server for critical modules.</dd>
+</dl>
+<ul>
+<li>
+<p>This was a huge pain point in the past - when MS updated kernels through a
+  patch the kernel was rebuilt resulting in a new profile. By the time the
+  Rekall team pushed the new profile to the profile repository, Rekall was
+  non-functional, requiring users to know how to generate new profiles manually.</p>
+</li>
+<li>
+<p>This new release adds a setting (you can set it in the configuration file
+  permanently or just use the flag <code>--autodetect_build_local</code>). The following
+  values are allowed:</p>
+</li>
+<li>
+<p><code>none</code> means that Rekall will not fetch profiles from the symbol server (but
+    will still use the profile repositories specified in <code>repository_path</code>).</p>
+</li>
+<li>
+<p><code>basic</code> is the default setting. Rekall will fetch profiles for selected
+    modules, such as the kernel, win32k.sys, ntdll, tcpip etc. This is usually
+    good enough for most plugins to function correctly.</p>
+</li>
+<li>
+<p><code>full</code> in this setting Rekall will try the symbol server for all profiles it
+    does not know about. This can be very slow but will produce the best
+    outcome (e.g. disassembly output will be fully annotated).</p>
+</li>
+</ul>
+<dl>
+<dt>Linux</dt>
+<dd>Added support for XEN paravirtualized guests.</dd>
+</dl>
 <a href="https://github.com/google/rekall/releases">
  <button class="btn btn-large btn-success">
    Go get it now!

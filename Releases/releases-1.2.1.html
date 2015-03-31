@@ -56,12 +56,23 @@ ript>
     
         <li class="divider-vertical"></li>
         
-    <li class="">
-     <a href="/releases.html">
-      Releases
-     </a>
-    </li>
-    
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.1 Dammastock.</a></li>
+
+  </ul>
+ </li>
+
         <li class="divider-vertical"></li>
         
     <li class=" dropdown">
@@ -74,15 +85,17 @@ ript>
   </a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Manual</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developers</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">GUI</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">Tools</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
 
@@ -116,29 +129,6 @@ ript>
 
         <li class="divider-vertical"></li>
         
-    <li class=" dropdown">
-     <a class="dropdown-toggle"
-      id="dropdownMenuDownloads"
-      data-toggle="dropdown"
-      aria-expanded="true">
-    Downloads
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDownloads">
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Rekall">Rekall</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/Linux">Linux</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/OSXPmem">OSXPmem</a></li>
-
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/downloads/WinPMEM">WinPMEM</a></li>
-
-  </ul>
- </li>
-
-        <li class="divider-vertical"></li>
-        
     <li class="">
      <a href="/faq.html">
       FAQ
@@ -146,7 +136,7 @@ ript>
     </li>
     
        <li>
-        <a href="https://github.com/google/rekall/edit/gh-pages/downloads/WinPMEM/index.md?message=Describe%20your%20change..."
+        <a href="https://github.com/google/rekall/edit/gh-pages/Releases/releases-1.2.1.md?message=Describe%20your%20change..."
            data-toggle="tooltip"
            data-placement="bottom"
            title="Improve this page"
@@ -174,14 +164,71 @@ ript>
   </div>
 
   <div class="col-md-10">
-    <h1>WinPMEM - A Windows Memory Acquisition Tool.</h1>
-<p>Version 1.6.2</p>
-<p>Michael Cohen <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;">&#115;&#99;&#117;&#100;&#101;&#116;&#116;&#101;&#64;&#103;&#111;&#111;&#103;&#108;&#101;&#46;&#99;&#111;&#109;</a></p>
+    <h1>Rekall Memory Forensic Releases</h1>
+<h2>Version 1.2.1 Col de la Croix</h2>
+<p>This release just made it in time for Christmas! Enjoy!</p>
+<h3>Release Highlights</h3>
+<dl>
+<dt>Filesystems</dt>
+<dd>For the first time Rekall includes experimental support for analysis of
+   traditional Disk images. This release includes a full featured parser for
+   NTFS. Some interesting plugins:</dd>
+</dl>
 <ul>
-<li>winpmem_1.6.2.exe: The officially supported winpmem binary memory imager. This
-  contains signed drivers for loading into 64 bit windows versions. The drivers
-  support only read mode for forensic analysis. Write support is disabled. This
-  version also includes the ability to acquire the pagefile.</li>
+<li><code>fls</code>: List files in the filesystem.</li>
+<li><code>istat</code>: Displays information about an MFT entry.</li>
+<li><code>idump</code>: hexdump an attribute or stream.</li>
+<li><code>iexport</code>: Exports a file from the NTFS.</li>
+</ul>
+<dl>
+<dt>Windows</dt>
+<dd>This release includes full support for acquisition and analysis of the
+   windows page file. Some interesting plugins include:</dd>
+</dl>
+<ul>
+<li><code>pagefiles</code>: Lists the currently active page files and their locations.</li>
+<li><code>vadmap</code>: Displays each page in the VAD and resolves its location in physical
+    memory (or the page file).</li>
+<li><code>vtop</code>: This plugin was expanded to display where virtual pages are actually
+    backed by the page file.</li>
+<li><code>dumpfiles</code>: This plugin was finally implemented in Rekall.</li>
+<li><code>inspect_heap</code>: Experimental support for heap enumeration on Win7 x64 allows
+  enumeration of userspace heap allocation (e.g. malloc()).<ul>
+<li><code>dns_cache</code>: This is also used to enumerate the dns cache by inspecting
+  heap allocations.</li>
+</ul>
+</li>
+</ul>
+<dl>
+<dt>OSX</dt>
+<dd>This release adds a functional Entity layer. Currently confined to OSX
+  analysis. Entities are a kind of query language for memory artifacts.
+  Some useful plugins:</dd>
+</dl>
+<ul>
+<li><code>find</code>: Search for entities based on a query.</li>
+<li><code>analyze</code>: Analyze the internal query optimizer&rsquo;s collectors that will be run in
+  response to a query.</li>
+<li>Most other plugins are rewritten in terms of entities (e.g. <code>lsof</code>, <code>netstat</code> etc.)</li>
+</ul>
+<dl>
+<dt>Linux</dt>
+<dd>This release brings a dedicated userspace imager to Linux. The <code>lmap</code> tool was
+  expanded to write ELF core dump files and acquire directly from <code>/proc/kcore</code>,
+  if the target system supports it (in this case no kernel module is needed).</dd>
+</dl>
+<ul>
+<li>MIPS address space added for support on Big Endian Machines.</li>
+</ul>
+<dl>
+<dt>Misc</dt>
+<dd>Rekall can now read and write EWF files natively. There have been many
+  performance and stability improvements too.</dd>
+</dl>
+<ul>
+<li><code>ewfacquire</code>: Rekall can be used to acquire memory efficiently, writing an EWF
+  compressed file (with an embedded ELF file).</li>
+<li>The Profile repository is now cached locally to make subsequent runs faster.</li>
 </ul>
 <a href="https://github.com/google/rekall/releases">
  <button class="btn btn-large btn-success">

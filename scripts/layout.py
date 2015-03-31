@@ -1,12 +1,9 @@
-
-
 import os
-import sha
 import utils
 
 SITE = utils.Page(
-    name="Rekall Memory Forensic Framework",
-    description="Rekall Memory Forensic Framework",
+    name=u"Rekall Memory Forensic Framework",
+    description=u"Rekall Memory Forensic Framework",
     )
 
 
@@ -16,17 +13,17 @@ SIDEBAR = utils.GetInclude("_includes/sidebar.html")
 
 
 def default_menuitem(subpage=None, location=None):
-    """Generate a default menu item for a page."""
+    u"""Generate a default menu item for a page."""
     menuitem = subpage.menuitem
     url = subpage.url
-    result = """
+    result = u"""
         <li class="divider-vertical"></li>
         """
     active = ""
     if location == subpage.url:
         active = "active"
 
-    result += """
+    result += u"""
     <li class="{active}">
      <a href="{url}">
       {menuitem}
@@ -38,16 +35,16 @@ def default_menuitem(subpage=None, location=None):
 
 
 def drop_down_menu(page=None, location=None):
-    """Renders a drop down navigator to the subpage's 'root' directory."""
+    u"""Renders a drop down navigator to the subpage's 'root' directory."""
     menuitem = page.menuitem
-    result = """
+    result = u"""
         <li class="divider-vertical"></li>
         """
     active = ""
     if location == page.url:
         active = "active"
 
-    result += """
+    result += u"""
     <li class="{active} dropdown">
      <a class="dropdown-toggle"
       id="dropdownMenu{menuitem}"
@@ -60,11 +57,11 @@ def drop_down_menu(page=None, location=None):
 """.format(menuitem=menuitem, active=active)
 
     for subpage in sorted(utils.ListPages(page.root), key=lambda x: x.order):
-        result += """
+        result += u"""
     <li role="presentation"><a role="menuitem" tabindex="-1" href="{url}">{title}</a></li>
 """.format(url=subpage.url, title=subpage.title)
 
-    result += """
+    result += u"""
   </ul>
  </li>
 """
@@ -136,9 +133,6 @@ def default(page=None):
     if not page.filename.startswith(cwd):
         raise RuntimeError("must run script from root of tree")
 
-    sidebar = SIDEBAR.format(path=page.filename[len(cwd)+1:],
-                             title=page.title)
-
     return u"""
 {head}
 {nav}
@@ -154,8 +148,7 @@ def default(page=None):
 </div>
 </div>
 {foot}
-""".format(head=HEAD, foot=FOOT, sidebar=sidebar, page=page,
-           nav=navigation(page))
+""".format(head=HEAD, foot=FOOT, page=page, nav=navigation(page))
 
 
 def full_page(page=None):
@@ -184,7 +177,7 @@ def blog_nav(page=None):
     items.sort(reverse=True)
     result = ""
     for _, post in items[:15]:
-        result += """
+        result += u"""
   <ul class="nav nav-stacked">
      <h2>{post.title}</h2>
      <h4>{post.date} {post.author}</h4>
@@ -231,11 +224,11 @@ def _render_categories(path, location=None):
     # Now render the files.
     for page in sorted(files, key=lambda x: x.title):
         if location == page.url:
-            result += "<li class='active'>"
+            result += u"<li class='active'>"
         else:
-            result += "<li>"
+            result += u"<li>"
 
-        result += """
+        result += u"""
           <a href='{page.url}' class="category-link">
             {title}
           </a>
@@ -243,11 +236,11 @@ def _render_categories(path, location=None):
         """.format(page=page, title=page.title)
 
     if result:
-        result = "<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
+        result = u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
 
     # First render the files.
     for page in sorted(directories, key=lambda x: x.title):
-        result += """
+        result += u"""
         <li>
           <a href='{page.url}' class="category-link">
             {title}
@@ -256,7 +249,7 @@ def _render_categories(path, location=None):
         """.format(page=page, title=os.path.basename(page.url))
 
     if result:
-        result = "<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
+        result = u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
 
     return result
 
@@ -265,7 +258,7 @@ def categories(page=None, path=None):
     """Write navigation menu for all the plugins."""
     path = path or page.root
 
-    result = """
+    result = u"""
     {page.content} <ul class="nav nav-sidebar">
     """.format(page=page)
 
@@ -338,7 +331,7 @@ def _MakeNavigatorForPlugin(plugin_path, location=None):
 
     args["prev"] = os.path.basename(args["prev_url"])
 
-    return """
+    return u"""
  <a href="{prev_url}/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> {prev}
  </a>
@@ -367,7 +360,7 @@ def _plugin_navbar(page):
     try:
         idx = file_urls.index(page.url)
         if idx > 0:
-            prev_button = """
+            prev_button = u"""
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
        <a href="{prev_url}">
@@ -380,7 +373,7 @@ def _plugin_navbar(page):
            prev_plugin=files[idx-1].title)
 
         if idx < len(file_urls) - 1:
-            next_button = """
+            next_button = u"""
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
        <a href="{next_url}">
@@ -392,7 +385,7 @@ def _plugin_navbar(page):
 """.format(next_url=file_urls[idx+1],
            next_plugin=files[idx+1].title)
 
-        return """
+        return u"""
 <nav class="navbar navbar-default plugins" role="navigation">
 {prev_button}
 {next_button}
@@ -407,14 +400,14 @@ def plugin(page=None):
     page.html_abstract = utils.ConvertFromMD(page.abstract)
 
     if page.epydoc:
-        page.epydoc_link = """
+        page.epydoc_link = u"""
 <a href="/epydocs/{page.epydoc}">View Source</a>
 """.format(page=page)
 
     # Render the args in a table.
     table = ""
     if page.args:
-        table = """
+        table = u"""
 <h3>Plugin Arguments</h3>
 <table class='table table-striped table-bordered table-hover'>
 <tbody>
@@ -423,7 +416,7 @@ def plugin(page=None):
         for arg, arg_doc in page.args.items():
             table += "<tr><td>{arg}</td><td>{arg_doc}</td></tr>".format(
                 arg=arg, arg_doc=arg_doc)
-        table += """
+        table += u"""
 </tbody>
 </table>
 """
@@ -457,7 +450,7 @@ def plugin(page=None):
 
 
 def _MakeDownloadPageContentTable(page, release=None):
-    result = """
+    result = u"""
 <table class="table table-striped table-bordered table-hover">
 <thead>
 <tr><th>Filename</th><th>Description</th></tr>
@@ -472,7 +465,7 @@ def _MakeDownloadPageContentTable(page, release=None):
             url = "https://github.com/google/rekall/releases/"
             url += (page.release or release) + "/"
 
-        result += """
+        result += u"""
 <tr>
   <td><a href='{url}'>{name}</a></td>
   <td>{desc}</td>
@@ -485,7 +478,7 @@ def _MakeDownloadPageContentTable(page, release=None):
 
 
 def download(page=None):
-    page.content += """
+    page.content += u"""
 <a href="https://github.com/google/rekall/releases">
  <button class="btn btn-large btn-success">
    Go get it now!
@@ -508,9 +501,10 @@ def redirect(page=None):
 
 
 def images(page=None):
-    """Shows a gallery of images from a directory."""
+    u"""Shows a gallery of images from a directory."""
 
-    files = sorted(os.listdir(page.image_path))
+    files = sorted(
+        [x for x in os.listdir(page.image_path) if x.endswith("jpg")])
 
     result = '''
 <div  id="carousel-example-generic"  class="carousel slide" data-ride="carousel">
@@ -542,7 +536,7 @@ def images(page=None):
     result += '</div>'
 
 
-    result += """
+    result += u"""
   <!-- Controls -->
   <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
     <span class="glyphicon glyphicon-chevron-left"></span>
@@ -552,7 +546,7 @@ def images(page=None):
   </a>
 """
 
-    result += """
+    result += u"""
 </div>
 <script>
     $('.carousel').carousel({

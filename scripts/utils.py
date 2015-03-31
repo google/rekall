@@ -156,25 +156,33 @@ def ListPages(path):
         path = os.path.abspath("%s/%s" % (os.getcwd(), path))
 
     for filename in sorted(os.listdir(path)):
+        result = None
+
         full_path = os.path.abspath("%s/%s" % (path, filename))
 
         if os.path.isdir(full_path):
-
             page = Page(filename=full_path, type="directory",
-                        title=os.path.basename(filename),
                         url=GetUrlFromFilename(full_path))
 
             dir_page = ParsePage(os.path.join(full_path, "index.md"))
             if dir_page:
                 dir_page.update(page)
-                yield dir_page
+
+                result = dir_page
             else:
-                yield page
+                result = page
 
         else:
             page = ParsePage(full_path)
             if page is not None:
-                yield page
+                result = page
+
+        if result is not None:
+            # If the title is not specified, just make it up from the filename.
+            if result.title is None:
+                result.title = os.path.basename(filename)
+
+            yield result
 
 
 def memoize(obj):

@@ -9,7 +9,7 @@ order: 1
    <img class="logo-large" src="img/Rekall.png" />
   </div>
   <div class="center">
-    <h1> We will remember it for you wholesale! </h1>
+    <h1> We can remember it for you wholesale! </h1>
   </div>
   <div class="center stage-buttons">
     <a class="btn btn-lg btn-default" href="https://github.com/google/rekall">
@@ -46,8 +46,9 @@ order: 1
     memory analysis framework.
     </p>
     <p>
-    Rekall maintains the largest public profile repository of operating
-    system versions.
+    Rekall maintains the largest
+      <a href="https://github.com/google/rekall-profiles">public profile repository</a>
+       for many operating system versions.
     </p>
    </div>
    <div class="col-md-4 about-cell">
@@ -57,6 +58,11 @@ order: 1
     system. For this end, Rekall has developed library friendly APIs, such as
     JSON bases data exporting, progress reporting and thread safe behaviour.
     </p>
+    <a href="showcase.html">
+     <button class="btn btn-large btn-default">
+      Showcase
+     </button>
+    </a>
    </div>
   </div>
 </div>
