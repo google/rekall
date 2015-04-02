@@ -59,12 +59,12 @@ class IOmem(common.LinuxPlugin):
     def render(self, renderer):
         renderer.table_header([
             ("Resource", "resource", "[addrpad]"),
-            ("", "depth", ""),
             ("Start", "start", "[addrpad]"),
             ("End", "end", "[addrpad]"),
-            ("Name", "name", "")])
+            dict(name="Name", type="TreeNode"),
+            ])
 
         for node, depth in self.GetResources():
             renderer.table_row(
-                node, "."*depth, node.start, node.end, node.name.deref())
+                node, node.start, node.end, node.name.deref(), depth=depth)
 
