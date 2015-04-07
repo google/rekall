@@ -18,7 +18,7 @@ KEXT_BUNDLE_NAME=pmem
 PLIST_PATH=$(BUILDDIR)/$(KEXT_BUNDLE_NAME).kext/Contents/
 KEXT_PATH=$(PLIST_PATH)/MacOS
 
-SDK_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
+SDK_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk
 FRAMEWORK_PATH=$(SDK_PATH)/System/Library/Frameworks/
 
 KEXT_SRC=pmem/pmem.cpp pmem/pmem.h pmem/pmem_ioctls.h pmem/Info.plist \

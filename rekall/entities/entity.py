@@ -589,8 +589,8 @@ class EntityDescriptor(types.TypeDescriptor):
     type_cls = Entity
 
     def coerce(self, value):
-        if value is None:
-            return None
+        if value == None:
+            return value
 
         if isinstance(value, Entity):
             return value
