@@ -1,0 +1,42 @@
+---
+# This is a sample TAP configuration file.
+
+# The location of the control file.
+control: /home/rekalltest/control
+
+# General info about the project
+ProjectInfo:
+  root_url: http://tap.rekall-forensic.com/
+  project_url: http://www.rekall-forensic.com/
+  logo_url: http://www.rekall-forensic.com/img/Rekall-small.png
+  project_name: Rekall Forensics
+  dashboard_url: http://tap.rekall-forensic.com/runs/latest.html
+
+Emails:
+  # The email destination we send for tap failures.
+  destination_email: rekall-dev@googlegroups.com
+  smtp_server: smtp.gmail.com
+  smtp_server_port: 587
+
+Authentication:
+  # Credentials for sending mail norifications. This should be a gmail account
+  # with 2 factor auth and the smtp password is an app specific password.
+  gmail_account: authorized_gmail_account@gmail.com
+  gmail_smtp_password: "authorized_password"
+
+TAP:
+  # The test suite path.
+  testsuite:
+    /home/rekalltest/rekall/tools/testing/test_suite.py
+
+  # A list of test directories. Each should have a tests.config file in it.
+  test_directories:
+    # OSX
+    - /home/rekalltest/rekall-test/tigger
+    - /home/rekalltest/rekall-test/linux-3.2.0-PAE
+    - /home/rekalltest/rekall-test/ntfs
+    - /home/rekalltest/rekall-test/osx10.9.5
+
+  # Where to store TAP output.
+  output_directory:
+    /home/rekalltest/rekall-test/runs

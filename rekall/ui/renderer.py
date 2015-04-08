@@ -190,7 +190,8 @@ class ObjectRenderer(object):
     def _BuildRendererCache(cls):
         # Build the cache if needed.
         if cls._RENDERER_CACHE is None:
-            cls._RENDERER_CACHE = {}
+            # Do this in a thread safe manner.
+            result = {}
             for object_renderer_cls in cls.classes.values():
                 for impl_renderer in object_renderer_cls.renderers:
                     render_types = object_renderer_cls.renders_type
@@ -199,13 +200,15 @@ class ObjectRenderer(object):
 
                     for render_type in render_types:
                         key = (render_type, impl_renderer)
-                        if key in cls._RENDERER_CACHE:
+                        if key in result:
                             raise RuntimeError(
                                 "Multiple renderer implementations for class "
                                 "%s: %s, %s" % (key, object_renderer_cls,
-                                                cls._RENDERER_CACHE[key]))
+                                                result[key]))
 
-                        cls._RENDERER_CACHE[key] = object_renderer_cls
+                        result[key] = object_renderer_cls
+
+            cls._RENDERER_CACHE = result
 
     @classmethod
     def ForTarget(cls, target, renderer):
@@ -488,7 +491,9 @@ class BaseRenderer(object):
 
         # This should never happen if the renderer installs a handler for
         # object().
-        raise RuntimeError("Unable to render object")
+        raise RuntimeError("Unable to render object %r for renderer %s" %
+                           (repr(target), target_renderer) + 
+                           str(ObjectRenderer._RENDERER_CACHE))
 
 
 def CopyObjectRenderers(args, renderer=None):

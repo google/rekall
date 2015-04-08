@@ -221,6 +221,9 @@ exit 0
         parser.add_argument("--output_dir", default="output",
                             help="Create all files inside this directory.")
 
+        parser.add_argument("--control", default=None,
+                            help="The path to the control file.")
+
         parser.add_argument("-b", "--baseline", default=False,
                             action="store_true",
                             help="If specified rebuild the baseline instead of "
@@ -456,7 +459,18 @@ exit 0
                     self.threadpool.AddTask(self.RunTestCase, [
                         config_options, plugin_cls, baseline_data])
 
+    def CheckControlFile(self, attribute):
+        if self.FLAGS.control:
+            data = json.loads(open(self.FLAGS.control).read())
+            return data.get(attribute)
+
     def RunTestCase(self, config_options, plugin_cls, baseline_data):
+        # If the control file tells us to stop we dont do anything.
+        if self.CheckControlFile("action") == "stop":
+            logging.info("Skipping test %s since control file is aborted.",
+                         plugin_cls.__name__)
+            return
+
         if baseline_data['options'].get('aborted'):
             logging.info("Skipping test %s since baseline did not complete.",
                          plugin_cls.__name__)
