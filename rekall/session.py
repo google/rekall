@@ -579,6 +579,17 @@ class Session(object):
             return self._RunPlugin(plugin_obj, renderer=ui_renderer,
                                    *pos_args, **kwargs)
 
+    def _GetPluginName(self, plugin_obj):
+        """Extract the name from the plugin object."""
+        if isinstance(plugin_obj, basestring):
+            return plugin_obj
+
+        elif utils.issubclass(plugin_obj, plugin.Command):
+            return plugin_obj.name
+
+        elif isinstance(plugin_obj, plugin.Command):
+            return plugin_obj.name
+
     def _GetPluginObj(self, plugin_obj, *pos_args, **kwargs):
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
@@ -615,17 +626,18 @@ class Session(object):
         # Start the renderer before instantiating the plugin to allow
         # rendering of reported progress in the constructor.
         try:
-            plugin_obj = self._GetPluginObj(plugin_obj, *pos_args, **kwargs)
-            with ui_renderer.start(plugin_name=plugin_obj.name, kwargs=kwargs):
+            with ui_renderer.start(plugin_name=self._GetPluginName(plugin_obj),
+                                   kwargs=kwargs):
+                plugin_obj = self._GetPluginObj(plugin_obj, *pos_args, **kwargs)
                 return plugin_obj.render(ui_renderer) or plugin_obj
 
         except plugin.InvalidArgs as e:
-            logging.error("Invalid Args: %s", e)
+            ui_renderer.report_error("Invalid Args: %s", e)
 
         except plugin.PluginError as e:
+            ui_renderer.report_error(str(e))
             if isinstance(plugin_obj, plugin.Command):
                 plugin_obj.error_status = str(e)
-                ui_renderer.report_error(str(e))
 
         except (KeyboardInterrupt, plugin.Abort):
             ui_renderer.report_error("Aborted")
