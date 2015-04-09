@@ -927,12 +927,20 @@ class Linux(basic.BasicClasses):
             basic.Profile32Bits.Initialize(profile)
             try:
                 if (not profile.metadata("pae") and
-                    profile.get_kernel_config("CONFIG_X86_PAE") == "y"):
+                        profile.get_kernel_config("CONFIG_X86_PAE") == "y"):
                     profile.set_metadata("pae", True)
             except ValueError:
                 pass
+
+        # ARM systems are just normal 32 bit systems with a weird MMU. Per
+        # http://elinux.org/images/6/6a/Elce11_marinas.pdf, there's also LPAE
+        # but we do not support this.
+        elif profile.metadata("arch") == "ARM":
+            basic.Profile32Bits.Initialize(profile)
+
         elif profile.metadata("arch") == "MIPS":
             basic.ProfileMIPS32Bits.Initialize(profile)
+
         elif profile.metadata("arch") == "AMD64":
             basic.ProfileLP64.Initialize(profile)
 
@@ -949,7 +957,7 @@ class Linux(basic.BasicClasses):
         try:
             # Set the pae flag if we're a 32bit PAE profile
             if (self.get_kernel_config("CONFIG_X86_PAE") == "y" and
-                self.metadata("arch") == "I386"):
+                    self.metadata("arch") == "I386"):
                 self.set_metadata("pae", True)
         except ValueError:
             # We cannot autoguess PAE at the moment if we don't know the config

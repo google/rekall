@@ -2151,7 +2151,7 @@ class Profile(object):
         self.compile_type(attr)
 
         if self.types[attr] is None and attr not in self.object_classes:
-            raise AttributeError("No such vtype")
+            raise AttributeError("No such vtype: %s" % attr)
 
         return Curry(self.Object, attr)
 

@@ -354,9 +354,9 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
         self.end = kwargs.pop("end", 2**64)
         super(VADMap, self).__init__(*args, **kwargs)
 
-    def _GetPTE(self, vtop_plugin, vaddr):
+    def _GetPTE(self, vaddr):
         address_space = self.session.GetParameter("default_address_space")
-        for type, _, addr in vtop_plugin.vtop(vaddr, address_space):
+        for type, _, addr in address_space.describe_vtop(vaddr):
             if type == "pte":
                 return self.profile._MMPTE(
                     addr, vm=self.physical_address_space)
@@ -366,14 +366,13 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
         return self.profile._MMPTE(vm=self.physical_address_space)
 
     def _GenerateVADRuns(self, vad):
-        vtop = self.session.plugins.vtop()
         pte_plugin = self.session.plugins.pte()
         offset = vad.Start
         end = vad.End
 
         while offset < end:
             if self.start <= offset <= self.end:
-                pte = self._GetPTE(vtop, offset)
+                pte = self._GetPTE(offset)
                 metadata = pte_plugin.ResolvePTE(pte, offset)
 
                 yield offset, metadata

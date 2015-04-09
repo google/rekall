@@ -12,7 +12,7 @@ ProjectInfo:
   project_name: Rekall Forensics
   dashboard_url: http://tap.rekall-forensic.com/runs/latest.html
 
-Emails:
+Email:
   # The email destination we send for tap failures.
   destination_email: rekall-dev@googlegroups.com
   smtp_server: smtp.gmail.com

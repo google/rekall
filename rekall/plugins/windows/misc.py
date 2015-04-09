@@ -18,11 +18,11 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import logging
 import re
 
 # pylint: disable=protected-access
 from rekall import obj
+from rekall.plugins import core
 from rekall.plugins.windows import common
 
 
@@ -52,59 +52,9 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
                 memory_range.PageCount)
 
 
-class SetProcessContext(common.WinProcessFilter):
-    """Set the current process context."""
-
-    __name = "cc"
-    interactive = True
-
-    def __enter__(self):
-        """Use this plugin as a context manager.
-
-        When used as a context manager we save the state of the address resolver
-        and then restore it on exit. This prevents the address resolver from
-        losing its current state and makes switching contexts much faster.
-        """
-        self.process_context = self.session.GetParameter("process_context")
-        return self
-
-    def __exit__(self, unused_type, unused_value, unused_traceback):
-        # Restore the process context.
-        self.SwitchProcessContext(self.process_context)
-
-    def SwitchProcessContext(self, process=None):
-        if process == None:
-            message = "Switching to Kernel context"
-            self.session.SetCache("default_address_space",
-                                  self.session.kernel_address_space)
-        else:
-            message = ("Switching to process context: {0} "
-                       "(Pid {1}@{2:#x})").format(
-                           process.name, process.pid, process)
-
-            self.session.SetCache(
-                "default_address_space",
-                process.get_process_address_space() or None)
-
-        # Reset the address resolver for the new context.
-        self.session.SetCache("process_context", process)
-        logging.debug(message)
-
-        return message
-
-    def SwitchContext(self):
-        if not self.filtering_requested:
-            return self.SwitchProcessContext(process=None)
-
-        for process in self.filter_processes():
-            return self.SwitchProcessContext(process=process)
-
-        return "Process not found!\n"
-
-    def render(self, renderer):
-        message = self.SwitchContext()
-        renderer.format(message + "\n")
-
+class WindowsSetProcessContext(core.SetProcessContextMixin,
+                               common.WinProcessFilter):
+    """A cc plugin for windows."""
 
 
 class WinVirtualMap(common.WindowsCommandPlugin):

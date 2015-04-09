@@ -177,6 +177,52 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
         return self.get_phys_addr(vaddr, pte)
 
+    def describe_vtop(self, vaddr):
+        transition_valid_mask = 1 << 11 | 1
+
+        pml4e_addr = ((self.dtb & 0xffffffffff000) |
+                      ((vaddr & 0xff8000000000) >> 36))
+
+        pml4e_value = self.read_long_long_phys(pml4e_addr)
+        yield "pml4e", pml4e_value, pml4e_addr
+
+        if not pml4e_value & transition_valid_mask:
+            yield "Invalid PDE", None, None
+            return
+
+        pdpte_addr = ((pml4e_value & 0xffffffffff000) |
+                      ((vaddr & 0x7FC0000000) >> 27))
+
+        pdpte_value = self.read_long_long_phys(pdpte_addr)
+        yield "pdpte", pdpte_value, pdpte_addr
+
+        if not pdpte_value & transition_valid_mask:
+            yield "Invalid PDPTE", None, None
+
+        if self.page_size_flag(pdpte_value):
+            yield "One Gig page", self.get_one_gig_paddr(
+                vaddr, pdpte_value), None
+            return
+
+        pde_addr = ((pdpte_value & 0xffffffffff000) |
+                    ((vaddr & 0x3fe00000) >> 18))
+        pde_value = self.read_long_long_phys(pde_addr)
+        yield "pde", pde_value, pde_addr
+
+        if not pde_value & transition_valid_mask:
+            yield "Invalid PDE", None, None
+            pte_value = 0
+
+        elif self.page_size_flag(pde_value):
+            yield "Large page mapped", self.get_four_meg_paddr(
+                vaddr, pde_value), None
+            return
+
+        else:
+            pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
+            pte_value = self.read_long_long_phys(pte_addr)
+            yield "pte", pte_value, pte_addr
+
     def get_available_addresses(self, start=0):
         """Enumerate all available ranges.
 

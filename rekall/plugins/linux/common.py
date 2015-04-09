@@ -131,6 +131,21 @@ class LinuxKernelPageOffsetHook(kb.ParameterHook):
         elif profile.metadata("arch") == "MIPS":
             page_offset = 0x80000000
 
+        elif profile.metadata("arch") == "ARM":
+            # This might not be always the same. According to arm/Kconfig, this
+            # only seems to be accurate with the default split in linux
+            # (VMSPLIT_3G). See arm/Kconfig. TODO: Use the VMSPLIT_3G config
+            # variable here.
+
+            # 1563 config PAGE_OFFSET
+            # 1564         hex
+            # 1565         default PHYS_OFFSET if !MMU
+            # 1566         default 0x40000000 if VMSPLIT_1G
+            # 1567         default 0x80000000 if VMSPLIT_2G
+            # 1568         default 0xC0000000
+
+            page_offset = 0xc0000000
+
         else:
             raise RuntimeError("No profile architecture set.")
         return page_offset
@@ -178,15 +193,19 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                 impl = "XenParaVirtAMD64PagedMemory"
                 as_class = addrspace.BaseAddressSpace.classes[impl]
                 return as_class
+
+        elif self.profile.get_constant("arm_syscall"):
+            # An ARM address space.
+            logging.debug("Detected ARM Linux.")
+            impl = "ArmPagedMemory"
+            as_class = addrspace.BaseAddressSpace.classes[impl]
+            return as_class
+
         return super(LinuxFindDTB, self).GetAddressSpaceImplementation()
 
     def dtb_hits(self):
         """Tries to locate the DTB."""
-        if self.profile.metadata("arch") == "I386":
-            yield self.profile.phys_addr(
-                self.profile.get_constant("swapper_pg_dir"))
-
-        elif self.profile.metadata("arch") == "MIPS":
+        if self.profile.metadata("arch") in ("I386", "MIPS", "ARM"):
             yield self.profile.phys_addr(
                 self.profile.get_constant("swapper_pg_dir"))
 

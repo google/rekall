@@ -37,24 +37,6 @@ PAGE_SHIFT = 12
 PAGE_MASK = ~ 0xFFF
 
 
-class TranslationLookasideBuffer(utils.FastStore):
-    """An implementation of a TLB."""
-
-    def Get(self, vaddr):
-        result = super(TranslationLookasideBuffer, self).Get(
-            vaddr >> PAGE_SHIFT)
-
-        if result is not None:
-            return result + (vaddr & 0xFFF)
-
-    def Put(self, vaddr, paddr):
-        if paddr is not None:
-            paddr = paddr & PAGE_MASK
-
-        super(TranslationLookasideBuffer, self).Put(
-            vaddr >> PAGE_SHIFT, paddr)
-
-
 class IA32PagedMemory(addrspace.PagedReader):
     """ Standard x86 32 bit non PAE address space.
 
@@ -101,7 +83,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         self.name = (name or 'Kernel AS') + "@%#x" % self.dtb
 
         # Use a TLB to make this faster.
-        self._tlb = TranslationLookasideBuffer(1000)
+        self._tlb = addrspace.TranslationLookasideBuffer(1000)
 
         # Our get_available_addresses() refers to the base address space we
         # overlay on.
@@ -231,11 +213,48 @@ class IA32PagedMemory(addrspace.PagedReader):
             self._tlb.Put(vaddr, res)
             return res
 
+    def describe_vtop(self, vaddr):
+        """A generator of descriptive statements about stages in translation.
+
+        While the regular vtop is called very frequently and therefore must be
+        fast, this variation is used to examine the translation process in
+        detail. We therefore emit data about each step of the way - potentially
+        re-implementing the vtop() method above, but yielding intermediate
+        results.
+        """
+        pde_addr = ((self.dtb & 0xfffff000) |
+                    ((vaddr & 0xffc00000) >> 20))
+
+        pde_value = self.read_long_phys(pde_addr)
+        yield "pde", pde_value, pde_addr
+
+        if not self.entry_present(pde_value):
+            yield "Invalid PDE", None, None
+            return
+
+        if self.page_size_flag(pde_value):
+            yield "Large page mapped", self.get_four_meg_paddr(
+                vaddr, pde_value), None
+            return
+
+        pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x3ff000) >> 10)
+        pte_value = self.read_long_phys(pte_addr)
+        yield "pte", pte_value, pte_addr
+
+        phys_addr = self.get_phys_addr(vaddr, pte_value)
+        if phys_addr is None:
+            yield "Invalid PTE", None, None
+            return
+
+        yield ("PTE mapped", phys_addr, pte_addr)
+
     def read_long_phys(self, addr):
-        '''
-        Returns an unsigned 32-bit integer from the address addr in
-        physical memory. If unable to read from that location, returns None.
-        '''
+
+        """Read an unsigned 32-bit integer from physical memory.
+
+        Note this always succeeds - reads outside mapped addresses in the image
+        will simply return 0.
+        """
         string = self.base.read(addr, 4)
         return struct.unpack('<I', string)[0]
 
@@ -419,6 +438,37 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
             self._tlb.Put(vaddr, res)
             return res
+
+    def describe_vtop(self, vaddr):
+        transition_valid_mask = 1 << 11 | 1
+
+        pdpte_addr = ((self.dtb & 0xfffffff0) |
+                      ((vaddr & 0x7FC0000000) >> 27))
+
+        pdpte_value = self.read_long_long_phys(pdpte_addr)
+        yield "pdpte", pdpte_value, pdpte_addr
+
+        if not pdpte_value & transition_valid_mask:
+            yield "Invalid PDPTE", None, None
+            return
+
+        pde_addr = (pdpte_value & 0xfffff000) | ((vaddr & 0x3fe00000) >> 18)
+        pde_value = self.read_long_long_phys(pde_addr)
+        yield "pde", pde_value, pde_addr
+
+        if not self.entry_present(pde_value):
+            yield "Invalid PDE", None, None
+            return
+
+        if self.page_size_flag(pde_value):
+            yield "Large page mapped", self.get_four_meg_paddr(
+                vaddr, pde_value), None
+            return
+
+        pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x1ff000) >> 9)
+        pte_value = self.read_long_long_phys(pte_addr)
+
+        yield "pte", pte_value, pte_addr
 
     def read_long_long_phys(self, addr):
         '''

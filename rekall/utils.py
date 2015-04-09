@@ -852,6 +852,9 @@ class JITIterator(object):
     def __contains__(self, item):
         return item in list(self)
 
+    def __str__(self):
+        return str(list(self))
+
     def __iter__(self):
         return (
             x.name for x in self.baseclass.classes.values() if x.name)

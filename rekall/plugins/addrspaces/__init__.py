@@ -4,9 +4,11 @@
 from rekall import utils
 
 from rekall.plugins.addrspaces import amd64
+from rekall.plugins.addrspaces import arm
 from rekall.plugins.addrspaces import crash
 from rekall.plugins.addrspaces import elfcore
 from rekall.plugins.addrspaces import ewf
+from rekall.plugins.addrspaces import lime
 
 # Remove hibernation support as an address space - its too slow to
 # actually use. TODO: Convert into a plugin for being able to convert

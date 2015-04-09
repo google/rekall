@@ -34,6 +34,30 @@ from rekall import registry
 from rekall import utils
 
 
+class TranslationLookasideBuffer(utils.FastStore):
+    """An implementation of a TLB.
+
+    This can be used by an address space to cache translations.
+    """
+
+    PAGE_SHIFT = 12
+    PAGE_MASK = ~ 0xFFF
+
+    def Get(self, vaddr):
+        result = super(TranslationLookasideBuffer, self).Get(
+            vaddr >> self.PAGE_SHIFT)
+
+        if result is not None:
+            return result + (vaddr & 0xFFF)
+
+    def Put(self, vaddr, paddr):
+        if paddr is not None:
+            paddr = paddr & self.PAGE_MASK
+
+        super(TranslationLookasideBuffer, self).Put(
+            vaddr >> self.PAGE_SHIFT, paddr)
+
+
 class BaseAddressSpace(object):
     """ This is the base class of all Address Spaces. """
 
@@ -120,8 +144,7 @@ class BaseAddressSpace(object):
         call get_available_addresses() and then directly get data via
         address_space.phys_base.read(phys_offset, length).
 
-        Address ranges must be returned ordered.
-
+        Address ranges must be returned ordered by the virtual address.
         """
         _ = start
         return []

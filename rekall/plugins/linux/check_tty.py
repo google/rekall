@@ -13,8 +13,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License along with
+# Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 """
@@ -41,7 +41,7 @@ class CheckTTY(common.LinuxPlugin):
     def is_active(cls, session):
         # Older versions of linux do not have the ldisc.ops member.
         return (super(CheckTTY, cls).is_active(session) and
-                session.profile.tty_ldisc().m("ops"))
+                session.profile.Object("tty_ldisc").m("ops"))
 
     def CheckTTYs(self):
         drivers_list = self.profile.get_constant_object(

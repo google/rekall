@@ -1068,19 +1068,15 @@ class MemmapMixIn(object):
             "--all", default=False, type="Boolean",
             help="Use the entire range of address space.")
 
-    def __init__(self, coalesce=False, all=False, **kwargs):
+    def __init__(self, *pos_args, **kwargs):
         """Calculates the memory regions mapped by a process or the kernel.
 
         If no process filtering directives are provided, enumerates the kernel
         address space.
-
-        Args:
-          coalesce: Merge pages which are contiguous in memory into larger
-             ranges.
         """
-        self.coalesce = coalesce
-        self.all = all
-        super(MemmapMixIn, self).__init__(**kwargs)
+        self.coalesce = kwargs.pop("coalesce", False)
+        self.all = kwargs.pop("all", False)
+        super(MemmapMixIn, self).__init__(*pos_args, **kwargs)
 
     def _render_map(self, task_space, renderer, highest_address):
         renderer.format(u"Dumping address space at DTB {0:#x}\n\n",
@@ -1127,6 +1123,112 @@ class MemmapMixIn(object):
                 continue
 
             self._render_map(task_space, renderer, self.HighestAddress())
+
+
+class SetProcessContextMixin(object):
+    """Set the current process context.
+
+    The basic functionality of all platforms' cc plugin.
+    """
+
+    name = "cc"
+    interactive = True
+
+    def __enter__(self):
+        """Use this plugin as a context manager.
+
+        When used as a context manager we save the state of the address resolver
+        and then restore it on exit. This prevents the address resolver from
+        losing its current state and makes switching contexts much faster.
+        """
+        self.process_context = self.session.GetParameter("process_context")
+        return self
+
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        # Restore the process context.
+        self.SwitchProcessContext(self.process_context)
+
+    def SwitchProcessContext(self, process=None):
+        if process == None:
+            message = "Switching to Kernel context"
+            self.session.SetCache("default_address_space",
+                                  self.session.kernel_address_space)
+        else:
+            message = ("Switching to process context: {0} "
+                       "(Pid {1}@{2:#x})").format(
+                           process.name, process.pid, process)
+
+            self.session.SetCache(
+                "default_address_space",
+                process.get_process_address_space() or None)
+
+        # Reset the address resolver for the new context.
+        self.session.SetCache("process_context", process)
+        logging.debug(message)
+
+        return message
+
+    def SwitchContext(self):
+        if not self.filtering_requested:
+            return self.SwitchProcessContext(process=None)
+
+        for process in self.filter_processes():
+            return self.SwitchProcessContext(process=process)
+
+        return "Process not found!\n"
+
+    def render(self, renderer):
+        message = self.SwitchContext()
+        renderer.format(message + "\n")
+
+
+class VtoPMixin(object):
+    """Prints information about the virtual to physical translation."""
+
+    name = "vtop"
+
+    PAGE_SIZE = 0x1000
+
+    @classmethod
+    def args(cls, parser):
+        super(VtoPMixin, cls).args(parser)
+        parser.add_argument("virtual_address", type="SymbolAddress",
+                            required=True,
+                            help="The Virtual Address to examine.")
+
+    def __init__(self, virtual_address=(), **kwargs):
+        """Prints information about the virtual to physical translation.
+
+        This is similar to windbg's !vtop extension.
+
+        Args:
+          virtual_address: The virtual address to describe.
+          address_space: The address space to use (default the
+            kernel_address_space).
+        """
+        super(VtoPMixin, self).__init__(**kwargs)
+        if not isinstance(virtual_address, (tuple, list)):
+            virtual_address = [virtual_address]
+
+        self.addresses = [self.session.address_resolver.get_address_by_name(x)
+                          for x in virtual_address]
+
+    def render(self, renderer):
+        if self.filtering_requested:
+            with self.session.plugins.cc() as cc:
+                for task in self.filter_processes():
+                    cc.SwitchProcessContext(task)
+
+                    for vaddr in self.addresses:
+                        self.render_address(renderer, vaddr)
+
+        else:
+            # Use current process context.
+            for vaddr in self.addresses:
+                self.render_address(renderer, vaddr)
+
+    def render_address(self, renderer, vaddr):
+        raise NotImplementedError
 
 
 class PluginHelp(obj.Profile):

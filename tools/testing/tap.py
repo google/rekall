@@ -125,7 +125,7 @@ def SendEmail(configuation, passed=True):
     with open(configuation["control"]) as fd:
         data = json.load(fd)
         data.update(configuation["ProjectInfo"])
-        data.update(configuation["Emails"])
+        data.update(configuation["Email"])
         duration = time.time() - configuation["start_time"]
         data["duration"] = "%d minutes and %d seconds" % divmod(duration, 60)
         data["short_hash"] = data["head_commit"]["id"][:7]
@@ -198,7 +198,6 @@ def SendEmail(configuation, passed=True):
     </div>
     </div>
     """
-
     message = text.MIMEText(TEMPLATE.format(**data), "html")
     message["Subject"] = data["message"]
     message["From"] = "noreply@tap.rekall-forensic.com"

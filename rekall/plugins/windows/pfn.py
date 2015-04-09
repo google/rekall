@@ -29,6 +29,7 @@
 from rekall import testlib
 from rekall import obj
 from rekall import plugin
+from rekall.plugins import core
 from rekall.plugins.windows import common
 from rekall.plugins.overlays import basic
 
@@ -87,155 +88,8 @@ class PFNModification(obj.ProfileModification):
             })
 
 
-class VtoP(common.WinProcessFilter):
+class VtoP(core.VtoPMixin, common.WinProcessFilter):
     """Prints information about the virtual to physical translation."""
-
-    __name = "vtop"
-
-    PAGE_SIZE = 0x1000
-
-    @classmethod
-    def args(cls, parser):
-        super(VtoP, cls).args(parser)
-        parser.add_argument("virtual_address", type="SymbolAddress",
-                            required=True,
-                            help="The Virtual Address to examine.")
-
-    def __init__(self, virtual_address=(), **kwargs):
-        """Prints information about the virtual to physical translation.
-
-        This is similar to windbg's !vtop extension.
-
-        Args:
-          virtual_address: The virtual address to describe.
-          address_space: The address space to use (default the
-            kernel_address_space).
-        """
-        super(VtoP, self).__init__(**kwargs)
-        if not isinstance(virtual_address, (tuple, list)):
-            virtual_address = [virtual_address]
-
-        self.addresses = [self.session.address_resolver.get_address_by_name(x)
-                          for x in virtual_address]
-
-    def _vtop_32bit(self, vaddr, address_space):
-        """An implementation specific to the 32 bit intel address space."""
-        pde_addr = ((address_space.dtb & 0xfffff000) |
-                    ((vaddr & 0xffc00000) >> 20))
-
-        pde_value = address_space.read_long_phys(pde_addr)
-        yield "pde", pde_value, pde_addr
-
-        if not address_space.entry_present(pde_value):
-            yield "Invalid PDE", None, None
-            return
-
-        if address_space.page_size_flag(pde_value):
-            yield "Large page mapped", address_space.get_four_meg_paddr(
-                vaddr, pde_value), None
-            return
-
-        pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x3ff000) >> 10)
-        pte_value = address_space.read_long_phys(pte_addr)
-        yield "pte", pte_value, pte_addr
-
-        phys_addr = address_space.get_phys_addr(vaddr, pte_value)
-        if phys_addr is None:
-            yield "Invalid PTE", None, None
-            return
-
-        yield ("PTE mapped", phys_addr, pte_addr)
-
-    def _vtop_32bit_pae(self, vaddr, address_space):
-        """An implementation specific to the 32 bit PAE intel AS."""
-        transition_valid_mask = 1 << 11 | 1
-
-        pdpte_addr = ((address_space.dtb & 0xfffffff0) |
-                      ((vaddr & 0x7FC0000000) >> 27))
-
-        pdpte_value = address_space.read_long_long_phys(pdpte_addr)
-        yield "pdpte", pdpte_value, pdpte_addr
-
-        if not pdpte_value & transition_valid_mask:
-            yield "Invalid PDPTE", None, None
-            return
-
-        pde_addr = (pdpte_value & 0xfffff000) | ((vaddr & 0x3fe00000) >> 18)
-        pde_value = address_space.read_long_long_phys(pde_addr)
-        yield "pde", pde_value, pde_addr
-
-        if not address_space.entry_present(pde_value):
-            yield "Invalid PDE", None, None
-            return
-
-        if address_space.page_size_flag(pde_value):
-            yield "Large page mapped", address_space.get_four_meg_paddr(
-                vaddr, pde_value), None
-            return
-
-        pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x1ff000) >> 9)
-        pte_value = address_space.read_long_long_phys(pte_addr)
-
-        yield "pte", pte_value, pte_addr
-
-    def _vtop_64bit(self, vaddr, address_space):
-        """An implementation specific to the 64 bit intel address space."""
-        transition_valid_mask = 1 << 11 | 1
-
-        pml4e_addr = ((address_space.dtb & 0xffffffffff000) |
-                      ((vaddr & 0xff8000000000) >> 36))
-
-        pml4e_value = address_space.read_long_long_phys(pml4e_addr)
-        yield "pml4e", pml4e_value, pml4e_addr
-
-        if not pml4e_value & transition_valid_mask:
-            yield "Invalid PDE", None, None
-            return
-
-        pdpte_addr = ((pml4e_value & 0xffffffffff000) |
-                      ((vaddr & 0x7FC0000000) >> 27))
-
-        pdpte_value = address_space.read_long_long_phys(pdpte_addr)
-        yield "pdpte", pdpte_value, pdpte_addr
-
-        if not pdpte_value & transition_valid_mask:
-            yield "Invalid PDPTE", None, None
-
-        if address_space.page_size_flag(pdpte_value):
-            yield "One Gig page", address_space.get_one_gig_paddr(
-                vaddr, pdpte_value), None
-            return
-
-        pde_addr = ((pdpte_value & 0xffffffffff000) |
-                    ((vaddr & 0x3fe00000) >> 18))
-        pde_value = address_space.read_long_long_phys(pde_addr)
-        yield "pde", pde_value, pde_addr
-
-        if not pde_value & transition_valid_mask:
-            yield "Invalid PDE", None, None
-            pte_value = 0
-
-        elif address_space.page_size_flag(pde_value):
-            yield "Large page mapped", address_space.get_four_meg_paddr(
-                vaddr, pde_value), None
-            return
-
-        else:
-            pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
-            pte_value = address_space.read_long_long_phys(pte_addr)
-            yield "pte", pte_value, pte_addr
-
-    def vtop(self, virtual_address, address_space=None):
-        """Translate the virtual_address using the address_space."""
-        if self.profile.metadata("arch") == "AMD64":
-            function = self._vtop_64bit
-        else:
-            if self.profile.metadata("pae"):
-                function = self._vtop_32bit_pae
-            else:
-                function = self._vtop_32bit
-
-        return function(virtual_address, address_space)
 
     def render_pte(self, address, value, renderer, vaddr):
         """Analyze the PTE in detail.
@@ -255,20 +109,6 @@ class VtoP(common.WinProcessFilter):
         else:
             renderer.format("Invalid PTE\n")
 
-    def render(self, renderer):
-        if self.filtering_requested:
-            with self.session.plugins.cc() as cc:
-                for task in self.filter_processes():
-                    cc.SwitchProcessContext(task)
-
-                    for vaddr in self.addresses:
-                        self.render_address(renderer, vaddr)
-
-        else:
-            # Use current process context.
-            for vaddr in self.addresses:
-                self.render_address(renderer, vaddr)
-
     def render_address(self, renderer, vaddr):
         renderer.section(name="{0:#08x}".format(vaddr))
         self.address_space = self.session.GetParameter("default_address_space")
@@ -276,7 +116,7 @@ class VtoP(common.WinProcessFilter):
         renderer.format("Virtual {0:addrpad} Page Directory {1:addr}\n",
                         vaddr, self.address_space.dtb)
 
-        for name, value, address in self.vtop(vaddr, self.address_space):
+        for name, value, address in self.address_space.describe_vtop(vaddr):
             if address:
                 # Properly format physical addresses.
                 renderer.format(
