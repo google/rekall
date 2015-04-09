@@ -632,7 +632,7 @@ class Session(object):
                 return plugin_obj.render(ui_renderer) or plugin_obj
 
         except plugin.InvalidArgs as e:
-            ui_renderer.report_error("Invalid Args: %s", e)
+            ui_renderer.report_error("Invalid Args: %s" % e)
 
         except plugin.PluginError as e:
             ui_renderer.report_error(str(e))
