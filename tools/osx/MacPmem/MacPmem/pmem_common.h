@@ -33,7 +33,7 @@
 #define PMEM_NAMESIZE 40
 
 #define PMEM_IOCTL_BASE 'p'
-#define PMEM_IOCTL_VERSION ((char) 1)
+#define PMEM_API_VERSION ((char) 1)
 
 #ifdef __LP64__
 #define PMEM_PTRARG uint64_t
@@ -58,14 +58,14 @@
 // EFI taxonomy or the PCI taxonomy, but it doesn't say where the information
 // came from - you have the hardware informant flag for that.
 typedef enum {
-    pmem_efi_type,
-    pmem_pci_type
-} pmem_range_type_t;
+    pmem_efi_range_type,
+    pmem_pci_range_type
+} pmem_meta_record_type_t;
 
 
-static const char *pmem_range_type_names[] = {
-    "efi_type",
-    "pci_type"
+static const char *pmem_record_type_names[] = {
+    "efi_range",
+    "pci_range"
 };
 
 
@@ -98,7 +98,7 @@ typedef enum {
 } pmem_pci_mem_type_t;
 
 
-static const char *pmem_pci_mem_type_names[] = {
+static const char *pmem_pci_type_names[] = {
     "PCIWiredMemory",
     "PCIDeviceMemory",
     "PCIUnknownMemory"
@@ -106,22 +106,51 @@ static const char *pmem_pci_mem_type_names[] = {
 
 #pragma pack(push, 1)
 
+typedef struct {
+    pmem_pci_mem_type_t pci_type;
+    unsigned long long start;
+    unsigned long long length;
+    unsigned int hw_informant  : 1;
+    unsigned int unused_flags  : 31;
+} pmem_pci_range_t;
+
+
+typedef struct {
+    EFI_MEMORY_TYPE efi_type;
+    unsigned long long start;
+    unsigned long long length;
+    unsigned int hw_informant  : 1;
+    unsigned int unused_flags  : 31;
+} pmem_efi_range_t;
+
+
 // Represents a memory range of some kind. It may be safe to read from, it may
 // not. I don't know - it's up to you.
 typedef struct {
-    unsigned int pmem_api_version      : 8;
-    unsigned int reserved              : 23;
-    unsigned int hw_informant_flag     : 1; // Set to 1 if informant was HW.
-    pmem_range_type_t type;
-    union {
-        EFI_MEMORY_TYPE efi_type;
-        pmem_pci_mem_type_t pci_type;
-    } subtype;
+    int subtype;
     unsigned long long start;
     unsigned long long length;
+    unsigned int hw_informant  : 1;
+    unsigned int unused_flags  : 31;
+} pmem_generic_range_t;
+
+
+typedef struct {
+    pmem_meta_record_type_t type;
+
+    // This array is tightly packed, so this is also the offset from the head
+    // of this record to the head of the next record.
+    unsigned int size;
+
     // Description of what this range is for, e.g. name of PCI device.
     char purpose[PMEM_NAMESIZE];
-} pmem_memdesc_t;
+
+    union {
+        pmem_generic_range_t generic_range;
+        pmem_efi_range_t efi_range;
+        pmem_pci_range_t pci_range;
+    };
+} pmem_meta_record_t;
 
 
 typedef struct {
@@ -129,6 +158,9 @@ typedef struct {
     unsigned int size; // Size of this struct, including the ranges array.
     unsigned int pmem_api_version     : 8;
     unsigned int reserved             : 24;
+
+    // Offset, relative to beginning of struct, to the records[] array.
+    unsigned long long records_offset;
 
     // Set from boot args:
     unsigned int kernel_poffset; // Physical offset of the kernel.
@@ -150,14 +182,15 @@ typedef struct {
     // Copied from the kernel version banner.
     char kernel_version[PMEM_OSVERSIZE];
 
-    // Populated by listing PCI and EFI physmap ranges - this null-terminated
-    // array will contain both kinds of ranges. range_count will tell you how
-    // many objects follow, because, on the off-chance that we ever run into
-    // a range starting at zero, of size zero and also change the PMEM IOCTL
-    // version from a positive integer to zero (bet you weren't expecting that)
-    // you're going to need some way of knowing when the array stops.
-    unsigned int range_count;
-    pmem_memdesc_t ranges[];
+    // The records array holds all kinds of things, such as PCI and EFI memory
+    // ranges.
+    unsigned int record_count;
+
+    // Used size of the records array (allocated may be more).
+    unsigned int records_end;
+
+    // Records are variable length, so naive users just see a byte array.
+    char records[];
 } pmem_meta_t;
 
 #pragma pack(pop)

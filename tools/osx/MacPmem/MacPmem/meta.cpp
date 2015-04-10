@@ -51,16 +51,25 @@ static const char * const pmem_meta_fmt = \
 "  kaslr_slide: %u\n"
 "  kernel_poffset: %u\n"
 "  kernel_version: \"%.*s\"\n"
-"memory_ranges:\n"; // Range descriptions appended after this line.
+"records:\n"; // Range descriptions appended after this line.
 
 
-static const char * const pmem_range_meta_fmt = \
+static const char * const pmem_pci_range_fmt = \
 "  - purpose: \"%s\"\n"
-"    hardware_informant: %s\n"
+"    type: \"%s\"\n"
+"    pci_type: \"%s\"\n"
 "    start: %llu\n"
 "    length: %llu\n"
+"    hw_informant: %s\n";
+
+
+static const char * const pmem_efi_range_fmt = \
+"  - purpose: \"%s\"\n"
 "    type: \"%s\"\n"
-"    subtype: \"%s\"\n";
+"    efi_type: \"%s\"\n"
+"    start: %llu\n"
+"    length: %llu\n"
+"    hw_informant: %s\n";
 
 
 // Used to cache /dev/pmem_info between reads.
@@ -75,7 +84,7 @@ static int pmem_info_open_count = 0;
 // Used by sysctl for whatever purpose it wants.
 static pmem_meta_t *pmem_sysctl_meta = nullptr;
 
-#define BUFLEN_MAX 0xf000
+#define BUFLEN_MAX 0x10000
 #define BUFLEN_INIT 0x10
 #define META_INITROOM 8
 
@@ -83,7 +92,6 @@ static pmem_meta_t *pmem_sysctl_meta = nullptr;
 // Make a new meta struct.
 static pmem_meta_t *pmem_metaalloc() {
     uint32_t required_size = (uint32_t)sizeof(pmem_meta_t);
-    required_size += sizeof(pmem_memdesc_t);
     pmem_meta_t *meta = (pmem_meta_t *)OSMalloc(required_size, pmem_tag);
     if (!meta) {
         return nullptr;
@@ -91,7 +99,8 @@ static pmem_meta_t *pmem_metaalloc() {
 
     bzero(meta, required_size);
 
-    meta->pmem_api_version = PMEM_IOCTL_VERSION;
+    meta->pmem_api_version = PMEM_API_VERSION;
+    meta->records_offset = __offsetof(pmem_meta_t, records);
     meta->size = required_size;
 
     return meta;
@@ -104,49 +113,52 @@ void pmem_metafree(pmem_meta_t *meta) {
 }
 
 
-// Resize 'meta' to hold at least 'range_count' of memory ranges at the end.
-// If resize is needed, the pointer to meta will chance after the call. Any
-// other pointers to the old structure will be invalid and should be updated.
+// Resize 'meta' to have at least 'min_room' of bytes at the end. This will
+// deallocate the old meta struct, so 'metaret' will change to point to the new
+// buffer.
 //
 // Arguments:
-// metaret: The meta struct to resize. Will change if the struct size increases.
-// range_count: The number of memory ranges the meta needs to be able to hold.
+// metaret: The meta struct to resize. Will change to point to new struct.
+// min_room: The new struct will have at least this much room, but probably
+//           more.
 //
 // Returns:
 // KERN_SUCCESS or KERN_FAILURE. On KERN_FAILURE the old struct MAY still be
 // valid; if so, the pointer will not be updated.
-static kern_return_t pmem_metaresize(pmem_meta_t **metaret,
-                                     uint32_t range_count) {
+static kern_return_t pmem_metaresize(pmem_meta_t **metaret, uint32_t min_room) {
     pmem_meta_t *meta = *metaret;
-    uint32_t required_size = sizeof(pmem_meta_t);
-    required_size += (range_count + 1) * sizeof(pmem_memdesc_t);
-    if (required_size <= (meta)->size) {
-        return KERN_SUCCESS;
+    uint32_t min_size = meta->size + min_room;
+
+    if (min_size < meta->size || meta->size > UINT32_MAX / 2) {
+        pmem_error("32 bit int overflow detected - meta struct is too big.");
+        return KERN_FAILURE;
     }
 
-    pmem_meta_t *newmeta = (pmem_meta_t *)OSMalloc(required_size, pmem_tag);
+    if (min_size < meta->size * 2) {
+        min_size = meta->size * 2;
+    }
+
+    pmem_meta_t *newmeta = (pmem_meta_t *)OSMalloc(min_size, pmem_tag);
     if (!newmeta) {
         return KERN_FAILURE;
     }
 
     pmem_debug(("Meta struct %p of size %u has been resized and is now %p "
                 "of size %u"),
-               meta, meta->size, newmeta, required_size);
+               meta, meta->size, newmeta, min_size);
 
     memcpy(newmeta, meta, meta->size);
     pmem_metafree(meta);
-    newmeta->size = required_size;
+    newmeta->size = min_size;
     *metaret = newmeta;
 
     return KERN_SUCCESS;
 }
 
 
-// How many ranges can still be appended to 'meta'?
+// How many bytes can still be appended to meta?
 static inline unsigned pmem_metaroom(pmem_meta_t *meta) {
-    int room = ((meta->size - sizeof(pmem_meta_t))
-                / sizeof(pmem_memdesc_t)
-                - meta->range_count - 1);
+    int room = ((meta->size - sizeof(pmem_meta_t)) - meta->records_end);
 
     if (room < 0) {
         // I'm aware that saying this should never happen is a great way to
@@ -155,12 +167,12 @@ static inline unsigned pmem_metaroom(pmem_meta_t *meta) {
 
         // If we're here it's highly likely the kernel will panic soon.
         // Let's preempt that by blowing up sooner rather than later.
-        panic((BUFFER OVERFLOW DETECTED: Meta %p is of size %u, of
-               which %lu is the base struct, and contains %d ranges
-               of size %lu per range, meaning %d ranges have been
-               written past allocated memory.),
-              meta, meta->size, sizeof(pmem_meta_t), meta->range_count,
-              sizeof(pmem_memdesc_t), room);
+        panic((BUFFER OVERFLOW DETECTED: Meta %p is of size %u, of which %lu
+               is the base struct, and it contains %d records of combined size
+               of %u, meaning %u bytes have been written past allocated
+               memory.),
+              meta, meta->size, sizeof(pmem_meta_t), meta->record_count,
+              meta->records_end, -room);
 
         return 0;
     }
@@ -169,72 +181,79 @@ static inline unsigned pmem_metaroom(pmem_meta_t *meta) {
 }
 
 
-// Append 'desc' to 'meta', resizing 'meta' as needed.
+// Append 'record' to 'meta', resizing 'meta' as needed.
 //
 // Arguments:
 // metaret: The meta struct to insert into. The pointer will change if meta
 // needs to be resized; in that case, the old structure will be freed and any
 // pointers to it will need to be updated.
-// desc: The descriptor struct to append.
+// record: The metadata record struct to append.
 //
 // Returns: KERN_SUCCESS or KERN_FAILURE. On failure, the old struct MAY still
 // be valid; if so, the pointer to it won't be updated.
 static kern_return_t pmem_metainsert(pmem_meta_t **metaret,
-                                     const pmem_memdesc_t *desc) {
+                                     const pmem_meta_record_t *record) {
     pmem_meta_t *meta = *metaret;
     kern_return_t error;
-    unsigned required_count;
+    unsigned int room = pmem_metaroom(meta);
 
-    if (!pmem_metaroom(meta)) {
-        required_count = (meta->range_count ?
-                          meta->range_count * 2 :
-                          META_INITROOM);
-        error = pmem_metaresize(&meta, required_count);
+    if (record->size > room) {
+        error = pmem_metaresize(&meta, record->size);
         if (error != KERN_SUCCESS) {
             pmem_error("pmem_metaresize failed.");
             return error;
         }
     }
 
-    meta->ranges[meta->range_count] = *desc;
-    meta->range_count++;
+    memcpy(meta->records + meta->records_end, record, record->size);
+    meta->records_end += record->size;
+    meta->record_count++;
     *metaret = meta;
 
     return KERN_SUCCESS;
 }
 
 
-static kern_return_t pmem_append_descriptor(pmem_OSBuffer *buffer,
-                                            const pmem_memdesc_t *desc) {
+// Appends a YAML version of the record to the buffer.
+static kern_return_t pmem_append_record(pmem_OSBuffer *buffer,
+                                        const pmem_meta_record_t *record) {
     size_t room = buffer->size - buffer->cursor;
-    const char * subtype;
+    char *cursor;
     int fmt;
 
     while(1) {
-        switch (desc->type) {
-            case pmem_efi_type:
-                subtype = pmem_efi_type_names[desc->subtype.efi_type];
+        cursor = buffer->buffer + buffer->cursor;
+        switch (record->type) {
+            case pmem_efi_range_type:
+                fmt = snprintf(cursor, room, pmem_efi_range_fmt,
+                               record->purpose,
+                               pmem_record_type_names[pmem_efi_range_type],
+                               pmem_efi_type_names[record->efi_range.efi_type],
+                               record->efi_range.start,
+                               record->efi_range.length,
+                               (record->efi_range.hw_informant ?
+                                "true" : "false"));
                 break;
-            case pmem_pci_type:
-                subtype = pmem_pci_mem_type_names[desc->subtype.pci_type];
+            case pmem_pci_range_type:
+                fmt = snprintf(cursor, room, pmem_pci_range_fmt,
+                               record->purpose,
+                               pmem_record_type_names[pmem_pci_range_type],
+                               pmem_pci_type_names[record->pci_range.pci_type],
+                               record->pci_range.start,
+                               record->pci_range.length,
+                               (record->pci_range.hw_informant ?
+                                "true" : "false"));
             default:
                 break;
         }
-        fmt = snprintf(buffer->buffer + buffer->cursor, room,
-                       pmem_range_meta_fmt,
-                       desc->purpose,
-                       desc->hw_informant_flag ? "true" : "false",
-                       desc->start,
-                       desc->length,
-                       pmem_range_type_names[desc->type],
-                       subtype);
 
         if (fmt <= room) {
             break;
         }
 
         if (fmt + buffer->size > BUFLEN_MAX) {
-            pmem_error("Buffer would be bigger than BUFLEN_MAX.");
+            pmem_error("Buffer size %u + %u would be bigger than BUFLEN_MAX.",
+                       buffer->size, fmt);
             return KERN_FAILURE;
         }
 
@@ -275,19 +294,19 @@ static pmem_signal_t pmem_fillmeta_pcihelper(IOPCIDevice *dev,
                                              unsigned mem_idx,
                                              void *ctx) {
     pmem_meta_t **meta = (pmem_meta_t **)ctx;
-    pmem_memdesc_t desc;
+    pmem_meta_record_t record;
     kern_return_t error = KERN_SUCCESS;
 
-    desc.pmem_api_version = PMEM_IOCTL_VERSION;
-    desc.type = pmem_pci_type;
-    desc.subtype.pci_type = pmem_PCIUnknownMemory;
-    desc.hw_informant_flag = 0;
+    record.type = pmem_pci_range_type;
+    record.size = sizeof(pmem_meta_record_t);
+    record.pci_range.pci_type = pmem_PCIUnknownMemory;
+    record.pci_range.hw_informant = 0;
 
-    desc.start = mem->getPhysicalAddress();
-    desc.length = mem->getLength();
-    snprintf(desc.purpose, PMEM_NAMESIZE, "(PCI) %s/%d",
+    record.pci_range.start = mem->getPhysicalAddress();
+    record.pci_range.length = mem->getLength();
+    snprintf(record.purpose, PMEM_NAMESIZE, "(PCI) %s/%d",
              dev->getName(), mem_idx);
-    error = pmem_metainsert(meta, &desc);
+    error = pmem_metainsert(meta, &record);
 
     if (error != KERN_SUCCESS) {
         pmem_error("pmem_metainsert failed for some reason.");
@@ -311,13 +330,13 @@ static kern_return_t pmem_get_physmap(pmem_meta_t **meta) {
     EFI_MEMORY_DESCRIPTOR *mmap;
     EFI_MEMORY_DESCRIPTOR *mmap_end;
     uint32_t mmap_desc_size = ba->MemoryMapDescriptorSize;
-    pmem_memdesc_t desc;
+
+    pmem_meta_record_t record;
     kern_return_t error = KERN_SUCCESS;
 
-    bzero(&desc, sizeof(pmem_memdesc_t));
-    desc.hw_informant_flag = 0;
-    desc.pmem_api_version = PMEM_IOCTL_VERSION;
-    desc.type = pmem_efi_type;
+    record.size = sizeof(pmem_meta_record_t);
+    record.efi_range.hw_informant = 0;
+    record.type = pmem_efi_range_type;
 
     // Check that we're looking at something we know how to parse.
     if (ba->MemoryMapDescriptorVersion != 1) {
@@ -359,22 +378,22 @@ static kern_return_t pmem_get_physmap(pmem_meta_t **meta) {
 
     while (mmap < mmap_end) {
         if (mmap->Type < EfiMaxMemoryType) {
-            desc.subtype.efi_type = (EFI_MEMORY_TYPE)mmap->Type;
-            snprintf(desc.purpose, PMEM_NAMESIZE, "(EFI) %s",
-                     pmem_efi_type_names[desc.subtype.efi_type]);
+            record.efi_range.efi_type = (EFI_MEMORY_TYPE)mmap->Type;
+            snprintf(record.purpose, PMEM_NAMESIZE, "(EFI) %s",
+                     pmem_efi_type_names[record.efi_range.efi_type]);
 
         } else {
             pmem_warn("mmap->Type @%p set to %u (max is %u).",
                       mmap, mmap->Type, EfiMaxMemoryType);
-            desc.subtype.efi_type = EfiMaxMemoryType;
-            snprintf(desc.purpose, PMEM_NAMESIZE, "(EFI) Unknown:%u",
+            record.efi_range.efi_type = EfiMaxMemoryType;
+            snprintf(record.purpose, PMEM_NAMESIZE, "(EFI) Unknown:%u",
                      mmap->Type);
         }
 
-        desc.start = mmap->PhysicalStart;
-        desc.length = mmap->NumberOfPages * 0x1000;
+        record.efi_range.start = mmap->PhysicalStart;
+        record.efi_range.length = mmap->NumberOfPages * 0x1000;
 
-        error = pmem_metainsert(meta, &desc);
+        error = pmem_metainsert(meta, &record);
         if (error != KERN_SUCCESS) {
             pmem_error("pmem_metainsert failed while adding an EFI range.");
             break;
@@ -605,6 +624,10 @@ bail:
 static kern_return_t pmem_buffermeta(pmem_OSBuffer *buffer,
                                      const pmem_meta_t *meta) {
     kern_return_t error = KERN_SUCCESS;
+    pmem_meta_record_t *record;
+    char *cursor = (char *)meta->records;
+    char *limit = (char *)(meta->records + meta->records_end);
+
     // Initialize the length of the buffer to something reasonable.
     // If this is not the first time we're being called, the buffer may
     // actually already be larger. That's ok.
@@ -618,15 +641,29 @@ static kern_return_t pmem_buffermeta(pmem_OSBuffer *buffer,
 
     // Append all the memory descriptors.
     buffer->cursor = strlen(buffer->buffer);
-    pmem_debug("Meta has %u ranges, buffer cursor is at %llu/%u.",
-               meta->range_count, buffer->cursor, buffer->size);
-    for (unsigned i = 0; i < meta->range_count; ++i) {
-        error = pmem_append_descriptor(buffer,
-                                       &meta->ranges[i]);
+    pmem_debug("Meta has %u meta records, buffer cursor is at %llu/%u.",
+               meta->record_count, buffer->cursor, buffer->size);
+
+    for (unsigned i = 0; cursor < limit; ++i) {
+        if (i > meta->record_count) {
+            pmem_fatal(("Meta claims to only hold %u records, but at "
+                        "offset %p of %p (%p + 0x%x), we are now copying "
+                        "record no. %u."),
+                       meta->record_count, cursor, limit, meta->records,
+                       meta->records_end, i);
+            return KERN_FAILURE;
+        }
+
+        record = (pmem_meta_record_t *)cursor;
+        error = pmem_append_record(buffer, record);
+
         if (error != KERN_SUCCESS) {
-            pmem_error("pmem_append_descriptor failed at range %u", i);
+            pmem_error("pmem_append_descriptor failed at %p/%p.",
+                       record, limit);
             return error;
         }
+
+        cursor += record->size;
     }
 
     return KERN_SUCCESS;
@@ -662,6 +699,14 @@ kern_return_t pmem_closemeta() {
 kern_return_t pmem_readmeta(struct uio *uio) {
     kern_return_t error = KERN_FAILURE;
     pmem_meta_t *meta = nullptr;
+
+    if (uio_offset(uio) < 0) {
+        // Should probably not read from negative offsets. Now, granted - the
+        // purpose of this driver is to enable userland to read arbitrary
+        // kernel memory, but, dammit, you should do it through the defined
+        // interface, not by buffer underflow.
+        return KERN_FAILURE;
+    }
 
     lck_rw_lock_shared(pmem_cached_info_lock);
     
@@ -705,7 +750,9 @@ kern_return_t pmem_readmeta(struct uio *uio) {
     return error;
 }
 
+
 int pmem_sysctl = 0; // Set to 1 if we need to unregister sysctl.
+
 
 void pmem_meta_cleanup() {
     if (pmem_cached_info) {
@@ -721,6 +768,7 @@ void pmem_meta_cleanup() {
     lck_rw_free(pmem_cached_info_lock, pmem_rwlock_grp);
     lck_attr_free(pmem_cached_info_lock_attr);
 }
+
 
 kern_return_t pmem_meta_init() {
     pmem_cached_info = pmem_alloc(BUFLEN_INIT, pmem_tag);

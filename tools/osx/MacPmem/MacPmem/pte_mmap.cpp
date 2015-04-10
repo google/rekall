@@ -362,6 +362,13 @@ bail:
 kern_return_t pmem_read_rogue(struct uio *uio) {
     kern_return_t error = KERN_SUCCESS;
 
+    if (uio_offset(uio) < 0) {
+        // Negative offsets into physical memory really make no sense. Without
+        // this check, this call would just return all zeroes, but it's
+        // probably better to just fail.
+        return KERN_FAILURE;
+    }
+
     // Only one thread can read at a time, because the rogue page is a shared
     // mutable resource that gets remapped with reads.
     lck_mtx_lock(pmem_rogue_page_mtx);

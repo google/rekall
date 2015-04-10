@@ -19,33 +19,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __MacPmem__info__
-#define __MacPmem__info__
+#ifndef MacPmem_MacPmemTest_h
+#define MacPmem_MacPmemTest_h
 
-#include <libkern/libkern.h>
-#include <mach/mach_types.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
+#include <sys/types.h>
 #include <sys/sysctl.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <pthread.h>
+
+#include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/kext/KextManager.h>
+#include <libkern/OSReturn.h>
+#include <sys/cdefs.h>
+
 #include "pmem_common.h"
-#include "util.h"
+#include "logging.h"
 
-#ifdef __cplusplus
-extern "C" {
+extern char *pmem_kext_path;
+extern char *pmem_kext_id;
+
+extern int do_check_perms;
+extern int do_fix_perms;
+extern int do_run_tests;
+extern int do_unload_kext;
+
+extern const int threadc;
+extern const ssize_t read_cmp_frame_len;
+extern const off_t read_cmp_frame_off;
+
+extern const char *pmem_dev;
+extern const char *pmem_infodev;
+
+int load_kext();
+int unload_kext();
+
 #endif
-
-typedef pmem_signal_t (*pmem_memory_callback_t)(pmem_meta_record_t, void *);
-
-kern_return_t pmem_fillmeta(pmem_meta_t **metaret, int flags);
-
-kern_return_t pmem_openmeta();
-kern_return_t pmem_readmeta(struct uio *uio);
-kern_return_t pmem_closemeta();
-
-void pmem_metafree(pmem_meta_t *meta);
-void pmem_meta_cleanup();
-kern_return_t pmem_meta_init();
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* defined(__MacPmem__info__) */

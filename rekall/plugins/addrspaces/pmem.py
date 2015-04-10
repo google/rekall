@@ -23,13 +23,120 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import array
 import ctypes
 import fcntl
+from os import path as ospath
 
 from rekall import addrspace
 from rekall import session as rekall_session
+from rekall import yaml_utils
 
 from rekall.plugins.addrspaces import standard
 
 from rekall.plugins.overlays import basic
+
+
+class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
+    """Implements an address space to overlay the new MacPmem device."""
+
+    __name = "MacPmem"
+    order = standard.FileAddressSpace.order - 2
+    __image = True
+
+    def __init__(self, base=None, filename=None, **kwargs):
+        super(MacPmemAddressSpace, self).__init__(**kwargs)
+
+        self.as_assert(base == None,
+                       "Must be mapped directly over a raw device.")
+        self.phys_base = self
+
+        # MacPmem is read-only.
+        self.write_enabled = False
+
+        path = filename or (self.session and self.session.GetParameter(
+            "filename"))
+
+        self.as_assert(path, "Filename must be specified.")
+        self.fname = path
+        self.fd = open(path, "r")
+
+        self.fname_info = "%s_info" % self.fname
+        self.as_assert(ospath.exists(self.fname_info),
+                       "MacPmem would declare a YML device at %s" %
+                       self.fname_info)
+
+        self._load_yml(self.fname_info)
+
+    def _get_readable_runs(self, records):
+        """Yields all the runs that are safe to read."""
+        ranges = []
+        gpu_start = None
+        gpu_limit = None
+
+        for record in records:
+            if record["type"] == "efi_range":
+                if efi_type_readable(record["efi_type"]):
+                    ranges.append((record["start"],
+                                   record["start"] + record["length"]))
+            elif record["type"] == "pci_range":
+                if "GFX0" in record["purpose"]:
+                    # This machine has a discrete CPU which means the range
+                    # starting at 0x100000000 (4 GB) will be GPU-backed and
+                    # reading from it would trigger a GPU panic.
+                    if gpu_start is None or gpu_start > record["start"]:
+                        gpu_start = record["start"]
+
+                    gpu_limit = max(gpu_limit,
+                                    record["start"] + record["length"])
+
+        if gpu_start is None:
+            for start, limit in ranges:
+                yield (start, start, limit - start)
+
+            return
+
+        for start, limit in ranges:
+            if gpu_start > limit or gpu_limit < start:
+                # This range doesn't overlap with the GPU range.
+                yield (start, start, limit - start)
+                continue
+
+            if gpu_start > start:
+                # Yield the part of this range up to where the GPU starts.
+                yield start, start, gpu_start - start
+
+            if gpu_limit < limit:
+                # Yield the part of this range from where the GPU ends
+                # to the limit of this range.
+                yield gpu_limit, gpu_limit, limit - gpu_limit
+
+    def _load_yml(self, yml_path):
+        with open(yml_path) as fp:
+            data = yaml_utils.decode(fp.read())
+
+        self.session.SetParameter("dtb", data["meta"]["dtb_off"])
+        self.session.SetParameter("vm_kernel_slide",
+                                  data["meta"]["kaslr_slide"])
+
+        for run in self._get_readable_runs(data["records"]):
+            self.runs.insert(run)
+
+        self.pmem_metadata = data
+
+    def write(self, *_, **__):
+        raise NotImplementedError("MacPmem is a read-only device.")
+
+    def _read_chunk(self, addr, length):
+        offset, available_length = self._get_available_buffer(addr, length)
+
+        # We're not allowed to read from the offset, so just return zeros.
+        if offset is None:
+            return "\x00" * min(length, available_length)
+
+        self.fd.seek(offset)
+        return self.fd.read(min(length, available_length))
+
+    def close(self):
+        self.fd.close()
+
 
 # The following are directly adapted from the macros used by both XNU and
 # Linux kernels for ioctl. Ioctl commands are encoded bitwise as follows:
@@ -198,7 +305,7 @@ def pmem_get_mmap(fd):
 
 
 def pmem_get_profile(fd):
-    mmap, size, desc_size = pmem_get_mmap(fd)
+    mmap, _, _ = pmem_get_mmap(fd)
     session = rekall_session.Session()
     buffer_as = addrspace.BufferAddressSpace(data=mmap.raw, session=session)
     session.SetCache("default_address_space", buffer_as)
@@ -211,7 +318,7 @@ def pmem_parse_mmap(fd):
 
     Yields: tuples of (start, number of pages, type)
     """
-    mmap, size, desc_size = pmem_get_mmap(fd)
+    mmap, size, _ = pmem_get_mmap(fd)
     session = rekall_session.Session()
     buffer_as = addrspace.BufferAddressSpace(data=mmap.raw, session=session)
     session.SetCache("default_address_space", buffer_as)
@@ -299,7 +406,7 @@ class PmemAddressSpace(addrspace.RunBasedAddressSpace):
     """Address space specific to the pmem device."""
 
     __name = "pmem"
-    order = standard.FileAddressSpace.order -1
+    order = standard.FileAddressSpace.order - 1
     __image = True
 
     def __init__(self, base=None, filename=None, **kwargs):
@@ -317,7 +424,7 @@ class PmemAddressSpace(addrspace.RunBasedAddressSpace):
         # See if the device is writable.
         self.write_enabled = False
         try:
-            self.fd = open(path, "rw")
+            self.fd = open(path, "r+")
             self.write_enabled = True
         except IOError:
             self.fd = open(path, "r")

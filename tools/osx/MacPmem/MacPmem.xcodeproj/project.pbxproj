@@ -16,6 +16,9 @@
 		497AF3441ACBFCC80037A066 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 497AF3431ACBFCC80037A066 /* main.c */; };
 		497AF3481ACBFD5F0037A066 /* logging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 496AEA371A8CACFD00E39D3F /* logging.cpp */; };
 		497AF34A1ACD66E20037A066 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = 497AF3491ACD66E20037A066 /* util.c */; };
+		49CCE14F1AD5244D0034A6E3 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CCE14D1AD5244D0034A6E3 /* tests.c */; };
+		49CCE1531AD54B660034A6E3 /* notifiers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49CCE1511AD54B660034A6E3 /* notifiers.cpp */; };
+		49CCE1541AD54B660034A6E3 /* notifiers.h in Headers */ = {isa = PBXBuildFile; fileRef = 49CCE1521AD54B660034A6E3 /* notifiers.h */; };
 		49D0DFE61A8B9DC200C833E8 /* MacPmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 49D0DFE51A8B9DC200C833E8 /* MacPmem.c */; };
 		49D0DFED1A8B9F1400C833E8 /* MacPmem.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D0DFEC1A8B9F1400C833E8 /* MacPmem.h */; };
 		49DD6A821AA510C40055543B /* iokit_pci.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49DD6A801AA510C40055543B /* iokit_pci.cpp */; };
@@ -46,6 +49,11 @@
 		497AF3411ACBFCC80037A066 /* MacPmemTest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MacPmemTest; sourceTree = BUILT_PRODUCTS_DIR; };
 		497AF3431ACBFCC80037A066 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		497AF3491ACD66E20037A066 /* util.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = util.c; sourceTree = "<group>"; };
+		49CCE14D1AD5244D0034A6E3 /* tests.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tests.c; sourceTree = "<group>"; };
+		49CCE14E1AD5244D0034A6E3 /* tests.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tests.h; sourceTree = "<group>"; };
+		49CCE1501AD5247A0034A6E3 /* MacPmemTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MacPmemTest.h; sourceTree = "<group>"; };
+		49CCE1511AD54B660034A6E3 /* notifiers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = notifiers.cpp; sourceTree = "<group>"; };
+		49CCE1521AD54B660034A6E3 /* notifiers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = notifiers.h; sourceTree = "<group>"; };
 		49D0DFE01A8B9DC200C833E8 /* MacPmem.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacPmem.kext; sourceTree = BUILT_PRODUCTS_DIR; };
 		49D0DFE41A8B9DC200C833E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		49D0DFE51A8B9DC200C833E8 /* MacPmem.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MacPmem.c; sourceTree = "<group>"; };
@@ -84,6 +92,9 @@
 			isa = PBXGroup;
 			children = (
 				497AF3431ACBFCC80037A066 /* main.c */,
+				49CCE1501AD5247A0034A6E3 /* MacPmemTest.h */,
+				49CCE14D1AD5244D0034A6E3 /* tests.c */,
+				49CCE14E1AD5244D0034A6E3 /* tests.h */,
 			);
 			path = MacPmemTest;
 			sourceTree = "<group>";
@@ -125,6 +136,8 @@
 				49610BAA1A8E50940060030E /* meta.h */,
 				49DD6A881AA688AE0055543B /* util.h */,
 				497AF3491ACD66E20037A066 /* util.c */,
+				49CCE1511AD54B660034A6E3 /* notifiers.cpp */,
+				49CCE1521AD54B660034A6E3 /* notifiers.h */,
 			);
 			path = MacPmem;
 			sourceTree = "<group>";
@@ -144,6 +157,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49CCE1541AD54B660034A6E3 /* notifiers.h in Headers */,
 				49610BAC1A8E50940060030E /* meta.h in Headers */,
 				496AEA3A1A8CACFD00E39D3F /* logging.h in Headers */,
 				49DD6A831AA510C40055543B /* iokit_pci.h in Headers */,
@@ -240,6 +254,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49CCE14F1AD5244D0034A6E3 /* tests.c in Sources */,
 				497AF3481ACBFD5F0037A066 /* logging.cpp in Sources */,
 				497AF3441ACBFCC80037A066 /* main.c in Sources */,
 			);
@@ -249,6 +264,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49CCE1531AD54B660034A6E3 /* notifiers.cpp in Sources */,
 				49D0DFE61A8B9DC200C833E8 /* MacPmem.c in Sources */,
 				49610BAB1A8E50940060030E /* meta.cpp in Sources */,
 				49DD6A821AA510C40055543B /* iokit_pci.cpp in Sources */,
@@ -397,6 +413,7 @@
 				497AF3461ACBFCC80037A066 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		49D0DFDA1A8B9DC200C833E8 /* Build configuration list for PBXProject "MacPmem" */ = {
 			isa = XCConfigurationList;

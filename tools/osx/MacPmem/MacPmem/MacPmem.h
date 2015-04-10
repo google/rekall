@@ -29,6 +29,7 @@
 #include <mach/mach_types.h>
 #include <sys/uio.h>
 #include <libkern/locks.h>
+#include <libkern/OSKextLib.h>
 
 
 #ifdef __LP64__
@@ -45,6 +46,9 @@
 // a safe value to call makedev with.
 #define PMEM_MAJOR -24
 extern int pmem_majorno;
+
+extern int pmem_open_count;
+extern OSKextLoadTag pmem_load_tag;
 
 extern const char * const pmem_tagname;
 extern OSMallocTag pmem_tag;

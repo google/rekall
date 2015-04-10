@@ -27,14 +27,22 @@
 #include "pmem_common.h"
 #include "meta.h"
 #include "pte_mmap.h"
+#include "notifiers.h"
 
 #include <libkern/libkern.h>
 #include <sys/conf.h>
 #include <sys/systm.h>
 #include <sys/sysctl.h>
 #include <miscfs/devfs/devfs.h>
+#include <libkern/OSAtomic.h>
+
+
+// Used to keep track of the number of active users. We can use this
+// information to decide when to turn on autounload on idle.
+int pmem_open_count = 0;
 
 int pmem_majorno = PMEM_MAJOR;
+OSKextLoadTag pmem_load_tag;
 
 const char * const pmem_tagname = "pmem_tag";
 OSMallocTag pmem_tag = 0;
@@ -100,30 +108,44 @@ static void *pmem_devnode = 0;
 static kern_return_t pmem_open(dev_t dev, __unused int flags,
                                __unused int devtype,
                                __unused proc_t proc) {
+    kern_return_t ret;
     switch (minor(dev)) {
         case PMEM_DEV_MINOR:
-            return KERN_SUCCESS;
+            ret = KERN_SUCCESS;
+            OSIncrementAtomic(&pmem_open_count);
+            break;
         case PMEM_INFO_MINOR:
-            return pmem_openmeta();
+            ret = pmem_openmeta();
+            OSIncrementAtomic(&pmem_open_count);
+            break;
         default:
             pmem_warn("Unknown minor device number %d.", minor(dev));
-            return KERN_FAILURE;
+            ret = KERN_FAILURE;
     }
+
+    return ret;
 }
 
 
 static kern_return_t pmem_close(dev_t dev, __unused int flags,
                                 __unused int devtype,
                                 __unused proc_t proc) {
+    kern_return_t ret;
     switch (minor(dev)) {
         case PMEM_DEV_MINOR:
-            return KERN_SUCCESS;
+            ret =  KERN_SUCCESS;
+            OSDecrementAtomic(&pmem_open_count);
+            break;
         case PMEM_INFO_MINOR:
-            return pmem_closemeta();
+            ret = pmem_closemeta();
+            OSDecrementAtomic(&pmem_open_count);
+            break;
         default:
             pmem_warn("Unknown minor device number %d.", minor(dev));
-            return KERN_FAILURE;
+            ret = KERN_FAILURE;
     }
+
+    return ret;
 }
 
 
@@ -176,6 +198,7 @@ static kern_return_t pmem_cleanup(kern_return_t error) {
 
     pmem_meta_cleanup();
     pmem_pte_cleanup();
+//    pmem_sleep_cleanup(); // Disabled - see the start function.
 
     if (pmem_sysctl_needs_cleanup) {
         sysctl_unregister_oid(&sysctl__kern_pmem_logging);
@@ -243,6 +266,7 @@ static kern_return_t pmem_init() {
 
 kern_return_t com_google_MacPmem_start(kmod_info_t * ki, void *d) {
     pmem_info("Loaded MacPmem.");
+
     kern_return_t error = pmem_init();
     if (error != KERN_SUCCESS) {
         pmem_fatal("pmem_init() failed.");
@@ -261,8 +285,38 @@ kern_return_t com_google_MacPmem_start(kmod_info_t * ki, void *d) {
         return pmem_cleanup(error);
     }
 
+    // Sleep notifier is disabled because sleep notifications seem to be broken
+    // on Yosemite.
+    //
+    // The documentation states that kIOMessageSystemWillSleep notification
+    // will be delivered to listeners who register for priority sleep/wake
+    // interest but this is not actually the case on OS X 10.10, where
+    // IONotifier seems to be completely broken and always delivers
+    // kIOMessageSystemCapabilityChange regardless of what the notification is
+    // actually supposed to be about. Cursory look at dmesg output around sleep
+    // seems to confirm that this is broken for everybody, including Apple's
+    // own kexts, for example the webcam driver:
+    //
+    //   AppleCamIn::systemWakeCall - messageType = 0xE0000340
+    //
+    // (0x340 corresponds to kIOMessageSystemCapabilityChange).
+    //
+    // Because this message type gets delivered all the time, it may actually
+    // be possible to work around the bug by looking at the context argument.
+    // Unfortunately, that's not typed and the documentation doesn't
+    // say anything about it.
+
+//    error = pmem_sleep_init();
+//    if (error != KERN_SUCCESS) {
+//        pmem_fatal("Could not initialize sleep notifier.");
+//        return pmem_cleanup(error);
+//    }
+
     sysctl_register_oid(&sysctl__kern_pmem_logging);
     pmem_sysctl_needs_cleanup = 1;
+
+    pmem_load_tag = OSKextGetCurrentLoadTag();
+    pmem_debug("MacPmem load tag is %d.", pmem_load_tag);
 
     return error;
 }
