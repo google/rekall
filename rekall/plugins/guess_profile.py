@@ -265,7 +265,7 @@ class WindowsRSDSDetector(DetectionMethod):
     def Keywords(self):
         return ["RSDS"]
 
-    def VerifyProfile():
+    def VerifyProfile(self, profile_name):
         profile = self.session.LoadProfile(profile_name)
 
         # If the user allows it we can just try to fetch and build the profile
