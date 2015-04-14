@@ -718,10 +718,9 @@ class Session(object):
                     # The inventory allows us to fail fetching the profile
                     # quickly - without making the round trip.
                     if not manager.CheckInventory(name):
-                        renderer = self.GetRenderer()
-                        renderer.report_error(
-                            "Skipped profile %s from %s (Not in inventory)" % (
-                                name, path))
+                        logging.debug(
+                            "Skipped profile %s from %s (Not in inventory)",
+                                name, path)
                         continue
 
                     result = obj.Profile.LoadProfileFromData(
