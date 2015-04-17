@@ -714,6 +714,9 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.Struct):
             if entry.Name == node_name or entry.Type == node_name:
                 return entry.Entry
 
+            if entry.Type == 0:
+                break
+
         return obj.NoneObject("node %s not found" % node_name)
 
     def Traverse(self):

@@ -33,7 +33,6 @@ import re
 import struct
 
 from rekall import addrspace
-from rekall import config
 from rekall import obj
 from rekall import utils
 

@@ -1449,13 +1449,23 @@ class Profile(object):
             if profile_type == "Symlink":
                 return session.LoadProfile(metadata.get("Target"))
 
-            profile_cls = cls.ImplementationByClass(metadata["ProfileClass"])
+            possible_implementations = [metadata["ProfileClass"]]
+
+            # For windows profile we can use a generic PE profile
+            # implementation.
+            if "GUID_AGE" in metadata:
+                possible_implementations.append("BasicPEProfile")
+
+            for impl in possible_implementations:
+                profile_cls = cls.ImplementationByClass(impl)
+                if profile_cls:
+                    break
 
             if profile_cls is None:
                 logging.warn("No profile implementation class %s" %
                              metadata["ProfileClass"])
 
-                raise IOError(
+                raise ProfileError(
                     "No profile implementation class %s" %
                     metadata["ProfileClass"])
 

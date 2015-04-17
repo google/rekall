@@ -79,17 +79,19 @@ PARSER.add_argument('--debug', default=False, action='store_true',
 NUMBER_OF_CORES = multiprocessing.cpu_count()
 
 PDB_TO_SYS = {
+    "conhost.pdb": "conhost",
+    "dnsrslvr.pdb": "dnsrslvr",
+    "lsasrv.pdb": "lsasrv",
+    "ntdll.pdb": "ntdll",
     "ntkrnlmp.pdb": "nt",
-    "ntoskrnl.pdb": "nt",
     "ntkrnlpa.pdb": "nt",
     "ntkrpamp.pdb": "nt",
-    "win32k.pdb": "win32k",
+    "ntoskrnl.pdb": "nt",
     "tcpip.pdb": "tcpip",
     "tcpip6.pdb": "tcpip",
     "tcpipreg.pdb": "tcpip",
-    "ntdll.pdb": "ntdll",
-    "dnsrslvr.pdb": "dnsrslvr",
-    "conhost.pdb": "conhost",
+    "wdigest.pdb": "wdigest",
+    "win32k.pdb": "win32k",
     }
 
 FILENAMES_TO_TRY = [

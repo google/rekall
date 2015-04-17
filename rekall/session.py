@@ -244,6 +244,18 @@ class Configuration(Cache):
 
         return filename
 
+    def _set_autodetect_build_local_tracked(self, tracked, _):
+        """Update the tracked modules.
+
+        When someone updates the build local tracked parameter we need to remove
+        them from all the address resolver caches.
+        """
+        # Clear all profile caches in address resolver contexts.
+        for context in self.session.context_cache.values():
+            context.Reset()
+
+        return tracked
+
     def _set_repository_path(self, profile_path, _):
         # Flush the profile cache if we change the profile path.
         self.session.profile_cache = {}

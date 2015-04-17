@@ -29,7 +29,7 @@ background.
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
-
+import logging
 import os
 
 from rekall import config
@@ -88,9 +88,17 @@ class CachingManager(io_manager.IOManager):
 
     def GetData(self, name, **kwargs):
         if self.cache_io_manager.CheckInventory(name):
-            return self.cache_io_manager.GetData(name)
+            local_age = self.cache_io_manager.Metadata(name).get("LastModified")
+            remote_age = self.url_manager.Metadata(name).get("LastModified")
+
+            # Only get the local copy if it is not older than the remote
+            # copy. This allows the remote end to update profiles and we will
+            # automatically pick the latest.
+            if local_age >= remote_age:
+                return self.cache_io_manager.GetData(name)
 
         # Fetch the data from our base class and store it in the cache.
+        logging.debug("Adding %s to local cache.", name)
         data = self.url_manager.GetData(name, **kwargs)
         self.cache_io_manager.StoreData(name, data)
 

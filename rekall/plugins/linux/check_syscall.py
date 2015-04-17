@@ -4,11 +4,11 @@
 #
 # This file is part of Rekall Memory Forensics.
 #
-# Rekall Memory Forensics is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 2 as
+# Rekall Memory Forensics is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License Version 2 as
 # published by the Free Software Foundation.  You may not use, modify or
-# distribute this program under any other version of the GNU General
-# Public License.
+# distribute this program under any other version of the GNU General Public
+# License.
 #
 # Rekall Memory Forensics is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -79,8 +79,8 @@ class CheckSyscall(common.LinuxPlugin):
                     return 1 + (instruction.operands[1].value & 0xffffffff)
 
         # Fallback. Note this underestimates the size quite a bit.
-        return len(filter(lambda x: x.startswith("__syscall_meta__"),
-                          self.profile.constants)) or 0x300
+        return len([x for x in self.profile.constants
+                    if x.startswith("__syscall_meta__")]) or 0x300
 
     def Find_ia32_sys_call_table_size(self):
         """Calculates the size of the ia32 syscall table.
@@ -105,19 +105,15 @@ class CheckSyscall(common.LinuxPlugin):
             if instruction.mnemonic == "CMP":
                 return (instruction.operands[1].value & 0xffffffff) + 1
 
-        import pdb; pdb.set_trace()
-
         # Fallback. Note this underestimates the size quite a bit.
-        return len(filter(lambda x: x.startswith("__syscall_meta__"),
-                          self.profile.constants)) or 0x300
+        return len([x for x in self.profile.constants
+                    if x.startswith("__syscall_meta__")]) or 0x300
 
     def CheckSyscallTables(self):
         """
         This works by walking the system call table
         and verifies that each is a symbol in the kernel
         """
-        lsmod = self.session.plugins.lsmod(session=self.session)
-
         for table_name, size_finder in [
                 ("ia32_sys_call_table", self.Find_ia32_sys_call_table_size),
                 ("sys_call_table", self.Find_sys_call_table_size)]:

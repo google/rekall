@@ -133,7 +133,7 @@ def SendEmail(configuation, passed=True):
     if passed:
         data["icon"] = "success.png"
         data["color_style"] = "background-color:#baecb7;color:#32a32d;"
-        data["message"] = "Build passed"
+        data["message"] = "Build %s passed" % data["short_hash"]
     else:
         data["icon"] = "failed.png"
         data["color_style"] = "background-color:#fdcdce;color:#df192a;"

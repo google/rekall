@@ -126,8 +126,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             baseline_commandline = baseline_commandline % config_options
         except KeyError, e:
             logging.critical(
-                "Test %s requires parameter %s to be set in config file.",
-                config_options["test_class"], e)
+                "Test %s requires parameter %s to be set in config file. (%s)",
+                config_options["test_class"], e, baseline_commandline)
             return {}
 
         if baseline_commandline:

@@ -563,7 +563,11 @@ class lfBitfield(obj.Struct):
 
     def Definition(self, tpi):
         """BitField overlays on top of another type."""
-        target, target_args = tpi.DefinitionByIndex(self.type)
+        result = tpi.DefinitionByIndex(self.type)
+        if not result:
+            return [str(self.name), {}]
+
+        target, target_args = result
 
         return "BitField", dict(
             start_bit=int(self.position),
@@ -632,17 +636,26 @@ class lfEnum(obj.Struct):
         field). This allows many fields which use the same enumeration to share
         the definition dict.
         """
-        target, target_args = tpi.DefinitionByIndex(self.utype)
+        result = tpi.DefinitionByIndex(self.utype)
+        if not result:
+            return [str(self.name), {}]
+
+        target, target_args = result
 
         return "Enumeration", dict(
             target=target, target_args=target_args, enum_name=self.Name)
+
 
 class lfPointer(lfClass):
     """A Pointer object."""
 
     def Definition(self, tpi):
         target_index = int(self.u1.utype)
-        target, target_args = tpi.DefinitionByIndex(target_index)
+        result = tpi.DefinitionByIndex(target_index)
+        if not result:
+            return [str(self.name), {}]
+
+        target, target_args = result
 
         return ["Pointer", dict(
             target=target,
@@ -669,7 +682,11 @@ class lfArray(lfClass):
     """An array of the same object."""
 
     def Definition(self, tpi):
-        target, target_args = tpi.DefinitionByIndex(self.elemtype)
+        result = tpi.DefinitionByIndex(self.elemtype)
+        if not result:
+            return [str(self.name), {}]
+
+        target, target_args = result
         if target == "<unnamed-tag>":
             target = "<unnamed-%s>" % self.elemtype
 
@@ -1065,15 +1082,19 @@ class PDBParser(object):
 
     def DefinitionByIndex(self, idx):
         """Return the vtype definition of the item identified by idx."""
+        result = None
         if idx < 0x700:
             type_name = self._TYPE_ENUM_e.get(idx)
 
-            return self.TYPE_ENUM_TO_VTYPE.get(type_name)
+            result = self.TYPE_ENUM_TO_VTYPE.get(type_name)
 
-        try:
-            return self.lookup[idx].type.Definition(self)
-        except AttributeError:
-            return "Void", {}
+        else:
+            try:
+                result = self.lookup[idx].type.Definition(self)
+            except AttributeError:
+                pass
+
+        return result
 
     def Resolve(self, idx):
         try:

@@ -490,6 +490,7 @@ class BuildIndex(plugin.Command):
         the user can add additional comparison points to resolve the ambiguity.
         """
         errors = 0
+
         # The following algorithm is very slow O(n^2) but there aren't that many
         # profiles in the index.
         for profile, data in index.iteritems():
@@ -528,8 +529,12 @@ class BuildIndex(plugin.Command):
         profile_obj = self._GetProfile(profile)
         profile2_obj = self._GetProfile(profile2)
         for section in ["$CONSTANTS", "$FUNCTIONS"]:
-            if profile_obj.get(section) == profile2_obj.get(section):
-                return True
+            if profile_obj.get(section) != profile2_obj.get(section):
+                return False
+
+        logging.info("Profile %s and %s are equivalent", profile,
+                     profile2)
+        return True
 
     def BuildDataIndex(self, spec):
         """Builds a data index from the specification.
@@ -590,6 +595,14 @@ class BuildIndex(plugin.Command):
 
                     elif value.startswith("str:"):
                         value = value[4:].encode("hex")
+
+                    else:
+                        try:
+                            value.decode("hex")
+                        except TypeError:
+                            raise ValueError(
+                                "String %r must be encoded in hex, "
+                                "or prefixed by str: or lstr:" % value)
 
                     values.append(value)
 

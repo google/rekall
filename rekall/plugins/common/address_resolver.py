@@ -60,6 +60,9 @@ class AddressResolverMixin(object):
         super(AddressResolverMixin, self).__init__(**kwargs)
         self.profiles = {}
 
+    def Reset(self):
+        self.profiles.clear()
+
     def NormalizeModuleName(self, module):
         try:
             module_name = module.name
@@ -124,7 +127,7 @@ class AddressResolverMixin(object):
                 components["symbol"],
                 target=target, **kwargs)
 
-        return obj.NoneObject("Profile for name %s unknown.", name, log=True)
+        return obj.NoneObject("Profile for name %s unknown." % name, log=True)
 
     def _resolve_module_base_address(self, name):
         module = self.modules_by_name.get(name)

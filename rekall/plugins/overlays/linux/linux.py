@@ -833,7 +833,7 @@ class proc_dir_entry(obj.Struct):
     @property
     def Name(self):
         if self.name.obj_type == "Pointer":
-            return self.name.deref.cast("String", length=self.namelen)
+            return self.name.deref().cast("String", length=self.namelen)
         else:
             return self.name.cast("String", length=self.namelen)
 

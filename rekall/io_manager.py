@@ -157,6 +157,11 @@ class IOManager(object):
 
         return False
 
+    def Metadata(self, path):
+        """Returns metadata about a path."""
+        inventory = self.inventory.get("$INVENTORY", {})
+        return inventory.get(path, {})
+
     def FlushInventory(self):
         """Write the inventory to the storage."""
         self.inventory.setdefault("$METADATA", dict(
@@ -306,6 +311,18 @@ class DirectoryIOManager(IOManager):
             return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
         return False
 
+    def Metadata(self, path):
+        path = self._GetAbsolutePathName(path)
+        try:
+            try:
+                st = os.stat(path + ".gz")
+            except OSError:
+                st = os.stat(path)
+
+            return dict(LastModified=st.st_mtime)
+        except OSError:
+            return {}
+
     def check_dump_dir(self, dump_dir=None):
         if not dump_dir:
             raise IOManagerError("Please specify a dump directory.")
@@ -347,9 +364,12 @@ class DirectoryIOManager(IOManager):
     def Open(self, name):
         path = self._GetAbsolutePathName(name)
         try:
-            return open(path, "rb")
+            result = open(path, "rb")
         except IOError:
-            return gzip.open(path + ".gz")
+            result = gzip.open(path + ".gz")
+
+        logging.debug("Opened local file %s" % result.name)
+        return result
 
     def __str__(self):
         return "Directory:%s" % self.dump_dir

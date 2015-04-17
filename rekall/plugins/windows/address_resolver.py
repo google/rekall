@@ -22,6 +22,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
 import re
 
+from rekall import config
 from rekall import obj
 from rekall import plugin
 from rekall import testlib
@@ -30,6 +31,15 @@ from rekall.plugins.common import address_resolver
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.overlays.windows import windows
+
+
+config.DeclareOption(
+    "autodetect_build_local_tracked",
+    group="Autodetection Overrides",
+    default=["nt", "win32k", "tcpip", "ntdll"],
+    type="ArrayStringParser",
+    help="When autodetect_build_local is set to 'basic' we fetch these "
+    "modules directly from the symbol server.")
 
 
 class KernelModule(object):
@@ -178,10 +188,22 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             return obj.NoneObject()
 
     def LoadProfileForDll(self, module_base, module_name):
+        """Loads a profile for the PE file located at the module_base.
+
+        This method gets a profile using the following methods in order:
+
+        1 - Have session load it from the profile repository.
+        2 - Build locally from the MS symbols server.
+        3 - Look up a the profile using index if an index exists for this
+            binary.
+        4 - Build it from export tables of the PE binary.
+        """
         self._EnsureInitialized()
 
         if module_name in self.profiles:
             return self.profiles[module_name]
+
+        result = None
 
         # Try to determine the DLL's GUID.
         pe_helper = pe_vtypes.PE(
@@ -189,32 +211,39 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             image_base=module_base,
             session=self.session)
 
-        # TODO: Apply profile index to detect the profile.
         guid_age = pe_helper.RSDS.GUID_AGE
         if guid_age:
             profile_name = "%s/GUID/%s" % (module_name, guid_age)
-            profile = (self.session.LoadProfile(profile_name) or
-                       self._build_local_profile(module_name, profile_name))
+            result = (self.session.LoadProfile(profile_name) or
+                      self._build_local_profile(module_name, profile_name))
 
-            if profile:
-                profile.name = module_name
-                profile.image_base = module_base
+            if result:
+                result.name = module_name
+                result.image_base = module_base
 
-                self.profiles[module_name] = profile
-                return profile
+        if not result:
+            # Try to apply the profile index if possible.
+            index_profile = self.session.LoadProfile("%s/index" % module_name)
+            if index_profile:
+                for test_profile, _ in index_profile.LookupIndex(
+                        module_base, minimal_match=1):
+                    result = self.session.LoadProfile(test_profile)
+                    result.image_base = module_base
+                    break
 
-        result = self._build_profile_from_exports(module_base, module_name)
+        if not result:
+            result = self._build_profile_from_exports(module_base, module_name)
+
         self.profiles[module_name] = result
         return result
-
-    # Build these modules locally even if autodetect_build_local is "basic".
-    TRACKED_MODULES = set(["tcpip", "win32k", "ntdll"])
 
     def _build_local_profile(self, module_name, profile_name):
         """Fetch a build a local profile from the symbol server."""
         mode = self.session.GetParameter("autodetect_build_local")
-        if mode == "full" or (mode == "basic" and
-                              module_name in self.TRACKED_MODULES):
+        if mode == "full" or (
+                mode == "basic" and
+                module_name in self.session.GetParameter(
+                    "autodetect_build_local_tracked")):
             build_local_profile = self.session.plugins.build_local_profile()
             try:
                 logging.debug("Will build local profile %s", profile_name)
@@ -253,41 +282,10 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
     def LoadProfileForModule(self, module):
         self._EnsureInitialized()
-        result = None
         module_base = module.base
-
         module_name = self.NormalizeModuleName(module)
-        if module_name in self.profiles:
-            return self.profiles[module_name]
 
-        guid = module.RSDS.GUID_AGE
-        if guid:
-            result = self._LoadProfile(
-                module_name, "%s/GUID/%s" % (module_name, guid))
-
-        if not result:
-            # Create a dummy profile.
-            result = obj.Profile.classes["BasicPEProfile"](
-                name="Dummy Profile %s" % module_name,
-                session=self.session)
-            result.image_base = module_base
-
-        peinfo = self.session.plugins.peinfo(image_base=module_base,
-                                             address_space=module.obj_vm)
-
-        constants = {}
-        if "Export" in self.session.GetParameter("name_resolution_strategies"):
-            for _, func, name, _ in peinfo.pe_helper.ExportDirectory():
-                self.session.report_progress("Merging export table: %s", name)
-                func_offset = func.v()
-                if not result.get_constant_by_address(func_offset):
-                    constants[str(name or "")] = func_offset - module_base
-
-            result.add_constants(constants_are_addresses=True, **constants)
-
-        self.profiles[module_name] = result
-
-        return result
+        return self.LoadProfileForDll(module_base, module_name)
 
     def LoadProfileForModuleNameByName(self, module_name, profile_name):
         """Loads a profile for a module by its full profile name.
@@ -340,7 +338,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         if task:
             name = name.lower()
             for start, _, filename, _ in self.vad.GetVadsForProcess(task):
-                if re.search("%s.(dll|exe)" % name, filename.lower()):
+                if re.search("%s.(dll|exe)$" % name, filename.lower()):
                     return start
 
     def _format_address_from_profile(self, profile, address,

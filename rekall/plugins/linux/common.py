@@ -252,7 +252,8 @@ class LinProcessFilter(LinuxPlugin):
                             "the list.")
 
         parser.add_argument(
-            "--method", choices=list(cls.METHODS), nargs="+",
+            "--method", choices=list(cls.METHODS), type="ChoiceArray",
+            default=list(cls.METHODS),
             help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, proc_regex=None, phys_task=None, task=None,
