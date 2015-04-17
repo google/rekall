@@ -44,6 +44,8 @@ class WindowsPagedMemoryMixin(object):
 
     This mixin allows us to share code between 32 and 64 bit implementations.
     """
+    # On windows translation pages are also valid.
+    valid_mask = 1 << 11 | 1
 
     def __init__(self, **kwargs):
         super(WindowsPagedMemoryMixin, self).__init__(**kwargs)
@@ -61,10 +63,6 @@ class WindowsPagedMemoryMixin(object):
         self.subsection_pte_value = 1 << 10 # (v=0, p=1, t=0)
         self._resolve_vads = True
         self.vads = None
-
-    def entry_present(self, entry):
-        # Treat Transition PTEs as valid.
-        return entry & self.transition_valid_mask
 
     def _ConsultVad(self, virtual_address, pte):
         vad_hit = self.session.address_resolver.FindProcessVad(
@@ -153,7 +151,7 @@ class WindowsPagedMemoryMixin(object):
                 continue
 
             pde_value = self.get_pde(vaddr, pdpte_value)
-            if not self.entry_present(pde_value):
+            if not pde_value & self.valid_mask:
                 # An invalid PDE means we read the vad, i.e. it is the same as
                 # an array of zero PTEs.
                 for x in self._get_available_PTEs(
@@ -282,11 +280,11 @@ class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
             return self._tlb.Get(vaddr)
         except KeyError:
             pdpte = self.get_pdpte(vaddr)
-            if not self.entry_present(pdpte):
+            if not pdpte & self.valid_mask:
                 return None
 
             pde = self.get_pde(vaddr, pdpte)
-            if not self.entry_present(pde):
+            if not pde & self.valid_mask:
                 # If PDE is not valid the page table does not exist
                 # yet. According to
                 # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
@@ -326,12 +324,12 @@ class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
         except KeyError:
             vaddr = long(vaddr)
             pml4e = self.get_pml4e(vaddr)
-            if not self.entry_present(pml4e):
+            if not pml4e & self.valid_mask:
                 # Add support for paged out PML4E
                 return None
 
             pdpte = self.get_pdpte(vaddr, pml4e)
-            if not self.entry_present(pdpte):
+            if not pdpte & self.valid_mask:
                 # Add support for paged out PDPTE
                 # Insert buffalo here!
                 return None
@@ -340,7 +338,7 @@ class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
                 return self.get_one_gig_paddr(vaddr, pdpte)
 
             pde = self.get_pde(vaddr, pdpte)
-            if not self.entry_present(pde):
+            if not pde & self.valid_mask:
                 # If PDE is not valid the page table does not exist
                 # yet. According to
                 # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf

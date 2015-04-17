@@ -45,6 +45,9 @@ class MIPS32PagedMemory(intel.IA32PagedMemory):
     pte_paddr function.
     '''
 
+    # MIPS32 doesn't have a valid flag on PDE's, they're always valid
+    valid_mask = (1 << 32) - 1
+
     def _pa(self, x):
         '''
         Convert a physical address to the actual physical memory location.
@@ -55,12 +58,6 @@ class MIPS32PagedMemory(intel.IA32PagedMemory):
             return x - 0xA0000000
         else:
             return x - 0x80000000
-
-    def pde_entry_present(self, entry):
-        '''
-        MIPS32 doesn't have a valid flag on PDE's, they're always valid
-        '''
-        return True
 
     def page_size_flag(self, entry):
         '''
@@ -146,8 +143,7 @@ class MIPS32PagedMemory(intel.IA32PagedMemory):
                 if start > next_vaddr:
                     continue
 
-                if self.pte_entry_present(pte_value):
+                if pte_value & self.valid_mask:
                     yield (vaddr,
                            self.get_phys_addr(vaddr, pte_value),
                            0x1000)
-
