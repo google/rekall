@@ -61,15 +61,15 @@ def RenderResult(configs, timestamp):
         name = os.path.basename(config)
         out_path = os.path.join(config, timestamp)
 
-    results[name] = {}
-    result = json.load(open(os.path.join(out_path, "results")))
-    for success in result["passes"]:
-        all_tests.add(success)
-        results[name][success] = True
+        results[name] = {}
+        result = json.load(open(os.path.join(out_path, "results")))
+        for success in result["passes"]:
+            all_tests.add(success)
+            results[name][success] = True
 
-    for fail in result["fails"]:
-        all_tests.add(fail)
-        results[name][fail] = False
+        for fail in result["fails"]:
+            all_tests.add(fail)
+            results[name][fail] = False
 
 
     out = """
@@ -107,15 +107,15 @@ def RenderResult(configs, timestamp):
                 text_value = "PASS" if test_result else "FAIL"
                 suffix = "" if test_result else ".diff"
 
-            # Add an entry for each test in this suite.
-            out += """
+                # Add an entry for each test in this suite.
+                out += """
 <td>
   <a href='../%s/%s/%s%s'>
     <button class='%s'>%s</button>
   </a>
 </td>""" % (name, timestamp, test, suffix, css_class, text_value)
 
-    out += "</tr>\n"
+        out += "</tr>\n"
     out += "</table></body></html>"
 
     return out

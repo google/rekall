@@ -10,12 +10,14 @@ source $HOME/Test/bin/activate
 
 # Sync the latest rekall repository
 cd $HOME/rekall/
-git pull origin master
+git fetch --all
+git reset --hard origin/master
 python setup.py install
 
 # Sync to the latest test harness.
 cd $HOME/rekall-test/
-git pull origin master
+git fetch --all
+git reset --hard origin/master
 
 echo Running test from $PWD
 
