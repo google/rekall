@@ -31,7 +31,8 @@ http://www.codemachine.com/article_kernelstruct.html
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
-
+import logging
+from rekall import obj
 from rekall import testlib
 
 from rekall.plugins import core
@@ -254,3 +255,89 @@ class TestDumpFiles(testlib.HashChecker):
     PARAMETERS = dict(
         commandline="dumpfiles --dump_dir %(tempdir)s"
     )
+
+
+class SparseArray(dict):
+    def __getitem__(self, key):
+        return self.get(key, obj.NoneObject())
+
+
+class MftDump(common.WindowsCommandPlugin):
+    """Enumerate MFT entries from the cache manager."""
+    name = "mftdump"
+
+    def __init__(self, **kwargs):
+        super(MftDump, self).__init__(**kwargs)
+        self.ntfs_profile = self.session.LoadProfile("ntfs")
+        self.mft_size = 0x400
+        self.vacb_size = 0x40000
+        # A sparse MFT table - basically a map between mft id and MFT entry.
+        self.mfts = SparseArray()
+
+        # A directory tree. For each MFT id a dict of its direct children.
+        self.dir_tree = {2: {}}
+
+    def extract_mft_entries_from_vacb(self, vacb):
+        base = vacb.BaseAddress.v()
+        for offset in xrange(base, base + self.vacb_size, self.mft_size):
+            # Fixups are not applied in memory.
+            mft = self.ntfs_profile.MFT_ENTRY(
+                offset, context=dict(mft=self.mfts, ApplyFixup=False))
+            if mft.magic != "FILE":
+                if mft.magic != "\x00" * 4:
+                    logging.error("MFT entry @ %#x has non-standard magic: %s"
+                                  "(skipped)", mft.obj_offset,
+                                  mft.magic.v().encode("hex"))
+                continue
+
+            mft_id = mft.mft_entry
+            self.mfts[mft_id] = mft
+            self.session.report_progress(
+                "Added: %s", lambda mft=mft: mft.filename.name)
+
+            parent_id = mft.filename.mftReference.v()
+            if parent_id not in self.dir_tree:
+                self.dir_tree[parent_id] = set()
+
+            self.dir_tree[parent_id].add(mft_id)
+
+    def render_tree(self, renderer, root, seen, depth=0):
+        if root not in self.mfts:
+            return
+
+        mft = self.mfts[root]
+        standard_info = mft.get_attribute(
+            "$STANDARD_INFORMATION").DecodeAttribute()
+
+        renderer.table_row(
+            root,
+            standard_info.file_altered_time,
+            standard_info.mft_altered_time,
+            standard_info.file_accessed_time,
+            standard_info.create_time,
+            self.mfts[root].filename.name, depth=depth)
+        seen.add(root)
+
+        for child in self.dir_tree.get(root, []):
+            if child not in seen:
+                self.render_tree(renderer, child, seen, depth=depth+1)
+
+    def render(self, renderer):
+        for vacb in self.session.plugins.vacbs().GetVACBs():
+            filename = vacb.SharedCacheMap.FileObjectFastRef.FileName
+            if filename == r"\$Mft":
+                self.extract_mft_entries_from_vacb(vacb)
+
+        renderer.table_header([
+            dict(name="MFT", width=5, align="r"),
+            dict(name="file_modified", width=25),
+            dict(name="mft_modified", width=25),
+            dict(name="access", width=25),
+            dict(name="create_time", width=25),
+            dict(name="Name", type="TreeNode", max_depth=15, width=100),
+        ])
+
+        # Avoid loops.
+        seen = set()
+        for mft_id in self.dir_tree:
+            self.render_tree(renderer, mft_id, seen, depth=0)

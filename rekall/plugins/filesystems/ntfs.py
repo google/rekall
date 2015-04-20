@@ -156,6 +156,7 @@ ntfs_vtypes = {
         "mft_entry_allocated": [28, ["unsigned short"]],
         "base_record_reference": [32, ["unsigned long long"]],
         "next_attribute_id": [40, ["unsigned short"]],
+        "record_number": [44, ["unsigned long"]],
 
         # These are fixups.
         "fixup_magic": [lambda x: x.obj_offset + x.fixup_offset,
@@ -544,15 +545,16 @@ class MFT_ENTRY(obj.Struct):
 
         # We implement fixup by wrapping the base address space with a fixed
         # one:
-        self.obj_vm = FixupAddressSpace(fixup_magic=self.fixup_magic,
-                                        fixup_table=self.fixup_table,
-                                        base_offset=self.obj_offset,
-                                        length=self.mft_entry_allocated,
-                                        base=self.obj_vm)
+        if self.obj_context.get("ApplyFixup", True):
+            self.obj_vm = FixupAddressSpace(fixup_magic=self.fixup_magic,
+                                            fixup_table=self.fixup_table,
+                                            base_offset=self.obj_offset,
+                                            length=self.mft_entry_allocated,
+                                            base=self.obj_vm)
 
     @property
     def mft_entry(self):
-        return self.obj_context.get("index")
+        return self.obj_context.get("index", self.record_number.v())
 
     @property
     def attributes(self):
@@ -660,7 +662,7 @@ class MFT_ENTRY(obj.Struct):
 
     @property
     def filename(self):
-        dos_name = None
+        dos_name = obj.NoneObject()
         for attribute in self.attributes:
             if attribute.type == "$FILE_NAME":
                 attribute = attribute.DecodeAttribute()
@@ -689,6 +691,9 @@ class MFT_ENTRY(obj.Struct):
 
             result.append(filename)
             mft_entry = mft[filename_record.mftReference]
+            if mft_entry == None:
+                break
+
             depth += 1
 
         result.reverse()
@@ -892,11 +897,12 @@ class STANDARD_INDEX_HEADER(obj.Struct):
 
         # We implement fixup by wrapping the base address space with a fixed
         # one:
-        self.obj_vm = FixupAddressSpace(fixup_magic=self.fixup_magic,
-                                        fixup_table=self.fixup_table,
-                                        base_offset=self.obj_offset,
-                                        length=self.fixup_count * 512,
-                                        base=self.obj_vm)
+        if self.obj_context.get("ApplyFixup", True):
+            self.obj_vm = FixupAddressSpace(fixup_magic=self.fixup_magic,
+                                            fixup_table=self.fixup_table,
+                                            base_offset=self.obj_offset,
+                                            length=self.fixup_count * 512,
+                                            base=self.obj_vm)
 
 
 

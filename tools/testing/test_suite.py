@@ -413,6 +413,12 @@ exit 0
             if self.FLAGS.tests and plugin_cls.__name__ not in self.FLAGS.tests:
                 continue
 
+            # If the config file specified "enabled" then we only run those
+            # tests.
+            enabled = config_options.get("enabled")
+            if enabled and plugin_cls.__name__ not in enabled:
+                continue
+
             if plugin_cls.disabled:
                 continue
 
