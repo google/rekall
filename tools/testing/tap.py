@@ -107,7 +107,8 @@ def RenderResult(configs, timestamp):
                 text_value = "PASS" if test_result else "FAIL"
                 suffix = "" if test_result else ".diff"
 
-        out += """
+            # Add an entry for each test in this suite.
+            out += """
 <td>
   <a href='../%s/%s/%s%s'>
     <button class='%s'>%s</button>

@@ -36,7 +36,8 @@ def ExpandManuskriptHeaders(plugins, root_url="/", **opts):
 
     components = [manuskript_plugins.AppDeps] + plugins + [app]
 
-    header = "\n".join([p.GenerateHTML() for p in components])
+    header = "\n".join(
+        [p.GenerateHTML(root_url=root_url) for p in components])
 
     with open(os.path.join(STATIC_PATH, "index.html")) as fd:
         contents = fd.read() % dict(root_url=root_url)

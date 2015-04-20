@@ -254,7 +254,7 @@ class Configuration(Cache):
         for context in self.session.context_cache.values():
             context.Reset()
 
-        return tracked
+        return set(tracked)
 
     def _set_repository_path(self, profile_path, _):
         # Flush the profile cache if we change the profile path.

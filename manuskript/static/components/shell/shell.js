@@ -8,6 +8,7 @@
   module.run(function(manuskriptCoreNodePluginRegistryService) {
     manuskriptCoreNodePluginRegistryService.registerPlugin('shell', {
       description: 'Shell',
+      templateUrl: '/static/components/shell/shell.html',
       hotkey: 's',
       defaultNode: function() {
         return {

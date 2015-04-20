@@ -216,7 +216,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
 
       if (nodeType == null) {
         var modalInstance = $modal.open({
-          templateUrl: 'static/components/core/addnode-dialog.html',
+          templateUrl: '/static/components/core/addnode-dialog.html',
           controller: 'AddNodeDialogController',
           resolve: {
             items: function() {
@@ -471,9 +471,11 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       };
 
       // Send the nodes to the server for storage.
-      manuskriptNetworkService.callServer("rekall/document/upload", {
-        params: cells
-      });
+      if ($scope.app_config.mode != "static") {
+        manuskriptNetworkService.callServer("rekall/document/upload", {
+          params: cells
+        });
+      };
     };
 
     // If node order changes we refresh the server document.
@@ -504,7 +506,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       var newScope = $scope.$new(true);
 
       $modal.open({
-        templateUrl: 'static/components/core/file-selector-new.html',
+        templateUrl: '/static/components/core/file-selector-new.html',
         controller: 'FileSelectorController',
         scope: newScope,
       });
@@ -514,7 +516,7 @@ var manuskriptPluginsList = manuskriptPluginsList || [];
       var newScope = $scope.$new(true);
 
       $modal.open({
-        templateUrl: 'static/components/core/file-selector.html',
+        templateUrl: '/static/components/core/file-selector.html',
         controller: 'FileSelectorController',
         scope: newScope,
       });

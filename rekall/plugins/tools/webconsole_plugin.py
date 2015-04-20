@@ -209,6 +209,10 @@ class WebConsole(plugin.Command):
                             "this path.")
 
         parser.add_argument(
+            "--export-root-url", default="/", type="String",
+            help="The root URL for static export.")
+
+        parser.add_argument(
             "--export-root-url-path", default=None, type="String",
             help="The filesystem path where the root URL will be during "
             "static export.")
@@ -222,7 +226,7 @@ class WebConsole(plugin.Command):
 
     def __init__(self, worksheet=None, host="localhost", port=0, debug=False,
                  browser=False, export=None, export_root_url_path=".",
-                 **kwargs):
+                 export_root_url="/", **kwargs):
         super(WebConsole, self).__init__(**kwargs)
         self.host = host
         self.port = port
@@ -237,6 +241,14 @@ class WebConsole(plugin.Command):
 
         self.export = export
         self.export_root_url_path = export_root_url_path
+        self.export_root_url = export_root_url
+
+    # This is a huge hack but it is necessary until we get angular + grunt
+    # working.
+    EXPORT_REPLACES = [
+        re.compile(r"(templateUrl:\s[\"'])/(static)"),
+        re.compile(r"(templateUrl:\s[\"'])/(rekall-webconsole)"),
+    ]
 
     def _copytree(self, src, dst):
         """A variant of shutil.copytree.
@@ -260,13 +272,25 @@ class WebConsole(plugin.Command):
                 else:
                     src_m_time = int(os.stat(srcname).st_mtime)
                     if (not os.path.isfile(dstname) or
-                            src_m_time != int(os.stat(dstname).st_mtime)):
-                        shutil.copy2(srcname, dstname)
+                            src_m_time >= int(os.stat(dstname).st_mtime)):
+                        data = self._replace_data_for_export(
+                            open(srcname).read())
+
+                        with open(dstname, "wb") as fd:
+                            fd.write(data)
+
                         logging.debug("Copied %s->%s", srcname, dstname)
 
             except EnvironmentError, why:
                 logging.debug("Unable to copy %s->%s: %s",
                               srcname, dstname, why)
+
+    def _replace_data_for_export(self, data):
+        for replace in self.EXPORT_REPLACES:
+            data = replace.sub(
+                r"\1%s\2" % self.export_root_url, data)
+
+        return data
 
     def Export(self, path):
         output_io_manager = WebConsoleDocument(path, mode="w")
@@ -274,7 +298,8 @@ class WebConsole(plugin.Command):
         output_io_manager.StoreData(
             "index.html",
             manuskript_server.ExpandManuskriptHeaders(
-                self.PLUGINS, root_url="/", mode='static'),
+                self.PLUGINS, root_url=self.export_root_url,
+                mode='static'),
             raw=True)
 
         cells = self.worksheet_fd.GetData("notebook_cells") or []

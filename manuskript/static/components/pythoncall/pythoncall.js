@@ -7,6 +7,7 @@
   module.run(function(manuskriptCoreNodePluginRegistryService) {
     manuskriptCoreNodePluginRegistryService.registerPlugin('pythoncall', {
       description: 'Python',
+      templateUrl: '/static/components/pythoncall/pythoncall.html',
       defaultNode: function() {
         return {
           type: 'pythoncall',
