@@ -23,7 +23,7 @@ specific language governing permissions and limitations under the License.
 #define IMAGER_CLASS LinuxPmemImager
 
 #elif defined(__APPLE__) && defined(__MACH__)
-# include "osx_pmem.h"
+# include "osxpmem.h"
 #define IMAGER_CLASS OSXPmemImager
 #endif
 

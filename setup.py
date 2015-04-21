@@ -68,6 +68,7 @@ setup(
         "argparse >= 0.9",
         "PyYAML >= 2.10",
         "pytz >= 2012",
+        "intervaltree >= 2.0.4",
         "ipython >= 3.0.0",
         "pycrypto >= 2.3.1",
         "pyelftools >= 0.22",

@@ -4,7 +4,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # This is so we can #include <package/foo>
-AM_CPPFLAGS = -I$(top_srcdir) -DHAVE_SSTREAM
+AM_CPPFLAGS = -I$(top_srcdir) -DHAVE_SSTREAM -I$(top_srcdir)/../osx/MacPmem/
 
 # These are good warnings to turn on by default
 if GCC
@@ -45,4 +45,22 @@ linpmem_LDFLAGS = $(STATIC_LINKERLDFLAGS)
 linpmem_CXXFLAGS = -std=c++11 -g -Wall -O0
 linpmem_SOURCES = pmem_imager.cc linux_pmem.cc
 linpmem_LDADD = -laff4 -lglog
+endif
+
+if OSX_NATIVE_HOST
+bin_PROGRAMS = osxpmem
+
+osxpmem_LDFLAGS = $(STATIC_LINKERLDFLAGS)
+osxpmem_CXXFLAGS = -std=c++11 -g -Wall -O0
+osxpmem_SOURCES = pmem_imager.cc osxpmem.cc
+osxpmem_LDADD = -laff4 -lglog
+
+all-local: osxpmem
+	@echo Creating deployable bundle.
+	rm -rf osxpmem.app osxpmem.zip
+	dylibbundler -x ./osxpmem -b -d osxpmem.app/libs/ -p @executable_path/libs/ -of -od -cd
+	cp README.md osxpmem osxpmem.app/
+	rm -f osxpmem
+	cp -a resources/MacPmem.kext osxpmem.app/
+	zip -r osxpmem.zip osxpmem.app/
 endif

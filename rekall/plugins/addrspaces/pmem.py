@@ -20,24 +20,18 @@
 """Address spaces specific to pmem live here."""
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-import array
-import ctypes
-import fcntl
-from os import path as ospath
+import intervaltree
+from os import path
 
 from rekall import addrspace
-from rekall import session as rekall_session
 from rekall import yaml_utils
-
 from rekall.plugins.addrspaces import standard
-
-from rekall.plugins.overlays import basic
 
 
 class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
     """Implements an address space to overlay the new MacPmem device."""
 
-    __name = "MacPmem"
+    name = "MacPmem"
     order = standard.FileAddressSpace.order - 2
     __image = True
 
@@ -48,18 +42,14 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
                        "Must be mapped directly over a raw device.")
         self.phys_base = self
 
-        # MacPmem is read-only.
-        self.write_enabled = False
-
-        path = filename or (self.session and self.session.GetParameter(
+        self.fname = filename or (self.session and self.session.GetParameter(
             "filename"))
 
-        self.as_assert(path, "Filename must be specified.")
-        self.fname = path
-        self.fd = open(path, "r")
+        self.as_assert(self.fname, "Filename must be specified.")
+        self.fd = open(self.fname, "r")
 
         self.fname_info = "%s_info" % self.fname
-        self.as_assert(ospath.exists(self.fname_info),
+        self.as_assert(path.exists(self.fname_info),
                        "MacPmem would declare a YML device at %s" %
                        self.fname_info)
 
@@ -71,46 +61,30 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         gpu_start = None
         gpu_limit = None
 
+        efi_tree = intervaltree.IntervalTree()
         for record in records:
             if record["type"] == "efi_range":
                 if efi_type_readable(record["efi_type"]):
-                    ranges.append((record["start"],
-                                   record["start"] + record["length"]))
-            elif record["type"] == "pci_range":
-                if "GFX0" in record["purpose"]:
-                    # This machine has a discrete CPU which means the range
-                    # starting at 0x100000000 (4 GB) will be GPU-backed and
-                    # reading from it would trigger a GPU panic.
-                    if gpu_start is None or gpu_start > record["start"]:
-                        gpu_start = record["start"]
+                    efi_tree.addi(record["start"],
+                                  record["start"] + record["length"], 0)
 
-                    gpu_limit = max(gpu_limit,
-                                    record["start"] + record["length"])
+        for record in records:
+            if (0 and record["type"] == "pci_range" and
+                "GFX0" in record["purpose"]):
+                # This machine has a discrete GPU so we need to remove its range
+                # from the allowed regions.
+                # TODO: Sometimes it appears we need to avoid reading ranges
+                # between the GFX0* ranges. This needs more research.
+                efi_tree.chop(record["start"],
+                              record["start"] + record["length"])
 
-        if gpu_start is None:
-            for start, limit in ranges:
-                yield (start, start, limit - start)
-
-            return
-
-        for start, limit in ranges:
-            if gpu_start > limit or gpu_limit < start:
-                # This range doesn't overlap with the GPU range.
-                yield (start, start, limit - start)
-                continue
-
-            if gpu_start > start:
-                # Yield the part of this range up to where the GPU starts.
-                yield start, start, gpu_start - start
-
-            if gpu_limit < limit:
-                # Yield the part of this range from where the GPU ends
-                # to the limit of this range.
-                yield gpu_limit, gpu_limit, limit - gpu_limit
+        result = []
+        for interval in sorted(efi_tree):
+            yield interval.begin, interval.begin, interval.length()
 
     def _load_yml(self, yml_path):
         with open(yml_path) as fp:
-            data = yaml_utils.decode(fp.read())
+            data = self.pmem_metadata = yaml_utils.decode(fp.read())
 
         self.session.SetParameter("dtb", data["meta"]["dtb_off"])
         self.session.SetParameter("vm_kernel_slide",
@@ -118,11 +92,6 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
 
         for run in self._get_readable_runs(data["records"]):
             self.runs.insert(run)
-
-        self.pmem_metadata = data
-
-    def write(self, *_, **__):
-        raise NotImplementedError("MacPmem is a read-only device.")
 
     def _read_chunk(self, addr, length):
         offset, available_length = self._get_available_buffer(addr, length)
@@ -137,198 +106,6 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
     def close(self):
         self.fd.close()
 
-
-# The following are directly adapted from the macros used by both XNU and
-# Linux kernels for ioctl. Ioctl commands are encoded bitwise as follows:
-#
-# - The low 16 bits are are the command.
-# - 13 bits for parameter (in/out) size.
-# - 3 bits parameter flags (see below IOC_VOID, IOC_OUT, IOC_IN).
-#
-# See:
-# XNU: https://github.com/opensource-apple/xnu/blob/10.10/bsd/sys/ioccom.h
-# Linux: http://unix.superglobalmegacorp.com/Net2/newsrc/sys/ioctl.h.html
-
-
-IOCPARM_MASK = 0x1fff  # Parameter length - up to 13 bits.
-
-
-def IOCPARM_LEN(x):
-    return(x >> 16) & IOCPARM_MASK
-
-
-def IOCBASECMD(x):
-    return x & ~(IOCPARM_MASK << 16)
-
-
-def IOCGROUP(x):
-    return (x >> 8) & 0xff
-
-
-IOCPARM_MAX = IOCPARM_MASK + 1
-IOC_VOID = 0x20000000  # No parameters.
-IOC_OUT = 0x40000000  # Parameters copy out.
-IOC_IN = 0x80000000  # Parameters copy in.
-IOC_INOUT = IOC_IN | IOC_OUT  # Parameters copy in and out.
-IOC_DIRMASK = 0xe0000000
-
-
-def _IOC(inout, group, num, length):
-    return (inout |
-            ((length & IOCPARM_MASK) << 16) |
-            (group << 8) |
-            num)
-
-
-def _IO(g, n):
-    return _IOC(IOC_VOID, g, n, 0)
-
-
-def _IOR(g, n, size):
-    return _IOC(IOC_OUT, g, n, size)
-
-
-def _IOW(g, n, size):
-    return _IOC(IOC_IN, g, n, size)
-
-
-def _IOWR(g, n, size):
-    return _IOC(IOC_INOUT, g, n, size)
-
-
-# IOCTLs specific to pmem below. This is the same as the pmem driver.
-# Pmem for Linux and XNU use the exact same header file for these macros,
-# making things much easier.
-
-PMEM_GET_MMAP = 0
-PMEM_GET_MMAP_SIZE = 1
-PMEM_GET_MMAP_DESC_SIZE = 2
-PMEM_GET_DTB = 3
-PMEM_SET_MMAP_METHOD = 4
-PMEM_IOCTL_BASE = ord("p")
-
-
-PMEM_MMAP_TYPE = 8  # uint64_t
-PMEM_MMAP_SIZE_TYPE = 4  # uint32_t
-PMEM_MMAP_DESC_SIZE_TYPE = 4  # uint32_t
-PMEM_DTB_TYPE = 8  # uint64_t
-PMEM_MMAP_METHOD_TYPE = 4  # int32_t
-
-
-# Fills in buffer at pointer with the mmap.
-PMEM_IOCTL_GET_MMAP = _IOW(PMEM_IOCTL_BASE,
-                           PMEM_GET_MMAP,
-                           PMEM_MMAP_TYPE)
-
-
-# Fills buffer with mmap size.
-PMEM_IOCTL_GET_MMAP_SIZE = _IOR(PMEM_IOCTL_BASE,
-                                PMEM_GET_MMAP_SIZE,
-                                PMEM_MMAP_SIZE_TYPE)
-
-
-# Fills buffer with mmap descriptor size (0x30 unless you're from the future).
-PMEM_IOCTL_GET_MMAP_DESC_SIZE = _IOR(PMEM_IOCTL_BASE,
-                                     PMEM_GET_MMAP_DESC_SIZE,
-                                     PMEM_MMAP_DESC_SIZE_TYPE)
-
-
-# Fills the buffer with the address of the DTB.
-PMEM_IOCTL_GET_DTB = _IOR(PMEM_IOCTL_BASE,
-                          PMEM_GET_DTB,
-                          PMEM_DTB_TYPE)
-
-
-# Changes the method used by the Pmem driver. (PTE is the default.)
-PMEM_IOCTL_SET_MMAP_METHOD = _IOW(PMEM_IOCTL_BASE,
-                                  PMEM_SET_MMAP_METHOD,
-                                  PMEM_MMAP_METHOD_TYPE)
-
-
-def pmem_get_mmap_size(fd):
-    """Ask the Pmem driver for mmap size (number of entries)."""
-    buf = array.array("I", [0])
-    err = fcntl.ioctl(fd, PMEM_IOCTL_GET_MMAP_SIZE, buf, True)
-    if err:
-        raise IOError("Error (%d) getting mmap size." % err)
-
-    return buf[0]
-
-
-def pmem_get_mmap_desc_size(fd):
-    """Ask the Pmem driver for size of an efi descriptor.
-
-    Note that this must absolutely ALWAYS return 0x30, otherwise we're
-    dealing with some future version fo EFI we know nothing about.
-    """
-    buf = array.array("I", [0])
-    err = fcntl.ioctl(fd, PMEM_IOCTL_GET_MMAP_DESC_SIZE, buf, True)
-    if err:
-        raise IOError("Error (%d) getting mmap desc size." % err)
-
-    return buf[0]
-
-
-def pmem_get_mmap(fd):
-    """Ask the Pmem driver for the physical address map.
-
-    Returns:
-    ========
-
-    Tuple of (mmap, no_entries, entry_size).
-
-    Each multiple of entry_size in the mmap_buffer is a valid
-    EFI_MEMORY_DESCRIPTOR (defined below).
-
-    Raises:
-    =======
-
-    IOError: If ioctl fails for whatever reason.
-    AssertionError: If you're using this code to hack an alien mothership
-                    and their EFI uses a different descriptor size than 0x30
-                    this will blow up.
-    """
-    mmap_size = pmem_get_mmap_size(fd)
-    mmap_desc_size = pmem_get_mmap_desc_size(fd)
-    mmap = ctypes.create_string_buffer(mmap_size * mmap_desc_size)
-
-    err = fcntl.ioctl(fd, PMEM_IOCTL_GET_MMAP, ctypes.pointer(mmap), True)
-    if err:
-        raise IOError("Error (%d) filling mmap buffer." % err)
-
-    if mmap_desc_size != 0x30:
-        raise AssertionError(
-            ("EFI reports descriptor size of 0x%x. This code only knows how "
-             "to handle descriptors 0x30 bytes in length.") % mmap_desc_size)
-
-    return mmap, mmap_size, mmap_desc_size
-
-
-def pmem_get_profile(fd):
-    mmap, _, _ = pmem_get_mmap(fd)
-    session = rekall_session.Session()
-    buffer_as = addrspace.BufferAddressSpace(data=mmap.raw, session=session)
-    session.SetCache("default_address_space", buffer_as)
-
-    return EFIProfile(session=session)
-
-
-def pmem_parse_mmap(fd):
-    """Retrieve and parse the physical memory map from the Pmem driver.
-
-    Yields: tuples of (start, number of pages, type)
-    """
-    mmap, size, _ = pmem_get_mmap(fd)
-    session = rekall_session.Session()
-    buffer_as = addrspace.BufferAddressSpace(data=mmap.raw, session=session)
-    session.SetCache("default_address_space", buffer_as)
-    profile = EFIProfile(session=session)
-
-    for descriptor in profile.Array(
-            offset=0, target="EFI_MEMORY_DESCRIPTOR", size=size):
-        yield (descriptor.PhysicalStart,
-               descriptor.NumberOfPages,
-               descriptor.Type)
 
 # See http://wiki.phoenix.com/wiki/index.php/EFI_MEMORY_TYPE for list of
 # segment types that become conventional memory after ExitBootServices()
@@ -351,107 +128,5 @@ EFI_SEGMENTS_SAFETY = {
     "EfiMaxMemoryType": "rw",  # No idea (adamsh). Looks like general use?
 }
 
-
-def efi_type_writable(efi_type):
-    return "w" in EFI_SEGMENTS_SAFETY[str(efi_type)]
-
-
 def efi_type_readable(efi_type):
     return "r" in EFI_SEGMENTS_SAFETY[str(efi_type)]
-
-
-# Adapted from http://wiki.phoenix.com/wiki/index.php/EFI_MEMORY_DESCRIPTOR
-#
-# Every kernel that supports EFI will have a similar struct, but called
-# something else. For example, on XNU this is called EfiMemoryRange, but
-# XNU's definition doesn't account for the trailing 8-byte padding.
-EFI_VTYPES = {
-    "EFI_MEMORY_DESCRIPTOR": [0x30, {
-        "Type": [0x0, ["Enumeration", dict(
-            choices={
-                # See typedef here:
-                # http://wiki.phoenix.com/wiki/index.php/EFI_MEMORY_TYPE
-                0: "EfiReservedMemoryType",
-                1: "EfiLoaderCode",
-                2: "EfiLoaderData",
-                3: "EfiBootServicesCode",
-                4: "EfiBootServicesData",
-                5: "EfiRuntimeServicesCode",
-                6: "EfiRuntimeServicesData",
-                7: "EfiConventionalMemory",
-                8: "EfiUnusableMemory",
-                9: "EfiACPIReclaimMemory",
-                10: "EfiACPIMemoryNVS",
-                11: "EfiMemoryMappedIO",
-                12: "EfiMemoryMappedIOPortSpace",
-                13: "EfiPalCode",
-                14: "EfiMaxMemoryType"},
-            target="unsigned int")]],
-        "PhysicalStart": [0x8, ["unsigned long"]],
-        "VirtualStart": [0x10, ["unsigned long"]],
-        "NumberOfPages": [0x18, ["unsigned long"]],
-        "Attribute": [0x20, ["unsigned long"]]}]}
-
-
-class EFIProfile(basic.ProfileLP64, basic.BasicClasses):
-    """Profile for EFI types. Used for staging."""
-
-    @classmethod
-    def Initialize(cls, profile):
-        super(EFIProfile, cls).Initialize(profile)
-        profile.add_types(EFI_VTYPES)
-
-
-class PmemAddressSpace(addrspace.RunBasedAddressSpace):
-    """Address space specific to the pmem device."""
-
-    __name = "pmem"
-    order = standard.FileAddressSpace.order - 1
-    __image = True
-
-    def __init__(self, base=None, filename=None, **kwargs):
-        self.as_assert(base == None,
-                       "Must be mapped directly over a raw device.")
-        super(PmemAddressSpace, self).__init__(**kwargs)
-        self.phys_base = self
-
-        path = filename or (self.session and self.session.GetParameter(
-            "filename"))
-
-        self.as_assert(path, "Filename must be specified.")
-        self.fname = path
-
-        # See if the device is writable.
-        self.write_enabled = False
-        try:
-            self.fd = open(path, "r+")
-            self.write_enabled = True
-        except IOError:
-            self.fd = open(path, "r")
-
-        # Reading from some offsets in the device can crash the system.
-        # Let's make sure we don't do that.
-        try:
-            for offset, pages, efi_type in pmem_parse_mmap(self.fd):
-                if efi_type_readable(efi_type):
-                    self.runs.insert((offset, offset, pages * 0x1000))
-        except IOError:
-            # Apparently we're not dealing with Pmem.
-            raise addrspace.ASAssertionError(
-                "File at %s is not a pmem device." % path)
-
-    def write(self, *_, **__):
-        raise NotImplementedError("Writes to Pmem aren't supported yet.")
-
-    def _read_chunk(self, addr, length):
-        offset, available_length = self._get_available_buffer(addr, length)
-
-        # We're not allowed to read from the offset, so just return zeros.
-        if offset is None:
-            return "\x00" * min(length, available_length)
-
-        self.fd.seek(offset)
-        return self.fd.read(min(length, available_length))
-
-    def close(self):
-        self.fd.close()

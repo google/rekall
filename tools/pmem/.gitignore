@@ -42,7 +42,28 @@ config.status
 doxygen/
 libtool
 linpmem
+osxpmem
 pmem_imager
 stamp-h1
 test_filename.bin
 winpmem.exe
+
+# deployable package
+deploy/
+osxpmem.zip
+
+# Usual m4 macros from libtool.
+m4/lt*
+m4/libtool.m4
+
+aclocal.m4
+ar-lib
+compile
+config.*
+depcomp
+install-sh
+missing
+
+Makefile.in
+configure
+ltmain.sh

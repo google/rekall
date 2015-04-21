@@ -31,7 +31,6 @@ http://www.codemachine.com/article_kernelstruct.html
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import logging
 from rekall import obj
 from rekall import testlib
 
@@ -284,10 +283,6 @@ class MftDump(common.WindowsCommandPlugin):
             mft = self.ntfs_profile.MFT_ENTRY(
                 offset, context=dict(mft=self.mfts, ApplyFixup=False))
             if mft.magic != "FILE":
-                if mft.magic != "\x00" * 4:
-                    logging.error("MFT entry @ %#x has non-standard magic: %s"
-                                  "(skipped)", mft.obj_offset,
-                                  mft.magic.v().encode("hex"))
                 continue
 
             mft_id = mft.mft_entry

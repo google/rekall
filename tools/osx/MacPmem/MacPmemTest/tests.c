@@ -114,7 +114,7 @@ int test_contention() {
     }
 
     pmem_debug("Joined %d threads.", threadc);
-    
+
     return ret;
 }
 
