@@ -297,7 +297,7 @@ class MftDump(common.WindowsCommandPlugin):
             self.dir_tree[parent_id].add(mft_id)
 
     def render_tree(self, renderer, root, seen, depth=0):
-        if root not in self.mfts:
+        if root not in self.mfts or root in seen:
             return
 
         mft = self.mfts[root]
@@ -313,7 +313,7 @@ class MftDump(common.WindowsCommandPlugin):
             self.mfts[root].filename.name, depth=depth)
         seen.add(root)
 
-        for child in self.dir_tree.get(root, []):
+        for child in sorted(self.dir_tree.get(root, [])):
             if child not in seen:
                 self.render_tree(renderer, child, seen, depth=depth+1)
 

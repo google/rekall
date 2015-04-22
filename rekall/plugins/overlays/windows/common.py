@@ -592,8 +592,6 @@ class _SID(obj.Struct):
     http://searchwindowsserver.techtarget.com/feature/The-structure-of-a-SID
     """
 
-
-
     def __unicode__(self):
         """
         Ref: RtlConvertSidToUnicodeString
@@ -621,6 +619,7 @@ class _SID(obj.Struct):
             wcs += "-%u" % i
 
         return wcs
+
 
 class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
