@@ -41,17 +41,33 @@ AFF4Status PmemImager::Initialize() {
       std::pair<string, string>("memory", AFF4_MEMORY_NAMESPACE));
 
   return STATUS_OK;
-};
+}
 
 AFF4Status PmemImager::ParseArgs() {
   // Process the baseclass first.
   AFF4Status result = BasicImager::ParseArgs();
 
-  if (result == CONTINUE && Get("elf")->isSet())
-    result = handle_elf();
+  // When the user specifies elf we need to check for incompatible options.
+  if (result == CONTINUE && Get("elf")->isSet()) {
+    if (Get("input")->isSet() || Get("pagefile")->isSet()) {
+      LOG(ERROR) << "--elf is incompatible with --input and --pagefile because "
+          "we can not store multiple streams in an ELF file.\n";
+      return INCOMPATIBLE_TYPES;
+    }
+
+    if (Get("compression")->isSet()) {
+      LOG(ERROR) << "--elf files do not support any compression.";
+      return INCOMPATIBLE_TYPES;
+    }
+  }
 
   return result;
-};
+}
+
+AFF4Status PmemImager::ImagePhysicalMemoryToElf() {
+  return NOT_IMPLEMENTED;
+}
+
 
 AFF4Status PmemImager::ProcessArgs() {
   // Add the memory namespace to the resolver.
@@ -59,16 +75,30 @@ AFF4Status PmemImager::ProcessArgs() {
       std::pair<string, string>("memory", AFF4_MEMORY_NAMESPACE));
 
   AFF4Status result = BasicImager::ProcessArgs();
+  if (result != CONTINUE) {
+    return result;
+  }
 
-  // We automatically image memory if no other actions were give (unless the -m
+  // We automatically image memory if no other actions were given (unless the -m
   // flag was explicitly given).
-  if (((result == CONTINUE && actions_run.size() == 0) ||
-       (Get("acquire-memory")->isSet())) && Get("output")->isSet()) {
+  if ((actions_run.size() > 0) && !Get("acquire-memory")->isSet())
+    return STATUS_OK;
+
+  // The user forgot to specify an output file.
+  if (!Get("output")->isSet()) {
+    LOG(ERROR) << "You need to specify an output file with --output.";
+    return INVALID_INPUT;
+  }
+
+  // Does the user want an elf format or aff4 format?
+  if (Get("elf")->isSet()) {
+    result = ImagePhysicalMemoryToElf();
+  } else {
     result = ImagePhysicalMemory();
-  };
+  }
 
   return result;
-};
+}
 
 
 AFF4Status PmemImager::handle_pagefiles() {
@@ -76,7 +106,7 @@ AFF4Status PmemImager::handle_pagefiles() {
       "pagefile")->getValue();
 
   return CONTINUE;
-};
+}
 
 #ifdef _WIN32
 PmemImager::~PmemImager() {
@@ -89,12 +119,12 @@ PmemImager::~PmemImager() {
 
     } else {
       LOG(INFO) << "Removed " << filename;
-    };
-  };
-};
+    }
+  }
+}
 #else
 PmemImager::~PmemImager() {
-};
+}
 #endif
 
 IMAGER_CLASS imager;
@@ -123,7 +153,7 @@ int main(int argc, char* argv[]) {
   if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)sigint_handler, true)) {
     LOG(ERROR) << "Unable to set interrupt handler: " <<
         GetLastErrorMessage();
-  };
+  }
 #else
   signal(SIGINT, sigint_handler);
 #endif

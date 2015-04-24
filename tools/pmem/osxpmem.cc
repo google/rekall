@@ -14,7 +14,112 @@ specific language governing permissions and limitations under the License.
 */
 
 #include "osxpmem.h"
+#include "elf.h"
 #include <sys/sysctl.h>
+
+
+AFF4Status OSXPmemImager::ImagePhysicalMemoryToElf() {
+  std::cout << "Imaging memory to elf file\n";
+
+  AFF4Status res = InstallDriver();
+  if (res != STATUS_OK)
+    return res;
+
+  vector<OSXPmemRange> ranges;
+  res = GetRanges(ranges);
+  if (res != STATUS_OK)
+    return res;
+
+  for (auto it : ranges) {
+    LOG(ERROR) << "Range " << it.phys_offset << " " << it.length;
+  }
+
+  AFF4ScopedPtr<AFF4Stream> device_stream = resolver.AFF4FactoryOpen
+      <AFF4Stream>(device_urn);
+  if (!device_stream)
+    return IO_ERROR;
+
+  string output_path = GetArg<TCLAP::ValueArg<string>>("output")->getValue();
+  URN output_urn(URN::NewURNFromFilename(output_path));
+
+  // Always truncate output to 0 when writing an elf file (these do not support
+  // appending).
+  resolver.Set(output_urn, AFF4_STREAM_WRITE_MODE, new XSDString("truncate"));
+
+  AFF4ScopedPtr<AFF4Stream> output_stream = resolver.AFF4FactoryOpen
+      <AFF4Stream>(output_urn);
+
+  if (!output_stream) {
+    LOG(ERROR) << "Failed to create output file: " <<
+        output_urn.SerializeToString();
+
+    return IO_ERROR;
+  }
+
+  Elf64_Ehdr header = {
+    .ident = {ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3, ELFCLASS64,
+              ELFDATA2LSB, EV_CURRENT},
+    .type = ET_CORE,
+    .machine = EM_X86_64,
+    .version = EV_CURRENT,
+  };
+
+  header.phoff    = sizeof(Elf64_Ehdr);
+  header.phentsize = sizeof(Elf64_Phdr);
+  header.ehsize = sizeof(Elf64_Ehdr);
+  header.phentsize = sizeof(Elf64_Phdr);
+
+  header.phnum = ranges.size();
+  header.shentsize = sizeof(Elf64_Shdr);
+  header.shnum = 0;
+
+  output_stream->Write(reinterpret_cast<char *>(&header), sizeof(header));
+
+  // Where we start writing data: End of ELF header plus one physical header per
+  // range.
+  uint64 file_offset = (sizeof(Elf64_Ehdr) +
+                        ranges.size() * sizeof(Elf64_Phdr));
+
+  for (auto range : ranges) {
+    Elf64_Phdr pheader = {};
+
+    pheader.type = PT_LOAD;
+    pheader.paddr = range.phys_offset;
+    pheader.memsz = range.length;
+    pheader.align = 1;
+    pheader.flags = PF_R;
+    pheader.off = file_offset;
+    pheader.filesz = range.length;
+
+    // Move the file offset by the size of this run.
+    file_offset += range.length;
+
+    if (output_stream->Write(reinterpret_cast<char *>(&pheader),
+                             sizeof(pheader)) < 0) {
+      return IO_ERROR;
+    }
+  }
+
+  // Copy the memory to the output.
+  for (auto range : ranges) {
+    std::cout << "Dumping Range (0x" << std::hex <<
+        range.phys_offset << " - 0x" << std::hex <<
+        range.phys_offset + range.length << ")\n";
+
+    device_stream->Seek(range.phys_offset, SEEK_SET);
+    res = device_stream->CopyToStream(
+        *output_stream, range.length,
+        std::bind(&OSXPmemImager::progress_renderer, this,
+                  std::placeholders::_1, std::placeholders::_2));
+
+    if (res != STATUS_OK)
+      return res;
+  }
+
+  actions_run.insert("memory");
+
+  return STATUS_OK;
+}
 
 
 AFF4Status OSXPmemImager::ImagePhysicalMemory() {
@@ -29,7 +134,7 @@ AFF4Status OSXPmemImager::ImagePhysicalMemory() {
   if (res != STATUS_OK)
     return res;
 
-  for(auto it: ranges) {
+  for (auto it : ranges) {
     LOG(ERROR) << "Range " << it.phys_offset << " " << it.length;
   }
 
@@ -53,8 +158,8 @@ AFF4Status OSXPmemImager::ImagePhysicalMemory() {
   if (!map_stream)
     return IO_ERROR;
 
-  AFF4ScopedPtr<AFF4Stream> device_stream = resolver.AFF4FactoryOpen<AFF4Stream>(
-      device_urn);
+  AFF4ScopedPtr<AFF4Stream> device_stream = resolver.AFF4FactoryOpen
+      <AFF4Stream>(device_urn);
   if (!device_stream)
     return IO_ERROR;
 
@@ -68,7 +173,7 @@ AFF4Status OSXPmemImager::ImagePhysicalMemory() {
 
     if (res != STATUS_OK)
       return res;
-  };
+  }
 
   // Also capture these by default.
   if (inputs.size() == 0) {
@@ -78,16 +183,16 @@ AFF4Status OSXPmemImager::ImagePhysicalMemory() {
     inputs.push_back("/mach_kernel");
     inputs.push_back(aff4_sprintf("%s_info", device_name.c_str()));
     inputs.push_back("/System/Library/Extensions/*.kext/Contents/*/*");
-  };
+  }
 
   res = process_input();
   return res;
-};
+}
 
 
 AFF4Status OSXPmemImager::Initialize() {
   return STATUS_OK;
-};
+}
 
 
 static bool efi_readable(EFI_MEMORY_TYPE type) {
@@ -101,7 +206,7 @@ static bool efi_readable(EFI_MEMORY_TYPE type) {
           type == EfiACPIReclaimMemory ||
           type == EfiACPIMemoryNVS ||
           type == EfiPalCode);
-};
+}
 
 
 AFF4Status OSXPmemImager::GetRanges(vector<OSXPmemRange> &ranges) {
@@ -124,7 +229,7 @@ AFF4Status OSXPmemImager::GetRanges(vector<OSXPmemRange> &ranges) {
     sysctlbyname(sysctl_name.c_str(), 0, &metalen, 0, 0);
 
     // Allocate the required number of bytes.
-    meta = (pmem_meta_t *)malloc(metalen);
+    meta = reinterpret_cast<pmem_meta_t *>(malloc(metalen));
     error = sysctlbyname(sysctl_name.c_str(), meta, &metalen, 0, 0);
     if (error == 0 && metalen > 0) {
       break;
@@ -142,8 +247,7 @@ AFF4Status OSXPmemImager::GetRanges(vector<OSXPmemRange> &ranges) {
   pmem_meta_record_t *record;
 
   // Fetch the Efi ranges.
-  record = (pmem_meta_record_t *)((char *)meta +
-                                  meta->records_offset);
+  record = (pmem_meta_record_t *)((char *)meta + meta->records_offset);
   for (int i=0; i < meta->record_count; i++) {
     if (record->type == pmem_efi_range_type &&
         efi_readable(record->efi_range.efi_type)) {
@@ -151,16 +255,19 @@ AFF4Status OSXPmemImager::GetRanges(vector<OSXPmemRange> &ranges) {
                         record->efi_range.start,
                         record->efi_range.length,
                         device_urn);
-    };
+    }
 
     // Go to the next record.
     record = (pmem_meta_record_t *)((char *)record + record->size);
-  };
+  }
+
+
+  // This does not appear to be the correct thing to do. Disable for now.
+  #if 0
 
   URN null_URN("aff4:/NULL");
 
-  record = (pmem_meta_record_t *)((char *)meta +
-                                  meta->records_offset);
+  record = (pmem_meta_record_t *)((char *)meta + meta->records_offset);
   for (int i=0; i < meta->record_count; i++) {
     if (record->type == pmem_pci_range_type &&
         strnstr(record->purpose, "GFX0", PMEM_NAMESIZE)) {
@@ -168,15 +275,17 @@ AFF4Status OSXPmemImager::GetRanges(vector<OSXPmemRange> &ranges) {
                         record->pci_range.start,
                         record->pci_range.length,
                         null_URN);
-    };
+    }
 
     // Go to the next record.
     record = (pmem_meta_record_t *)((char *)record + record->size);
-  };
+  }
+
+  #endif
 
   free(meta);
 
-  for (auto it: temp_map.GetRanges()) {
+  for (auto it : temp_map.GetRanges()) {
     if (it.target_id == 0) {
       OSXPmemRange range;
 
@@ -184,11 +293,11 @@ AFF4Status OSXPmemImager::GetRanges(vector<OSXPmemRange> &ranges) {
       range.length = it.length;
 
       ranges.push_back(range);
-    };
-  };
+    }
+  }
 
   return STATUS_OK;
-};
+}
 
 
 AFF4Status OSXPmemImager::ParseArgs() {
@@ -204,17 +313,17 @@ AFF4Status OSXPmemImager::ParseArgs() {
     GetArg<TCLAP::ValueArg<string>>("driver")->getValue());
 
   return result;
-};
+}
 
 AFF4Status OSXPmemImager::ProcessArgs() {
   AFF4Status result = PmemImager::ProcessArgs();
 
   return result;
-};
+}
 
 AFF4Status OSXPmemImager::UninstallDriver() {
   return STATUS_OK;
-};
+}
 
 
 AFF4Status OSXPmemImager::InstallDriver() {
@@ -222,18 +331,17 @@ AFF4Status OSXPmemImager::InstallDriver() {
     <FileBackedObject>(device_urn);
 
   if (!device_stream) {
-    LOG(INFO) << "Device " << device_urn.SerializeToString() <<
-      " does not yet exist, will try to load driver.";
-
-    // TODO.
-  };
+    LOG(ERROR) << "Device " << device_urn.SerializeToString() <<
+      " does not yet exist, please load driver first using "
+      "'kextload MacPmem.kext'.";
+  }
 
   return STATUS_OK;
-};
+}
 
 
 OSXPmemImager::~OSXPmemImager() {
   if (driver_installed_) {
     UninstallDriver();
-  };
-};
+  }
+}

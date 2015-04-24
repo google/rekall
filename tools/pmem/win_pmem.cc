@@ -16,6 +16,7 @@ specific language governing permissions and limitations under the License.
 #undef ERROR
 
 #include "win_pmem.h"
+#include "elf.h"
 
 #include <functional>
 #include <string>
@@ -93,7 +94,7 @@ static string _GetTempPath() {
   GetTempFileNameA(path, "pmem", 0, filename);
 
   return filename;
-};
+}
 
 static DWORD _GetSystemArch() {
   SYSTEM_INFO sys_info;
@@ -102,7 +103,7 @@ static DWORD _GetSystemArch() {
   GetNativeSystemInfo(&sys_info);
 
   return sys_info.wProcessorArchitecture;
-};
+}
 
 static string GetDriverName() {
   switch (_GetSystemArch()) {
@@ -116,8 +117,8 @@ static string GetDriverName() {
 
     default:
       LOG(FATAL) << "I dont know what arch I am running on?";
-  };
-};
+  }
+}
 
 
 AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
@@ -138,10 +139,10 @@ AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
                        sizeof(*info), &size, NULL)) {
     LOG(ERROR) << "Failed to get memory geometry: " << GetLastErrorMessage();
     return IO_ERROR;
-  };
+  }
 
   return STATUS_OK;
-};
+}
 
 static void print_memory_info_(const PmemMemoryInfo &info) {
   StringIO output_stream;
@@ -152,10 +153,10 @@ static void print_memory_info_(const PmemMemoryInfo &info) {
   for (unsigned int i = 0; i < info.NumberOfRuns; i++) {
     output_stream.sprintf("Start 0x%08llX - Length 0x%08llX\n",
                           info.Runs[i].start, info.Runs[i].length);
-  };
+  }
 
   std::cout << output_stream.buffer.c_str();
-};
+}
 
 
 static string DumpMemoryInfoToYaml(const PmemMemoryInfo &info) {
@@ -177,13 +178,13 @@ static string DumpMemoryInfoToYaml(const PmemMemoryInfo &info) {
     run["length"] = info.Runs[i].length;
 
     runs.push_back(run);
-  };
+  }
 
   node["Runs"] = runs;
 
   out << node;
   return out.c_str();
-};
+}
 
 AFF4Status WinPmemImager::ImagePageFile() {
   int pagefile_number = 0;
@@ -221,7 +222,7 @@ AFF4Status WinPmemImager::ImagePageFile() {
     if (!CreatePipe(&stdout_rd, &stdout_wr, &saAttr, 0)) {
       LOG(ERROR) << "StdoutRd CreatePipe";
       return IO_ERROR;
-    };
+    }
 
     // Ensure the read handle to the pipe for STDOUT is not inherited.
     SetHandleInformation(stdout_rd, HANDLE_FLAG_INHERIT, 0);
@@ -237,7 +238,7 @@ AFF4Status WinPmemImager::ImagePageFile() {
       to_be_removed.clear();
 
       return res;
-    };
+    }
 
     std::cout << "Preparing to run " << command_line.c_str() << "\n";
     string buffer(BUFF_SIZE, 0);
@@ -272,26 +273,132 @@ AFF4Status WinPmemImager::ImagePageFile() {
 
       if (!ReadFile(stdout_rd, &buffer[0], bytes_read, &bytes_read, NULL)) {
         break;
-      };
+      }
 
       count += bytes_read;
       if (count > 1024 * 1024) {
         count -= 1024*1024;
         if (total_mb_read % 50 == 0) {
           std::cout << "\n" << total_mb_read << "Mb ";
-        };
+        }
 
         total_mb_read += 1;
         std::cout << ".";
-      };
+      }
 
       output_stream->Write(buffer.data(), bytes_read);
-    };
-  };
+    }
+  }
 
   actions_run.insert("pagefile");
   return CONTINUE;
-};
+}
+
+AFF4Status WinPmemImager::ImagePhysicalMemoryToElf() {
+  std::cout << "Imaging memory to an Elf file.\n";
+
+  AFF4Status res;
+
+  // First ensure that the driver is loaded.
+  res = InstallDriver();
+  if (res != CONTINUE)
+    return res;
+
+  PmemMemoryInfo info;
+  res = GetMemoryInfo(&info);
+  if (res != STATUS_OK)
+    return res;
+
+  AFF4ScopedPtr<FileBackedObject> device_stream = resolver.AFF4FactoryOpen
+      <FileBackedObject>(device_urn);
+
+  if (!device_stream)
+    return IO_ERROR;
+
+  string output_path = GetArg<TCLAP::ValueArg<string>>("output")->getValue();
+  URN output_urn(URN::NewURNFromFilename(output_path));
+
+  // Always truncate output to 0 when writing an elf file (these do not support
+  // appending).
+  resolver.Set(output_urn, AFF4_STREAM_WRITE_MODE, new XSDString("truncate"));
+
+  AFF4ScopedPtr<AFF4Stream> output_stream = resolver.AFF4FactoryOpen
+      <AFF4Stream>(output_urn);
+
+  if (!output_stream) {
+    LOG(ERROR) << "Failed to create output file: " <<
+        output_urn.SerializeToString();
+
+    return IO_ERROR;
+  }
+
+  Elf64_Ehdr header = {
+    .ident = {ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3, ELFCLASS64,
+              ELFDATA2LSB, EV_CURRENT},
+    .type = ET_CORE,
+    .machine = EM_X86_64,
+    .version = EV_CURRENT,
+  };
+
+  header.phoff    = sizeof(Elf64_Ehdr);
+  header.phentsize = sizeof(Elf64_Phdr);
+  header.ehsize = sizeof(Elf64_Ehdr);
+  header.phentsize = sizeof(Elf64_Phdr);
+
+  header.phnum = info.NumberOfRuns;
+  header.shentsize = sizeof(Elf64_Shdr);
+  header.shnum = 0;
+
+  output_stream->Write(reinterpret_cast<char *>(&header), sizeof(header));
+
+  // Where we start writing data: End of ELF header plus one physical header per
+  // range.
+  uint64 file_offset = (sizeof(Elf64_Ehdr) +
+                        info.NumberOfRuns * sizeof(Elf64_Phdr));
+
+  for (unsigned int i = 0; i < info.NumberOfRuns; i++) {
+    PHYSICAL_MEMORY_RANGE range = info.Runs[i];
+    Elf64_Phdr pheader = {};
+
+    pheader.type = PT_LOAD;
+    pheader.paddr = range.start;
+    pheader.memsz = range.length;
+    pheader.align = 1;
+    pheader.flags = PF_R;
+    pheader.off = file_offset;
+    pheader.filesz = range.length;
+
+    // Move the file offset by the size of this run.
+    file_offset += range.length;
+
+    if (output_stream->Write(reinterpret_cast<char *>(&pheader),
+                             sizeof(pheader)) < 0) {
+      return IO_ERROR;
+    }
+  }
+
+  // Copy the memory to the output.
+  for (unsigned int i = 0; i < info.NumberOfRuns; i++) {
+    PHYSICAL_MEMORY_RANGE range = info.Runs[i];
+
+    std::cout << "Dumping Range " << i << " (Starts at " << std::hex <<
+        range.start << ")\n";
+
+    device_stream->Seek(range.start, SEEK_SET);
+    res = device_stream->CopyToStream(
+        *output_stream, range.length,
+        std::bind(&WinPmemImager::progress_renderer, this,
+                  std::placeholders::_1, std::placeholders::_2));
+
+    if (res != STATUS_OK)
+      return res;
+  }
+
+  actions_run.insert("memory");
+
+  return STATUS_OK;
+}
+
 
 // We image memory in the order of volatility - first the physical RAM, then the
 // pagefile then any files that may be required.
@@ -363,7 +470,7 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
 
     if (res != STATUS_OK)
       return res;
-  };
+  }
 
   actions_run.insert("memory");
 
@@ -376,11 +483,11 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
   if (inputs.size() == 0) {
     LOG(INFO) << "Adding default file collections.";
     inputs.push_back("C:\\Windows\\SysNative\\drivers\\*.sys");
-  };
+  }
 
   res = process_input();
   return res;
-};
+}
 
 AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
   // We extract our own files from the private resolver.
@@ -390,7 +497,7 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
   if (!input_file_stream) {
     LOG(FATAL) << "Unable to extract the correct driver - "
         "maybe the binary is damaged?";
-  };
+  }
 
   private_resolver.Set(output_file, AFF4_STREAM_WRITE_MODE,
                        new XSDString("truncate"));
@@ -400,7 +507,7 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
 
   if (!outfile) {
     LOG(FATAL) << "Unable to create driver file.";
-  };
+  }
 
   LOG(INFO) << "Extracted " << input_file.SerializeToString() << " to " <<
       output_file.SerializeToString();
@@ -416,10 +523,10 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
 
   if (res != STATUS_OK) {
     LOG(ERROR) << "Unable to extract " << input_file.SerializeToString();
-  };
+  }
 
   return res;
-};
+}
 
 
 AFF4Status WinPmemImager::InstallDriver() {
@@ -444,7 +551,7 @@ AFF4Status WinPmemImager::InstallDriver() {
   } else {
     // Use the driver the user told us to.
     driver_path = GetArg<TCLAP::ValueArg<string>>("driver")->getValue();
-  };
+  }
 
   // Now install the driver.
   UninstallDriver();   // First ensure the driver is not already installed.
@@ -480,7 +587,7 @@ AFF4Status WinPmemImager::InstallDriver() {
   if (!service) {
     CloseServiceHandle(scm);
     return IO_ERROR;
-  };
+  }
 
   if (!StartService(service, 0, NULL)) {
     if (GetLastError() != ERROR_SERVICE_ALREADY_RUNNING) {
@@ -511,7 +618,7 @@ AFF4Status WinPmemImager::InstallDriver() {
     CloseServiceHandle(service);
     CloseServiceHandle(scm);
     return IO_ERROR;
-  };
+  }
 
   CloseServiceHandle(service);
   CloseServiceHandle(scm);
@@ -526,7 +633,7 @@ AFF4Status WinPmemImager::InstallDriver() {
 
   actions_run.insert("load-driver");
   return CONTINUE;
-};
+}
 
 
 AFF4Status WinPmemImager::UninstallDriver() {
@@ -542,7 +649,7 @@ AFF4Status WinPmemImager::UninstallDriver() {
 
   if (service) {
     ControlService(service, SERVICE_CONTROL_STOP, &ServiceStatus);
-  };
+  }
 
   DeleteService(service);
   CloseServiceHandle(service);
@@ -550,7 +657,7 @@ AFF4Status WinPmemImager::UninstallDriver() {
 
   actions_run.insert("unload-driver");
   return CONTINUE;
-};
+}
 
 
 AFF4Status WinPmemImager::Initialize() {
@@ -564,7 +671,7 @@ AFF4Status WinPmemImager::Initialize() {
 
   if (!volume) {
     LOG(FATAL) << "Unable to extract drivers. Maybe the executable is damaged?";
-  };
+  }
 
   LOG(INFO) << "Openning driver AFF4 volume: " <<
       volume->urn.SerializeToString();
@@ -572,7 +679,7 @@ AFF4Status WinPmemImager::Initialize() {
   imager_urn = volume->urn;
 
   return STATUS_OK;
-};
+}
 
 
 AFF4Status WinPmemImager::ParseArgs() {
@@ -582,13 +689,13 @@ AFF4Status WinPmemImager::ParseArgs() {
   if (Get("load-driver")->isSet() && Get("unload-driver")->isSet()) {
     LOG(ERROR) << "You can not specify both the -l and -u options together.\n";
     return INVALID_INPUT;
-  };
+  }
 
   if (result == CONTINUE && Get("pagefile")->isSet())
     result = handle_pagefiles();
 
   return result;
-};
+}
 
 AFF4Status WinPmemImager::ProcessArgs() {
   AFF4Status result = CONTINUE;
@@ -605,7 +712,7 @@ AFF4Status WinPmemImager::ProcessArgs() {
     result = PmemImager::ProcessArgs();
 
   return result;
-};
+}
 
 WinPmemImager::~WinPmemImager() {
   // Unload the driver if we loaded it and the user specifically does not want
@@ -616,9 +723,9 @@ WinPmemImager::~WinPmemImager() {
           "the -l flag.\n";
     } else {
       UninstallDriver();
-    };
-  };
-};
+    }
+  }
+}
 
 AFF4Status WinPmemImager::handle_pagefiles() {
   vector<string> pagefile_args = GetArg<TCLAP::MultiArgToNextFlag<string>>(
@@ -630,10 +737,10 @@ AFF4Status WinPmemImager::handle_pagefiles() {
     if (GetFullPathName(it.c_str(), MAX_PATH, path, NULL) == 0) {
       LOG(ERROR) << "GetFullPathName failed: " << GetLastErrorMessage();
       return IO_ERROR;
-    };
+    }
 
     pagefiles.push_back(path);
-  };
+  }
 
   return CONTINUE;
-};
+}

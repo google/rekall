@@ -13,8 +13,8 @@ CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations under the License.
 */
 
-#ifndef _OSX_PMEM_H
-#define _OSX_PMEM_H
+#ifndef TOOLS_PMEM_OSXPMEM_H_
+#define TOOLS_PMEM_OSXPMEM_H_
 
 #include "pmem.h"
 // Driver API.
@@ -38,7 +38,7 @@ class OSXPmemImager: public PmemImager {
  protected:
   virtual string GetName() {
     return "The OSXPmem memory imager.  Copyright 2015 Google Inc.";
-  };
+  }
 
   /**
    * Actually create the image of physical memory.
@@ -80,13 +80,14 @@ class OSXPmemImager: public PmemImager {
         false, "pmem", "Path to device."));
 
     return PmemImager::RegisterArgs();
-  };
+  }
 
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
 
  public:
   virtual ~OSXPmemImager();
+  virtual AFF4Status ImagePhysicalMemoryToElf();
 };
 
-#endif
+#endif  // TOOLS_PMEM_OSXPMEM_H_

@@ -16,7 +16,7 @@ specific language governing permissions and limitations under the License.
 #ifndef TOOLS_PMEM_PMEM_H_
 #define TOOLS_PMEM_PMEM_H_
 
-#define PMEM_VERSION "2.0.0";
+#define PMEM_VERSION "2.0.1";
 
 #include <aff4/libaff4.h>
 #include <aff4/aff4_imager_utils.h>
@@ -30,24 +30,13 @@ class PmemImager: public BasicImager {
 
   virtual string GetName() {
     return "The Pmem physical memory imager. Copyright 2014 Google Inc.";
-  };
+  }
 
   virtual string GetVersion() {
     return PMEM_VERSION;
-  };
+  }
 
   virtual AFF4Status handle_pagefiles();
-  virtual AFF4Status handle_elf() {
-    if (Get("input")->isSet() || Get("pagefile")->isSet()) {
-      std::cout << "--elf is incompatible with --input and --pagefile because "
-          "we can not store multiple streams in an ELF file.\n";
-      return INCOMPATIBLE_TYPES;
-    };
-
-    LOG(ERROR) << "ELF output is not currently implemented.";
-    return NOT_IMPLEMENTED;
-  };
-
 
   /**
    * Actually create the image of physical memory.
@@ -56,6 +45,8 @@ class PmemImager: public BasicImager {
    * @return STATUS_OK if successful.
    */
   virtual AFF4Status ImagePhysicalMemory() = 0;
+
+  virtual AFF4Status ImagePhysicalMemoryToElf();
 
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
@@ -93,7 +84,7 @@ class PmemImager: public BasicImager {
         false, "/path/to/pagefile"));
 
     return BasicImager::RegisterArgs();
-  };
+  }
 };
 
 #endif  // TOOLS_PMEM_PMEM_H_

@@ -91,7 +91,7 @@ class WinPmemImager: public PmemImager {
 
   virtual string GetName() {
     return "The WinPmem memory imager.  Copyright 2014 Google Inc.";
-  };
+  }
 
   /**
    * Copy the page files to the image. In this implementation we shell out to
@@ -159,7 +159,7 @@ class WinPmemImager: public PmemImager {
         false, "", "Path to driver."));
 
     return PmemImager::RegisterArgs();
-  };
+  }
 
   virtual AFF4Status handle_pagefiles();
   virtual AFF4Status ParseArgs();
@@ -168,7 +168,9 @@ class WinPmemImager: public PmemImager {
   AFF4Status GetMemoryInfo(PmemMemoryInfo *info);
 
  public:
-    virtual ~WinPmemImager();
+  virtual ~WinPmemImager();
+
+  virtual AFF4Status ImagePhysicalMemoryToElf();
 };
 
 #endif  // _WIN_PMEM_H

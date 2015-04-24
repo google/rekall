@@ -31,7 +31,7 @@ class LinuxPmemImager: public PmemImager {
  protected:
   virtual string GetName() {
     return "The LinuxPmem memory imager.  Copyright 2014 Google Inc.";
-  };
+  }
 
   /**
    * Parse memory ranges from the /proc/kcore device.
@@ -59,6 +59,8 @@ class LinuxPmemImager: public PmemImager {
    * @return STATUS_OK if successful.
    */
   AFF4Status ImageKcoreToMap(vector<KCoreRange> &ranges);
+
+  virtual AFF4Status ImagePhysicalMemoryToElf();
 };
 
 #endif
