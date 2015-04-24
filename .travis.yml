@@ -9,6 +9,3 @@ install:
 
 script:
   - python tools/testing/test_suite.py -c rekall-test/tigger/tests.config --inline
-  - python tools/testing/test_suite.py -c rekall-test/osx10.9.5/tests.config --inline
-  - python tools/testing/test_suite.py -c rekall-test/ntfs/tests.config --inline
-  - python tools/testing/test_suite.py -c rekall-test/linux-3.2.0-PAE/tests.config --inline

@@ -185,3 +185,33 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             self.runs.insert((0, 0, aff4_stream.Size(), self.image))
 
         logging.info("Added %s as physical memory", image_urn)
+
+
+# pylint: disable=unused-import
+# Add these so that pyinstaller builds these dependencies in.
+import rdflib.plugins.memory
+import rdflib.plugins.parsers.hturtle
+import rdflib.plugins.parsers.notation3
+import rdflib.plugins.parsers.nquads
+import rdflib.plugins.parsers.nt
+import rdflib.plugins.parsers.rdfxml
+import rdflib.plugins.parsers.structureddata
+import rdflib.plugins.parsers.trig
+import rdflib.plugins.parsers.trix
+import rdflib.plugins.serializers.n3
+import rdflib.plugins.serializers.nquads
+import rdflib.plugins.serializers.nt
+import rdflib.plugins.serializers.rdfxml
+import rdflib.plugins.serializers.trig
+import rdflib.plugins.serializers.trix
+import rdflib.plugins.serializers.turtle
+import rdflib.plugins.sleepycat
+import rdflib.plugins.sparql.processor
+import rdflib.plugins.sparql.results.csvresults
+import rdflib.plugins.sparql.results.jsonresults
+import rdflib.plugins.sparql.results.tsvresults
+import rdflib.plugins.sparql.results.txtresults
+import rdflib.plugins.sparql.results.xmlresults
+import rdflib.plugins.stores.auditable
+import rdflib.plugins.stores.concurrent
+import rdflib.plugins.stores.sparqlstore

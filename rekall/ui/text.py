@@ -527,7 +527,7 @@ class CellRenderer(TextObjectRenderer):
     renders_type = "Cell"
 
     def render_row(self, target, **_):
-        return Cell.Strip(target)
+        return target
 
 
 class BaseCell(object):

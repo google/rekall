@@ -1,5 +1,6 @@
-#define REKALL_VERSION '1.3.1'
+#define REKALL_VERSION '1.3.2'
 #define REKALL_CODENAME 'Dammastock'
+#define WINPMEM_VERSION '2.0.1'
 
 [Files]
 ; Extra Binaries to add to the package.
@@ -12,7 +13,7 @@ Source: C:\Windows\sysnative\MSVCR100.dll; DestDir: {app}
 Source: C:\Windows\sysnative\MSVCP100.dll; DestDir: {app}
 
 ; Winpmem tool
-Source: ..\windows\winpmem.exe; DestDir: {app}
+Source: ..\windows\winpmem_{#WINPMEM_VERSION}.exe; DestDir: {app}
 
 ; PyInstaller files.
 DestDir: {app}; Source: ..\..\dist\rekal\*; Excludes: "_MEI"; Flags: recursesubdirs
