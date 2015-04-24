@@ -631,6 +631,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 s = session.Session(                                 # <2>
   filename="win7.elf",
+  autodetect=["rsds"],
   profile_path=[
      "http://profiles.rekall-forensic.com"
   ])
@@ -642,8 +643,10 @@ print s.plugins.pslist(method="PsActiveProcessHead") # <3>
 <1> Importing the plugins is required to make rekall load all the default
     plugins. At this point any third party plugins will need to be imported too.
 <2> The session object is created with initial values for some parameters. It is
-    critical that Rekall is able to contant the profile repository at runtime,
-    therefore you will need to provide a valid repository address here.
+    critical that Rekall is able to contact the profile repository at runtime,
+    therefore you will need to provide a valid repository address here. If you
+    plan to use autodetection (you should) here is where the relevant methods
+    should be specified.
 <3> The plugin is instantiated from the session object. When a plugin instance
     is printed, it renders its output to the console by default.
 
@@ -670,6 +673,7 @@ from rekall.plugins.addrspaces import standard
 logging.getLogger().setLevel(logging.DEBUG)
 
 s = session.Session(                                      # <1>
+    autodetect=["rsds"],
     profile_path=[
         "http://profiles.rekall-forensic.com"
     ])

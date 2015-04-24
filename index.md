@@ -68,10 +68,5 @@ order: 1
 </div>
 
 
-Rekall is now tested with Travis-CI [![Build Status](https://travis-ci.org/google/rekall.svg?branch=master)](https://travis-ci.org/google/rekall).
-
-# News
-
-- 2015-03-21: The upcoming Rekall workshop at [DFRWS
-  Dublin](http://www.dfrws.org/2015eu/program.shtml) will feature the new
-  interactive Rekall web console!
+Rekall is now [tested
+automatically - click for dashboard.](http://tap.rekall-forensic.com/runs/latest.html)

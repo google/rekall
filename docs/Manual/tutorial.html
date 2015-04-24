@@ -68,7 +68,7 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.1 Dammastock.</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
 
   </ul>
  </li>
@@ -1048,11 +1048,12 @@ MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
 AAAASUVORK5CYII=" /></span></span>
 <span style="color: #000000">   10:</span>   filename<span style="color: #990000">=</span><span style="color: #FF0000">"win7.elf"</span><span style="color: #990000">,</span>
-<span style="color: #000000">   11:</span>   profile_path<span style="color: #990000">=[</span>
-<span style="color: #000000">   12:</span> <span style="font-style: italic"><span style="color: #9A1900">     "http://profiles.rekall-forensic.com"</span></span>
-<span style="color: #000000">   13:</span>   <span style="color: #990000">])</span>
-<span style="color: #000000">   14:</span>
-<span style="color: #000000">   15:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
+<span style="color: #000000">   11:</span>   autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
+<span style="color: #000000">   12:</span>   profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   13:</span> <span style="font-style: italic"><span style="color: #9A1900">     "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   14:</span>   <span style="color: #990000">])</span>
+<span style="color: #000000">   15:</span>
+<span style="color: #000000">   16:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
 JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
 7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
@@ -1060,7 +1061,7 @@ Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
 cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
 NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
 SUVORK5CYII=" /></span></span>
-<span style="color: #000000">   16:</span> </tt></pre></div></div>
+<span style="color: #000000">   17:</span> </tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1079,8 +1080,10 @@ MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
 AAAASUVORK5CYII=" /></td><td>
 The session object is created with initial values for some parameters. It is
-    critical that Rekall is able to contant the profile repository at runtime,
-    therefore you will need to provide a valid repository address here.
+    critical that Rekall is able to contact the profile repository at runtime,
+    therefore you will need to provide a valid repository address here. If you
+    plan to use autodetection (you should) here is where the relevant methods
+    should be specified.
 </td></tr>
 <tr><td><img alt="3" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
 JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
@@ -1122,11 +1125,12 @@ gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
 YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
 dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
 ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">    9:</span>     profile_path<span style="color: #990000">=[</span>
-<span style="color: #000000">   10:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
-<span style="color: #000000">   11:</span>     <span style="color: #990000">])</span>
-<span style="color: #000000">   12:</span>
-<span style="color: #000000">   13:</span> with s<span style="color: #990000">:</span>                                                   <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+<span style="color: #000000">    9:</span>     autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
+<span style="color: #000000">   10:</span>     profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   11:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   12:</span>     <span style="color: #990000">])</span>
+<span style="color: #000000">   13:</span>
+<span style="color: #000000">   14:</span> with s<span style="color: #990000">:</span>                                                   <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
 HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
 Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
@@ -1134,9 +1138,9 @@ izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
 AAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">   14:</span>     s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
-<span style="color: #000000">   15:</span>             <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span> session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
-<span style="color: #000000">   16:</span>     s<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">GetParameter</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"profile"</span><span style="color: #990000">)</span>                             <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
+<span style="color: #000000">   15:</span>     s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
+<span style="color: #000000">   16:</span>             <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span> session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
+<span style="color: #000000">   17:</span>     s<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">GetParameter</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"profile"</span><span style="color: #990000">)</span>                             <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
 JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
 7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
@@ -1144,9 +1148,9 @@ Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
 cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
 NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
 SUVORK5CYII=" /></span></span>
-<span style="color: #000000">   17:</span>
-<span style="color: #000000">   18:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
-<span style="color: #000000">   19:</span> </tt></pre></div></div>
+<span style="color: #000000">   18:</span>
+<span style="color: #000000">   19:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
+<span style="color: #000000">   20:</span> </tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1366,7 +1370,7 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-19 17:12:47 AEST
+Last updated 2015-04-23 23:13:49 CEST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

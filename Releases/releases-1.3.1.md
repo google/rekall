@@ -1,11 +1,33 @@
 ---
 layout: download
 menuitem: Releases
-title: Version 1.3.1 Dammastock.
+title: Version 1.3.2 Dammastock.
 order: 2
 ---
 
 # Rekall Memory Forensic Releases
+
+## Version 1.3.2 Dammastock.
+
+This incremental release features a few major features from 1.3.1:
+
+Memory Acquisition
+: This release includes the new OSXPmem acquisition tool and a new driver. This
+  release also includes a suitable address space so Rekall can perform live
+  analysis on OSX systems (with the new driver).
+
+Windows Plugins
+: This release adds a couple of popular plugins
+
+1. mftdump - dumps cached MFT data - you can use this to get a glimpse of the
+   filesystem structure cached in memory.
+
+2. mimikatz - This plugin will decrypt the user's logon password if it is cached
+   in the wdigest module. This seems to work on windows 7 only right now.
+
+Arm
+: The ARM address space has been added so we can now analyze android images.
+
 
 ## Version 1.3.1 Dammastock.
 

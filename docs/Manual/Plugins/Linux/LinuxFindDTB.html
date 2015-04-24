@@ -68,7 +68,7 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.1 Dammastock.</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
 
   </ul>
  </li>
@@ -405,7 +405,7 @@ ript>
 a direct mapping between the kernel virtual address space and the physical
 memory.  This is the difference between the virtual and physical addresses
 (aka PAGE_OFFSET). This is defined by the __va macro:</p>
-<div class="highlight"><pre><span class="c">#define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))</span>
+<div class="highlight"><pre>#define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
 </pre></div>
 
 

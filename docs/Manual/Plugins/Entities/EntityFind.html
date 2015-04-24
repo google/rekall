@@ -68,7 +68,7 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
 
-    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.1 Dammastock.</a></li>
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
 
   </ul>
  </li>
@@ -271,27 +271,27 @@ ript>
 
 <div class="abstract">
 <p>Runs the query and displays results. Base class for saved searches.</p>
-<div class="highlight"><pre><span class="n">This</span> <span class="n">class</span> <span class="n">is</span> <span class="n">designed</span> <span class="n">to</span> <span class="n">be</span> <span class="n">subclasses</span> <span class="n">by</span> <span class="n">saved</span> <span class="n">searches</span><span class="p">.</span> <span class="n">Subclasses</span> <span class="n">may</span>
-<span class="n">override</span> <span class="n">the</span> <span class="n">defaults</span> <span class="k">for</span> <span class="n">the</span> <span class="n">following</span> <span class="n">properties</span><span class="o">:</span>
+<div class="highlight"><pre>This class is designed to be subclasses by saved searches. Subclasses may
+override the defaults for the following properties:
 
-<span class="o">--</span><span class="n">query</span><span class="p">,</span> <span class="n">search</span><span class="o">:</span> <span class="n">The</span> <span class="n">query</span> <span class="n">that</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">be</span> <span class="n">run</span><span class="p">.</span>
-<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">display_filter</span><span class="o">:</span> <span class="n">Another</span> <span class="n">query</span> <span class="n">that</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">filter</span> <span class="n">out</span> <span class="n">unwanted</span>
-                    <span class="n">results</span><span class="p">.</span>
-<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">columns</span><span class="o">:</span> <span class="n">A</span> <span class="n">list</span> <span class="n">of</span> <span class="n">attributes</span> <span class="n">to</span> <span class="n">render</span> <span class="n">in</span> <span class="n">the</span> <span class="n">output</span><span class="p">.</span> <span class="n">Format</span> <span class="n">as</span>
-             <span class="s">&quot;Component/attribute&quot;</span><span class="p">.</span>
-<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">sort</span><span class="o">:</span> <span class="n">A</span> <span class="n">list</span> <span class="n">of</span> <span class="n">columns</span> <span class="n">to</span> <span class="n">sort</span> <span class="n">by</span><span class="p">.</span> <span class="n">Sort</span> <span class="n">is</span> <span class="n">currently</span> <span class="n">ASC</span><span class="p">.</span> <span class="n">Same</span> <span class="n">format</span>
-          <span class="n">as</span> <span class="n">above</span><span class="p">.</span>
-<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">width</span><span class="o">:</span> <span class="n">Width</span> <span class="n">of</span> <span class="n">the</span> <span class="n">rendered</span> <span class="n">table</span><span class="p">.</span>
-<span class="p">(</span><span class="o">--</span><span class="p">)</span><span class="n">stream_results</span><span class="o">:</span> <span class="n">If</span> <span class="n">on</span><span class="p">,</span> <span class="n">will</span> <span class="n">render</span> <span class="n">results</span> <span class="n">as</span> <span class="n">soon</span> <span class="n">as</span> <span class="n">they</span><span class="err">&#39;</span><span class="n">re</span> <span class="n">available</span><span class="p">.</span>
-                    <span class="n">This</span> <span class="n">typically</span> <span class="n">means</span> <span class="n">the</span> <span class="n">results</span> <span class="n">will</span> <span class="n">be</span> <span class="n">incomplete</span><span class="p">.</span> <span class="n">It</span>
-                    <span class="n">is</span> <span class="n">probably</span> <span class="n">pointless</span> <span class="n">to</span> <span class="n">use</span> <span class="n">this</span> <span class="n">in</span> <span class="n">combination</span> <span class="n">with</span>
-                    <span class="err">&#39;</span><span class="n">sort</span><span class="err">&#39;</span> <span class="n">but</span> <span class="n">no</span> <span class="n">one</span> <span class="n">will</span> <span class="n">stop</span> <span class="n">you</span><span class="p">.</span>
+--query, search: The query that&#39;ll be run.
+(--)display_filter: Another query that&#39;ll be used to filter out unwanted
+                    results.
+(--)columns: A list of attributes to render in the output. Format as
+             &quot;Component/attribute&quot;.
+(--)sort: A list of columns to sort by. Sort is currently ASC. Same format
+          as above.
+(--)width: Width of the rendered table.
+(--)stream_results: If on, will render results as soon as they&#39;re available.
+                    This typically means the results will be incomplete. It
+                    is probably pointless to use this in combination with
+                    &#39;sort&#39; but no one will stop you.
 
-<span class="n">Further</span> <span class="n">arguments</span> <span class="n">that</span> <span class="n">can</span> <span class="n">be</span> <span class="n">supplied</span> <span class="n">at</span> <span class="n">runtime</span><span class="o">:</span>
+Further arguments that can be supplied at runtime:
 
-<span class="o">--</span><span class="n">explain</span><span class="o">:</span> <span class="n">If</span> <span class="n">set</span><span class="p">,</span> <span class="n">an</span> <span class="n">analysis</span> <span class="n">of</span> <span class="n">the</span> <span class="n">query</span> <span class="n">will</span> <span class="n">be</span> <span class="n">rendered</span> <span class="n">and</span> <span class="n">each</span>
-           <span class="n">row</span> <span class="n">in</span> <span class="n">results</span> <span class="n">will</span> <span class="n">include</span> <span class="n">a</span> <span class="n">highlight</span> <span class="n">of</span> <span class="n">the</span> <span class="n">part</span> <span class="n">of</span> <span class="n">the</span> <span class="n">query</span>
-           <span class="n">that</span> <span class="n">matched</span> <span class="n">it</span> <span class="p">(</span><span class="n">obviously</span> <span class="n">a</span> <span class="n">heuristic</span><span class="p">,</span> <span class="n">your</span> <span class="n">mileage</span> <span class="n">may</span> <span class="n">vary</span><span class="p">).</span>
+--explain: If set, an analysis of the query will be rendered and each
+           row in results will include a highlight of the part of the query
+           that matched it (obviously a heuristic, your mileage may vary).
 </pre></div>
 </div>
 
