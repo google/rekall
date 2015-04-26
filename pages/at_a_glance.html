@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/pages/at_a_glance.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-2">
+    
+  </div>
+
+  <div class="col-md-10">
+    <h1>Rekall at a glance.</h1>
+<p>Memory forensics has been a hot topic for the last few years, and indeed there
+are a number of other memory analysis frameworks out there. What sets Rekall
+apart from those?</p>
+<h3>Memory analysis and live analysis</h3>
+<p>Rekall strives to be a complete end-to-end memory analysis framework,
+encapsulating acquisition, analysis, and reporting. Because we also write memory
+acquisition tools, we can exploit synergies between the analysis and acquisition
+parts of the tool.</p>
+<p>In particular Rekall is the only memory analysis platform specifically designed
+to run on the same platform it is analyzing: Live analysis allows us to
+corroborate memory artifacts with results obtained through system APIs, as well
+as quickly triage a system without having to write out and manage large memory
+images (This becomes very important for large servers where the time of
+acquisition leads to too much smear).</p>
+<p>We also ensure our memory analysis tools are stable and work on all supported
+platforms (For example Rekall features the only memory imaging tool available
+for recent versions of OSX, that we know of - and it is open source and free as
+well!).</p>
+<h3>Fully usable as a library.</h3>
+<p>One of the major goals of Rekall is to make it possible to embed Rekall as a
+library inside another project. To make Rekall library friendly we added a
+suspension/progress API where Rekall can inform callers about its progress (this
+is useful for UI applications which must return to their main loop very
+frequently).</p>
+<p>Rekall also has support for customized output formats. One of the more useful
+formats is a JSON based data export format. Thus the output of Rekall can easily
+be consumed inside another program - even one written in a different language.</p>
+<h3>An advanced GUI.</h3>
+<p>Old school forensics analysts are used to work with standard UNIX tools and text
+based output. When we wanted to add a GUI to Rekall we wanted something which
+would be genuinely more useful than simple text output in a web page. We were
+inspired by the IPython notebook to create a new kind of GUI for Rekall: The
+webconsole worksheet.</p>
+<p>The Worksheet is truly a useful GUI - it allows the analyst to create a report,
+merging marked up text, images, embedded files, shell and python code snippets
+as well as the output of Rekall plugins in the same document. Rekall output then
+presents useful action menus which help to drive the analysis by drilling down
+into different objects found.</p>
+<p>The analyst then essentially tells a story: What evidence did they look at, how
+was it relevant, what was the outcome.</p>
+<p>When we created the Rekall GUI we realized this could be a wonderful information
+sharing tool - after all when we teach our memory analysis workshops we also
+tell a story, with examples, text, illustrations etc. Thus the idea to create an
+open source, publicly accessible forensic course was born. We have recently
+launched <a href="http://memory-analysis.rekall-forensic.com/">The Memory Analysis
+Workshop</a> and hope it will grow
+into a widely utilized resource. We use the Rekall webcosole export feature to
+host a &ldquo;non-interactive&rdquo; version of the document, but users can also load the
+full live document to interactively drill down into sample images by
+themselves. Users can modify this and then submit these modification for
+inclusion with a GitHub pull request.</p>
+<h3>Using symbols.</h3>
+<p>One of the main differences between Rekall and other memory analysis frameworks
+is that Rekall uses symbols obtained from operating system vendors&rsquo; debugging
+information directly. This allows Rekall to just know the position of critical
+operating system constants, while other frameworks employ fragile scanning
+techniques to locate these symbols. Scanning techniques are notorious for being
+fragile, and malware can easily maliciously interfere with those by removing or
+adding spurious signatures.</p>
+<p>A side effect of this feature, is that writing a plugin in Rekall is much
+simpler - one simply asks the framework for the location of the required global
+constant, and goes on to use it, instead of writing a new kind of scanner for
+each global symbol. Additionally we simplified the API greatly to make plugin
+writing a real breeze.</p>
+<h3>Looking to the future.</h3>
+<p>Rekall is already a powerful memory analysis framework, but where do we want to
+take it?</p>
+<p>One of the biggest problems with many of the current set of plugins is that
+there are so many of them! Each plugin checks for something specific and
+understanding what the output means is very plugin dependent and requires a deep
+understanding of what the plugin is actually doing. This does not scale for
+automated analysis.</p>
+<p>We want to improve the situation by treating memory analysis as a search
+problem: Imagine if you can simply run a bunch of searches in a &ldquo;SQL like&rdquo;
+language which just gives a set of possible suspicious Entities (e.g. Processes,
+sockets etc). Now imagine scaling this up to every machine in an enterprise
+using <a href="https://github.com/google/grr">GRR</a>. Now imagine having a library of such
+&ldquo;indicators&rdquo; to use and share?</p>
+<p>In order to run useful hunts across thousands of machines we need to make memory
+analysis more automated. It has to be more flexible - we can not write a new
+plugin for every new strand of malware we see, instead we need to have a search
+language expressive enough to be able to capture the essence of each malware
+signal.</p>
+<p>This effort is currently available with OSX analysis but we hope to make this
+feature available across all operating systems in future.</p>
+  </div>
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+  </script>
+  </div>
+ </body>
+</html>
+

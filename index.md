@@ -33,7 +33,7 @@ order: 1
     Rekall is the most complete Memory Analysis framework. Rekall provides an
     end-to-end solution to incident responders and forensic analysts. From state
     of the art acquisition tools, to the most advanced open source memory
-    analysis framework.
+    analysis framework. <a href="pages/at_a_glance.html">Rekall at a glance</a>.
     </p>
    </div>
    <div class="col-md-4 about-cell">
