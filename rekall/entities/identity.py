@@ -148,8 +148,8 @@ class Identity(object):
     def union(self, other):
         if self != other:
             raise IdentityError(
-                "Attempting to merge identities %s and %s which are unequal.",
-                self, other)
+                "Attempting to merge identities %s and %s which are unequal."
+                % (self, other))
 
         return Identity(indices=self.indices | other.indices,
                         global_prefix=self.global_prefix)

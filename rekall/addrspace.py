@@ -77,6 +77,11 @@ class BaseAddressSpace(object):
     # inherited but must be explicitly set.
     __image = False
 
+    # This flag signifies whether this address space's contents are likely to
+    # change between reads. If an address space is NOT volatile (this flag is
+    # False) then reads from the same offset MUST always return the same bytes.
+    volatile = False
+
     def __init__(self, base=None, session=None, write=False, profile=None,
                  **_):
         """Base is the AS we will be stacking on top of, opts are options which

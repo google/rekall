@@ -46,6 +46,8 @@ class IngestionPipeline(object):
     def __init__(self, queries):
         self.queues = {}
         self.matchers = {}
+        self.outcomes = {}
+
         for query in queries:
             self.queues[query] = []
             self.matchers[query] = query_matcher.QueryMatcher(query)
@@ -111,6 +113,7 @@ class IngestionPipeline(object):
                 counts[entity_collector.EffectEnum.Enqueued],
                 counts[entity_collector.EffectEnum.Duplicate])
 
+        self.outcomes[collector] = counts
         return counts
 
     def flush(self):
@@ -137,10 +140,13 @@ class EntityManager(object):
     entities = None
 
     def __init__(self, session):
-        self.entities = {}
         self.session = session
-        self.finished_collectors = set()
+        self.reset()
+
+    def reset(self):
+        self.entities = {}
         self._collectors = {}
+        self.finished_collectors = set()
         self._cached_query_analyses = {}
         self._cached_matchers = {}
 
@@ -323,7 +329,8 @@ class EntityManager(object):
         # Only use the entities that actually have the component to build the
         # index.
         lookup_table.update_index(
-            self.find(expression.ComponentLiteral(component), complete=False))
+            self.find(expression.ComponentLiteral(component), complete=False,
+                      keep_cache=True))
 
         self.lookup_tables[key] = lookup_table
 
@@ -491,7 +498,8 @@ class EntityManager(object):
 
         return analysis
 
-    def find(self, query, complete=True, validate=True, query_params=None):
+    def find(self, query, complete=True, validate=True, query_params=None,
+             retry_on_error=False, keep_cache=False):
         """Runs the query and yields entities that match.
 
         Arguments:
@@ -500,18 +508,45 @@ class EntityManager(object):
                    be returned with the same keys and values replaced with
                    results.
 
+            query_params: If query accepts parameters (it's a template), you
+                          may pass them here.
+
             complete: If True, will trigger collectors as necessary, to ensure
                       completness of results.
 
             validate: Will cause the query to be validated first (mostly for
-                      type errors.)
+                      type errors).
+
+        Arguments (live analysis only):
+            retry_on_error: Should query be retried on failed collection?
+
+                            This argument is only respected on live systems.
+
+            keep_cache: Should we reuse cached data from previous searches?
+                        This will greatly speed up analysis, but may lead to
+                        outdated or inconsistent results on running systems.
+
+                        This argument is only respected on live systems.
         """
+        if not self.session.volatile:
+            keep_cache = True
+            retry_on_error = False
+
+        if not keep_cache:
+            if not complete:
+                raise ValueError(
+                    "keep_cache and complete cannot both be False.")
+
+            self.reset()
+
         if isinstance(query, dict):
             results = {}
             for query_name, expr in query.iteritems():
                 results[query_name] = self.find(expr, complete=complete,
                                                 validate=validate,
-                                                query_params=query_params)
+                                                query_params=query_params,
+                                                retry_on_error=retry_on_error,
+                                                keep_cache=keep_cache)
 
             return results
 
@@ -522,7 +557,27 @@ class EntityManager(object):
             query.execute("QueryValidator")
 
         if complete:
-            self.collect_for(query)
+            try:
+                self.collect_for(query)
+            except (entity_id.IdentityError, TypeError) as e:
+                if retry_on_error:
+                    logging.error(
+                        "Collect failed for query %r. It would appear Rekall "
+                        "is running on live memory - it is possible contents "
+                        "of memory changed between reads, causing a collector "
+                        "to fail. Going to try again. Original error: %r\n%s",
+                        query, e, traceback.format_exc())
+
+                    self.reset()
+                    return self.find(query=query, complete=True,
+                                     validate=validate,
+                                     query_params=query_params,
+                                     keep_cache=keep_cache,
+                                     retry_on_error=False)
+                else:
+                    # We're not retrying and/or running on an image. Just
+                    # rethrow the exception here.
+                    raise
 
         # Try to satisfy the query using available lookup tables.
         search = entity_lookup.EntityQuerySearch(query)
@@ -540,7 +595,7 @@ class EntityManager(object):
             handler(entity)
 
         self.collect_for(query, result_stream_handler=_deduplicator)
-        for entity in self.find(query, complete=False):
+        for entity in self.find(query, complete=False, keep_cache=True):
             _deduplicator(entity)
 
     def find_first(self, query, complete=True, validate=True,
@@ -660,7 +715,7 @@ class EntityManager(object):
         in_pipeline = IngestionPipeline(queries=queries)
         out_pipeline = IngestionPipeline(queries=queries)
         for query in queries:
-            results = self.find(query, complete=False)
+            results = self.find(query, complete=False, keep_cache=True)
             in_pipeline.seed(query, results)
             if results:
                 logging.debug("Pipeline seeded with %d entities matching '%s'",
@@ -671,18 +726,9 @@ class EntityManager(object):
         # Collectors should run in FIFO order:
         repeated.reverse()
 
-        counter = 0
+        repeat_counter = 0
         # This will spin until none of the remaining collectors want to run.
         while not in_pipeline.empty:
-            # TODO (adamsh):
-            # There is a better way to detect faulty collector output and
-            # infinite loops, but this counter will do for now.
-            if counter > 100:
-                raise RuntimeError(
-                    ("Entity manager exceeded 100 iterations during "
-                     "higher-order collector resolution. You most likely "
-                     "have a faulty collector."))
-
             # Collectors will read from the in_pipeline and fill the
             # out_pipeline. At the end of each spin the pipelines swap and
             # the new out_pipeline is flushed.
@@ -693,7 +739,8 @@ class EntityManager(object):
                 # are identical.
                 if collector.complete_input:
                     collector_input = self.find(collector.collect_queries,
-                                                complete=False)
+                                                complete=False,
+                                                keep_cache=True)
                 else:
                     collector_input = in_pipeline.find(
                         collector.collect_queries)
@@ -721,6 +768,21 @@ class EntityManager(object):
                                   ingest=results,
                                   wanted_handler=result_stream_handler,
                                   wanted_matcher=wanted_matcher)
+
+            # Check for endless loops.
+            if in_pipeline.outcomes == out_pipeline.outcomes:
+                repeat_counter += 1
+                if repeat_counter < 5:
+                    logging.warning(
+                        "Detected a loop in collection run (%d cycles)." %
+                        repeat_counter)
+                else:
+                    logging.warning(
+                        "Maximum number of cycles in collection run exceeded. "
+                        "Terminating collection.")
+                    break
+            else:
+                repeat_counter = 0
 
             # Swap & flush, rinse & repeat.
             in_pipeline, out_pipeline = out_pipeline, in_pipeline
@@ -763,18 +825,26 @@ class EntityManager(object):
                 try:
                     identity = self.identify({attribute: first_result[0]})
                 except entity_id.IdentityError:
-                    logging.error(
-                        ("Invalid identity %s inferred from output of %s. "
-                         "Entity skipped. Full results: %s"),
+                    logging.warning(
+                        ("Invalid identity %r inferred from output of %r. "
+                         "Entity skipped. Full results: %r"),
                         {attribute: first_result[0]},
                         collector,
                         results)
                     continue
 
-            entity, effect = self.register_components(
-                identity=identity,
-                components=results,
-                source_collector=collector.name)
+            try:
+                entity, effect = self.register_components(
+                    identity=identity,
+                    components=results,
+                    source_collector=collector.name)
+            except entity_id.IdentityError as e:
+                logging.warning(
+                    ("Invalid identity %r inferred from output of %r. "
+                     "Entity skipped. Full results: %r. "
+                     "Original error: %s"),
+                     identity, collector, results, e)
+                continue
 
             result_counter += 1
             if result_counter % 100 == 0 and self.session:

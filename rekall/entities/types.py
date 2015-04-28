@@ -19,6 +19,7 @@ Helper functions to make defining components nicer.
 
 Exists solely to support rekall.entities.definitions.
 """
+
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import datetime
@@ -97,6 +98,20 @@ class ScalarDescriptor(TypeDescriptor):
         return "%s (scalar type)" % self.type_cls.__name__
 
 
+class UnicodeDescriptor(TypeDescriptor):
+    type_cls = unicode
+    type_name = "unicode"
+
+    def coerce(self, value):
+        if value == None:
+            return None
+
+        try:
+            return unicode(value)
+        except UnicodeDecodeError:
+            return str(value).decode("utf-8", "ignore")
+
+
 class DatetimeDescriptor(ScalarDescriptor):
     """Python's datetime is a special snowflake that requires some massaging.
 
@@ -147,7 +162,7 @@ class PointerDescriptor(TypeDescriptor):
 
     def coerce(self, value):
         if not value:
-            return None
+            return value
 
         if isinstance(value, obj.Pointer):
             return value
@@ -162,9 +177,6 @@ class PointerDescriptor(TypeDescriptor):
 
 class NoneDescriptor(TypeDescriptor):
     "NoneDescriptor doesn't care."
-
-    def __init__(self):
-        super(NoneDescriptor, self).__init__()
 
     def coerce(self, value):
         return value
@@ -247,6 +259,9 @@ def TypeFactory(type_desc):
     if isinstance(type_desc, TypeDescriptor):
         # Fall through for stuff defined explictly.
         return type_desc
+
+    if type_desc == unicode:
+        return UnicodeDescriptor()
 
     if isinstance(type_desc, type):
         return ScalarDescriptor(type_desc)

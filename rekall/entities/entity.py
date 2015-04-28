@@ -269,7 +269,7 @@ class Entity(object):
 
         return self.manager.find(
             query.Query("%s is {}" % key, params=[self.identity]),
-            complete=complete)
+            complete=complete, keep_cache=True)
 
     def get_raw(self, key):
         """Get raw value of the key, no funny bussiness.

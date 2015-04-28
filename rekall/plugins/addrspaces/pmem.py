@@ -34,6 +34,7 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
     name = "MacPmem"
     order = standard.FileAddressSpace.order - 2
     __image = True
+    volatile = True
 
     def __init__(self, base=None, filename=None, **kwargs):
         super(MacPmemAddressSpace, self).__init__(**kwargs)

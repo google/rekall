@@ -421,6 +421,11 @@ class Session(object):
                 self.state.Set(k, v)
 
     @property
+    def volatile(self):
+        return (self.physical_address_space and
+                self.physical_address_space.volatile)
+
+    @property
     def repository_managers(self):
         """The IO managers that are used to fetch profiles from the profile
         repository.
