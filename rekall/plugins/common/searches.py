@@ -93,7 +93,8 @@ class LSOF(DarwinOnlyMixin, entities.EntityFind):
               "and Handle/process->Process/user matches "
               "(has component User)")
     columns = ["Handle/process", "Handle/process->Process/user", "Handle/fd",
-               "Handle/resource->Named/kind", "Handle/resource"]
+               "Handle/resource->Named/kind",
+               "Handle/resource"]
     sort = ["Handle/process->Process/pid", "Handle/fd"]
 
 

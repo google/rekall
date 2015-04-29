@@ -139,6 +139,16 @@ class BaseObjectDescriptor(TypeDescriptor):
         if not value:
             return None
 
+        superposition_typedesc = getattr(value, "typedesc", None)
+        if superposition_typedesc and isinstance(superposition_typedesc,
+                                                 type(self)):
+            # TODO: This is kind of incorrect, in that it doesn't actually
+            # coerce the variants. However, it is unlikely to cause any
+            # problems at present time, and this entire module is going to be
+            # largely rewritten using EFILTER types soon, which will address
+            # the handling of superpositions in a much cleaner manner.
+            return value
+
         if not isinstance(value, obj.BaseObject):
             raise TypeError(
                 "%s is not a BaseObject." % value)
@@ -172,7 +182,7 @@ class PointerDescriptor(TypeDescriptor):
                                              vm=value.obj_vm,
                                              target=value.obj_type)
 
-        raise TypeError("%s is not a Pointer of a BaseObject." % value)
+        raise TypeError("%s is not a Pointer to a BaseObject." % value)
 
 
 class NoneDescriptor(TypeDescriptor):

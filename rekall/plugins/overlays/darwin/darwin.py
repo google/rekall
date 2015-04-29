@@ -1092,6 +1092,7 @@ class proc(obj.Struct):
 class vnode(obj.Struct):
     @property
     def full_path(self):
+        # TODO: Speed this up by caching the paths in the session.
         result = []
         _vnode = self
 

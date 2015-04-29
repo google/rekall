@@ -167,12 +167,13 @@ class EntityFind(plugin.ProfileCommand):
     (--)columns: A list of attributes to render in the output. Format as
                  "Component/attribute".
     (--)sort: A list of columns to sort by. Sort is currently ASC. Same format
-              as above.
+              as above. Mutually exclusive with --stream_results.
     (--)width: Width of the rendered table.
     (--)stream_results: If on, will render results as soon as they're available.
                         This typically means the results will be incomplete. It
                         is probably pointless to use this in combination with
-                        'sort' but no one will stop you.
+                        'sort' but no one will stop you. Mutually exclusive
+                        with --sort.
 
     Further arguments that can be supplied at runtime:
 
@@ -230,6 +231,9 @@ class EntityFind(plugin.ProfileCommand):
             self.display_filter = entity_query.Query(filter)
 
         if stream_results is not None:
+            if sort:
+                raise ValueError(
+                    "Can't stream results and sort at the same time.")
             self.stream_results = stream_results
 
         if complete_results is not None:
@@ -245,8 +249,7 @@ class EntityFind(plugin.ProfileCommand):
                       for a in sort_keys]
 
         # Entity is in the first column. Rows are tuples of (object, options).
-        def _sort_func(row):
-            entity = row[0][0]
+        def _sort_func(entity):
             result = []
             for idx, key in enumerate(sort_keys):
                 result.append(sort_types[idx].sortkey(entity[key]))
@@ -297,7 +300,7 @@ class EntityFind(plugin.ProfileCommand):
         if self.explain:
             columns.append(dict(name="Matched query", type="Query", width=60))
 
-        renderer.table_header(columns, sort_key_func=self._build_sort_func())
+        renderer.table_header(columns)
 
         self.session.report_progress(
             "Running query %(query)s %(spinner)s", query=self.query)
@@ -308,9 +311,12 @@ class EntityFind(plugin.ProfileCommand):
 
             self.session.entities.stream(self.query, _handler)
         else:
-            for entity in self.session.entities.find(
-                    self.query, complete=self.complete_results):
-                self.render_entity(renderer, entity)
+            rows = self.session.entities.find(self.query,
+                                              complete=self.complete_results)
+            if self.sort:
+                rows = sorted(rows, key=self._build_sort_func())
+                for entity in rows:
+                    self.render_entity(renderer, entity)
 
 
 class FindBatch(plugin.ProfileCommand):

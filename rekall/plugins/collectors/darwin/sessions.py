@@ -148,17 +148,23 @@ class DarwinSessionParser(common.DarwinEntityCollector):
                 user_identity = None
 
             sid = session.s_sid
-            session_identity = self.manager.identify({
-                "Session/sid": sid}) | entity.identity
+            # Turns out, SID is not always unique. This is disabled as it is
+            # not being currently used, and I need to investigate the causes
+            # of duplicate sessions occurring on 10.10.
+            # session_identity = self.manager.identify({
+            #     "Session/sid": sid}) | entity.identity
+
+            session_identity = entity.identity
 
             if session.s_ttyp:
                 yield definitions.Struct(
                     base=session.s_ttyp,
                     type="tty")
 
-            yield definitions.Struct(
-                base=session.s_leader.deref(),
-                type="proc")
+            if session.s_leader:
+                yield definitions.Struct(
+                    base=session.s_leader.deref(),
+                    type="proc")
 
             yield [session_identity,
                    definitions.Session(

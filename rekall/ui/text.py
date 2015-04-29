@@ -1079,9 +1079,7 @@ class TextTable(renderer_module.BaseTable):
                                        renderer=self.renderer, **column_specs)
             self.columns.append(column)
 
-        self.sort_key_func = options.get(
-            "sort_key_func",
-            self._build_sort_key_function(options.get("sort")))
+        self.sort_key_func = self._build_sort_key_function(options.get("sort"))
 
         if self.sort_key_func:
             self.deferred_rows = []

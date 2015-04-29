@@ -23,6 +23,7 @@ The Rekall Entity Layer.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import logging
+import traceback
 
 from rekall import obj
 
@@ -500,7 +501,12 @@ class Entity(object):
             # the image is inconsistent.
             # The best we can do is reject the faulty data and hope for the
             # best.
-            logging.error("Entity rejected because of a type error %s", e)
+            logging.warn("Invalid entity (type error) encountered. "
+                         "Run with debug logging for details.")
+            logging.debug("REJECTED entity because of type error. "
+                          "Dump of entity and traceback follow: \n"
+                          "%r\n%r\n%s",
+                          other, e, traceback.format_exc())
             return self.components
 
         # Entity component is merged using slightly simpler rules.
@@ -512,7 +518,12 @@ class Entity(object):
         except identity.IdentityError as e:
             # Consistency errors can mean the data is corrupt. There are no
             # good solutions. Lets log the reject and get on with our lives.
-            logging.error("Entity rejected because of consistency error %s", e)
+            logging.warn("Invalid entity (logic error) encountered. "
+                         "Run with debug logging for details.")
+            logging.debug("REJECTED entity because of logic error. "
+                          "Dump of entity and traceback follow: \n"
+                          "%r\n%r\n%s",
+                          other, e, traceback.format_exc())
             return self.components
 
         return type(x)(new_entity_component, *new_components)
@@ -571,10 +582,12 @@ class IdentityDescriptor(types.TypeDescriptor):
                  "calling repr(object) raised %s.") % e)
 
         if isinstance(value, superposition.BaseSuperposition):
+            if value.type_name == "Identity":
+                return value
+
             raise TypeError(
-                ("Object being coerced as identity is a superposition: %s. "
-                 "Identity superpositions in attributes are not allowed.") %
-                value_repr)
+                "Object being coerced as identity is a superposition %s of "
+                "variant type %r." % (value_repr, value.type_name)) 
 
         raise TypeError("%s is not an identity." % value_repr)
 

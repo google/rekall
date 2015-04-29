@@ -62,7 +62,7 @@ class BaseSuperposition(object):
     def union(self, other):
         self._typecheck(other)
 
-        return type(self)(self.typedesc, self.variants.union(other.variants))
+        return type(self)(self.typedesc, set(self).union(other.variants))
 
     def add(self, value):
         self._backing_container.add(self.typedesc.coerce(value))
