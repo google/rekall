@@ -228,6 +228,32 @@ class Entity(object):
 
         return result
 
+    def export(self):
+        """Returns a dict of all attribute values with extra descriptions."""
+        result = {}
+        for component_name in entity_component.Component.classes.keys():
+            component = getattr(self.components, component_name)
+
+            if component is None:
+                continue
+
+            for idx, field in enumerate(component.component_fields):
+                val = component[idx]
+
+                if val is None:
+                    continue
+
+                if field.typedesc.type_name == "Identity":
+                    entity = self.manager.find_by_identity(val)
+                    if entity:
+                        val.name = entity[0].name
+                        val.kind = entity[0].kind
+
+                key = "%s/%s" % (component_name, field.name)
+                result[key] = val
+
+        return result
+
     @classmethod
     def fromdict(cls, attributes, manager=None):
         """Rebuilds the entity from a dict of attributes.
@@ -587,7 +613,7 @@ class IdentityDescriptor(types.TypeDescriptor):
 
             raise TypeError(
                 "Object being coerced as identity is a superposition %s of "
-                "variant type %r." % (value_repr, value.type_name)) 
+                "variant type %r." % (value_repr, value.type_name))
 
         raise TypeError("%s is not an identity." % value_repr)
 

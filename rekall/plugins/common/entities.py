@@ -165,7 +165,7 @@ class EntityFind(plugin.ProfileCommand):
     (--)display_filter: Another query that'll be used to filter out unwanted
                         results.
     (--)columns: A list of attributes to render in the output. Format as
-                 "Component/attribute".
+                 "Component/attribute", or use the column DSL defined below.
     (--)sort: A list of columns to sort by. Sort is currently ASC. Same format
               as above. Mutually exclusive with --stream_results.
     (--)width: Width of the rendered table.
@@ -180,6 +180,22 @@ class EntityFind(plugin.ProfileCommand):
     --explain: If set, an analysis of the query will be rendered and each
                row in results will include a highlight of the part of the query
                that matched it (obviously a heuristic, your mileage may vary).
+    
+    Column definitions:
+    ===================
+
+    Columns can be given as a string or a dict. A string is interpreted as
+    shorthand for dict(attribute=STRING).
+
+    A column may specify any of the following keys in the dict:
+    - name: The name of the table column as displayed to the user. If not given
+            will be derived from the attribute name.
+    - attribute: The name of the attribute to be selected from each entity.
+    - fn: A callable that is passed an entity and produces a value of the
+          column. If both fn and attribute are given, fn overrides the
+          attribute.
+    - width: The width of the column (number of characters). If not given, will
+             be derived from the attribute.
     """
 
     __name = "find"
@@ -188,6 +204,8 @@ class EntityFind(plugin.ProfileCommand):
     search = None
     display_filter = None
     columns = ()
+    _entity_columns = None
+    _table_columns = None
     sort = ()
     width = 120
     stream_results = False
@@ -262,24 +280,34 @@ class EntityFind(plugin.ProfileCommand):
                 "QueryMatcher", method="match", bindings=entity):
             return
 
-        cols = [entity]
-        opts = dict(style="full")
+        opts = {}
+        values = []
+        for column in self.entity_columns:
+            attribute = column.get("attribute")
+            fn = column.get("fn")
+            if attribute:
+                values.append(entity[attribute])
+            elif fn:
+                values.append(fn(entity))
+            else:
+                raise ValueError(
+                    "Column spec %r doesn't specify attribute name or lambda."
+                    % column)
+
         if self.explain:
             match = self.query.execute("QueryMatcher", method="match",
                                        bindings=entity,
                                        match_backtrace=True)
-            cols.append(self.query)
+            values.append(self.query)
             opts["query_highlight"] = match.matched_expression
 
-        renderer.table_row(*cols, **opts)
+        renderer.table_row(*values, **opts)
 
-    def render(self, renderer):
-        if self.explain:
-            self.session.RunPlugin("analyze", self.query)
-            renderer.section("Results:", width=self.width)
+    @property
+    def entity_columns(self):
+        if self._entity_columns:
+            return self._entity_columns
 
-        # If no columns were specified, try to guess from the list of
-        # components we think will appear in results.
         if not self.columns:
             self.columns = []
             for component in self.session.entities.analyze(self.query).get(
@@ -294,13 +322,57 @@ class EntityFind(plugin.ProfileCommand):
 
             self.columns.sort()
 
-        columns = [dict(name="Entity", cname="entity", type="Entity",
-                        width=self.width, style="full", columns=self.columns)]
+        self._entity_columns = []
+        for column in self.columns:
+            if isinstance(column, basestring):
+                self._entity_columns.append(dict(attribute=column))
+            else:
+                self._entity_columns.append(column)
+
+        return self._entity_columns
+
+    @property
+    def table_columns(self):
+        if self._table_columns:
+            return self._table_columns
+
+        self._table_columns = []
+        for column in self.entity_columns:
+            result = dict(name="(untitled column)", style=None, width=None)
+            name = column.get("name")
+            attribute = column.get("attribute")
+
+            if attribute:
+                field = entity_module.Entity.reflect_attribute(attribute)
+
+                # TODO(scudette): This seems to confuse the renderer system for
+                # whatever reason. It wants to guess the type all by itself.
+                # result["type"] = field.typedesc.type_name
+
+                result["name"] = field.name
+                result["width"] = field.width
+                result["style"] = field.style
+
+            if name:
+                result["name"] = name
+
+            result["width"] = column.get("width", result["width"])
+            result["style"] = column.get("style", result["style"])
+
+            self._table_columns.append(result)
 
         if self.explain:
-            columns.append(dict(name="Matched query", type="Query", width=60))
+            self._table_columns.append(dict(name="Matched query", type="Query",
+                                            width=60))
 
-        renderer.table_header(columns)
+        return self._table_columns
+
+    def render(self, renderer):
+        if self.explain:
+            self.session.RunPlugin("analyze", self.query)
+            renderer.section("Results:", width=self.width)
+
+        renderer.table_header(self.table_columns)
 
         self.session.report_progress(
             "Running query %(query)s %(spinner)s", query=self.query)

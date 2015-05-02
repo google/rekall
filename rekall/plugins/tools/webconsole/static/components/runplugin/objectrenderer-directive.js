@@ -91,6 +91,8 @@
     'UnixTimeStamp': true,
     '_EPROCESS': true,
     'bool': true,
+    'datetime': true,
+    'Identity': true,
     'VirtualMachine': true,
     'AttributedString': true,
     'HexDumpedString': true,

@@ -43,6 +43,8 @@ class Identity(object):
     key_canary = None  # Set of attributes references in indices.
     indices = None  # Set of tuples of (global_prefix, attribute, value).
     first_index = None  # Used for hashing.
+    name = None  # MAY store name of target entity.
+    kind = None  # MAY store kind of target entity.
 
     @classmethod
     def from_dict(cls, global_prefix, identity_dict):
@@ -134,13 +136,19 @@ class Identity(object):
         return not result
 
     def __unicode__(self):
-        return "Identity(%s)" % ", ".join([repr(x) for x in self.indices])
+        return repr(self)
 
     def __str__(self):
         return self.__unicode__()
 
     def __repr__(self):
-        return self.__unicode__()
+        indices = ", ".join([repr(x) for x in self.indices])
+        if self.name or self.kind:
+            return "Identity(name=%r, kind=%r, indices=[%s])" % (self.name,
+                                                                 self.kind,
+                                                                 indices)
+        else:
+            return "Identity(%s)" % indices
 
     def __or__(self, other):
         return self.union(other)

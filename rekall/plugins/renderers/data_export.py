@@ -34,9 +34,14 @@ information about the exported objects. The exported data also omits information
 which is not relevant without access to the original image.
 """
 
+import datetime
+import pytz
+
 from rekall import utils
+
 from rekall.ui import renderer
 from rekall.ui import json_renderer
+
 from rekall.plugins.renderers import json_storage
 
 
@@ -104,6 +109,25 @@ class NativeDataExportObjectRenderer(json_renderer.JsonObjectRenderer):
 
 class DataExportObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renderers = ["DataExportRenderer"]
+
+
+class DataExportTimestampObjectRenderer(DataExportObjectRenderer):
+    renders_type = "datetime"
+    renderers = ["DataExportRenderer"]
+
+    EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0, 0, pytz.UTC)
+
+    def GetState(self, item, **_):
+        return dict(epoch=(item - self.EPOCH).total_seconds(),
+                    string_value=item.strftime("%Y-%m-%d %H:%M:%S%z"))
+
+
+class DataExportSetObjectRenderer(DataExportObjectRenderer):
+    renders_type = "frozenset"
+    renderers = ["DataExportRenderer"]
+
+    def GetState(self, item, **_):
+        return dict(values=tuple(item))
 
 
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):

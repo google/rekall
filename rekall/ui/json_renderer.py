@@ -37,6 +37,7 @@ from rekall.ui import renderer as renderer_module
 class DecodingError(KeyError):
     """Raised if there is a decoding error."""
 
+
 class EncodingError(KeyError):
     """Raised if we can not encode the object properly."""
 
@@ -207,13 +208,16 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
                 self.__class__.__name__)
 
         # Store the mro of the item.
-        state["mro"] = ":".join(self.get_mro(item))
+        if not "mro" in state:
+            # Respect what the object renderer asserts about the object's MRO
+            # (mainly to make delegation work).
+            state["mro"] = ":".join(self.get_mro(item))
 
         # Store an object ID for this item to ensure that the decoder can re-use
         # objects if possible. The ID is globally unique for this object and
         # does not change.
         try:
-            object_id = item._object_id # pylint: disable=protected-access
+            object_id = item._object_id  # pylint: disable=protected-access
             state["id"] = object_id
         except AttributeError:
             pass
@@ -278,8 +282,7 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
                     type_name=unicode(item.obj_type),
                     name=unicode(item.obj_name),
                     vm=item.obj_vm,
-                    profile=item.obj_profile
-                   )
+                    profile=item.obj_profile)
 
 
 class BaseAddressSpaceObjectRenderer(StateBasedObjectRenderer):
@@ -401,6 +404,7 @@ class JsonEncoder(object):
 
 class _Empty(object):
     """An empty class to access the real instance later."""
+
     def __init__(self, session):
         self.session = session
 
@@ -570,8 +574,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
                              tool_name="rekall",
                              cookie=self._object_id,
                              tool_version=constants.VERSION,
-                             session=self.encoder.Encode(self.session),
-                            )
+                             session=self.encoder.Encode(self.session))
         self.SendMessage(
             ["m", self.metadata])
 

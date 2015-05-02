@@ -25,6 +25,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import copy
 import itertools
 import logging
+import traceback
 
 from rekall.entities import collector as entity_collector
 from rekall.entities import component as entity_component
@@ -759,15 +760,26 @@ class EntityManager(object):
                 else:
                     hint = None
 
-                # Feed output back into the pipeline.
-                results = self.collect(collector=collector,
-                                       collector_input=collector_input,
-                                       hint=hint)
+                try:
+                    # Feed output back into the pipeline.
+                    results = self.collect(collector=collector,
+                                           collector_input=collector_input,
+                                           hint=hint)
 
-                out_pipeline.fill(collector=collector,
-                                  ingest=results,
-                                  wanted_handler=result_stream_handler,
-                                  wanted_matcher=wanted_matcher)
+                    out_pipeline.fill(collector=collector,
+                                      ingest=results,
+                                      wanted_handler=result_stream_handler,
+                                      wanted_matcher=wanted_matcher)
+                except entity_id.IdentityError as e:
+                    logging.error(
+                        "Collector %r has encountered invalid or inconsistent "
+                        "data and could not recover. Details available with "
+                        "debug logging." % collector)
+                    logging.debug(
+                        "Collector %r (hint %r) raised %r\n%s.\n"
+                        "Collector input was %r."
+                        % (collector, e, traceback.format_exc(),
+                           collector_input, hint))
 
             # Check for endless loops.
             if in_pipeline.outcomes == out_pipeline.outcomes:
@@ -843,7 +855,7 @@ class EntityManager(object):
                     ("Invalid identity %r inferred from output of %r. "
                      "Entity skipped. Full results: %r. "
                      "Original error: %s"),
-                     identity, collector, results, e)
+                    identity, collector, results, e)
                 continue
 
             result_counter += 1
