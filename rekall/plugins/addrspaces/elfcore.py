@@ -192,9 +192,9 @@ class KCoreAddressSpace(Elf64CoreDump):
                 if statinfo.st_size < 2**46:
                     # We raise a TypeError and not an ASAssertionError because
                     # we need it to be catchable when rekall is used as a
-                    # librarywww.e GRR). ASAssertionErrors are swallowed by
+                    # library (i.e GRR). ASAssertionErrors are swallowed by
                     # the address space selection algorithm.
-                    raise TypeError(
+                    raise RuntimeError(
                         "This kcore file is too small (%d bytes) and likely "
                         "invalid for memory analysis. You may want to use pmem "
                         "instead." % statinfo.st_size)
