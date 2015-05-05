@@ -48,8 +48,8 @@ def RunTests(configuation, timestamp):
         res = subprocess.call(args)
         print "Test returned status ", res
 
-    if res != 0:
-        result = res
+        if res != 0:
+            result = res
 
     return result
 

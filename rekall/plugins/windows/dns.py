@@ -120,7 +120,6 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
     def __init__(self, hashtable=None, index=True, **kwargs):
         super(WinDNSCache, self).__init__(**kwargs)
-        self.profile = InitializedDNSTypes(self.profile)
         self.hashtable = hashtable
         self.index = index
 
@@ -300,6 +299,28 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
         # Switch to the svchost process context now.
         self.cc.SwitchProcessContext(task)
+
+        # Load the profile for dnsrslvr and add the new types.
+        self.profile = InitializedDNSTypes(
+            self.session.address_resolver.LoadProfileForName("dnsrslvr"))
+
+        hash_table = self.session.address_resolver.get_constant_object(
+            "dnsrslvr!g_HashTable",
+            "Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    count=self.session.address_resolver.get_constant_object(
+                        "dnsrslvr!g_HashTableSize", "unsigned int").v(),
+                    target="Pointer",
+                    target_args=dict(
+                        target="DNS_HASHTABLE_ENTRY"
+                    )
+                )
+            )
+        )
+        if hash_table:
+            return hash_table.deref()
 
         self.heap_profile = self.session.address_resolver.LoadProfileForName(
             "ntdll")
