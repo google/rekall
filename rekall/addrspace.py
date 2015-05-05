@@ -214,7 +214,8 @@ class BaseAddressSpace(object):
                 total_length += length
 
             else:
-                yield (contiguous_voffset, contiguous_poffset, total_length)
+                if total_length > 0:
+                    yield (contiguous_voffset, contiguous_poffset, total_length)
 
                 # Reset the contiguous range.
                 contiguous_voffset = voffset

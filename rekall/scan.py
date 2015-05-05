@@ -28,6 +28,217 @@ from rekall import constants
 from rekall import registry
 
 
+class ScannerCheck(object):
+    """ A scanner check is a special class which is invoked on an AS to check
+    for a specific condition.
+
+    The main method is def check(self, offset):
+    This will return True if the condition is true or False otherwise.
+
+    This class is the base class for all checks.
+    """
+
+    __metaclass__ = registry.MetaclassRegistry
+    __abstract = True
+
+    def __init__(self, profile=None, address_space=None, **_kwargs):
+        """The profile that this scanner check should use."""
+        self.profile = profile
+        self.address_space = address_space
+
+    def object_offset(self, offset):
+        return offset
+
+    def check(self, buffer_as, offset):
+        _ = offset
+        _ = buffer_as
+        return False
+
+    def skip(self, buffer_as, offset):
+        """Determine how many bytes we can skip.
+
+        If you want to speed up the scanning define this method - it
+        will be used to skip the data which is obviously not going to
+        match. You will need to return the number of bytes from offset
+        to skip to. We take the maximum number of bytes to guarantee
+        that all checks have a chance of passing.
+
+        Args:
+          buffer_as: A BufferAddressSpace instance wrapping self.address_space,
+          containing a copy of the data at the specified offset.
+
+          offset: The offset in the address space to check.
+
+        Returns:
+          number of bytes to be skipped.
+        """
+        _ = buffer_as
+        _ = offset
+        return 0
+
+
+class MultiStringFinderCheck(ScannerCheck):
+    """A scanner checker for multiple strings."""
+
+    def __init__(self, needles=None, **kwargs):
+        """Init.
+
+        Args:
+          needles: A list of strings we search for.
+          **kwargs: passthrough.
+        """
+        super(MultiStringFinderCheck, self).__init__(**kwargs)
+
+        # It is an error to not provide something to search for and Acora will
+        # raise later.
+        if not needles:
+            raise RuntimeError("No needles provided to search.")
+
+        tree = acora.AcoraBuilder(*needles)
+
+        self.engine = tree.build()
+
+        self.base_offset = None
+        self.hits = None
+
+    def check(self, buffer_as, offset):
+        # This indicates we haven't already generated hits for this buffer.
+        if buffer_as.base_offset != self.base_offset:
+            self.hits = sorted(self.engine.findall(buffer_as.data),
+                               key=lambda x: x[1], reverse=True)
+            self.base_offset = buffer_as.base_offset
+
+        data_offset = offset - buffer_as.base_offset
+        while self.hits:
+            string, offset = self.hits[-1]
+            if offset == data_offset:
+              # This hit was reported, remove it.
+              self.hits.pop()
+              return string
+            elif offset < data_offset:
+              # We skipped over this hit, remove it and check for the remaining
+              # hits.
+              self.hits.pop()
+            else:  # offset > data_offset
+              return False
+        return False
+
+    def skip(self, buffer_as, offset):
+        # Normally the scanner calls the check method first, then the skip
+        # method immediately after. We are depending on this order so self.hits
+        # will be set by the check method which was called before us.
+        # This method also assumes that the offsets to skip/check will be
+        # nondecreasing.
+
+        data_offset = offset - buffer_as.base_offset
+        while self.hits:
+          _, offset = self.hits[-1]
+          if offset < data_offset:
+            self.hits.pop()
+          else:
+            return offset - data_offset
+
+        # No more hits in this buffer, skip it.
+        return buffer_as.end() - offset
+
+
+class SignatureScannerCheck(ScannerCheck):
+    """A scanner that searches for a signature.
+
+    The signature is given as a list of strings and this scanner checks that
+    each part of the signature is present in memory in ascending order.
+    """
+
+    def __init__(self, needles=None, **kwargs):
+        """Init.
+
+        Args:
+          needles: A list of strings we search for.
+          **kwargs: passthrough.
+        """
+        super(SignatureScannerCheck, self).__init__(**kwargs)
+
+        # It is an error to not provide something to search for.
+        if not needles:
+            raise RuntimeError("No needles provided to search.")
+
+        self.needles = needles
+        self.current_needle = 0
+
+    def check(self, buffer_as, offset):
+        if self.current_needle >= len(self.needles):
+            # We have found all parts already.
+            return False
+
+        # Just check the buffer without needing to copy it on slice.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        next_part = self.needles[self.current_needle]
+        if buffer_as.data.startswith(next_part, buffer_offset):
+            self.current_needle += 1
+            return next_part
+        else:
+            return False
+
+    def skip(self, buffer_as, offset):
+        if self.current_needle >= len(self.needles):
+            # We have found all parts already, just skip the whole buffer.
+            return buffer_as.end() - offset
+
+        # Search the rest of the buffer for the needle.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        next_part = self.needles[self.current_needle]
+        correction = 0
+        if self.current_needle:
+            # If this is not the very first hit we need to increase the offset
+            # or we might report identical parts only once.
+            correction = len(self.needles[self.current_needle - 1])
+        dindex = buffer_as.data.find(next_part, buffer_offset + correction)
+        if dindex > -1:
+            return dindex - buffer_offset
+
+        # Skip entire region.
+        return buffer_as.end() - offset
+
+
+class StringCheck(ScannerCheck):
+    """Checks for a single string."""
+    maxlen = 100
+
+    def __init__(self, needle=None, **kwargs):
+        super(StringCheck, self).__init__(**kwargs)
+        self.needle = needle
+
+    def check(self, buffer_as, offset):
+        # Just check the buffer without needing to copy it on slice.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        return buffer_as.data.startswith(self.needle, buffer_offset)
+
+    def skip(self, buffer_as, offset):
+        # Search the rest of the buffer for the needle.
+        buffer_offset = buffer_as.get_buffer_offset(offset)
+        dindex = buffer_as.data.find(self.needle, buffer_offset + 1)
+        if dindex > -1:
+            return dindex - buffer_offset
+
+        # Skip entire region.
+        return buffer_as.end() - offset
+
+
+class RegexCheck(ScannerCheck):
+    """This check can be quite slow."""
+    maxlen = 100
+
+    def __init__(self, regex=None, **kwargs):
+        super(RegexCheck, self).__init__(**kwargs)
+        self.regex = re.compile(regex)
+
+    def check(self, buffer_as, offset):
+        m = self.regex.match(
+            buffer_as.data, buffer_as.get_buffer_offset(offset))
+
+        return bool(m)
+
+
 class BaseScanner(object):
     """ A more thorough scanner which checks every byte """
 
@@ -218,9 +429,8 @@ class BaseScanner(object):
 
                     # Skip as much data as the skippers tell us to, up to the
                     # end of the buffer.
-                    scan_offset += min(buffer_as.end(),
+                    scan_offset += min(len(buffer_as),
                                        self.skip(buffer_as, scan_offset))
-
 
                 chunk_offset = scan_offset
 
@@ -231,12 +441,14 @@ class MultiStringScanner(BaseScanner):
     # Override with the needles to check for.
     needles = []
 
+    checker_cls = MultiStringFinderCheck
+
     def __init__(self, needles=None, **kwargs):
         super(MultiStringScanner, self).__init__(**kwargs)
         if needles is not None:
             self.needles = needles
 
-        self.check = MultiStringFinderCheck(
+        self.check = self.checker_cls(
             profile=self.profile, address_space=self.address_space,
             needles=self.needles)
 
@@ -247,7 +459,11 @@ class MultiStringScanner(BaseScanner):
             return offset, val
 
     def skip(self, buffer_as, offset):
-        return max(1, self.check.skip(buffer_as, offset))
+        return self.check.skip(buffer_as, offset)
+
+
+class SignatureScanner(MultiStringScanner):
+  checker_cls = SignatureScannerCheck
 
 
 class PointerScanner(BaseScanner):
@@ -280,151 +496,8 @@ class PointerScanner(BaseScanner):
 
         # The common string between all the needles.
         self.checks = [
-            ('MultiStringFinderCheck', dict(needles=self.needles)),
+            ("MultiStringFinderCheck", dict(needles=self.needles)),
             ]
-
-
-class ScannerCheck(object):
-    """ A scanner check is a special class which is invoked on an AS to check
-    for a specific condition.
-
-    The main method is def check(self, offset):
-    This will return True if the condition is true or False otherwise.
-
-    This class is the base class for all checks.
-    """
-
-    __metaclass__ = registry.MetaclassRegistry
-    __abstract = True
-
-    def __init__(self, profile=None, address_space=None, **_kwargs):
-        """The profile that this scanner check should use."""
-        self.profile = profile
-        self.address_space = address_space
-
-    def object_offset(self, offset):
-        return offset
-
-    def check(self, buffer_as, offset):
-        _ = offset
-        _ = buffer_as
-        return False
-
-    def skip(self, buffer_as, offset):
-        """Determine how many bytes we can skip.
-
-        If you want to speed up the scanning define this method - it
-        will be used to skip the data which is obviously not going to
-        match. You will need to return the number of bytes from offset
-        to skip to. We take the maximum number of bytes to guarantee
-        that all checks have a chance of passing.
-
-        Args:
-          buffer_as: A BufferAddressSpace instance wrapping self.address_space,
-          containing a copy of the data at the specified offset.
-
-          offset: The offset in the address space to check.
-
-        Returns:
-          number of bytes to be skipped.
-        """
-        _ = buffer_as
-        _ = offset
-        return 0
-
-
-class MultiStringFinderCheck(ScannerCheck):
-    """A scanner checker for multiple strings."""
-
-    def __init__(self, needles=None, **kwargs):
-        """
-        Args:
-          needles: A list of strings we search for.
-        """
-        super(MultiStringFinderCheck, self).__init__(**kwargs)
-
-        # It is an error to not provide something to search for and Acora will
-        # raise later.
-        if not needles:
-            raise RuntimeError("No needles provided to search.")
-
-        tree = acora.AcoraBuilder(*needles)
-
-        self.engine = tree.build()
-
-        self.base_offset = None
-        self.hits = None
-        self.next_hit_index = 0
-        self.current_hit = None
-
-    def check(self, buffer_as, offset):
-        if buffer_as.base_offset != self.base_offset:
-            self.hits = self.engine.findall(buffer_as.data)
-            self.base_offset = buffer_as.base_offset
-            self.current_hit = 0
-            self.next_hit_index = 0
-
-        data_offset = offset - buffer_as.base_offset
-        try:
-            string, offset = self.hits[self.next_hit_index]
-            if offset == data_offset:
-                self.next_hit_index += 1
-                self.current_hit = string
-
-                return string
-        except IndexError:
-            pass
-
-        return False
-
-    def skip(self, buffer_as, offset):
-        # Normally the scanner calls the check method first, then the skip
-        # method immediately after. We are depending on this order so self.hits
-        # will be set by the check method which was called before us.
-        data_offset = offset - buffer_as.base_offset
-        try:
-            _, offset = self.hits[self.next_hit_index]
-            return offset - data_offset
-        except IndexError:
-            # Eliminate this buffer.
-            return buffer_as.end() - offset
-
-class StringCheck(ScannerCheck):
-    maxlen = 100
-
-    def __init__(self, needle=None, **kwargs):
-        super(StringCheck, self).__init__(**kwargs)
-        self.needle = needle
-
-    def check(self, buffer_as, offset):
-        # Just check the buffer without needing to copy it on slice.
-        buffer_offset = buffer_as.get_buffer_offset(offset)
-        return buffer_as.data.startswith(self.needle, buffer_offset)
-
-    def skip(self, buffer_as, offset):
-        # Search the rest of the buffer for the needle.
-        buffer_offset = buffer_as.get_buffer_offset(offset)
-        dindex = buffer_as.data.find(self.needle, buffer_offset + 1)
-        if dindex > -1:
-            return dindex - buffer_offset
-
-        # Skip entire region.
-        return buffer_as.end() - offset
-
-
-class RegexCheck(ScannerCheck):
-    """This check can be quite slow."""
-    maxlen = 100
-
-    def __init__(self, regex=None, **kwargs):
-        super(RegexCheck, self).__init__(**kwargs)
-        self.regex = re.compile(regex)
-
-    def check(self, buffer_as, offset):
-        m = self.regex.match(
-            buffer_as.data, buffer_as.get_buffer_offset(offset))
-
-        return bool(m)
 
 
 class ScannerGroup(BaseScanner):
