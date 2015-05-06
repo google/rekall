@@ -35,6 +35,8 @@
 #include <IOKit/IOMemoryDescriptor.h>
 #include <mach/mach_vm.h>
 
+// The headers don't include this, so this is just copied from vm internals.
+#define SUPERPAGE_SIZE (2*1024*1024)
 
 vm_address_t pmem_rogue_page = 0;
 vm_size_t pmem_rogue_page_size = 0;
@@ -402,6 +404,36 @@ kern_return_t pmem_read_rogue(struct uio *uio) {
 
 bail:
     lck_mtx_unlock(pmem_rogue_page_mtx);
+    return error;
+}
+
+
+kern_return_t pmem_pte_vtop(vm_offset_t vaddr, unsigned long long *paddr) {
+    kern_return_t error;
+
+    PTE pte;
+    error = pmem_read_pte(vaddr, &pte, 0);
+
+    if (error == KERN_SUCCESS) {
+        // This returns the address of a 4K page.
+        *paddr = (pte.page_frame << PAGE_SHIFT) + (vaddr % PAGE_SIZE);
+        return error;
+    }
+
+    // If that failed, the page is either paged out (no phys address) or a
+    // huge page.
+    PDE pde;
+    error = pmem_read_pde(vaddr, &pde, 0);
+
+    if (error == KERN_SUCCESS && pde.page_size) {
+        // Not SUPERPAGE_SHIFT (16) because the bit offset of the page in PD
+        // and PT entries is the same (9).
+        *paddr = ((pde.pt_p << PAGE_SHIFT) +
+                  (vaddr % SUPERPAGE_SIZE));
+    }
+
+    // If we got here the vaddr is likely paged out (or part of a 1GB page,
+    // which is currently unlikely.)
     return error;
 }
 

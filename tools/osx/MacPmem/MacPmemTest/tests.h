@@ -38,6 +38,7 @@ int test_info_read();
 int test_sysctl();
 int test_kextload_stress();
 int test_invalid_reads();
+int test_symbols();
 
 
 // Table of all the tests we'll run.
@@ -49,6 +50,7 @@ static const test_t tests[] = {
     {"test_unload_with_open", &test_unload_with_open},
     {"test_invalid_reads", &test_invalid_reads},
     {"test_kextload_stress", &test_kextload_stress},
+    {"test_symbols", &test_symbols}
 };
 
 #endif /* defined(__MacPmem__tests__) */

@@ -33,7 +33,7 @@
 #define PMEM_NAMESIZE 40
 
 #define PMEM_IOCTL_BASE 'p'
-#define PMEM_API_VERSION ((char) 1)
+#define PMEM_API_VERSION ((char) 2)
 
 #ifdef __LP64__
 #define PMEM_PTRARG uint64_t
@@ -59,7 +59,8 @@
 // came from - you have the hardware informant flag for that.
 typedef enum {
     pmem_efi_range_type,
-    pmem_pci_range_type
+    pmem_pci_range_type,
+    pmem_struct_layout_type
 } pmem_meta_record_type_t;
 
 
@@ -142,7 +143,7 @@ typedef struct {
     // of this record to the head of the next record.
     unsigned int size;
 
-    // Description of what this range is for, e.g. name of PCI device.
+    // Description of what this record is for, e.g. name of a PCI device.
     char purpose[PMEM_NAMESIZE];
 
     union {
@@ -182,6 +183,9 @@ typedef struct {
     // Copied from the kernel version banner.
     char kernel_version[PMEM_OSVERSIZE];
 
+    // Chosen symbol offsets, so analysis tools don't have to scan for them.
+    unsigned long long version_poffset; // The physical offset of the version.
+
     // The records array holds all kinds of things, such as PCI and EFI memory
     // ranges.
     unsigned int record_count;
@@ -201,6 +205,7 @@ typedef struct {
 #define PMEM_INFO_KERNEL_VERSION   0x4  // Copy the kernel version string.
 #define PMEM_INFO_LIST_PCI         0x8  // Get PCI memory ranges.
 #define PMEM_INFO_LIST_PHYSMAP     0x10 // Get the physical map ranges from EFI.
+#define PMEM_INFO_LIST_SYMBOLS     0x20 // List select symbols' offsets.
 
 #define PMEM_INFO_ALL 0xFFFFFFFF // Every flag, even some that don't exist yet.
 

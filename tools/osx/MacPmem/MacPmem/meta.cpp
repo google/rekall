@@ -24,6 +24,7 @@
 #include "MacPmem.h"
 #include "iokit_pci.h"
 #include "util.h"
+#include "pte_mmap.h"
 
 #include <libkern/libkern.h>
 #include <sys/uio.h>
@@ -51,6 +52,7 @@ static const char * const pmem_meta_fmt = \
 "  kaslr_slide: %u\n"
 "  kernel_poffset: %u\n"
 "  kernel_version: \"%.*s\"\n"
+"  version_poffset: %llu\n"
 "records:\n"; // Range descriptions appended after this line.
 
 
@@ -243,8 +245,11 @@ static kern_return_t pmem_append_record(pmem_OSBuffer *buffer,
                                record->pci_range.length,
                                (record->pci_range.hw_informant ?
                                 "true" : "false"));
-            default:
                 break;
+            default:
+                pmem_fatal("Unknown record type encountered. This is a "
+                           "programmer error.");
+                return KERN_FAILURE;
         }
 
         if (fmt <= room) {
@@ -453,6 +458,23 @@ kern_return_t pmem_fillmeta(pmem_meta_t **metaret, int flags) {
         }
     }
 
+    if (flags & PMEM_INFO_LIST_SYMBOLS) {
+        unsigned long long paddr = 0;
+        vm_offset_t version_off = (vm_offset_t)&version;
+        error = pmem_pte_vtop(version_off, &paddr);
+
+        if (error != KERN_SUCCESS) {
+            pmem_error("Could not get physical offset of the version const.");
+            pmem_metafree(meta);
+            return error;
+        }
+
+        pmem_warn("Version at %#016lx virtual, %#016llx physical.",
+                  version_off, paddr);
+
+        meta->version_poffset = paddr;
+    }
+
     *metaret = meta;
     return KERN_SUCCESS;
 }
@@ -592,7 +614,8 @@ kern_return_t pmem_formatmeta(pmem_OSBuffer *buffer, const pmem_meta_t *meta) {
                        meta->kaslr_slide,
                        meta->kernel_poffset,
                        kver_escaped->size,
-                       kver_escaped->buffer);
+                       kver_escaped->buffer,
+                       meta->version_poffset);
 
         if (fmt > BUFLEN_MAX) {
             pmem_error("YAML output would be larger than BUFLEN_MAX.");

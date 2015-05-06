@@ -22,6 +22,57 @@
 #include "tests.h"
 #include "MacPmemTest.h"
 
+
+static pmem_meta_t *_get_sysctl_struct() {
+    // This is how you get pmem_meta_t out using sysctl.
+    int error = -1;
+    pmem_meta_t *meta = 0;
+    size_t metalen = 0;
+
+    while (1) {
+        // Get the required size of the meta struct (it varies).
+        sysctlbyname(PMEM_SYSCTL_NAME, 0, &metalen, 0, 0);
+
+        // Allocate the required number of bytes.
+        meta = (pmem_meta_t *)malloc(metalen);
+        error = sysctlbyname(PMEM_SYSCTL_NAME, meta, &metalen, 0, 0);
+        if (error == 0 && metalen > 0) {
+            break;
+        }
+
+        free(meta);
+        if (errno != ENOMEM) {
+            // If the call failed because the buffer was too small, we can
+            // retry; bail otherwise.
+            pmem_error("sysctlbyname() error: %d", errno);
+            return 0;
+        }
+    }
+
+    if (meta->pmem_api_version == PMEM_API_VERSION) {
+        pmem_debug("MacPmem API version %d matches that of this test suite.",
+                   PMEM_API_VERSION);
+    } else {
+        pmem_warn("MacPmem API version is %d; this test suite expects %d.",
+                  meta->pmem_api_version, PMEM_API_VERSION);
+    }
+
+    if (meta->records_offset == __offsetof(pmem_meta_t, records)) {
+        pmem_debug("Relative offset of meta struct's records array is %llu",
+                   meta->records_offset);
+    } else {
+        pmem_warn(("Relative offset of records array mismatch: "
+                   "%llu (actual) vs %lu (computed)."),
+                  meta->records_offset,
+                  __offsetof(pmem_meta_t, records));
+    }
+    
+    
+    
+    return meta;
+}
+
+
 // Helper to the test_contention test.
 static void *_test_contention_thread(__unused void *ctx) {
     char *buffer = malloc(read_cmp_frame_len);
@@ -116,6 +167,51 @@ int test_contention() {
     pmem_debug("Joined %d threads.", threadc);
 
     return ret;
+}
+
+
+int test_symbols() {
+    pmem_meta_t *meta = _get_sysctl_struct();
+    if (!meta) {
+        return -1;
+    }
+
+    // Physical offset of the kernel version should be present.
+    if (!meta->version_poffset) {
+        pmem_warn("Meta doesn't give kernel version poffset.");
+        return -1;
+    }
+
+    // If we read from the offset, we should get the kernel version string.
+    int fd = open("/dev/pmem", O_RDONLY);
+    if (fd == -1) {
+        pmem_error("Could not open /dev/pmem for reading.");
+        return -1;
+    }
+
+    char version_string[PMEM_OSVERSIZE];
+    lseek(fd, meta->version_poffset, SEEK_SET);
+    ssize_t rcv = read(fd, version_string, PMEM_OSVERSIZE);
+    if (rcv != PMEM_OSVERSIZE) {
+        pmem_error("Could not read from offset %#016llx.",
+                   meta->version_poffset);
+    }
+
+    int res = strncmp(version_string, meta->kernel_version, PMEM_OSVERSIZE);
+    if (res != 0) {
+        pmem_warn("Version string given by meta doesn't match string "
+                  "at %#016llx.\n"
+                  "meta->kernel_version: \"%.*s\"\n"
+                  "actual data: \"%.*s\"",
+                  meta->version_poffset,
+                  PMEM_OSVERSIZE,
+                  meta->kernel_version,
+                  PMEM_OSVERSIZE,
+                  version_string);
+        return -1;
+    }
+
+    return 0;
 }
 
 
@@ -237,47 +333,10 @@ int test_info_read() {
 
 
 int test_sysctl() {
-    // This is how you get pmem_meta_t out using sysctl.
-    int error = -1;
-    pmem_meta_t *meta = 0;
-    size_t metalen = 0;
-
-    while (1) {
-        // Get the required size of the meta struct (it varies).
-        sysctlbyname(PMEM_SYSCTL_NAME, 0, &metalen, 0, 0);
-
-        // Allocate the required number of bytes.
-        meta = (pmem_meta_t *)malloc(metalen);
-        error = sysctlbyname(PMEM_SYSCTL_NAME, meta, &metalen, 0, 0);
-        if (error == 0 && metalen > 0) {
-            break;
-        }
-
-        free(meta);
-        if (errno != ENOMEM) {
-            // If the call failed because the buffer was too small, we can
-            // retry; bail otherwise.
-            pmem_error("sysctlbyname() error: %d", errno);
-            return -1;
-        }
-    }
-
-    if (meta->pmem_api_version == PMEM_API_VERSION) {
-        pmem_debug("MacPmem API version %d matches that of this test suite.",
-                   PMEM_API_VERSION);
-    } else {
-        pmem_warn("MacPmem API version is %d; this test suite expects %d.",
-                  meta->pmem_api_version, PMEM_API_VERSION);
-    }
-
-    if (meta->records_offset == __offsetof(pmem_meta_t, records)) {
-        pmem_debug("Relative offset of meta struct's records array is %llu",
-                  meta->records_offset);
-    } else {
-        pmem_warn(("Relative offset of records array mismatch: "
-                   "%llu (actual) vs %lu (computed)."),
-                  meta->records_offset,
-                  __offsetof(pmem_meta_t, records));
+    pmem_meta_t *meta = _get_sysctl_struct();
+    if (!meta) {
+        pmem_warn("Couldn't get the meta struct through sysctl.");
+        return -1;
     }
 
     pmem_meta_record_t *record = (pmem_meta_record_t *)meta->records;
