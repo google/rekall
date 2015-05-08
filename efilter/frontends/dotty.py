@@ -1,31 +1,31 @@
-# Rekall Memory Forensics
+# EFILTER Forensic Query Language
 #
-# Copyright 2014 Google Inc. All Rights Reserved.
+# Copyright 2015 Google Inc. All Rights Reserved.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or (at
-# your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 """
-The Rekall Entity Layer.
+Canonical EFILTER syntax parser.
 """
+
 __author__ = "Adam Sindelar <adamsh@google.com>"
+
 
 import collections
 import re
 
-from rekall.entities.query import expression
+from efilter import expression
+from efilter import frontend
 
 
 # Transformation functions, for expressions that don't directly map to
@@ -401,15 +401,17 @@ class Tokenizer(object):
                      start=self.string_position, end=match.end())
 
 
-class Parser(object):
+class Parser(frontend.Frontend):
     """Parses the efilter language into the query AST.
 
     This is a basic precedence-climbing parser with support for prefix
     operators and a few special cases for list literals and such.
     """
 
-    def __init__(self, query, params=None):
-        self.tokenizer = Tokenizer(query)
+    def __init__(self, original, params=None):
+        super(Parser, self).__init__(original)
+
+        self.tokenizer = Tokenizer(self.original)
 
         if isinstance(params, list):
             self.params = {}
@@ -417,10 +419,6 @@ class Parser(object):
                 self.params[idx] = val
         else:
             self.params = params
-
-    @property
-    def query(self):
-        return self.tokenizer.buffer
 
     def _handle_expr(self, operator, *args, **kwargs):
         try:
@@ -585,6 +583,10 @@ class Parser(object):
 
         return result
 
+    @property
+    def root(self):
+        return self.parse()
+
     def error(self, message, start_token=None, end_token=None):
         start = self.tokenizer.position
         end = start + 20
@@ -595,5 +597,8 @@ class Parser(object):
         if end_token:
             end = end_token.end
 
-        raise ParseError(query=self.query, start=start, end=end,
+        raise ParseError(query=self.original, start=start, end=end,
                          error=message, token=start_token)
+
+
+frontend.Frontend.register_frontend(Parser, shorthand="dotty")

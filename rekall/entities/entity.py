@@ -32,7 +32,7 @@ from rekall.entities import identity
 from rekall.entities import superposition
 from rekall.entities import types
 
-from rekall.entities.query import query
+from efilter import query
 
 
 class Entity(object):

@@ -1,26 +1,32 @@
-# Rekall Memory Forensics
+# EFILTER Forensic Query Language
 #
-# Copyright 2014 Google Inc. All Rights Reserved.
+# Copyright 2015 Google Inc. All Rights Reserved.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or (at
-# your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 """
-The Rekall Entity Layer.
+EFILTER abstract syntax.
 """
+
 __author__ = "Adam Sindelar <adamsh@google.com>"
+
+import numbers
+
+from efilter.types import associative
+from efilter.types import boolean
+from efilter.types import eq
+from efilter.types import iset
+from efilter.types import ordered
 
 
 class QueryError(Exception):
@@ -70,7 +76,6 @@ class Expression(object):
     arity = 0
     start = None
     end = None
-    return_types = frozenset(["expression"])
 
     def __hash__(self):
         return hash((type(self), self.children))
@@ -102,7 +107,6 @@ class Expression(object):
 
 class ValueExpression(Expression):
     """Unary expression."""
-    __abstract = True
     arity = 1
 
     @property
@@ -113,23 +117,25 @@ class ValueExpression(Expression):
 class Literal(ValueExpression):
     """Represents a literal, which is to say not-an-expression."""
 
-    return_types = frozenset([None])
+    type_signature = ()
 
 
 class Binding(ValueExpression):
     """Represents a member of the evaluated object - attributes of entity."""
 
-    return_types = frozenset([None])
+    arity = 1
+    type_signature = (associative.IAssociative,)
 
 
 class ComponentLiteral(ValueExpression):
     """Evaluates to True if the component exists."""
-    pass
 
 
 class Complement(ValueExpression):
     """Logical NOT."""
-    return_types = frozenset(["bool"])
+
+    arity = 1
+    type_signature = (boolean.IBoolean,)
 
 
 class Let(Expression):
@@ -140,8 +146,8 @@ class Let(Expression):
     Let("Process/parent", ComponentLiteral("Timestamps"))
     """
 
-    return_types = frozenset(["bool"])
     arity = 2
+    type_signature = (associative.IAssociative, Expression)
 
     @property
     def context(self):
@@ -154,87 +160,89 @@ class Let(Expression):
 
 class LetAny(Let):
     """Like Let, but handles multiple BINDINGS using intersection semantics."""
-    pass
 
 
 class LetEach(Let):
     """Like Let, but handles multiple BINDINGS using union semantics."""
-    pass
 
 
 class VariadicExpression(Expression):
     """Represents an expression with variable arity."""
 
-    __abstract = True
     arity = None
 
 
 class Union(VariadicExpression):
     """Logical OR (variadic)."""
 
-    return_types = frozenset(["bool"])
+    type_signature = iset.ISet
 
 
 class Intersection(VariadicExpression):
     """Logical AND (variadic)."""
 
-    return_types = frozenset(["bool"])
+    type_signature = iset.ISet
 
 
 class Relation(VariadicExpression):
-    __abstract = True
-
-    return_types = frozenset(["bool"])
+    pass
 
 
 class Equivalence(Relation):
     """Logical == (variadic)."""
-    pass
+
+    type_signature = eq.IEq
 
 
 class Sum(VariadicExpression):
     """Arithmetic + (variadic)."""
-    return_types = frozenset(["int", "long", "float", "complex"])
+
+    type_signature = numbers.Number
 
 
 class Difference(VariadicExpression):
     """Arithmetic - (variadic)."""
-    return_types = frozenset(["int", "long", "float", "complex"])
+
+    type_signature = numbers.Number
 
 
 class Product(VariadicExpression):
     """Arithmetic * (variadic)."""
-    return_types = frozenset(["int", "long", "float", "complex"])
+
+    type_signature = numbers.Number
 
 
 class Quotient(VariadicExpression):
     """Arithmetic / (variadic)."""
-    return_types = frozenset(["int", "long", "float", "complex"])
+
+    type_signature = numbers.Number
 
 
 class OrderedSet(Relation):
     """Abstract class to represent strict and non-strict ordering."""
-    __abstract = True
+
+    type_signature = ordered.IOrdered
 
 
 class StrictOrderedSet(OrderedSet):
     """Greater than relation."""
-    pass
 
 
 class PartialOrderedSet(OrderedSet):
     """Great-or-equal than relation."""
-    pass
 
 
 class ContainmentOrder(Relation):
     """Inclusion of set 1 by set 2 and so on."""
-    pass
+
+    type_signature = iset.ISet
 
 
 class Membership(Relation):
     """Membership of element in set."""
-    return_types = frozenset(["bool"])
+
+    arity = 2
+    type_signature = (iset.ISet, eq.IEq)
 
     @property
     def element(self):
@@ -246,8 +254,6 @@ class Membership(Relation):
 
 
 class RegexFilter(Relation):
-    return_types = frozenset(["bool"])
-
     @property
     def string(self):
         return self.children[0]

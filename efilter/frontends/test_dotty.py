@@ -1,11 +1,12 @@
-from rekall import testlib
-from rekall.entities.query import efilter
-from rekall.entities.query import expression
+import unittest
+
+from efilter.frontends import dotty
+from efilter import expression
 
 
-class TokenizerTest(testlib.RekallBaseUnitTestCase):
+class TokenizerTest(unittest.TestCase):
     def assertQueryMatches(self, query, expected):
-        tokenizer = efilter.Tokenizer(query)
+        tokenizer = dotty.Tokenizer(query)
         actual = [(token.name, token.value) for token in tokenizer.parse()]
         self.assertEqual(expected, actual)
 
@@ -55,7 +56,7 @@ class TokenizerTest(testlib.RekallBaseUnitTestCase):
 
     def testPeeking(self):
         query = "1 in (5, 10) == Process/pid"
-        tokenizer = efilter.Tokenizer(query)
+        tokenizer = dotty.Tokenizer(query)
         tokenizer.next_token()
         self.assertEquals(tokenizer.peek(2).name, "lparen")
         self.assertEquals(tokenizer.current_token.value, 1)
@@ -70,15 +71,15 @@ class TokenizerTest(testlib.RekallBaseUnitTestCase):
         self.assertEquals(tokenizer.next_token().value, 10)
 
 
-class ParserTest(testlib.RekallBaseUnitTestCase):
+class ParserTest(unittest.TestCase):
     def assertQueryMatches(self, query, expected, params=None):
-        parser = efilter.Parser(query, params=params)
+        parser = dotty.Parser(query, params=params)
         actual = parser.parse()
         self.assertEqual(expected, actual)
 
     def assertQueryRaises(self, query, params=None):
-        parser = efilter.Parser(query, params=params)
-        self.assertRaises(efilter.ParseError, parser.parse)
+        parser = dotty.Parser(query, params=params)
+        self.assertRaises(dotty.ParseError, parser.parse)
 
     def testLiterals(self):
         query = "0xff"
@@ -288,10 +289,10 @@ class ParserTest(testlib.RekallBaseUnitTestCase):
         query = ("Buffer/purpose is 'zones' and any Buffer/context matches"
                  " (Allocation/zone name is {zone_name})")
         params = dict(zone_name="foo")
-        parser = efilter.Parser(query, params=params)
+        parser = dotty.Parser(query, params=params)
         try:
             parser.parse()
-        except efilter.ParseError as e:
+        except dotty.ParseError as e:
             self.assertEqual(e.token.value, 'name')
 
     def testMultipleLiterals(self):

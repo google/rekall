@@ -34,9 +34,9 @@ from rekall.entities import definitions
 from rekall.entities import identity as entity_id
 from rekall.entities import lookup_table as entity_lookup
 
-from rekall.entities.query import expression
-from rekall.entities.query import matcher as query_matcher
-from rekall.entities.query import query as entity_query
+from efilter import expression
+from efilter import query as entity_query
+from efilter.engines import matcher as query_matcher
 
 
 class IngestionPipeline(object):
@@ -51,7 +51,7 @@ class IngestionPipeline(object):
 
         for query in queries:
             self.queues[query] = []
-            self.matchers[query] = query_matcher.QueryMatcher(query)
+            self.matchers[query] = query_matcher.ObjectMatcher(query)
 
     def seed(self, query, entities):
         """Set up the queue for query with entities."""
@@ -96,11 +96,11 @@ class IngestionPipeline(object):
             if effect == entity_collector.EffectEnum.Duplicate:
                 continue
 
-            if wanted_handler and wanted_matcher.match(entity):
+            if wanted_handler and wanted_matcher.run(entity):
                 wanted_handler(entity)
 
             for query in self.queries:
-                if self.matchers[query].match(entity):
+                if self.matchers[query].run(entity):
                     self.queues[query].append(entity)
                     counts[entity_collector.EffectEnum.Enqueued] += 1
                     self.empty = False
@@ -380,7 +380,7 @@ class EntityManager(object):
     def matcher_for(self, query):
         """Returns a query matcher for the query (cached)."""
         matcher = self._cached_matchers.setdefault(
-            query, query_matcher.QueryMatcher(query))
+            query, query_matcher.ObjectMatcher(query))
 
         return matcher
 
@@ -397,7 +397,7 @@ class EntityManager(object):
                 continue
             for query_name, query in collector.collect_queries.iteritems():
                 matcher = self.matcher_for(query)
-                if matcher.match(entity):
+                if matcher.run(entity):
                     yield collector, query_name
 
     def parse(self, entity):
@@ -442,7 +442,7 @@ class EntityManager(object):
                 analysis_copy[key] = copy.copy(value)
             return analysis_copy
 
-        analyzer = wanted.execute("QueryAnalyzer")
+        analyzer = wanted.run_engine("analyzer")
         include = analyzer.include
         exclude = analyzer.exclude
         suggested_indices = analyzer.latest_indices
@@ -555,7 +555,7 @@ class EntityManager(object):
             query = entity_query.Query(query, params=query_params)
 
         if validate:
-            query.execute("QueryValidator")
+            query.run_engine("validator")
 
         if complete:
             try:
@@ -616,7 +616,7 @@ class EntityManager(object):
         # Planning stage.
 
         if callable(result_stream_handler):
-            wanted_matcher = query_matcher.QueryMatcher(wanted)
+            wanted_matcher = query_matcher.ObjectMatcher(wanted)
         else:
             wanted_matcher = None
 
@@ -696,7 +696,7 @@ class EntityManager(object):
                 self.finished_collectors.add(collector.name)
 
             for entity, effect in self.collect(collector, hint=hint):
-                if result_stream_handler and wanted_matcher.match(entity):
+                if result_stream_handler and wanted_matcher.run(entity):
                     result_stream_handler(entity)
 
                 effects[effect] += 1

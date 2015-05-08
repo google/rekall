@@ -10,10 +10,3 @@ from rekall.plugins import tests
 from rekall.entities import entity_test
 from rekall.entities import identity_test
 from rekall.entities import superposition_test
-
-from rekall.entities.query import analyzer_test
-from rekall.entities.query import efilter_test
-from rekall.entities.query import matcher_test
-from rekall.entities.query import validator_test
-
-from rekall.entities.ext import indexset_test

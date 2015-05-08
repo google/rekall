@@ -27,13 +27,14 @@ import logging
 from rekall.entities import entity as entity_module
 from rekall.entities import identity as entity_id
 
-from rekall.entities.query import expression
+from efilter import engine
+from efilter import expression
+from efilter import query as entity_query
+
 from rekall.entities.query import matcher
-from rekall.entities.query import query as entity_query
-from rekall.entities.query import visitor
 
 
-class EntityQuerySearch(visitor.QueryVisitor):
+class EntityQuerySearch(engine.VisitorEngine):
     """Tries to solve the query using available indexing."""
 
     def search(self, entities, lookup_tables):
@@ -60,14 +61,14 @@ class EntityQuerySearch(visitor.QueryVisitor):
         return results
 
     def _subquery(self, expr):
-        return entity_query.Query(expression=expr,
+        return entity_query.Query(root=expr,
                                   source=self.query.source)
 
     def _slow_solve(self, expr, seed):
-        slow_matcher = matcher.QueryMatcher(self._subquery(expr))
+        slow_matcher = matcher.ObjectMatcher(self._subquery(expr))
         entities = set()
         for entity in seed:
-            if slow_matcher.match(entity):
+            if slow_matcher.run(entity):
                 entities.add(entity)
 
         return entities
@@ -99,12 +100,12 @@ class EntityQuerySearch(visitor.QueryVisitor):
 
         # Don't have an exact index, but can prefilter by component index.
         component, _ = binding.value.split("/", 1)
-        slow_matcher = matcher.QueryMatcher(self._subquery(expr))
+        slow_matcher = matcher.ObjectMatcher(self._subquery(expr))
         entities = set()
         candidates = self.lookup_tables["components"].table.get(component, [])
         for identity in candidates:
             entity = self.entities[identity.first_index]
-            if slow_matcher.match(entity):
+            if slow_matcher.run(entity):
                 entities.add(entity)
 
         return entities
@@ -164,6 +165,9 @@ class EntityQuerySearch(visitor.QueryVisitor):
                     results.add(matching_entity)
 
         return self._as_entities(results)
+
+
+engine.Engine.register_engine(EntityQuerySearch, "indexed_search")
 
 
 class EntityLookupTable(object):

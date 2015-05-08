@@ -1,6 +1,6 @@
-from rekall import testlib
+import unittest
 
-from rekall.entities.ext import indexset
+from efilter.ext import indexset
 
 
 class FakeIndexable(object):
@@ -12,7 +12,7 @@ class FakeIndexable(object):
         return "FakeIndexable(%s)" % repr(self.value)
 
 
-class IndexSetTest(testlib.RekallBaseUnitTestCase):
+class IndexSetTest(unittest.TestCase):
     def testSingleSet(self):
         e1 = FakeIndexable(["enum_foo", 1], "foo")
         e2 = FakeIndexable(["enum_bar", 2, "bar"], "bar")

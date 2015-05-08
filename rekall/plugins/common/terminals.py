@@ -23,7 +23,8 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import re
 
 from rekall import plugin
-from rekall.entities.query import expression
+
+from efilter import expression
 
 
 class ListTerminals(plugin.Command):

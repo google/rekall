@@ -27,7 +27,7 @@ import re
 from rekall import registry
 
 from rekall.entities.query import analyzer
-from rekall.entities.query import query as entity_query
+from efilter import query as entity_query
 
 
 class CostEnum(object):

@@ -23,7 +23,7 @@ The Rekall Entity Layer.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
-from rekall.entities.query import expression
+from efilter import expression
 
 
 class IdentityError(RuntimeError):

@@ -1,6 +1,6 @@
 from rekall import testlib
 
-from rekall.entities.query import query as entity_query
+from efilter import query as entity_query
 from rekall.entities.query import validator
 
 
@@ -13,7 +13,7 @@ class ValidatorTest(testlib.RekallBaseUnitTestCase):
     def assertQueryPasses(self, query):
         q = entity_query.Query(query)
         try:
-            q.execute("QueryValidator")
+            q.run_engine("validator")
         except validator.ValidationError as e:
             self.fail("%s raised exception on validation:\n%s" % (q, e))
 

@@ -20,12 +20,7 @@ __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adam.sindelar@gmail.com>")
 
-import itertools
-
 from rekall.plugins.darwin import common
-from rekall.plugins.darwin import lsof
-
-from rekall.entities.query import expression
 
 
 class DarwinArp(common.DarwinPlugin):
@@ -42,16 +37,15 @@ class DarwinArp(common.DarwinPlugin):
              ("Recv", "recv", "8"),
              ("Time", "timestamp", "24"),
              ("Expires", "expires", "8"),
-             ("Delta", "delta", "8"),
-             ])
+             ("Delta", "delta", "8")])
 
         arp_cache = self.profile.get_constant_object(
             "_llinfo_arp",
             target="Pointer",
             target_args=dict(
                 target="llinfo_arp"
-                )
             )
+        )
 
         while arp_cache:
             entry = arp_cache.la_rt
@@ -65,7 +59,7 @@ class DarwinArp(common.DarwinPlugin):
                 entry.base_calendartime,
                 entry.rt_expire,
                 entry.delta
-                )
+            )
 
             arp_cache = arp_cache.la_le.le_next
 
@@ -147,8 +141,7 @@ class DarwinRoute(common.DarwinPlugin):
              ("Recv", "recv", "8"),
              ("Time", "timestamp", "24"),
              ("Expires", "expires", "8"),
-             ("Delta", "delta", "8"),
-             ])
+             ("Delta", "delta", "8")])
 
         route_tables = self.profile.get_constant_object(
             "_rt_tables",
@@ -158,9 +151,9 @@ class DarwinRoute(common.DarwinPlugin):
                 target="Pointer",
                 target_args=dict(
                     target="radix_node_head"
-                    )
                 )
             )
+        )
 
         for node in self.rn_walk_tree(route_tables[2]):
             rentry = node.dereference_as("rtentry")
@@ -206,4 +199,3 @@ class DarwinIPFilters(common.DarwinPlugin):
                 handler = filter.ipf_detach.deref()
                 renderer.table_row("DETACH", name, handler,
                                    resolver.format_address(handler))
-

@@ -28,8 +28,8 @@ from rekall import testlib
 from rekall.entities import entity as entity_module
 from rekall.entities import component as entity_component
 
-from rekall.entities.query import expression as expr
-from rekall.entities.query import query as entity_query
+from efilter import expression as expr
+from efilter import query as entity_query
 
 
 class TestEntityFind(testlib.SortedComparison):
@@ -145,7 +145,7 @@ class EntityAnalyze(plugin.ProfileCommand):
             dict(name="Location in query", cname="source", type="Query",
                  width=100)])
 
-        self._render_node(self.query.expression, renderer)
+        self._render_node(self.query.root, renderer)
 
     def render(self, renderer):
         self.render_tree(renderer)
@@ -180,7 +180,7 @@ class EntityFind(plugin.ProfileCommand):
     --explain: If set, an analysis of the query will be rendered and each
                row in results will include a highlight of the part of the query
                that matched it (obviously a heuristic, your mileage may vary).
-    
+
     Column definitions:
     ===================
 
@@ -192,10 +192,9 @@ class EntityFind(plugin.ProfileCommand):
             will be derived from the attribute name.
     - attribute: The name of the attribute to be selected from each entity.
     - fn: A callable that is passed an entity and produces a value of the
-          column. If both fn and attribute are given, fn overrides the
-          attribute.
+          column. You can only provide this or attribute but not both.
     - width: The width of the column (number of characters). If not given, will
-             be derived from the attribute.
+             be derived from the attribute's default width (if that is given).
     """
 
     __name = "find"
@@ -276,8 +275,8 @@ class EntityFind(plugin.ProfileCommand):
         return _sort_func
 
     def render_entity(self, renderer, entity):
-        if self.display_filter and not self.display_filter.execute(
-                "QueryMatcher", method="match", bindings=entity):
+        if self.display_filter and not self.display_filter.run_engine(
+                "matcher", bindings=entity):
             return
 
         opts = {}
@@ -286,6 +285,10 @@ class EntityFind(plugin.ProfileCommand):
             attribute = column.get("attribute")
             fn = column.get("fn")
             if attribute:
+                if fn:
+                    raise ValueError(
+                        "Column spec %r provides both a fn lambda and an "
+                        "attribute. Pick one or the other." % column)
                 values.append(entity[attribute])
             elif fn:
                 values.append(fn(entity))
@@ -295,9 +298,9 @@ class EntityFind(plugin.ProfileCommand):
                     % column)
 
         if self.explain:
-            match = self.query.execute("QueryMatcher", method="match",
-                                       bindings=entity,
-                                       match_backtrace=True)
+            match = self.query.run_engine("matcher",
+                                          bindings=entity,
+                                          match_backtrace=True)
             values.append(self.query)
             opts["query_highlight"] = match.matched_expression
 

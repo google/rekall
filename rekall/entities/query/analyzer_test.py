@@ -1,12 +1,12 @@
 from rekall import testlib
 
 from rekall.entities.query import analyzer
-from rekall.entities.query import query as entity_query
+from efilter import query as entity_query
 
 
 class AnalyzerTest(testlib.RekallBaseUnitTestCase):
     def analyze(self, query):
-        return entity_query.Query(query).execute("QueryAnalyzer")
+        return entity_query.Query(query).run_engine("analyzer")
 
     def assertDepends(self, query, inclusions, exclusions=(), omissions=()):
         analysis = self.analyze(query)

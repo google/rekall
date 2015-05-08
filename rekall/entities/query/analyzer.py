@@ -26,7 +26,7 @@ import re
 
 from rekall.entities import definitions
 
-from rekall.entities.query import visitor
+from efilter import engine
 
 
 class Dependency(object):
@@ -206,7 +206,7 @@ class SimpleDependency(Dependency):
         return hash(self.astuple())
 
 
-class QueryAnalyzer(visitor.QueryVisitor):
+class QueryAnalyzer(engine.VisitorEngine):
     """Given a query, find its dependencies on collectors and indices.
 
     In general terms, we can detect two kinds of collector dependencies:
@@ -234,11 +234,11 @@ class QueryAnalyzer(visitor.QueryVisitor):
             - Set of SimpleDependency instances to be excluded.
             - Set of names of attributes whose indices can speed up the query.
         """
-        self.query.execute("QueryValidator")
+        self.query.run_engine("validator")
         self.latest_indices = set()
         self._let_stack = []  # How deep are we in Let expressions?
         self.expected_components = set()
-        result = self.visit(self.expression)
+        result = self.visit(self.query.root)
         if isinstance(result, Dependency):
             self.include, self.exclude = result.normalize()
 
@@ -427,3 +427,5 @@ class QueryAnalyzer(visitor.QueryVisitor):
                 seen.update(value.simplified())
 
         return seen
+
+engine.Engine.register_engine(QueryAnalyzer, "analyzer")

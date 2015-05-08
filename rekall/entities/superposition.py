@@ -27,7 +27,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from rekall.entities import types
 
-from rekall.entities.ext import indexset
+from efilter.ext import indexset
 
 
 def FastSuperpositionCompare(x, y):

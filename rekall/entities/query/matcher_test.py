@@ -1,12 +1,11 @@
 from rekall import testlib
 
-from rekall.entities.query import query as entity_query
+from efilter import query as entity_query
 
 
 class MatcherTest(testlib.RekallBaseUnitTestCase):
     def assertQueryMatches(self, query, bindings):
-        m = entity_query.Query(query).execute("QueryMatcher", "match",
-                                              bindings=bindings)
+        m = entity_query.Query(query).run_engine("matcher", bindings=bindings)
         self.assertIsNotNone(m)
 
     def testBasic(self):

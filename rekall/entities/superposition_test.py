@@ -3,7 +3,7 @@ from rekall import testlib
 from rekall.entities import superposition
 from rekall.entities import types
 
-from rekall.entities.ext import indexset_test as it
+from efilter.ext import test_indexset as it
 
 
 class SuperpositionTest(testlib.RekallBaseUnitTestCase):
