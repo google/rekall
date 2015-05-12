@@ -87,7 +87,7 @@ class WindowsPagedMemoryMixin(object):
                 pte = mmvad.FirstPrototypePte[
                     (virtual_address - start) >> 12]
 
-                return "Vad", pte.u.Long.v()
+                return "Vad", pte.u.Long.v() or 0
 
         # Virtual address does not exist in any VAD region.
         return "Demand Zero", pte_value
