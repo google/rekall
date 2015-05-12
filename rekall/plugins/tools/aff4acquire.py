@@ -58,8 +58,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
         parser.add_argument(
             "--compression", default="zlib", required=False,
             choices=["snappy", "stored", "zlib"],
-            help="The destination file to create. "
-            "If not specified we write output.aff4 in current directory.")
+            help="The compression to use.")
 
     def __init__(self, destination=None, compression=None, **kwargs):
         super(AFF4Acquire, self).__init__(**kwargs)
@@ -94,8 +93,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
             total = 0
             last_tick = time.time()
 
-            for range in source.get_address_ranges():
-                offset, _, length = range
+            for offset, _, length in source.get_address_ranges():
                 image_stream.seek(offset)
 
                 while length > 0:

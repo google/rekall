@@ -149,6 +149,9 @@ class WindowsIndexDetector(DetectionMethod):
                 "svchost.exe\x00\x00", "lsass.exe\x00\x00",
                 "winlogon.exe\x00\x00"]
 
+    def Offsets(self):
+        return [0]
+
     def VerifyDTB(self, test_as):
         """Verify this address space.
 
@@ -195,6 +198,20 @@ class WindowsIndexDetector(DetectionMethod):
                 return profile_obj
 
     def DetectFromHit(self, hit, filename_offset, address_space):
+        # Make use of already known dtb and kernel_base parameters - this speeds
+        # up live analysis significantly since we do not need to search for
+        # anything then.
+        if (filename_offset == 0 and self.session.HasParameter("dtb") and
+            self.session.HasParameter("kernel_base")):
+            test_as = amd64.AMD64PagedMemory(
+                session=self.session, base=address_space,
+                dtb=self.session.GetParameter("dtb"))
+
+            if self.VerifyDTB(test_as):
+                return self._match_profile_for_kernel_base(
+                    self.session.GetParameter("kernel_base"),
+                    test_as)
+
         # Get potential kernel address spaces.
         for test_as in self.DetectWindowsDTB(filename_offset, address_space):
             # Try to find the kernel base. This can be improved in future by
