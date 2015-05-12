@@ -380,6 +380,25 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
 
             offset += 0x1000
 
+    def FormatMetadata(self, type, metadata, offset=None):
+        result = ""
+        if "filename" in metadata:
+            result += "%s " % metadata["filename"]
+
+        if "number" in metadata:
+            result = "PF %s " % metadata["number"]
+
+        if type == "Valid" or type == "Transition":
+            result += "PhysAS "
+
+        if offset:
+            result += "@ %#x " % offset
+
+        if "ProtoType" in metadata:
+            result += "(P) "
+
+        return result
+
     def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
@@ -412,6 +431,8 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
                         continue
 
                     for vaddr, metadata in self._GenerateVADRuns(vad):
+                        # Remove the offset so we can merge on identical
+                        # metadata (offset will change for each page).
                         offset = metadata.pop("offset", None)
 
                         # Coalesce similar rows.
@@ -425,10 +446,8 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
 
                         type = old_metadata.pop("type", None)
                         if type:
-                            comment = ",".join(
-                                ["%s: %s" % (k, v)
-                                 for k, v in sorted(old_metadata.items())])
-
+                            comment = self.FormatMetadata(
+                                type, old_metadata, offset=old_offset)
                             row = [old_vaddr, old_offset, length, type, comment]
                             if self.verbosity < 5:
                                 row.pop(1)

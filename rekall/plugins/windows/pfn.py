@@ -91,23 +91,17 @@ class PFNModification(obj.ProfileModification):
 class VtoP(core.VtoPMixin, common.WinProcessFilter):
     """Prints information about the virtual to physical translation."""
 
-    def render_pte(self, address, value, renderer, vaddr):
+    def render_pte(self, address, pte_value, renderer, vaddr):
         """Analyze the PTE in detail.
 
         This follows the algorithm in WindowsAMD64PagedMemory.get_phys_addr().
         """
-        pte_plugin = self.session.plugins.pte(address, "P", vaddr)
+        pte_plugin = self.session.plugins.pte(address, vaddr, address_space="P")
 
         pte_plugin.render(renderer)
 
         pte = self.profile._MMPTE()
-        pte.u.Long = value
-
-        phys_addr = self.address_space.ResolveProtoPTE(pte, vaddr)
-        if phys_addr:
-            renderer.format("PTE mapped at {0:addrpad}\n", phys_addr)
-        else:
-            renderer.format("Invalid PTE\n")
+        pte.u.Long = pte_value
 
     def render_address(self, renderer, vaddr):
         renderer.section(name="{0:#08x}".format(vaddr))
@@ -260,7 +254,7 @@ class PTE(common.WindowsCommandPlugin):
     @classmethod
     def args(cls, parser):
         super(PTE, cls).args(parser)
-        parser.add_argument("pte_address", type="IntParser",
+        parser.add_argument("pte_address", type="SymbolAddress",
                             help="The address of the PTE.")
 
         parser.add_argument("--address_space", default="P",
@@ -269,8 +263,8 @@ class PTE(common.WindowsCommandPlugin):
         parser.add_argument("--virtual_address", type="IntParser",
                             help="The virtual address that this pte is for.")
 
-    def __init__(self, pte_address=None, address_space="P",
-                 virtual_address=None, **kwargs):
+    def __init__(self, pte_address=0, virtual_address=None,
+                 address_space="P", **kwargs):
         """Prints information about a PTE.
 
         Similar to windbg's !pte extension.
@@ -278,7 +272,9 @@ class PTE(common.WindowsCommandPlugin):
         super(PTE, self).__init__(**kwargs)
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
-        self.pte_address = pte_address
+        self.pte_address = self.session.address_resolver.get_address_by_name(
+            pte_address)
+
         self.virtual_address = virtual_address
         self.default_address_space = self.session.GetParameter(
             "default_address_space")
@@ -288,9 +284,11 @@ class PTE(common.WindowsCommandPlugin):
         if not pte.u.Hard.Valid and pte.u.Proto.Prototype:
             subsection = pte.u.Subsect.Subsection
 
-            # Calculate the file offset.
-            file_offset = ((pte - subsection.SubsectionBase) * 0x1000 +
-                           subsection.StartingSector * 512)
+            # Calculate the file offset. The SubsectionBase is an array pointer
+            # to the linear arrays of section PTEs (one per file sector).
+            file_offset = (
+                (pte - subsection.SubsectionBase) * 0x1000 / pte.obj_size +
+                subsection.StartingSector * 512)
 
             return dict(
                 type="File Mapping",
@@ -315,11 +313,17 @@ class PTE(common.WindowsCommandPlugin):
         This is basically the same algorithm as the render() method except we
         don't render anything.
         """
-        desc, pte = self.default_address_space.DeterminePTEType(
-            pte, virtual_address)
+        pte_value = pte.u.Long.v()
+
+        desc, _ = self.default_address_space.DeterminePTEType(
+            pte_value, virtual_address)
+
+        pte = self.profile._MMPTE()
+        pte.u.Long = pte_value
 
         if desc == "Prototype":
-            result = self._ResolveProtoPTE(pte.Proto, virtual_address)
+            result = self._ResolveProtoPTE(pte.u.Proto.Proto.deref(),
+                                           virtual_address)
             result["ProtoType"] = True
             return result
 
@@ -329,30 +333,36 @@ class PTE(common.WindowsCommandPlugin):
             start, _, _, mmvad = resolver.FindProcessVad(virtual_address)
 
             # The MMVAD does not have any prototypes.
-            if mmvad.m("FirstPrototypePte") == None:
-                return dict(type="Demand Zero")
+            if mmvad.m("FirstPrototypePte").deref() == None:
+                return dict(type="Demand Zero", ProtoType=True)
 
             else:
                 pte = mmvad.FirstPrototypePte[(virtual_address - start) >> 12]
-                return self._ResolveProtoPTE(pte.reference(), virtual_address)
+                result = self._ResolveProtoPTE(pte, virtual_address)
+                result["ProtoType"] = True
+                return result
 
         elif desc == "Pagefile":
             return dict(
                 type="Pagefile",
-                number=pte.PageFileLow,
-                offset=pte.PageFileHigh * 0x1000)
+                number=pte.u.Soft.PageFileLow,
+                offset=pte.u.Soft.PageFileHigh * 0x1000)
 
         elif desc == "Valid":
             return dict(
                 type="Valid",
-                offset=pte.PageFrameNumber * 0x1000 | (virtual_address & 0xFFF))
+                offset=(pte.u.Hard.PageFrameNumber * 0x1000 |
+                        (virtual_address & 0xFFF))
+            )
 
         elif desc == "Transition":
             return dict(
                 type="Transition",
-                offset=pte.PageFrameNumber * 0x1000 | (virtual_address & 0xFFF))
+                offset=(pte.u.Hard.PageFrameNumber * 0x1000 |
+                        (virtual_address & 0xFFF))
+            )
 
-        return dict(type="Unknown")
+        return dict(type="Demand Zero")
 
     def RenderPrototypePTE(self, pte, renderer):
         """Analyze the prototype PTE's target."""
@@ -393,15 +403,30 @@ class PTE(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         pte = self.profile._MMPTE(self.pte_address, vm=self.address_space)
-        desc, pte = self.default_address_space.DeterminePTEType(
-            pte, self.virtual_address)
+        pte_value = pte.u.Long.v()
+
+        desc, _ = self.default_address_space.DeterminePTEType(
+            pte_value, self.virtual_address)
+
+        if desc == "Valid":
+            pte_struct = pte.u.Hard
+        elif desc == "Transition":
+            pte_struct = pte.u.Trans
+        elif desc == "Prototype":
+            pte_struct = pte.u.Proto
+        elif desc == "Pagefile":
+            pte_struct = pte.u.Soft
+        elif desc == "Vad":
+            pte_struct = ""
+        else:
+            pte_struct = pte.u.Hard
 
         renderer.format(
-            "\nPTE Contains {1:#x}\nPTE Type: {2}\n{0:style=full}\n",
-            pte, pte.cast("_MMPTE").u.Long, desc)
+            "\nPTE Contains {0:#x}\nPTE Type: {1}\n{2:style=full}\n",
+            pte_value, desc, pte_struct)
 
         if desc == "Prototype":
-            self.RenderPrototypePTE(pte.Proto.deref(), renderer)
+            self.RenderPrototypePTE(pte_struct.Proto.deref(), renderer)
 
         # This is a prototype into a vad region.
         elif desc == "Vad":
@@ -420,7 +445,7 @@ class PTE(common.WindowsCommandPlugin):
             if hit:
                 start, _, _, mmvad = hit
                 # The MMVAD does not have any prototypes.
-                if mmvad.m("FirstPrototypePte") == None:
+                if mmvad.m("FirstPrototypePte").deref() == None:
                     renderer.format("Demand Zero page\n")
 
                 else:

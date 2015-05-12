@@ -639,6 +639,7 @@ class BitField(NativeType):
         self.target = target
         self.start_bit = start_bit
         self.end_bit = end_bit
+        self.mask = ((1 << end_bit) - 1) ^ ((1 << start_bit) - 1)
 
     @property
     def obj_size(self):
@@ -660,7 +661,7 @@ class BitField(NativeType):
 
 
     def __nonzero__(self):
-        return self != 0
+        return bool(self._proxy.v() & self.mask)
 
 
 class Pointer(NativeType):
@@ -1226,6 +1227,9 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             self.obj_offset,
             self.obj_vm,
             ),)
+
+    def __long__(self):
+        return self.obj_offset
 
     def __int__(self):
         """Return our offset as an integer.

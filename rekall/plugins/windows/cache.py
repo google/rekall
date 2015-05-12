@@ -160,7 +160,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
         for subsection in ca.FirstSubsection.walk_list("NextSubsection"):
             for i, pte in enumerate(subsection.SubsectionBase):
                 phys_address = self.kernel_address_space.ResolveProtoPTE(
-                    pte, 0)
+                    pte.u.Long.v(), 0)[1]
 
                 if phys_address == None:
                     continue

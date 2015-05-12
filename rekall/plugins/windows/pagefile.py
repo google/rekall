@@ -53,86 +53,133 @@ class WindowsPagedMemoryMixin(object):
         # This is the offset at which the pagefile is mapped into the physical
         # address space.
         self.pagefile_mapping = getattr(self.base, "pagefile_offset", None)
-        self.prototype_pte_mask = 1 << 10
-        self.proto_transition_pte_mask = 1 << 10 | 1 << 11
-        self.proto_transition_valid_pte_mask = 1 << 10 | 1 << 11 | 1
-        self.transition_valid_mask = 1 << 11 | 1
 
-        # Only transition bit on and proto bit off.
-        self.transition_pte_value = 1 << 11 # (p=0, t=1)
-        self.subsection_pte_value = 1 << 10 # (v=0, p=1, t=0)
         self._resolve_vads = True
         self.vads = None
 
-    def _ConsultVad(self, virtual_address, pte):
+        # We cache these bitfields in order to speed up mask calculations. We
+        # derive them initially from the profile so we do not need to hardcode
+        # any bit positions.
+        pte = self.session.profile._MMPTE()
+        self.prototype_mask = pte.u.Proto.Prototype.mask
+        self.transition_mask = pte.u.Trans.Transition.mask
+        self.subsection_mask = pte.u.Subsect.Subsection.mask
+        self.valid_mask = pte.u.Hard.Valid.mask
+        self.proto_protoaddress_mask = pte.u.Proto.ProtoAddress.mask
+        self.proto_protoaddress_start = pte.u.Proto.ProtoAddress.start_bit
+        self.soft_pagefilehigh_mask = pte.u.Soft.PageFileHigh.mask
+
+        # Combined masks for faster checking.
+        self.proto_transition_mask = self.prototype_mask | self.transition_mask
+        self.proto_transition_valid_mask = (self.proto_transition_mask |
+                                            self.valid_mask)
+        self.transition_valid_mask = self.transition_mask | self.valid_mask
+
+    def _ConsultVad(self, virtual_address, pte_value):
         vad_hit = self.session.address_resolver.FindProcessVad(
             virtual_address, cache_only=not self._resolve_vads)
+
         if vad_hit:
-            pte = pte.u.Proto
-            pte.vad_hit = vad_hit
-            desc = "Vad"
-        else:
-            # This should not happen
-            desc = "Unknown"
+            start, _, _, mmvad = vad_hit
 
-        return desc, pte
+            # If the MMVAD has PTEs resolve those..
+            if "FirstPrototypePte" in mmvad.members:
+                pte = mmvad.FirstPrototypePte[
+                    (virtual_address - start) >> 12]
 
-    def DeterminePTEType(self, pte, virtual_address):
-        """Determine which type of pte this is."""
-        if pte.u.Hard.Valid:
-            pte = pte.u.Hard
+                return "Vad", pte.u.Long.v()
+
+        # Virtual address does not exist in any VAD region.
+        return "Demand Zero", pte_value
+
+    def DeterminePTEType(self, pte_value, virtual_address):
+        """Determine which type of pte this is.
+
+        This function performs the first stage PTE resolution. PTE value is a
+        hardware PTE as read from the page tables.
+
+        Returns:
+          a tuple of (description, pte_value) where description is the type of
+          PTE this is, and pte_value is the value of the PTE. The PTE value can
+          change if this PTE actually refers to a prototype PTE - we then read
+          the destination PTE location and return its real value.
+
+        """
+        if pte_value & self.valid_mask:
             desc = "Valid"
 
-        elif not pte.u.Trans.Prototype and pte.u.Trans.Transition:
-            pte = pte.u.Trans
+        elif (not pte_value & self.prototype_mask and  # Not a prototype
+              pte_value & self.transition_mask): # But in transition.
             desc = "Transition"
 
-        elif (pte.u.Proto.Prototype and
-              pte.u.Proto.ProtoAddress == 0xffffffff0000):
-            return self._ConsultVad(virtual_address, pte)
+        # PTE Type is not known - we need to look it up in the vad.
+        elif (pte_value & self.prototype_mask and
+              self.proto_protoaddress_mask & pte_value >>
+              self.proto_protoaddress_start == 0xffffffff0000):
+            return self._ConsultVad(virtual_address, pte_value)
 
         # Regular prototype PTE.
-        elif pte.u.Proto.Prototype:
-            pte = pte.u.Proto
+        elif pte_value & self.prototype_mask:
+            # This PTE points at the prototype PTE in pte.ProtoAddress.
+            pte = self.session.profile._MMPTE(
+                offset=pte_value >> self.proto_protoaddress_start,
+                vm=self)
+
+            pte_value = pte.u.Long.v()
             desc = "Prototype"
 
-        elif pte.u.Soft.PageFileHigh == 0:
-            return self._ConsultVad(virtual_address, pte)
+        # PTE value is not known, we need to look it up in the VAD.
+        elif pte_value & self.soft_pagefilehigh_mask == 0:
+            return self._ConsultVad(virtual_address, pte_value)
 
         # Regular _MMPTE_SOFTWARE entry - look in pagefile.
         else:
-            pte = pte.u.Soft
             desc = "Pagefile"
 
-        return desc, pte
+        return desc, pte_value
 
-    def ResolveProtoPTE(self, pte, virtual_address):
+    def ResolveProtoPTE(self, pte_value, virtual_address):
         """Second level resolution of prototype PTEs.
 
         This function resolves a prototype PTE. Some states must be interpreted
         differently than the first level PTE.
+
+        Returns:
+          a tuple of (Description, physical_address) where description is the
+          type of the resolved PTE.
         """
         # If the prototype is Valid or in Transition, just resolve it with the
         # hardware layer.
-        if pte.u.Hard.Valid or (
-                not pte.u.Trans.Prototype and pte.u.Trans.Transition):
-            return super(WindowsPagedMemoryMixin, self).get_phys_addr(
-                virtual_address, pte.u.Long | 1)
+        if pte_value & self.valid_mask:
+            return "Valid", super(WindowsPagedMemoryMixin, self).get_phys_addr(
+                virtual_address, pte_value)
+
+        # Not a prototype but in transition.
+        if pte_value & self.proto_transition_mask == self.transition_mask:
+            return ("Transition",
+                    super(WindowsPagedMemoryMixin, self).get_phys_addr(
+                        virtual_address, pte_value | self.valid_mask))
 
         # If the target of the Prototype looks like a Prototype PTE, then it is
         # a Subsection PTE. However, We cant do anything about it because we
         # don't have the filesystem. Therefore we return an invalid page.
-        if pte.u.Proto.Prototype:
-            return None
+        if pte_value & self.prototype_mask:
+            return "Subsection", None
 
         # Prototype PTE is a Demand Zero page
-        if pte.u.Soft.PageFileHigh == 0:
-            return None
+        if pte_value & self.soft_pagefilehigh_mask == 0:
+            return "DemandZero", None
 
         # Regular _MMPTE_SOFTWARE entry - return physical offset into pagefile.
         if self.pagefile_mapping is not None:
-            return (pte.u.Soft.PageFileHigh * 0x1000 + self.pagefile_mapping +
-                    (virtual_address & 0xFFF))
+            pte = self.session.profile._MMPTE()
+            pte.u.Long = pte_value
+
+            return "Pagefile", (
+                pte.u.Soft.PageFileHigh * 0x1000 + self.pagefile_mapping +
+                (virtual_address & 0xFFF))
+
+        return "Pagefile", None
 
     def get_available_addresses(self, start=0):
         self.vads = list(self.session.address_resolver.GetVADs())
@@ -218,17 +265,6 @@ class WindowsPagedMemoryMixin(object):
         pte_value must be the actual PTE from hardware page tables (Not software
         PTEs which are prototype PTEs).
         """
-        # If the pte is in the Transition state (i.e. Prototype=0,
-        # Transition=1), make it valid.
-        if (pte_value & self.proto_transition_pte_mask ==
-                self.transition_pte_value):
-            pte_value |= 1
-
-        # PTE is valid or in transition, let the hardware layer handle it.
-        if pte_value & 1:
-            return super(WindowsPagedMemoryMixin, self).get_phys_addr(
-                virtual_address, pte_value)
-
         try:
             # Prevent recursively calling ourselves. We might resolve Prototype
             # PTEs which end up calling plugins (like the VAD plugin) which
@@ -238,26 +274,27 @@ class WindowsPagedMemoryMixin(object):
             self._resolve_vads = False
 
             # Switch to using symbols. Its a little bit slower but more accurate
-            # and readable.
-            pte = self.session.profile._MMPTE()
-            pte.u.Long = pte_value
+            # and readable. Note that pte_value may change here if we need to
+            # fetch it from the VAD prototype (for stage 2 resolution).
+            desc, pte_value = self.DeterminePTEType(pte_value, virtual_address)
 
-            desc, pte = self.DeterminePTEType(pte, virtual_address)
+            # Transition pages can be treated as Valid, let the hardware resolve
+            # it.
+            if desc == "Transition" or desc == "Valid":
+                return super(WindowsPagedMemoryMixin, self).get_phys_addr(
+                    virtual_address, pte_value | self.valid_mask)
+
             if desc == "Prototype":
-                return self.ResolveProtoPTE(pte.Proto, virtual_address)
+                return self.ResolveProtoPTE(pte_value, virtual_address)[1]
 
             # This is a prototype into a vad region.
             elif desc == "Vad":
-                start, _, _, mmvad = pte.vad_hit
-
-                # If the MMVAD has PTEs resolve those..
-                if "FirstPrototypePte" in mmvad.members:
-                    pte = mmvad.FirstPrototypePte[
-                        (virtual_address - start) >> 12]
-
-                    return self.ResolveProtoPTE(pte, virtual_address)
+                return self.ResolveProtoPTE(pte_value, virtual_address)[1]
 
             elif desc == "Pagefile" and self.pagefile_mapping:
+                pte = self.session.profile._MMPTE()
+                pte.u.Long = pte_value
+
                 return (pte.PageFileHigh * 0x1000 + self.pagefile_mapping +
                         (virtual_address & 0xFFF))
 
