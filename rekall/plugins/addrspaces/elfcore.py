@@ -28,6 +28,7 @@
 # format. Except that WinPmem stores image metadata in a YAML file stored in the
 # image. This address space supports both formats.
 import logging
+import os
 import yaml
 
 from rekall import addrspace
