@@ -86,6 +86,8 @@ class MultiStringFinderCheck(ScannerCheck):
         Args:
           needles: A list of strings we search for.
           **kwargs: passthrough.
+        Raises:
+          RuntimeError: No needles provided.
         """
         super(MultiStringFinderCheck, self).__init__(**kwargs)
 
@@ -112,15 +114,15 @@ class MultiStringFinderCheck(ScannerCheck):
         while self.hits:
             string, offset = self.hits[-1]
             if offset == data_offset:
-              # This hit was reported, remove it.
-              self.hits.pop()
-              return string
+                # This hit was reported, remove it.
+                self.hits.pop()
+                return string
             elif offset < data_offset:
-              # We skipped over this hit, remove it and check for the remaining
-              # hits.
-              self.hits.pop()
+                # We skipped over this hit, remove it and check for the
+                # remaining hits.
+                self.hits.pop()
             else:  # offset > data_offset
-              return False
+                return False
         return False
 
     def skip(self, buffer_as, offset):
@@ -132,11 +134,11 @@ class MultiStringFinderCheck(ScannerCheck):
 
         data_offset = offset - buffer_as.base_offset
         while self.hits:
-          _, offset = self.hits[-1]
-          if offset < data_offset:
-            self.hits.pop()
-          else:
-            return offset - data_offset
+            _, offset = self.hits[-1]
+            if offset < data_offset:
+                self.hits.pop()
+            else:
+                return offset - data_offset
 
         # No more hits in this buffer, skip it.
         return buffer_as.end() - offset
@@ -155,6 +157,8 @@ class SignatureScannerCheck(ScannerCheck):
         Args:
           needles: A list of strings we search for.
           **kwargs: passthrough.
+        Raises:
+          RuntimeError: No needles provided.
         """
         super(SignatureScannerCheck, self).__init__(**kwargs)
 
@@ -240,13 +244,14 @@ class RegexCheck(ScannerCheck):
 
 
 class BaseScanner(object):
-    """ A more thorough scanner which checks every byte """
+    """A more thorough scanner which checks every byte."""
 
     __metaclass__ = registry.MetaclassRegistry
 
     progress_message = "Scanning 0x%(offset)08X with %(name)s"
 
     checks = []
+
     def __init__(self, profile=None, address_space=None, window_size=8,
                  session=None, checks=None):
         """The base scanner.
@@ -282,8 +287,10 @@ class BaseScanner(object):
         self.hits = None
 
     def check_addr(self, offset, buffer_as=None):
-        """Calls our constraints on the offset and returns if any contraints did
-        not match.
+        """Check an address.
+
+        This calls our constraints on the offset and returns if any contraints
+        did not match.
 
         Args:
            offset: The offset to test (in self.address_space).
@@ -319,6 +326,7 @@ class BaseScanner(object):
         return skip
 
     overlap = 1024
+
     def scan(self, offset=0, maxlen=None):
         """Scan the region from offset for maxlen.
 
@@ -463,7 +471,7 @@ class MultiStringScanner(BaseScanner):
 
 
 class SignatureScanner(MultiStringScanner):
-  checker_cls = SignatureScannerCheck
+    checker_cls = SignatureScannerCheck
 
 
 class PointerScanner(BaseScanner):
