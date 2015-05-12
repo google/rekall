@@ -42,10 +42,7 @@ class DarwinArp(common.DarwinPlugin):
         arp_cache = self.profile.get_constant_object(
             "_llinfo_arp",
             target="Pointer",
-            target_args=dict(
-                target="llinfo_arp"
-            )
-        )
+            target_args=dict(target="llinfo_arp"))
 
         while arp_cache:
             entry = arp_cache.la_rt
@@ -58,8 +55,7 @@ class DarwinArp(common.DarwinPlugin):
                 entry.rx,
                 entry.base_calendartime,
                 entry.rt_expire,
-                entry.delta
-            )
+                entry.delta)
 
             arp_cache = arp_cache.la_le.le_next
 
@@ -150,10 +146,7 @@ class DarwinRoute(common.DarwinPlugin):
                 count=32,
                 target="Pointer",
                 target_args=dict(
-                    target="radix_node_head"
-                )
-            )
-        )
+                    target="radix_node_head")))
 
         for node in self.rn_walk_tree(route_tables[2]):
             rentry = node.dereference_as("rtentry")

@@ -93,14 +93,24 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
     render_compact = render_full
 
 
+class PythonSetRenderer(text.TextObjectRenderer):
+    renders_type = "frozenset"
+
+    def render_full(self, target, **_):
+        return text.Cell(repr(target))
+
+    def render_compact(self, target, **_):
+        return text.Cell(
+            "{%s}" % ", ".join([repr(x) for x in target]))
+
+
 class NativeTypeTextRenderer(BaseObjectTextRenderer):
     renders_type = "NativeType"
 
     def render_address(self, target, width=None, **options):
         return text.Cell(
             self.format_address(target.v(), **options),
-            width=width
-        )
+            width=width)
 
 
 class BaseBoolTextRenderer(PythonBoolTextRenderer):
@@ -200,8 +210,7 @@ class VoidTextRenderer(PointerTextRenderer):
 
     def render_full(self, target, **options):
         return text.Cell(
-            "(void) %s" % self.format_address(target.v(), **options)
-        )
+            "(void *) %s" % self.format_address(target.v(), **options))
 
     render_compact = render_full
 

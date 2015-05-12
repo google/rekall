@@ -390,8 +390,8 @@ class EntityFind(plugin.ProfileCommand):
                                               complete=self.complete_results)
             if self.sort:
                 rows = sorted(rows, key=self._build_sort_func())
-                for entity in rows:
-                    self.render_entity(renderer, entity)
+            for entity in rows:
+                self.render_entity(renderer, entity)
 
 
 class FindBatch(plugin.ProfileCommand):

@@ -103,8 +103,8 @@ darwin_overlay = {
 
         "oid_perms": lambda x: x.m("oid_kind").cast(
             "Flags", maskmap={
-                "CTLFLAG_RD": 0x80000000, # Allow reads of variable */
-                "CTLFLAG_WR": 0x40000000, # Allow writes to the variable
+                "CTLFLAG_RD": 0x80000000,  # Allow reads of variable */
+                "CTLFLAG_WR": 0x40000000,  # Allow writes to the variable
                 # A node will handle locking by itself.
                 "CTLFLAG_LOCKED": 0x00800000,
             },
@@ -125,14 +125,26 @@ darwin_overlay = {
         # xnu-2422.1.72/osfmk/mach/vm_prot.h:81
         "protection": [None, ["Flags", dict(
             maskmap={
-                "VM_PROT_READ":    1,
-                "VM_PROT_WRITE":   2,
+                "VM_PROT_READ": 1,
+                "VM_PROT_WRITE": 2,
                 "VM_PROT_EXECUTE": 4,
             },
             target="BitField",
             target_args=dict(
                 start_bit=7,
                 end_bit=10
+            )
+        )]],
+        "max_protection": [None, ["Flags", dict(
+            maskmap={
+                "VM_PROT_READ": 1,
+                "VM_PROT_WRITE": 2,
+                "VM_PROT_EXECUTE": 4,
+            },
+            target="BitField",
+            target_args=dict(
+                start_bit=10,
+                end_bit=13
             )
         )]],
     }],
@@ -146,11 +158,11 @@ darwin_overlay = {
         # xnu-2422.1.72/bsd/sys/vnode_internal.h:230
         "v_flag": [None, ["Flags", dict(
             maskmap={
-                "VROOT":   0x000001,
-                "VTEXT":   0x000002,
+                "VROOT": 0x000001,
+                "VTEXT": 0x000002,
                 "VSYSTEM": 0x000004,
-                "VISTTY":  0x000008,
-                "VRAGE":   0x000010,
+                "VISTTY": 0x000008,
+                "VRAGE": 0x000010,
             }
         )]],
     }],
@@ -192,8 +204,7 @@ darwin_overlay = {
 
 #define UF_RESVWAIT     0x10            /* close in progress */
 #define UF_INHERIT      0x20            /* "inherit-on-exec" */
-"""
-    ))))]],
+"""))))]],
 
         "fd_ofiles": [None, ["Pointer", dict(
             target="Array",
@@ -556,14 +567,14 @@ class LIST_ENTRY(obj.Struct):
         """
         result1 = self.m(self._forward).dereference_as(
             self.obj_type, vm=vm).m(self._backward).deref().cast(
-            self.obj_type)
+                self.obj_type)
 
         if not result1:
             return obj.NoneObject("Flink not valid.")
 
         result2 = self.Blink.deref().dereference_as(
             self.obj_type, vm=vm).m(
-            self._forward).dereference_as(self.obj_type)
+                self._forward).dereference_as(self.obj_type)
 
         if result1 != result2:
             return obj.NoneObject("Flink and Blink not consistent.")
@@ -571,7 +582,7 @@ class LIST_ENTRY(obj.Struct):
         return result1
 
     def __nonzero__(self):
-        ## List entries are valid when both Flinks and Blink are valid
+        # List entries are valid when both Flinks and Blink are valid
         return bool(self.m(self._forward)) or bool(self.m(self._backward))
 
     def __iter__(self):
@@ -759,8 +770,8 @@ class socket(obj.Struct):
                 )
 
             if (type == "SOCK_STREAM"
-                and (protocol == 0 or protocol == "IPPROTO_TCP")
-                and inp.inp_ppcb != None):
+                    and (protocol == 0 or protocol == "IPPROTO_TCP")
+                    and inp.inp_ppcb != None):
 
                 tp = inp.inp_ppcb.dereference_as("tcpcb")
                 si["soi_kind"] = "SOCKINFO_TCP"
@@ -965,31 +976,73 @@ class vm_map_entry(obj.Struct):
             #* relevant pager information.
             #*/
 
-            top_object = self.object.vm_object
+            shadow = self.last_shadow
+            if not shadow:
+                return shadow
 
-            if top_object:
-                object = top_object
-                while object.shadow:
-                    object = object.shadow
+            if (shadow and not shadow.internal.v() and
+                    shadow.pager_ready.v() and
+                    not shadow.terminating.v() and
+                    shadow.alive.v()):
+                memory_object = shadow.pager
+                pager_ops = memory_object.mo_pager_ops
 
-                if (object and not object.internal.v() and
-                    object.pager_ready.v() and
-                    not object.terminating.v() and
-                    object.alive.v()):
-                    memory_object = object.pager
-                    pager_ops = memory_object.mo_pager_ops
+                # If this object points to the vnode_pager_ops, then we
+                # found what we're looking for.  Otherwise, this
+                # vm_map_entry doesn't have an underlying vnode and so we
+                # fall through to the bottom and return NULL.
 
-                    # If this object points to the vnode_pager_ops, then we
-                    # found what we're looking for.  Otherwise, this
-                    # vm_map_entry doesn't have an underlying vnode and so we
-                    # fall through to the bottom and return NULL.
-
-                    if pager_ops == self.obj_profile.get_constant(
+                if pager_ops == self.obj_profile.get_constant(
                         "_vnode_pager_ops"):
-                        return object.pager.dereference_as(
-                            "vnode_pager").vnode_handle
+                    return shadow.pager.dereference_as(
+                        "vnode_pager").vnode_handle
 
-        return obj.NoneObject("VNode not found")
+        return obj.NoneObject("vnode not found")
+
+    @property
+    def sharing_mode(self):
+        """Returns the sharing mode of the backing vm_object.
+
+        This is losely adapted from vm_map.c, void vm_map_region_top_walk(),
+        except we're not filling page counts for resident/reusable, etc.
+        """
+        if not self.object.vm_object or self.is_sub_map:
+            return "SM_EMPTY"  # Nada.
+
+        vmobj = self.object.vm_object
+        ref_count = vmobj.ref_count
+        if vmobj.paging_in_progress:
+            ref_count -= 1
+
+        if vmobj.shadow:
+            return "SM_COW"  # Copy on write.
+
+        if self.superpage_size:
+            return "SM_LARGE_PAGE"  # Shared large (huge) page.
+
+        if self.needs_copy:
+            return "SM_COW"
+
+        if ref_count == 1 or (not vmobj.pager_trusted and not
+                              vmobj.internal):
+            return "SM_PRIVATE"
+
+        return "SM_SHARED"
+
+    @property
+    def code_signed(self):
+        return self.last_shadow.code_signed
+
+    @property
+    def last_shadow(self):
+        shadow = self.object.vm_object
+        if not shadow:
+            return obj.NoneObject("no vm_object found")
+
+        while shadow.shadow:
+            shadow = shadow.shadow
+
+        return shadow
 
 
 class clist(obj.Struct):
@@ -1061,7 +1114,7 @@ class proc(obj.Struct):
         result = []
         array = self.obj_profile.ListArray(
             target="String",
-            offset=self.user_stack-self.p_argslen,
+            offset=self.user_stack - self.p_argslen,
             vm=self.get_process_address_space(),
             maximum_size=self.p_argslen,
         )
@@ -1128,6 +1181,7 @@ class OSDictionary(obj.Struct):
 
     xnu-1699.26.8/libkern/libkern/c++/OSDictionary.h
     """
+
     def items(self, value_class=None):
         """Iterate over the associative array and yield key, value pairs."""
         for entry in self.dictionary:
@@ -1143,6 +1197,7 @@ class OSOrderedSet(obj.Struct):
 
     xnu-1699.26.8/libkern/libkern/c++/OSOrderedSet.h
     """
+
     def list_of_type(self, type_name):
         for item in self.array:
             yield item.obj.dereference_as(type_name)
@@ -1178,8 +1233,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
             # Support both forms with and without _class suffix.
             OSDictionary=OSDictionary, OSDictionary_class=OSDictionary,
             OSOrderedSet=OSOrderedSet, OSOrderedSet_class=OSOrderedSet,
-            fileproc=fileproc,
-        )
+            fileproc=fileproc)
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)
         profile.add_constants(default_text_encoding="utf8")

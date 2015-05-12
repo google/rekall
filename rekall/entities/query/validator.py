@@ -46,6 +46,7 @@ class QueryValidator(engine.VisitorEngine):
                               query=self.query.source)
 
     def visit_Expression(self, exp):
+        _ = exp
         return True
 
     def visit_Binding(self, exp):

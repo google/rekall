@@ -25,6 +25,9 @@ elems per entry.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
+from efilter.types import indexable
+
+
 class IndexSet(object):
     _backing_dict = None
     _elem_count = None
@@ -220,3 +223,5 @@ class IndexSet(object):
 
     def __isub__(self, other):
         return self.difference_update(other)
+
+indexable.IIndexable.implemented(for_type=IndexSet)

@@ -224,4 +224,4 @@ class ObjectMatcher(engine.VisitorEngine):
 
         return True
 
-engine.Engine.register_engine(ObjectMatcher, "filter")
+engine.Engine.register_engine(ObjectMatcher, "matcher")

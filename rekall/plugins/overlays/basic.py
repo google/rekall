@@ -49,6 +49,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     Note that these strings are _not_ text strings - they are effectively bytes
     arrays and therefore are not encoded in any particular unicode encoding.
     """
+
     def __init__(self, length=1024, max_length=1024000, term="\x00", **kwargs):
         """Constructor.
 
@@ -60,7 +61,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         """
         super(String, self).__init__(**kwargs)
 
-        ## Allow length to be a callable:
+        # Allow length to be a callable:
         if callable(length):
             length = length(self.obj_parent)
 
@@ -130,9 +131,9 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return len(self.v())
 
 
-
 class Signature(String):
     """A string forming a signature."""
+
     def __init__(self, value=None, **kwargs):
         super(Signature, self).__init__(length=len(value), term=None,
                                         **kwargs)
@@ -153,6 +154,7 @@ class UnicodeString(String):
     By default we take the encoding from the profile constant
     "default_text_encoding".
     """
+
     def __init__(self, encoding=None, **kwargs):
         super(UnicodeString, self).__init__(**kwargs)
         self.encoding = encoding or self.obj_profile.get_constant(
@@ -205,7 +207,7 @@ class UnicodeString(String):
 
 class Flags(obj.NativeType):
     """ This object decodes each flag into a string """
-    ## This dictionary maps a string mask name to an integer mask.
+    # This dictionary maps a string mask name to an integer mask.
     maskmap = None
 
     def __init__(self, bitmap=None, maskmap=None,
@@ -228,19 +230,23 @@ class Flags(obj.NativeType):
     def v(self, vm=None):
         return self.target_obj.v(vm=vm)
 
+    def __iter__(self):
+        value = self.v()
+        for k, v in sorted(self.maskmap.items()):
+            if value & v:
+                yield k
+
     def __repr__(self):
         flags = []
         length = 0
-        value = self.v()
 
-        for k, v in sorted(self.maskmap.items()):
-            if value & v:
-                length += len(k)
-                if length >= 40:
-                    flags.append(u'...')
-                    break
+        for flag in self:
+            length += len(flag)
+            if length >= 40:
+                flags.append(u'...')
+                break
 
-                flags.append(k)
+            flags.append(flag)
 
         return "%s (%s)" % (super(Flags, self).__repr__(), ", ".join(flags))
 
@@ -366,10 +372,12 @@ class Enumeration(obj.NativeType):
                             self.__str__())
 
     _reverse_choices = None
+
     @property
     def reverse_choices(self):
         if self._reverse_choices is None:
-            self._reverse_choices = {v: int(k) for k, v in self.choices.items()}
+            self._reverse_choices = {v: int(k)
+                                     for k, v in self.choices.items()}
         return self._reverse_choices
 
     def __getattr__(self, attr):
@@ -395,6 +403,7 @@ class Ipv4Address(obj.NativeType):
 
 class Ipv6Address(obj.NativeType):
     """Provides proper output for Ipv6Address objects"""
+
     def __init__(self, **kwargs):
         super(Ipv6Address, self).__init__(**kwargs)
         # Ipv4Address is always a 128 bit int.
@@ -406,6 +415,7 @@ class Ipv6Address(obj.NativeType):
 
 class MacAddress(obj.NativeType):
     """A MAC address."""
+
     def __init__(self, **kwargs):
         super(MacAddress, self).__init__(**kwargs)
         # Ipv4Address is always a 128 bit int.
@@ -510,7 +520,7 @@ class ListMixIn(object):
         return self.m(self._forward) == self.m(self._backward)
 
     def __nonzero__(self):
-        ## List entries are valid when both Flinks and Blink are valid
+        # List entries are valid when both Flinks and Blink are valid
         return bool(self.m(self._forward)) or bool(self.m(self._backward))
 
     def __iter__(self):
@@ -519,7 +529,6 @@ class ListMixIn(object):
 
 class _LIST_ENTRY(ListMixIn, obj.Struct):
     """ Adds iterators for _LIST_ENTRY types """
-
 
 
 class UnixTimeStamp(obj.NativeType):
@@ -592,7 +601,7 @@ class UnixTimeStamp(obj.NativeType):
 class timeval(UnixTimeStamp, obj.Struct):
 
     def v(self, vm=None):
-        return float(self.m("tv_sec")) + self.m("tv_usec")/1e6
+        return float(self.m("tv_sec")) + self.m("tv_usec") / 1e6
 
 
 class WinFileTime(UnixTimeStamp):
@@ -628,9 +637,11 @@ class IndexedArray(obj.Array):
     def __init__(self, index_table=None, **kwargs):
         super(IndexedArray, self).__init__(**kwargs)
         try:
-            self.index_table = dict((x, int(y)) for x, y in index_table.items())
+            self.index_table = dict(
+                (x, int(y)) for x, y in index_table.items())
         except ValueError:
-            self.index_table = dict((y, int(x)) for x, y in index_table.items())
+            self.index_table = dict(
+                (y, int(x)) for x, y in index_table.items())
 
         if self.count == 0:
             self.count = len(index_table)
@@ -881,19 +892,21 @@ class Function(obj.BaseAddressComparisonMixIn, obj.BaseObject):
                     return
 
 # We define three kinds of basic profiles, a 32 bit one and two 64 bit ones.
+
+
 class ProfileMIPS32Bits(obj.Profile):
     """Basic profile for 32 bit MIPS systems."""
     METADATA = dict(
         arch="MIPS",
         data_model="BE32"
-        )
+    )
 
     @classmethod
     def Initialize(cls, profile):
         super(ProfileMIPS32Bits, cls).Initialize(profile)
         profile.add_classes(native_types.BE32)
         profile.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
-                              MaxPointer=2**32-1)
+                              MaxPointer=2 ** 32 - 1)
 
 
 class Profile32Bits(obj.Profile):
@@ -901,14 +914,14 @@ class Profile32Bits(obj.Profile):
     METADATA = dict(
         arch="I386",
         data_model="ILP32"
-        )
+    )
 
     @classmethod
     def Initialize(cls, profile):
         super(Profile32Bits, cls).Initialize(profile)
         profile.add_classes(native_types.ILP32)
         profile.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
-                              MaxPointer=2**32-1)
+                              MaxPointer=2 ** 32 - 1)
 
 
 class ProfileLLP64(obj.Profile):
@@ -916,21 +929,22 @@ class ProfileLLP64(obj.Profile):
     METADATA = dict(
         arch="AMD64",
         data_model="LLP64"
-        )
+    )
 
     @classmethod
     def Initialize(cls, profile):
         super(ProfileLLP64, cls).Initialize(profile)
         profile.add_classes(native_types.LLP64)
         profile.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
-                              MaxPointer=2**48-1)
+                              MaxPointer=2 ** 48 - 1)
+
 
 class ProfileLP64(obj.Profile):
     """Basic profile for 64 bit Linux systems."""
     METADATA = dict(
         arch="AMD64",
         data_model="LP64"
-        )
+    )
 
     @classmethod
     def Initialize(cls, profile):
@@ -939,15 +953,15 @@ class ProfileLP64(obj.Profile):
 
 
 common_overlay = {
-    'LIST_ENTRY32' : [0x8, {
-        'Flink' : [0x0, ['pointer', ['LIST_ENTRY32']]],
-        'Blink' : [0x4, ['pointer', ['LIST_ENTRY32']]],
-        }],
+    'LIST_ENTRY32': [0x8, {
+        'Flink': [0x0, ['pointer', ['LIST_ENTRY32']]],
+        'Blink': [0x4, ['pointer', ['LIST_ENTRY32']]],
+    }],
 
-    'LIST_ENTRY64' : [0x10, {
-        'Flink' : [0x0, ['pointer', ['LIST_ENTRY64']]],
-        'Blink' : [0x8, ['pointer', ['LIST_ENTRY64']]],
-        }]}
+    'LIST_ENTRY64': [0x10, {
+        'Flink': [0x0, ['pointer', ['LIST_ENTRY64']]],
+        'Blink': [0x8, ['pointer', ['LIST_ENTRY64']]],
+    }]}
 
 
 class BasicClasses(obj.Profile):
@@ -974,7 +988,7 @@ class BasicClasses(obj.Profile):
             'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
             "IndexedArray": IndexedArray,
             'Function': Function,
-            })
+        })
         profile.add_constants(default_text_encoding="utf-16-le")
         profile.add_overlay(common_overlay)
 

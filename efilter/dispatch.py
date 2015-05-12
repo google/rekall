@@ -114,7 +114,7 @@ class polymorphic(object):
             raise NotImplementedError(
                 "Polymorphic function %r has no concrete implementation for "
                 "type %r and no default implementation. Available handlers: %r"
-                % (self.func, type(obj), self.implementations))
+                % (self.func_name, type(obj), self.implementations.keys()))
 
     def implemented_for_type(self, dispatch_type):
         candidate = self._find_and_cache_best_function(dispatch_type)

@@ -124,6 +124,10 @@ class EntityQuerySearch(engine.VisitorEngine):
 
         return self._slow_solve(expr, self.entities.itervalues())
 
+    def visit_Membership(self, expr):
+        collection = self.visit(expr.set)
+        return self._slow_solve(expr, collection)
+
     def visit_Expression(self, expr):
         logging.debug("Fallthrough to filter-based search (%s).", expr)
         return self._slow_solve(expr, self.entities.itervalues())

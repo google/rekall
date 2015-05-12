@@ -60,6 +60,44 @@ Struct = component.DeclareComponent(
                     "Allocation state (freed or not)."))
 
 
+AddressSpace = component.DeclareComponent(
+    "AddressSpace", "Represents a memory address space, most often virtual.",
+    component.Field("dtb", int, "The DTB of this address space, if any."),
+    component.Field("type", {"virtual", "physical"},
+                    "Physical AS won't have a DTB."),
+    component.Field("architecture", unicode,
+                    "The CPU architecture (e.g. x86_64 or ARM_32)."),
+    component.Field("owner", entity.IdentityDescriptor(),
+                    "The process, if any, that owns this address space."))
+
+
+MemoryDescriptor = component.DeclareComponent(
+    "MemoryDescriptor",
+    "Represents a virtual address descriptor (VAD on Windows, map on UNIX)",
+    component.Field("start", "PointerDescriptor",
+                    "Start of the range, valid in the address_space."),
+    component.Field("end", "PointerDescriptor",
+                    "End of the range, valid in the address_space."),
+    component.Field("address_space", entity.IdentityDescriptor(),
+                    "The address space start/end are valid in."),
+    component.Field("label", unicode,
+                    "Purpose of this range. E.g. __TEXT, or mmap."),
+    component.Alias("process",
+                    alias="MemoryDescriptor/address_space->AddressSpace/owner",
+                    docstring="The process that owns this range, if any."),
+    component.Field("permissions",
+                    [{"read", "write", "execute"}],
+                    "Set of permissions bits on this range."),
+    component.Field("max_permissions", [{"read", "write", "execute"}],
+                    "Set of permissions this range can have."),
+    component.Field("shared", {"private", "shared", "copy-on-write"},
+                    "Is this shared memory?"),
+    component.Field("file", entity.IdentityDescriptor(),
+                    "The file this range is backed by, if any."),
+    component.Field("code_signed", bool,
+                    "If backed by an executable, is the exe signed?"))
+
+
 Buffer = component.DeclareComponent(
     "Buffer", "Stores raw memory contents at a given address.",
     component.Field("start", "BaseObjectDescriptor",
@@ -120,7 +158,9 @@ Process = component.DeclareComponent(
                     "The session this process belongs to.",
                     width=20),
     component.Alias("handles", alias="&Handle/process",
-                    docstring="Handles owned by this process."),)
+                    docstring="Handles owned by this process."),
+    component.Alias("address_spaces", alias="&AddressSpace/owner",
+                    docstring="Address spaces of this process."))
 
 
 Terminal = component.DeclareComponent(
