@@ -926,6 +926,6 @@ def xrange(start, end, step=1):
     builtin.
     """
     x = start
-    while start < end:
+    while x < end:
         yield x
         x += step
