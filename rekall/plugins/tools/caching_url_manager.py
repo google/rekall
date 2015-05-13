@@ -88,19 +88,27 @@ class CachingManager(io_manager.IOManager):
 
     def GetData(self, name, **kwargs):
         if self.cache_io_manager.CheckInventory(name):
-            local_age = self.cache_io_manager.Metadata(name).get("LastModified")
-            remote_age = self.url_manager.Metadata(name).get("LastModified")
+            local_age = self.cache_io_manager.Metadata(name).get("LastModified", 0)
+            remote_age = self.url_manager.Metadata(name).get("LastModified", 0)
 
             # Only get the local copy if it is not older than the remote
             # copy. This allows the remote end to update profiles and we will
             # automatically pick the latest.
             if local_age >= remote_age:
-                return self.cache_io_manager.GetData(name)
+                data = self.cache_io_manager.GetData(name)
+                # Ensure our local cache looks reasonable.
+                if data.get("$METADATA"):
+                    return data
 
         # Fetch the data from our base class and store it in the cache.
-        logging.debug("Adding %s to local cache.", name)
         data = self.url_manager.GetData(name, **kwargs)
-        self.cache_io_manager.StoreData(name, data)
+
+        # Only store the data in the cache if it looks reasonable. Otherwise we
+        # will trash the cache with bad data in case we can not access correct
+        # data.
+        if data and data.get("$METADATA"):
+            logging.debug("Adding %s to local cache.", name)
+            self.cache_io_manager.StoreData(name, data)
 
         return data
 
@@ -113,7 +121,9 @@ class CachingManager(io_manager.IOManager):
 
         # This indicates failure to contact the remote repository. In this case
         # we do not want to invalidate our cache, just use the cache as is.
-        if not upstream_inventory["$INVENTORY"]:
+        if not self.url_manager.ValidateInventory():
+            logging.warn("Will attempt to use the local cache. This is likely "
+                         "to fail if profiles are missing locally!")
             return
 
         cache_inventory = self.cache_io_manager.inventory

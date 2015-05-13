@@ -174,6 +174,13 @@ class NoneObject(object):
         return renderer.ObjectRenderer.ForTarget(self, "TextRenderer")(
             renderer="TextRenderer", session=self.obj_session)
 
+    def get(self, key=None, default=None):
+        """Make a NoneObject accept a default like a dict."""
+        if default is not None:
+            return default
+
+        return self
+
     def __str__(self):
         return unicode(self).encode('utf-8')
 

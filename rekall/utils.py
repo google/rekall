@@ -916,3 +916,16 @@ def issubclass(obj, cls):    # pylint: disable=redefined-builtin
 def XOR(string1, string2):
     """Returns string1 xor string2."""
     return "".join(chr(ord(x) ^ ord(y)) for x, y in zip(string1, string2))
+
+
+def xrange(start, end, step=1):
+    """In Python2 the xrange builtin is broken.
+
+    It raises when start or end do not fit in an int. Since python does not
+    generally care about this we need to implement a clean version of this
+    builtin.
+    """
+    x = start
+    while start < end:
+        yield x
+        x += step

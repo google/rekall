@@ -741,12 +741,11 @@ class Session(object):
                         continue
 
                     result = obj.Profile.LoadProfileFromData(
-                        manager.GetData(name), self,
-                        name=name)
-                    logging.info(
-                        "Loaded profile %s from %s", name, manager)
-
-                    break
+                        manager.GetData(name), self, name=name)
+                    if result:
+                        logging.info(
+                            "Loaded profile %s from %s", name, manager)
+                        break
 
                 except (IOError, KeyError) as e:
                     result = obj.NoneObject(e)

@@ -129,8 +129,7 @@ class IOManager(object):
             'captive portal or proxy? If this is a custom repository, did you '
             'forget to create an inventory? You must use the '
             'tools/profiles/build_profile_repo.py tool with the --inventory '
-            'flag. If this warning is for the cache directory, just ignore it.',
-            self.location or self.urn)
+            'flag.', self.location or self.urn)
 
         # If the profile didn't validate, we still fix it so subsequent calls
         # won't generate additional errors. StoreData and FlushInventory also

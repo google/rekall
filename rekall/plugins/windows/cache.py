@@ -32,6 +32,7 @@ http://www.codemachine.com/article_kernelstruct.html
 
 __author__ = "Michael Cohen <scudette@google.com>"
 from rekall import obj
+from rekall import utils
 from rekall import testlib
 
 from rekall.plugins import core
@@ -235,7 +236,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                     file_offset = vacb.Overlay.FileOffset.QuadPart.v()
 
                     # Each VACB controls a 256k buffer.
-                    for offset in xrange(0, 0x40000, 0x1000):
+                    for offset in utils.xrange(0, 0x40000, 0x1000):
                         phys_address = self.kernel_address_space.vtop(
                             base_address + offset)
 
@@ -278,7 +279,7 @@ class MftDump(common.WindowsCommandPlugin):
 
     def extract_mft_entries_from_vacb(self, vacb):
         base = vacb.BaseAddress.v()
-        for offset in xrange(base, base + self.vacb_size, self.mft_size):
+        for offset in utils.xrange(base, base + self.vacb_size, self.mft_size):
             # Fixups are not applied in memory.
             mft = self.ntfs_profile.MFT_ENTRY(
                 offset, context=dict(mft=self.mfts, ApplyFixup=False))
