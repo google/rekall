@@ -30,12 +30,11 @@
 #include <mach/mach_types.h>
 #include <libkern/libkern.h>
 
+#define PMEM_USE_LARGE_PAGES 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-    extern vm_address_t pmem_rogue_page;
-    extern vm_size_t pmem_rogue_page_size;
 
     kern_return_t pmem_pte_vtop(vm_offset_t vaddr, unsigned long long *paddr);
     kern_return_t pmem_pte_init(void);
@@ -44,8 +43,6 @@ extern "C" {
     // Map the rogue page to this physical address.
     kern_return_t pmem_pte_map_rogue(addr64_t paddr);
     kern_return_t pmem_read_rogue(struct uio *uio);
-
-
 
 #ifdef __cplusplus
 }

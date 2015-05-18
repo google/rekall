@@ -38,18 +38,6 @@
 // The headers don't include this, so this is just copied from vm internals.
 #define SUPERPAGE_SIZE (2*1024*1024)
 
-vm_address_t pmem_rogue_page = 0;
-vm_size_t pmem_rogue_page_size = 0;
-addr64_t pmem_rogue_pte_phys = 0;
-static PTE pmem_rogue_pte;
-static PTE pmem_original_pte;
-
-static lck_mtx_t *pmem_rogue_page_mtx = nullptr;
-static lck_attr_t *pmem_rogue_page_mtx_attr = nullptr;
-
-static lck_mtx_t *pmem_rogue_pte_mtx = nullptr;
-static lck_attr_t *pmem_rogue_pte_mtx_attr = nullptr;
-
 // This extern totally exists and kxld will find it, even though it's
 // technically part of the unsupported kpi and not in any headers. If Apple
 // eventually ends up not exporting this symbol we'll just have to get the
@@ -68,6 +56,23 @@ extern void ml_phys_write_double_64(addr64_t paddr64, unsigned long long data);
 static void pmem_pte_flush_tlb(vm_address_t page) {
     __asm__ __volatile__("invlpg (%0);"::"r"(page):);
 }
+
+// Keeps track of a rogue page, and its original paging structure.
+typedef struct _pmem_pte_mapping {
+    addr64_t paddr;
+    vm_address_t vaddr;
+    vm_size_t pagesize;
+    union {
+        struct {
+            addr64_t pte_addr;
+            PTE orig_pte;
+        };
+        struct {
+            addr64_t pde_addr;
+            PDE orig_pde;
+        };
+    };
+} pmem_pte_mapping;
 
 
 // Reads the PML4E for the 'page' virtual address.
@@ -249,107 +254,132 @@ static kern_return_t pmem_read_pte(vm_address_t page, PTE *pte,
 //
 // Returns KERN_SUCCESS. If you provide invalid values, you'll notice quickly,
 // don't worry.
-static kern_return_t pmem_write_pte(addr64_t pte_phys, PTE *pte) {
+kern_return_t pmem_write_pte(addr64_t pte_phys, PTE *pte) {
     ml_phys_write_double_64(pte_phys, pte->value);
     return KERN_SUCCESS;
 }
 
 
-// Remaps the rogue page to the physical page 'paddr'.
-//
-// Arguments:
-// paddr: Physical page. Must be aligned.
-//
-// Returns: KERN_SUCCESS or KERN_FAILURE.
-//
-// Note:
-// The only error condition is if paddr is not page-aligned. Otherwise this
-// can't fail.
-kern_return_t pmem_pte_map_rogue(addr64_t paddr) {
-    if (!page_aligned(paddr)) {
-        pmem_error("Cannot map rogue page to non-aligned address %#016llx",
-                   paddr);
-        return KERN_FAILURE;
-    }
-
-    lck_mtx_lock(pmem_rogue_pte_mtx);
-    pmem_rogue_pte.page_frame = PAGE_TO_PFN(paddr);
-
-    pmem_write_pte(pmem_rogue_pte_phys, &pmem_rogue_pte);
-    pmem_pte_flush_tlb(pmem_rogue_page);
-    lck_mtx_unlock(pmem_rogue_pte_mtx);
-
+// See pmem_write_pte.
+kern_return_t pmem_write_pde(addr64_t pde_phys, PDE *pde) {
+    ml_phys_write_double_64(pde_phys, pde->value);
     return KERN_SUCCESS;
 }
 
 
-// Will reserve a rogue page to serve as our playtoy. This will set
-// pmem_rogue_page and pmem_rogue_page_size to appropriate values. You should
-// only call this if both statics are set to 0, otherwise you will leak
-// memory.
+// Creates a new (non-global) rogue page mapped to paddr.
 //
-// Args:
-// pde: if true, will attempt to reserve the whole PDE to get a 2MB page.
+// Arguments:
+//  paddr: The desired physical page. Must be aligned.
+//  mapping: If successful, mapping->vaddr will contain a virtual address
+//      mapped to paddr, of size mapping->pagesize. After being used, this
+//      mapping must be passed to pmem_pte_destroy_mapping to be cleaned up.
 //
-// Returns KERN_SUCCESS or KERN_FAILURE.
+// Notes:
+//  Currently, only 4K pages are used. 2MB page support will be added in the
+//  future.
 //
-// FIXME (Adam):
-// The prototype of vm_allocate we're using comes from mach/mach_vm.h, but it
-// looks like kxld is patching in its namesake from vm_user.c, which isn't
-// great, because that routine can return KERN_INVALID_ARGUMENT if it doesn't
-// like the flags. It looks like flat out asking for a superpage is one of the
-// scenarios it isn't happy about. I'm fairly confident there's probably a way
-// around all this, but the PDE codepath isn't a priority at the monent.
-// For now, the pde flag is just disabled.
-static kern_return_t pmem_reserve_page(boolean_t pde) {
-    lck_mtx_lock(pmem_rogue_page_mtx);
-    kern_return_t error;
+// Returns: KERN_SUCCESS or KERN_FAILURE.
+kern_return_t pmem_pte_create_mapping(addr64_t paddr,
+                                      pmem_pte_mapping *mapping) {
+    kern_return_t error = KERN_FAILURE;
     int flags = VM_FLAGS_ANYWHERE;
 
+#if PMEM_USE_LARGE_PAGES
+    mapping->pagesize = SUPERPAGE_SIZE_2MB;
+#else
+    mapping->pagesize = PAGE_SIZE;
+#endif
 
-    if (pde) {
-        pmem_rogue_page_size = SUPERPAGE_SIZE_2MB;
-        flags |= VM_FLAGS_SUPERPAGE_SIZE_2MB;
-    } else {
-        pmem_rogue_page_size = PAGE_SIZE;
-    }
-
-    error = vm_allocate(kernel_map, &pmem_rogue_page,
-                        pmem_rogue_page_size, flags);
+    error = vm_allocate(kernel_map, &mapping->vaddr, mapping->pagesize, flags);
 
     if (error != KERN_SUCCESS) {
-        if (pde) {
-            pmem_error("Could not reserve a full PDE. Error code: %d.",
-                       error);
-        } else {
-            pmem_error("Could not reserve a rogue PTE. Error code: %d.",
-                       error);
-        }
-
-        pmem_rogue_page_size = 0;
-        pmem_rogue_page = 0;
+        bzero(mapping, sizeof(pmem_pte_mapping));
+        pmem_error("Could not reserve a page. Error code: %d.", error);
+        return error;
     }
 
-    // At this point the page is speculative; write to it to force a page-in.
-    *((int *)pmem_rogue_page) = 1;
+    // We now have a speculative page. Write to it to force a pagefault.
+    // After this the paging structures will exist.
+    memset((void *)mapping->vaddr, 1, sizeof(int));
 
-    // Set up the rogue PTE, and a its original value (for cleanup).
-    error = pmem_read_pte(pmem_rogue_page, &pmem_original_pte,
-                          &pmem_rogue_pte_phys);
+    // Grab a copy of the paging structure (PTE or PDE).
+#if PMEM_USE_LARGE_PAGES
+    error = pmem_read_pde(mapping->vaddr, &mapping->orig_pde,
+                          &mapping->pde_addr);
+#else
+    error = pmem_read_pte(mapping->vaddr, &mapping->orig_pte,
+                          &mapping->pte_addr);
+#endif
 
-    pmem_rogue_pte = pmem_original_pte;
-    pmem_rogue_pte.global = 0;
-
-    if (!pmem_rogue_pte.present) {
-        pmem_error(("PTE (0x%#016llx) for reserved page %#016lx is not."
-                    "present."), pmem_rogue_pte_phys, pmem_rogue_page);
-        error = KERN_FAILURE;
-        goto bail;
+    if (error != KERN_SUCCESS) {
+        bzero(mapping, sizeof(pmem_pte_mapping));
+        pmem_error("Could not find the PTE or PDE for rogue page. Bailing.");
+        return error;
     }
 
-bail:
-    lck_mtx_unlock(pmem_rogue_page_mtx);
-    return error;
+    // pmem_read_* functions already verify the paging structure is present,
+    // but for PDEs we also need to ensure the size flag is set.
+#if PMEM_USE_LARGE_PAGES
+    if (!mapping->orig_pde.page_size) {
+        pmem_error("PDE was reserved for a 2MB page, but page_size flag is "
+                   "not set. Bailing.");
+        bzero(mapping, sizeof(pmem_pte_mapping));
+        return KERN_FAILURE;
+    }
+#endif
+
+    // Now we have a page of our own and can do horrible things to it.
+#ifdef PMEM_USE_LARGE_PAGES
+    PDE new_pde = mapping->orig_pde;
+    new_pde.pt_p = PAGE_TO_PFN(paddr);
+
+    pmem_write_pde(mapping->pde_addr, &new_pde);
+#else
+    PTE new_pte = mapping->orig_pte;
+    new_pte.page_frame = PAGE_TO_PFN(paddr);
+
+    // We absolutely want the TLB for this page flushed when switching context.
+    new_pte.global = 0;
+
+    pmem_write_pte(mapping->pte_addr, &new_pte);
+#endif
+
+    pmem_pte_flush_tlb(mapping->vaddr);
+    return KERN_SUCCESS;
+}
+
+
+// Destroys a mapping created by pmme_pte_create_mapping.
+//
+// Arguments:
+//  mapping: The paging structures of the virtual page will be restored to
+//      their original values, and the page will be deallocated. The mapping
+//      struct will be bzero'd.
+//
+// Returns:
+//  KERN_SUCCESS or KERN_FAILURE.
+kern_return_t pmem_pte_destroy_mapping(pmem_pte_mapping *mapping) {
+    if (!mapping->vaddr) {
+        return KERN_SUCCESS;
+    }
+
+#if PMEM_USE_LARGE_PAGES
+    pmem_write_pde(mapping->pde_addr, &mapping->orig_pde);
+#else
+    pmem_write_pte(mapping->pte_addr, &mapping->orig_pte);
+#endif
+
+    kern_return_t error = vm_deallocate(kernel_map, mapping->vaddr,
+                                        mapping->pagesize);
+
+    if (error != KERN_SUCCESS) {
+        pmem_error("Could not free reserved page %#016lx.", mapping->vaddr);
+        return error;
+    }
+
+    bzero(mapping, sizeof(pmem_pte_mapping));
+    return KERN_SUCCESS;
 }
 
 
@@ -371,43 +401,51 @@ kern_return_t pmem_read_rogue(struct uio *uio) {
         return KERN_FAILURE;
     }
 
-    // Only one thread can read at a time, because the rogue page is a shared
-    // mutable resource that gets remapped with reads.
-    lck_mtx_lock(pmem_rogue_page_mtx);
-
-    if (!pmem_rogue_page) {
-        pmem_warn("/dev/pmem got a read but rogue page isn't mapped (yet?).");
-        return KERN_FAILURE;
-    }
+    pmem_pte_mapping mapping;
 
     user_ssize_t resid = uio_resid(uio);
     off_t offset = uio_offset(uio);
     unsigned long amount, rv;
-
     while (resid > 0) {
-        pmem_pte_map_rogue(offset & ~PAGE_MASK);
-        user_ssize_t page_offset = offset % pmem_rogue_page_size;
-        amount = MIN(resid, pmem_rogue_page_size - page_offset);
-        rv = uiomove((char *)pmem_rogue_page + page_offset, (int)amount, uio);
+        error = pmem_pte_create_mapping(offset & ~PAGE_MASK, &mapping);
+        if (error != KERN_SUCCESS) {
+            pmem_error("Could not acquire a rogue page.");
+            goto bail;
+        }
+        user_ssize_t page_offset = offset % mapping.pagesize;
+        amount = MIN(resid, mapping.pagesize - page_offset);
+        rv = uiomove((char *)mapping.vaddr + page_offset, (int)amount, uio);
 
         if (rv != 0) {
             // If this happens, it's basically the kernel's problem.
             // All we can do is fail and log.
-            pmem_error("uiomove returned %lu", rv);
+            pmem_error("uiomove returned %lu.", rv);
             error = KERN_FAILURE;
             goto bail;
         }
 
         offset += amount;
         resid = uio_resid(uio);
+        error = pmem_pte_destroy_mapping(&mapping);
+        if (error != KERN_SUCCESS) {
+            pmem_error("Could not release a rogue page.");
+            goto bail;
+        }
     }
 
 bail:
-    lck_mtx_unlock(pmem_rogue_page_mtx);
     return error;
 }
 
 
+// Finds physical address corresponding to the virtual address.
+//
+// Arguments:
+//  vaddr: The virtual address whose physical offset is desired.
+//  paddr: If successful, the physical offset will be written here.
+//
+// Returns:
+//  KERN_SUCCESS or KERN_FAILURE.
 kern_return_t pmem_pte_vtop(vm_offset_t vaddr, unsigned long long *paddr) {
     kern_return_t error;
 
@@ -438,71 +476,12 @@ kern_return_t pmem_pte_vtop(vm_offset_t vaddr, unsigned long long *paddr) {
 }
 
 
-static void pmem_release_page(void) {
-    pmem_debug("Going to release reserved page at 0x%#016lx.",
-               pmem_rogue_page);
-
-    // Grab the lock, because we want to block in case there are outstanding
-    // reads still.
-    lck_mtx_lock(pmem_rogue_page_mtx);
-
-    if (!pmem_rogue_page) {
-        return;
-    }
-
-    // Restore the PTE.
-    pmem_write_pte(pmem_rogue_pte_phys, &pmem_original_pte);
-
-    // Free the rogue page.
-    kern_return_t error = vm_deallocate(kernel_map, pmem_rogue_page,
-                                        pmem_rogue_page_size);
-
-    if (error != KERN_SUCCESS) {
-        pmem_error("Could not free reserved page %#016lx.",
-                   pmem_rogue_page);
-    }
-
-    pmem_rogue_page = 0;
-    pmem_rogue_page_size = 0;
-    pmem_rogue_pte_phys = 0;
-
-    lck_mtx_unlock(pmem_rogue_page_mtx);
-}
-
-
 kern_return_t pmem_pte_init() {
-    pmem_rogue_page_mtx_attr = lck_attr_alloc_init();
-    pmem_rogue_pte_mtx_attr = lck_attr_alloc_init();
-
-#ifdef DEBUG
-    lck_attr_setdebug(pmem_rogue_page_mtx_attr);
-    lck_attr_setdebug(pmem_rogue_pte_mtx_attr);
-#endif
-
-    pmem_rogue_page_mtx = lck_mtx_alloc_init(pmem_mutex_grp,
-                                             pmem_rogue_page_mtx_attr);
-    pmem_rogue_pte_mtx = lck_mtx_alloc_init(pmem_mutex_grp,
-                                            pmem_rogue_pte_mtx_attr);
-
-    kern_return_t error = pmem_reserve_page(0);
-
-    if (error != KERN_SUCCESS) {
-        pmem_fatal("Could not reserve a rogue PTE/PDE entry.");
-    } else {
-        pmem_info("Reserved page @%#016lx (size 0x%lx bytes)",
-                  pmem_rogue_page, pmem_rogue_page_size);
-    }
-
-    return error;
+    // No initialization currently needed.
+    return KERN_SUCCESS;
 }
 
 
 void pmem_pte_cleanup() {
-    pmem_release_page();
-    lck_mtx_free(pmem_rogue_pte_mtx, pmem_mutex_grp);
-    lck_attr_free(pmem_rogue_pte_mtx_attr);
-
-    lck_mtx_free(pmem_rogue_page_mtx, pmem_mutex_grp);
-    lck_attr_free(pmem_rogue_page_mtx_attr);
-
+    // No cleanup code needed.
 }
