@@ -18,8 +18,6 @@
 
 """EFILTER abstract type system."""
 
-import numbers
-
 from efilter import dispatch
 from efilter import protocol
 
@@ -28,15 +26,19 @@ from efilter import protocol
 
 
 @dispatch.polymorphic
-def hashed(x):
+def compare(x, y):
     raise NotImplementedError()
 
 
-class IHashable(protocol.Protocol):
-    _protocol_functions = (hashed,)
+class IOrdered(protocol.Protocol):
+    _protocol_functions = (compare,)
 
 
 # Default implementations:
 
-IHashable.implement(for_types=(basestring, numbers.Number),
-                    implementations={hashed: hash})
+IOrdered.implement(
+    for_type=protocol.AnyType,
+    implementations={
+        compare: cmp
+    }
+)

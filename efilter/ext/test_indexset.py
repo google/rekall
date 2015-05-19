@@ -1,5 +1,6 @@
 import unittest
 
+from efilter.protocols import indexable
 from efilter.ext import indexset
 
 
@@ -10,6 +11,14 @@ class FakeIndexable(object):
 
     def __repr__(self):
         return "FakeIndexable(%s)" % repr(self.value)
+
+
+indexable.IIndexable.implement(
+    for_type=FakeIndexable,
+    implementations={
+        indexable.indices: lambda obj: obj.indices
+    }
+)
 
 
 class IndexSetTest(unittest.TestCase):

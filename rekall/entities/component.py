@@ -29,8 +29,9 @@ import operator
 
 from rekall import registry
 
-from rekall.entities import superposition
 from rekall.entities import types
+
+from efilter.protocols import superposition
 
 
 # DeclareComponent will ensure this namedtuple has a field for every type of
@@ -171,11 +172,7 @@ class Component(object):
         merged_fields = []
         for i, x in enumerate(self._contents):
             y = other[i]
-            typedesc = self.component_fields[i].typedesc
-            superposition_cls = superposition.BaseSuperposition.impl_for_type(
-                self.component_fields[i].typedesc)
-            merged_fields.append(superposition_cls.merge_values((x, y),
-                                                                typedesc))
+            merged_fields.append(superposition.meld(x, y))
 
         return type(self)(*merged_fields)
 
@@ -199,7 +196,7 @@ class Component(object):
             if other_val == None:
                 continue
 
-            if not superposition.FastSuperpositionCompare(val, other_val):
+            if not superposition.state_superset(val, other_val):
                 return False
 
         return True

@@ -26,9 +26,15 @@ from efilter import protocol
 
 
 @dispatch.polymorphic
-def compare(x, y):
+def asbool(x):
     raise NotImplementedError()
 
 
-class IOrdered(protocol.Protocol):
-    _protocol_functions = (compare,)
+class IBoolean(protocol.Protocol):
+    _protocol_functions = (asbool,)
+
+
+# Default implementations:
+
+IBoolean.implement(for_type=protocol.AnyType,
+                   implementations={asbool: bool})

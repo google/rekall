@@ -19,7 +19,7 @@
 """
 EFILTER abstract type system.
 
-The type protocols defined under efilter.types.* provide a very thin layer
+The type protocols defined under efilter.protocols.* provide a very thin layer
 over Python's builtin types, defined as collections of related functions with
 defined semantics. Each type protocol is intended to uniformly support a
 specific behavior across any type that participates in the protocol.

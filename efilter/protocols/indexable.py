@@ -20,7 +20,7 @@
 
 from efilter import dispatch
 from efilter import protocol
-from efilter.types import hashable
+from efilter.protocols import hashable
 
 # Declarations:
 # pylint: disable=unused-argument

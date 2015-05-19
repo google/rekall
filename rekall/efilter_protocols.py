@@ -22,8 +22,14 @@ The Rekall Entity Layer.
 """
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-from efilter.types import associative
+from efilter.protocols import associative
+from efilter.protocols import indexable
+from efilter.protocols import hashable
+
+from rekall import obj
+
 from rekall.entities import entity
+from rekall.entities import identity
 from rekall.entities import component as entity_component
 
 
@@ -38,9 +44,46 @@ def _getkeys_Entity(e):
                 yield "%s/%s" % (component_name, field.name)
 
 
+### Entity-related types: ###
+
 associative.IAssociative.implement(
     for_type=entity.Entity,
     implementations={
         associative.select: lambda e, key: e.get_raw(key),
         associative.resolve: lambda e, key: e.get(key),
         associative.getkeys: _getkeys_Entity})
+
+
+associative.IAssociative.implement(
+    for_type=entity_component.Component,
+    implementations={
+        associative.select: lambda c, key: c[key],
+        associative.resolve: lambda c, key: c[key],
+        associative.getkeys: lambda c: (f.name for f in c.component_fields)})
+
+
+indexable.IIndexable.implement(
+    for_types=(identity.Identity, entity.Entity),
+    implementations={
+        indexable.indices: lambda x: x.indices})
+
+### Structs/vtypes: ###
+
+associative.IAssociative.implement(
+    for_type=obj.Struct,
+    implementations={
+        associative.select: lambda o, key: o.m(key),
+        associative.resolve: lambda o, key: getattr(o, key, None),
+        associative.getkeys: lambda o: o.members.iterkeys()})
+
+
+indexable.IIndexable.implement(
+    for_type=obj.Struct,
+    implementations={
+        indexable.indices: lambda o: o.indices})
+
+
+hashable.IHashable.implement(
+    for_type=obj.BaseObject,
+    implementations={
+        hashable.hashed: hash})

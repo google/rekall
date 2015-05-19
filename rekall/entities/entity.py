@@ -29,10 +29,11 @@ from rekall import obj
 
 from rekall.entities import component as entity_component
 from rekall.entities import identity
-from rekall.entities import superposition
 from rekall.entities import types
 
 from efilter import query
+
+from efilter.protocols import superposition
 
 
 class Entity(object):
@@ -418,14 +419,15 @@ class Entity(object):
             if not subresult:
                 return None
 
-            return subresult.get(key=rest, complete=complete)
+            return superposition.state_apply(
+                subresult,
+                lambda x: x.get(key=rest, complete=complete))
 
         # The & sigil denotes reverse lookup.
         if key.startswith("&"):
-            return superposition.EntitySuperposition.merge_values(
-                variants=self.get_referencing_entities(key[1:],
-                                                       complete=complete),
-                typedesc=self.typedesc)
+            entities = self.get_referencing_entities(key[1:],
+                                                     complete=complete)
+            return superposition.meld(*list(entities))
 
         # The raw result could be None, a superposition or just a scalar.
         value = self.get_raw(key)
@@ -439,19 +441,14 @@ class Entity(object):
 
         typedesc = self.reflect_type(key)
         if typedesc.type_name == "Entity":
-            return superposition.EntitySuperposition.merge_values(
-                variants=self.manager.find_by_identity(value,
-                                                       complete=complete),
-                typedesc=self.typedesc)
+            entities = self.manager.find_by_identity(value, complete=complete)
+            return superposition.meld(*list(entities))
 
         return value
 
     def get_variants(self, key, complete=False):
         value = self.get(key, complete=complete)
-        if isinstance(value, superposition.BaseSuperposition):
-            return iter(value)
-
-        return (value,)
+        return superposition.getstates(value)
 
     def __getitem__(self, key):
         return self.get(key)
@@ -607,8 +604,8 @@ class IdentityDescriptor(types.TypeDescriptor):
                 ("Object passed to coerce is not an identity. Additionally, "
                  "calling repr(object) raised %s.") % e)
 
-        if isinstance(value, superposition.BaseSuperposition):
-            if value.type_name == "Identity":
+        if superposition.insuperposition(value):
+            if superposition.state_type(value) == identity.Identity:
                 return value
 
             raise TypeError(

@@ -9,4 +9,3 @@ from rekall.plugins import tests
 # split off and no new dependencies on Rekall should be added.
 from rekall.entities import entity_test
 from rekall.entities import identity_test
-from rekall.entities import superposition_test

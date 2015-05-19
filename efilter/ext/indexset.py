@@ -25,7 +25,7 @@ elems per entry.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 
-from efilter.types import indexable
+from efilter.protocols import indexable
 
 
 class IndexSet(object):
@@ -40,7 +40,7 @@ class IndexSet(object):
 
     def add(self, elem):
         duplicate_entry = False
-        for index in elem.indices:
+        for index in indexable.indices(elem):
             if index in self._backing_dict:
                 duplicate_entry = True
 
@@ -178,7 +178,7 @@ class IndexSet(object):
         seen = set()
 
         for elem in self._backing_dict.itervalues():
-            indices = set(elem.indices)
+            indices = set(indexable.indices(elem))
             if seen & indices:
                 continue
 

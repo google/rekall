@@ -22,11 +22,11 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import numbers
 
-from efilter.types import associative
-from efilter.types import boolean
-from efilter.types import eq
-from efilter.types import iset
-from efilter.types import ordered
+from efilter.protocols import associative
+from efilter.protocols import boolean
+from efilter.protocols import eq
+from efilter.protocols import iset
+from efilter.protocols import ordered
 
 
 class QueryError(Exception):

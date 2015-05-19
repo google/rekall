@@ -18,6 +18,9 @@
 
 """EFILTER abstract type system."""
 
+import datetime
+import numbers
+
 from efilter import dispatch
 from efilter import protocol
 
@@ -26,14 +29,16 @@ from efilter import protocol
 
 
 @dispatch.polymorphic
-def union(x, y):
+def hashed(x):
     raise NotImplementedError()
 
 
-@dispatch.polymorphic
-def intersection(x, y):
-    raise NotImplementedError()
+class IHashable(protocol.Protocol):
+    _protocol_functions = (hashed,)
 
 
-class ISet(protocol.Protocol):
-    _protocol_functions = (union, intersection)
+# Default implementations:
+
+IHashable.implement(for_types=(basestring, numbers.Number, type(None),
+                               tuple, frozenset, datetime.datetime),
+                    implementations={hashed: hash})

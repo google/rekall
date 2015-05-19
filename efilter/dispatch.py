@@ -114,7 +114,7 @@ class polymorphic(object):
             raise NotImplementedError(
                 "Polymorphic function %r has no concrete implementation for "
                 "type %r and no default implementation. Available handlers: %r"
-                % (self.func_name, type(obj), self.implementations.keys()))
+                % (self.func_name, type(obj), self.implementations))
 
     def implemented_for_type(self, dispatch_type):
         candidate = self._find_and_cache_best_function(dispatch_type)
@@ -172,14 +172,14 @@ class polymorphic(object):
             2. Explicitly registered implementations accepting an abstract type
                (interface) in which dispatch_type participates (through
                abstract_type.register()).
-            3. An implementation of the same name on dispatch_type itself.
-            4. Default behavior of the polymorphic function. This will usually
+            3. Default behavior of the polymorphic function. This will usually
                raise a NotImplementedError, by convention.
 
         Raises:
             TypeError: If two implementing functions are registered for
                 different abstract types, and dispatch_type participates in
-                both, because no order of preference exists in that situation.
+                both, and no order of preference was specified using
+                prefer_type.
         """
         result = self._dispatch_table.get(dispatch_type)
         if result:
@@ -237,12 +237,6 @@ class polymorphic(object):
                     result = candidate_func
                     result_type = candidate_type
                     best_match = match
-
-            # As last resolve, we will use a function defined on the type
-            # being dispatched, to enable direct inheritance from interfaces
-            # that define methods which are both polymorphic and abstract.
-            if result is None:
-                result = getattr(dispatch_type, self.func.func_name, None)
 
             self._dispatch_table[dispatch_type] = result
             return result

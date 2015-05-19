@@ -26,8 +26,8 @@ import re
 from efilter import expression
 from efilter import engine
 
-from efilter.types import associative
-from efilter.types import superposition
+from efilter.protocols import associative
+from efilter.protocols import superposition
 
 
 class ObjectMatcher(engine.VisitorEngine):

@@ -21,41 +21,30 @@
 from efilter import dispatch
 from efilter import protocol
 
-from efilter.types import counted
-
 # Declarations:
 # pylint: disable=unused-argument
 
 
 @dispatch.polymorphic
-def select(associative, key):
+def eq(x, y):
     raise NotImplementedError()
 
 
 @dispatch.polymorphic
-def resolve(associative, key):
+def ne(x, y):
     raise NotImplementedError()
 
 
-@dispatch.polymorphic
-def getkeys(associative):
-    raise NotImplementedError()
-
-
-class IAssociative(protocol.Protocol):
-    _protocol_functions = (select, resolve, getkeys)
+class IEq(protocol.Protocol):
+    _protocol_functions = (eq, ne)
 
 
 # Default implementations:
 
-IAssociative.implement(for_type=dict,
-                       implementations={
-                           select: lambda d, key: d.get(key),
-                           resolve: lambda d, key: d.get(key),
-                           getkeys: lambda d: d.iterkeys()})
-
-IAssociative.implement(for_type=counted.ICounted,
-                       implementations={
-                           select: lambda c, idx: c[idx],
-                           resolve: lambda c, idx: c[idx],
-                           getkeys: lambda c: xrange(counted.count(c))})
+IEq.implement(
+    for_type=protocol.AnyType,
+    implementations={
+        eq: lambda x, y: x == y,
+        ne: lambda x, y: x != y
+    }
+)

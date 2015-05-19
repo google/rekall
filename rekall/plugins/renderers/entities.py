@@ -18,6 +18,8 @@
 
 """This module implements entity renderers."""
 
+from efilter.protocols import superposition
+
 from rekall.plugins.renderers import data_export
 from rekall.ui import text
 
@@ -77,6 +79,39 @@ class Identity_TextObjectRenderer(text.TextObjectRenderer):
     def render_row(self, target, **_):
         return text.Cell(
             "%s: %s" % (target.first_index[1], target.first_index[2]))
+
+
+class Superposition_DataExportObjectRenderer(data_export.DataExportRenderer):
+    renders_type = "DelegatingSuperposition"
+    renderers = ["DataExportRenderer"]
+
+    def GetState(self, item, **kwargs):
+        states = []
+        for state in superposition.getstates(item):
+            renderer = self.DelegateObjectRenderer(state)
+            states.append(renderer.EncodeToJsonSafe(state))
+
+        if len(states) == 1:
+            return states[0]
+
+        return dict(states=states)
+
+
+class Superposition_TextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "DelegatingSuperposition"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_row(self, target, **kwargs):
+        states = []
+        for state in superposition.getstates(target):
+            renderer = self.DelegateObjectRenderer(state)
+            states.append(renderer.render_row(target=state, **kwargs))
+
+        if len(states) == 1:
+            return states[0]
+
+        joined = ", ".join([unicode(state) for state in states])
+        return text.Cell("(%d values): %s" % (len(states), joined))
 
 
 class Entity_DataExportObjectRenderer(data_export.DataExportObjectRenderer):
