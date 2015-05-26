@@ -442,7 +442,7 @@ class EntityManager(object):
                 analysis_copy[key] = copy.copy(value)
             return analysis_copy
 
-        analyzer = wanted.run_engine("analyzer")
+        analyzer = wanted.run_engine("slashy_analyzer")
         include = analyzer.include
         exclude = analyzer.exclude
         suggested_indices = analyzer.latest_indices
@@ -500,7 +500,7 @@ class EntityManager(object):
         return analysis
 
     def find(self, query, complete=True, validate=True, query_params=None,
-             retry_on_error=False, keep_cache=False):
+             retry_on_error=False, keep_cache=False, syntax="slashy"):
         """Runs the query and yields entities that match.
 
         Arguments:
@@ -552,7 +552,8 @@ class EntityManager(object):
             return results
 
         if not isinstance(query, entity_query.Query):
-            query = entity_query.Query(query, params=query_params)
+            query = entity_query.Query(query, params=query_params,
+                                       syntax=syntax)
 
         if validate:
             query.run_engine("validator")

@@ -24,6 +24,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 import collections
 import re
 
+from efilter import errors
 from efilter import expression
 from efilter import frontend
 
@@ -204,10 +205,6 @@ class Pattern(object):
         self.next_state = next_state
 
 
-class ParseError(expression.QueryError):
-    pass
-
-
 class Tokenizer(object):
     """Context-free tokenizer for the efilter language.
 
@@ -352,8 +349,8 @@ class Tokenizer(object):
 
     def error(self, message, start, end=None):
         """Print a nice error."""
-        raise ParseError(query=self.buffer, start=start, end=end,
-                         error=message)
+        raise errors.EfilterParseError(
+            query=self.buffer, start=start, end=end, message=message)
 
     def emit(self, string, match, pattern, **_):
         """Emits a token using the current pattern match and pattern label."""
@@ -597,8 +594,9 @@ class Parser(frontend.Frontend):
         if end_token:
             end = end_token.end
 
-        raise ParseError(query=self.original, start=start, end=end,
-                         error=message, token=start_token)
+        raise errors.EfilterParseError(
+            query=self.original, start=start, end=end, message=message,
+            token=start_token)
 
 
-frontend.Frontend.register_frontend(Parser, shorthand="dotty")
+frontend.Frontend.register_frontend(Parser, shorthand="slashy")

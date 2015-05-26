@@ -20,48 +20,14 @@ EFILTER abstract syntax.
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-import numbers
+from efilter import protocol
 
 from efilter.protocols import associative
 from efilter.protocols import boolean
 from efilter.protocols import eq
 from efilter.protocols import iset
 from efilter.protocols import ordered
-
-
-class QueryError(Exception):
-    start = None
-    end = None
-    token = None
-    query = None
-
-    def __init__(self, query, error, start=None, end=None, token=None):
-        super(QueryError, self).__init__(error)
-        self.query = query
-        self.token = token
-        if token:
-            self.start = token.start
-            self.end = token.end
-
-        # Allow caller to override start and end:
-        if start:
-            self.start = start
-
-        if end:
-            self.end = end
-
-        if self.end is None and self.start is not None:
-            self.end = self.start + 1
-
-        self.error = error
-
-    def __str__(self):
-        if self.start is not None:
-            return "%s\nEncountered at:\n%s >>> %s <<< %s" % (
-                self.error, self.query[0:self.start],
-                self.query[self.start:self.end], self.query[self.end:])
-
-        return "%s\nQuery:\n%s" % (self.error, self.query)
+from efilter.protocols import number
 
 
 class Expression(object):
@@ -76,6 +42,9 @@ class Expression(object):
     arity = 0
     start = None
     end = None
+
+    type_signature = (protocol.AnyType,)
+    return_signature = protocol.AnyType
 
     def __hash__(self):
         return hash((type(self), self.children))
@@ -100,9 +69,18 @@ class Expression(object):
         self.children = children
 
     def __repr__(self):
-        return "%s(%s)" % (
-            type(self).__name__,
-            ", ".join([repr(child) for child in self.children]))
+        if len(self.children) == 1:
+            return "%s(%r)" % (type(self).__name__, self.children[0])
+
+        lines = []
+        for child in self.children:
+            if isinstance(child, Expression):
+                clines = [" %s" % line for line in repr(child).split("\n")]
+            else:
+                clines = repr(child).split("\n")
+            lines.extend(clines)
+
+        return "%s(\n%s)" % (type(self).__name__, "\n".join(lines))
 
 
 class ValueExpression(Expression):
@@ -114,16 +92,35 @@ class ValueExpression(Expression):
         return self.children[0]
 
 
+class BinaryExpression(Expression):
+    arity = 2
+
+    @property
+    def lhs(self):
+        return self.children[0]
+
+    @property
+    def rhs(self):
+        return self.children[1]
+
+
+class VariadicExpression(Expression):
+    """Represents an expression with variable arity."""
+
+    arity = None
+
+
+### Value (unary) expressions ###
+
 class Literal(ValueExpression):
     """Represents a literal, which is to say not-an-expression."""
 
-    type_signature = ()
+    type_signature = None  # Depends on literal.
 
 
 class Binding(ValueExpression):
     """Represents a member of the evaluated object - attributes of entity."""
 
-    arity = 1
     type_signature = (associative.IAssociative,)
 
 
@@ -134,11 +131,14 @@ class ComponentLiteral(ValueExpression):
 class Complement(ValueExpression):
     """Logical NOT."""
 
-    arity = 1
     type_signature = (boolean.IBoolean,)
+    return_signature = boolean.IBoolean
 
 
-class Let(Expression):
+### Binary expressions ###
+
+
+class Let(BinaryExpression):
     """Let(BINDING, SUBQUERY) evaluates SUBQUERY with the result of BINDING.
 
     Example:
@@ -146,76 +146,78 @@ class Let(Expression):
     Let("Process/parent", ComponentLiteral("Timestamps"))
     """
 
-    arity = 2
     type_signature = (associative.IAssociative, Expression)
+    return_signature = None  # Depends on rhs.
 
     @property
     def context(self):
-        return self.children[0]
+        return self.lhs
 
     @property
     def expression(self):
-        return self.children[1]
+        return self.rhs
 
 
 class LetAny(Let):
     """Like Let, but handles multiple BINDINGS using intersection semantics."""
 
+    return_signature = boolean.IBoolean
+
 
 class LetEach(Let):
     """Like Let, but handles multiple BINDINGS using union semantics."""
 
-
-class VariadicExpression(Expression):
-    """Represents an expression with variable arity."""
-
-    arity = None
+    return_signature = boolean.IBoolean
 
 
-class Union(VariadicExpression):
+class Membership(BinaryExpression):
+    """Membership of element in set."""
+    type_signature = (eq.IEq, iset.ISet)
+    return_signature = boolean.IBoolean
+
+    @property
+    def element(self):
+        return self.lhs
+
+    @property
+    def set(self):
+        return self.rhs
+
+
+class RegexFilter(BinaryExpression):
+    type_signature = (basestring, basestring)
+    return_signature = boolean.IBoolean
+
+    @property
+    def string(self):
+        return self.lhs
+
+    @property
+    def regex(self):
+        return self.rhs
+
+
+### Variadic Expressions ###
+
+### Logical Variadic ###
+
+class LogicalOperation(VariadicExpression):
+    type_signature = boolean.IBoolean
+    return_signature = boolean.IBoolean
+
+
+class Union(LogicalOperation):
     """Logical OR (variadic)."""
 
-    type_signature = iset.ISet
 
-
-class Intersection(VariadicExpression):
+class Intersection(LogicalOperation):
     """Logical AND (variadic)."""
 
-    type_signature = iset.ISet
 
+### Variadic Relations ###
 
 class Relation(VariadicExpression):
-    pass
-
-
-class Equivalence(Relation):
-    """Logical == (variadic)."""
-
-    type_signature = eq.IEq
-
-
-class Sum(VariadicExpression):
-    """Arithmetic + (variadic)."""
-
-    type_signature = numbers.Number
-
-
-class Difference(VariadicExpression):
-    """Arithmetic - (variadic)."""
-
-    type_signature = numbers.Number
-
-
-class Product(VariadicExpression):
-    """Arithmetic * (variadic)."""
-
-    type_signature = numbers.Number
-
-
-class Quotient(VariadicExpression):
-    """Arithmetic / (variadic)."""
-
-    type_signature = numbers.Number
+    return_signature = boolean.IBoolean
 
 
 class OrderedSet(Relation):
@@ -227,9 +229,13 @@ class OrderedSet(Relation):
 class StrictOrderedSet(OrderedSet):
     """Greater than relation."""
 
+    type_signature = ordered.IOrdered
+
 
 class PartialOrderedSet(OrderedSet):
     """Great-or-equal than relation."""
+
+    type_signature = ordered.IOrdered
 
 
 class ContainmentOrder(Relation):
@@ -238,26 +244,39 @@ class ContainmentOrder(Relation):
     type_signature = iset.ISet
 
 
-class Membership(Relation):
-    """Membership of element in set."""
+class Equivalence(Relation):
+    """Logical == (variadic)."""
 
-    arity = 2
-    type_signature = (iset.ISet, eq.IEq)
-
-    @property
-    def element(self):
-        return self.children[0]
-
-    @property
-    def set(self):
-        return self.children[1]
+    type_signature = eq.IEq
 
 
-class RegexFilter(Relation):
-    @property
-    def string(self):
-        return self.children[0]
+### Variadic Arithmetic ###
 
-    @property
-    def regex(self):
-        return self.children[1]
+class NumericExpression(VariadicExpression):
+    """Arithmetic expressions."""
+
+    return_signature = number.INumber
+
+
+class Sum(NumericExpression):
+    """Arithmetic + (variadic)."""
+
+    type_signature = number.INumber
+
+
+class Difference(NumericExpression):
+    """Arithmetic - (variadic)."""
+
+    type_signature = number.INumber
+
+
+class Product(NumericExpression):
+    """Arithmetic * (variadic)."""
+
+    type_signature = number.INumber
+
+
+class Quotient(NumericExpression):
+    """Arithmetic / (variadic)."""
+
+    type_signature = number.INumber

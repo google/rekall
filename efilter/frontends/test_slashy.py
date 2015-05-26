@@ -1,12 +1,12 @@
 import unittest
 
-from efilter.frontends import dotty
+from efilter.frontends import slashy
 from efilter import expression
 
 
 class TokenizerTest(unittest.TestCase):
     def assertQueryMatches(self, query, expected):
-        tokenizer = dotty.Tokenizer(query)
+        tokenizer = slashy.Tokenizer(query)
         actual = [(token.name, token.value) for token in tokenizer.parse()]
         self.assertEqual(expected, actual)
 
@@ -56,7 +56,7 @@ class TokenizerTest(unittest.TestCase):
 
     def testPeeking(self):
         query = "1 in (5, 10) == Process/pid"
-        tokenizer = dotty.Tokenizer(query)
+        tokenizer = slashy.Tokenizer(query)
         tokenizer.next_token()
         self.assertEquals(tokenizer.peek(2).name, "lparen")
         self.assertEquals(tokenizer.current_token.value, 1)
@@ -73,13 +73,13 @@ class TokenizerTest(unittest.TestCase):
 
 class ParserTest(unittest.TestCase):
     def assertQueryMatches(self, query, expected, params=None):
-        parser = dotty.Parser(query, params=params)
+        parser = slashy.Parser(query, params=params)
         actual = parser.parse()
         self.assertEqual(expected, actual)
 
     def assertQueryRaises(self, query, params=None):
-        parser = dotty.Parser(query, params=params)
-        self.assertRaises(dotty.ParseError, parser.parse)
+        parser = slashy.Parser(query, params=params)
+        self.assertRaises(slashy.errors.EfilterParseError, parser.parse)
 
     def testLiterals(self):
         query = "0xff"
@@ -289,10 +289,10 @@ class ParserTest(unittest.TestCase):
         query = ("Buffer/purpose is 'zones' and any Buffer/context matches"
                  " (Allocation/zone name is {zone_name})")
         params = dict(zone_name="foo")
-        parser = dotty.Parser(query, params=params)
+        parser = slashy.Parser(query, params=params)
         try:
             parser.parse()
-        except dotty.ParseError as e:
+        except slashy.errors.EfilterParseError as e:
             self.assertEqual(e.token.value, 'name')
 
     def testMultipleLiterals(self):

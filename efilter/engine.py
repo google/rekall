@@ -23,6 +23,22 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import abc
 
+from efilter.protocols import name_delegate
+
+
+class NopAppDelegate(object):
+    """This application delegate doesn't do anything."""
+
+
+name_delegate.INameDelegate.implement(
+    for_type=NopAppDelegate,
+    implementations={
+        name_delegate.reflect: lambda d, n, s: None,
+        name_delegate.provide: lambda d, n: None,
+        name_delegate.getnames: lambda d: ()
+    }
+)
+
 
 class Engine(object):
     """Base class representing the various behaviors of the EFILTER AST."""
@@ -30,8 +46,12 @@ class Engine(object):
 
     ENGINES = {}
 
-    def __init__(self, query):
+    def __init__(self, query, application_delegate=None):
         self.query = query
+        if application_delegate:
+            self.application_delegate = application_delegate
+        else:
+            self.application_delegate = NopAppDelegate()
 
     @abc.abstractmethod
     def run(self, *_, **__):
@@ -64,18 +84,29 @@ class VisitorEngine(Engine):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def run(self, *_, **__):
+    def run(self, *_, **kwargs):
+        super(VisitorEngine, self).run()
         self.node = self.query.root
-        return self.visit(self.node)
+        return self.visit(self.node, **kwargs)
 
-    def visit(self, node):
+    def fall_through(self, node, engine_shorthand, **kwargs):
+        engine_cls = type(self).get_engine(engine_shorthand)
+        if not issubclass(engine_cls, VisitorEngine):
+            raise TypeError(
+                "VisitorEngine can only fall through to other VisitorEngines.")
+
+        engine = engine_cls(query=self.query,
+                            application_delegate=self.application_delegate)
+        return engine.visit(node, **kwargs)
+
+    def visit(self, node, **kwargs):
         # Walk the MRO and try to find a closest match for handler.
         for cls in type(node).mro():
             handler_name = "visit_%s" % cls.__name__
             handler = getattr(self, handler_name, None)
 
             if callable(handler):
-                return handler(node)
+                return handler(node, **kwargs)
 
         # No appropriate handler for this class. Explode.
         raise ValueError(

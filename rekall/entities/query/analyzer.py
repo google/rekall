@@ -428,4 +428,4 @@ class QueryAnalyzer(engine.VisitorEngine):
 
         return seen
 
-engine.Engine.register_engine(QueryAnalyzer, "analyzer")
+engine.Engine.register_engine(QueryAnalyzer, "slashy_analyzer")

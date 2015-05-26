@@ -36,6 +36,30 @@ from efilter import query
 from efilter.protocols import superposition
 
 
+class CurriedComponent(object):
+    component = None
+    entity = None
+
+    def __init__(self, entity, component):
+        self.component = component
+        self.entity = entity
+
+    def get_raw(self, key):
+        return self.component[key]
+
+    def get(self, key, complete=False):
+        return self.entity.get(
+            key="%s/%s" % (self.component.component_name, key),
+            complete=complete)
+
+    def __getitem__(self, key):
+        return self.get(key)
+
+    def __repr__(self):
+        return "CurriedComponent(component=%r, entity=%r)" % (
+            self.component, self.entity)
+
+
 class Entity(object):
     """Entity is an abstraction of things like Process, User or Connection.
 
@@ -438,6 +462,9 @@ class Entity(object):
         # Redirection.
         if isinstance(value, entity_component.Alias):
             return self.get(value.alias, complete=complete)
+
+        if isinstance(value, entity_component.Component):
+            return CurriedComponent(self, value)
 
         typedesc = self.reflect_type(key)
         if typedesc.type_name == "Entity":

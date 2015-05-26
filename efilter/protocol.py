@@ -59,8 +59,27 @@ class AnyType(object):
 
         foo(5)  # => "foo"
         isinstance(5, MyProtocol)  # => False
+        implements(5, MyProtocol)  # => True
     """
-    pass
+
+
+BUILTIN_TYPES = (int, float, long, complex, basestring, tuple, list, dict, set,
+                 frozenset, type(None), AnyType)
+
+
+def implements(obj, protocol):
+    """Does the object 'obj' implement the 'prococol'?"""
+    if isinstance(obj, type):
+        raise TypeError("First argument to implements must be an instance. "
+                        "Got %r." % obj)
+    return isinstance(obj, protocol) or issubclass(AnyType, protocol)
+
+
+def isa(cls, protocol):
+    """Does the type 'cls' participate in the 'protocol'?"""
+    if not isinstance(cls, type):
+        raise TypeError("First argument to isa must be a type. Got %r." % cls)
+    return issubclass(cls, protocol) or issubclass(AnyType, protocol)
 
 
 class Protocol(object):

@@ -50,19 +50,14 @@ class DarwinProcessVADs(common.DarwinEntityCollector):
         "VM_PROT_EXECUTE": "execute"}
 
     def collect(self, hint, procs):
-        hinted_attr = None
-        hinted_val = None
-
-        # Use the hint to only parse VADs for the hinted process.
-        analysis = self.manager.analyze(hint)
-        for dependency in analysis["dependencies"]:
-            if dependency.component == "Process" and dependency.attribute:
-                hinted_attr = dependency.attribute
-                hinted_val = dependency.value
-                break
+        # We're going to have a much better time if we can ignore processes
+        # that aren't relevant.
+        hint_filter = hint.run_engine("hinter",
+                                      selector="MemoryDescriptor/process")
 
         for proc in procs:
-            if hinted_attr and proc["Process"][hinted_attr] != hinted_val:
+            if (hint_filter and not
+                    hint_filter.run_engine("matcher", bindings=proc)):
                 continue
 
             vm = proc["Struct/base"].get_process_address_space()

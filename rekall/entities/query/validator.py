@@ -24,11 +24,11 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from rekall.entities import entity
 
-from efilter import expression
+from efilter import errors
 from efilter import engine
 
 
-class ValidationError(expression.QueryError):
+class ValidationError(errors.EfilterError):
     pass
 
 

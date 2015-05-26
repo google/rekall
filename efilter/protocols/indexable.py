@@ -40,13 +40,12 @@ def indices(x):
        which compare as either integers or strings, but can only be hashed
        as one or the other.
 
-    The former is easily addressed by not using mutable types for
-    non-ephemeral state. It's the 21st century, people.
+    The former is easily addressed by not using mutable types for non-ephemeral
+    state. It's the 21st century, people.
 
-    The Indexable interface addresses the latter, by letting the object
-    return a collection of keys, here called 'indices', at which it desires
-    to appear in any associative collection. The indices must themselves be
-    hashable.
+    The Indexable interface addresses the latter, by letting the object return
+    a collection of keys, here called 'indices', at which it desires to appear
+    in any associative collection. The indices must themselves be hashable.
 
     See ext.indexset for more details about how indices may be used.
     """

@@ -147,6 +147,9 @@ class Component(object):
             raise ValueError("Unknown attributes %s on component %s" % (
                 kwargs, self.component_name))
 
+    def __copy__(self):
+        return type(self)(*self._contents)
+
     def _set_values(self, args, kwargs):
         self._contents = []
         for idx, arg in enumerate(args):

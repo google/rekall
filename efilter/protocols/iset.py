@@ -77,10 +77,22 @@ class ISet(protocol.Protocol):
 ISet.implement(
     for_types=(set, frozenset),
     implementations={
-        union: lambda x, y: x | y,
-        intersection: lambda x, y: x & y,
-        difference: lambda x, y: x - y,
-        issuperset: lambda x, y: x >= y,
+        union: lambda x, y: x | frozenset(y),
+        intersection: lambda x, y: x & frozenset(y),
+        difference: lambda x, y: x - frozenset(y),
+        issuperset: lambda x, y: x >= frozenset(y),
+        contains: lambda s, e: e in s
+    }
+)
+
+
+ISet.implement(
+    for_types=(list, tuple),
+    implementations={
+        union: lambda x, y: frozenset(x) | frozenset(y),
+        intersection: lambda x, y: frozenset(x) & frozenset(y),
+        difference: lambda x, y: frozenset(x) - frozenset(y),
+        issuperset: lambda x, y: frozenset(x) >= frozenset(y),
         contains: lambda s, e: e in s
     }
 )

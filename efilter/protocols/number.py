@@ -21,39 +21,43 @@
 from efilter import dispatch
 from efilter import protocol
 
-from efilter.protocols import counted
 
 # Declarations:
 # pylint: disable=unused-argument
 
 
 @dispatch.polymorphic
-def select(associative, key):
+def sum(x, y):
     raise NotImplementedError()
 
 
 @dispatch.polymorphic
-def resolve(associative, key):
+def product(x, y):
     raise NotImplementedError()
 
 
 @dispatch.polymorphic
-def getkeys(associative):
+def difference(x, y):
     raise NotImplementedError()
 
 
-class IAssociative(protocol.Protocol):
-    _protocol_functions = (select, resolve, getkeys)
+@dispatch.polymorphic
+def quotient(x, y):
+    raise NotImplementedError()
 
 
-IAssociative.implement(for_type=dict,
-                       implementations={
-                           select: lambda d, key: d.get(key),
-                           resolve: lambda d, key: d.get(key),
-                           getkeys: lambda d: d.iterkeys()})
+class INumber(protocol.Protocol):
+    _protocol_functions = (sum, product, difference, quotient)
 
-IAssociative.implement(for_type=counted.ICounted,
-                       implementations={
-                           select: lambda c, idx: c[idx],
-                           resolve: lambda c, idx: c[idx],
-                           getkeys: lambda c: xrange(counted.count(c))})
+
+# Default implementations:
+
+INumber.implement(
+    for_types=(int, float, complex, long),
+    implementations={
+        sum: lambda x, y: x + y,
+        product: lambda x, y: x * y,
+        difference: lambda x, y: x - y,
+        quotient: lambda x, y: x / y
+    }
+)

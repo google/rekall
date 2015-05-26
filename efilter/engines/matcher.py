@@ -63,7 +63,7 @@ class ObjectMatcher(engine.VisitorEngine):
 
         return False
 
-    def visit(self, expr):
+    def visit(self, expr, **_):
         result = super(ObjectMatcher, self).visit(expr)
 
         if self.match_backtrace and result:
@@ -71,13 +71,13 @@ class ObjectMatcher(engine.VisitorEngine):
 
         return result
 
-    def visit_Literal(self, expr):
+    def visit_Literal(self, expr, **_):
         return expr.value
 
-    def visit_Binding(self, expr):
+    def visit_Binding(self, expr, **_):
         return associative.select(self.bindings, expr.value)
 
-    def visit_Let(self, expr):
+    def visit_Let(self, expr, **_):
         saved_bindings = self.bindings
         if isinstance(expr, expression.LetAny):
             union_semantics = True
@@ -129,51 +129,51 @@ class ObjectMatcher(engine.VisitorEngine):
         finally:
             self.bindings = saved_bindings
 
-    def visit_ComponentLiteral(self, expr):
+    def visit_ComponentLiteral(self, expr, **_):
         return getattr(self.bindings.components, expr.value)
 
-    def visit_Complement(self, expr):
+    def visit_Complement(self, expr, **_):
         return not self.visit(expr.value)
 
-    def visit_Intersection(self, expr):
+    def visit_Intersection(self, expr, **_):
         for child in expr.children:
             if not self.visit(child):
                 return False
 
         return True
 
-    def visit_Union(self, expr):
+    def visit_Union(self, expr, **_):
         for child in expr.children:
             if self.visit(child):
                 return True
 
         return False
 
-    def visit_Sum(self, expr):
+    def visit_Sum(self, expr, **_):
         return sum([self.visit(child) for child in expr.children])
 
-    def visit_Difference(self, expr):
+    def visit_Difference(self, expr, **_):
         difference = self.visit(expr.children[0])
         for child in expr.children[1:]:
             difference -= self.visit(child)
 
         return difference
 
-    def visit_Product(self, expr):
+    def visit_Product(self, expr, **_):
         product = 1
         for child in expr.children:
             product *= self.visit(child)
 
         return product
 
-    def visit_Quotient(self, expr):
+    def visit_Quotient(self, expr, **_):
         quotient = self.visit(expr.children[0])
         for child in expr.children[1:]:
             quotient /= self.visit(child)
 
         return quotient
 
-    def visit_Equivalence(self, expr):
+    def visit_Equivalence(self, expr, **_):
         first_val = self.visit(expr.children[0])
         for child in expr.children[1:]:
             if self.visit(child) != first_val:
@@ -181,16 +181,16 @@ class ObjectMatcher(engine.VisitorEngine):
 
         return True
 
-    def visit_Membership(self, expr):
+    def visit_Membership(self, expr, **_):
         return self.visit(expr.element) in set(self.visit(expr.set))
 
-    def visit_RegexFilter(self, expr):
+    def visit_RegexFilter(self, expr, **_):
         string = self.visit(expr.string)
         pattern = self.visit(expr.regex)
 
         return re.compile(pattern).match(str(string))
 
-    def visit_StrictOrderedSet(self, expr):
+    def visit_StrictOrderedSet(self, expr, **_):
         iterator = iter(expr.children)
         min_ = self.visit(next(iterator))
 
@@ -207,7 +207,7 @@ class ObjectMatcher(engine.VisitorEngine):
 
         return True
 
-    def visit_PartialOrderedSet(self, expr):
+    def visit_PartialOrderedSet(self, expr, **_):
         iterator = iter(expr.children)
         min_ = self.visit(next(iterator))
 

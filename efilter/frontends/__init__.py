@@ -1,3 +1,4 @@
 """EFILTER Forensic Query Language"""
 
-from efilter.frontends import dotty
+from efilter.frontends import slashy
+from efilter.frontends import experiments

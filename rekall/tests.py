@@ -2,6 +2,7 @@
 
 from rekall import obj_test
 from rekall import addrspace_test
+from rekall import efilter_integration_test
 
 from rekall.plugins import tests
 

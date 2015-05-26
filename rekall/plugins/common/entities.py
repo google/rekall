@@ -209,6 +209,7 @@ class EntityFind(plugin.ProfileCommand):
     width = 120
     stream_results = False
     complete_results = True
+    syntax = "slashy"
 
     query = None
 
@@ -228,7 +229,7 @@ class EntityFind(plugin.ProfileCommand):
 
     def __init__(self, query=None, explain=None, columns=None, sort=None,
                  width=None, filter=None, stream_results=False,
-                 complete_results=True, **kwargs):
+                 complete_results=True, syntax="slashy", **kwargs):
         super(EntityFind, self).__init__(**kwargs)
         if query:
             self.query = entity_query.Query(query)
@@ -240,6 +241,9 @@ class EntityFind(plugin.ProfileCommand):
 
         if sort is not None:
             self.sort = sort
+
+        if syntax is not None:
+            self.syntax = syntax
 
         if width is not None:
             self.width = width
@@ -387,7 +391,8 @@ class EntityFind(plugin.ProfileCommand):
             self.session.entities.stream(self.query, _handler)
         else:
             rows = self.session.entities.find(self.query,
-                                              complete=self.complete_results)
+                                              complete=self.complete_results,
+                                              syntax=self.syntax)
             if self.sort:
                 rows = sorted(rows, key=self._build_sort_func())
             for entity in rows:

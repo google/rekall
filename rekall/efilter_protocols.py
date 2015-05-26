@@ -25,12 +25,87 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 from efilter.protocols import associative
 from efilter.protocols import indexable
 from efilter.protocols import hashable
+from efilter.protocols import name_delegate
 
 from rekall import obj
+from rekall import plugin as rekall_plugin
 
 from rekall.entities import entity
 from rekall.entities import identity
 from rekall.entities import component as entity_component
+
+
+class RekallDelegate(object):
+    """Exposes the global Rekall namespace and types to EFILTER.
+
+    This is a work in progress.
+    """
+
+    def __init__(self, session, profile):
+        self.session = session
+        self.profile = profile
+
+    def _reflect_global(self, name):
+        if name in entity_component.Component.classes.keys():
+            # Is this a valid component? If so, just tell EFILTER it's an
+            # Entity.
+            return entity_component.Component.classes.get(name)
+        elif name.startswith("_"):
+            # Could be a global.
+            value = self.profile.get_constant(name)
+            if value:
+                return type(value)
+
+            return None
+        else:
+            # Try a plugin name.
+            # If name is in session plugins, return the plugin class.
+            return None
+
+    def _reflect_scoped(self, name, scope):
+        if issubclass(scope, entity_component.Component):
+            return self._reflect_component(name, scope)
+
+        if issubclass(scope, obj.BaseObject):
+            return self._reflect_vtype(name, scope)
+
+        if issubclass(scope, rekall_plugin.Plugin):
+            return self._reflect_plugin(name, scope)
+
+        return None
+
+    def _reflect_component(self, name, component):
+        field = component.reflect_attribute(name)
+        if not field:
+            return None
+
+        return getattr(field.typedesc, "type_cls", None)
+
+    def _reflect_vtype(self, name, vtype):
+        pass
+
+    def _reflect_plugin(self, name, plugin):
+        pass
+
+    def reflect(self, name, scope=None):
+        if scope is None:
+            return self._reflect_global(name)
+
+        return self._reflect_scoped(name, scope)
+
+    def provide(self, name):
+        return None
+
+    def getnames(self):
+        return ()
+
+
+name_delegate.INameDelegate.implement(
+    for_type=RekallDelegate,
+    implementations={
+        name_delegate.reflect: RekallDelegate.reflect,
+        name_delegate.provide: RekallDelegate.provide,
+        name_delegate.getnames: RekallDelegate.getnames})
 
 
 def _getkeys_Entity(e):
@@ -60,6 +135,15 @@ associative.IAssociative.implement(
         associative.select: lambda c, key: c[key],
         associative.resolve: lambda c, key: c[key],
         associative.getkeys: lambda c: (f.name for f in c.component_fields)})
+
+
+associative.IAssociative.implement(
+    for_type=entity.CurriedComponent,
+    implementations={
+        associative.select: entity.CurriedComponent.get,
+        associative.resolve: entity.CurriedComponent.get_raw,
+        associative.getkeys:
+            lambda c: (f.name for f in c.component.component_fields)})
 
 
 indexable.IIndexable.implement(
