@@ -81,7 +81,8 @@ class Identity_TextObjectRenderer(text.TextObjectRenderer):
             "%s: %s" % (target.first_index[1], target.first_index[2]))
 
 
-class Superposition_DataExportObjectRenderer(data_export.DataExportRenderer):
+class Superposition_DataExportObjectRenderer(
+    data_export.DataExportObjectRenderer):
     renders_type = "DelegatingSuperposition"
     renderers = ["DataExportRenderer"]
 
