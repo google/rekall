@@ -40,6 +40,7 @@ class EPROCESSDataExport(data_export.DataExportBaseObjectRenderer):
                 type=u"ProcessObj:ImageInfoType",
                 Path=process_params.ImagePathName,
                 Command_Line=process_params.CommandLine,
+                TrustedPath=task.FullPath,
                 File_Name=task.SeAuditProcessCreationInfo.ImageFileName.Name,
                 )
             )
@@ -85,20 +86,35 @@ class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
     def __init__(self, *args, **options):
         """We make a sub table for rendering the _EPROCESS."""
         self.name = options.pop("name", "_EPROCESS")
-        self.style = options.pop("style", "full")
 
         super(EPROCESS_TextObjectRenderer, self).__init__(*args, **options)
-        self.table = text.TextTable(
-            columns=[
-                dict(name=self.name, cname="eprocess",
-                     formatstring="[addrpad]"),
-                dict(name="Name", cname="name", width=20),
-                dict(name="PID", cname="pid", width=5, align="r")],
-            renderer=self.renderer,
-            session=self.session)
+
+        # pstree requests light output so we ovverride the style
+        self.output_style = options.pop("style", self.output_style)
+
+        if self.output_style == "full":
+            self.table = text.TextTable(
+                columns=[
+                    dict(name=self.name, cname="eprocess",
+                         formatstring="[addrpad]"),
+                    dict(name="Name", cname="name", width=20),
+                    dict(name="FullPath", cname="fullpath", width=60),
+                    dict(name="PID", cname="pid", width=5, align="r"),
+                    dict(name="Parent PID", cname="ppid", width=5, align="r")],
+                renderer=self.renderer,
+                session=self.session)
+        else:
+            self.table = text.TextTable(
+                columns=[
+                    dict(name=self.name, cname="eprocess",
+                         formatstring="[addrpad]"),
+                    dict(name="Name", cname="name", width=20),
+                    dict(name="PID", cname="pid", width=5, align="r")],
+                renderer=self.renderer,
+                session=self.session)
 
     def render_header(self, **options):
-        if self.style == "full":
+        if self.output_style in ["full", "concise"]:
             return self.table.render_header()
         else:
             result = text.Cell(self.name, width=40)
@@ -107,10 +123,13 @@ class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
             return result
 
     def render_row(self, target, **options):
-        if self.style == "full":
+        if self.output_style == "full":
+            return self.table.get_row(
+                target.obj_offset, target.name, target.FullPath, target.pid,
+                target.InheritedFromUniqueProcessId)
+        elif self.output_style == "concise":
             return self.table.get_row(target.obj_offset, target.name,
                                       target.pid)
-
         else:
             return text.Cell("%s %s (%d)" % (
                 self.format_address(target.obj_offset),

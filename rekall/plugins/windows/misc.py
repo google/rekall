@@ -408,6 +408,15 @@ class ObjectTree(common.WindowsCommandPlugin):
             type_regex = re.compile(type_regex)
         self.type_regex = type_regex
 
+    def get_object_tree(self):
+        return self.profile.get_constant_object(
+            "ObpRootDirectoryObject",
+            target="Pointer",
+            target_args=dict(
+                target="_OBJECT_DIRECTORY"
+                )
+            )
+
     def _render_directory(self, directory, renderer, seen, depth=0):
         for obj_header in directory.list():
             if obj_header in seen:
@@ -434,13 +443,7 @@ class ObjectTree(common.WindowsCommandPlugin):
                                dict(name="Name", type="TreeNode"),
                               ])
 
-        root = self.profile.get_constant_object(
-            "ObpRootDirectoryObject",
-            target="Pointer",
-            target_args=dict(
-                target="_OBJECT_DIRECTORY"
-                )
-            )
+        root = self.get_object_tree()
 
         seen = set()
         self._render_directory(root, renderer, seen)

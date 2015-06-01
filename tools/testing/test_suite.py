@@ -259,7 +259,7 @@ exit 0
             executable=self.FLAGS.executable))
 
         # Extra options to be used for testing.
-        defaults["--renderer"] = "test"
+        defaults["--format"] = "test"
 
 
         for test_config in config.values():

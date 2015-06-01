@@ -578,7 +578,7 @@ class Session(object):
         """
         kwargs = self._CorrectKWArgs(kwargs)
         output = kwargs.pop("output", None)
-        ui_renderer = kwargs.pop("renderer", None)
+        ui_renderer = kwargs.pop("format", None)
 
         # Do we need to redirect output?
         if output is not None:
@@ -773,9 +773,9 @@ class Session(object):
     def GetRenderer(self):
         """Get a renderer for this session.
 
-        We instantiate the renderer specified in self.GetParameter("renderer").
+        We instantiate the renderer specified in self.GetParameter("format").
         """
-        ui_renderer = self.GetParameter("renderer", "text")
+        ui_renderer = self.GetParameter("format", "text")
         if isinstance(ui_renderer, basestring):
             ui_renderer_cls = renderer.BaseRenderer.ImplementationByName(
                 ui_renderer)

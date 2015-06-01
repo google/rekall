@@ -107,6 +107,10 @@ config.DeclareOption(
     "--debug", default=False, type="Boolean",
     help="If set we break into the debugger on error conditions.")
 
+config.DeclareOption(
+    "--output_style", type="Choices", default="concise",
+    choices=["concise", "full"],
+    help="How much information to show. Default is 'concise'.")
 
 MRO_CACHE = utils.FastStore(100, lock=True)
 
@@ -133,6 +137,10 @@ class ObjectRenderer(object):
         self.renderer = renderer
         self.session = session
         self.options = options
+        if self.session:
+            self.output_style = self.session.GetParameter("output_style")
+        else:
+            self.output_style = None
 
     @staticmethod
     def get_mro(item):

@@ -37,7 +37,9 @@ class Handles(common.WinProcessFilter):
         parser.add_argument(
             "-t", "--object_types", type="ArrayStringParser",
             help="Types of objects to show.")
-
+        parser.add_argument(
+            "--named_only", type="Boolean",
+            help="Output only handles with a name .")
 
     def __init__(self, *args, **kwargs):
         """Lists the handles for processes.
@@ -49,6 +51,7 @@ class Handles(common.WinProcessFilter):
         """
         self.object_list = kwargs.pop("object_types", None)
         self.silent = kwargs.pop("silent", False)
+        self.named_only = kwargs.pop("named_only", False)
 
         super(Handles, self).__init__(*args, **kwargs)
 
@@ -86,6 +89,9 @@ class Handles(common.WinProcessFilter):
                     name = ""
                 else:
                     name = handle.NameInfo.Name
+
+                if not name and self.named_only:
+                    continue
 
                 yield handle, object_type, name
 

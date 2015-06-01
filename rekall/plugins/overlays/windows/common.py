@@ -672,6 +672,88 @@ class _EPROCESS(obj.Struct):
 
         return obj.NoneObject("Cannot find process session")
 
+    def _BuildDeviceCache(self):
+        """Build a cache of _DEVICE_OBJECTs from the system object tree."""
+        if self.obj_session.GetParameter("windows_device_cache"):
+            return
+
+        object_tree_p = self.obj_session.plugins.object_tree()
+        object_root = object_tree_p.get_object_tree()
+        logging.debug("Rebuilding device cache...")
+        device_cache = dict()
+        self.obj_session.SetCache("windows_device_cache", device_cache)
+
+        for device in object_root["Device"].Object:
+            if device.get_object_type() == "Device":
+                device_path = "\\Device\\%s" % unicode(device.NameInfo.Name)
+                device_cache[device.Object.obj_offset] = device_path
+
+    def _BuildDriveNameMapping(self):
+        """Build a mapping of drive name (C:) to drive device path."""
+        if self.obj_session.GetParameter("windows_drive_name_cache"):
+            return
+
+        object_tree_p = self.obj_session.plugins.object_tree()
+        object_root = object_tree_p.get_object_tree()
+        logging.debug("Rebuilding symbolic device name cache...")
+        symbolic_cache = dict()
+        self.obj_session.SetCache("windows_drive_name_cache", symbolic_cache)
+
+        for item in object_root["GLOBAL??"].Object:
+            if item.get_object_type() == "SymbolicLink":
+                # Filter by drive names, they always end with a ":"
+                if unicode(item.NameInfo.Name)[-1] == ":":
+                    target_name = unicode(item.Object.LinkTarget)
+                    symbolic_cache[target_name] = unicode(item.NameInfo.Name)
+
+    def _DriveNameOfDevice(self, device):
+        """Get the drive name (i.e: C:) of a device."""
+        self._BuildDeviceCache()
+        self._BuildDriveNameMapping()
+
+        device_cache = self.obj_session.GetParameter(
+            "windows_device_cache", {})
+        drive_cache = self.obj_session.GetParameter(
+            "windows_drive_name_cache", {})
+
+        device_name = device_cache.get(device)
+        device_name = drive_cache.get(device_name, device_name)
+        return device_name
+
+    @property
+    def FullPath(self):
+        """Return the full path of image loaded. Obtained via the VAD root."""
+
+        fullpath_cache = self.obj_session.GetParameter("fullpath_cache")
+        if not fullpath_cache:
+          fullpath_cache = {}
+          self.obj_session.SetParameter("fullpath_cache", fullpath_cache)
+
+        if self.obj_offset in fullpath_cache:
+            return fullpath_cache[self.obj_offset]
+
+        full_path = obj.NoneObject()
+
+        for vad in self.RealVadRoot.traverse():
+            if (vad.Start <= self.SectionBaseAddress and
+                vad.End >= self.SectionBaseAddress):
+
+                try:
+                    full_path = vad.ControlArea.FilePointer.FileName
+                except AttributeError:
+                    continue
+
+                try:
+                    drive_name = self._DriveNameOfDevice(
+                        vad.ControlArea.FilePointer.DeviceObject)
+                except AttributeError:
+                    drive_name = None
+
+                if drive_name:
+                    full_path = "%s%s" % (drive_name, full_path)
+        fullpath_cache[self.obj_offset] = full_path
+        return full_path
+
     def __repr__(self):
         return "%s (pid=%s)" % (super(_EPROCESS, self).__repr__(), self.pid)
 
@@ -985,6 +1067,7 @@ class _OBJECT_HEADER(obj.Struct):
     # A mapping between the object type name and the struct name for it.
     type_lookup = dict(
         File="_FILE_OBJECT",
+        Device="_DEVICE_OBJECT",
         Driver="_DRIVER_OBJECT",
         Directory="_OBJECT_DIRECTORY",
         SymbolicLink="_OBJECT_SYMBOLIC_LINK",
@@ -1099,6 +1182,15 @@ class _OBJECT_DIRECTORY(ObjectMixin, obj.Struct):
                 if target_obj_header:
                     yield target_obj_header
 
+    def __iter__(self):
+        return self.list()
+
+    def __getitem__(self, name):
+        for item in self:
+            if item.NameInfo.Name == name:
+                return item
+        raise KeyError
+
 
 class _EX_FAST_REF(obj.Struct):
     """This type allows instantiating an object from its .Object member."""
@@ -1164,7 +1256,7 @@ class _CM_KEY_BODY(obj.Struct):
 
 class VadTraverser(obj.Struct):
     """The windows Vad tree is basically the same in all versions of windows,
-    but the exact name of the stucts vary with version. This is the base class
+    but the exact name of the structs vary with version. This is the base class
     for all Vad traversor.
     """
     ## The actual type depends on this tag value.

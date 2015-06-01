@@ -129,12 +129,12 @@ class CachingManager(io_manager.IOManager):
         cache_inventory = self.cache_io_manager.inventory
         modified = False
 
-        for item, metadata in cache_inventory["$INVENTORY"].items():
+        for item, metadata in cache_inventory.get("$INVENTORY", {}).items():
             upstream_meta = upstream_inventory.get(
                 "$INVENTORY", {}).get(item)
 
             if (upstream_meta is None or
-                    upstream_meta["LastModified"] > metadata["LastModified"]):
+                upstream_meta["LastModified"] > metadata["LastModified"]):
                 cache_inventory["$INVENTORY"].pop(item)
                 modified = True
 

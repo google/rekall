@@ -8,7 +8,7 @@ from rekall.ui import json_renderer
 from rekall.ui import text
 
 config.DeclareOption(
-    "-r", "--renderer", default="text", group="Interface",
+    "-F", "--format", default="text", group="Interface",
     choices=utils.JITIterator(renderer.BaseRenderer),
-    help="The renderer to use. Default (text)")
+    help="The output format to use. Default (text)")
 

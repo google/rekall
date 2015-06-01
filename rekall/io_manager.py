@@ -119,7 +119,7 @@ class IOManager(object):
         try:
             metadata = self.inventory.get("$METADATA")
             if (metadata.get("ProfileClass") == "Inventory"
-                    and metadata.get("Type") == "Inventory"):
+                and metadata.get("Type") == "Inventory"):
                 return True
         except (AttributeError, IndexError, ValueError):
             pass
@@ -166,6 +166,7 @@ class IOManager(object):
         self.inventory.setdefault("$METADATA", dict(
             Type="Inventory",
             ProfileClass="Inventory"))
+        self.inventory.setdefault("$INVENTORY", dict())
 
         self.StoreData("inventory", self.inventory)
 
