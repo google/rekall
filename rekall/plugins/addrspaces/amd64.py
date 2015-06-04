@@ -25,7 +25,6 @@
 """
 # pylint: disable=protected-access
 
-import logging
 import struct
 
 from rekall import addrspace
@@ -430,7 +429,8 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         reference.
         """
 
-        logging.debug("Rebuilding the machine to physical mapping...")
+        self.session.logging.debug(
+            "Rebuilding the machine to physical mapping...")
         self.rebuilding_map = True
         try:
             p2m_top_location = self.session.profile.get_constant_object(

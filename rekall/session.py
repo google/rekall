@@ -276,7 +276,9 @@ class Configuration(Cache):
         if level == None:
             return
 
-        logging.info("Logging level set to %s", level)
+        self.logging.info("Logging level set to %s", level)
+        self.logging.setLevel(int(level))
+        # Also set the root logging level, to reflect it in the console.
         logging.getLogger().setLevel(int(level))
 
     def _set_ept(self, ept, _):
@@ -360,7 +362,6 @@ class ProgressDispatcher(object):
     ProgressDispatcher, which then further dispatches them to other
     callbacks. This allows users of the Rekall library to be aware of how
     analysis is progressing. (e.g. to report it in a GUI).
-
     """
 
     def __init__(self):
@@ -378,6 +379,39 @@ class ProgressDispatcher(object):
             handler(message, *args, **kwargs)
 
 
+
+class HoardingLogHandler(logging.Handler):
+    """A logging LogHandler that stores messages as long as a renderer hasn't
+    been assigned to it. Used to keep all messages that happen in Rekall before
+    a plugin has been initialized or run at all, to later send them to a
+    renderer.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.logrecord_buffer = []
+        self.renderer = None
+        super(HoardingLogHandler, self).__init__(*args, **kwargs)
+
+    def emit(self, record):
+        """Deliver a message if a renderer is defined or store it, otherwise."""
+        if not self.renderer:
+          self.logrecord_buffer.append(record)
+        else:
+          self.renderer.Log(record)
+
+    def SetRenderer(self, renderer):
+        """Sets the renderer so messages can be delivered."""
+        self.renderer = renderer
+        self.Flush()
+
+    def Flush(self):
+        """Sends all stored messages to the renderer."""
+        if self.renderer:
+            for log_record in self.logrecord_buffer:
+                self.renderer.Log(log_record)
+            self.logrecord_buffer = []
+
+
 class Session(object):
     """Base session.
 
@@ -393,8 +427,6 @@ class Session(object):
         self.progress = ProgressDispatcher()
 
         # Cache the profiles we get from LoadProfile() below.
-        # TODO: This should probably be also done on disk somewhere to avoid
-        # having to hit the profile repository all the time.
         self.profile_cache = {}
 
         self.entities = entity_manager.EntityManager(session=self)
@@ -419,6 +451,15 @@ class Session(object):
 
             for k, v in kwargs.items():
                 self.state.Set(k, v)
+
+        # Set up a logging object. All rekall logging must be done through the
+        # session's logger.
+        logger_name = "rekall-%x" % id(self)
+        self.logging = kwargs.pop("logger", logging.getLogger(logger_name))
+        # A special log handler that hoards all messages until there's a
+        # renderer that can transport them.
+        self._log_handler = HoardingLogHandler()
+        self.logging.addHandler(self._log_handler)
 
     @property
     def volatile(self):
@@ -626,7 +667,7 @@ class Session(object):
         if isinstance(plugin_obj, basestring):
             plugin_cls = getattr(self.plugins, plugin_obj, None)
             if plugin_cls is None:
-                logging.error(
+                self.logging.error(
                     "Plugin %s is not active. Is it supported with "
                     "this profile?", plugin_name)
                 return
@@ -640,6 +681,10 @@ class Session(object):
         if ui_renderer is None:
             ui_renderer = self.GetRenderer()
 
+
+        # Set the renderer so we can transport log messages.
+        self._log_handler.SetRenderer(ui_renderer)
+
         # Start the renderer before instantiating the plugin to allow
         # rendering of reported progress in the constructor.
         try:
@@ -649,16 +694,15 @@ class Session(object):
                 return plugin_obj.render(ui_renderer) or plugin_obj
 
         except plugin.InvalidArgs as e:
-            ui_renderer.report_error("Invalid Args: %s" % e)
+            self.logging.fatal("Invalid Args: %s" % e)
 
         except plugin.PluginError as e:
-            ui_renderer.report_error(str(e))
+            self.logging.fatal(str(e))
             if isinstance(plugin_obj, plugin.Command):
                 plugin_obj.error_status = str(e)
 
         except (KeyboardInterrupt, plugin.Abort):
-            ui_renderer.report_error("Aborted")
-            self.report_progress("Aborted!\r\n", force=True)
+            self.logging.fatal("Aborted\r\n")
 
         except Exception, e:
             error_status = traceback.format_exc()
@@ -666,7 +710,7 @@ class Session(object):
                 plugin_obj.error_status = error_status
 
             # Report the error to the renderer.
-            ui_renderer.report_error(error_status)
+            self.logging.fatal(error_status)
 
             # If anything goes wrong, we break into a debugger here.
             if self.GetParameter("debug"):
@@ -675,6 +719,7 @@ class Session(object):
             raise
 
         finally:
+            self._log_handler.SetRenderer(None)
             ui_renderer.flush()
 
         return plugin_obj
@@ -720,7 +765,8 @@ class Session(object):
         try:
             # If the name is a path we try to open it directly:
             container = io_manager.DirectoryIOManager(os.path.dirname(name),
-                                                      version=None)
+                                                      version=None,
+                                                      session=self)
             result = obj.Profile.LoadProfileFromData(
                 container.GetData(os.path.basename(name)),
                 self, name=name)
@@ -735,7 +781,7 @@ class Session(object):
                     # The inventory allows us to fail fetching the profile
                     # quickly - without making the round trip.
                     if not manager.CheckInventory(name):
-                        logging.debug(
+                        self.logging.debug(
                             "Skipped profile %s from %s (Not in inventory)",
                                 name, path)
                         continue
@@ -743,13 +789,13 @@ class Session(object):
                     result = obj.Profile.LoadProfileFromData(
                         manager.GetData(name), self, name=name)
                     if result:
-                        logging.info(
+                        self.logging.info(
                             "Loaded profile %s from %s", name, manager)
                         break
 
                 except (IOError, KeyError) as e:
                     result = obj.NoneObject(e)
-                    logging.debug("Could not find profile %s in %s: %s",
+                    self.logging.debug("Could not find profile %s in %s: %s",
                                   name, path, e)
 
                     continue
@@ -861,13 +907,13 @@ class JsonSerializableSession(Session):
 
     def SaveToFile(self, filename):
         with open(filename, "wb") as fd:
-            logging.info("Saving session to %s", filename)
+            self.logging.info("Saving session to %s", filename)
             json.dump(self.Serialize(), fd)
 
     def LoadFromFile(self, filename):
         try:
             lexicon, data = json.load(open(filename, "rb"))
-            logging.info("Loaded session from %s", filename)
+            self.logging.info("Loaded session from %s", filename)
 
             self.Unserialize(lexicon, data)
 
@@ -875,7 +921,7 @@ class JsonSerializableSession(Session):
         # session in that case.
         except Exception:
             # If anything goes wrong, we break into a debugger here.
-            logging.error(traceback.format_exc())
+            self.logging.error(traceback.format_exc())
 
             if self.GetParameter("debug"):
                 pdb.post_mortem(sys.exc_info()[2])
@@ -1075,11 +1121,6 @@ Config:
         items = self.__dict__.keys() + dir(self.__class__)
 
         return [x for x in items if not x.startswith("_")]
-
-    def error(self, plugin_cls, e):
-        """Swallow the error but report it."""
-        logging.error("Failed running plugin %s: %s",
-                      plugin_cls.name, e)
 
     def add_session(self, **kwargs):
         """Creates a new session and adds it to the list.

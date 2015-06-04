@@ -23,7 +23,6 @@
 @organization: Digital Forensics Solutions
 """
 import itertools
-import logging
 
 from rekall.plugins.linux import common
 

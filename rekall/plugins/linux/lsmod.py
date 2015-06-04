@@ -23,7 +23,6 @@
 @organization: Digital Forensics Solutions
 """
 import bisect
-import logging
 import re
 
 from rekall import obj
@@ -127,7 +126,8 @@ class Lsmod(common.LinuxPlugin):
 
                     value = ",".join([str(x) for x in result])
             else:
-                logging.debug("Unknown function getter %r", getter_function)
+                self.session.logging.debug("Unknown function getter %r",
+                                           getter_function)
                 value = None
 
             yield kernel_param.name.deref(), value

@@ -32,9 +32,6 @@ import cStringIO
 import logging
 import struct
 
-LOGGER = logging.getLogger("ntfs.lznt1")
-# Change to DEBUG to turn on module level debugging.
-LOGGER.setLevel(logging.ERROR)
 
 
 def get_displacement(offset):
@@ -56,8 +53,15 @@ SIZE_MASK = (1 << 12) - 1
 TAG_MASKS = [(1 << i) for i in range(0, 8)]
 
 
-def decompress_data(cdata):
+def decompress_data(cdata, logger=None):
     """Decompresses the data."""
+
+    if not logger:
+        lznt1_logger = logging.getLogger("ntfs.lznt1")
+    else:
+        lznt1_logger = logger.getChild("lznt1")
+    # Change to DEBUG to turn on module level debugging.
+    lznt1_logger.setLevel(logging.ERROR)
     in_fd = cStringIO.StringIO(cdata)
     output_fd = cStringIO.StringIO()
     block_end = 0
@@ -67,19 +71,19 @@ def decompress_data(cdata):
         uncompressed_chunk_offset = output_fd.tell()
 
         block_header = struct.unpack("<H", in_fd.read(2))[0]
-        LOGGER.debug("Header %#x @ %#x", block_header, block_offset)
+        lznt1_logger.debug("Header %#x @ %#x", block_header, block_offset)
         if block_header & SIGNATURE_MASK != SIGNATURE_MASK:
             break
 
         size = (block_header & SIZE_MASK)
-        LOGGER.debug("Block size %s", size + 3)
+        lznt1_logger.debug("Block size %s", size + 3)
 
         block_end = block_offset + size + 3
 
         if block_header & COMPRESSED_MASK:
             while in_fd.tell() < block_end:
                 header = ord(in_fd.read(1))
-                LOGGER.debug("Tag %#x", header)
+                lznt1_logger.debug("Tag %#x", header)
                 for mask in TAG_MASKS:
                     if in_fd.tell() >= block_end:
                         break
@@ -101,7 +105,7 @@ def decompress_data(cdata):
                             data = data[:symbol_length]
 
                         output_fd.seek(0, 2)
-                        LOGGER.debug(
+                        lznt1_logger.debug(
                             "Wrote %s @ %s/%s: Phrase %s %s %x",
                             len(data), in_fd.tell(),
                             output_fd.tell(), symbol_length, symbol_offset,
@@ -111,7 +115,7 @@ def decompress_data(cdata):
 
                     else:
                         data = in_fd.read(1)
-                        LOGGER.debug("Symbol %#x", ord(data))
+                        lznt1_logger.debug("Symbol %#x", ord(data))
                         output_fd.write(data)
 
         else:

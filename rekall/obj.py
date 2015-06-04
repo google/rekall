@@ -340,8 +340,8 @@ class BaseObject(object):
              the vtype language definition.
         """
         if kwargs:
-            logging.error("Unknown keyword args %s for %s",
-                          kwargs, self.__class__.__name__)
+            session.logging.error("Unknown keyword args %s for %s",
+                                  kwargs, self.__class__.__name__)
 
         self.obj_type = type_name
 
@@ -356,7 +356,7 @@ class BaseObject(object):
         self.obj_session = session
 
         if profile is None:
-            logging.critical("Profile must be provided to %s", self)
+            session.logging.critical("Profile must be provided to %s", self)
             raise RuntimeError("Profile must be provided")
 
     @property
@@ -900,8 +900,9 @@ class Void(Pointer):
 
     @property
     def obj_size(self):
-        logging.warning("Void objects have no size! Are you doing pointer "
-                        "arithmetic on a pointer to void?")
+        self.obj_session.logging.warning(
+            "Void objects have no size! Are you doing pointer arithmetic on a "
+            "pointer to void?")
         return 1
 
     def cdecl(self):
@@ -990,8 +991,8 @@ class Array(BaseObject):
                 if self.obj_session.GetParameter("debug"):
                     pdb.set_trace()
 
-                logging.warn("%s Array iteration truncated by max_count!",
-                             self.obj_name)
+                self.obj_session.logging.warn(
+                  "%s Array iteration truncated by max_count!", self.obj_name)
                 break
 
             # We don't want to stop on a NoneObject.  Its
@@ -1134,8 +1135,9 @@ class ListArray(Array):
                 break
 
             if count >= self.max_count:
-                logging.warn("%s ListArray iteration truncated by max_count!",
-                             self.obj_name)
+                self.obj_session.logging.warn(
+                  "%s ListArray iteration truncated by max_count!",
+                  self.obj_name)
                 break
 
             item = self.obj_profile.Object(
@@ -1216,8 +1218,9 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         if not members:
             # Warn rather than raise an error, since some types (_HARDWARE_PTE,
             # for example) are generated without members
-            logging.debug("No members specified for Struct %s named %s",
-                          self.obj_type, self.obj_name)
+            self.obj_session.logging.debug(
+                "No members specified for Struct %s named %s",
+                self.obj_type, self.obj_name)
             members = {}
 
         self.members = members
@@ -1488,8 +1491,8 @@ class Profile(object):
                     break
 
             if profile_cls is None:
-                logging.warn("No profile implementation class %s" %
-                             metadata["ProfileClass"])
+                session.logging.warn("No profile implementation class %s" %
+                                     metadata["ProfileClass"])
 
                 raise ProfileError(
                     "No profile implementation class %s" %
@@ -1548,7 +1551,7 @@ class Profile(object):
 
     def __init__(self, name=None, session=None, metadata=None, **kwargs):
         if kwargs:
-            logging.error("Unknown keyword args %s", kwargs)
+            session.logging.error("Unknown keyword args %s", kwargs)
 
         if name is None:
             name = self.__class__.__name__
@@ -1765,9 +1768,9 @@ class Profile(object):
             members = {}
             callable_members = {}
 
-            size, field_descrition = type_descriptor
+            size, field_description = type_descriptor
 
-            for k, v in field_descrition.items():
+            for k, v in field_description.items():
                 # If the overlay specifies a callable, we place it in the
                 # callable_members dict, and revert back to the vtype
                 # definition.
@@ -1782,7 +1785,7 @@ class Profile(object):
                                       self.list_to_type(k, original_v[1]))
 
                 elif v[0] == None:
-                    logging.warning(
+                    self.session.logging.warning(
                         "%s has no offset in object %s. Check that vtypes "
                         "has a concrete definition for it.",
                         k, type_name)
@@ -1901,7 +1904,7 @@ class Profile(object):
             target_args['count'] = typeList[1]
 
         elif len(typeList) > 2:
-            logging.error("Invalid typeList %s" % (typeList,))
+            self.session.logging.error("Invalid typeList %s" % (typeList,))
 
         else:
             target = typeList[0]
@@ -1934,14 +1937,14 @@ class Profile(object):
         # Since the object framework moved to purely keyword args these are
         # meaningless. Issue a deprecation warning.
         elif type(target_args) == list:
-            logging.warning(
+            self.session.logging.warning(
                 "Deprecated vtype expression %s for member %s, assuming int",
                 typeList, name)
 
         else:
             ## If we get here we have no idea what this list is
-            logging.warning("Unable to find a type for %s, assuming int",
-                            typeList)
+            self.session.logging.warning(
+                "Unable to find a type for %s, assuming int",typeList)
 
         return Curry(self.Object, type_name='int', name=name)
 
@@ -2258,7 +2261,7 @@ class Profile(object):
 
             if isinstance(result, Struct):
                 # This should not normally happen.
-                logging.error(
+                self.session.logging.error(
                     "Instantiating a Struct class without an overlay. "
                     "Please ensure an overlay is defined.")
 

@@ -22,7 +22,6 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-import logging
 import re
 import struct
 
@@ -105,10 +104,10 @@ class LinuxKernelSlideHook(kb.ParameterHook):
         find_kslide = LinuxFindKernelSlide(session=self.session,
                                            profile=self.session.profile)
         for hit in find_kslide.vm_kernel_slide_hits():
-            logging.debug("Found Kernel slide %#x.", hit)
+            self.session.logging.debug("Found Kernel slide %#x.", hit)
             return hit
 
-        logging.debug("Unable to locate the kernel slide.")
+        self.session.logging.debug("Unable to locate the kernel slide.")
         return 0
 
 class LinuxKernelPageOffsetHook(kb.ParameterHook):
@@ -173,7 +172,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
             if unicode(linux_banner).startswith(u"%s version %s"):
                 return address_space
 
-            logging.debug("Failed to verify dtb @ %#x" % dtb)
+            self.session.logging.debug("Failed to verify dtb @ %#x" % dtb)
 
     def GetAddressSpaceImplementation(self):
         """Returns the correct address space class for this profile."""
@@ -189,14 +188,14 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                                     self.physical_address_space.read(
                                         p2m_top_phys, 8))[0]
             if p2m_top:
-                logging.debug("Detected paravirtualized XEN guest.")
+                self.session.logging.debug("Detected paravirtualized XEN guest")
                 impl = "XenParaVirtAMD64PagedMemory"
                 as_class = addrspace.BaseAddressSpace.classes[impl]
                 return as_class
 
         elif self.profile.get_constant("arm_syscall"):
             # An ARM address space.
-            logging.debug("Detected ARM Linux.")
+            self.session.logging.debug("Detected ARM Linux.")
             impl = "ArmPagedMemory"
             as_class = addrspace.BaseAddressSpace.classes[impl]
             return as_class
@@ -342,7 +341,7 @@ class LinProcessFilter(LinuxPlugin):
                     for proc in handler(self, seen=seen):
                         self.cache[k].add(proc.obj_offset)
 
-                logging.debug("Listed %s processes using %s",
+                self.session.logging.debug("Listed %s processes using %s",
                               len(self.cache[k]), k)
                 seen.update(self.cache[k])
 

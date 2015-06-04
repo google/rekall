@@ -17,8 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import logging
-
 from rekall import obj
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import sessions
@@ -69,7 +67,8 @@ class Clipboard(common.WinProcessFilter):
             handles = {}
             shared_info = session.find_shared_info()
             if not shared_info:
-                logging.debug("No shared info for session {0}".format(sid))
+                self.session.logging.debug(
+                    "No shared info for session {0}".format(sid))
 
                 continue
             for handle in shared_info.handles(filters):

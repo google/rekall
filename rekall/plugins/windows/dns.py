@@ -30,7 +30,6 @@ service running in svchost.exe and implemented as the mostly undocumented DLL
 dnsrslvr.dll.
 
 """
-import logging
 import socket
 
 from rekall import scan
@@ -149,7 +148,8 @@ class WinDNSCache(common.WindowsCommandPlugin):
         confusing the sanity checks here. It is always better to detect the
         correct version using the profile repository.
         """
-        logging.debug("Verifying hash table at %#x", allocation.obj_offset)
+        self.session.logging.debug("Verifying hash table at %#x",
+                                   allocation.obj_offset)
 
         if self.hashtable and allocation.obj_offset != self.hashtable:
             return False
@@ -241,9 +241,9 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
                 for entry in heap.Entries:
                     if entry.Allocation.obj_offset == hash_tbl_ptr:
-                        logging.info("dnsrslvr.dll match profile %s. "
-                                     "Hash table is at %#x", profile,
-                                     hash_tbl_ptr)
+                        self.session.logging.info(
+                            "dnsrslvr.dll match profile %s. Hash table is at "
+                            "%#x", profile, hash_tbl_ptr)
 
                         return self.profile.Array(
                             hash_tbl_ptr,
@@ -253,9 +253,10 @@ class WinDNSCache(common.WindowsCommandPlugin):
                             ),
                             count=entry.Allocation.length / 8)
 
-        logging.info("Failed to detect the exact version of dnsrslvr.dll, "
-                     "please consider sending a copy of this DLL's GUID to the "
-                     "Rekall team so we can add it to the index.")
+        self.session.logging.info(
+            "Failed to detect the exact version of dnsrslvr.dll, please "
+            "consider sending a copy of this DLL's GUID to the Rekall team so "
+            "we can add it to the index.")
 
     def _locate_heap(self, task, vad):
         """Locate the correct heap by scanning for its reference.

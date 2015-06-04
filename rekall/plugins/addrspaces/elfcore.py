@@ -27,7 +27,6 @@
 # Note that as of version 1.6.0 WinPmem also uses ELF64 as the default imaging
 # format. Except that WinPmem stores image metadata in a YAML file stored in the
 # image. This address space supports both formats.
-import logging
 import os
 import yaml
 
@@ -105,7 +104,8 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
             metadata = yaml.safe_load(yaml_file)
         except (yaml.YAMLError, TypeError) as e:
-            logging.error("Invalid file metadata, skipping: %s" % e)
+            self.session.logging.error(
+                "Invalid file metadata, skipping: %s" % e)
             return
 
         for session_param, metadata_key in (("dtb", "CR3"),
@@ -138,7 +138,8 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         # Map the pagefile after the end of the physical address space.
         vaddr = self.end() + 0x10000
 
-        logging.info("Loading pagefile into physical offset %#08x", vaddr)
+        self.session.logging.info(
+          "Loading pagefile into physical offset %#08x", vaddr)
         self.runs.insert((vaddr, pagefile_offset, pagefile_size))
 
         # Remember the region for the pagefile.

@@ -85,7 +85,6 @@ http://pierrelib.pagesperso-orange.fr/exec_formats/MS_Symbol_Type_v1.0.pdf
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import re
-import logging
 import ntpath
 import os
 import platform
@@ -144,7 +143,8 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                 "CV_RSDS_HEADER")
 
             if debug.Signature != "RSDS":
-                logging.error("PDB stream %s not supported.", debug.Signature)
+                self.session.logging.error("PDB stream %s not supported.",
+                                           debug.Signature)
                 return
 
             self.pdb_filename = ntpath.basename(str(debug.Filename))
@@ -984,7 +984,8 @@ class PDBParser(object):
 
             # Skip unknown records for now.
             if not symbol:
-                logging.warning("Unimplemented symbol %s" % container.rectyp)
+                self.session.logging.warning(
+                    "Unimplemented symbol %s" % container.rectyp)
                 continue
 
             try:

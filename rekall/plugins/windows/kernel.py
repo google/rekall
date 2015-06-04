@@ -26,7 +26,6 @@ kernel address space.
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import logging
 
 from rekall import obj
 from rekall import kb
@@ -76,7 +75,8 @@ class KernelBaseHook(kb.ParameterHook):
                         session=self.session, image_base=page)
 
                     if str(helper.RSDS.Filename) in common.KERNEL_NAMES:
-                        logging.info("Detected kernel base at 0x%X", page)
+                        self.session.logging.info(
+                            "Detected kernel base at 0x%X", page)
                         return page
                 else:
                     page -= 0x1000

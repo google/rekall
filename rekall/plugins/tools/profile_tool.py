@@ -82,7 +82,6 @@ Now simply specify the rekall profile using the --profile command line arg.
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import logging
 import gzip
 import json
 import os
@@ -239,7 +238,8 @@ class LinuxConverter(ProfileConverter):
 
             ko_file = self.SelectFile(r"\.ko$")
             if ko_file:
-                logging.info("Converting Linux profile with ko module.")
+                self.session.logging.info(
+                  "Converting Linux profile with ko module.")
                 parser = dwarfparser.DWARFParser(StringIO.StringIO(ko_file),
                                                  session=self.session)
 
@@ -249,7 +249,8 @@ class LinuxConverter(ProfileConverter):
 
             dwarf_file = self.SelectFile(r"\.dwarf$")
             if dwarf_file:
-                logging.info("Converting Linux profile with dwarf dump output")
+                self.session.logging.info(
+                  "Converting Linux profile with dwarf dump output")
                 parser = dwarfdump.DWARFParser()
                 for line in dwarf_file.splitlines():
                     parser.feed_line(line)
@@ -308,7 +309,7 @@ class OSXConverter(LinuxConverter):
 
             vtype_file = self.SelectFile(r"\.vtypes$")
             if vtype_file:
-                logging.info(
+                self.session.logging.info(
                     "Converting Darwin profile with vtypes dump output")
 
                 # The dwarfdump module returns python code so we must exec it.
@@ -364,7 +365,8 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
         for converter in (LinuxConverter, OSXConverter):
             try:
                 converter(input, output, session=self.session).Convert()
-                logging.info("Converted %s to %s", input, output.name)
+                self.session.logging.info("Converted %s to %s", input,
+                                          output.name)
                 return
             except RuntimeError:
                 pass
@@ -386,8 +388,9 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
                 input = io_manager.Factory(self.source, session=self.session,
                                            mode="r")
             except IOError:
-                logging.critical("Input profile file %s could not be opened.",
-                                 self.source)
+                self.session.logging.critical(
+                    "Input profile file %s could not be opened.",
+                    self.source)
                 return
 
             with input, output:
@@ -513,16 +516,16 @@ class BuildIndex(plugin.Command):
                         continue
 
                     errors += 1
-                    logging.error(
+                    self.session.logging.error(
                         "Profile %s and %s are ambiguous, please add more "
                         "comparison points.", profile, profile2)
 
-                    logging.error(
+                    self.session.logging.error(
                         "Run the following command:\nzdiff %s.gz %s.gz",
                         profile, profile2)
 
         if errors:
-            logging.error("Index with errors: %s", errors)
+            self.session.logging.error("Index with errors: %s", errors)
 
     def _AreProfilesEquivalent(self, profile, profile2):
         # Check if the two profiles are equivalent:
@@ -532,8 +535,8 @@ class BuildIndex(plugin.Command):
             if profile_obj.get(section) != profile2_obj.get(section):
                 return False
 
-        logging.info("Profile %s and %s are equivalent", profile,
-                     profile2)
+        self.session.logging.info("Profile %s and %s are equivalent",
+                                  profile, profile2)
         return True
 
     def BuildDataIndex(self, spec):
@@ -771,7 +774,7 @@ class BuildProfileLocally(plugin.Command):
                 module_name, _ = os.path.splitext(module_name)
             try:
                 data = self._fetch_and_parse(module_name, guid)
-                logging.warning(
+                self.session.logging.warning(
                     "Profile %s fetched and built. Please "
                     "consider reporting this profile to the "
                     "Rekall team so we may add it to the public "
@@ -779,7 +782,7 @@ class BuildProfileLocally(plugin.Command):
 
                 return repository.StoreData(profile_name, data)
             except IOError, e:
-                logging.error("Error: %s", e)
+                self.session.logging.error("Error: %s", e)
 
         raise IOError("Profile not found")
 

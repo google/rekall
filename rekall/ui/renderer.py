@@ -450,7 +450,13 @@ class BaseRenderer(object):
         """Render the error in an appropriate way."""
         # By default just log the error. Visual renderers may choose to render
         # errors in a distinctive way.
-        logging.error(message)
+        # TODO(jordi): Remove in 3 months when any usage should have been
+        # noticed and fixed.
+        logging.error(
+          "**DEPRECATED** report_error is deprecated. Please use the session "
+          "logging feature instead. Original message was: %s", message)
+        self.session.logging.error(
+          "**DEPRECATED** (via report_error): %s", message)
 
     def RenderProgress(self, *_, **kwargs):
         """Will be called to render a progress message to the user."""
@@ -502,6 +508,9 @@ class BaseRenderer(object):
         raise RuntimeError("Unable to render object %r for renderer %s" %
                            (repr(target), target_renderer) + 
                            str(ObjectRenderer._RENDERER_CACHE))
+
+    def Log(self, record):
+        """Logs a log message. Implement if you want to handle logging."""
 
 
 def CopyObjectRenderers(args, renderer=None):

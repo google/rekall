@@ -55,11 +55,6 @@ from rekall.plugins.filesystems import lznt1
 from rekall.plugins.overlays import basic
 
 
-LOGGER = logging.getLogger("ntfs.lznt1")
-# Change to DEBUG to turn on module level debugging.
-LOGGER.setLevel(logging.ERROR)
-
-
 class Error(Exception):
     pass
 
@@ -480,8 +475,9 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
         try:
             virt_addr, file_address, file_length, comp = self.runs.find_le(addr)
             if comp:
-                block_data = lznt1.decompress_data(self.base.read(
-                    file_address, file_length) + "\x00" * 10)
+                block_data = lznt1.decompress_data(
+                    self.base.read(file_address, file_length) + "\x00" * 10,
+                    logger=self.session.logging.getChild("ntfs"))
 
                 available_length = (self.compression_unit_size - (
                     addr - virt_addr))
@@ -551,6 +547,9 @@ class MFT_ENTRY(obj.Struct):
                                             base_offset=self.obj_offset,
                                             length=self.mft_entry_allocated,
                                             base=self.obj_vm)
+        self.logging = self.obj_session.logging.getChild("ntfs")
+        # Change to DEBUG to turn on module level debugging.
+        self.logging.setLevel(logging.ERROR)
 
     @property
     def mft_entry(self):
@@ -646,8 +645,9 @@ class MFT_ENTRY(obj.Struct):
                 run_list = list(attribute.RunList())
 
                 if sum(x[1] for x in run_list) != run_length:
-                    LOGGER.error("NTFS_ATTRIBUTE %s-%s: Not all runs found!",
-                                 self.mft_entry, attribute)
+                    self.logging.error(
+                        "NTFS_ATTRIBUTE %s-%s: Not all runs found!",
+                        self.mft_entry, attribute)
 
                 runlists.extend(attribute.RunList())
 

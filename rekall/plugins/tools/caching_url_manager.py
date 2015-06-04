@@ -29,7 +29,6 @@ background.
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import logging
 import os
 
 from rekall import config
@@ -70,7 +69,8 @@ class CachingManager(io_manager.IOManager):
                     "Unable to create or access cache directory %s" % cache_dir)
 
         # We use an IO manager to manage the cache directory directly.
-        self.cache_io_manager = io_manager.DirectoryIOManager(urn=cache_dir)
+        self.cache_io_manager = io_manager.DirectoryIOManager(urn=cache_dir,
+                                                              session=session)
         self.url_manager = self.DELEGATE(session=session, **kwargs)
 
         self.CheckUpstreamRepository()
@@ -107,7 +107,7 @@ class CachingManager(io_manager.IOManager):
         # will trash the cache with bad data in case we can not access correct
         # data.
         if data and data.get("$METADATA"):
-            logging.debug("Adding %s to local cache.", name)
+            self.session.logging.debug("Adding %s to local cache.", name)
             self.cache_io_manager.StoreData(name, data)
 
         return data
@@ -122,8 +122,9 @@ class CachingManager(io_manager.IOManager):
         # This indicates failure to contact the remote repository. In this case
         # we do not want to invalidate our cache, just use the cache as is.
         if not self.url_manager.ValidateInventory():
-            logging.warn("Will attempt to use the local cache. This is likely "
-                         "to fail if profiles are missing locally!")
+            self.session.logging.warn(
+                "Will attempt to use the local cache. This is likely "
+                "to fail if profiles are missing locally!")
             return
 
         cache_inventory = self.cache_io_manager.inventory

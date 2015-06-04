@@ -27,7 +27,6 @@ __author__ = ("Michael Cohen <scudette@gmail.com> based on original code "
 
 # pylint: disable=protected-access
 
-import logging
 import ntpath
 import re
 import struct
@@ -193,6 +192,8 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         # This is a quick lookup for blocks.
         self.block_cache = utils.FastStore(max_size=1000)
 
+        self.logging = self.session.logging.getChild("addrspace.hive")
+
     def vtop(self, vaddr):
         vaddr = int(vaddr)
 
@@ -234,14 +235,14 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         for i in xrange(0, length, self.BLOCK_SIZE):
             paddr = self.vtop(i)
             if not paddr:
-                logging.warn("No mapping found for index {0:x}, "
+                self.logging.warn("No mapping found for index {0:x}, "
                              "filling with NULLs".format(i))
                 data = '\0' * self.BLOCK_SIZE
             else:
                 paddr = paddr - 4
                 data = self.base.read(paddr, self.BLOCK_SIZE)
                 if not data:
-                    logging.warn("Physical layer returned None for index "
+                    self.logging.warn("Physical layer returned None for index "
                                  "{0:x}, filling with NULL".format(i))
                     data = '\0' * self.BLOCK_SIZE
 

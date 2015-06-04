@@ -81,7 +81,7 @@ into overlays.
 """
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import logging
+
 import re
 
 from rekall import registry
@@ -296,24 +296,25 @@ class Disassembler(DynamicParser):
 
         # All the hits must match
         if len(hits) < len(self.rules):
-            logging.error("Failed to find match for %s", self.name)
+            self.session.logging.error("Failed to find match for %s", self.name)
 
             # Add some debugging messages here to make diagnosing errors easier.
             for i, rule in enumerate(self.text_rules):
                 if i not in hits:
-                    logging.debug("Unable to match rule: %s", rule)
+                    self.session.logging.debug("Unable to match rule: %s", rule)
 
             return 0
 
         vector, context = self._GetMatch(hits, contexts)
 
         if len(vector) < len(self.rules):
-            logging.error("Failed to find match for %s.", self.name)
+            self.session.logging.error("Failed to find match for %s.",
+                                       self.name)
             return 0
 
-        logging.debug("Found match for %s", self.name)
+        self.session.logging.debug("Found match for %s", self.name)
         for x in vector:
-            logging.debug(disassembly[x])
+            self.session.logging.debug(disassembly[x])
 
         return int(context.get("out", "0"), 0)
 
@@ -351,7 +352,7 @@ def GenerateOverlay(session, dynamic_definition):
                     if result:
                         return result
                     else:
-                        logging.debug(
+                        session.logging.debug(
                             "Unable to find %s.%s via %s", x.obj_name,
                             field_name, p)
 

@@ -101,7 +101,7 @@ class Command(object):
 
         super(Command, self).__init__(**kwargs)
 
-        if session is None:
+        if session == None:
             raise InvalidArgs("A session must be provided.")
 
         self.session = session

@@ -20,8 +20,6 @@
 
 """This module implements various visual aides and their renderers."""
 
-import logging
-
 from rekall.ui import colors
 from rekall.ui import text
 
@@ -73,6 +71,9 @@ class MemoryMap(object):
     column_headers = None
     caption = "Offset"
     greyscale = False
+
+    def __init__(self, session=None, *args, **kwargs):
+        self.session = session
 
     @staticmethod
     def _make_memorymap_headers(offset, limit, column_count, resolution):
@@ -142,13 +143,14 @@ class RunBasedMap(MemoryMap):
 
     def __init__(self, runs, legend, offset=None, limit=None, caption="Offset",
                  resolution=0x100000, cell_width=6, blend=True,
-                 cell_count=None, column_count=8):
+                 cell_count=None, column_count=8, *args, **kwargs):
         # This is a monster of a constructor, but it wouldn't actually be
         # more readable as separate functions. In short, this will:
         # 1. Figure out how big the map needs to be.
         # 2. Chunk up the runs into preallocated cells and blend the colors.
         # 3. Do another pass to decide what sigils to display, based on
         #    relative weights of runs represented in each cell.
+        super(RunBasedMap, self).__init__(*args, **kwargs)
 
         if cell_count and resolution or not (cell_count or resolution):
             raise ValueError(
@@ -195,7 +197,7 @@ class RunBasedMap(MemoryMap):
             sigil = legend.sigils.get(value)
             if not sigil:
                 sigil = "?"
-                logging.warning("Unknown memory region %s!", value)
+                self.session.logging.warning("Unknown memory region %s!", value)
 
             # Chunks need to align to resolution increments.
             mod = start % resolution
@@ -268,7 +270,10 @@ class Heatmap(MemoryMap):
     """MemoryMap with colors assigned based on heat."""
 
     def __init__(self, cells, caption=None, row_headers=None,
-                 column_headers=None, legend=None, greyscale=False):
+                 column_headers=None, legend=None, greyscale=False, *args,
+                 **kwargs):
+        super(Heatmap, self).__init__(*args, **kwargs)
+
         rows = []
         column_count = len(column_headers)
         for i, cell in enumerate(cells):

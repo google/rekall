@@ -22,7 +22,6 @@ Many win32k structs are undocumented (i.e. are not present in pdb
 symbols). These structures do change a lot between versions of windows. This
 module autodetects the struct layout using various heuristics.
 """
-import logging
 import re
 
 from rekall.plugins.windows import common
@@ -95,8 +94,8 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
     def _AddField(self, regex, info, field_name, fields, description):
         if field_name not in fields and self._Match(regex, info):
             fields[field_name] = description
-            logging.debug("Detected field %s: %s @ %#x", field_name, info,
-                          description[0])
+            self.session.logging.debug(
+                "Detected field %s: %s @ %#x", field_name, info, description[0])
             return True
 
     def Get_tagWINDOWSTATION_overlay(self, overlay):
@@ -112,7 +111,8 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
         while not offset == None and offset not in stations:
             stations.add(offset)
 
-            logging.debug("Checking tagWINDOWSTATION at %#x", offset)
+            self.session.logging.debug("Checking tagWINDOWSTATION at %#x",
+                                       offset)
             for o, info in self.analyze_struct.GuessMembers(offset, size=0x200):
                 if self._AddField(
                         "Tag:Win", info, "rpwinstaNext", fields,
@@ -143,7 +143,8 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                     continue
 
                 else:
-                    logging.debug("Unhandled field %#x, %s" % (o, info))
+                    self.session.logging.debug(
+                        "Unhandled field %#x, %s" % (o, info))
                     continue
 
                 # Add the derived overlay to the profile so we can walk the list
@@ -157,8 +158,9 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                 overlay["tagWINDOWSTATION"][1].update(fields)
                 return overlay
 
-            logging.debug("tagWINDOWSTATION: Missing required fields %s",
-                          required_fields.difference(fields))
+            self.session.logging.debug(
+                "tagWINDOWSTATION: Missing required fields %s",
+                required_fields.difference(fields))
 
         raise RuntimeError("Unable to guess tagWINDOWSTATION")
 
@@ -173,7 +175,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
         offset = self.wndstation().rpdeskList.v()
 
         while not offset == None and offset not in desktops:
-            logging.debug("Checking tagDESKTOP at %#x", offset)
+            self.session.logging.debug("Checking tagDESKTOP at %#x", offset)
             desktops.add(offset)
 
             for o, info in self.analyze_struct.GuessMembers(
@@ -211,7 +213,8 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                     continue
 
                 else:
-                    logging.debug("Unhandled field %#x %s" % (o, info))
+                    self.session.logging.debug(
+                      "Unhandled field %#x %s" % (o, info))
                     continue
 
             # Add the derived overlay to the profile so we can walk the list
@@ -225,8 +228,9 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                 overlay["tagDESKTOP"][1].update(fields)
                 return overlay
 
-            logging.debug("tagDESKTOP: Missing required fields %s",
-                          required_fields.difference(fields))
+            self.session.logging.debug(
+                "tagDESKTOP: Missing required fields %s",
+                required_fields.difference(fields))
 
         raise RuntimeError("Unable to guess tagDESKTOP")
 
@@ -249,7 +253,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
         return False
 
     def _AnalyzeTagTHREADINFO(self, offset, fields):
-        logging.debug("Checking tagTHREADINFO at %#x", offset)
+        self.session.logging.debug("Checking tagTHREADINFO at %#x", offset)
         for o, info in self.analyze_struct.GuessMembers(
                 offset, size=0x400, search=0x600):
 
@@ -290,7 +294,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                 continue
 
             else:
-                logging.debug("Unhandled field %#x %s" % (o, info))
+                self.session.logging.debug("Unhandled field %#x %s" % (o, info))
                 continue
 
     def Get_tagTHREADINFO_overlay(self, overlay):
@@ -323,7 +327,8 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
                     overlay["tagTHREADINFO"][1].update(fields)
                     return overlay
 
-                logging.debug("tagTHREADINFO: Missing required fields %s",
-                              required_fields.difference(fields))
+                self.session.logging.debug(
+                    "tagTHREADINFO: Missing required fields %s",
+                    required_fields.difference(fields))
 
         raise RuntimeError("Unable to guess tagTHREADINFO")

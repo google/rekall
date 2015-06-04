@@ -23,7 +23,6 @@
 
 # pylint: disable=protected-access
 
-import logging
 import os
 import re
 
@@ -116,7 +115,8 @@ class PEDump(common.WindowsCommandPlugin):
             self.out_fd = renderer.open(filename=self.out_file, mode="wb")
 
         if not self.out_fd:
-            logging.error("No output filename or file handle specified.")
+            self.session.logging.error(
+              "No output filename or file handle specified.")
             return
 
         # Default address space is the kernel if not specified.

@@ -26,8 +26,6 @@
 """
 # pylint: disable=protected-access
 
-import logging
-
 from rekall import obj
 from rekall import utils
 
@@ -852,8 +850,9 @@ class page(obj.Struct):
                 # arch/x86/include/asm/pgtable_64_types.h
                 mem_map = obj.Pointer.integer_to_address(0xffffea0000000000)
             else:
-                logging.error("Unable to determine physical address of page. "
-                              "NUMA is not supported.")
+                self.obj_session.logging.error(
+                    "Unable to determine physical address of page. NUMA is not "
+                    "supported.")
                 return obj.NoneObject("NUMA is unsupported.")
 
         # Linux stores an array of struct page starting at mem_map.
@@ -962,8 +961,9 @@ class Linux(basic.BasicClasses):
         except ValueError:
             # We cannot autoguess PAE at the moment if we don't know the config
             # option value for it.
-            logging.debug(("No kernel config available in the profile, so "
-                           "we cannot detect PAE."))
+            self.session.logging.debug(
+                "No kernel config available in the profile, so we cannot "
+                "detect PAE.")
 
     def add_kernel_config_options(self, **kwargs):
         """Add the kwargs as kernel config options for this profile."""

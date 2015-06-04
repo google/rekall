@@ -25,7 +25,6 @@
 # pylint: disable=protected-access
 
 import collections
-import logging
 import re
 
 from rekall import addrspace
@@ -77,9 +76,9 @@ class WinDTBScanner(scan.BaseScanner):
             self.eprocess = self.profile.Object(
                 "_EPROCESS", offset=offset - self.image_name_offset,
                 vm=self.session.physical_address_space)
-            logging.debug("Found _EPROCESS @ 0x%X (DTB: 0x%X)",
-                          self.eprocess.obj_offset,
-                          self.eprocess.Pcb.DirectoryTableBase.v())
+            self.session.logging.debug("Found _EPROCESS @ 0x%X (DTB: 0x%X)",
+                                       self.eprocess.obj_offset,
+                                       self.eprocess.Pcb.DirectoryTableBase.v())
 
             yield self.eprocess
 
@@ -148,12 +147,13 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         list_head = eprocess.ThreadListHead.Flink
 
         if list_head == 0:
-            logging.debug("_EPROCESS.ThreadListHead not valid.")
+            self.session.logging.debug("_EPROCESS.ThreadListHead not valid.")
             return
 
         me = list_head.dereference(vm=address_space).Blink.Flink
         if me.v() != list_head.v():
-            logging.debug("_EPROCESS.ThreadListHead does not reflect.")
+            self.session.logging.debug(
+              "_EPROCESS.ThreadListHead does not reflect.")
             return
 
         self.session.SetCache("idle_process", eprocess)
@@ -338,15 +338,16 @@ class KDBGHook(kb.ParameterHook):
             return kdbg
 
         # Cant find it from the profile, look for it the old way.
-        logging.info(
+        self.session.logging.info(
             "KDBG not provided - Rekall will try to "
             "automatically scan for it now using plugin.kdbgscan.")
 
         for kdbg in self.session.plugins.kdbgscan(
                 session=self.session).hits():
             # Just return the first one
-            logging.info("Found a KDBG hit %r. Hope it works. If not try "
-                         "setting it manually.", kdbg)
+            self.session.logging.info(
+                "Found a KDBG hit %r. Hope it works. If not try setting it "
+                "manually.", kdbg)
 
             return kdbg
 
@@ -605,8 +606,9 @@ class WinProcessFilter(WindowsCommandPlugin):
                         if proc:
                             self.cache[k].add(proc.obj_offset)
 
-                logging.debug("Listed %s processes using %s",
-                              len(self.cache[k]), k)
+                self.session.logging.debug(
+                    "Listed %s processes using %s",
+                    len(self.cache[k]), k)
                 seen.update(self.cache[k])
 
         # Sort by pid so that the output ordering remains stable.

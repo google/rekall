@@ -25,7 +25,6 @@ This code is tested in plugins/tools/render_test.py
 """
 
 import json
-import logging
 import sys
 
 from rekall import addrspace
@@ -43,11 +42,12 @@ class EncodingError(KeyError):
 
 
 class RobustEncoder(json.JSONEncoder):
-    def __init__(self, **_):
+    def __init__(self, logging=None, **_):
         super(RobustEncoder, self).__init__(separators=(',', ':'))
+        self.logging = logging.getChild("json.encoder.robust")
 
     def default(self, o):
-        logging.error(
+        self.logging.error(
             "Unable to encode %r (%s) as json, replacing with None", o,
             type(o))
         return None
@@ -142,7 +142,8 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         # example, the session object may contain all kinds of unserializable
         # objects but we want to ensure we can serialize the session (albeit
         # with the loss of some of the attributes).
-        logging.error("Unable to encode objects of type %s", type(item))
+        self.session.logging.error(
+          "Unable to encode objects of type %s", type(item))
         if "strict" in options:
             raise EncodingError(
                 "Unable to encode objects of type %s" % type(item))
@@ -564,10 +565,10 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
         # A general purpose cache for encoders and decoders.
         self.cache = utils.FastStore(100)
+        self.data = []
 
     def start(self, plugin_name=None, kwargs=None):
         super(JsonRenderer, self).start(plugin_name=plugin_name, kwargs=kwargs)
-        self.flush()
 
         # Save some metadata.
         self.metadata = dict(plugin_name=unicode(plugin_name),
@@ -618,7 +619,8 @@ class JsonRenderer(renderer_module.BaseRenderer):
         if self.data:
             # Just dump out the json object.
             self.fd.write(json.dumps(self.data, cls=RobustEncoder,
-                                     separators=(',', ':')))
+                                     separators=(',', ':'),
+                                     logging=self.session.logging))
             self.fd.flush()
 
     def flush(self):
@@ -658,3 +660,15 @@ class JsonRenderer(renderer_module.BaseRenderer):
             self.SendMessage(["p", formatted_message])
 
             return True
+
+    def Log(self, record):
+        loglevel_to_code = {
+          "CRITICAL": "lC",
+          "ERROR": "lE",
+          "WARNING": "lW",
+          "INFO": "lI",
+          "DEBUG": "lD"
+        }
+
+        code = loglevel_to_code.get(record.levelname, "lU")
+        self.SendMessage([code, record.getMessage()])

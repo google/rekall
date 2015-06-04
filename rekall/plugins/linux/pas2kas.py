@@ -19,8 +19,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-import logging
-
 from rekall.plugins.common import pas2kas
 from rekall.plugins.linux import common
 
@@ -38,5 +36,5 @@ class LinPas2Vas(pas2kas.Pas2VasMixin, common.LinProcessFilter):
             # #define TASK_SIZE_MAX   ((1UL << 47) - PAGE_SIZE)
             return (1 << 47) - 0x1000
         else:
-            logging.warn("Set TASK_SIZE_MAX for arch %s", arch)
+            self.session.logging.warn("Set TASK_SIZE_MAX for arch %s", arch)
             return 2**48

@@ -38,7 +38,6 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import StringIO
 import gzip
 import json
-import logging
 import time
 import os
 import urllib2
@@ -124,7 +123,7 @@ class IOManager(object):
         except (AttributeError, IndexError, ValueError):
             pass
 
-        logging.warn(
+        self.session.logging.warn(
             'Inventory for repository "%s" seems malformed. Are you behind a '
             'captive portal or proxy? If this is a custom repository, did you '
             'forget to create an inventory? You must use the '
@@ -231,7 +230,7 @@ class IOManager(object):
             return self.Decoder(data)
 
         except ValueError as e:
-            logging.error(
+            self.session.logging.error(
                 "Cannot parse profile %s because of JSON error %s.",
                 name, e)
             return obj.NoneObject()
@@ -368,7 +367,7 @@ class DirectoryIOManager(IOManager):
         except IOError:
             result = gzip.open(path + ".gz")
 
-        logging.debug("Opened local file %s" % result.name)
+        self.session.logging.debug("Opened local file %s" % result.name)
         return result
 
     def __str__(self):
@@ -534,12 +533,12 @@ class URLManager(IOManager):
             # Rekall repositories always use gzip to compress the files - so
             # first try with the .gz extension.
             fd = urllib2.urlopen(url + ".gz", timeout=10)
-            logging.debug("Opened url %s.gz" % url)
+            self.session.logging.debug("Opened url %s.gz" % url)
             return gzip.GzipFile(
                 fileobj=StringIO.StringIO(fd.read(MAX_DATA_SIZE)))
         except urllib2.HTTPError:
             # Try to load the file without the .gz extension.
-            logging.debug("Opened url %s" % url)
+            self.session.logging.debug("Opened url %s" % url)
             return urllib2.urlopen(url, timeout=10)
 
     def __str__(self):

@@ -26,7 +26,6 @@ OS's
 """
 import datetime
 import distorm3
-import logging
 import pytz
 import re
 import socket
@@ -80,7 +79,8 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         # Make sure to protect ourselves before reading too much at once.
         length = self.length
         if self.length > self.max_length:
-            logging.warn("%s@%#x truncated", self.obj_name, self.obj_offset)
+            self.obj_session.logging.warn("%s@%#x truncated",
+                                          self.obj_name, self.obj_offset)
             length = 0
 
         # TODO: Make this read in chunks to support very large reads.

@@ -22,7 +22,6 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
-import logging
 import re
 
 from rekall import config
@@ -292,7 +291,8 @@ class WindowsRSDSDetector(DetectionMethod):
                 "autodetect_build_local") in ("full", "basic"):
             build_local_profile = self.session.plugins.build_local_profile()
             try:
-                logging.debug("Will build local profile %s", profile_name)
+                self.session.logging.debug(
+                  "Will build local profile %s", profile_name)
                 build_local_profile.fetch_and_parse(profile_name)
                 profile = self.session.LoadProfile(
                     profile_name, use_cache=False)
@@ -312,7 +312,7 @@ class WindowsRSDSDetector(DetectionMethod):
             profile = self.VerifyProfile("nt/GUID/%s" % rsds.GUID_AGE)
 
             if profile:
-                logging.info(
+                self.session.logging.info(
                     "Detected %s with GUID %s", rsds.Filename,
                     rsds.GUID_AGE)
 
@@ -349,7 +349,7 @@ class LinuxBannerDetector(DetectionMethod):
             profile_name = "%s/%s" % (distribution, m.group(1))
             profile = self.VerifyProfile(profile_name)
             if profile:
-                logging.info(
+                self.session.logging.info(
                     "Detected %s: %s", profile_name, m.group(0))
 
                 return profile
@@ -386,7 +386,7 @@ class DarwinIndexDetector(DetectionMethod):
                 address_space=self.session.physical_address_space):
             profile = self.VerifyProfile(profile_name)
             if profile:
-                logging.info(
+                self.session.logging.info(
                     "New best match: %s (%.0f%% match)",
                     profile_name, match * 100)
 
@@ -427,8 +427,9 @@ class ProfileHook(kb.ParameterHook):
         autodetect_scan_length = self.session.GetParameter(
             "autodetect_scan_length")
 
-        logging.debug("Will detect profile using these Detectors: %s" %
-                      ",".join(method_names))
+        self.session.logging.debug(
+          "Will detect profile using these Detectors: %s" % ",".join(
+            method_names))
 
         if not method_names:
             raise RuntimeError("No autodetection methods specified. "
@@ -457,8 +458,9 @@ class ProfileHook(kb.ParameterHook):
             for method in needle_lookup[hit]:
                 profile = method.DetectFromHit(hit, offset, address_space)
                 if profile:
-                    logging.debug("Detection method %s worked at offset %#x",
-                                  method.name, offset)
+                    self.session.logging.debug(
+                      "Detection method %s worked at offset %#x",
+                      method.name, offset)
                     return profile
 
             if best_match == 1.0:
@@ -467,13 +469,13 @@ class ProfileHook(kb.ParameterHook):
 
         threshold = self.session.GetParameter("autodetect_threshold")
         if best_match == 0:
-            logging.error(
+            self.session.logging.error(
                 "No profiles match this image. Try specifying manually.")
 
             return obj.NoneObject("No profile detected")
 
         elif best_match < threshold:
-            logging.error(
+            self.session.logging.error(
                 "Best match for profile is %s with %.0f%%, which is too low " +
                 "for given threshold of %.0f%%. Try lowering " +
                 "--autodetect-threshold.",
@@ -484,7 +486,7 @@ class ProfileHook(kb.ParameterHook):
             return obj.NoneObject("No profile detected")
 
         else:
-            logging.info(
+            self.session.logging.info(
                 "Profile %s matched with %.0f%% confidence.",
                 best_profile.name,
                 best_match * 100)

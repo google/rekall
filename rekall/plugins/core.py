@@ -22,7 +22,6 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import inspect
-import logging
 import pdb
 import re
 import os
@@ -381,7 +380,7 @@ class LoadAddressSpace(plugin.Command):
             return self.session.physical_address_space
 
         except addrspace.ASAssertionError, e:
-            logging.error("Could not create address space: %s" % e)
+            self.session.logging.error("Could not create address space: %s" % e)
 
         return self.session.physical_address_space
 
@@ -417,7 +416,8 @@ class LoadAddressSpace(plugin.Command):
             self.session.kernel_address_space = find_dtb.CreateAS(dtb)
 
         else:
-            logging.debug("DTB not specified. Delegating to find_dtb.")
+            self.session.logging.debug("DTB not specified. Delegating to "
+                                       "find_dtb.")
             for address_space in find_dtb.address_space_hits():
                 with self.session:
                     self.session.kernel_address_space = address_space
@@ -425,7 +425,7 @@ class LoadAddressSpace(plugin.Command):
                     break
 
             if self.session.kernel_address_space is None:
-                logging.info(
+                self.session.logging.info(
                     "A DTB value was found but failed to verify. "
                     "Some troubleshooting steps to consider: "
                     "(1) Is the profile correct? (2) Is the KASLR correct? "
@@ -459,28 +459,29 @@ class LoadAddressSpace(plugin.Command):
                                 key=lambda x: x.order)
 
         while 1:
-            logging.debug("Voting round with base: %s", base_as)
+            self.session.logging.debug("Voting round with base: %s", base_as)
             found = False
             for cls in address_spaces:
                 # Only try address spaces which claim to support images.
                 if not cls.metadata("image"):
                     continue
 
-                logging.debug("Trying %s ", cls)
+                self.session.logging.debug("Trying %s ", cls)
                 try:
                     base_as = cls(base=base_as, session=self.session,
                                   **kwargs)
-                    logging.debug("Succeeded instantiating %s", base_as)
+                    self.session.logging.debug("Succeeded instantiating %s",
+                                               base_as)
                     found = True
                     break
                 except (AssertionError,
                         addrspace.ASAssertionError), e:
-                    logging.debug("Failed instantiating %s: %s",
+                    self.session.logging.debug("Failed instantiating %s: %s",
                                   cls.__name__, e)
                     error.append_reason(cls.__name__, e)
                     continue
                 except Exception, e:
-                    logging.error("Fatal Error: %s", e)
+                    self.session.logging.error("Fatal Error: %s", e)
                     if self.session.GetParameter("debug"):
                         pdb.post_mortem()
 
@@ -492,7 +493,8 @@ class LoadAddressSpace(plugin.Command):
                 break
 
         if base_as:
-            logging.info("Autodetected physical address space %s", base_as)
+            self.session.logging.info("Autodetected physical address space %s",
+                                      base_as)
 
         return base_as
 
@@ -671,7 +673,7 @@ class Lister(Printer):
 
     def render(self, renderer):
         if self.target is None:
-            logging.error("You must list something.")
+            self.session.logging.error("You must list something.")
             return
 
         for item in self.target:
@@ -1165,7 +1167,7 @@ class SetProcessContextMixin(object):
 
         # Reset the address resolver for the new context.
         self.session.SetCache("process_context", process)
-        logging.debug(message)
+        self.session.logging.debug(message)
 
         return message
 

@@ -1,5 +1,3 @@
-import logging
-
 from rekall import addrspace
 from rekall import obj
 from rekall import testlib

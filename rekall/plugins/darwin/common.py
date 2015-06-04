@@ -20,7 +20,6 @@
 # Case (atcuno@gmail.com).
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import logging
 import re
 
 from rekall import kb
@@ -225,7 +224,7 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
         Returns:
           A value for the KASLR slide that appears sane.
         """
-        logging.debug("Searching for KASLR hits.")
+        self.session.logging.debug("Searching for KASLR hits.")
         for vm_kernel_slide in self.vm_kernel_slide_hits():
             return vm_kernel_slide
 
@@ -648,7 +647,8 @@ class DarwinProcessFilter(DarwinPlugin):
                 continue
 
             procs = self.cache.setdefault(method, handler(self))
-            logging.debug("Listed %d processes using %s", len(procs), method)
+            self.session.logging.debug("Listed %d processes using %s",
+                                       len(procs), method)
 
             seen.update(procs)
 

@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-import logging
 import math
 
 from rekall.plugins.linux import common
@@ -76,7 +75,7 @@ class Mount(common.LinuxPlugin):
                 # XXX Need to finish the calculation
                 numentries = 65536
 
-        logging.debug("numentries: %d", numentries)
+        self.session.logging.debug("numentries: %d", numentries)
 
         mount_hashtable = self.profile.get_constant_object(
             "mount_hashtable",
@@ -92,8 +91,8 @@ class Mount(common.LinuxPlugin):
         init_task = self.session.profile.get_constant_object(
             "init_task", "task_struct", vm=self.kernel_address_space)
         if not init_task:
-            logging.debug("Unable to obtain the init task. "
-                          "Mounted paths may be incorrect.")
+            self.session.logging.debug(
+              "Unable to obtain the init task. Mounted paths may be incorrect.")
 
         # Walk the hash table
         for hash in mount_hashtable:

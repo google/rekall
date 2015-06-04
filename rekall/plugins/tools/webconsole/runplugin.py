@@ -279,8 +279,9 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                                 server_session.GetParameter(k) == v):
                             continue
 
-                        logging.debug("Setting %s=%s for session %s",
-                                      k, v, session_id)
+                        server_session.logging.debug(
+                            "Setting %s=%s for session %s",
+                            k, v, session_id)
                         server_session.SetParameter(k, v)
 
             for deleted_session_id in server_session_ids:

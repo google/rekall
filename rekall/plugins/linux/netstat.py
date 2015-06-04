@@ -19,8 +19,6 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 
-import logging
-
 from rekall import testlib
 from rekall.plugins.linux import common
 from rekall.plugins.overlays import basic
@@ -155,11 +153,12 @@ class PacketQueues(common.LinuxPlugin):
                                    filename=filename,
                                    mode="wb") as fd:
                     fd.write(''.join(data))
-                    logging.debug("Wrote %d bytes to %s", fd.tell(), filename)
+                    self.session.logging.debug("Wrote %d bytes to %s",
+                                               fd.tell(), filename)
                 return True
 
             else:
-                logging.debug("Skipped empty queue %s", filename)
+                self.session.logging.debug("Skipped empty queue %s", filename)
                 return False
 
     def render(self, renderer):

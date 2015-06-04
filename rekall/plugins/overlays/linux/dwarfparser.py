@@ -33,8 +33,6 @@ from rekall import plugin
 from rekall import utils
 import logging
 
-LOGGER = logging.getLogger("linux.dwarf")
-LOGGER.setLevel(logging.ERROR)
 
 
 def PatchPyElftools():
@@ -405,6 +403,8 @@ class DWARFParser(object):
         else:
             raise RuntimeError("File does not have DWARF information - "
                                "was it compiled with debugging information?")
+        self.logging = session.logging.getChild("linux.dwarf")
+        self.logging.setLevel(logging.ERROR)
         self.compile()
 
     def compile(self):
@@ -420,7 +420,7 @@ class DWARFParser(object):
 
             die_depth = 0
             for die in cu.iter_DIEs():
-                LOGGER.debug('%d %s<%x>: %s' % (
+                self.logging.debug('%d %s<%x>: %s' % (
                     die_depth,
                     "\t" * die_depth,
                     die.offset,
@@ -436,9 +436,9 @@ class DWARFParser(object):
                     if isinstance(name, int):
                         name = 'Unknown AT value: %x' % name
 
-                    if LOGGER.isEnabledFor(logging.DEBUG):
+                    if self.logging.isEnabledFor(logging.DEBUG):
                         try:
-                            LOGGER.debug('%d %s    <%2x>   %-18s: %s' % (
+                            self.logging.debug('%d %s    <%2x>   %-18s: %s' % (
                                 die_depth,
                                 "\t" * die_depth,
                                 attr.offset,

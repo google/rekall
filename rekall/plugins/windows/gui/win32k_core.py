@@ -19,8 +19,6 @@
 #
 
 # pylint: disable=protected-access
-import logging
-
 from rekall import kb
 from rekall import utils
 from rekall import obj
@@ -772,7 +770,7 @@ class Win32kPluginMixin(object):
         self.win32k_profile.EnsureInitialized()
 
         if self.win32k_profile.guessed_types:
-            logging.debug(
+            self.session.logging.debug(
                 "Win32k profile is incomplete - attempting autodetection.")
             overlay = self.session.plugins.win32k_autodetect().GetWin32kOverlay(
                 self.win32k_profile)

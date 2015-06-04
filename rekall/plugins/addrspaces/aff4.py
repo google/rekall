@@ -167,7 +167,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                     self.pagefile_offset, 0, pagefile_stream.Size(),
                     AFF4StreamWrapper(pagefile_stream))
 
-                logging.info(
+                self.session.logging.info(
                     "Added %s as pagefile", subject)
 
     def _LoadMemoryImage(self, image_urn):
@@ -184,7 +184,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         except AttributeError:
             self.runs.insert((0, 0, aff4_stream.Size(), self.image))
 
-        logging.info("Added %s as physical memory", image_urn)
+        self.session.logging.info("Added %s as physical memory", image_urn)
 
 
 # pylint: disable=unused-import

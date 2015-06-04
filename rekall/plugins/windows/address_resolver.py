@@ -19,7 +19,6 @@
 """The module implements the windows specific address resolution plugin."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import logging
 import re
 
 from rekall import config
@@ -182,8 +181,8 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         except (ValueError, KeyError):
             # Cache the fact that we did not find this profile.
             self.profiles[module_name] = None
-            logging.debug("Unable to resolve symbols in module %s",
-                          module_name)
+            self.session.logging.debug("Unable to resolve symbols in module %s",
+                                       module_name)
 
             return obj.NoneObject()
 
@@ -246,7 +245,8 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                     "autodetect_build_local_tracked")):
             build_local_profile = self.session.plugins.build_local_profile()
             try:
-                logging.debug("Will build local profile %s", profile_name)
+                self.session.logging.debug("Will build local profile %s",
+                                           profile_name)
                 build_local_profile.fetch_and_parse(profile_name)
                 return self.session.LoadProfile(profile_name, use_cache=False)
             except IOError:

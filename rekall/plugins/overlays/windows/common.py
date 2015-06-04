@@ -22,7 +22,6 @@
 # pylint: disable=protected-access
 
 """Common windows overlays and classes."""
-import logging
 import struct
 from rekall import addrspace
 from rekall import obj
@@ -679,7 +678,7 @@ class _EPROCESS(obj.Struct):
 
         object_tree_p = self.obj_session.plugins.object_tree()
         object_root = object_tree_p.get_object_tree()
-        logging.debug("Rebuilding device cache...")
+        self.obj_session.logging.debug("Rebuilding device cache...")
         device_cache = dict()
         self.obj_session.SetCache("windows_device_cache", device_cache)
 
@@ -695,7 +694,8 @@ class _EPROCESS(obj.Struct):
 
         object_tree_p = self.obj_session.plugins.object_tree()
         object_root = object_tree_p.get_object_tree()
-        logging.debug("Rebuilding symbolic device name cache...")
+        self.obj_session.logging.debug(
+          "Rebuilding symbolic device name cache...")
         symbolic_cache = dict()
         self.obj_session.SetCache("windows_drive_name_cache", symbolic_cache)
 
@@ -1277,7 +1277,8 @@ class VadTraverser(obj.Struct):
         We try to be tolerant of cycles by storing all offsets visited.
         """
         if depth > 100:
-            logging.error("Vad tree too deep - something went wrong!")
+            self.obj_session.logging.error(
+              "Vad tree too deep - something went wrong!")
             return
 
         if visited == None:

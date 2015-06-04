@@ -17,8 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 """This module implements filesystem-related plugins for Linux."""
 
-import logging
-
 from rekall import testlib
 
 from rekall.plugins import core
@@ -245,8 +243,9 @@ class Mcat(core.OutputFileMixin, Mfind):
             renderer.format("ERROR: No files found.")
 
         elif len(files) > 1:
-            logging.error(("%d files found. Please specify the device to "
-                           "target a single file."), len(files))
+            self.session.logging.error(
+                "%d files found. Please specify the device to target a single "
+                "file.", len(files))
             self.render_file_header(renderer)
             for file in files:
                 self.render_file(renderer, file)

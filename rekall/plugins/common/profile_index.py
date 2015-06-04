@@ -31,8 +31,6 @@ __author__ = (
     "Adam Sindelar <adamsh@google.com>",
 )
 
-import logging
-
 from rekall import obj
 
 
@@ -89,7 +87,7 @@ class Index(obj.Profile):
                 possible_values=possible_values)
 
             if match:
-                logging.debug(
+                self.session.logging.debug(
                     "%s matched offset %#x+%#x=%#x (%r)",
                     profile, offset, image_base, offset+image_base, match)
                 count_matched += 1
@@ -105,7 +103,7 @@ class Index(obj.Profile):
             return 0
 
         if count_matched > 0:
-            logging.debug(
+            self.session.logging.debug(
                 "%s matches %d/%d comparison points",
                 profile, count_matched, count_matched + count_unmatched)
 

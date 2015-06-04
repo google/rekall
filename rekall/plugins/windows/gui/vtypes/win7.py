@@ -18,6 +18,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+import logging
+
+
 from rekall import obj
 from rekall.plugins.windows.gui import constants
 from rekall.plugins.windows.gui import win32k_core

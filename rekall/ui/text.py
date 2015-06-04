@@ -28,7 +28,6 @@ try:
 except Exception:  # curses sometimes raises weird exceptions.
     curses = None
 
-import logging
 import re
 import os
 import subprocess
@@ -155,6 +154,7 @@ class Pager(object):
         self.colorizer = Colorizer(
             self.term_fd,
             color=self.session.GetParameter("colors"),
+            session=session
         )
 
     def __enter__(self):
@@ -260,7 +260,7 @@ class Colorizer(object):
 
     terminal_capable = False
 
-    def __init__(self, stream, color="auto"):
+    def __init__(self, stream, color="auto", session=None):
         """Initialize a colorizer.
 
         Args:
@@ -269,6 +269,9 @@ class Colorizer(object):
           color: If "no" we suppress using colors, even if the output stream
              can support them.
         """
+        self.session = session
+        self.logging = self.session.logging.getChild("colorizer")
+
         if stream is None:
             stream = sys.stdout
 
@@ -298,7 +301,7 @@ class Colorizer(object):
         try:
             return curses.tparm(term_string, *args)
         except Exception, e:
-            logging.debug("Unable to set tparm: %s" % e)
+            self.logging.debug("Unable to set tparm: %s" % e)
             return ""
 
     def Render(self, target, foreground=None, background=None):
@@ -1233,7 +1236,9 @@ class TextRenderer(renderer_module.BaseRenderer):
 
         self.colorizer = Colorizer(
             self.fd,
-            color=self.session.GetParameter("colors"))
+            color=self.session.GetParameter("colors"),
+            session=self.session)
+        self.logging = self.session.logging.getChild("renderer.text")
 
     def section(self, name=None, width=50):
         if name is None:
@@ -1300,7 +1305,7 @@ class TextRenderer(renderer_module.BaseRenderer):
                     position = int(m.group(1))
 
             if position is None:
-                logging.error("Unknown format specifier: %s", part)
+                self.logging.error("Unknown format specifier: %s", part)
                 continue
 
             # These are backwards compatible hacks. Newer syntax is

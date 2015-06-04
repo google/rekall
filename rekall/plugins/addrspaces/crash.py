@@ -22,7 +22,6 @@
 #
 
 """An Address Space for processing crash dump files."""
-import logging
 
 from rekall import addrspace
 from rekall.plugins.overlays.windows import crashdump
@@ -130,8 +129,9 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
         # other crash dump formats, (Especially Win8 ones - see below) so we
         # might consider making this a fatal error in future.
         if self.header.DumpType != "Full Dump":
-            logging.warning("This is not a full memory crash dump. "
-                            "Kernel crash dumps are not supported.")
+            self.session.logging.warning(
+              "This is not a full memory crash dump. Kernel crash dumps are "
+              "not supported.")
 
         # Catch this error early or we will hog all memory trying to parse a
         # huge number of Runs. On Windows 8 we have observed the DumpType to be

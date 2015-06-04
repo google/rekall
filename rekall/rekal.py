@@ -23,8 +23,8 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
 
-import pdb
 import logging
+import pdb
 import sys
 
 
@@ -68,13 +68,10 @@ def main(argv=None):
         # Run the plugin with plugin specific args.
         user_session.RunPlugin(plugin_cls, **config.RemoveGlobalOptions(flags))
     except Exception as e:
+        logging.fatal("%s. Try --debug for more information." % e)
         if getattr(flags, "debug", None):
             pdb.post_mortem(sys.exc_info()[2])
-        else:
-            logging.error("%s. Try --debug for more information." % e)
-
-        # Exit with an error.
-        sys.exit(-1)
+        raise
 
     # Right before we exit we check if we need to save the current session.
     if user_session.state.session_filename and (

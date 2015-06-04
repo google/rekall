@@ -18,8 +18,6 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import logging
-
 from rekall import obj
 from rekall import utils
 
@@ -1160,7 +1158,8 @@ class vnode(obj.Struct):
             # This is rare, but it does happen. I currently don't understand
             # why, so we just log a warning and report the node as an orphan.
             if not _vnode:
-                logging.warning("vnode at 0x%x is orphaned.", int(_vnode))
+                self.obj_session.logging.warning("vnode at 0x%x is orphaned.",
+                                                 int(_vnode))
                 return "<Orphan>"
 
         path = "/" + "/".join((str(x) for x in reversed(result) if x))

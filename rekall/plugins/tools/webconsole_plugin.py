@@ -22,7 +22,6 @@
 
 __author__ = "Mikhail Bushkov <mbushkov@google.com>"
 
-import logging
 import json
 import os
 import re
@@ -106,13 +105,14 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
             for path in os.listdir(self.dump_dir):
                 m = re.match(r"^(\d+)\.data$", path)
                 if m and m.group(1) not in cells_to_leave:
-                    logging.debug("Trimming cell file %s", path)
+                    self.session.logging.debug("Trimming cell file %s", path)
                     os.unlink(self._GetAbsolutePathName(path))
                     continue
 
                 m = re.match(r"^\d+$", path)
                 if m and path not in cells_to_leave:
-                    logging.debug("Trimming cell directory %s", path)
+                    self.session.logging.debug(
+                      "Trimming cell directory %s", path)
                     shutil.rmtree(self._GetAbsolutePathName(path))
 
     def StoreSessions(self):
@@ -279,11 +279,12 @@ class WebConsole(plugin.Command):
                         with open(dstname, "wb") as fd:
                             fd.write(data)
 
-                        logging.debug("Copied %s->%s", srcname, dstname)
+                        self.session.logging.debug("Copied %s->%s",
+                                                   srcname, dstname)
 
             except EnvironmentError, why:
-                logging.debug("Unable to copy %s->%s: %s",
-                              srcname, dstname, why)
+                self.session.logging.debug("Unable to copy %s->%s: %s",
+                                           srcname, dstname, why)
 
     def _replace_data_for_export(self, data):
         for replace in self.EXPORT_REPLACES:
