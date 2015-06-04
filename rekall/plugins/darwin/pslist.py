@@ -32,9 +32,8 @@ class DarwinPsxView(common.DarwinPlugin):
         collector_names = sorted([collector.name for collector in collectors])
 
         headers = [
-            dict(name="Offset (V)", cname="offset_v", style="address"),
-            dict(name="Comm", cname="comm", width=20),
-            dict(name="PID", cname="pid", width=6)]
+            dict(name="Process/Pid", cname="offset_v", width=40),
+        ]
 
         for collector_name in collector_names:
             headers.append((
@@ -49,8 +48,7 @@ class DarwinPsxView(common.DarwinPlugin):
                 key=lambda e: e["Process/pid"]):
             row = [
                 entity["Struct/base"],
-                entity["Process/command"],
-                entity["Process/pid"]]
+            ]
 
             for collector_name in collector_names:
                 row.append(collector_name in entity.collectors)
@@ -101,12 +99,11 @@ class DarwinMaps(common.DarwinProcessFilter):
 
     def render(self, renderer):
         renderer.table_header([
-            ("Pid", "pid", "8"),
-            ("Name", "name", "20"),
+            dict(name="Proc", width=40),
             ("Start", "start", "[addrpad]"),
             ("End", "end", "[addrpad]"),
             ("Protection", "protection", "6"),
-            ("Map Name", "map_name", "20"),
+            dict(name="Map Name", wrap=False),
         ])
 
         for proc in self.filter_processes():
@@ -123,8 +120,7 @@ class DarwinMaps(common.DarwinProcessFilter):
                 vnode = map.find_vnode_object()
 
                 renderer.table_row(
-                    proc.p_pid,
-                    proc.p_comm,
+                    proc,
                     map.links.start,
                     map.links.end,
                     protection,
@@ -220,3 +216,11 @@ class DarwinPSAUX(common.DarwinProcessFilter):
                 proc.p_argslen,
                 proc.p_argc,
                 " ".join(proc.argv))
+
+
+class DarwinMemMap(core.MemmapMixIn, common.DarwinProcessFilter):
+    """Dumps the memory map for darwin tasks."""
+    __name = "memmap"
+
+    def _get_highest_user_address(self):
+        return 0x800000000000

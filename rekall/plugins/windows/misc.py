@@ -149,7 +149,7 @@ class Objects(common.WindowsCommandPlugin):
         renderer.table_header(
             [("Index", "idx", ">5"),
              ("Number Objects", "TotalNumberOfObjects", ">15"),
-             ("PoolType", "PoolType", "15"),
+             ("PoolType", "PoolType", "20"),
              ("Name", "name", "")])
 
         for obj_type in self.object_types():

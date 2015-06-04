@@ -77,9 +77,12 @@ class TestListEvents(testlib.SortedComparison):
 class Processes(DarwinOnlyMixin, entities.EntityFind):
     __name = "pslist"
     search = ("has component Process")
-    columns = ["Process/command", "Process/pid", "Process/parent",
-               "Process/user", "Process/is_64bit", "Timestamps/created_at",
-               "Process/cr3"]
+    columns = [
+        dict(attribute="Struct/base",
+             width=40,
+             name="Process"),
+        "Process/parent", "Process/user", "Process/is_64bit",
+        "Timestamps/created_at", "Process/cr3"]
     sort = ["Process/pid"]
 
 

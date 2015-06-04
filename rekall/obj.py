@@ -1347,6 +1347,21 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         self._cache[attr] = result
         return result
 
+    def multi_m(self, *args):
+        """Retrieve a set of fields in order.
+
+        If a field is not found, then try the next field in the list until one
+        field works. This approach allows us to propose a set of possible fields
+        for an attribute to support renaming of struct fields in different
+        versions.
+        """
+        for field in args:
+            result = self.m(field)
+            if result != None:
+                return result
+
+        return NoneObject("No fields were found.")
+
     def __getattr__(self, attr):
         result = self.m(attr)
         if result == None:

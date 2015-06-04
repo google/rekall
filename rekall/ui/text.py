@@ -657,7 +657,7 @@ class JoinedCell(BaseCell):
             contents_width += cell.width + len(self.tablesep)
         contents_width -= len(self.tablesep)
 
-        self._width = self.width or contents_width
+        self._width = max(self.width, contents_width)
         adjustment = self._width - contents_width
 
         # Wrap or pad children.

@@ -628,12 +628,12 @@ class fileproc(obj.Struct):
     @property
     def fg_type(self):
         """Returns type of the fileglob (e.g. vnode, socket, etc.)"""
-        return (
+        return self.multi_m(
             # OS X 10.8 and earlier
-            self.f_fglob.m("fg_type") or
+            "f_fglob.fg_type",
 
             # OS X 10.9 and later
-            self.f_fglob.fg_ops.fo_type)
+            "f_fglob.fg_ops.fo_type")
 
     def autocast_fg_data(self):
         """Returns the correct struct with fg_type-specific information.

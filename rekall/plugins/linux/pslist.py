@@ -103,7 +103,7 @@ class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
         for file_addr, length, virtual in maps:
             # Merge the addresses as much as possible.
             if (old_virtual + old_length == virtual and
-                old_file_addr + old_length == file_addr):
+                    old_file_addr + old_length == file_addr):
                 old_length += length
                 continue
 
@@ -204,7 +204,7 @@ class PidHashTable(LinuxPsList):
 
                 # Here we only care about regular PIDs.
                 for task in pid.tasks[PIDTYPE_PID].list_of_type(
-                    "task_struct", "pids"):
+                        "task_struct", "pids"):
                     if task not in seen:
                         yield task
                         seen.add(task)

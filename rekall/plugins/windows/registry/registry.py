@@ -96,8 +96,7 @@ registry_overlays = {
                     target="_CM_KEY_VALUE"
                     )
                 )
-            )
-                         ]],
+            )]],
         }],
 
     '_CM_KEY_INDEX' : [None, {
@@ -111,6 +110,18 @@ registry_overlays = {
             )]],
         }],
     }
+
+class _HMAP_ENTRY(obj.Struct):
+    """Windows uses this to track registry HBIN cells mapped into memory."""
+
+    @property
+    def BlockAddress(self):
+        """Compatibility field for Windows 7 and Windows 10."""
+        if "BlockAddress" in self.members:
+            return self.m("BlockAddress")
+
+        # Windows 10 uses a different field.
+        return self.PermanentBinAddress & 0xfffffffffff0
 
 
 class Pointer32(obj.Pointer):
@@ -183,6 +194,8 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         self.block_cache = utils.FastStore(max_size=1000)
 
     def vtop(self, vaddr):
+        vaddr = int(vaddr)
+
         # If the hive is listed as "flat", it is all contiguous in memory
         # so we can just calculate it relative to the base block.
         if self.flat:
@@ -263,12 +276,12 @@ class HiveAddressSpace(HiveBaseAddressSpace):
         print "{0} bytes in hive.".format(length)
         print ("{0} blocks not loaded by CM, {1} blocks "
                "paged out, {2} total blocks.".format(
-                bad_blocks_reg, bad_blocks_mem, total_blocks))
+                   bad_blocks_reg, bad_blocks_mem, total_blocks))
 
         if total_blocks:
             print "Total of {0:.2f}% of hive unreadable.".format(
                 ((bad_blocks_reg + bad_blocks_mem) / float(total_blocks)
-                 ) * 100)
+                ) * 100)
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
 
@@ -327,7 +340,7 @@ class _CM_KEY_NODE(obj.Struct):
             if count > 0:
                 sk_offset = sk_lists[list_index]
                 for subkey in self.obj_profile._CM_KEY_INDEX(
-                    offset=sk_offset, vm=self.obj_vm, parent=self):
+                        offset=sk_offset, vm=self.obj_vm, parent=self):
                     yield subkey
 
     def values(self):
@@ -398,9 +411,9 @@ class _CM_KEY_INDEX(obj.Struct):
             for i in xrange(self.Count):
                 # This is a pointer to another _CM_KEY_INDEX
                 for subkey in self.obj_profile.Object(
-                    "Pointer32", offset=self.List[i].v(),
-                    vm=self.obj_vm, parent=self.obj_parent,
-                    target="_CM_KEY_INDEX"):
+                        "Pointer32", offset=self.List[i].v(),
+                        vm=self.obj_vm, parent=self.obj_parent,
+                        target="_CM_KEY_INDEX"):
                     if subkey.Signature == self.NK_SIG:
                         yield subkey
 
@@ -430,7 +443,7 @@ class _CM_KEY_VALUE(obj.Struct):
         # If the high bit is set, the data is stored inline
         elif self.DataLength & 0x80000000:
             return self._decode_data(self.obj_vm.read(
-                    self.m("Data").obj_offset, self.DataLength & 0x7FFFFFFF))
+                self.m("Data").obj_offset, self.DataLength & 0x7FFFFFFF))
 
         elif self.DataLength > 0x4000:
             return obj.NoneObject("Big data not supported.")
@@ -442,7 +455,7 @@ class _CM_KEY_VALUE(obj.Struct):
 
         else:
             return self._decode_data(self.obj_vm.read(
-                    int(self.m("Data")), self.DataLength))
+                int(self.m("Data")), self.DataLength))
 
     def _decode_data(self, data):
         """Decode the data according to our type."""
@@ -471,6 +484,7 @@ def RekallRegisteryImplementation(profile):
     profile.add_classes(dict(
         _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
         _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE,
+        _HMAP_ENTRY=_HMAP_ENTRY,
         Pointer32=Pointer32
         ))
 

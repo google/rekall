@@ -1098,7 +1098,7 @@ class MemmapMixIn(object):
 
             renderer.table_row(virtual_address, phys_address, length)
 
-    def HighestAddress(self):
+    def _get_highest_user_address(self):
         """Returns the highest process address to display.
 
         This is operating system dependent.
@@ -1122,7 +1122,8 @@ class MemmapMixIn(object):
                 renderer.write("Unable to read pages for task.\n")
                 continue
 
-            self._render_map(task_space, renderer, self.HighestAddress())
+            self._render_map(task_space, renderer,
+                             self._get_highest_user_address())
 
 
 class SetProcessContextMixin(object):
@@ -1228,7 +1229,39 @@ class VtoPMixin(object):
                 self.render_address(renderer, vaddr)
 
     def render_address(self, renderer, vaddr):
-        raise NotImplementedError
+        renderer.section(name="{0:#08x}".format(vaddr))
+        self.address_space = self.session.GetParameter("default_address_space")
+
+        renderer.format("Virtual {0:addrpad} DTB {1:addr}\n",
+                        vaddr, self.address_space.dtb)
+
+        address = None
+        for name, value, address in self.address_space.describe_vtop(vaddr):
+            if address:
+                # Properly format physical addresses.
+                renderer.format(
+                    "{0}@ {1} = {2:addr}\n",
+                    name,
+                    self.physical_address_space.describe(address),
+                    value or 0)
+            elif value:
+                renderer.format("{0} {1}\n",
+                                name,
+                                self.physical_address_space.describe(value))
+            else:
+                renderer.format("{0}\n", name)
+
+        # The below re-does all the analysis using the address space. It should
+        # agree!
+        physical_address = self.address_space.vtop(vaddr)
+        if physical_address is None:
+            renderer.format("Physical Address Invalid\n")
+
+        elif address and address != physical_address:
+            renderer.format(
+                "Something went wrong ... Physical address should be %s\n",
+                self.physical_address_space.describe(physical_address))
+
 
 
 class PluginHelp(obj.Profile):

@@ -3,6 +3,7 @@
 
 from rekall.plugins.common import address_resolver
 from rekall.plugins.common import bovine
+from rekall.plugins.common import entity
 from rekall.plugins.common import entities
 from rekall.plugins.common import inspection
 from rekall.plugins.common import profile_index

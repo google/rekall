@@ -122,9 +122,9 @@ class WinMemMap(core.MemmapMixIn, common.WinProcessFilter):
     """Calculates the memory regions mapped by a process."""
     __name = "memmap"
 
-    def HighestAddress(self):
+    def _get_highest_user_address(self):
         return self.profile.get_constant_object(
-            "MmHighestUserAddress", "unsigned long long")
+            "MmHighestUserAddress", "Pointer").v()
 
 
 class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
@@ -134,7 +134,7 @@ class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
 
     def dump_process(self, eprocess, fd, index_fd):
         task_as = eprocess.get_process_address_space()
-        highest_address = self.HighestAddress()
+        highest_address = self._get_highest_user_address()
 
         temp_renderer = text.TextRenderer(session=self.session,
                                           fd=index_fd)

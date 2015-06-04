@@ -21,6 +21,8 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 import re
 
+from rekall.plugins import core
+from rekall.plugins.common import pas2kas
 from rekall.plugins.darwin import common
 from rekall.plugins.renderers import visual_aides
 
@@ -189,3 +191,20 @@ class DarwinBootParameters(common.DarwinPlugin):
             "_PE_state", "PE_state").bootArgs
 
         renderer.format("{0}", boot_params.CommandLine.cast("String"))
+
+
+class DarwinSetProcessContext(core.SetProcessContextMixin,
+                              common.DarwinProcessFilter):
+    """A cc plugin for windows."""
+
+
+
+class DarwinPas2Vas(pas2kas.Pas2VasMixin, common.DarwinProcessFilter):
+    """Resolves a physical address to a virtual address in a process."""
+
+    def _get_highest_user_address(self):
+        return 0x800000000000
+
+
+class DarwinVtoP(core.VtoPMixin, common.DarwinProcessFilter):
+    """Describe virtual to physical translation on darwin platforms."""

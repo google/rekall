@@ -33,10 +33,10 @@
 
 import re
 
-from rekall import plugin
 from rekall import scan
 from rekall import utils
 from rekall.plugins import core
+from rekall.plugins.common import pfn
 from rekall.plugins.windows import common
 
 
@@ -333,26 +333,8 @@ class VAD(common.WinProcessFilter):
             self.render_vadroot(renderer, task.RealVadRoot, task)
 
 
-class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
-    """Show physical addresses for all VAD pages."""
-
-    name = "vadmap"
-
-    @classmethod
-    def args(cls, parser):
-        super(VADMap, cls).args(parser)
-        parser.add_argument(
-            "--start", default=0, type="IntParser",
-            help="Start reading from this page.")
-
-        parser.add_argument(
-            "--end", default=2**63, type="IntParser",
-            help="Stop reading at this offset.")
-
-    def __init__(self, *args, **kwargs):
-        self.start = kwargs.pop("start", 0)
-        self.end = kwargs.pop("end", 2**64)
-        super(VADMap, self).__init__(*args, **kwargs)
+class VADMap(pfn.VADMapMixin,
+             common.WinProcessFilter):
 
     def _GetPTE(self, vaddr):
         address_space = self.session.GetParameter("default_address_space")
@@ -380,84 +362,16 @@ class VADMap(plugin.VerbosityMixIn, common.WinProcessFilter):
 
             offset += 0x1000
 
-    def FormatMetadata(self, type, metadata, offset=None):
-        result = ""
-        if "filename" in metadata:
-            result += "%s " % metadata["filename"]
+    def GeneratePageMetatadata(self, task):
+        resolver = self.session.address_resolver
+        for _, _, _, vad in resolver.GetVADs():
+            # Skip guard regions for Wow64.
+            if vad.CommitCharge >= 0x7fffffff:
+                continue
 
-        if "number" in metadata:
-            result = "PF %s " % metadata["number"]
+            for vaddr, metadata in self._GenerateVADRuns(vad):
+                yield vaddr, metadata
 
-        if type == "Valid" or type == "Transition":
-            result += "PhysAS "
-
-        if offset:
-            result += "@ %#x " % offset
-
-        if "ProtoType" in metadata:
-            result += "(P) "
-
-        return result
-
-    def render(self, renderer):
-        for task in self.filter_processes():
-            renderer.section()
-            renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
-                            task.ImageFileName)
-
-            headers = [
-                ('Virt Addr', 'virt_addr', '[addrpad]'),
-                ('Offset', 'offset', '[addrpad]'),
-                ('Length', 'length', '[addr]'),
-                ('Type', 'type', '20s'),
-                ('Comments', 'comments', "")]
-
-            if self.verbosity < 5:
-                headers.pop(1)
-
-            renderer.table_header(headers)
-
-            with self.session.plugins.cc() as cc:
-                cc.SwitchProcessContext(task)
-
-                resolver = self.session.address_resolver
-                old_offset = 0
-                old_vaddr = 0
-                length = 0x1000
-                old_metadata = {}
-                for _, _, _, vad in resolver.GetVADs():
-                    # Skip guard regions for Wow64.
-                    if vad.CommitCharge >= 0x7fffffff:
-                        continue
-
-                    for vaddr, metadata in self._GenerateVADRuns(vad):
-                        # Remove the offset so we can merge on identical
-                        # metadata (offset will change for each page).
-                        offset = metadata.pop("offset", None)
-
-                        # Coalesce similar rows.
-                        if ((offset is None or old_offset is None or
-                             self.verbosity < 5 or
-                             offset == old_offset + length) and
-                                metadata == old_metadata and
-                                vaddr == old_vaddr + length):
-                            length += 0x1000
-                            continue
-
-                        type = old_metadata.pop("type", None)
-                        if type:
-                            comment = self.FormatMetadata(
-                                type, old_metadata, offset=old_offset)
-                            row = [old_vaddr, old_offset, length, type, comment]
-                            if self.verbosity < 5:
-                                row.pop(1)
-
-                            renderer.table_row(*row)
-
-                        old_metadata = metadata
-                        old_vaddr = vaddr
-                        old_offset = offset
-                        length = 0x1000
 
 
 class VADDump(core.DirectoryDumperMixin, VAD):

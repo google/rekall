@@ -417,15 +417,13 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             return res
 
     def describe_vtop(self, vaddr):
-        valid_mask = 1
-
         pdpte_addr = ((self.dtb & 0xfffffff0) |
                       ((vaddr & 0x7FC0000000) >> 27))
 
         pdpte_value = self.read_long_long_phys(pdpte_addr)
         yield "pdpte", pdpte_value, pdpte_addr
 
-        if not pdpte_value & valid_mask:
+        if not pdpte_value & self.valid_mask:
             yield "Invalid PDPTE", None, None
             return
 
@@ -446,6 +444,11 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         pte_value = self.read_long_long_phys(pte_addr)
 
         yield "pte", pte_value, pte_addr
+
+        if pte_value & self.valid_mask:
+            physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
+            yield "Physical Address", physical_address, None
+
 
     def read_long_long_phys(self, addr):
         '''

@@ -1,7 +1,7 @@
 from rekall import testlib
-from rekall import efilter_protocols
 
 from rekall.entities import definitions
+from rekall.plugins.common.entity import efilter_protocols
 
 from efilter import query
 

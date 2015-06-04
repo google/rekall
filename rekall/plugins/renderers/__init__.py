@@ -2,6 +2,7 @@
 # pylint: disable=unused-import
 
 from rekall.plugins.renderers import base_objects
+from rekall.plugins.renderers import darwin
 from rekall.plugins.renderers import data_export
 from rekall.plugins.renderers import entities
 from rekall.plugins.renderers import json_storage

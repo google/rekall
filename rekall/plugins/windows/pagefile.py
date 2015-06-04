@@ -295,8 +295,8 @@ class WindowsPagedMemoryMixin(object):
                 pte = self.session.profile._MMPTE()
                 pte.u.Long = pte_value
 
-                return (pte.PageFileHigh * 0x1000 + self.pagefile_mapping +
-                        (virtual_address & 0xFFF))
+                return (pte.u.Soft.PageFileHigh * 0x1000 +
+                        self.pagefile_mapping + (virtual_address & 0xFFF))
 
         finally:
             self._resolve_vads = True

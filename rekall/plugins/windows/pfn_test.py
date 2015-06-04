@@ -21,8 +21,6 @@
 #
 
 """Tests for the pfn plugins."""
-import json
-
 from rekall import testlib
 
 class TestVtoP(testlib.SimpleTestCase):

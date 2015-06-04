@@ -171,15 +171,13 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         return self.get_phys_addr(vaddr, pte)
 
     def describe_vtop(self, vaddr):
-        transition_valid_mask = 1 << 11 | 1
-
         pml4e_addr = ((self.dtb & 0xffffffffff000) |
                       ((vaddr & 0xff8000000000) >> 36))
 
         pml4e_value = self.read_long_long_phys(pml4e_addr)
         yield "pml4e", pml4e_value, pml4e_addr
 
-        if not pml4e_value & transition_valid_mask:
+        if not pml4e_value & self.valid_mask:
             yield "Invalid PDE", None, None
             return
 
@@ -189,7 +187,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         pdpte_value = self.read_long_long_phys(pdpte_addr)
         yield "pdpte", pdpte_value, pdpte_addr
 
-        if not pdpte_value & transition_valid_mask:
+        if not pdpte_value & self.valid_mask:
             yield "Invalid PDPTE", None, None
 
         if self.page_size_flag(pdpte_value):
@@ -202,7 +200,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         pde_value = self.read_long_long_phys(pde_addr)
         yield "pde", pde_value, pde_addr
 
-        if not pde_value & transition_valid_mask:
+        if not pde_value & self.valid_mask:
             yield "Invalid PDE", None, None
             pte_value = 0
 
@@ -215,6 +213,10 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
             pte_value = self.read_long_long_phys(pte_addr)
             yield "pte", pte_value, pte_addr
+
+        if pte_value & self.valid_mask:
+            physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
+            yield "Physical Address", physical_address, None
 
     def get_available_addresses(self, start=0):
         """Enumerate all available ranges.

@@ -24,8 +24,6 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import datetime
 
-from efilter.protocols import superposition
-
 from rekall import obj
 from rekall import registry
 
@@ -108,8 +106,15 @@ class UnicodeDescriptor(TypeDescriptor):
         if value == None:
             return None
 
-        decoder = lambda s: str(s).decode("utf-8", "ignore")
-        return superposition.state_apply(value, decoder)
+        # Already in unicode.
+        elif isinstance(value, unicode):
+            return value
+
+        elif isinstance(value, str):
+            return unicode(value, "utf-8", "ignore")
+
+        # Call the object's __unicode__ method if needed.
+        return unicode(value)
 
 
 class DatetimeDescriptor(ScalarDescriptor):

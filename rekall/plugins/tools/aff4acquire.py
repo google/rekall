@@ -29,6 +29,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import time
 
 from rekall import plugin
+from rekall import testlib
 
 from pyaff4 import data_store
 from pyaff4 import aff4_map
@@ -126,3 +127,9 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
 
             with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
                 self.copy_physical_address_space(resolver, volume)
+
+
+# We can not check the file hash because AFF4 files contain UUID which will
+# change each time.
+class TestAFF4Acquire(testlib.SimpleTestCase):
+    PARAMETERS = dict(commandline="aff4acquire %(tempdir)s/output_image.aff4")
