@@ -44,7 +44,8 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
         """Guess the windows version of a profile."""
         # If the version is provided, then just use it.
         try:
-            version = ".".join(profile.metadatas("major", "minor"))
+            major, minor = profile.metadatas("major", "minor")
+            version = major + minor / 10.0
             profile.set_metadata("version", version)
 
             return version
@@ -60,28 +61,32 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
 
         # Windows XP did not use a BalancedRoot for VADs.
         if profile.get_obj_offset("_MM_AVL_TABLE", "BalancedRoot") == None:
-            version = "5.1"
+            version = 5.1
 
         # Windows 7 introduces TypeIndex into the object header.
         if profile.get_obj_offset("_OBJECT_HEADER", "TypeIndex") != None:
-            if profile._EPROCESS().m(
+            # Windows 10 introduces a cookie for object types.
+            if profile.get_constant("ObHeaderCookie"):
+                version = 10.0
+
+            elif profile._EPROCESS().m(
                     "VadRoot.BalancedRoot").obj_type == "_MMADDRESS_NODE":
-                version = "6.1"
+                version = 6.1
 
             elif profile._EPROCESS().m("VadRoot").obj_type == "_MM_AVL_TABLE":
                 # Windows 8 uses _MM_AVL_NODE as the VAD traversor struct.
-                version = "6.2"
+                version = 6.2
 
             elif profile._EPROCESS().m("VadRoot").obj_type == "_RTL_AVL_TREE":
-                # Windows 8.1 uses _RTL_AVL_TREE
-                version = "6.3"
+                # Windows 8.1 and on uses _RTL_AVL_TREE
+                version = 6.3
 
             else:
                 raise RuntimeError("Unknown windows version")
 
         profile.set_metadata("version", version)
-        major, minor = version.split(".")
-        profile.set_metadata("minor", minor)
+        major, minor = divmod(version, 1)
+        profile.set_metadata("minor", int(minor * 10))
         profile.set_metadata("major", major)
 
         return version
@@ -110,16 +115,16 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
 
         # Get the windows version of this profile.
         version = cls.GuessVersion(profile)
-        if version in ("6.2", "6.3"):
+        if 6.2 <= version <= 10:
             win8.InitializeWindows8Profile(profile)
 
-        elif version == "6.1":
+        elif version == 6.1:
             win7.InitializeWindows7Profile(profile)
 
-        elif version == "6.0":
+        elif version == 6.0:
             vista.InitializeVistaProfile(profile)
 
-        elif version in ("5.2", "5.1"):
+        elif 5.1 <= version <= 5.2:
             xp.InitializeXPProfile(profile)
 
     def GetImageBase(self):

@@ -39,7 +39,7 @@ class PoolScanModuleFast(common.PoolScanner):
         self.checks = [
             # Must have the right pool tag.
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("MODULE_POOLTAG"))),
+                tag=self.profile.get_constant("MODULE_POOLTAG"))),
 
             # Must be large enough for an _LDR_DATA_TABLE_ENTRY. Windows 8 seems
             #  to not allocate the full structure here so this test does not
@@ -87,7 +87,7 @@ class ModScan(filescan.FileScan):
                                ('Base', "base", "[addrpad]"),
                                ('Size', "size", "[addr]"),
                                ('File', "file", "")
-                               ])
+                              ])
         for ldr_entry in self.generate_hits():
             renderer.table_row(
                 ldr_entry.obj_offset,
@@ -103,13 +103,13 @@ class PoolScanThreadFast(common.PoolScanner):
         super(PoolScanThreadFast, self).__init__(**kwargs)
         self.checks = [
             ('PoolTagCheck', dict(
-                    tag=self.profile.get_constant("THREAD_POOLTAG"))),
+                tag=self.profile.get_constant("THREAD_POOLTAG"))),
 
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
-                        "_ETHREAD"))),
+                "_ETHREAD"))),
 
             ('CheckPoolType', dict(
-                    paged=True, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]
@@ -125,12 +125,12 @@ class ThrdScan(ModScan):
                                      address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            thread = pool_obj.GetObject().Body.cast("_ETHREAD")
+            thread = pool_obj.GetObject("Thread").Body.cast("_ETHREAD")
             if not thread:
                 continue
 
             if (thread.Cid.UniqueProcess.v() != 0 and
-                thread.StartAddress == 0):
+                    thread.StartAddress == 0):
                 continue
 
             try:
@@ -155,7 +155,7 @@ class ThrdScan(ModScan):
                                ("Exit Time", "exit_time", "24"),
                                ("Process", "name", "16"),
                                ("Symbol", "symbol", ""),
-                               ])
+                              ])
 
         with self.session.plugins.cc() as cc:
             for thread in self.generate_hits():

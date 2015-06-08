@@ -76,7 +76,9 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
             except AttributeError:
                 self.modules = None
 
-        if self.vad is None and hasattr(self.session.plugins, "vad"):
+        # In kernel context no need for vads.
+        if (self.vad is None and hasattr(self.session.plugins, "vad") and
+                self.session.GetParameter("process_context")):
             # Hold on to the vad plugin for resolving process address
             # spaces. The vad plugin maintains its own per-process cache so we
             # do not need to reset it here.
@@ -108,13 +110,13 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         self._EnsureInitialized()
         task = self.session.GetParameter("process_context")
-        if task:
+        if task and self.vad:
             return self.vad.find_file_in_task(address, task)
 
     def GetVADs(self):
         self._EnsureInitialized()
         task = self.session.GetParameter("process_context")
-        if task:
+        if task and self.vad:
             return self.vad.GetVadsForProcess(task)
 
         return []
@@ -335,7 +337,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         # Try to match the module name to a VAD region (e.g. a DLL).
         task = self.session.GetParameter("process_context")
-        if task:
+        if task and self.vad:
             name = name.lower()
             for start, _, filename, _ in self.vad.GetVadsForProcess(task):
                 if re.search("%s.(dll|exe)$" % name, filename.lower()):

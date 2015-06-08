@@ -78,6 +78,7 @@ windows_overlay = {
         # Some standard fields for windows processes.
         'name': lambda x: x.ImageFileName,
         'pid': lambda x: x.UniqueProcessId,
+        'dtb': lambda x: x.Pcb.DirectoryTableBase.v(),
 
         'CreateTime' : [None, ['WinFileTime', {}]],
         'ExitTime' : [None, ['WinFileTime', {}]],
@@ -869,14 +870,19 @@ class _POOL_HEADER(obj.Struct):
     def end(self):
         return self.obj_offset + self.obj_size
 
-    def GetObject(self, type=None):
-        """Return the first object header found."""
-        for item in self.IterObject(type=type):
+    def GetObject(self, type=None, freed=True):
+        """Return the first object header found.
+
+        Args:
+          type: If specified we only get the object if it belong to this type.
+          freed: If True we consider also freed objects.
+        """
+        for item in self.IterObject(type=type, freed=freed):
             return item
 
         return obj.NoneObject("No object found.")
 
-    def IterObject(self, type=None):
+    def IterObject(self, type=None, freed=True):
         """Gets the _OBJECT_HEADER considering optional headers."""
         pool_align = self.obj_profile.get_constant("PoolAlignment")
         allocation_size = self.BlockSize * pool_align
@@ -909,12 +915,14 @@ class _POOL_HEADER(obj.Struct):
                 continue
 
             if test_object.is_valid():
-                if type is not None and test_object.get_object_type() != type:
-                    continue
-
-                yield self.obj_profile._OBJECT_HEADER(
-                    offset=i + self.obj_offset + self.obj_size,
-                    vm=self.obj_vm, parent=self)
+                # Test for the type.
+                if (type is None or
+                        test_object.get_object_type() == type or
+                        # Freed objects have a type pointing to 0xbad0b0b0.
+                        (freed and test_object.Type.v() == 0xbad0b0b0)):
+                    yield self.obj_profile._OBJECT_HEADER(
+                        offset=i + self.obj_offset + self.obj_size,
+                        vm=self.obj_vm, parent=self)
 
     @property
     def FreePool(self):
@@ -1179,8 +1187,7 @@ class _OBJECT_DIRECTORY(ObjectMixin, obj.Struct):
                     entry.Object.v() - self.obj_profile.get_obj_size(
                         "_OBJECT_HEADER"))
 
-                if target_obj_header:
-                    yield target_obj_header
+                yield target_obj_header
 
     def __iter__(self):
         return self.list()

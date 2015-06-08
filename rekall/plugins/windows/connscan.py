@@ -51,7 +51,7 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
     def is_active(cls, session):
         # These only work for XP.
         return (super(ConnScan, cls).is_active(session) and
-                session.profile.metadata("major") == "5")
+                session.profile.metadata("major") == 5)
 
     def generate_hits(self):
         """Search the physical address space for _TCPT_OBJECTs.

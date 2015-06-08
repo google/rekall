@@ -57,7 +57,11 @@ linux_overlay = {
 #define EXIT_DEAD               32
 /* in tsk->state again */
 """))]],
+
+        # Common pseudo fields to provide cross OS compatibility.
         'name': lambda x: x.comm,
+        'dtb': lambda x: x.obj_vm.vtop(x.mm.pgd.v()),
+
         'comm': [None, ['UnicodeString', dict(length=16)]],
         'uid': lambda x: x.m("uid") or x.cred.uid,
         'gid': lambda x: x.m("gid") or x.cred.gid,

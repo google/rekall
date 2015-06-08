@@ -55,7 +55,7 @@ class WindowsPagedMemoryMixin(object):
         self.pagefile_mapping = getattr(self.base, "pagefile_offset", None)
 
         self._resolve_vads = True
-        self.vads = None
+        self.vads = []
 
         # We cache these bitfields in order to speed up mask calculations. We
         # derive them initially from the profile so we do not need to hardcode
@@ -182,7 +182,9 @@ class WindowsPagedMemoryMixin(object):
         return "Pagefile", None
 
     def get_available_addresses(self, start=0):
-        self.vads = list(self.session.address_resolver.GetVADs())
+        if self.session.GetParameter("process_context"):
+            self.vads = list(self.session.address_resolver.GetVADs())
+
         for ranges in super(
                 WindowsPagedMemoryMixin, self).get_available_addresses(
                     start=start):

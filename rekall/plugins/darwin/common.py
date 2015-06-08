@@ -157,6 +157,15 @@ class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(session))
 
 
+class AbstractDarwinParameterHook(kb.ParameterHook):
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is Darwin."""
+        return (super(AbstractDarwinParameterHook, cls).is_active(session) and
+                session.profile.metadata("os") == 'darwin')
+
+
 class DarwinFindKASLR(AbstractDarwinCommandPlugin):
     """A scanner for KASLR slide values in the Darwin kernel.
 

@@ -29,7 +29,8 @@ darwin_overlay = {
     "proc": [None, {
         # Some standard fields for Darwin processes.
         "name": lambda x: x.p_comm,
-        "pid": lambda x: x.p_pid,
+        "pid": lambda x: x.p_pid.v(),
+        "dtb": lambda x: x.task.map.pmap.pm_cr3.v(),
 
         "p_list": [None, ["LIST_ENTRY"]],
         "p_sibling": [None, ["LIST_ENTRY"]],

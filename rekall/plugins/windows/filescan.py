@@ -161,7 +161,7 @@ class DriverScan(FileScan):
                                ('Service Key', "driver_servicekey", '20'),
                                ('Name', "driver_name", '12'),
                                ('Driver Name', "path", '')
-                               ])
+                              ])
 
         for _ in self.generate_hits():
             pool_obj, object_obj, driver_obj, extension_obj, object_name = _
@@ -187,7 +187,7 @@ class PoolScanSymlink(PoolScanFile):
 
             ('CheckPoolSize', dict(
                 min_size=self.profile.get_obj_size(
-                        "_OBJECT_SYMBOLIC_LINK"))),
+                    "_OBJECT_SYMBOLIC_LINK"))),
 
             ('CheckPoolType', dict(paged=True, non_paged=True, free=True)),
             ]
@@ -224,7 +224,7 @@ class SymLinkScan(FileScan):
                                ('Creation time', "symlink_creation_time", '24'),
                                ('From', "symlink_from", ''),
                                ('To', "symlink_to", '60'),
-                               ])
+                              ])
 
 
         for pool_obj, o, link, name in self.generate_hits():
@@ -294,7 +294,7 @@ class MutantScan(plugin.VerbosityMixIn, FileScan):
                                ('Thread', "mutant_thread", '[addrpad]'),
                                ('CID', "cid", '>9'),
                                ('Name', "mutant_name", '')
-                               ])
+                              ])
 
         for pool_obj, object_obj, mutant, _ in self.generate_hits():
             if mutant.OwnerThread > 0x80000000:
@@ -337,15 +337,18 @@ class PoolScanProcess(common.PoolScanner):
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
                 "_EPROCESS"))),
 
+            # FIXME: _EPROCESS is never allocated from paged pool. We need to
+            # cross correlate with the pool tracker plugin.
             ('CheckPoolType', dict(
-                paged=True, non_paged=True, free=True)),
+                paged=False, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
             ]
 
-    def scan(self, **_):
-        for pool_obj in super(PoolScanProcess, self).scan():
-            object_header = pool_obj.GetObject()
+    def scan(self, **kwargs):
+        for pool_obj in super(PoolScanProcess, self).scan(**kwargs):
+            # Also fetch freed objects.
+            object_header = pool_obj.GetObject(type="Process", freed=True)
             if not object_header:
                 continue
 
@@ -362,7 +365,7 @@ class PoolScanProcess(common.PoolScanner):
             # Pointers must point to the kernel part of the address space.
             list_head = eprocess.ActiveProcessLinks
             if (list_head.Flink < self.kernel or
-                list_head.Blink < self.kernel):
+                    list_head.Blink < self.kernel):
                 continue
 
             yield pool_obj, eprocess

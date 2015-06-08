@@ -47,6 +47,15 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
                 plugin.Command.is_active(session))
 
 
+class AbstractLinuxParameterHook(kb.ParameterHook):
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is Linux."""
+        return (super(AbstractLinuxParameterHook, cls).is_active(session) and
+                session.profile.metadata("os") == 'linux')
+
+
 class LinuxTestMixin(object):
 
     @classmethod

@@ -203,7 +203,7 @@ class Gahti(win32k_core.Win32kPluginMixin,
             target_args=dict(
                 index_table=constants.HANDLE_TYPE_ENUM_SEVEN,
                 target="tagHANDLETYPEINFO",
-                count=20 if self.profile.metadata("version") < "6.1" else 22
+                count=20 if self.profile.metadata("version") < 6.1 else 22
                 ),
             vm=session.obj_vm,
             )

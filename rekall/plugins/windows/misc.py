@@ -146,14 +146,16 @@ class Objects(common.WindowsCommandPlugin):
                 yield t
 
     def render(self, renderer):
-        renderer.table_header(
-            [("Index", "idx", ">5"),
-             ("Number Objects", "TotalNumberOfObjects", ">15"),
-             ("PoolType", "PoolType", "20"),
-             ("Name", "name", "")])
+        renderer.table_header([
+            ("Type", "type", "[addrpad]"),
+            ("Index", "idx", ">5"),
+            ("Number Objects", "TotalNumberOfObjects", ">15"),
+            ("PoolType", "PoolType", "20"),
+            ("Name", "name", "")])
 
         for obj_type in self.object_types():
             renderer.table_row(
+                obj_type,
                 obj_type.Index,
                 obj_type.TotalNumberOfObjects,
                 obj_type.TypeInfo.PoolType,

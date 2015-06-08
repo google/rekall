@@ -29,6 +29,17 @@ from rekall.plugins.windows import common
 class WinPas2Vas(pas2kas.Pas2VasMixin, common.WinProcessFilter):
     """Resolves a physical address to a virtual addrress in a process."""
 
+
+class WinPas2VasResolver(pas2kas.Pas2VasResolver):
     def _get_highest_user_address(self):
-        return self.profile.get_constant_object(
+        return self.session.profile.get_constant_object(
             "MmHighestUserAddress", "unsigned long long")
+
+
+class WinPas2VasResolverHook(common.AbstractWindowsParameterHook):
+    """Provide the Pas2Vas resolver."""
+
+    name = "physical_address_resolver"
+
+    def calculate(self):
+        return WinPas2VasResolver(session=self.session)

@@ -21,6 +21,28 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall.plugins import core
 from rekall.plugins.darwin import common
+from rekall.plugins.common import entities
+
+
+class Processes(entities.EntityFind,
+                common.DarwinProcessFilter):
+    __name = "pslist"
+    search = ("has component Process")
+    columns = [
+        dict(attribute="Struct/base",
+             width=40,
+             name="Process"),
+        "Process/parent", "Process/user", "Process/is_64bit",
+        "Timestamps/created_at", "Process/cr3"]
+    sort = ["Process/pid"]
+
+    def filter_processes(self):
+        rows = self.session.entities.find(self.query,
+                                          complete=self.complete_results,
+                                          syntax=self.syntax)
+        for entity in rows:
+            result = entity["Struct/base"]
+            yield result
 
 
 class DarwinPsxView(common.DarwinPlugin):

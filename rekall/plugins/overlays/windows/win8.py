@@ -175,7 +175,7 @@ class ObpInfoMaskToOffsetHook(kb.ParameterHook):
             session=self.session)
 
         return [int(x) for x in self.session.profile.Array(
-            target="byte", vm=cached_vm, count=0xFF)]
+            target="byte", vm=cached_vm, count=0x100)]
 
 
 class _PSP_CID_TABLE(common._HANDLE_TABLE):
@@ -230,7 +230,7 @@ def InitializeWindows8Profile(profile):
         profile.add_overlay(win8_undocumented_i386)
 
     # Win8.1 changed the vad data structures.
-    if profile.metadata("version") >= "6.3":
+    if profile.metadata("version") >= 6.3:
         profile.add_overlay(win8_1_overlays)
 
     profile.add_classes(dict(

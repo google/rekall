@@ -364,8 +364,8 @@ class BaseScanner(object):
         # from the second chunk.
         chunk_end = 0
 
-        for (range_start, phys_start,
-             length) in self.address_space.get_address_ranges(offset, end):
+        for run in self.address_space.get_address_ranges(start=offset, end=end):
+            range_start, phys_start, length = run
 
             # Find a new range if offset is past this range.
             range_end = range_start + length

@@ -856,7 +856,7 @@ class Win32k(pe_vtypes.BasicPEProfile):
         version = profile.metadata('version')
         arch = profile.metadata("arch")
 
-        if version < "6.0":
+        if version < 6.0:
             if arch == "I386":
                 profile.add_types(xp.vtypes_xp_32)
             else:

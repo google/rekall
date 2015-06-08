@@ -47,7 +47,7 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
     def is_active(cls, session):
         # These only work for XP.
         return (super(Connections, cls).is_active(session) and
-                session.profile.metadata("major") == "5")
+                session.profile.metadata("major") == 5)
 
     def render(self, renderer):
         renderer.table_header(
@@ -55,7 +55,7 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
              ("Local Address", "local_net_address", "25"),
              ("Remote Address", "remote_net_address", "25"),
              ("Pid", "pid", ">6")
-             ])
+            ])
 
         # The _TCBTable is a pointer to the hash table.
         TCBTable = self.tcpip_profile.get_constant_object(
@@ -66,7 +66,7 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
                 target="Array",
                 target_args=dict(
                     count=int(self.tcpip_profile.get_constant_object(
-                            "MaxHashTableSize", "unsigned int")),
+                        "MaxHashTableSize", "unsigned int")),
 
                     target="Pointer",
                     target_args=dict(
@@ -106,7 +106,7 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
     def is_active(cls, session):
         # These only work for XP.
         return (super(Sockets, cls).is_active(session) and
-                session.profile.metadata("major") == "5")
+                session.profile.metadata("major") == 5)
 
     def render(self, renderer):
         renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
@@ -116,7 +116,7 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
                                ("Protocol", "protocol", "10"),
                                ("Address", "address", "15"),
                                ("Create Time", "socket_create_time", "")
-                               ])
+                              ])
 
         AddrObjTable = self.tcpip_profile.get_constant_object(
             "AddrObjTable",
@@ -126,7 +126,7 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
                 target="Array",
                 target_args=dict(
                     count=int(self.tcpip_profile.get_constant_object(
-                            "AddrObjTableSize", "unsigned int")),
+                        "AddrObjTableSize", "unsigned int")),
 
                     target="Pointer",
                     target_args=dict(

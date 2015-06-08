@@ -28,6 +28,89 @@ import collections
 from rekall import testlib
 
 
+class Pas2VasResolver(object):
+    """An object which resolves physical addresses to virtual addresses."""
+    def __init__(self, session):
+        self.session = session
+
+        # Maintains some maps to ensure fast lookups.
+        self.dtb2task = {}
+        self.dtb2maps = {}
+        self.dtb2userspace = {}
+
+        # Add the kernel.
+        self.dtb2task[self.session.GetParameter("dtb")] = "Kernel"
+
+        pslist = self.session.plugins.pslist()
+        for task in pslist.filter_processes():
+            self.dtb2task[task.dtb] = task
+
+    def _get_highest_user_address(self):
+        return 2**64-1
+
+    def PA2VA_for_DTB(self, physical_address, dtb, userspace=None):
+        if dtb == None:
+            return None, None
+
+        # Choose the userspace mode automatically.
+        if userspace is None:
+            userspace = dtb != self.session.kernel_address_space.dtb
+
+        # Build a map for this dtb.
+        lookup_map = self.dtb2maps.get(dtb)
+
+        # If we want the full resolution and the previous cached version was for
+        # userspace only, discard this lookup map and rebuild it.
+        if not userspace and self.dtb2userspace.get(dtb):
+            lookup_map = None
+
+        if not lookup_map:
+            lookup_map = self.dtb2maps[dtb] = self.build_address_map(
+                dtb, userspace=userspace)
+            self.dtb2userspace[dtb] = userspace
+
+        if lookup_map:
+            if physical_address > lookup_map[0][0]:
+                # This efficiently finds the entry in the map just below the
+                # physical_address.
+                lookup_pa, length, lookup_va = lookup_map[
+                    bisect.bisect(
+                        lookup_map, (physical_address, 2**64, 0, 0))-1]
+
+                if (lookup_pa <= physical_address and
+                        lookup_pa + length > physical_address):
+                    # Yield the pid and the virtual offset
+                    task = self.dtb2task.get(dtb, "Kernel")
+                    return lookup_va + physical_address - lookup_pa, task
+
+        return None, None
+
+    def build_address_map(self, dtb, userspace=True):
+        """Given the virtual_address_space, build the address map."""
+        # This lookup map is sorted by the physical address. We then use
+        # bisect to efficiently look up the physical page.
+        tmp_lookup_map = []
+
+        address_space = self.session.kernel_address_space.__class__(
+            base=self.session.physical_address_space,
+            session=self.session,
+            dtb=dtb)
+
+        highest_virtual_address = self._get_highest_user_address()
+        for va, pa, length in address_space.get_available_addresses():
+            # Only consider userspace addresses for processes.
+            if userspace and va > highest_virtual_address:
+                break
+
+            tmp_lookup_map.append((pa, length, va))
+            self.session.report_progress(
+                "Enumerating memory for dtb %#x (%#x)", dtb, va)
+
+        # Now sort the map and return it.
+        tmp_lookup_map.sort()
+        return tmp_lookup_map
+
+
 class Pas2VasMixin(object):
     """Resolves a physical address to a virtual addrress in a process."""
 
@@ -68,72 +151,26 @@ class Pas2VasMixin(object):
         else:
             self.physical_address = [offsets]
 
-        # Cache the process maps in the session.
-        self.maps = self.session.GetParameter("process_maps")
-        if self.maps == None:
-            self.maps = {}
-            self.session.SetCache("process_maps", self.maps)
+    def get_virtual_address(self, physical_address, tasks=None):
+        resolver = self.session.GetParameter("physical_address_resolver")
 
-    def BuildMaps(self):
-        if "Kernel" not in self.maps:
-            self.build_address_map(self.kernel_address_space,
-                                   "Kernel", "Kernel")
+        if tasks is None:
+            tasks = list(self.filter_processes())
 
-        for task in self.filter_processes():
-            pid = int(task.pid)
-            task_as = task.get_process_address_space()
+        # First try the kernel.
+        virtual_address, _ = resolver.PA2VA_for_DTB(
+            physical_address, dtb=self.session.kernel_address_space.dtb,
+            userspace=False)
 
-            # All kernel processes have the same page tables.
-            if task_as.dtb == self.kernel_address_space.dtb:
-                continue
+        if virtual_address:
+            yield virtual_address, "Kernel"
 
-            if pid in self.maps:
-                continue
-
-            self.build_address_map(task_as, pid, task)
-
-    def build_address_map(self, virtual_address_space, pid, task):
-        """Given the virtual_address_space, build the address map."""
-        # This lookup map is sorted by the physical address. We then use
-        # bisect to efficiently look up the physical page.
-        tmp_lookup_map = []
-
-        highest_virtual_address = self._get_highest_user_address()
-
-        for va, pa, length in virtual_address_space.get_available_addresses():
-            # Only consider userspace addresses for processes.
-            if pid != "Kernel" and va > highest_virtual_address:
-                break
-
-            tmp_lookup_map.append((pa, length, va, task))
-            self.session.report_progress(
-                "Enumerating memory for task %s (%#x)", pid, va)
-
-        tmp_lookup_map.sort()
-        self.maps[pid] = tmp_lookup_map
-
-    def get_virtual_address(self, physical_address):
         # Find which process owns it.
-        for pid in self.maps:
-            virtual_offset, task = self._get_virtual_address(
-                physical_address, pid)
+        for task in tasks:
+            virtual_offset, task = resolver.PA2VA_for_DTB(
+                physical_address, task.dtb, userspace=True)
             if virtual_offset is not None:
                 yield virtual_offset, task
-
-    def _get_virtual_address(self, physical_address, pid):
-        lookup_map = self.maps[pid]
-
-        if physical_address > lookup_map[0][0]:
-            # This efficiently finds the entry in the map just below the
-            # physical_address.
-            lookup_pa, length, lookup_va, task = lookup_map[
-                bisect.bisect(lookup_map, (physical_address, 2**64, 0, 0))-1]
-
-            if (lookup_pa <= physical_address and
-                    lookup_pa + length > physical_address):
-                # Yield the pid and the virtual offset
-                return lookup_va + physical_address - lookup_pa, task
-        return None, None
 
     def render(self, renderer):
         renderer.table_header([('Physical', 'virtual_offset', '[addrpad]'),
@@ -141,11 +178,10 @@ class Pas2VasMixin(object):
                                ('Pid', 'pid', '>6'),
                                ('Name', 'name', '')])
 
-        self.BuildMaps()
-
+        tasks = list(self.filter_processes())
         for physical_address in self.physical_address:
             for virtual_address, task in self.get_virtual_address(
-                    physical_address):
+                    physical_address, tasks):
                 if task is 'Kernel':
                     renderer.table_row(physical_address, virtual_address,
                                        0, 'Kernel')

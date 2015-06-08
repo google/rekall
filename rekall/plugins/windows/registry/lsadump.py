@@ -67,8 +67,9 @@ class LSADump(common.WindowsCommandPlugin):
         self.profile = registry.RekallRegisteryImplementation(self.profile)
 
     def calculate(self):
-        sys_hive = registry.RegistryHive(profile=self.profile, hive_offset=self.sys_offset,
-                                         kernel_address_space=self.kernel_address_space)
+        sys_hive = registry.RegistryHive(
+            profile=self.profile, hive_offset=self.sys_offset,
+            kernel_address_space=self.kernel_address_space)
 
         security_hive = registry.RegistryHive(
             profile=self.profile, hive_offset=self.security_offset,
@@ -95,7 +96,7 @@ class HashDump(LSADump):
            sys_offset: The hive virtual offset to the system hive.
            sam_offset: The hive virtual offset to the sam hive.
         """
-        super(LSADump, self).__init__(**kwargs)
+        super(HashDump, self).__init__(**kwargs)
         self.sys_offset = sys_offset
         self.sam_offset = sam_offset
         self.profile = registry.RekallRegisteryImplementation(self.profile)

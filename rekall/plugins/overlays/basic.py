@@ -493,8 +493,9 @@ class ListMixIn(object):
                 # Only yield valid objects (In case of dangling links).
                 yield task
 
-    def list_of_type_fast(self, type, member):
-        for lst in self.walk_list(self._forward):
+    def list_of_type_fast(self, type, member, include_current=True):
+        for lst in self.walk_list(
+                self._forward, include_current=include_current):
             yield container_of(lst, type, member)
 
     def reflect(self, vm=None):

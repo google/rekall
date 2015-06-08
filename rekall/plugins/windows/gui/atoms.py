@@ -76,10 +76,10 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
             fixup = 0
 
             if self.profile.metadata('arch') == 'I386':
-                if version > "5.1":
+                if version > 5.1:
                     fixup = 8
             else:
-                if version > "5.1":
+                if version > 5.1:
                     fixup = 16
 
             atom_table = self.win32k_profile._RTL_ATOM_TABLE(

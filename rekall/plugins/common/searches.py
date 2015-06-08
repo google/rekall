@@ -74,18 +74,6 @@ class TestListEvents(testlib.SortedComparison):
     PARAMETERS = dict(commandline="events")
 
 
-class Processes(DarwinOnlyMixin, entities.EntityFind):
-    __name = "pslist"
-    search = ("has component Process")
-    columns = [
-        dict(attribute="Struct/base",
-             width=40,
-             name="Process"),
-        "Process/parent", "Process/user", "Process/is_64bit",
-        "Timestamps/created_at", "Process/cr3"]
-    sort = ["Process/pid"]
-
-
 class LSOF(DarwinOnlyMixin, entities.EntityFind):
     __name = "lsof"
     description = "Open Files"

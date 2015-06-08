@@ -49,15 +49,12 @@ DNS_TYPES = {
 
 types = {
     "DNS_HASHTABLE_ENTRY": [None, {
-        "Next": [0x0, ["Pointer", dict(
-            target="DNS_HASHTABLE_ENTRY"
-            )]],
-
+        "List": [0x0, ["_LIST_ENTRY"]],
         "Name": [0x8, ["Pointer", dict(
             target="UnicodeString"
             )]],
 
-        "Record": [24, ["Pointer", dict(
+        "Record": [0x18, ["Pointer", dict(
             target="DNS_RECORD"
         )]],
     }],
@@ -78,6 +75,22 @@ types = {
     }],
 }
 
+win10_overlays = {
+    "DNS_HASHTABLE_ENTRY": [None, {
+        "List": [0x8, ["_LIST_ENTRY"]],
+        "Name": [0x38, ["Pointer", dict(
+            target="UnicodeString"
+            )]],
+
+        "Record": [0x58, ["Pointer", dict(
+            target="DNS_RECORD"
+        )]],
+    }],
+
+}
+
+
+
 class DNS_RECORD(obj.Struct):
     @property
     def Data(self):
@@ -91,6 +104,13 @@ class DNS_RECORD(obj.Struct):
 
 def InitializedDNSTypes(profile):
     profile.add_types(types)
+    profile.add_types(dict(
+        _LIST_ENTRY=profile.session.profile.vtypes["_LIST_ENTRY"]))
+
+    # Windows 10 changes things around a bit.
+    if profile.session.profile.metadata("major") == 10:
+        profile.add_overlay(win10_overlays)
+
     profile.add_classes(
         DNS_RECORD=DNS_RECORD
     )
@@ -106,7 +126,8 @@ class WinDNSCache(common.WindowsCommandPlugin):
     @classmethod
     def is_active(cls, session):
         return (super(WinDNSCache, cls).is_active(session) and
-                session.profile.metadata("version") == "6.1")
+                session.profile.metadata("arch") == "AMD64" and
+                session.profile.metadata("major") >= 6)
 
     @classmethod
     def args(cls, parser):
@@ -348,7 +369,9 @@ class WinDNSCache(common.WindowsCommandPlugin):
                 ])
 
                 for bucket in cache_hash_table:
-                    for entry in bucket.walk_list("Next", True):
+                    for entry in bucket.List.list_of_type_fast(
+                            "DNS_HASHTABLE_ENTRY", "List",
+                            include_current=True):
                         name = entry.Name.deref()
                         renderer.table_row(
                             name, entry, "HTABLE", depth=0)

@@ -62,6 +62,15 @@ class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
                 session.profile.metadata("os") == 'windows')
 
 
+class AbstractWindowsParameterHook(kb.ParameterHook):
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is windows."""
+        return (super(AbstractWindowsParameterHook, cls).is_active(session) and
+                session.profile.metadata("os") == 'windows')
+
+
 class WinDTBScanner(scan.BaseScanner):
     def __init__(self, process_name=None, **kwargs):
         super(WinDTBScanner, self).__init__(**kwargs)
@@ -249,7 +258,6 @@ class CheckPoolSize(scan.ScannerCheck):
             vm=buffer_as, offset=offset)
 
         block_size = pool_hdr.BlockSize.v()
-
         return self.condition(block_size * self.pool_align)
 
 

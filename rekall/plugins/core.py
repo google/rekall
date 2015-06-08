@@ -1265,7 +1265,6 @@ class VtoPMixin(object):
                 self.physical_address_space.describe(physical_address))
 
 
-
 class PluginHelp(obj.Profile):
     """A profile containing all plugin help."""
 

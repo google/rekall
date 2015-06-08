@@ -593,7 +593,7 @@ class Session(object):
                 result = hook.calculate()
 
                 # Cache the output from the hook directly.
-                self.state.cache[name] = result
+                self.SetCache(name, result)
 
                 return result
 

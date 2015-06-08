@@ -36,26 +36,26 @@ import datetime
 # from Into the Boxes issue 0x0:
 #  http://intotheboxes.wordpress.com/2010/01/01/into-the-boxes-issue-0x0/
 ua_win7_vtypes = {
-  '_VOLUSER_ASSIST_TYPES' : [0x48, {
-    'Count': [0x04, ['unsigned int']],
-    'FocusCount': [0x08, ['unsigned int']],
-    'FocusTime': [0x0C, ['unsigned int']],
-    'LastUpdated' : [0x3C, ['WinFileTime']]
+    '_VOLUSER_ASSIST_TYPES' : [0x48, {
+        'Count': [0x04, ['unsigned int']],
+        'FocusCount': [0x08, ['unsigned int']],
+        'FocusTime': [0x0C, ['unsigned int']],
+        'LastUpdated' : [0x3C, ['WinFileTime']]
     }],
 }
 
 ua_vtypes = {
-  '_VOLUSER_ASSIST_TYPES' : [0x10, {
-    'ID': [0x0, ['unsigned int']],
-    'CountStartingAtFive': [0x04, ['unsigned int']],
-    'LastUpdated' : [0x08, ['WinFileTime']]
+    '_VOLUSER_ASSIST_TYPES' : [0x10, {
+        'ID': [0x0, ['unsigned int']],
+        'CountStartingAtFive': [0x04, ['unsigned int']],
+        'LastUpdated' : [0x08, ['WinFileTime']]
     }],
 }
 
 # taken from http://msdn.microsoft.com/en-us/library/dd378457%28v=vs.85%29.aspx
 FOLDER_GUIDS = {
-    "{de61d971-5ebc-4f02-a3a9-6c82895e5c04}":"Add or Remove Programs (Control Panel)",
-    "{724EF170-A42D-4FEF-9F26-B60E846FBA4F}":"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Administrative Tools",
+    "{de61d971-5ebc-4f02-a3a9-6c82895e5c04}": "Add or Remove Programs (Control Panel)",
+    "{724EF170-A42D-4FEF-9F26-B60E846FBA4F}": "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Administrative Tools",
     "{a305ce99-f527-492b-8b1a-7e76fa98d6e4}":"Installed Updates",
     "{9E52AB10-F80D-49DF-ACB8-4330F5687855}":"%LOCALAPPDATA%\\Microsoft\\Windows\\Burn\\Burn",
     "{df7266ac-9274-4867-8d55-3bd661de872d}":"Programs and Features",
@@ -164,7 +164,7 @@ class UserAssistModification(obj.ProfileModification):
     @classmethod
     def modify(cls, profile):
         # Update the profiles for user assist types.
-        if profile.metadata('version') == '6.1':
+        if profile.metadata('version') >= 6.1:
             profile.add_types(ua_win7_vtypes)
         else:
             profile.add_types(ua_vtypes)
@@ -231,7 +231,8 @@ class UserAssist(registry.RegistryPlugin):
 
     def render(self, outfd):
         for reg, key in self.find_count_keys():
-            if not key: continue
+            if not key:
+                continue
 
             outfd.write("----------------------------\n")
             outfd.write("Registry: {0}\n".format(reg.Name))
@@ -241,7 +242,7 @@ class UserAssist(registry.RegistryPlugin):
             outfd.write("Subkeys:\n")
 
             for subkey in key.subkeys():
-                outfd.write("  {0}\n".format(s.Name))
+                outfd.write("  {0}\n".format(subkey.Name))
 
             outfd.write("\n")
             outfd.write("Values:\n")

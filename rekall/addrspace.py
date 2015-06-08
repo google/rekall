@@ -203,10 +203,9 @@ class BaseAddressSpace(object):
                 break
 
             # This can take some time as we enumerate all the address ranges.
-            if self.session:
-                self.session.report_progress(
-                    "%(name)s: Merging Address Ranges %(spinner)s",
-                    name=self.name)
+            self.session.report_progress(
+                "%(name)s: Merging Address Ranges %(offset)#x %(spinner)s",
+                offset=voffset, name=self.name)
 
             # Try to join up adjacent pages as much as possible.
             if (voffset == contiguous_voffset + total_length and
@@ -265,11 +264,15 @@ class BaseAddressSpace(object):
 class BufferAddressSpace(BaseAddressSpace):
     __abstract = True
 
-    def __init__(self, base_offset=0, data='', **kwargs):
+    def __init__(self, base_offset=0, data='', metadata=None, **kwargs):
         super(BufferAddressSpace, self).__init__(**kwargs)
         self.fname = "Buffer"
         self.data = data
         self.base_offset = base_offset
+        self._metadata = metadata or {}
+
+    def metadata(self, key):
+        return self._metadata.get(key)
 
     def assign_buffer(self, data, base_offset=0):
         self.base_offset = base_offset

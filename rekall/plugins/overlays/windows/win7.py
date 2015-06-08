@@ -94,8 +94,7 @@ win7_overlays = {
                 0x40: "PaddingInfo",
                 }),
             target="unsigned char",
-            )
-                             ]],
+            )]],
         }],
     }
 
@@ -162,9 +161,62 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
             vm=self.obj_vm, parent=self)
 
     def get_object_type(self, vm=None):
-        """Return the object's type as a string"""
+        """Return the object's type as a string."""
         return self.obj_session.GetParameter("ObjectTypeMap")[
             self.TypeIndex].Name.v()
+
+    @property
+    def TypeIndex(self):
+        """In windows 10 the type index is obfuscated.
+        Windows 10 obfuscates the object type using a cookie:
+
+  ------ nt!ObpRemoveObjectRoutine ------: 0xf801a628e7e0
+  0xf801a628e7e0 MOV [RSP+0x10], RBX
+  0xf801a628e7e5 MOV [RSP+0x18], RBP
+  0xf801a628e7ea MOV [RSP+0x20], RSI
+  0xf801a628e7ef PUSH RDI
+  0xf801a628e7f0 SUB RSP, 0x50
+  0xf801a628e7f4 MOV RBX, RCX                   // RCX is object header.
+  0xf801a628e7f7 LEA RDI, [RIP-0x48f1e]         0x0 nt!ObTypeIndexTable
+  0xf801a628e7fe MOV RAX, RCX
+  0xf801a628e801 MOVZX ESI, DL
+  0xf801a628e804 SHR RAX, 0x8                   // Shift address by 8
+  0xf801a628e808 MOVZX ECX, AL
+  0xf801a628e80b MOVZX EAX, BYTE [RBX+0x18]     // _OBJECT_HEADER.TypeIndex
+  0xf801a628e80f XOR RCX, RAX                   // XOR with object type
+  0xf801a628e812 MOVZX EAX, BYTE [RIP-0x493ed]  0x1dd4015af55 nt!ObHeaderCookie
+  0xf801a628e819 XOR RCX, RAX                   // XOR with cookie
+  0xf801a628e81c MOV RDI, [RDI+RCX*8]           // Dereference table.
+"""
+        cookie = self.obj_profile.get_constant_object(
+            "ObHeaderCookie", target="byte").v()
+
+        # Windows 7 has no cookie.
+        if cookie == None:
+            return self.m("TypeIndex")
+
+        # Windows 10 xors the virtual address into this field so we need to use
+        # the virtual address to decode it.
+
+        # We are operating on the physical address space. We need to find the
+        # virtual address.
+        if self.obj_vm.metadata("image"):
+            # Resolve the virtual address for this physical address.
+            resolver = self.obj_session.GetParameter(
+                "physical_address_resolver")
+
+            vaddr, _ = resolver.PA2VA_for_DTB(
+                self.obj_offset,
+                self.obj_session.GetParameter("dtb"),
+                userspace=False)
+
+            # This hit does not exist in the kernel Address Space.
+            if vaddr is None:
+                return 0
+        else:
+            vaddr = self.obj_offset
+
+        return ((vaddr >> 8) ^ cookie ^ int(self.m("TypeIndex"))) & 0xFF
 
     def is_valid(self):
         """Determine if the object makes sense."""
@@ -177,7 +229,7 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
         if handle_count > 0x1000 or handle_count < 0:
             return False
 
-        # Must be one to types revealed by the object_types plugins.
+        # Must be one of the types revealed by the object_types plugins.
         if  self.TypeIndex >= 50 or self.TypeIndex < 1:
             return False
 
@@ -242,10 +294,12 @@ class _POOL_HEADER(common._POOL_HEADER):
 
         self.lookup["\x00"] = 0
 
-        # Iterate over all the possible InfoMask values.
-        for i in range(0x80):
-            # Locate the largest offset from the start of _OBJECT_HEADER.
-            bit_position = 0x40
+        # Iterate over all the possible InfoMask values (Bytes can take on 256
+        # values).
+        for i in range(0x100):
+            # Locate the largest offset from the start of
+            # _OBJECT_HEADER. Starting with the largest bit position 1 << 7.
+            bit_position = 0x80
             while bit_position > 0:
                 # This is the optional header with the largest offset.
                 if bit_position & i:
@@ -255,7 +309,7 @@ class _POOL_HEADER(common._POOL_HEADER):
                     break
                 bit_position >>= 1
 
-    def IterObject(self, type=None):
+    def IterObject(self, type=None, freed=True):
         """Generates possible _OBJECT_HEADER accounting for optional headers.
 
         Note that not all pool allocations have an _OBJECT_HEADER - only ones
@@ -278,10 +332,11 @@ class _POOL_HEADER(common._POOL_HEADER):
 
         # Operate on a cached version of the next page.
         # We use a temporary buffer for the object to save reads of the image.
-        cached_data = self.obj_vm.read(self.obj_offset + self.obj_size,
-                                       allocation_size)
+        start = self.obj_end
+        cached_data = self.obj_vm.read(start, allocation_size)
         cached_vm = addrspace.BufferAddressSpace(
-            data=cached_data, session=self.obj_session)
+            base_offset=start, data=cached_data, session=self.obj_session,
+            metadata=dict(image=self.obj_vm.metadata("image")))
 
         # We search for the _OBJECT_HEADER.InfoMask in close proximity to our
         # object. We build a lookup table between the values in the InfoMask and
@@ -297,18 +352,21 @@ class _POOL_HEADER(common._POOL_HEADER):
         if not self.lookup:
             self._BuildLookupTable()
 
-        for i in xrange(0, allocation_size - info_mask_offset, pool_align):
-            if i + info_mask_offset > len(cached_data):
-                break
+        # Walk over all positions in the address space and try to fit an object
+        # header there.
+        for i in utils.xrange(start,
+                              start + allocation_size - info_mask_offset,
+                              pool_align):
+            possible_info_mask = cached_data[i - start + info_mask_offset]
+            #if possible_info_mask > '\x7f':
+            #    continue
 
-            possible_info_mask = cached_data[i + info_mask_offset]
-            if possible_info_mask > '\x7f':
-                continue
-
+            # The minimum amount of space needed before the object header to
+            # hold all the optional headers.
             minimum_offset = self.lookup[possible_info_mask]
 
             # Obviously wrong because we need more space than we have.
-            if minimum_offset > i:
+            if minimum_offset > i - start:
                 continue
 
             # Create a test object header from the cached vm to test for
@@ -317,12 +375,12 @@ class _POOL_HEADER(common._POOL_HEADER):
                 offset=i, vm=cached_vm)
 
             if test_object.is_valid():
-                if type is not None and test_object.get_object_type() != type:
-                    continue
-
-                yield self.obj_profile._OBJECT_HEADER(
-                    offset=i + self.obj_offset + self.obj_size,
-                    vm=self.obj_vm, parent=self)
+                if (type is None or
+                        test_object.get_object_type() == type or
+                        # Freed objects point to index 2
+                        #(which is also 0xbad0b0b0).
+                        (freed and test_object.TypeIndex == 2)):
+                    yield test_object
 
 
 class ObjectTypeMapHook(kb.ParameterHook):

@@ -184,7 +184,7 @@ class EVTScanner(scan.BaseScanner):
 
             # Eliminate crazy events (between 2001 and 2017):
             if (1500000000 > event.TimeGenerated > 1000000000 and
-                1500000000 > event.TimeWritten > 1000000000):
+                    1500000000 > event.TimeWritten > 1000000000):
                 yield event
 
 
@@ -197,7 +197,7 @@ class EvtLogs(plugin.VerbosityMixIn, registry.RegistryPlugin):
     def is_active(cls, config):
         """Only active for windows XP."""
         return (super(EvtLogs, cls).is_active(config) and
-                config.profile.metadata("major") == "5")
+                config.profile.metadata("major") == 5)
 
     def __init__(self, **kwargs):
         super(EvtLogs, self).__init__(**kwargs)

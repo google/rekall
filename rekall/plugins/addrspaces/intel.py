@@ -436,8 +436,10 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             return
 
         if self.page_size_flag(pde_value):
-            yield "Large page mapped", self.get_four_meg_paddr(
-                vaddr, pde_value), None
+            physical_address = self.get_four_meg_paddr(
+                vaddr, pde_value)
+            yield "Large page mapped", physical_address, None
+            yield "Physical Address", physical_address, None
             return
 
         pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x1ff000) >> 9)
