@@ -124,7 +124,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         # The command line is specified in the test's PARAMETERS dict.
         try:
             baseline_commandline = baseline_commandline % config_options
-        except KeyError, e:
+        except KeyError as e:
             logging.critical(
                 "Test %s requires parameter %s to be set in config file. (%s)",
                 config_options["test_class"], e, baseline_commandline)

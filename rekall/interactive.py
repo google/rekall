@@ -46,7 +46,7 @@ def ImportEnvironment(**kwargs):
                 lambda x: ipython_support.RekallCompleter(shell.Completer, x))
 
             shell.Completer.merge_completions = False
-    except Exception, e:
-        print e
+    except Exception as e:
+        print(e)
 
     return isession

@@ -379,7 +379,7 @@ class LoadAddressSpace(plugin.Command):
 
             return self.session.physical_address_space
 
-        except addrspace.ASAssertionError, e:
+        except addrspace.ASAssertionError as e:
             self.session.logging.error("Could not create address space: %s" % e)
 
         return self.session.physical_address_space
@@ -475,12 +475,12 @@ class LoadAddressSpace(plugin.Command):
                     found = True
                     break
                 except (AssertionError,
-                        addrspace.ASAssertionError), e:
+                        addrspace.ASAssertionError) as e:
                     self.session.logging.debug("Failed instantiating %s: %s",
                                   cls.__name__, e)
                     error.append_reason(cls.__name__, e)
                     continue
-                except Exception, e:
+                except Exception as e:
                     self.session.logging.error("Fatal Error: %s", e)
                     if self.session.GetParameter("debug"):
                         pdb.post_mortem()

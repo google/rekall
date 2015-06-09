@@ -200,7 +200,7 @@ class KCoreAddressSpace(Elf64CoreDump):
                         "This kcore file is too small (%d bytes) and likely "
                         "invalid for memory analysis. You may want to use pmem "
                         "instead." % statinfo.st_size)
-            except IOError, AttributeError:
+            except(IOError, AttributeError):
                 pass
 
         for x in runs:
