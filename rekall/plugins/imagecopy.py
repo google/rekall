@@ -101,4 +101,4 @@ class ImageCopy(plugin.PhysicalASMixin, plugin.Command):
 
 
 class TestImageCopy(testlib.HashChecker):
-    PARAMETERS = {"commandline": "imagecopy -O %(tempdir)s/output_image.raw")
+    PARAMETERS = dict(commandline="imagecopy -O %(tempdir)s/output_image.raw")
