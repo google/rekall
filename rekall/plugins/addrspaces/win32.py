@@ -52,6 +52,8 @@ class Win32FileAddressSpace(addrspace.CachingAddressSpaceMixIn,
     order = 90
     __image = True
 
+    CHUNK_SIZE = 0x1000
+
     def __init__(self, base=None, filename=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
         super(Win32FileAddressSpace, self).__init__(**kwargs)

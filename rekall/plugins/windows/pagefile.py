@@ -121,11 +121,8 @@ class WindowsPagedMemoryMixin(object):
         # Regular prototype PTE.
         elif pte_value & self.prototype_mask:
             # This PTE points at the prototype PTE in pte.ProtoAddress.
-            pte = self.session.profile._MMPTE(
-                offset=pte_value >> self.proto_protoaddress_start,
-                vm=self)
-
-            pte_value = pte.u.Long.v()
+            pte_value = self.read_long_long_phys(
+                pte_value >> self.proto_protoaddress_start)
             desc = "Prototype"
 
         # PTE value is not known, we need to look it up in the VAD.
@@ -232,33 +229,36 @@ class WindowsPagedMemoryMixin(object):
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         """Scan the PTE table and yield address ranges which are valid."""
         tmp = vaddr
-        for i, pte_value in enumerate(pte_table):
-            vaddr = tmp | i << 12
-            next_vaddr = tmp | ((i+1) << 12)
+        current_vad = 0
+        for i in xrange(0, len(pte_table)):
+            pfn = i << 12
+            pte_value = pte_table[i]
+
+            vaddr = tmp | pfn
+            next_vaddr = tmp | (pfn + 0x1000)
             if start >= next_vaddr:
                 continue
 
             # Remove all the vads that end below this address. This optimization
             # allows us to skip DemandZero pages which occur outsize the VAD
             # ranges.
-            while self.vads and self.vads[0][1] < vaddr:
-                self.vads.pop(0)
-
-            # PTE of 0 means we consult the VADs.
-            if pte_value == 0:
-                if not self.vads:
-                    continue
+            if self.vads and current_vad < len(self.vads):
+                while self.vads[current_vad][1] < vaddr:
+                    current_vad += 1
 
                 # Address is below the next available vad's start. We are not
                 # inside a vad range and a 0 PTE is unmapped.
-                if vaddr < self.vads[0][0]:
+                if pte_value == 0 and vaddr < self.vads[current_vad][0]:
                     continue
+
+            elif pte_value == 0:
+                continue
 
             phys_addr = self.get_phys_addr(vaddr, pte_value)
 
             # Only yield valid physical addresses. This will skip DemandZero
             # pages and File mappings into the filesystem.
-            if phys_addr != None:
+            if phys_addr is not None:
                 yield (vaddr, phys_addr, 0x1000)
 
     def get_phys_addr(self, virtual_address, pte_value):

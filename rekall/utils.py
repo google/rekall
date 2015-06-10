@@ -210,11 +210,9 @@ class FastStore(object):
     @Synchronized
     def Put(self, key, item):
         """Add the object to the cache."""
-        try:
-            node, _ = self._hash[key]
-            self._age.Unlink(node)
-        except KeyError:
-            pass
+        hit = self._hash.get(key, self)
+        if hit is not self:
+            self._age.Unlink(hit[0])
 
         node = self._age.Append(key)
         self._hash[key] = (node, item)
@@ -264,17 +262,16 @@ class FastStore(object):
         Raises:
             KeyError: If the object is not present in the cache.
         """
-        # Remove the item and put to the end of the age list
-        try:
-            node, item = self._hash[key]
-            self._age.Unlink(node)
-            self._age.AppendNode(node)
-            self.hits += 1
-        except ValueError:
-            raise KeyError(key)
-        except KeyError:
+        hit = self._hash.get(key, self)
+        if hit is self:
             self.misses += 1
-            raise
+            raise KeyError(key)
+
+        # Remove the item and put to the end of the age list
+        node, item = hit
+        self._age.Unlink(node)
+        self._age.AppendNode(node)
+        self.hits += 1
 
         return item
 
