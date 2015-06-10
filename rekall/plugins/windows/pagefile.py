@@ -120,9 +120,12 @@ class WindowsPagedMemoryMixin(object):
 
         # Regular prototype PTE.
         elif pte_value & self.prototype_mask:
-            # This PTE points at the prototype PTE in pte.ProtoAddress.
-            pte_value = self.read_long_long_phys(
-                pte_value >> self.proto_protoaddress_start)
+            # This PTE points at the prototype PTE in pte.ProtoAddress. NOTE:
+            # The prototype PTE address is specified in the kernel's address
+            # space since it is allocated from pool.
+            pte_value = struct.unpack("<Q", self.read(
+                pte_value >> self.proto_protoaddress_start, 8))[0]
+
             desc = "Prototype"
 
         # PTE value is not known, we need to look it up in the VAD.
