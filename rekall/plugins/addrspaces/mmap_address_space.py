@@ -70,7 +70,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         try:
             self.map = mmap.mmap(self.fhandle.fileno(), self.fsize,
                                  access=mmap.ACCESS_READ)
-        except Exception, e:
+        except Exception as e:
             raise addrspace.ASAssertionError("Unable to mmap: %s" % e)
 
     def read(self, addr, length):

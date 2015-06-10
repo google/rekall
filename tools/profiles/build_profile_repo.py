@@ -115,7 +115,7 @@ def EnsurePathExists(path):
 
 
 def BuildProfile(pdb_filename, profile_path, metadata):
-    print "Parsing %s into %s" % (pdb_filename, profile_path)
+    print("Parsing %s into %s" % (pdb_filename, profile_path))
     try:
         session.RunPlugin(
             "parse_pdb",
@@ -127,10 +127,10 @@ def BuildProfile(pdb_filename, profile_path, metadata):
         with gzip.GzipFile(filename=profile_path+".gz", mode="wb") as outfd:
             outfd.write(open(profile_path).read())
     except Exception:
-        print "Error during profile %s" % pdb_filename
-        print ("You can run it manually: "
-               "rekall parse_pdb --pdb_filename=%r --output=%r --metadata=%r" %
-               (pdb_filename, profile_path, metadata))
+        print("Error during profile %s" % pdb_filename)
+        print("You can run it manually: "
+              "rekall parse_pdb --pdb_filename=%r --output=%r --metadata=%r" %
+              (pdb_filename, profile_path, metadata))
         traceback.print_exc()
 
     finally:
@@ -222,14 +222,14 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=None):
     pool.join()
 
     if new_filenames:
-        print "Found %d new file names:" % len(new_filenames)
+        print("Found %d new file names:" % len(new_filenames))
         for guid, filename in sorted(new_filenames.items()):
-            print "%s %s" % (guid, filename)
+            print("%s %s" % (guid, filename))
 
     if unsuccessful:
-        print "Unable to download pdbs for:"
+        print("Unable to download pdbs for:")
         for guid in sorted(unsuccessful):
-            print guid
+            print(guid)
 
     return changed_files
 
@@ -334,7 +334,7 @@ def main():
 
     # If the files have changed, rebuild the indexes.
     for change in changes:
-        print "Rebuilding profile index for %s" % change
+        print("Rebuilding profile index for %s" % change)
         output_filename = os.path.join(change, "index")
         session.RunPlugin(
             "build_index",
@@ -343,7 +343,8 @@ def main():
 
         # Gzip the output
         with gzip.GzipFile(filename=output_filename+".gz", mode="wb") as out:
-            out.write(open(output_filename).read())
+            with open(output_filename, 'rb') as fd:
+                out.write(fd.read())
 
         os.unlink(output_filename)
 

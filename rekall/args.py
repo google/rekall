@@ -114,7 +114,7 @@ def LoadPlugins(paths=None):
             try:
                 logging.info("Loading user plugin %s", path)
                 __import__(module_name)
-            except Exception, e:
+            except Exception as e:
                 logging.error("Error loading user plugin %s: %s", path, e)
             finally:
                 sys.path.pop(0)

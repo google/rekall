@@ -80,7 +80,7 @@ class AddressSpaceFuse(Fuse):
     def main(self):
       options, args = self.parser.parse_args()
       if not args:
-          print "No image file specied."
+          print("No image file specied.")
           return
 
       self.session = session.Session(

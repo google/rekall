@@ -40,16 +40,16 @@ if __name__ == "__main__":
 
         if lock_on:
             if vme_on:
-                print "CPU %d is VME-ready" % i
+                print("CPU %d is VME-ready" % i)
             else:
-                print ("CPU %d is not VME-ready and cannot activate it.\n"
-                       "Please check your BIOS settings.")
+                print("CPU %d is not VME-ready and cannot activate it.\n"
+                      "Please check your BIOS settings.")
                 all_cpus_ready = False
         else:
-            print "CPU %d is NOT ready" % i
-            print "Updating MSR 0x%X on CPU %d: %016X" % (MSR_IDX, i, msr_value)
+            print("CPU %d is NOT ready" % i)
+            print("Updating MSR 0x%X on CPU %d: %016X" % (MSR_IDX, i, msr_value))
             msr.write_msr(MSR_IDX, msr_value, cpu_index=i)
 
     if all_cpus_ready:
-        print ("All CPUs ready, you can now do 'make && insmod "
-               "vmcs_layout.ko && rmmod vmcs_layout'.")
+        print("All CPUs ready, you can now do 'make && insmod "
+              "vmcs_layout.ko && rmmod vmcs_layout'.")

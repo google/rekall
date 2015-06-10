@@ -40,5 +40,5 @@ profile["$METADATA"] = dict(
     ProfileClass="TestProfile"
     )
 
-print utils.PPrint(profile)
+print(utils.PPrint(profile))
 

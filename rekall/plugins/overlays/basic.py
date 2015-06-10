@@ -593,7 +593,7 @@ class UnixTimeStamp(obj.NativeType):
             # Return a data time object in UTC.
             dt = datetime.datetime.utcfromtimestamp(
                 self.v()).replace(tzinfo=pytz.UTC)
-        except (ValueError, TypeError), e:
+        except (ValueError, TypeError) as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
         return dt

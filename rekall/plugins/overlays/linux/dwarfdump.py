@@ -389,4 +389,4 @@ if __name__ == '__main__':
     for l in open(sys.argv[1]):
         parser.feed_line(l)
 
-    print parser.print_output()
+    print(parser.print_output())

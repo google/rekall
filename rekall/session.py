@@ -704,7 +704,7 @@ class Session(object):
         except (KeyboardInterrupt, plugin.Abort):
             self.logging.fatal("Aborted\r\n")
 
-        except Exception, e:
+        except Exception as e:
             error_status = traceback.format_exc()
             if isinstance(plugin_obj, plugin.Command):
                 plugin_obj.error_status = error_status

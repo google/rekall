@@ -75,7 +75,7 @@ def BuildProgram(principal="test", store=None, signtool_params=""):
     shutil.copyfile(build_path, output_path)
 
 
-    print "\r\n\r\nCreated file %s" % output_path
+    print("\r\n\r\nCreated file %s" % output_path)
 
 
 def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
@@ -99,7 +99,7 @@ def BuildDriver(arch, target, principal="test", store=None, signtool_params=""):
     cmd = (r"cmd /k %(path)s\bin\setenv.bat %(path)s chk %(arch)s %(target)s "
            "no_oacr" % args)
 
-    print "Launching %s" % cmd
+    print("Launching %s" % cmd)
 
     pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=False)
     pipe.communicate("%(drive)s\ncd \"%(cwd)s\" && build /w \n" % args)

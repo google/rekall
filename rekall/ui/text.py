@@ -300,7 +300,7 @@ class Colorizer(object):
 
         try:
             return curses.tparm(term_string, *args)
-        except Exception, e:
+        except Exception as e:
             self.logging.debug("Unable to set tparm: %s" % e)
             return ""
 

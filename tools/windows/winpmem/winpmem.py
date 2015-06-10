@@ -79,7 +79,7 @@ class Image(object):
         cr3, kpcr, number_of_runs = struct.unpack_from(fmt_string, result)
         for x in range(number_of_runs):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
-            print "0x%X\t\t0x%X" % (start, length)
+            print("0x%X\t\t0x%X" % (start, length))
 
     FIELDS = (["CR3", "NtBuildNumber", "KernBase", "KDBG"] +
               ["KPCR%02d" % i for i in range(32)] +
@@ -113,13 +113,13 @@ class Image(object):
 
             if not v: continue
 
-            print "%s: \t%#08x (%s)" % (k, v, v)
+            print("%s: \t%#08x (%s)" % (k, v, v))
 
-        print "Memory ranges:"
-        print "Start\t\tEnd\t\tLength"
+        print("Memory ranges:")
+        print("Start\t\tEnd\t\tLength")
 
         for start, length in self.runs:
-            print "0x%X\t\t0x%X\t\t0x%X" % (start, start+length, length)
+            print("0x%X\t\t0x%X\t\t0x%X" % (start, start+length, length))
 
     def SetMode(self):
         if FLAGS.mode == "iospace":
@@ -148,7 +148,7 @@ class Image(object):
             offset = 0
             for start, length in self.runs:
                 if start > offset:
-                    print "\nPadding from 0x%X to 0x%X\n" % (offset, start)
+                    print("\nPadding from 0x%X to 0x%X\n" % (offset, start))
                     self.PadWithNulls(outfd, start - offset)
 
                 offset = start
@@ -173,7 +173,7 @@ def main():
     """Load the driver and image the memory."""
     # Check the driver is somewhere
     if not FLAGS.driver or not os.access(FLAGS.driver, os.R_OK):
-        print "You must specify a valid driver file."
+        print("You must specify a valid driver file.")
         sys.exit(-1)
 
     # Must have absolute path here.
@@ -190,8 +190,8 @@ def main():
             win32service.SERVICE_ERROR_IGNORE,
             driver,
             None, 0, None, None, None)
-    except win32service.error, e:
-        print e
+    except win32service.error as e:
+        print(e)
         hSvc = win32service.OpenService(hScm, FLAGS.name,
                                         win32service.SERVICE_ALL_ACCESS)
 
@@ -202,13 +202,13 @@ def main():
         pass
 
     if FLAGS.unload:
-        print r"unloaded winpmem driver."
+        print("unloaded winpmem driver.")
         return
 
     try:
         win32service.StartService(hSvc, [])
     except win32service.error, e:
-        print "%s: will try to continue" % e
+        print("%s: will try to continue" % e)
 
     if FLAGS.load:
         fd = win32file.CreateFile(
@@ -220,8 +220,8 @@ def main():
             win32file.FILE_ATTRIBUTE_NORMAL,
             None)
 
-        print (r"Loaded the winpmem driver. You can now attach "
-               r"volatility to \\.\pmem")
+        print(r"Loaded the winpmem driver. You can now attach "
+              r"volatility to \\.\pmem")
         image = Image(fd)
 
         return
@@ -239,9 +239,9 @@ def main():
         try:
             t = time.time()
             image = Image(fd)
-            print "Imaging to %s" % FLAGS.filename
+            print("Imaging to %s" % FLAGS.filename)
             image.DumpWithRead(FLAGS.filename)
-            print "\nCompleted in %s seconds" % (time.time() - t)
+            print("\nCompleted in %s seconds" % (time.time() - t))
         finally:
             win32file.CloseHandle(fd)
     finally:

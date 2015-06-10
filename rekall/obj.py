@@ -1344,7 +1344,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         try:
             result = cls(offset=offset, vm=self.obj_vm, parent=self, name=attr,
                          profile=self.obj_profile, context=self.obj_context)
-        except Error, e:
+        except Error as e:
             result = NoneObject(str(e))
 
         self._cache[attr] = result

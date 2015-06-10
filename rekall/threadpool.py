@@ -53,7 +53,7 @@ class Worker(threading.Thread):
                     break
 
                 task(*args)
-            except Exception, e:
+            except Exception as e:
                 logging.error("Worker raised %s", e)
                 traceback.print_exc()
 
