@@ -453,10 +453,10 @@ class BaseRenderer(object):
         # TODO(jordi): Remove in 3 months when any usage should have been
         # noticed and fixed.
         logging.error(
-          "**DEPRECATED** report_error is deprecated. Please use the session "
-          "logging feature instead. Original message was: %s", message)
+            "**DEPRECATED** report_error is deprecated. Please use the session "
+            "logging feature instead. Original message was: %s", message)
         self.session.logging.error(
-          "**DEPRECATED** (via report_error): %s", message)
+            "**DEPRECATED** (via report_error): %s", message)
 
     def RenderProgress(self, *_, **kwargs):
         """Will be called to render a progress message to the user."""
@@ -506,7 +506,7 @@ class BaseRenderer(object):
         # This should never happen if the renderer installs a handler for
         # object().
         raise RuntimeError("Unable to render object %r for renderer %s" %
-                           (repr(target), target_renderer) + 
+                           (repr(target), target_renderer) +
                            str(ObjectRenderer._RENDERER_CACHE))
 
     def Log(self, record):

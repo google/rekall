@@ -225,11 +225,20 @@ class ArmPagedMemory(addrspace.PagedReader):
                     l1_descriptor &
                     self.super_section_base_address_mask), None)
 
+                yield ("Physical Address", (
+                    l1_descriptor &
+                    self.super_section_base_address_mask) | (
+                        vaddr & self.super_section_index_mask), None)
             else:
                 # Regular section descriptor.
                 yield ("Section base", (
                     l1_descriptor & self.section_base_address_mask),
                        None)
+
+                yield ("Physical Address", (
+                    l1_descriptor &
+                    self.section_base_address_mask) | (
+                        vaddr & self.section_index_mask), None)
 
         # l1_descriptor is a coarse page table descriptor. Figure 3.10.
         elif l1_descriptor_type == 0b01:
@@ -245,7 +254,7 @@ class ArmPagedMemory(addrspace.PagedReader):
             l2_descriptor = self.read_long_phys(l2_addr)
 
             yield ("2l descriptor", l2_descriptor, l2_addr)
-            for x in self._desc_l2_descriptor(l2_descriptor):
+            for x in self._desc_l2_descriptor(l2_descriptor, vaddr):
                 yield x
 
         # Fine page table descriptor. Section 3.2.6.
@@ -262,11 +271,10 @@ class ArmPagedMemory(addrspace.PagedReader):
             l2_descriptor = self.read_long_phys(l2_addr)
 
             yield ("2l descriptor", l2_descriptor, l2_addr)
-            for x in self._desc_l2_descriptor(
-                    l2_descriptor):
+            for x in self._desc_l2_descriptor(l2_descriptor, vaddr):
                 yield x
 
-    def _desc_l2_descriptor(self, l2_descriptor):
+    def _desc_l2_descriptor(self, l2_descriptor, vaddr):
         l2_descriptor_type = l2_descriptor & 0b11
 
         # Large page table.
@@ -276,17 +284,32 @@ class ArmPagedMemory(addrspace.PagedReader):
                     self.large_page_base_address_mask),
                    None)
 
+            yield ("Physical Address", (
+                l2_descriptor &
+                self.large_page_base_address_mask) | (
+                    vaddr & self.large_page_index_mask), None)
+
         # Small page translation. Figure 3-11.
         elif l2_descriptor_type == 0b10 or l2_descriptor_type == 0b11:
             yield ("Small page base",
                    (l2_descriptor &
                     self.small_page_base_address_mask), None)
 
+            yield ("Physical Address", (
+                l2_descriptor &
+                self.small_page_base_address_mask) | (
+                    vaddr & self.small_page_index_mask), None)
+
         # Tiny pages. Figure 3-12.
         elif l2_descriptor_type == 0b11:
             yield ("Tiny page base",
                    (l2_descriptor &
                     self.tiny_page_base_address_mask), None)
+
+            yield ("Physical Address", (
+                l2_descriptor &
+                self.tiny_page_base_address_mask) | (
+                    vaddr & self.tiny_page_index_mask), None)
 
         elif l2_descriptor_type == 0b00:
             yield "Invalid", None, None

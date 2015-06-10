@@ -44,12 +44,16 @@ class EncodingError(KeyError):
 class RobustEncoder(json.JSONEncoder):
     def __init__(self, logging=None, **_):
         super(RobustEncoder, self).__init__(separators=(',', ':'))
-        self.logging = logging.getChild("json.encoder.robust")
+        if logging is None:
+            self.logging = None
+        else:
+            self.logging = logging.getChild("json.encoder.robust")
 
     def default(self, o):
-        self.logging.error(
-            "Unable to encode %r (%s) as json, replacing with None", o,
-            type(o))
+        if self.logging:
+            self.logging.error(
+                "Unable to encode %r (%s) as json, replacing with None", o,
+                type(o))
         return None
 
 
@@ -143,7 +147,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
         # objects but we want to ensure we can serialize the session (albeit
         # with the loss of some of the attributes).
         self.session.logging.error(
-          "Unable to encode objects of type %s", type(item))
+            "Unable to encode objects of type %s", type(item))
         if "strict" in options:
             raise EncodingError(
                 "Unable to encode objects of type %s" % type(item))
@@ -663,11 +667,11 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     def Log(self, record):
         loglevel_to_code = {
-          "CRITICAL": "lC",
-          "ERROR": "lE",
-          "WARNING": "lW",
-          "INFO": "lI",
-          "DEBUG": "lD"
+            "CRITICAL": "lC",
+            "ERROR": "lE",
+            "WARNING": "lW",
+            "INFO": "lI",
+            "DEBUG": "lD"
         }
 
         code = loglevel_to_code.get(record.levelname, "lU")

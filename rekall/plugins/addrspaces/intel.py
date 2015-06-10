@@ -234,6 +234,9 @@ class IA32PagedMemory(addrspace.PagedReader):
 
         yield ("PTE mapped", phys_addr, pte_addr)
 
+        yield ("Physical Address", self.get_phys_addr(
+            vaddr, pte_value), None)
+
     def read_long_phys(self, addr):
 
         """Read an unsigned 32-bit integer from physical memory.

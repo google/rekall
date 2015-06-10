@@ -395,13 +395,13 @@ class HoardingLogHandler(logging.Handler):
     def emit(self, record):
         """Deliver a message if a renderer is defined or store it, otherwise."""
         if not self.renderer:
-          self.logrecord_buffer.append(record)
+            self.logrecord_buffer.append(record)
         else:
-          self.renderer.Log(record)
+            self.renderer.Log(record)
 
-    def SetRenderer(self, renderer):
+    def SetRenderer(self, renderer_obj):
         """Sets the renderer so messages can be delivered."""
-        self.renderer = renderer
+        self.renderer = renderer_obj
         self.Flush()
 
     def Flush(self):
@@ -422,6 +422,10 @@ class Session(object):
 
     # The currently active address resolver.
     _address_resolver = None
+
+    # Each session has a unique session id (within this process). The ID is only
+    # unique among the sessions currently active.
+    session_id = 0
 
     def __init__(self, **kwargs):
         self.progress = ProgressDispatcher()
@@ -452,14 +456,30 @@ class Session(object):
             for k, v in kwargs.items():
                 self.state.Set(k, v)
 
-        # Set up a logging object. All rekall logging must be done through the
-        # session's logger.
-        logger_name = "rekall-%x" % id(self)
-        self.logging = kwargs.pop("logger", logging.getLogger(logger_name))
-        # A special log handler that hoards all messages until there's a
-        # renderer that can transport them.
-        self._log_handler = HoardingLogHandler()
-        self.logging.addHandler(self._log_handler)
+        # We use this logger if provided.
+        self.logger = kwargs.pop("logger", None)
+        self._logger = None
+
+        # Make this session id unique.
+        Session.session_id += 1
+
+    @property
+    def logging(self):
+        if self.logger is not None:
+            return self.logger
+
+        logger_name = u"rekall.%s" % self.session_id
+        if self._logger is None or self._logger.name != logger_name:
+            # Set up a logging object. All rekall logging must be done
+            # through the session's logger.
+            self._logger = logging.getLogger(logger_name)
+
+            # A special log handler that hoards all messages until there's a
+            # renderer that can transport them.
+            self._log_handler = HoardingLogHandler()
+            self._logger.addHandler(self._log_handler)
+
+        return self._logger
 
     @property
     def volatile(self):
@@ -783,7 +803,7 @@ class Session(object):
                     if not manager.CheckInventory(name):
                         self.logging.debug(
                             "Skipped profile %s from %s (Not in inventory)",
-                                name, path)
+                            name, path)
                         continue
 
                     result = obj.Profile.LoadProfileFromData(
@@ -796,7 +816,7 @@ class Session(object):
                 except (IOError, KeyError) as e:
                     result = obj.NoneObject(e)
                     self.logging.debug("Could not find profile %s in %s: %s",
-                                  name, path, e)
+                                       name, path, e)
 
                     continue
 
@@ -1079,7 +1099,7 @@ class InteractiveSession(JsonSerializableSession):
 
     @property
     def session_id(self):
-        return self.GetParameter("session_id")
+        return self.GetParameter("session_id", default=Session.session_id)
 
     def find_session(self, session_id):
         for session in self.session_list:
