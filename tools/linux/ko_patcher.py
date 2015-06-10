@@ -204,7 +204,7 @@ class KernelObjectPatcher(object):
 
 def main():
   if len(sys.argv) < 3:
-    print "Usage: python %s <kernel_module> <outfile>" % sys.argv[0]
+    print("Usage: python %s <kernel_module> <outfile>" % sys.argv[0])
     exit()
 
   in_fd = open(sys.argv[1], "rb")

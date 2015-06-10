@@ -13,23 +13,23 @@ def update_symbol_versions(module):
   new_versions = ""
   for function in versions.keys():
     if versions[function] == available_versions[function]:
-      print "[+] %s is compatible, no need to update" %  function.replace(
-          "\x00", "")
+      print("[+] %s is compatible, no need to update" %  function.replace(
+          "\x00", ""))
     else:
-      print "[-] %s not compatible, updating..." % function.replace("\x00", "")
+      print("[-] %s not compatible, updating..." % function.replace("\x00", ""))
     new_versions += available_versions[function] + function
   return patcher.ReplaceSection(module, sections["__versions"][0], new_versions)
 
 if __name__ == "__main__":
   if len(sys.argv) != 3:
-    print "usage: %s [KERNEL MODULE] [OUTPUT FILE]" % sys.argv[0]
+    print("usage: %s [KERNEL MODULE] [OUTPUT FILE]" % sys.argv[0])
     sys.exit(-1)
   else:
-    print "Scanning __versions in module %s" % sys.argv[1]
+    print("Scanning __versions in module %s" % sys.argv[1])
     try:
       fd = open(sys.argv[1], "rb")
     except (OSError, IOError) as e:
-      print "Failed to open %s: %s" % (sys.argv[1], e)
+      print("Failed to open %s: %s" % (sys.argv[1], e))
       sys.exit(-1)
     module = fd.read()
     fd.close()
@@ -37,9 +37,9 @@ if __name__ == "__main__":
     try:
       out_fd = open(sys.argv[2], "w")
     except (OSError, IOError) as e:
-      print "Failed to open %s: %s" % (sys.argv[1], e)
+      print("Failed to open %s: %s" % (sys.argv[1], e))
       sys.exit(-1)
     out_fd.write(patched_module)
     out_fd.close()
     fd.close()
-    print "Successfully updated __versions in module %s" % sys.argv[2]
+    print("Successfully updated __versions in module %s" % sys.argv[2])

@@ -224,7 +224,8 @@ class UserAssist(registry.RegistryPlugin):
             outfd.write(u"{0:15} {1}\n{2:15} {3}\n".format(
                     "Focus Count:", uadata.FocusCount, "Time Focused:",
                     timestamp))
-        except AttributeError: pass
+        except AttributeError: 
+            pass
 
         outfd.write(u"{0:15} {1}\n".format(
                 "Last updated:", uadata.LastUpdated))

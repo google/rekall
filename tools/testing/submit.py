@@ -24,18 +24,18 @@ CONTROL = "/home/rekalltest/control"
 
 data = sys.stdin.read()
 
-print """Content-type: text/html
+print("""Content-type: text/html
 
 <html><h1>
-"""
+""")
 
 # Verify the hmac.
 hmac_sig = hmac.HMAC(SECRET, data, hashlib.sha1).hexdigest()
 if hmac_sig != os.environ['HTTP_X_HUB_SIGNATURE'].split("=")[1]:
-    print "Denied"
+    print("Denied")
 else:
     # Create the control file to kick off the test run.
-    print "Scheduling run."
+    print("Scheduling run.")
     data = json.loads(data)
     data["action"] = "start"
 

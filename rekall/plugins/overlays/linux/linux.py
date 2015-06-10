@@ -721,7 +721,7 @@ class task_struct(obj.Struct):
                 base=self.obj_vm.base, session=self.obj_vm.session,
                 dtb=directory_table_base)
 
-        except AssertionError, _e:
+        except AssertionError:
             return obj.NoneObject("Unable to get process AS")
 
         process_as.name = "Process {0}".format(self.pid)

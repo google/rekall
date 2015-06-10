@@ -541,7 +541,7 @@ exit 0
                         stdout=diff_fd)
 
                 if self.FLAGS.inline:
-                    print open(output_path).read()
+                    print(open(output_path).read())
 
                 self.renderer.table_row(
                     test_case,

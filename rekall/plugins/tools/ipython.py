@@ -219,9 +219,9 @@ help profile   - What are Profiles?
 
     def __call__(self, item=None, **kwargs):
         if item is None:
-            print self.HELP_MESSAGE
+            print(self.HELP_MESSAGE)
         else:
-            print core.Info(item=item)
+            print(core.Info(item=item))
 
 site._Helper = RekallHelper
 
