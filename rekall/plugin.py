@@ -97,7 +97,7 @@ class Command(object):
         """
         session = kwargs.pop("session", None)
         if kwargs:
-            raise InvalidArgs(unicode(kwargs.keys()))
+            raise InvalidArgs("Invalid arguments: %s" % unicode(kwargs.keys()))
 
         super(Command, self).__init__(**kwargs)
 

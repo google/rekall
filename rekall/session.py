@@ -269,17 +269,18 @@ class Configuration(Cache):
 
         return profile
 
-    def _set_logging(self, level, _):
+    def _set_logging_level(self, level, _):
         if isinstance(level, basestring):
             level = getattr(logging, level.upper(), logging.INFO)
 
         if level == None:
             return
 
-        self.logging.info("Logging level set to %s", level)
-        self.logging.setLevel(int(level))
-        # Also set the root logging level, to reflect it in the console.
-        logging.getLogger().setLevel(int(level))
+        self.session.logging.debug("Logging level set to %s", level)
+        self.session.logging.setLevel(int(level))
+        if isinstance(self.session, InteractiveSession):
+            # Also set the root logging level, to reflect it in the console.
+            logging.getLogger().setLevel(int(level))
 
     def _set_ept(self, ept, _):
         self.session.Reset()
@@ -463,6 +464,9 @@ class Session(object):
         # Make this session id unique.
         Session.session_id += 1
 
+        # At the start we haven't run any plugin.
+        self.last = None
+
     @property
     def logging(self):
         if self.logger is not None:
@@ -627,7 +631,7 @@ class Session(object):
             result[k.replace("-", "_")] = v
         return result
 
-    def RunPlugin(self, plugin_obj, *pos_args, **kwargs):
+    def RunPlugin(self, plugin_obj, *args, **kwargs):
         """Launch a plugin and its render() method automatically.
 
         We use the pager specified in session.GetParameter("pager").
@@ -637,25 +641,51 @@ class Session(object):
           *pos_args: Args passed to the plugin if it is not an instance.
           **kwargs: kwargs passed to the plugin if it is not an instance.
         """
+
+        # On multiple calls to RunPlugin, we need to make sure the
+        # HoardingLogHandler doesn't send messages to the wrong renderer.
+        # We reset the renderer and make it hoard messages until we have the
+        # new one.
+        self.logging.debug(
+            "Running plugin (%s) with args (%s) kwargs (%s)",
+            plugin_obj, args, kwargs)
         kwargs = self._CorrectKWArgs(kwargs)
         output = kwargs.pop("output", None)
         ui_renderer = kwargs.pop("format", None)
+        result = None
 
-        # Do we need to redirect output?
-        if output is not None:
-            with self:
-                # Do not lose the global output redirection.
-                old_output = self.GetParameter("output") or None
-                self.SetParameter("output", output)
+        with self:
+            if ui_renderer is None:
+                ui_renderer = self.GetRenderer(output=output)
+
+            # Set the renderer so we can transport log messages.
+            self._log_handler.SetRenderer(ui_renderer)
+
+            try:
+                plugin_name = self._GetPluginName(plugin_obj)
+            except Exception as e:
+                raise ValueError(
+                    "Invalid plugin_obj parameter (%s)." % repr(plugin))
+
+            with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
                 try:
-                    return self._RunPlugin(plugin_obj, renderer=ui_renderer,
-                                           *pos_args, **kwargs)
-                finally:
-                    self.SetParameter("output", old_output)
+                    original_plugin_obj = plugin_obj
+                    plugin_obj = self._GetPluginObj(plugin_obj, *args, **kwargs)
+                    if not plugin_obj:
+                        raise ValueError(
+                            "Invalid Plugin: %s", original_plugin_obj)
+                    result = plugin_obj.render(ui_renderer) or plugin_obj
+                    self.last = plugin_obj
+                except (Exception, KeyboardInterrupt) as e:
+                    self._HandleRunPluginException(ui_renderer, e)
 
-        else:
-            return self._RunPlugin(plugin_obj, renderer=ui_renderer,
-                                   *pos_args, **kwargs)
+            # At this point, the ui_renderer will have flushed all data.
+            # Further logging will be lost.
+            return result
+
+    def _HandleRunPluginException(self, ui_renderer, e):
+        """Handle exceptions thrown while trying to run a plugin."""
+        raise e
 
     def _GetPluginName(self, plugin_obj):
         """Extract the name from the plugin object."""
@@ -668,7 +698,7 @@ class Session(object):
         elif isinstance(plugin_obj, plugin.Command):
             return plugin_obj.name
 
-    def _GetPluginObj(self, plugin_obj, *pos_args, **kwargs):
+    def _GetPluginObj(self, plugin_obj, *args, **kwargs):
         if isinstance(plugin_obj, basestring):
             plugin_name = plugin_obj
 
@@ -694,55 +724,7 @@ class Session(object):
 
         # Instantiate the plugin object.
         kwargs["session"] = self
-        return plugin_cls(*pos_args, **kwargs)
-
-    def _RunPlugin(self, plugin_obj, *pos_args, **kwargs):
-        ui_renderer = kwargs.pop("renderer", None)
-        if ui_renderer is None:
-            ui_renderer = self.GetRenderer()
-
-
-        # Set the renderer so we can transport log messages.
-        self._log_handler.SetRenderer(ui_renderer)
-
-        # Start the renderer before instantiating the plugin to allow
-        # rendering of reported progress in the constructor.
-        try:
-            with ui_renderer.start(plugin_name=self._GetPluginName(plugin_obj),
-                                   kwargs=kwargs):
-                plugin_obj = self._GetPluginObj(plugin_obj, *pos_args, **kwargs)
-                return plugin_obj.render(ui_renderer) or plugin_obj
-
-        except plugin.InvalidArgs as e:
-            self.logging.fatal("Invalid Args: %s" % e)
-
-        except plugin.PluginError as e:
-            self.logging.fatal(str(e))
-            if isinstance(plugin_obj, plugin.Command):
-                plugin_obj.error_status = str(e)
-
-        except (KeyboardInterrupt, plugin.Abort):
-            self.logging.fatal("Aborted\r\n")
-
-        except Exception as e:
-            error_status = traceback.format_exc()
-            if isinstance(plugin_obj, plugin.Command):
-                plugin_obj.error_status = error_status
-
-            # Report the error to the renderer.
-            self.logging.fatal(error_status)
-
-            # If anything goes wrong, we break into a debugger here.
-            if self.GetParameter("debug"):
-                pdb.post_mortem(sys.exc_info()[2])
-
-            raise
-
-        finally:
-            self._log_handler.SetRenderer(None)
-            ui_renderer.flush()
-
-        return plugin_obj
+        return plugin_cls(*args, **kwargs)
 
     def LoadProfile(self, name, use_cache=True):
         """Try to load a profile directly by its name.
@@ -836,7 +818,7 @@ class Session(object):
         """Called by the library to report back on the progress."""
         self.progress.Broadcast(message, *args, **kwargs)
 
-    def GetRenderer(self):
+    def GetRenderer(self, output=None):
         """Get a renderer for this session.
 
         We instantiate the renderer specified in self.GetParameter("format").
@@ -845,7 +827,7 @@ class Session(object):
         if isinstance(ui_renderer, basestring):
             ui_renderer_cls = renderer.BaseRenderer.ImplementationByName(
                 ui_renderer)
-            ui_renderer = ui_renderer_cls(session=self)
+            ui_renderer = ui_renderer_cls(session=self, output=output)
 
         return ui_renderer
 
@@ -1116,9 +1098,29 @@ class InteractiveSession(JsonSerializableSession):
 
         return new_sid
 
-    def RunPlugin(self, *args, **kwargs):
-        self.last = super(InteractiveSession, self).RunPlugin(*args, **kwargs)
-        return self.last
+    def _HandleRunPluginException(self, renderer, e):
+        """Handle all exceptions thrown by logging to the console."""
+
+        if isinstance(e, plugin.InvalidArgs):
+            self.logging.fatal("Invalid Args: %s" % e)
+
+        elif isinstance(e, plugin.PluginError):
+            self.logging.fatal(str(e))
+
+        elif isinstance(e, KeyboardInterrupt) or isinstance(e, plugin.Abort):
+            logging.error("Aborted\r\n")
+
+        else:
+            error_status = traceback.format_exc()
+
+            # Report the error to the renderer.
+            self.logging.fatal(error_status)
+
+            # If anything goes wrong, we break into a debugger here.
+            if self.GetParameter("debug"):
+                pdb.post_mortem(sys.exc_info()[2])
+
+            raise
 
     def v(self):
         """Re-execute the previous command."""

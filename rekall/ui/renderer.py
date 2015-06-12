@@ -112,6 +112,11 @@ config.DeclareOption(
     choices=["concise", "full"],
     help="How much information to show. Default is 'concise'.")
 
+config.DeclareOption(
+    "--logging_level", type="Choices", default="WARNING",
+    choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+    help="The default logging level.")
+
 MRO_CACHE = utils.FastStore(100, lock=True)
 
 
@@ -358,6 +363,9 @@ class BaseRenderer(object):
         return self
 
     def __exit__(self, exc_type, exc_value, trace):
+        log_handler = getattr(self.session, "_log_handler", None)
+        if log_handler != None:
+            log_handler.SetRenderer(None)
         self.end()
 
     def start(self, plugin_name=None, kwargs=None):

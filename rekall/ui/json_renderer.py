@@ -666,13 +666,10 @@ class JsonRenderer(renderer_module.BaseRenderer):
             return True
 
     def Log(self, record):
-        loglevel_to_code = {
-            "CRITICAL": "lC",
-            "ERROR": "lE",
-            "WARNING": "lW",
-            "INFO": "lI",
-            "DEBUG": "lD"
+        log_message= {
+            "msg": record.getMessage(),
+            "level": record.levelname,
+            "name": record.name,
+            "time": record.created,
         }
-
-        code = loglevel_to_code.get(record.levelname, "lU")
-        self.SendMessage([code, record.getMessage()])
+        self.SendMessage(["L", log_message])

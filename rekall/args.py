@@ -212,11 +212,9 @@ def ParseGlobalArgs(parser, argv, user_session):
             raise ValueError("Cannot set both --verbose and --quiet!")
 
         if verbose_flag:
-            state.Set("logging", "debug")
+            state.Set("logging_level", "DEBUG")
         elif quiet_flag:
-            state.Set("logging", "critical")
-        else:
-            state.Set("logging", "warn")
+            state.Set("logging_level", "CRITICAL")
 
     # Now load the third party user plugins. These may introduce additional
     # plugins with args.
