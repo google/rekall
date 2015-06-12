@@ -654,34 +654,33 @@ class Session(object):
         ui_renderer = kwargs.pop("format", None)
         result = None
 
-        with self:
-            if ui_renderer is None:
-                ui_renderer = self.GetRenderer(output=output)
+        if ui_renderer is None:
+            ui_renderer = self.GetRenderer(output=output)
 
-            # Set the renderer so we can transport log messages.
-            self._log_handler.SetRenderer(ui_renderer)
+        # Set the renderer so we can transport log messages.
+        self._log_handler.SetRenderer(ui_renderer)
 
+        try:
+            plugin_name = self._GetPluginName(plugin_obj)
+        except Exception as e:
+            raise ValueError(
+                "Invalid plugin_obj parameter (%s)." % repr(plugin))
+
+        with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
             try:
-                plugin_name = self._GetPluginName(plugin_obj)
-            except Exception as e:
-                raise ValueError(
-                    "Invalid plugin_obj parameter (%s)." % repr(plugin))
+                original_plugin_obj = plugin_obj
+                plugin_obj = self._GetPluginObj(plugin_obj, *args, **kwargs)
+                if not plugin_obj:
+                    raise ValueError(
+                        "Invalid Plugin: %s", original_plugin_obj)
+                result = plugin_obj.render(ui_renderer) or plugin_obj
+                self.last = plugin_obj
+            except (Exception, KeyboardInterrupt) as e:
+                self._HandleRunPluginException(ui_renderer, e)
 
-            with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
-                try:
-                    original_plugin_obj = plugin_obj
-                    plugin_obj = self._GetPluginObj(plugin_obj, *args, **kwargs)
-                    if not plugin_obj:
-                        raise ValueError(
-                            "Invalid Plugin: %s", original_plugin_obj)
-                    result = plugin_obj.render(ui_renderer) or plugin_obj
-                    self.last = plugin_obj
-                except (Exception, KeyboardInterrupt) as e:
-                    self._HandleRunPluginException(ui_renderer, e)
-
-            # At this point, the ui_renderer will have flushed all data.
-            # Further logging will be lost.
-            return result
+        # At this point, the ui_renderer will have flushed all data.
+        # Further logging will be lost.
+        return result
 
     def _HandleRunPluginException(self, ui_renderer, e):
         """Handle exceptions thrown while trying to run a plugin."""
