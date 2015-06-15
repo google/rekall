@@ -191,16 +191,19 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
             # XEN PV guests have a mapping in p2m_top. We verify this symbol
             # is not NULL.
-            p2m_top_phys = self.profile.phys_addr(
-                self.profile.get_constant("p2m_top", True))
-            p2m_top = struct.unpack("<Q",
-                                    self.physical_address_space.read(
-                                        p2m_top_phys, 8))[0]
-            if p2m_top:
-                self.session.logging.debug("Detected paravirtualized XEN guest")
-                impl = "XenParaVirtAMD64PagedMemory"
-                as_class = addrspace.BaseAddressSpace.classes[impl]
-                return as_class
+            pv_info_virt = self.profile.get_constant("pv_info")
+            if pv_info_virt:
+                pv_info_phys = self.profile.phys_addr(pv_info_virt)
+                paravirt_enabled = self.session.profile.pv_info(
+                    offset=pv_info_phys,
+                    vm=self.physical_address_space).paravirt_enabled
+                if paravirt_enabled:
+                    self.session.logging.debug(
+                        "Detected paravirtualized XEN guest")
+                    impl = "XenParaVirtAMD64PagedMemory"
+                    as_class = addrspace.BaseAddressSpace.classes[impl]
+                    return as_class
+
 
         elif self.profile.get_constant("arm_syscall"):
             # An ARM address space.
