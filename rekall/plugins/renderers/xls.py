@@ -24,10 +24,8 @@
 We produce xls (Excel spreadsheet files) with the output from Rekall plugins.
 """
 import time
-
 import openpyxl
 
-from openpyxl import exceptions
 from openpyxl import styles
 from openpyxl.styles import colors
 from openpyxl.styles import fills
@@ -139,6 +137,7 @@ class XLSRenderer(renderer.BaseRenderer):
     name = "xls"
 
     table_class = XLSTable
+    tablesep = ""
 
     def __init__(self, output=None, **kwargs):
         super(XLSRenderer, self).__init__(**kwargs)
@@ -158,7 +157,7 @@ class XLSRenderer(renderer.BaseRenderer):
         try:
             self.wb = openpyxl.load_workbook(self.output)
             self.current_ws = self.wb.create_sheet()
-        except exceptions.InvalidFileException:
+        except IOError:
             self.wb = openpyxl.Workbook()
             self.current_ws = self.wb.active
 
@@ -292,13 +291,10 @@ class XLSNoneObjectRenderer(XLSObjectRenderer):
 class XLSDateTimeRenderer(XLSObjectRenderer):
     """Renders timestamps as python datetime objects."""
     renders_type = "UnixTimeStamp"
-    STYLE = styles.Style(number_format=styles.NumberFormat(
-        format_code='MM/DD/YYYY HH:MM:SS'))
+    STYLE = styles.Style(number_format='MM/DD/YYYY HH:MM:SS')
 
     def GetData(self, item, **options):
         if item.v() == 0:
             return None
 
         return item.as_datetime()
-
-
