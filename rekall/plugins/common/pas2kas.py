@@ -26,12 +26,14 @@ import bisect
 import collections
 
 from rekall import testlib
+from rekall.ui import json_renderer
 
 
 class Pas2VasResolver(object):
     """An object which resolves physical addresses to virtual addresses."""
     def __init__(self, session):
         self.session = session
+        self.dirty = True
 
         # Maintains some maps to ensure fast lookups.
         self.dtb2task = {}
@@ -43,10 +45,19 @@ class Pas2VasResolver(object):
 
         pslist = self.session.plugins.pslist()
         for task in pslist.filter_processes():
-            self.dtb2task[task.dtb] = task
+            task_dtb = task.dtb
+            if task_dtb != None:
+                self.dtb2task[task_dtb] = task.obj_offset
 
     def _get_highest_user_address(self):
         return 2**64-1
+
+    def GetTaskStruct(self, address):
+        """Returns the task struct for the address.
+
+        Should be overridden by OS specific implementations.
+        """
+        return address
 
     def PA2VA_for_DTB(self, physical_address, dtb, userspace=None):
         if dtb == None:
@@ -64,7 +75,7 @@ class Pas2VasResolver(object):
         if not userspace and self.dtb2userspace.get(dtb):
             lookup_map = None
 
-        if not lookup_map:
+        if lookup_map is None:
             lookup_map = self.dtb2maps[dtb] = self.build_address_map(
                 dtb, userspace=userspace)
             self.dtb2userspace[dtb] = userspace
@@ -80,7 +91,12 @@ class Pas2VasResolver(object):
                 if (lookup_pa <= physical_address and
                         lookup_pa + length > physical_address):
                     # Yield the pid and the virtual offset
-                    task = self.dtb2task.get(dtb, "Kernel")
+                    task = self.dtb2task.get(dtb)
+                    if task is not None:
+                        task = self.GetTaskStruct(task)
+                    else:
+                        task = "Kernel"
+
                     return lookup_va + physical_address - lookup_pa, task
 
         return None, None
@@ -90,24 +106,29 @@ class Pas2VasResolver(object):
         # This lookup map is sorted by the physical address. We then use
         # bisect to efficiently look up the physical page.
         tmp_lookup_map = []
+        self.dirty = True
 
-        address_space = self.session.kernel_address_space.__class__(
-            base=self.session.physical_address_space,
-            session=self.session,
-            dtb=dtb)
+        if dtb != None:
+            address_space = self.session.kernel_address_space.__class__(
+                base=self.session.physical_address_space,
+                session=self.session,
+                dtb=dtb)
 
-        highest_virtual_address = self._get_highest_user_address()
-        for va, pa, length in address_space.get_available_addresses():
-            # Only consider userspace addresses for processes.
-            if userspace and va > highest_virtual_address:
-                break
+            highest_virtual_address = self.session.GetParameter(
+                "highest_usermode_address")
 
-            tmp_lookup_map.append((pa, length, va))
-            self.session.report_progress(
-                "Enumerating memory for dtb %#x (%#x)", dtb, va)
+            for va, pa, length in address_space.get_available_addresses():
+                # Only consider userspace addresses for processes.
+                if userspace and va > highest_virtual_address:
+                    break
 
-        # Now sort the map and return it.
-        tmp_lookup_map.sort()
+                tmp_lookup_map.append((pa, length, va))
+                self.session.report_progress(
+                    "Enumerating memory for dtb %#x (%#x)", dtb, va)
+
+            # Now sort the map and return it.
+            tmp_lookup_map.sort()
+
         return tmp_lookup_map
 
 
@@ -189,6 +210,34 @@ class Pas2VasMixin(object):
                     renderer.table_row(
                         physical_address, virtual_address,
                         task.pid, task.name)
+
+
+class Pas2VasResolverJsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    """Encode and decode the pas2vas maps efficiently."""
+
+    renders_type = "Pas2VasResolver"
+
+    def EncodeToJsonSafe(self, item, **_):
+        result = {}
+        result["dtb2task"] = item.dtb2task
+        result["dtb2maps"] = item.dtb2maps
+        result["dtb2userspace"] = item.dtb2userspace
+        result["mro"] = ":".join(self.get_mro(item))
+
+        return result
+
+    def DecodeFromJsonSafe(self, value, _):
+        # Get the original class to instantiate the required item.
+        cls = self.GetImplementationFromMRO(Pas2VasResolver, value)
+        result = cls(session=self.session)
+
+        for attr in ["dtb2maps", "dtb2userspace", "dtb2task"]:
+            if attr in value:
+                setattr(result, attr, value[attr])
+
+        result.dirty = False
+        return result
+
 
 
 class TestPas2Vas(testlib.SimpleTestCase):

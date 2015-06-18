@@ -118,7 +118,6 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
             obj = self.session.profile.Object(vtype)
             self.CheckObjectSerization(obj)
 
-        self.CheckObjectSerization(self.session)
         self.CheckObjectSerization(self.session.profile)
         self.CheckObjectSerization(self.session.kernel_address_space)
         self.CheckObjectSerization(self.session.physical_address_space)

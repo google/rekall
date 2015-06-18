@@ -234,13 +234,15 @@ class ProcInfo(common.WinProcessFilter):
                 renderer.format("   {0}\n", line)
 
             renderer.format("\nPE Infomation\n")
+            cc = self.session.plugins.cc()
+            with cc:
+                cc.SwitchProcessContext(task)
 
-            # Parse the PE file of the main process's executable.
-            pe = PEInfo(address_space=task_address_space,
-                        session=self.session,
-                        image_base=task.Peb.ImageBaseAddress)
+                # Parse the PE file of the main process's executable.
+                pe = PEInfo(session=self.session,
+                            image_base=task.Peb.ImageBaseAddress)
 
-            pe.render(renderer)
+                pe.render(renderer)
 
 
 class TestProcInfo(testlib.SimpleTestCase):

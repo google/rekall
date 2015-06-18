@@ -30,3 +30,21 @@ class LinuxSetProcessContext(core.SetProcessContextMixin,
 
 class LinVtoP(core.VtoPMixin, common.LinProcessFilter):
     """Describe virtual to physical translation on Linux platforms."""
+
+
+class LinuxHighestUserAddress(common.AbstractLinuxParameterHook):
+    """The highest address for user mode/kernel mode division."""
+
+    name = "highest_usermode_address"
+
+    def calculate(self):
+        """Returns TASK_SIZE_MAX."""
+        arch = self.session.profile.metadata("arch")
+        if arch == "I386" or arch == "ARM":
+            return self.session.GetParameter("linux_page_offset")
+        elif arch == "AMD64":
+            # #define TASK_SIZE_MAX   ((1UL << 47) - PAGE_SIZE)
+            return (1 << 47) - 0x1000
+        else:
+            self.session.logging.warn("Set TASK_SIZE_MAX for arch %s", arch)
+            return 2**64

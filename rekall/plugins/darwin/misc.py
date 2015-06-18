@@ -18,11 +18,11 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
-
+import hashlib
 import re
 
+from rekall import obj
 from rekall.plugins import core
-from rekall.plugins.common import pas2kas
 from rekall.plugins.darwin import common
 from rekall.plugins.renderers import visual_aides
 
@@ -200,3 +200,70 @@ class DarwinSetProcessContext(core.SetProcessContextMixin,
 
 class DarwinVtoP(core.VtoPMixin, common.DarwinProcessFilter):
     """Describe virtual to physical translation on darwin platforms."""
+
+
+class DarwinImageFingerprint(common.AbstractDarwinParameterHook):
+    """Fingerprint the current image.
+
+    This parameter tries to get something unique about the image quickly. The
+    idea is that two different images (even of the same system at different
+    points in time) will have very different fingerprints. The fingerprint is
+    used as a key to cache persistent information about the system.
+
+    Live systems can not have a stable fingerprint and so return a NoneObject()
+    here.
+
+    We return a list of tuples:
+       (physical_offset, expected_data)
+
+    The list uniquely identifies the image. If one were to read all physical
+    offsets and find the expected_data at these locations, then we have a very
+    high level of confidence that the image is unique and matches the
+    fingerprint.
+    """
+    name = "image_fingerprint"
+
+    def calculate(self):
+        if self.session.physical_address_space.volatile:
+            return obj.NoneObject("No fingerprint for volatile image.")
+
+        result = []
+        profile = self.session.profile
+        phys_as = self.session.physical_address_space
+
+        label = profile.get_constant_object("_osversion", "String")
+        result.append((self.session.kernel_address_space.vtop(
+            label.obj_offset), label.v()))
+
+        label = profile.get_constant_object("_version", "String")
+        result.append((self.session.kernel_address_space.vtop(
+            label.obj_offset), label.v()))
+
+        label = profile.get_constant_object("_sched_tick", "String",
+                                            length=8, term=None)
+        result.append((self.session.kernel_address_space.vtop(
+            label.obj_offset), label.v()))
+
+        catfish_offset = self.session.GetParameter("catfish_offset")
+        result.append((catfish_offset, phys_as.read(catfish_offset, 8)))
+
+        # List of processes should also be pretty unique.
+        for task in self.session.plugins.pslist().filter_processes():
+            name = task.name.cast("String", length=30)
+            task_name_offset = self.session.kernel_address_space.vtop(
+                name.obj_offset)
+
+            result.append((task_name_offset, name.v()))
+
+        return dict(
+            hash=hashlib.sha1(unicode(result).encode("utf8")).hexdigest(),
+            tests=result)
+
+
+class DarwinHighestUserAddress(common.AbstractDarwinParameterHook):
+    """The highest address for user mode/kernel mode division."""
+
+    name = "highest_usermode_address"
+
+    def calculate(self):
+        return 0x800000000000

@@ -31,8 +31,8 @@ class DarwinPas2Vas(pas2kas.Pas2VasMixin, common.DarwinProcessFilter):
 
 
 class DarwinPas2VasResolver(pas2kas.Pas2VasResolver):
-    def _get_highest_user_address(self):
-        return 0x800000000000
+    def GetTaskStruct(self, addrress):
+        return self.session.profile.proc(addrress)
 
 
 class DarwinPas2VasResolverHook(common.AbstractDarwinParameterHook):

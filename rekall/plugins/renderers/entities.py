@@ -111,7 +111,7 @@ class Superposition_TextObjectRenderer(text.TextObjectRenderer):
         if len(states) == 1:
             return states[0]
 
-        joined = ", ".join([unicode(state) for state in states])
+        joined = ", ".join(sorted([unicode(state) for state in states]))
         return text.Cell("(%d values): %s" % (len(states), joined))
 
 

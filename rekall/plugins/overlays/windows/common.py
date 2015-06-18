@@ -672,88 +672,20 @@ class _EPROCESS(obj.Struct):
 
         return obj.NoneObject("Cannot find process session")
 
-    def _BuildDeviceCache(self):
-        """Build a cache of _DEVICE_OBJECTs from the system object tree."""
-        if self.obj_session.GetParameter("windows_device_cache"):
-            return
-
-        object_tree_p = self.obj_session.plugins.object_tree()
-        object_root = object_tree_p.get_object_tree()
-        self.obj_session.logging.debug("Rebuilding device cache...")
-        device_cache = dict()
-        self.obj_session.SetCache("windows_device_cache", device_cache)
-
-        for device in object_root["Device"].Object:
-            if device.get_object_type() == "Device":
-                device_path = "\\Device\\%s" % unicode(device.NameInfo.Name)
-                device_cache[device.Object.obj_offset] = device_path
-
-    def _BuildDriveNameMapping(self):
-        """Build a mapping of drive name (C:) to drive device path."""
-        if self.obj_session.GetParameter("windows_drive_name_cache"):
-            return
-
-        object_tree_p = self.obj_session.plugins.object_tree()
-        object_root = object_tree_p.get_object_tree()
-        self.obj_session.logging.debug(
-          "Rebuilding symbolic device name cache...")
-        symbolic_cache = dict()
-        self.obj_session.SetCache("windows_drive_name_cache", symbolic_cache)
-
-        for item in object_root["GLOBAL??"].Object:
-            if item.get_object_type() == "SymbolicLink":
-                # Filter by drive names, they always end with a ":"
-                if unicode(item.NameInfo.Name)[-1] == ":":
-                    target_name = unicode(item.Object.LinkTarget)
-                    symbolic_cache[target_name] = unicode(item.NameInfo.Name)
-
-    def _DriveNameOfDevice(self, device):
-        """Get the drive name (i.e: C:) of a device."""
-        self._BuildDeviceCache()
-        self._BuildDriveNameMapping()
-
-        device_cache = self.obj_session.GetParameter(
-            "windows_device_cache", {})
-        drive_cache = self.obj_session.GetParameter(
-            "windows_drive_name_cache", {})
-
-        device_name = device_cache.get(device)
-        device_name = drive_cache.get(device_name, device_name)
-        return device_name
-
     @property
     def FullPath(self):
         """Return the full path of image loaded. Obtained via the VAD root."""
-
-        fullpath_cache = self.obj_session.GetParameter("fullpath_cache")
-        if not fullpath_cache:
-          fullpath_cache = {}
-          self.obj_session.SetParameter("fullpath_cache", fullpath_cache)
-
-        if self.obj_offset in fullpath_cache:
-            return fullpath_cache[self.obj_offset]
-
-        full_path = obj.NoneObject()
-
         for vad in self.RealVadRoot.traverse():
             if (vad.Start <= self.SectionBaseAddress and
-                vad.End >= self.SectionBaseAddress):
+                    vad.End >= self.SectionBaseAddress):
 
                 try:
-                    full_path = vad.ControlArea.FilePointer.FileName
+                    file_obj = vad.ControlArea.FilePointer
+                    return file_obj.file_name_with_drive()
                 except AttributeError:
                     continue
 
-                try:
-                    drive_name = self._DriveNameOfDevice(
-                        vad.ControlArea.FilePointer.DeviceObject)
-                except AttributeError:
-                    drive_name = None
-
-                if drive_name:
-                    full_path = "%s%s" % (drive_name, full_path)
-        fullpath_cache[self.obj_offset] = full_path
-        return full_path
+        return obj.NoneObject()
 
     def __repr__(self):
         return "%s (pid=%s)" % (super(_EPROCESS, self).__repr__(), self.pid)
@@ -1173,6 +1105,31 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
 
         return name
 
+    def file_name_with_drive(self):
+        """Returns the name of the file prepended with the drive letter.
+
+        We resolve the drive letter by matching it with the currently assigned
+        letter to the mounted device. The result of this function should be
+        usable by file system APIs to open the file on a live system.
+        """
+        name = ""
+        drive_letter_device_map = self.obj_session.GetParameter(
+            "drive_letter_device_map")
+
+        if self.DeviceObject:
+            device_name = self.DeviceObject.ObjectHeader.NameInfo.Name
+            if device_name:
+                name = u"\\Device\\{0}".format(device_name)
+
+                if name in drive_letter_device_map:
+                    name = drive_letter_device_map.get(name)
+
+        if self.FileName:
+            name += unicode(self.FileName)
+
+        return name
+
+
 
 class _OBJECT_DIRECTORY(ObjectMixin, obj.Struct):
     """Object directories hold other objects.
@@ -1196,6 +1153,7 @@ class _OBJECT_DIRECTORY(ObjectMixin, obj.Struct):
         for item in self:
             if item.NameInfo.Name == name:
                 return item
+
         raise KeyError
 
 

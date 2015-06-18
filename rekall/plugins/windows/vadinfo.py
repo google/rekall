@@ -298,6 +298,7 @@ class VAD(common.WinProcessFilter):
 
         task_as = task.get_process_address_space()
 
+        result = []
         for vad in vad_root.traverse():
             # Apply filters if needed.
             if self.regex and not re.search(
@@ -312,7 +313,7 @@ class VAD(common.WinProcessFilter):
             if "EXECUTE" in str(vad.u.VadFlags.ProtectionEnum):
                 exe = "Exe"
 
-            renderer.table_row(
+            result.append((
                 vad, vad.obj_context.get('depth', 0),
 
                 # The vad region itself exists in the process address space.
@@ -322,7 +323,12 @@ class VAD(common.WinProcessFilter):
                 "Private" if vad.u.VadFlags.PrivateMemory > 0 else "Mapped",
                 exe,
                 vad.u.VadFlags.ProtectionEnum,
-                self._get_filename(vad))
+                self._get_filename(vad)))
+
+        # Sort by start range.
+        result.sort(key=lambda x: x[2].v())
+        for row in result:
+            renderer.table_row(*row)
 
     def render(self, renderer):
         for task in self.filter_processes():

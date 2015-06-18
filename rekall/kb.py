@@ -33,6 +33,10 @@ class ParameterHook(object):
     # physical_address_space.metadata("live") == True.
     expiry = None
 
+    # Signifies if this parameter is considered volatile (i.e. is likely to
+    # change on a live system).
+    volatile = True
+
     @classmethod
     def is_active(cls, session):
         _ = session

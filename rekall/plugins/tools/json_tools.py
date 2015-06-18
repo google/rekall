@@ -133,7 +133,7 @@ class TestJSONParser(testlib.SimpleTestCase):
         # We want to actually run the plugin first with JsonRenderer, then run
         # json_render on its json output - That will be the baseline.
         config_options["commandline"] = (
-            "--format json --output %(tempdir)s_output.json " +
+            "--format json -v --output %(tempdir)s_output.json " +
             config_options["commandline"])
 
         baseline = super(TestJSONParser, self).BuildBaselineData(config_options)

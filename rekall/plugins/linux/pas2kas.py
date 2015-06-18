@@ -28,17 +28,8 @@ class LinPas2Vas(pas2kas.Pas2VasMixin, common.LinProcessFilter):
 
 
 class LinPas2VasResolver(pas2kas.Pas2VasResolver):
-    def _get_highest_user_address(self):
-        """Returns TASK_SIZE_MAX."""
-        arch = self.session.profile.metadata("arch")
-        if arch == "I386" or arch == "ARM":
-            return self.session.GetParameter("linux_page_offset")
-        elif arch == "AMD64":
-            # #define TASK_SIZE_MAX   ((1UL << 47) - PAGE_SIZE)
-            return (1 << 47) - 0x1000
-        else:
-            self.session.logging.warn("Set TASK_SIZE_MAX for arch %s", arch)
-            return 2**64
+    def GetTaskStruct(self, address):
+        return self.session.profile.task_struct(address)
 
 
 class LinPas2VasResolverHook(common.AbstractLinuxParameterHook):

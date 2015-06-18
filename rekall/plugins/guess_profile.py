@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 # pylint: disable=protected-access
 import re
 
+from rekall import cache
 from rekall import config
 from rekall import kb
 from rekall import obj
@@ -80,7 +81,8 @@ class DetectionMethod(object):
         dtb = self.session.GetParameter("dtb")
         if dtb:
             address_space = find_dtb_plugin.CreateAS(dtb)
-            self.session.SetCache("default_address_space", address_space)
+            self.session.SetCache(
+                "default_address_space", address_space, volatile=False)
             return profile
 
         for address_space in find_dtb_plugin.address_space_hits():
@@ -90,8 +92,9 @@ class DetectionMethod(object):
 
             # Start off with a default address space of the kernel.
             with self.session as session:
-                session.SetCache("default_address_space", address_space)
-                session.SetCache("dtb", address_space.dtb)
+                session.SetCache("default_address_space", address_space,
+                                 volatile=False)
+                session.SetCache("dtb", address_space.dtb, volatile=False)
 
             return profile
 
@@ -201,7 +204,7 @@ class WindowsIndexDetector(DetectionMethod):
         # up live analysis significantly since we do not need to search for
         # anything then.
         if (filename_offset == 0 and self.session.HasParameter("dtb") and
-            self.session.HasParameter("kernel_base")):
+                self.session.HasParameter("kernel_base")):
             test_as = amd64.AMD64PagedMemory(
                 session=self.session, base=address_space,
                 dtb=self.session.GetParameter("dtb"))
@@ -292,7 +295,7 @@ class WindowsRSDSDetector(DetectionMethod):
             build_local_profile = self.session.plugins.build_local_profile()
             try:
                 self.session.logging.debug(
-                  "Will build local profile %s", profile_name)
+                    "Will build local profile %s", profile_name)
                 build_local_profile.fetch_and_parse(profile_name)
                 profile = self.session.LoadProfile(
                     profile_name, use_cache=False)
@@ -390,7 +393,7 @@ class DarwinIndexDetector(DetectionMethod):
                     "New best match: %s (%.0f%% match)",
                     profile_name, match * 100)
 
-                self.session.SetCache("catfish_offset", offset)
+                self.session.SetCache("catfish_offset", offset, volatile=False)
 
                 return profile
 
@@ -403,6 +406,8 @@ class KernelASHook(kb.ParameterHook):
     """
     name = "default_address_space"
 
+    volatile = False
+
     def calculate(self):
         if self.session.kernel_address_space:
             return self.session.kernel_address_space
@@ -413,6 +418,8 @@ class KernelASHook(kb.ParameterHook):
 class ProfileHook(kb.ParameterHook):
     """If the profile is not specified, we guess it."""
     name = "profile_obj"
+
+    volatile = False
 
     def ScanProfiles(self):
         address_space = self.session.physical_address_space
@@ -428,8 +435,8 @@ class ProfileHook(kb.ParameterHook):
             "autodetect_scan_length")
 
         self.session.logging.debug(
-          "Will detect profile using these Detectors: %s" % ",".join(
-            method_names))
+            "Will detect profile using these Detectors: %s" % ",".join(
+                method_names))
 
         if not method_names:
             raise RuntimeError("No autodetection methods specified. "
@@ -459,8 +466,8 @@ class ProfileHook(kb.ParameterHook):
                 profile = method.DetectFromHit(hit, offset, address_space)
                 if profile:
                     self.session.logging.debug(
-                      "Detection method %s worked at offset %#x",
-                      method.name, offset)
+                        "Detection method %s worked at offset %#x",
+                        method.name, offset)
                     return profile
 
             if best_match == 1.0:
@@ -504,6 +511,13 @@ class ProfileHook(kb.ParameterHook):
                 # No physical address space - nothing to do here.
                 return obj.NoneObject("No Physical Address Space.")
 
+        if self.session.GetParameter("cache") == "file":
+            name = self.session.cache.DetectImage(
+                self.session.physical_address_space)
+            if name:
+                self.session.logging.info(
+                    "Detected fingerprinted image %s", name)
+
         # Allow the user to specify the profile to use on the command line.
         profile_name = self.session.GetParameter("profile")
         if profile_name:
@@ -511,18 +525,21 @@ class ProfileHook(kb.ParameterHook):
             if profile_obj != None:
                 return profile_obj
 
-        profile_obj = self.ScanProfiles()
+        # Is the profile object already cached?
+        profile_obj = self.session.cache.Get("profile_obj")
         if not profile_obj:
-            raise RuntimeError(
-                "Unable to find a valid profile for this image. Try using -v "
-                "for more details.")
+            profile_obj = self.ScanProfiles()
+            if not profile_obj:
+                raise RuntimeError(
+                    "Unable to find a valid profile for this image. "
+                    "Try using -v for more details.")
 
         # Update the session profile.
         self.session.profile = profile_obj
 
-        # Store the name of the plugin to avoid auto detection in future.
-        if not self.session.GetParameter("profile"):
-            with self.session:
-                self.session.SetParameter("profile", profile_obj.name)
+        if (self.session.GetParameter("cache") == "file" and
+                self.session.GetParameter("image_fingerprint")):
+            self.session.cache.SetFingerprint(
+                self.session.GetParameter("image_fingerprint"))
 
         return profile_obj

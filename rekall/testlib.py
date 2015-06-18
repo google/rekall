@@ -105,7 +105,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         self.temp_directory = temp_directory
         super(RekallBaseUnitTestCase, self).__init__(method_name)
 
-    def LaunchExecutable(self, config_options, retries=2):
+    def LaunchExecutable(self, config_options):
         """Launches the rekall executable with the config specified.
 
         Returns:
@@ -114,6 +114,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         """
         tmp_filename = os.path.join(self.temp_directory,
                                     "." + self.__class__.__name__)
+        error_filename = tmp_filename + ".stderr"
 
         baseline_commandline = config_options.get("commandline")
 
@@ -155,27 +156,28 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             config_options["executed_command"] = cmdline
 
             with open(tmp_filename, "wb") as output_fd:
-                pipe = subprocess.Popen(cmdline, shell=True,
-                                        stdout=output_fd, stderr=output_fd)
+                with open(error_filename, "wb") as error_fd:
+                    pipe = subprocess.Popen(cmdline, shell=True,
+                                            stdout=output_fd, stderr=error_fd)
 
-                pipe.wait()
+                    pipe.wait()
 
-                # Done running the command, now prepare the json baseline file.
-                output_fd.flush()
+                    # Done running the command, now prepare the json baseline
+                    # file.
+                    output_fd.flush()
+                    error_fd.flush()
 
-                output = open(tmp_filename).read(10 * 1024 * 1024)
-                output = output.decode("utf8", "ignore")
+                    output = open(tmp_filename).read(10 * 1024 * 1024)
+                    output = output.decode("utf8", "ignore")
 
-                # Travis often kills a test for lack of resources - we just
-                # retry it a couple of times.
-                if output.strip() in ["", "Killed"] and retries > 0:
-                    return self.LaunchExecutable(
-                        config_options, retries=retries-1)
+                    error = open(error_filename).read(10 * 1024 * 1024)
+                    error = error.decode("utf8", "ignore")
 
-                baseline_data = dict(output=output.splitlines(),
-                                     return_code=pipe.returncode)
+                    baseline_data = dict(output=output.splitlines(),
+                                         logging=error,
+                                         return_code=pipe.returncode)
 
-                return baseline_data
+                    return baseline_data
 
         else:
             # No valid command line - this baseline is aborted.

@@ -23,9 +23,12 @@
 """These are various utilities for rekall."""
 import __builtin__
 import bisect
+import cPickle
+import cStringIO
 import importlib
 import itertools
 import json
+import ntpath
 import re
 import shutil
 import socket
@@ -274,6 +277,9 @@ class FastStore(object):
         self.hits += 1
 
         return item
+
+    def __iter__(self):
+        return self._hash.items()
 
     @Synchronized
     def __contains__(self, key):
@@ -926,3 +932,38 @@ def xrange(start, end, step=1):
     while x < end:
         yield x
         x += step
+
+
+def SafePickle(data):
+    """An unpickler for serialized tuple/lists/strings etc.
+
+    Does not support recovering instances.
+    """
+    return cPickle.dumps(data, -1)
+
+def SafeUnpickler(data):
+    """An unpickler for serialized tuple/lists/strings etc.
+
+    Does not support recovering instances.
+    """
+    unpickler = cPickle.Unpickler(cStringIO.StringIO(data))
+    unpickler.find_global = None
+
+    return unpickler.load()
+
+
+def SplitPath(path):
+    """Splits the path into a list of components."""
+    result = []
+    while 1:
+        path, filename = ntpath.split(path)
+
+        if filename:
+            result.append(filename)
+        else:
+            if path and path not in ("\\", "/"):
+                result.append(path)
+            break
+
+    result.reverse()
+    return result

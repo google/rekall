@@ -30,6 +30,8 @@
    Alias for all address spaces
 
 """
+import weakref
+
 from rekall import registry
 from rekall import utils
 
@@ -102,10 +104,14 @@ class BaseAddressSpace(object):
             session = base.session
 
         self.base = base
+        if base:
+            self.volatile = self.base.volatile
+
         # This is the base address space which this address space reads from. In
         # this context, this address space is used to read physical addresses as
-        # obtained from get_available_addresses().
-        self.phys_base = self
+        # obtained from get_available_addresses(). NOTE: This is a weak
+        # reference to avoid creating a cycle.
+        self.phys_base = weakref.proxy(self)
 
         self.profile = profile
         self.session = session
@@ -246,8 +252,11 @@ class BaseAddressSpace(object):
         """Obtain metadata about this address space."""
         return getattr(cls, "_%s__%s" % (cls.__name__, name), default)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.__class__.__name__
+
+    def __str__(self):
+        return utils.SmartStr(self)
 
     def __repr__(self):
         return "<%s @ %#x %s>" % (

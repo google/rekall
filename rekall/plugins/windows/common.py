@@ -138,8 +138,6 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
     def VerifyHit(self, hit):
         """Check the eprocess for sanity."""
         dtb, eprocess = hit
-        self.session.SetParameter("dtb", dtb)
-
         address_space = self.CreateAS(dtb)
 
         # In windows the DTB must be page aligned, except for PAE images where
@@ -162,10 +160,11 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         me = list_head.dereference(vm=address_space).Blink.Flink
         if me.v() != list_head.v():
             self.session.logging.debug(
-              "_EPROCESS.ThreadListHead does not reflect.")
+                "_EPROCESS.ThreadListHead does not reflect.")
             return
 
         self.session.SetCache("idle_process", eprocess)
+        self.session.SetCache("dtb", dtb)
 
         return address_space
 
@@ -330,7 +329,7 @@ class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
             self.address_space = address_space or self.physical_address_space
 
 
-class KDBGHook(kb.ParameterHook):
+class KDBGHook(AbstractWindowsParameterHook):
     """A Hook to calculate the KDBG when needed."""
 
     name = "kdbg"
@@ -360,7 +359,7 @@ class KDBGHook(kb.ParameterHook):
             return kdbg
 
 
-class PsActiveProcessHeadHook(kb.ParameterHook):
+class PsActiveProcessHeadHook(AbstractWindowsParameterHook):
     """The PsActiveProcessHead is actually found in the profile symbols."""
 
     name = "PsActiveProcessHead"
@@ -372,7 +371,7 @@ class PsActiveProcessHeadHook(kb.ParameterHook):
             vm=self.session.kernel_address_space)
 
 
-class PsLoadedModuleList(kb.ParameterHook):
+class PsLoadedModuleList(AbstractWindowsParameterHook):
     """The PsLoadedModuleList is actually found in the profile symbols."""
 
     name = "PsLoadedModuleList"
@@ -599,7 +598,6 @@ class WinProcessFilter(WindowsCommandPlugin):
         self.cache = self.session.GetParameter("pslist_cache")
         if not self.cache:
             self.cache = {}
-            self.session.SetCache("pslist_cache", self.cache)
 
         seen = set()
         for proc in self.list_from_eprocess():
@@ -618,6 +616,9 @@ class WinProcessFilter(WindowsCommandPlugin):
                     "Listed %s processes using %s",
                     len(self.cache[k]), k)
                 seen.update(self.cache[k])
+
+        if not self.session.GetParameter("pslist_cache"):
+            self.session.SetCache("pslist_cache", self.cache)
 
         # Sort by pid so that the output ordering remains stable.
         return sorted([self.profile._EPROCESS(x) for x in seen],

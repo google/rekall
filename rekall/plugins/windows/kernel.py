@@ -28,7 +28,6 @@ kernel address space.
 __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import obj
-from rekall import kb
 from rekall import scan
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
@@ -40,8 +39,71 @@ class ExportScanner(scan.BaseScanner):
         "INITKDBG", "MISYSPTE", "PAGEKD"]))]
 
 
+class ObjectTreeHook(common.AbstractWindowsParameterHook):
+    """Cache the object tree."""
 
-class KernelBaseHook(kb.ParameterHook):
+    name = "object_tree"
+
+    def BuildTree(self, result, root):
+        for x in root:
+            name = x.NameInfo.Name.v()
+            if name == None:
+                continue
+
+            # We store the _OBJECT_HEADER offset and some metadata about the
+            # types.
+            object_type = x.get_object_type()
+            entry = result[name] = dict(
+                type=object_type,
+                type_name="_OBJECT_HEADER",
+                offset=x.obj_offset,
+            )
+
+            if object_type == "Directory":
+                children = entry["Children"] = {}
+                self.BuildTree(children, x.Object)
+
+    def calculate(self):
+        root = self.session.profile.get_constant_object(
+            "ObpRootDirectoryObject",
+            target="Pointer",
+            target_args=dict(
+                target="_OBJECT_DIRECTORY"
+                )
+            )
+
+        result = dict(
+            type="Directory",
+            type_name="_OBJECT_DIRECTORY",
+            offset=root.deref().obj_offset,
+            Children={})
+
+        self.BuildTree(result["Children"], root)
+        return result
+
+
+class DriveLetterDeviceHook(common.AbstractWindowsParameterHook):
+    """Maps device names to drive letters."""
+
+    name = "drive_letter_device_map"
+
+    def calculate(self):
+        result = {}
+        obj_tree_plugin = self.session.plugins.object_tree()
+        # The global path contains symlinks from the drive letter to the device
+        # name.
+        for global_obj in obj_tree_plugin.GetObjectByName(r"\GLOBAL??").Object:
+            name = global_obj.NameInfo.Name.v()
+            if (global_obj.get_object_type() == "SymbolicLink" and
+                    name[1] == ":"):
+                target = global_obj.Object.LinkTarget.v()
+
+                result[target] = name
+
+        return result
+
+
+class KernelBaseHook(common.AbstractWindowsParameterHook):
     """Finds the kernel base address."""
 
     name = "kernel_base"
@@ -80,3 +142,26 @@ class KernelBaseHook(kb.ParameterHook):
                         return page
                 else:
                     page -= 0x1000
+
+
+class WindowsHighestUserAddress(common.AbstractWindowsParameterHook):
+    """The highest address for user mode/kernel mode division."""
+
+    name = "highest_usermode_address"
+
+    def calculate(self):
+        return self.session.profile.get_constant_object(
+            "MmHighestUserAddress", "Pointer").v()
+
+
+class DTB2TaskMap(common.AbstractWindowsParameterHook):
+    """Maps the DTB to the _EPROCESS structs."""
+
+    name = "dtb2task"
+
+    def calculate(self):
+        result = {}
+        for task in self.session.plugins.pslist().filter_processes():
+            result[int(task.dtb)] = task.obj_offset
+
+        return result

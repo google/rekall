@@ -77,7 +77,7 @@ class NTFSDetector(guess_profile.DetectionMethod):
         ntfs_profile = self.session.LoadProfile("ntfs")
         try:
             ntfs = NTFS(address_space=address_space, session=self.session)
-            self.session.SetParameter("ntfs", ntfs)
+            self.session.SetCache("ntfs", ntfs)
 
             return ntfs_profile
         except NTFSParseError:

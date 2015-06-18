@@ -408,9 +408,16 @@ class BaseObject(object):
 
     def __eq__(self, other):
         return self.v() == other or (
+            # Same object type
             (self.__class__ == other.__class__) and
-            (self.obj_offset == other.obj_offset) and
-            (self.obj_vm == other.obj_vm))
+
+            # Same physical memory backing the two objects. Note that often two
+            # objects may exist in different address spaces, but be mapped to
+            # the same physical memory. In Rekall we assume these two objects
+            # are actually equivalent since they share the same physical memory.
+            (self.obj_vm.phys_base == other.obj_vm.phys_base) and
+            (self.obj_vm.vtop(self.obj_offset) ==
+             other.obj_vm.vtop(other.obj_offset)))
 
     def __hash__(self):
         # This needs to be the same as the object we proxy so that we can mix
@@ -1232,10 +1239,11 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
     @property
     def indices(self):
-        return ("%s(%#x, vm=%s)" % (
+        return ("%s(%#x, vm=%s@%s)" % (
             self.obj_type,
             self.obj_offset,
-            self.obj_vm,
+            self.obj_vm.vtop(self.obj_offset),
+            self.obj_vm.phys_base,
             ),)
 
     def __long__(self):
@@ -2290,9 +2298,6 @@ class TestProfile(Profile):
         result.data = self.data
 
         return result
-
-
-PROFILE_CACHE = utils.FastStore()
 
 
 class ProfileModification(object):

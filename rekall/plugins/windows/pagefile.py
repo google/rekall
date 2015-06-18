@@ -32,6 +32,8 @@ metadata.
 __author__ = "Michael Cohen <scudette@google.com>"
 import struct
 
+from rekall import obj
+from rekall import utils
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.windows import common
@@ -55,7 +57,7 @@ class WindowsPagedMemoryMixin(object):
         self.pagefile_mapping = getattr(self.base, "pagefile_offset", None)
 
         self._resolve_vads = True
-        self.vads = []
+        self._vad = None
 
         # We cache these bitfields in order to speed up mask calculations. We
         # derive them initially from the profile so we do not need to hardcode
@@ -74,13 +76,46 @@ class WindowsPagedMemoryMixin(object):
         self.proto_transition_valid_mask = (self.proto_transition_mask |
                                             self.valid_mask)
         self.transition_valid_mask = self.transition_mask | self.valid_mask
+        self.task = None
+
+    @property
+    def vad(self):
+        """Returns a cached RangedCollection() of vad ranges."""
+        # If it is already cached, just return that.
+        if self._vad is not None:
+            return self._vad
+
+        # We can not run plugins in recursive context.
+        if not self._resolve_vads:
+            return obj.NoneObject("vads not available right now")
+
+        try:
+            # Prevent recursively calling ourselves. We might resolve Prototype
+            # PTEs which end up calling plugins (like the VAD plugin) which
+            # might recursively translate another Vad Prototype address. This
+            # safety below ensures we cant get into infinite recursion by
+            # failing more complex PTE resolution on recursive calls.
+            self._resolve_vads = False
+
+            # Try to map the dtb to a task struct so we can look up the vads.
+            if self.task == None:
+                # Find the _EPROCESS for this dtb - we need to consult the VAD
+                # for some of the address transition.
+                self.task = self.session.GetParameter("dtb2task").get(self.dtb)
+
+            self._vad = utils.RangedCollection()
+            for x in self.session.plugins.vad().GetVadsForProcess(
+                    self.session.profile._EPROCESS(self.task)):
+                self._vad.insert(x[0], x[1], (x[0], x[1], x[3]))
+
+            return self._vad
+        finally:
+            self._resolve_vads = True
 
     def _ConsultVad(self, virtual_address, pte_value):
-        vad_hit = self.session.address_resolver.FindProcessVad(
-            virtual_address, cache_only=not self._resolve_vads)
-
+        vad_hit = self.vad.get_range(virtual_address)
         if vad_hit:
-            start, _, _, mmvad = vad_hit
+            start, _, mmvad = vad_hit
 
             # If the MMVAD has PTEs resolve those..
             if "FirstPrototypePte" in mmvad.members:
@@ -181,15 +216,6 @@ class WindowsPagedMemoryMixin(object):
 
         return "Pagefile", None
 
-    def get_available_addresses(self, start=0):
-        if self.session.GetParameter("process_context"):
-            self.vads = list(self.session.address_resolver.GetVADs())
-
-        for ranges in super(
-                WindowsPagedMemoryMixin, self).get_available_addresses(
-                    start=start):
-            yield ranges
-
     def _get_available_PDEs(self, vaddr, pdpte_value, start):
         tmp2 = vaddr
         for pde in range(0, 0x200):
@@ -232,7 +258,12 @@ class WindowsPagedMemoryMixin(object):
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         """Scan the PTE table and yield address ranges which are valid."""
         tmp = vaddr
-        current_vad = 0
+        if self.vad:
+            vads = sorted([(x[0], x[1]) for x in self.vad.collection],
+                          reverse=True)
+        else:
+            vads = []
+
         for i in xrange(0, len(pte_table)):
             pfn = i << 12
             pte_value = pte_table[i]
@@ -245,13 +276,14 @@ class WindowsPagedMemoryMixin(object):
             # Remove all the vads that end below this address. This optimization
             # allows us to skip DemandZero pages which occur outsize the VAD
             # ranges.
-            if self.vads and current_vad < len(self.vads):
-                while self.vads[current_vad][1] < vaddr:
-                    current_vad += 1
+            if vads:
+                while vads and vads[-1][1] < vaddr:
+                    vads.pop(-1)
 
                 # Address is below the next available vad's start. We are not
                 # inside a vad range and a 0 PTE is unmapped.
-                if pte_value == 0 and vaddr < self.vads[current_vad][0]:
+                if (pte_value == 0 and vads and
+                        vaddr < self.vads[-1][0]):
                     continue
 
             elif pte_value == 0:
@@ -270,41 +302,27 @@ class WindowsPagedMemoryMixin(object):
         pte_value must be the actual PTE from hardware page tables (Not software
         PTEs which are prototype PTEs).
         """
-        try:
-            # Prevent recursively calling ourselves. We might resolve Prototype
-            # PTEs which end up calling plugins (like the VAD plugin) which
-            # might recursively translate another Vad Prototype address. This
-            # safety below ensures we cant get into infinite recursion by
-            # failing more complex PTE resolution on recursive calls.
-            self._resolve_vads = False
+        desc, pte_value = self.DeterminePTEType(pte_value, virtual_address)
 
-            # Switch to using symbols. Its a little bit slower but more accurate
-            # and readable. Note that pte_value may change here if we need to
-            # fetch it from the VAD prototype (for stage 2 resolution).
-            desc, pte_value = self.DeterminePTEType(pte_value, virtual_address)
+        # Transition pages can be treated as Valid, let the hardware resolve
+        # it.
+        if desc == "Transition" or desc == "Valid":
+            return super(WindowsPagedMemoryMixin, self).get_phys_addr(
+                virtual_address, pte_value | self.valid_mask)
 
-            # Transition pages can be treated as Valid, let the hardware resolve
-            # it.
-            if desc == "Transition" or desc == "Valid":
-                return super(WindowsPagedMemoryMixin, self).get_phys_addr(
-                    virtual_address, pte_value | self.valid_mask)
+        if desc == "Prototype":
+            return self.ResolveProtoPTE(pte_value, virtual_address)[1]
 
-            if desc == "Prototype":
-                return self.ResolveProtoPTE(pte_value, virtual_address)[1]
+        # This is a prototype into a vad region.
+        elif desc == "Vad":
+            return self.ResolveProtoPTE(pte_value, virtual_address)[1]
 
-            # This is a prototype into a vad region.
-            elif desc == "Vad":
-                return self.ResolveProtoPTE(pte_value, virtual_address)[1]
+        elif desc == "Pagefile" and self.pagefile_mapping:
+            pte = self.session.profile._MMPTE()
+            pte.u.Long = pte_value
 
-            elif desc == "Pagefile" and self.pagefile_mapping:
-                pte = self.session.profile._MMPTE()
-                pte.u.Long = pte_value
-
-                return (pte.u.Soft.PageFileHigh * 0x1000 +
-                        self.pagefile_mapping + (virtual_address & 0xFFF))
-
-        finally:
-            self._resolve_vads = True
+            return (pte.u.Soft.PageFileHigh * 0x1000 +
+                    self.pagefile_mapping + (virtual_address & 0xFFF))
 
 
 class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
@@ -341,7 +359,6 @@ class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
                 return self.get_two_meg_paddr(vaddr, pde)
 
             pte = self.get_pte(vaddr, pde)
-
             res = self.get_phys_addr(vaddr, pte)
 
             self._tlb.Put(vaddr, res)

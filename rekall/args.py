@@ -225,21 +225,6 @@ def ParseGlobalArgs(parser, argv, user_session):
         # DB.
         user_session.plugins.plugin_db.Rebuild()
 
-    # Possibly restore the session from a file.
-    session_filename = getattr(known_args, "session_filename", None)
-    if session_filename:
-        try:
-            user_session.LoadFromFile(session_filename)
-
-            # Set the command line args once again, in case they override
-            # something in the stored session.
-            with user_session.state as state:
-                for arg, value in known_args.__dict__.items():
-                    state.Set(arg, value)
-
-        except IOError:
-            pass
-
 
 def FindPlugin(argv=None, user_session=None):
     """Search the argv for the first occurrence of a valid plugin name.

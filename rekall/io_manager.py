@@ -58,6 +58,10 @@ class IOManagerError(IOError):
     """An IOError from the IO Manager."""
 
 
+class EncodeError(IOError):
+    """Raised when unable to encode to the IO Manager."""
+
+
 class IOManager(object):
     """The baseclass for abstracted IO implementations.
 
@@ -118,7 +122,7 @@ class IOManager(object):
         try:
             metadata = self.inventory.get("$METADATA")
             if (metadata.get("ProfileClass") == "Inventory"
-                and metadata.get("Type") == "Inventory"):
+                    and metadata.get("Type") == "Inventory"):
                 return True
         except (AttributeError, IndexError, ValueError):
             pass
@@ -207,7 +211,7 @@ class IOManager(object):
     def Decoder(self, raw):
         return json.loads(raw)
 
-    def GetData(self, name, raw=False):
+    def GetData(self, name, raw=False, default=None):
         """Get the data object stored at container member.
 
         This returns an arbitrary python object which is stored in the named
@@ -221,6 +225,9 @@ class IOManager(object):
           name: The name to retrieve the data under.
           raw: If specified we do not parse the data, simply return it as is.
         """
+        if default is None:
+            default = obj.NoneObject()
+
         try:
             fd = self.Open(name)
             data = fd.read(MAX_DATA_SIZE)
@@ -233,9 +240,9 @@ class IOManager(object):
             self.session.logging.error(
                 "Cannot parse profile %s because of JSON error %s.",
                 name, e)
-            return obj.NoneObject()
+            return default
         except IOError:
-            return obj.NoneObject()
+            return default
 
     def StoreData(self, name, data, raw=False, **options):
         """Stores the data in the named container member.
@@ -251,12 +258,16 @@ class IOManager(object):
           raw: If true we write the data directly without encoding to json. In
             this case data should be a string.
         """
-        with self.Create(name) as fd:
+        try:
             if raw:
                 to_write = utils.SmartStr(data)
             else:
                 to_write = self.Encoder(data, **options)
+        except EncodeError:
+            self.session.logging.error("Unable to serialize %s", name)
+            return
 
+        with self.Create(name) as fd:
             fd.write(to_write)
 
         # Update the inventory.

@@ -169,6 +169,8 @@ class KCoreAddressSpace(Elf64CoreDump):
     __name = "elf64"
     __image = True
 
+    volatile = True
+
     def __init__(self, **kwargs):
         super(KCoreAddressSpace, self).__init__(**kwargs)
 

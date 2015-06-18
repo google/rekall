@@ -155,8 +155,7 @@ class BaseObjectDescriptor(TypeDescriptor):
             return value
 
         if not isinstance(value, obj.BaseObject):
-            raise TypeError(
-                "%s is not a BaseObject." % value)
+            raise TypeError("%s is not a BaseObject." % (value, ))
 
         if isinstance(value, obj.Pointer):
             return value.deref()

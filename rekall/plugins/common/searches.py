@@ -48,6 +48,10 @@ class ListInterfaces(DarwinOnlyMixin, entities.EntityFind):
             "OSILayer3/address"]
 
 
+class TestListInterfaces(testlib.SortedComparison):
+    PARAMETERS = dict(commandline="ifconfig")
+
+
 class ListZones(entities.EntityFind):
     name = "zones"
     search = "has component AllocationZone"
@@ -72,6 +76,12 @@ class ListEvents(entities.EntityFind):
 
 class TestListEvents(testlib.SortedComparison):
     PARAMETERS = dict(commandline="events")
+
+    def testCase(self):
+        previous = sorted(set(self.baseline['output']))
+        current = sorted(set(self.current['output']))
+
+        self.assertListEqual(previous, current)
 
 
 class LSOF(DarwinOnlyMixin, entities.EntityFind):
@@ -135,6 +145,10 @@ class IPNetstat(entities.EntityFind):
             "Connection/destination->OSILayer4/port",
             "Connection/source->OSILayer3/address",
             "Connection/source->OSILayer4/port"]
+
+
+class TestIPNetstat(testlib.SortedComparison):
+    PARAMETERS = dict(commandline="ipnetstat")
 
 
 class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):

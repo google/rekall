@@ -58,10 +58,6 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
 
     def _get_readable_runs(self, records):
         """Yields all the runs that are safe to read."""
-        ranges = []
-        gpu_start = None
-        gpu_limit = None
-
         efi_tree = intervaltree.IntervalTree()
         for record in records:
             if record["type"] == "efi_range":
@@ -70,8 +66,9 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
                                   record["start"] + record["length"], 0)
 
         for record in records:
+            # TODO(adam): Is this needed any more?
             if (0 and record["type"] == "pci_range" and
-                "GFX0" in record["purpose"]):
+                    "GFX0" in record["purpose"]):
                 # This machine has a discrete GPU so we need to remove its range
                 # from the allowed regions.
                 # TODO: Sometimes it appears we need to avoid reading ranges
@@ -79,7 +76,6 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
                 efi_tree.chop(record["start"],
                               record["start"] + record["length"])
 
-        result = []
         for interval in sorted(efi_tree):
             yield interval.begin, interval.begin, interval.length()
 

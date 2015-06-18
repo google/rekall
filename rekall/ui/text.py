@@ -341,7 +341,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         # We get the value of the profile via the session state because doing
         # self.session.profile will trigger profile autodetection even when
         # it's not needed.
-        if (self.session.HasParameter("profile") and
+        if (self.session.HasParameter("profile_obj") and
                 self.session.profile.metadata("arch") == "I386"):
             address_size = 10
 
@@ -391,7 +391,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         return Cell(repr(target), **options)
 
     def render_full(self, target, **options):
-        return Cell(unicode(target), **options)
+        return Cell(utils.SmartUnicode(target), **options)
 
     def render_address(self, target, width=None, **options):
         return Cell(
@@ -1206,7 +1206,7 @@ class TextRenderer(renderer_module.BaseRenderer):
         super(TextRenderer, self).__init__(**kwargs)
 
         # Allow the user to dump all output to a file.
-        self.output = output or self.session.GetParameter("output")
+        self.output = output
         if self.output:
             # We append the text output for each command. This allows the user
             # to just set it once for the session and each new command is

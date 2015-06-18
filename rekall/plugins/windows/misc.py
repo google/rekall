@@ -18,10 +18,12 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import hashlib
 import re
 
 # pylint: disable=protected-access
 from rekall import obj
+from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.windows import common
 
@@ -230,6 +232,72 @@ class ImageInfo(common.WindowsCommandPlugin):
         self.session.plugins.phys_map().render(renderer)
 
 
+class WinImageFingerprint(common.AbstractWindowsParameterHook):
+    """Fingerprint the current image.
+
+    This parameter tries to get something unique about the image quickly. The
+    idea is that two different images (even of the same system at different
+    points in time) will have very different fingerprints. The fingerprint is
+    used as a key to cache persistent information about the system.
+
+    Live systems can not have a stable fingerprint and so return a NoneObject()
+    here.
+
+    We return a list of tuples:
+       (physical_offset, expected_data)
+
+    The list uniquely identifies the image. If one were to read all physical
+    offsets and find the expected_data at these locations, then we have a very
+    high level of confidence that the image is unique and matches the
+    fingerprint.
+    """
+    name = "image_fingerprint"
+
+    def calculate(self):
+        if self.session.physical_address_space.volatile:
+            return obj.NoneObject("No fingerprint for volatile image.")
+
+        result = []
+        profile = self.session.profile
+        phys_as = self.session.physical_address_space
+
+        label = profile.get_constant_object("NtBuildLab", "String")
+        result.append(
+            (self.session.kernel_address_space.vtop(label.obj_offset),
+             label.v()))
+
+        label = profile.get_constant_object("NtBuildLabEx", "String")
+        result.append(
+            (self.session.kernel_address_space.vtop(label.obj_offset),
+             label.v()))
+
+        kuser_shared = profile._KUSER_SHARED_DATA(
+            profile.get_constant("KI_USER_SHARED_DATA"))
+
+        system_time_offset = self.session.kernel_address_space.vtop(
+            kuser_shared.SystemTime.obj_offset)
+        result.append((system_time_offset, phys_as.read(system_time_offset, 8)))
+
+        tick_time_offset = self.session.kernel_address_space.vtop(
+            kuser_shared.multi_m("TickCountQuad", "TickCountLow").obj_offset)
+        result.append((tick_time_offset, phys_as.read(tick_time_offset, 8)))
+
+        # List of processes should also be pretty unique.
+        for task in self.session.plugins.pslist().filter_processes():
+            name = task.name.cast("String", length=30)
+            task_name_offset = self.session.kernel_address_space.vtop(
+                name.obj_offset)
+
+            # Read the raw data for the task name. Usually the task name is
+            # encoded in utf8 but then we might not be able to compare it
+            # exactly - we really want bytes here.
+            result.append((task_name_offset, name.v()))
+
+        return dict(
+            hash=hashlib.sha1(unicode(result).encode("utf8")).hexdigest(),
+            tests=result)
+
+
 class Pools(common.WindowsCommandPlugin):
     """Prints information about system pools.
 
@@ -410,14 +478,13 @@ class ObjectTree(common.WindowsCommandPlugin):
             type_regex = re.compile(type_regex)
         self.type_regex = type_regex
 
-    def get_object_tree(self):
-        return self.profile.get_constant_object(
-            "ObpRootDirectoryObject",
-            target="Pointer",
-            target_args=dict(
-                target="_OBJECT_DIRECTORY"
-                )
-            )
+    def GetObjectByName(self, path):
+        root = self.session.GetParameter("object_tree")
+        for component in utils.SplitPath(path):
+            root = root["Children"][component]
+
+        return self.profile.Object(type_name=root["type_name"],
+                                   offset=root["offset"])
 
     def _render_directory(self, directory, renderer, seen, depth=0):
         for obj_header in directory.list():
@@ -445,7 +512,8 @@ class ObjectTree(common.WindowsCommandPlugin):
                                dict(name="Name", type="TreeNode"),
                               ])
 
-        root = self.get_object_tree()
+        # The root object.
+        root = self.GetObjectByName("/")
 
         seen = set()
         self._render_directory(root, renderer, seen)

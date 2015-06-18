@@ -26,7 +26,6 @@ way for people to save their own results.
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-import json
 import logging
 import os
 import pdb
@@ -34,6 +33,7 @@ import sys
 import time
 import traceback
 
+from rekall import cache
 from rekall import config
 from rekall import io_manager
 from rekall import kb
@@ -44,7 +44,6 @@ from rekall import utils
 
 from rekall.entities import manager as entity_manager
 from rekall.ui import renderer
-from rekall.ui import json_renderer
 
 
 config.DeclareOption(
@@ -121,41 +120,7 @@ class PluginContainer(object):
             if cls.name]
 
 
-class Cache(utils.AttributeDict):
-    def Get(self, item, default=None):
-        if default is None:
-            default = obj.NoneObject("%s not found in cache.", item)
-
-        return super(Cache, self).Get(item) or default
-
-    def __getattr__(self, attr):
-        # Do not allow private attributes to be set.
-        if attr.startswith("_"):
-            raise AttributeError(attr)
-
-        res = self.get(attr)
-        if res is None:
-            return obj.NoneObject("%s not set in cache", attr)
-
-        return res
-
-    def __str__(self):
-        """Print the contents somewhat concisely."""
-        result = []
-        for k, v in self.iteritems():
-            if isinstance(v, obj.BaseObject):
-                v = repr(v)
-
-            value = "\n  ".join(str(v).splitlines())
-            if len(value) > 1000:
-                value = "%s ..." % value[:1000]
-
-            result.append("  %s = %s" % (k, value))
-
-        return "{\n" + "\n".join(sorted(result)) + "\n}"
-
-
-class Configuration(Cache):
+class Configuration(utils.AttributeDict):
     """The session's configuration is managed through this object.
 
     The session can be configured using the SetParameter() method. However,
@@ -218,6 +183,15 @@ class Configuration(Cache):
     def __repr__(self):
         return "<Configuration Object>"
 
+    def _set_cache(self, cache_type, _):
+        # For volatile sessions we use a timed cache (which expires after a
+        # short time).
+        if self.session.volatile:
+            cache_type = "timed"
+
+        self.session.cache = cache.Factory(self.session, cache_type)
+        return cache_type
+
     def _set_filename(self, filename, parameters):
         """Callback for when a filename is set in the session.
 
@@ -238,7 +212,8 @@ class Configuration(Cache):
         # If a profile is not configured at this time, we need to auto-detect
         # it.
         if 'profile' not in parameters:
-            # Clear the existing profile and trigger profile autodetection.
+            # Clear the existing profile which will trigger profile
+            # autodetection on the new image.
             del self['profile']
             self['filename'] = filename
 
@@ -263,9 +238,14 @@ class Configuration(Cache):
         return profile_path
 
     def _set_profile(self, profile, _):
+        """This is triggered when someone explicitly sets the profile.
+
+        We force load the profile and avoid autodetection.
+        """
         profile_obj = self.session.LoadProfile(profile)
         if profile_obj:
-            self.cache.Set("profile_obj", profile_obj)
+            self.session.SetCache("profile_obj", profile_obj,
+                                  volatile=False)
 
         return profile
 
@@ -353,6 +333,21 @@ class Configuration(Cache):
 
             self.update(**self._pending_parameters)
             self._pending_parameters = {}
+
+    def __str__(self):
+        """Print the contents somewhat concisely."""
+        result = []
+        for k, v in self.iteritems():
+            if isinstance(v, obj.BaseObject):
+                v = repr(v)
+
+            value = "\n  ".join(str(v).splitlines())
+            if len(value) > 1000:
+                value = "%s ..." % value[:1000]
+
+            result.append("  %s = %s" % (k, value))
+
+        return "{\n" + "\n".join(sorted(result)) + "\n}"
 
 
 class ProgressDispatcher(object):
@@ -451,9 +446,8 @@ class Session(object):
         # Store user configurable attributes here. These will be read/written to
         # the configuration file.
         self.state = Configuration(session=self)
+        self.cache = cache.Factory(self, "memory")
         with self.state:
-            self.state.Set("cache", Cache())
-
             for k, v in kwargs.items():
                 self.state.Set(k, v)
 
@@ -500,8 +494,8 @@ class Session(object):
             return self._repository_managers
 
         # The profile path is specified in search order.
-        repository_path = (self.state.Get("repository_path") or
-                           self.state.Get("profile_path") or [])
+        repository_path = (self.GetParameter("repository_path") or
+                           self.GetParameter("profile_path") or [])
 
         for path in repository_path:
             self._repository_managers.append(
@@ -522,7 +516,7 @@ class Session(object):
         self.profile_cache = {}
         self.physical_address_space = None
         self.kernel_address_space = None
-        self.state.cache.clear()
+        self.cache.Clear()
 
     @property
     def default_address_space(self):
@@ -558,7 +552,7 @@ class Session(object):
         If False, a call to GetParameter() might trigger autodetection.
         """
         return (self.state.get(item) is not None or
-                self.state.cache.get(item) is not None)
+                self.cache.Get(item) is not None)
 
     def GetParameter(self, item, default=obj.NoneObject()):
         """Retrieves a stored parameter.
@@ -582,7 +576,7 @@ class Session(object):
         # different from a NoneObject() returned (which represents a cacheable
         # failure).
         if result is None:
-            result = self.state.cache.get(item)
+            result = self.cache.Get(item)
 
         # The result is not in the cache. Is there a hook that can help?
         if result is None:
@@ -594,9 +588,9 @@ class Session(object):
 
         return result
 
-    def SetCache(self, item, value):
+    def SetCache(self, item, value, volatile=True):
         """Store something in the cache."""
-        self.state.cache.Set(item, value)
+        self.cache.Set(item, value, volatile=volatile)
 
     def SetParameter(self, item, value):
         """Sets a session parameter.
@@ -617,7 +611,7 @@ class Session(object):
                 result = hook.calculate()
 
                 # Cache the output from the hook directly.
-                self.SetCache(name, result)
+                self.SetCache(name, result, volatile=hook.volatile)
 
                 return result
 
@@ -650,7 +644,7 @@ class Session(object):
             "Running plugin (%s) with args (%s) kwargs (%s)",
             plugin_obj, args, kwargs)
         kwargs = self._CorrectKWArgs(kwargs)
-        output = kwargs.pop("output", None)
+        output = kwargs.pop("output", self.GetParameter("output"))
         ui_renderer = kwargs.pop("format", None)
         result = None
 
@@ -684,6 +678,7 @@ class Session(object):
 
     def _HandleRunPluginException(self, ui_renderer, e):
         """Handle exceptions thrown while trying to run a plugin."""
+        _ = ui_renderer
         raise e
 
     def _GetPluginName(self, plugin_obj):
@@ -840,16 +835,24 @@ class Session(object):
         # Clear the profile object. Next access to it will trigger profile
         # auto-detection.
         if value == None:
-            self.state.cache.Set('profile_obj', value)
+            self.SetCache('profile_obj', value, volatile=False)
 
         elif isinstance(value, basestring):
             with self.state:
                 self.state.Set('profile', value)
 
         elif isinstance(value, obj.Profile):
-            self.state.cache.Set('profile_obj', value)
+            self.SetCache('profile_obj', value, volatile=False)
+            self.SetCache("profile", value.name, volatile=False)
         else:
             raise AttributeError("Type %s not allowed for profile" % value)
+
+    def Flush(self):
+        """Destroy this session.
+
+        This should be called when the session is destroyed.
+        """
+        self.cache.Flush()
 
     def clone(self, **kwargs):
         new_state = self.state.copy()
@@ -874,71 +877,6 @@ class Session(object):
             for k, v in kwargs.iteritems():
                 new_session.SetParameter(k, v)
         return new_session
-
-
-class JsonSerializableSession(Session):
-    """A session which can serialize its state into a Json file."""
-
-    # We only serialize the following session variables since they make this
-    # session unique. When we unserialize we merge the other state variables
-    # from this current session.
-    SERIALIZABLE_STATE_PARAMETERS = [
-        ("ept", u"IntParser"),
-        ("profile", u"FileName"),
-        ("filename", u"FileName"),
-        ("pagefile", u"FileName"),
-        ("session_name", u"String"),
-        ("timezone", u"TimeZone"),
-    ]
-
-    def __eq__(self, other):
-        if not isinstance(other, Session):
-            return False
-
-        for field, _ in self.SERIALIZABLE_STATE_PARAMETERS:
-            if self.HasParameter(field):
-                # We have this field but the other does not.
-                if not other.HasParameter(field):
-                    return False
-
-                if self.GetParameter(field) != other.GetParameter(field):
-                    return False
-
-        return True
-
-    def SaveToFile(self, filename):
-        with open(filename, "wb") as fd:
-            self.logging.info("Saving session to %s", filename)
-            json.dump(self.Serialize(), fd)
-
-    def LoadFromFile(self, filename):
-        try:
-            lexicon, data = json.load(open(filename, "rb"))
-            self.logging.info("Loaded session from %s", filename)
-
-            self.Unserialize(lexicon, data)
-
-        # decoding the session might fail un-expectantly - just discard the
-        # session in that case.
-        except Exception:
-            # If anything goes wrong, we break into a debugger here.
-            self.logging.error(traceback.format_exc())
-
-            if self.GetParameter("debug"):
-                pdb.post_mortem(sys.exc_info()[2])
-
-    def Unserialize(self, lexicon, data):
-        json_renderer_obj = json_renderer.JsonRenderer(session=self)
-        decoder = json_renderer.JsonDecoder(self, json_renderer_obj)
-        decoder.SetLexicon(lexicon)
-        self.state = Configuration(session=self, **decoder.Decode(data))
-
-    def Serialize(self):
-        encoder = json_renderer.JsonEncoder(
-            session=self, renderer="JsonRenderer")
-
-        data = encoder.Encode(self.state)
-        return encoder.GetLexicon(), data
 
 
 class DynamicNameSpace(dict):
@@ -1008,7 +946,7 @@ class DynamicNameSpace(dict):
         return runner
 
 
-class InteractiveSession(JsonSerializableSession):
+class InteractiveSession(Session):
     """The session allows for storing of arbitrary values and configuration.
 
     This session contains a lot of convenience features which are useful for
@@ -1097,7 +1035,7 @@ class InteractiveSession(JsonSerializableSession):
 
         return new_sid
 
-    def _HandleRunPluginException(self, renderer, e):
+    def _HandleRunPluginException(self, ui_renderer, e):
         """Handle all exceptions thrown by logging to the console."""
 
         if isinstance(e, plugin.InvalidArgs):
@@ -1131,11 +1069,17 @@ class InteractiveSession(JsonSerializableSession):
             self.printer(x)
 
     def __str__(self):
-        result = """Rekall Memory Forensics session Started on %s.
+        return self.__unicode__()
+
+    def __unicode__(self):
+        result = u"""Rekall Memory Forensics session Started on %s.
 
 Config:
 %s
-""" % (time.ctime(self._start_time), self.state)
+
+Cache (%r):
+%s
+""" % (time.ctime(self._start_time), self.state, self.cache, self.cache)
         return result
 
     def __dir__(self):

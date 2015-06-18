@@ -57,7 +57,7 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
         # remove all requirement to know the windows version, but for now we
         # just guess the version based on structures which are known to exist in
         # the profile.
-        version = "5.2"
+        version = 5.2
 
         # Windows XP did not use a BalancedRoot for VADs.
         if profile.get_obj_offset("_MM_AVL_TABLE", "BalancedRoot") == None:

@@ -27,6 +27,7 @@
 import StringIO
 import struct
 import os
+import weakref
 
 from rekall import addrspace
 from rekall import config
@@ -54,7 +55,12 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
             self.fhandle.seek(0, 2)
             self.fsize = self.fhandle.tell()
         except IOError:
+            # We failed to seek to the end - this is usual with devices so we
+            # assume they are volatile to be safe.
             self.fsize = 0
+            self.volatile = True
+            self.session.logging.warn(
+                "Unable to determine file size, assuming file is volatile.")
 
         self.offset = 0
 
@@ -130,6 +136,8 @@ class FileAddressSpace(FDAddressSpace):
                 "installed.")
 
         fhandle = open(self.fname, self.mode)
+        self._closer = weakref.ref(self, lambda x: fhandle.close())
+
         super(FileAddressSpace, self).__init__(
             fhandle=fhandle, session=session, **kwargs)
 
@@ -204,6 +212,8 @@ class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
         self.mode = mode
 
         fhandle = open(self.fname, self.mode)
+        self._closer = weakref.ref(self, lambda x: fhandle.close())
+
         super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
 
 

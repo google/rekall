@@ -31,9 +31,8 @@ class WinPas2Vas(pas2kas.Pas2VasMixin, common.WinProcessFilter):
 
 
 class WinPas2VasResolver(pas2kas.Pas2VasResolver):
-    def _get_highest_user_address(self):
-        return self.session.profile.get_constant_object(
-            "MmHighestUserAddress", "unsigned long long")
+    def GetTaskStruct(self, address):
+        return self.session.profile._EPROCESS(address)
 
 
 class WinPas2VasResolverHook(common.AbstractWindowsParameterHook):

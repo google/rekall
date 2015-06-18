@@ -43,11 +43,6 @@ config.DeclareOption(
     help="Run this script before dropping into the interactive shell.")
 
 
-config.DeclareOption(
-    "-s", "--session_filename", default=None,
-    help="If specified we save and restore the session from this filename.")
-
-
 def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
@@ -72,11 +67,8 @@ def main(argv=None):
         if getattr(flags, "debug", None):
             pdb.post_mortem(sys.exc_info()[2])
         raise
-
-    # Right before we exit we check if we need to save the current session.
-    if user_session.state.session_filename and (
-            user_session.state.dirty or user_session.state.cache.dirty):
-        user_session.SaveToFile(user_session.state.session_filename)
+    finally:
+        user_session.Flush()
 
 
 if __name__ == '__main__':
