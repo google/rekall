@@ -283,7 +283,7 @@ class WindowsPagedMemoryMixin(object):
                 # Address is below the next available vad's start. We are not
                 # inside a vad range and a 0 PTE is unmapped.
                 if (pte_value == 0 and vads and
-                        vaddr < self.vads[-1][0]):
+                        vaddr < vads[-1][0]):
                     continue
 
             elif pte_value == 0:
