@@ -197,7 +197,7 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
                 paravirt_enabled = self.session.profile.pv_info(
                     offset=pv_info_phys,
                     vm=self.physical_address_space).paravirt_enabled
-                if paravirt_enabled:
+                if paravirt_enabled and paravirt_enabled != 0:
                     self.session.logging.debug(
                         "Detected paravirtualized XEN guest")
                     impl = "XenParaVirtAMD64PagedMemory"
