@@ -117,6 +117,13 @@ config.DeclareOption(
     choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     help="The default logging level.")
 
+
+# A cache to map a tuple (mro, renderer) to the corresponding object renderer.
+MRO_RENDERER_CACHE = utils.FastStore(100, lock=True)
+
+# A cache to map a class to its reduced MRO list. Do not hold class references
+# in this cache as these capture closure variables via the Curry() classes on
+# the property methods.
 MRO_CACHE = utils.FastStore(100, lock=True)
 
 
@@ -154,7 +161,7 @@ class ObjectRenderer(object):
             item = item.__class__
 
         try:
-            return MRO_CACHE.Get(item)
+            return MRO_CACHE.Get(item.__name__)
         except KeyError:
             # Remove duplicated class names from the MRO (The current
             # implementation uses the flat class name to select the
@@ -162,7 +169,7 @@ class ObjectRenderer(object):
             result = tuple(collections.OrderedDict.fromkeys(
                 [unicode(x.__name__) for x in item.__mro__]))
 
-            MRO_CACHE.Put(item, result)
+            MRO_CACHE.Put(item.__name__, result)
             return result
 
     @classmethod
@@ -180,7 +187,7 @@ class ObjectRenderer(object):
     def FromMRO(cls, mro, renderer):
         """Get the best object renderer class from the MRO."""
         try:
-            return MRO_CACHE[(mro, renderer)]
+            return MRO_RENDERER_CACHE[(mro, renderer)]
         except KeyError:
             cls._BuildRendererCache()
 
@@ -196,7 +203,7 @@ class ObjectRenderer(object):
                     (class_name, renderer))
 
                 if object_renderer_cls:
-                    MRO_CACHE.Put((mro, renderer), object_renderer_cls)
+                    MRO_RENDERER_CACHE.Put((mro, renderer), object_renderer_cls)
                     return object_renderer_cls
 
     @classmethod

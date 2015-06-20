@@ -83,9 +83,9 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         with open(yml_path) as fp:
             data = self.pmem_metadata = yaml_utils.decode(fp.read())
 
-        self.session.SetParameter("dtb", data["meta"]["dtb_off"])
-        self.session.SetParameter("vm_kernel_slide",
-                                  data["meta"]["kaslr_slide"])
+        self.session.SetCache("dtb", data["meta"]["dtb_off"])
+        self.session.SetCache("vm_kernel_slide",
+                              data["meta"]["kaslr_slide"])
 
         for run in self._get_readable_runs(data["records"]):
             self.runs.insert(run)

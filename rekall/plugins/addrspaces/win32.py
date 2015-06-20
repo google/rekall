@@ -26,6 +26,7 @@ import weakref
 import win32file
 
 from rekall import addrspace
+from rekall.plugins.addrspaces import standard
 
 
 def CTL_CODE(DeviceType, Function, Method, Access):
@@ -38,8 +39,8 @@ INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
 PAGE_SHIFT = 12
 
 
-class Win32FileAddressSpace(addrspace.CachingAddressSpaceMixIn,
-                            addrspace.RunBasedAddressSpace):
+class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
+                        addrspace.RunBasedAddressSpace):
     """ This is a direct file AS for use in windows.
 
     In windows, in order to open raw devices we need to use the win32 apis. This
@@ -47,29 +48,7 @@ class Win32FileAddressSpace(addrspace.CachingAddressSpaceMixIn,
     winpmem driver.
     """
 
-    __name = "win32file"
-
-    ## We should be the AS of last resort but in front of the non win32 version.
-    order = 90
-    __image = True
-
     CHUNK_SIZE = 0x1000
-
-    def __init__(self, base=None, filename=None, **kwargs):
-        self.as_assert(base == None, 'Must be first Address Space')
-        super(Win32FileAddressSpace, self).__init__(**kwargs)
-        self.phys_base = self
-
-        path = filename or self.session.GetParameter("filename")
-
-        self.as_assert(path, "Filename must be specified in session (e.g. "
-                       "session.SetParameter('filename', 'MyFile.raw').")
-
-        self.fname = path
-
-        # The file is just a regular file, we open for reading.
-        self._OpenFileForRead(path)
-        self.runs.insert((0, 0, win32file.GetFileSize(self.fhandle)))
 
     def _OpenFileForRead(self, path):
         try:
@@ -121,7 +100,37 @@ class Win32FileAddressSpace(addrspace.CachingAddressSpaceMixIn,
         win32file.CloseHandle(self.fhandle)
 
 
-class WinPmemAddressSpace(Win32FileAddressSpace):
+class Win32FileAddressSpace(Win32AddressSpace):
+    __name = "win32file"
+
+    ## We should be the AS of last resort but in front of the non win32 version.
+    order = standard.FileAddressSpace.order - 5
+    __image = True
+
+    def __init__(self, base=None, filename=None, **kwargs):
+        self.as_assert(base == None, 'Must be first Address Space')
+        super(Win32FileAddressSpace, self).__init__(**kwargs)
+        self.phys_base = self
+
+        path = filename or self.session.GetParameter("filename")
+
+        self.as_assert(path, "Filename must be specified in session (e.g. "
+                       "session.SetParameter('filename', 'MyFile.raw').")
+
+        self.fname = path
+
+        # The file is just a regular file, we open for reading.
+        self._OpenFileForRead(path)
+
+        # If we can not get the file size it means this is not a regular file -
+        # maybe a device.
+        try:
+            self.runs.insert((0, 0, win32file.GetFileSize(self.fhandle)))
+        except pywintypes.error:
+            raise addrspace.ASAssertionError("Not a regular file.")
+
+    
+class WinPmemAddressSpace(Win32AddressSpace):
     """An address space specifically designed for communicating with WinPmem."""
 
     __name = "winpmem"
@@ -133,7 +142,8 @@ class WinPmemAddressSpace(Win32FileAddressSpace):
     # We must be in front of the regular file based AS.
     order = Win32FileAddressSpace.order - 5
 
-    def __init__(self, filename=None, session=None, **kwargs):
+    def __init__(self, base=None, filename=None, session=None, **kwargs):
+        self.as_assert(base == None, 'Must be first Address Space')
         path = filename or session.GetParameter("filename")
         self.as_assert(path.startswith("\\\\"),
                        "Filename does not look like a device.")

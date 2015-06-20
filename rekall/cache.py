@@ -42,7 +42,10 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
         decoder = json_renderer.JsonDecoder(
             self.session, json_renderer_obj)
 
-        decoded = unpickler.load()
+        try:
+            decoded = unpickler.load()
+        except Exception:
+            raise io_manager.DecodeError("Unable to unpickle cached object")
 
         return decoder.Decode(decoded)
 
@@ -155,8 +158,8 @@ class FileCache(Cache):
 
     @property
     def io_manager(self):
-        if self._io_manager is None:
-            cache_dir = self.session.GetParameter("cache_dir")
+        cache_dir = self.session.GetParameter("cache_dir", cached=False)
+        if self._io_manager is None and cache_dir:
             # Cache dir may be specified relative to the home directory.
             if config.GetHomeDir():
                 cache_dir = os.path.join(config.GetHomeDir(), cache_dir)

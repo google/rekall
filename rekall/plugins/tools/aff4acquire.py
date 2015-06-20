@@ -32,6 +32,7 @@ from rekall import plugin
 from rekall import testlib
 
 from pyaff4 import data_store
+from pyaff4 import aff4_image
 from pyaff4 import aff4_map
 from pyaff4 import zip
 from pyaff4 import lexicon
@@ -65,12 +66,15 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
         super(AFF4Acquire, self).__init__(**kwargs)
 
         self.destination = destination or "output.aff4"
-        if compression == "snappy":
+        if compression == "snappy" and aff4_image.snappy:
             compression = lexicon.AFF4_IMAGE_COMPRESSION_SNAPPY
         elif compression == "stored":
             compression = lexicon.AFF4_IMAGE_COMPRESSION_STORED
         elif compression == "zlib":
             compression = lexicon.AFF4_IMAGE_COMPRESSION_ZLIB
+        else:
+            raise plugin.PluginError(
+                "Compression scheme not supported.")
 
         self.compression = compression
 
@@ -120,13 +124,14 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
                     last_tick = now
 
     def render(self, renderer):
-        with data_store.MemoryDataStore() as resolver:
-            output_urn = rdfvalue.URN.FromFileName(self.destination)
-            resolver.Set(output_urn, lexicon.AFF4_STREAM_WRITE_MODE,
-                         rdfvalue.XSDString("truncate"))
+        with renderer.open(filename=self.destination, mode="w+b") as out_fd:
+            with data_store.MemoryDataStore() as resolver:
+                output_urn = rdfvalue.URN.FromFileName(out_fd.name)
+                resolver.Set(output_urn, lexicon.AFF4_STREAM_WRITE_MODE,
+                             rdfvalue.XSDString("truncate"))
 
-            with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
-                self.copy_physical_address_space(resolver, volume)
+                with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
+                    self.copy_physical_address_space(resolver, volume)
 
 
 # We can not check the file hash because AFF4 files contain UUID which will

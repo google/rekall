@@ -62,6 +62,10 @@ class EncodeError(IOError):
     """Raised when unable to encode to the IO Manager."""
 
 
+class DecodeError(IOError):
+    """Raised when unable to decode to the IO Manager."""
+
+
 class IOManager(object):
     """The baseclass for abstracted IO implementations.
 
@@ -236,11 +240,12 @@ class IOManager(object):
 
             return self.Decoder(data)
 
-        except ValueError as e:
+        except (DecodeError, ValueError) as e:
             self.session.logging.error(
-                "Cannot parse profile %s because of JSON error %s.",
+                "Cannot parse profile %s because of decoding error '%s'.",
                 name, e)
             return default
+
         except IOError:
             return default
 

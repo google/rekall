@@ -32,6 +32,7 @@ import pdb
 import sys
 import time
 import traceback
+import weakref
 
 from rekall import cache
 from rekall import config
@@ -405,6 +406,7 @@ class HoardingLogHandler(logging.Handler):
         if self.renderer:
             for log_record in self.logrecord_buffer:
                 self.renderer.Log(log_record)
+
             self.logrecord_buffer = []
 
 
@@ -475,7 +477,15 @@ class Session(object):
             # A special log handler that hoards all messages until there's a
             # renderer that can transport them.
             self._log_handler = HoardingLogHandler()
-            self._logger.addHandler(self._log_handler)
+
+            # Since the logger is a global it must not hold a permanent
+            # reference to the HoardingLogHandler, otherwise we may never be
+            # collected.
+            def Remove(_, l=self._log_handler):
+                l.handlers = []
+
+            self._logger.addHandler(weakref.proxy(
+                self._log_handler, Remove))
 
         return self._logger
 
@@ -554,7 +564,7 @@ class Session(object):
         return (self.state.get(item) is not None or
                 self.cache.Get(item) is not None)
 
-    def GetParameter(self, item, default=obj.NoneObject()):
+    def GetParameter(self, item, default=obj.NoneObject(), cached=True):
         """Retrieves a stored parameter.
 
         Parameters are managed by the Rekall session in two layers. The state
@@ -575,11 +585,11 @@ class Session(object):
         # None in the state dict means that the cache is empty. This is
         # different from a NoneObject() returned (which represents a cacheable
         # failure).
-        if result is None:
+        if result is None and cached:
             result = self.cache.Get(item)
 
         # The result is not in the cache. Is there a hook that can help?
-        if result is None:
+        if result is None and cached:
             result = self._RunParameterHook(item)
 
         # Note that the hook may return a NoneObject() which should be cached.
