@@ -52,9 +52,8 @@ echo "Creating virtualenv in $(pwd)/${VIRTUALENV}"
 virtualenv $VIRTUALENV
 source "${VIRTUALENV}/bin/activate"
 
-# Yara is weird and needs to be installed first.
-
-pip install yara
+# Yara is weird and we have a whole separate script to build it.
+./tools/installers/install_yara.sh
 
 if [ $? -ne 0 ]
 then
@@ -86,8 +85,8 @@ then
   exit 5
 fi
 
-# Copy over manuskript because I couldn't figure out how to get pyinstaller to
-# do that simply.
+# Copy over manuskript because I couldn't figure out a simple way to get
+# pyinstaller to do it.
 
 cp -r manuskript dist/rekal/manuskript
 cp -r rekall/plugins/tools/webconsole dist/rekal/webconsole
@@ -95,4 +94,3 @@ cp -r rekall/plugins/tools/webconsole dist/rekal/webconsole
 echo "All done!"
 echo "Virtualenv with rekall in $(pwd)/${VIRTUALENV}"
 echo "Standalone distribution in $(pwd)/dist"
-

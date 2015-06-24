@@ -12,6 +12,7 @@
 /build
 /dist
 /rekall.egg-info
+/yara-build
 
 # Xcode & OS X-related stuff
 .DS_Store

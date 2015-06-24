@@ -21,18 +21,28 @@ exe = EXE(
     upx=True,
     console=True)
 
-LIBYARA = os.path.join(sys.prefix, "lib", "libyara.so")
+# The yara installer is dumb and puts the lib in dumb places. I have given up
+# trying to guess where it'll end up after we pip install it.
+LIBYARA = None
+for dirpath, _, files in os.walk(sys.prefix):
+    if "yara.so" in files:
+        LIBYARA = os.path.join(dirpath, "yara.so")
+        break
+
+if LIBYARA is None:
+    raise RuntimeException("Could not find yara.so.")
+
+
 LIBDISTORM3 = os.path.join(distorm3.__path__[0], "libdistorm3.so")
 
 coll = COLLECT(
     exe,
     a.binaries + [
         ("distorm3/libdistorm3.so", LIBDISTORM3, "BINARY"),
-        ("lib/libyara.so", LIBYARA, "BINARY"),
+        ("lib/yara.so", LIBYARA, "BINARY"),
     ],
     a.zipfiles,
     a.datas,
     strip=None,
     upx=True,
     name='rekal')
-
