@@ -32,7 +32,7 @@ class DarwinNotifiers(common.DarwinPlugin):
             ("Handler", "handler", "[addrpad]"),
             ("Match Key", "match_key", "20"),
             ("Match Value", "match_value", "30"),
-            ("Symbol", "symbol", "20"),
+            ("Symbol", "symbol", ""),
             ])
 
         gnotifications = self.profile.get_constant_cpp_object(
@@ -51,7 +51,7 @@ class DarwinNotifiers(common.DarwinPlugin):
                 symbol = resolver.format_address(notifier.handler)
 
                 for match_key, match_value in notifier.matching.items(
-                    "OSString"):
+                        "OSString"):
                     renderer.table_row(
                         key, notifier.handler,
                         match_key, match_value.value,

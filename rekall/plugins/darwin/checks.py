@@ -171,7 +171,7 @@ class DarwinSysctl(common.DarwinPlugin):
              ("MIB", "mib", "16"),
              ("Perms", "perms", "6"),
              ("Handler", "handler", "[addrpad]"),
-             ("Module", "symbol", "30"),
+             ("Symbol", "symbol", "40"),
              ("Value", "value", "")])
 
         resolver = self.session.address_resolver
