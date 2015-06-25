@@ -994,6 +994,53 @@ class BasicClasses(obj.Profile):
         profile.add_overlay(common_overlay)
 
 
+class RelativeOffsetMixin(object):
+    """A mixin which shifts all constant addresses by a constant."""
+
+    # This should be adjusted to the correct image base.
+    def GetImageBase(self):
+        return 0
+
+    def get_constant(self, name, is_address=False):
+        """Gets the constant from the profile.
+
+        The windows profile specify addresses relative to the kernel image base.
+        """
+        base_constant = super(RelativeOffsetMixin, self).get_constant(name)
+        if is_address and isinstance(base_constant, (int, long)):
+            return base_constant + self.GetImageBase()
+
+        return base_constant
+
+    def add_constants(self, relative_to_image_base=True, **kwargs):
+        """Add new constants to this profile.
+
+        Args:
+
+          - relative_to_image_base: If True, the constants are specified
+            relative to the image base. Otherwise constants are absolute
+            addresses.
+        """
+        for k, v in kwargs.items():
+            if not relative_to_image_base:
+                kwargs[k] = (v) - self.GetImageBase()
+
+        super(RelativeOffsetMixin, self).add_constants(**kwargs)
+
+    def get_nearest_constant_by_address(self, address, below=True):
+        if address < self.GetImageBase():
+            return 0, ""
+
+        try:
+            offset, name = super(
+                RelativeOffsetMixin, self).get_nearest_constant_by_address(
+                    address - self.GetImageBase(), below=below)
+
+            return offset + self.GetImageBase(), name
+        except ValueError:
+            return self.GetImageBase(), "image_base"
+
+
 def container_of(ptr, type, member):
     """cast a member of a structure out to the containing structure.
 

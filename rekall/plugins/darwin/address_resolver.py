@@ -84,8 +84,8 @@ class DarwinAddressResolver(address_resolver.AddressResolverMixin,
                 containing_module.name)
 
     def LoadProfileForName(self, module):
-        # Currently, on Darwin, we only support kernel symbols.
-        # TODO: Develop an ELF export parser for exported kernel module symbols.
+        # Currently, on Darwin, we only support kernel symbols.  TODO: Develop a
+        # MACHO export parser for exported kernel module symbols.
         if module == "__kernel__":
             return self.session.profile
 

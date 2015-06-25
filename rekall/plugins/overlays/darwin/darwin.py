@@ -992,7 +992,7 @@ class vm_map_entry(obj.Struct):
                 # fall through to the bottom and return NULL.
 
                 if pager_ops == self.obj_profile.get_constant(
-                        "_vnode_pager_ops"):
+                        "_vnode_pager_ops", is_address=True):
                     return shadow.pager.dereference_as(
                         "vnode_pager").vnode_handle
 
@@ -1245,23 +1245,23 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
                 return self.get_constant_object(key, **kwargs)
 
 
-class Darwin64(basic.ProfileLP64, Darwin32):
+class Darwin64(basic.RelativeOffsetMixin, basic.ProfileLP64, Darwin32):
     """Support for 64 bit darwin systems."""
     METADATA = dict(
         os="darwin",
         arch="AMD64",
         type="Kernel")
 
+    image_base = 0
+
     @classmethod
     def Initialize(cls, profile):
         super(Darwin64, cls).Initialize(profile)
         profile.add_types(darwin64_types)
 
-    def get_constant(self, name, is_address=True):
-        """Gets the constant from the profile, correcting for KASLR."""
-        base_constant = super(Darwin64, self).get_constant(name)
-        if is_address and isinstance(base_constant, (int, long)):
-            return base_constant + self.session.GetParameter(
+    def GetImageBase(self):
+        if not self.image_base:
+            self.image_base = self.session.GetParameter(
                 "vm_kernel_slide", 0)
 
-        return base_constant
+        return self.image_base

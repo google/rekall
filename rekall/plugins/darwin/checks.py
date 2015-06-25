@@ -51,7 +51,7 @@ class DarwinCheckSysCalls(common.DarwinPlugin):
             [("Index", "index", "6"),
              ("Address", "address", "[addrpad]"),
              ("Target", "target", "[addrpad]"),
-             ("Symbol", "symbol", "<30")])
+             ("Symbol", "symbol", "")])
 
         for i, (entry, call, symbol) in enumerate(self.CheckSyscallTables()):
             renderer.table_row(i, entry, call, symbol)
@@ -258,8 +258,11 @@ class CheckTrapTable(common.DarwinPlugin):
             ("Index", "index", "[addr]"),
             ("Address", "address", "[addrpad]"),
             ("Target", "target", "[addrpad]"),
-            ("Symbol", "symbol", "<30")])
+            ("Symbol", "symbol", "")])
 
         for i, entry, call, sym_name in self.CheckTrapTables():
+            if call == None:
+                continue
+
             renderer.table_row(i, entry, call, sym_name or "Unknown",
                                highlight=None if sym_name else "important")

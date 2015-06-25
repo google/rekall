@@ -213,8 +213,8 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
           (int) semi-validated KASLR value
         """
 
-        expected_offset = self.profile.get_constant("_lowGlo",
-                                                    is_address=False)
+        expected_offset = self.profile.get_constant(
+            "_lowGlo", is_address=False)
         expected_offset = ID_MAP_VTOP(expected_offset)
 
         for hit in self.all_catfish_hits():
@@ -251,8 +251,8 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
         Returns:
           Kernel version string (should start with "Dawrin Kernel"
         """
-        version_offset = self.profile.get_constant("_version",
-                                                   is_address=False)
+        version_offset = self.profile.get_constant(
+            "_version", is_address=False)
         version_offset += vm_kernel_slide
         version_offset = ID_MAP_VTOP(version_offset)
 
@@ -334,7 +334,8 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
         ID_MAP_VTOP is defined here, as simple bitmask:
         github.com/opensource-apple/xnu/blob/10.9/osfmk/i386/pmap.h#L353
         """
-        idlepml4 = ID_MAP_VTOP(self.profile.get_constant("_IdlePML4"))
+        idlepml4 = ID_MAP_VTOP(self.profile.get_constant(
+            "_IdlePML4", True))
         dtb = self.profile.Object("unsigned int", offset=idlepml4,
                                   vm=self.physical_address_space)
         yield int(dtb)
@@ -361,7 +362,7 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
 
             yield result
         else:
-            result = self.profile.get_constant("_IdlePML4")
+            result = self.profile.get_constant("_IdlePML4", is_address=True)
             if result > 0xffffff8000000000:
                 result -= 0xffffff8000000000
 
@@ -376,7 +377,8 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
         Yields:
           The physical address of the DTB, not verified.
         """
-        kernel_pmap_addr = self.profile.get_constant("_kernel_pmap_store")
+        kernel_pmap_addr = self.profile.get_constant(
+            "_kernel_pmap_store", is_address=True)
         kernel_pmap = self.profile.pmap(offset=ID_MAP_VTOP(kernel_pmap_addr),
                                         vm=self.physical_address_space)
         yield int(kernel_pmap.pm_cr3)
@@ -404,7 +406,8 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
         address_space = self.CreateAS(hit)
 
         if address_space:
-            address = self.profile.get_constant("_version")
+            address = self.profile.get_constant(
+                "_version", is_address=True)
             if not address_space.is_valid_address(address):
                 return
 
