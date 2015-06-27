@@ -29,6 +29,7 @@
 #include "logging.h"
 #include "meta.h"
 #include "i386_ptable.h"
+#include "i386_ptable_log.h"
 
 #include <kern/task.h>
 #include <IOKit/IOLib.h>
@@ -47,10 +48,45 @@ extern vm_map_t kernel_map;
 // More unsupported, but exported symbols we need. All these two routines do
 // is basically add 'paddr' to physmap_base and dereference the result, but
 // because physmap_base is private (sigh...) we have to use these for now.
+
+#ifdef PMEM_LEGACY
+// The more modern phys read/write routines weren't exported by the kernel
+// until 10.8, so we have to hack together our own implementation.
+extern "C" {
+
+// Even though the type is vm_offset_t, this is actually a physical address.
+// This basically relies on the fact that, while addr64_t is always 64bit,
+// vm_offset_t will be 32bit on old architectures, allowing the legacy code
+// using this routines to continue doing what it was doing. This was apparently
+// still a concern in 2011.
+extern unsigned int ml_phys_read(vm_offset_t);
+extern void ml_phys_write(vm_offset_t, unsigned int data);
+}
+
+static unsigned long long ml_phys_read_double_64(addr64_t paddr) {
+    unsigned long long result;
+    
+    result = ml_phys_read(paddr + 4);
+    result = result << 32;
+    result += ml_phys_read(paddr);
+    return result;
+}
+
+static void ml_phys_write_double_64(addr64_t paddr64,
+                                    unsigned long long data) {
+    ml_phys_write(paddr64 + 4, (unsigned) data);
+    ml_phys_write(paddr64, (unsigned) (data >> 32));
+}
+
+#else
+
+// Where possible, use the actual kernel routines.
 extern "C" {
 extern unsigned long long ml_phys_read_double_64(addr64_t paddr);
 extern void ml_phys_write_double_64(addr64_t paddr64, unsigned long long data);
 }
+
+#endif
 
 // Flush this page's TLB.
 static void pmem_pte_flush_tlb(vm_address_t page) {
@@ -100,15 +136,19 @@ static kern_return_t pmem_read_pml4e(vm_address_t page, PML4E *pml4e,
     }
 
     cr3.value = meta->cr3;
+    pmem_log_CR3(cr3, kPmemDebug, "Dumped CR3");
+    
     entry_paddr = PFN_TO_PAGE(cr3.pml4_p) + (vaddr.pml4_index * sizeof(PML4E));
-
+    
     pmem_debug("PML4E for vaddr %#016lx is at physical address %#016llx.",
                page, entry_paddr);
-
+    
     if (pml4e) {
         // ml_phys_* can only succeed or panic, there are no recoverable errors.
         pml4e->value = ml_phys_read_double_64(entry_paddr);
     }
+    
+    pmem_log_PML4E(*pml4e, kPmemDebug, "for vaddr");
 
     if (pml4e_phys) {
         *pml4e_phys = entry_paddr;
@@ -343,6 +383,7 @@ kern_return_t pmem_pte_create_mapping(addr64_t paddr,
     new_pte.global = 0;
 
     pmem_write_pte(mapping->pte_addr, &new_pte);
+    pmem_log_PTE(new_pte, kPmemDebug, "Writing PTE:");
 #endif
 
     pmem_pte_flush_tlb(mapping->vaddr);
@@ -451,6 +492,7 @@ kern_return_t pmem_pte_vtop(vm_offset_t vaddr, unsigned long long *paddr) {
 
     PTE pte;
     error = pmem_read_pte(vaddr, &pte, 0);
+    pmem_log_PTE(pte, kPmemDebug, "for vtop");
 
     if (error == KERN_SUCCESS) {
         // This returns the address of a 4K page.

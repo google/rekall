@@ -23,6 +23,8 @@
 		49D0DFED1A8B9F1400C833E8 /* MacPmem.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D0DFEC1A8B9F1400C833E8 /* MacPmem.h */; };
 		49DD6A821AA510C40055543B /* iokit_pci.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49DD6A801AA510C40055543B /* iokit_pci.cpp */; };
 		49DD6A831AA510C40055543B /* iokit_pci.h in Headers */ = {isa = PBXBuildFile; fileRef = 49DD6A811AA510C40055543B /* iokit_pci.h */; };
+		49E076E81B3C292800DF9D2C /* i386_ptable_log.c in Sources */ = {isa = PBXBuildFile; fileRef = 49E076E61B3C292800DF9D2C /* i386_ptable_log.c */; };
+		49E076E91B3C292800DF9D2C /* i386_ptable_log.h in Headers */ = {isa = PBXBuildFile; fileRef = 49E076E71B3C292800DF9D2C /* i386_ptable_log.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -61,6 +63,9 @@
 		49DD6A801AA510C40055543B /* iokit_pci.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iokit_pci.cpp; sourceTree = "<group>"; };
 		49DD6A811AA510C40055543B /* iokit_pci.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iokit_pci.h; sourceTree = "<group>"; };
 		49DD6A881AA688AE0055543B /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
+		49E076E61B3C292800DF9D2C /* i386_ptable_log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = i386_ptable_log.c; sourceTree = "<group>"; };
+		49E076E71B3C292800DF9D2C /* i386_ptable_log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = i386_ptable_log.h; sourceTree = "<group>"; };
+		49E076EA1B3C2B3100DF9D2C /* generate_ptable_logging.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = generate_ptable_logging.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +134,8 @@
 				496AEA371A8CACFD00E39D3F /* logging.cpp */,
 				496AEA381A8CACFD00E39D3F /* logging.h */,
 				496AEA4B1A8CEF5D00E39D3F /* pmem_common.h */,
+				49E076E61B3C292800DF9D2C /* i386_ptable_log.c */,
+				49E076E71B3C292800DF9D2C /* i386_ptable_log.h */,
 				490D41451ABA06FA0027DBE9 /* pte_mmap.cpp */,
 				490D41461ABA06FA0027DBE9 /* pte_mmap.h */,
 				492E68671AC1C53200CC0F70 /* i386_ptable.h */,
@@ -146,6 +153,7 @@
 			isa = PBXGroup;
 			children = (
 				49D0DFE41A8B9DC200C833E8 /* Info.plist */,
+				49E076EA1B3C2B3100DF9D2C /* generate_ptable_logging.py */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -162,6 +170,7 @@
 				496AEA3A1A8CACFD00E39D3F /* logging.h in Headers */,
 				49DD6A831AA510C40055543B /* iokit_pci.h in Headers */,
 				49D0DFED1A8B9F1400C833E8 /* MacPmem.h in Headers */,
+				49E076E91B3C292800DF9D2C /* i386_ptable_log.h in Headers */,
 				490D41481ABA06FA0027DBE9 /* pte_mmap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -210,7 +219,7 @@
 		49D0DFD71A8B9DC200C833E8 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = Google;
 				TargetAttributes = {
 					497AF3401ACBFCC80037A066 = {
@@ -218,6 +227,7 @@
 					};
 					49D0DFDF1A8B9DC200C833E8 = {
 						CreatedOnToolsVersion = 6.1.1;
+						DevelopmentTeam = B8CABP2WQT;
 					};
 				};
 			};
@@ -268,6 +278,7 @@
 				49D0DFE61A8B9DC200C833E8 /* MacPmem.c in Sources */,
 				49610BAB1A8E50940060030E /* meta.cpp in Sources */,
 				49DD6A821AA510C40055543B /* iokit_pci.cpp in Sources */,
+				49E076E81B3C292800DF9D2C /* i386_ptable_log.c in Sources */,
 				490D41471ABA06FA0027DBE9 /* pte_mmap.cpp in Sources */,
 				496AEA391A8CACFD00E39D3F /* logging.cpp in Sources */,
 				497AF34A1ACD66E20037A066 /* util.c in Sources */,
@@ -328,7 +339,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -363,7 +374,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
@@ -372,7 +383,9 @@
 		49D0DFEA1A8B9DC200C833E8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"MACPMEM=1",
 					"DEBUG=1",
@@ -382,8 +395,9 @@
 				MODULE_START = com_google_MacPmem_start;
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.0.0d1;
-				"OTHER_CODE_SIGN_FLAGS[sdk=*]" = "--timestamp=none";
+				"OTHER_CODE_SIGN_FLAGS[sdk=macosx*]" = "--timestamp=none";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;
 			};
 			name = Debug;
@@ -391,7 +405,9 @@
 		49D0DFEB1A8B9DC200C833E8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = "MACPMEM=1";
 				INFOPLIST_FILE = MacPmem/Info.plist;
 				MODULE_NAME = com.google.MacPmem;
@@ -399,9 +415,72 @@
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.0.0d1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;
 			};
 			name = Release;
+		};
+		49E076E31B3AFF4600DF9D2C /* Release no codesign */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = "Release no codesign";
+		};
+		49E076E41B3AFF4600DF9D2C /* Release no codesign */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"MACPMEM=1",
+					"PMEM_LEGACY=1",
+				);
+				INFOPLIST_FILE = MacPmem/Info.plist;
+				MODULE_NAME = com.google.MacPmem;
+				MODULE_START = com_google_MacPmem_start;
+				MODULE_STOP = com_google_MacPmem_stop;
+				MODULE_VERSION = 1.0.0d1;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				WRAPPER_EXTENSION = kext;
+			};
+			name = "Release no codesign";
+		};
+		49E076E51B3AFF4600DF9D2C /* Release no codesign */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = "Release no codesign";
 		};
 /* End XCBuildConfiguration section */
 
@@ -411,6 +490,7 @@
 			buildConfigurations = (
 				497AF3451ACBFCC80037A066 /* Debug */,
 				497AF3461ACBFCC80037A066 /* Release */,
+				49E076E51B3AFF4600DF9D2C /* Release no codesign */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -420,6 +500,7 @@
 			buildConfigurations = (
 				49D0DFE71A8B9DC200C833E8 /* Debug */,
 				49D0DFE81A8B9DC200C833E8 /* Release */,
+				49E076E31B3AFF4600DF9D2C /* Release no codesign */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -429,6 +510,7 @@
 			buildConfigurations = (
 				49D0DFEA1A8B9DC200C833E8 /* Debug */,
 				49D0DFEB1A8B9DC200C833E8 /* Release */,
+				49E076E41B3AFF4600DF9D2C /* Release no codesign */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
