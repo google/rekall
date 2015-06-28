@@ -24,7 +24,6 @@
 
 # pylint: disable=protected-access
 
-import collections
 import re
 
 from rekall import addrspace
@@ -414,8 +413,8 @@ class WinProcessFilter(WindowsCommandPlugin):
                             help="A regex to select a process by name.")
 
         parser.add_argument(
-            "--method", choices=list(cls.METHODS), type="ChoiceArray",
-            default=list(cls.METHODS),
+            "--method", choices=cls.METHODS, type="ChoiceArray",
+            default=cls.METHODS,
             help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, eprocess=None, phys_eprocess=None,
@@ -434,7 +433,7 @@ class WinProcessFilter(WindowsCommandPlugin):
            method: Methods to use for process listing.
         """
         super(WinProcessFilter, self).__init__(**kwargs)
-        self.methods = method or sorted(self.METHODS)
+        self.methods = method or self.METHODS
 
         if isinstance(phys_eprocess, (int, long)):
             phys_eprocess = [phys_eprocess]
@@ -515,11 +514,6 @@ class WinProcessFilter(WindowsCommandPlugin):
             vm=self.kernel_address_space).dereference_as(
                 "_EPROCESS", "ThreadListHead")
 
-    def list_from_PsActiveProcessHead(self, seen=None):
-        _ = seen
-        return self.session.GetParameter("PsActiveProcessHead").list_of_type(
-            "_EPROCESS", "ActiveProcessLinks")
-
     def list_from_eprocess(self):
         for eprocess_offset in self.eprocess:
             eprocess = self.profile._EPROCESS(
@@ -527,45 +521,81 @@ class WinProcessFilter(WindowsCommandPlugin):
 
             yield eprocess
 
-    def list_from_csrss_handles(self, seen=None):
+    def list_eprocess(self):
+        """List processes using chosen methods."""
+        # We actually keep the results from each method around in case we need
+        # to find out later which process was revealed by which method.
+        seen = set()
+        for proc in self.list_from_eprocess():
+            seen.add(proc.obj_offset)
+
+        for method in self.METHODS:
+            if method in self.methods:
+                for proc in self.session.GetParameter("pslist_%s" % method):
+                    seen.add(proc)
+
+        # Sort by pid so that the output ordering remains stable.
+        return sorted([self.profile._EPROCESS(x) for x in seen],
+                      key=lambda x: x.pid)
+
+    # Maintain the order of methods.
+    METHODS = [
+        "PsActiveProcessHead",
+        "CSRSS",
+        "PspCidTable",
+        "Sessions",
+        "Handles",
+        ]
+
+
+class PsListPsActiveProcessHeadHook(AbstractWindowsParameterHook):
+    name = "pslist_PsActiveProcessHead"
+
+    def calculate(self):
+        result = set()
+        for x in self.session.GetParameter("PsActiveProcessHead").list_of_type(
+                "_EPROCESS", "ActiveProcessLinks"):
+            result.add(x.obj_offset)
+
+        self.session.logging.debug(
+            "Listed %s processes using PsActiveProcessHead", len(result))
+
+        return result
+
+
+class PsListCSRSSHook(AbstractWindowsParameterHook):
+    name = "pslist_CSRSS"
+
+    def calculate(self):
         """Enumerate processes using the csrss.exe handle table"""
-        if seen:
-            csrss_processes = []
-            for proc_offset in seen:
-                proc = self.profile._EPROCESS(proc_offset)
-                if proc.name == "csrss.exe":
-                    csrss_processes.append(proc)
+        result = set()
 
-        else:
-            csrss_processes = list(
-                self.session.plugins.pslist(
-                    proc_regex="csrss.exe",
-                    method="PsActiveProcessHead").filter_processes())
+        # First find csrss process using a simpler method.
+        for proc_offset in self.session.GetParameter(
+                "pslist_PsActiveProcessHead"):
+            proc = self.session.profile._EPROCESS(proc_offset)
+            if proc.name == "csrss.exe":
+                # Gather the handles to process objects
+                for handle in proc.ObjectTable.handles():
+                    if handle.get_object_type() == "Process":
+                        process = handle.dereference_as("_EPROCESS")
+                        result.add(process.obj_offset)
 
-        for task in csrss_processes:
-            # Gather the handles to process objects
-            for handle in task.ObjectTable.handles():
-                if handle.get_object_type() == "Process":
-                    process = handle.dereference_as("_EPROCESS")
-                    yield process
+        self.session.logging.debug(
+            "Listed %s processes using CSRSS", len(result))
 
-    def list_from_handle_tables(self, seen=None):
-        _ = seen
-        handle_table_list_head = self.profile.get_constant_object(
-            "HandleTableListHead", "_LIST_ENTRY")
+        return result
 
-        for table in handle_table_list_head.list_of_type(
-                "_HANDLE_TABLE", "HandleTableList"):
-            proc = table.QuotaProcess.deref()
-            if proc and proc.pid > 0:
-                yield proc
 
-    def list_from_pspcid(self, seen=None):
+class PsListPspCidTableHook(AbstractWindowsParameterHook):
+    name = "pslist_PspCidTable"
+
+    def calculate(self):
         """Enumerate processes by walking the PspCidTable"""
-        _ = seen
+        result = set()
 
         # Follow the pointers to the table base
-        PspCidTable = self.profile.get_constant_object(
+        PspCidTable = self.session.profile.get_constant_object(
             "PspCidTable",
             target="Pointer",
             target_args=dict(
@@ -577,58 +607,37 @@ class WinProcessFilter(WindowsCommandPlugin):
         for handle in PspCidTable.handles():
             if handle.get_object_type() == "Process":
                 process = handle.dereference_as("_EPROCESS")
-                yield process
+                result.add(process.obj_offset)
 
-    def list_from_sessions(self, seen=None):
-        """List processes using the SessionProcessLinks."""
-        if seen:
-            sessions = set([self.profile._EPROCESS(x).Session for x in seen])
-        else:
-            sessions = self.session.plugins.sessions().session_spaces()
+        self.session.logging.debug(
+            "Listed %s processes using PspCidTable", len(result))
 
-        for session in sessions:
-            for proc in session.ProcessList.list_of_type(
+        return result
+
+
+class PsListSessionsHook(AbstractWindowsParameterHook):
+    name = "pslist_Sessions"
+
+    def calculate(self):
+        """Enumerate processes by walking the SessionProcessLinks"""
+        result = set()
+        sessions = set()
+
+        # First find unique sessions using a simpler method.
+        for proc_offset in self.session.GetParameter(
+                "pslist_PsActiveProcessHead"):
+            proc = self.session.profile._EPROCESS(proc_offset)
+            if proc.Session in sessions:
+                continue
+
+            sessions.add(proc.Session)
+
+            # Now enumerate all tasks in session list.
+            for task in proc.Session.ProcessList.list_of_type(
                     "_EPROCESS", "SessionProcessLinks"):
-                yield proc
+                result.add(task.obj_offset)
 
-    def list_eprocess(self):
-        """List processes using chosen methods."""
-        # We actually keep the results from each method around in case we need
-        # to find out later which process was revealed by which method.
-        self.cache = self.session.GetParameter("pslist_cache")
-        if not self.cache:
-            self.cache = {}
+        self.session.logging.debug(
+            "Listed %s processes using Sessions", len(result))
 
-        seen = set()
-        for proc in self.list_from_eprocess():
-            seen.add(proc.obj_offset)
-
-        for k in self.METHODS:
-            handler = self.METHODS[k]
-            if k in self.methods:
-                if k not in self.cache:
-                    self.cache[k] = set()
-                    for proc in handler(self, seen=seen):
-                        if proc:
-                            self.cache[k].add(proc.obj_offset)
-
-                self.session.logging.debug(
-                    "Listed %s processes using %s",
-                    len(self.cache[k]), k)
-                seen.update(self.cache[k])
-
-        if not self.session.GetParameter("pslist_cache"):
-            self.session.SetCache("pslist_cache", self.cache)
-
-        # Sort by pid so that the output ordering remains stable.
-        return sorted([self.profile._EPROCESS(x) for x in seen],
-                      key=lambda x: x.pid)
-
-    # Maintain the order of methods.
-    METHODS = collections.OrderedDict([
-        ("PsActiveProcessHead", list_from_PsActiveProcessHead),
-        ("CSRSS", list_from_csrss_handles),
-        ("PspCidTable", list_from_pspcid),
-        ("Sessions", list_from_sessions),
-        ("Handles", list_from_handle_tables),
-        ])
+        return result

@@ -449,8 +449,8 @@ class ListMixIn(object):
 
         return item
 
-    def find_all_lists(self, seen):
-        """Follows all the list entries starting from lst.
+    def find_all_lists(self):
+        """Follows all the list entries starting from self.
 
         We basically convert the list to a tree and recursively search it for
         new nodes. From each node we follow the Flink and then the Blink. When
@@ -462,11 +462,12 @@ class ListMixIn(object):
         Reference:
         http://en.wikipedia.org/wiki/Depth-first_search
         """
+        seen = set()
         stack = [self]
         while stack:
             item = stack.pop()
-            if item not in seen:
-                seen.append(item)
+            if item.obj_offset not in seen:
+                seen.add(item.obj_offset)
 
                 Blink = item.m(self._backward)
                 if Blink.is_valid():
@@ -476,22 +477,25 @@ class ListMixIn(object):
                 if Flink.is_valid():
                     stack.append(Flink.dereference())
 
+        return seen
+
     def list_of_type(self, type, member):
-        result = []
-        self.find_all_lists(result)
+        relative_offset = self.obj_profile.get_obj_offset(type, member)
 
         # We traverse all the _LIST_ENTRYs we can find, and cast them all back
         # to the required member.
-        for lst in result:
+        for lst in self.find_all_lists():
             # Skip ourselves in this (list_of_type is usually invoked on a list
             # head).
-            if lst.obj_offset == self.obj_offset:
+            if lst == self.obj_offset:
                 continue
 
-            task = lst.dereference_as(type, member)
-            if task.obj_offset != 0:
-                # Only yield valid objects (In case of dangling links).
-                yield task
+            # Only yield valid objects (In case of dangling links).
+            if lst != 0:
+                yield self.obj_profile.Object(
+                    type_name=type, offset=lst - relative_offset,
+                    vm=self.obj_vm, parent=self.obj_parent,
+                    name=type, context=self.obj_context)
 
     def list_of_type_fast(self, type, member, include_current=True):
         for lst in self.walk_list(

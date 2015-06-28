@@ -81,6 +81,11 @@ class WindowsPagedMemoryMixin(object):
     @property
     def vad(self):
         """Returns a cached RangedCollection() of vad ranges."""
+
+        # If this dtb is the same as the kernel dtb - there are no vads.
+        if self.dtb == self.session.GetParameter("dtb"):
+            return
+
         # If it is already cached, just return that.
         if self._vad is not None:
             return self._vad
@@ -113,16 +118,17 @@ class WindowsPagedMemoryMixin(object):
             self._resolve_vads = True
 
     def _ConsultVad(self, virtual_address, pte_value):
-        vad_hit = self.vad.get_range(virtual_address)
-        if vad_hit:
-            start, _, mmvad = vad_hit
+        if self.vad:
+            vad_hit = self.vad.get_range(virtual_address)
+            if vad_hit:
+                start, _, mmvad = vad_hit
 
-            # If the MMVAD has PTEs resolve those..
-            if "FirstPrototypePte" in mmvad.members:
-                pte = mmvad.FirstPrototypePte[
-                    (virtual_address - start) >> 12]
+                # If the MMVAD has PTEs resolve those..
+                if "FirstPrototypePte" in mmvad.members:
+                    pte = mmvad.FirstPrototypePte[
+                        (virtual_address - start) >> 12]
 
-                return "Vad", pte.u.Long.v() or 0
+                    return "Vad", pte.u.Long.v() or 0
 
         # Virtual address does not exist in any VAD region.
         return "Demand Zero", pte_value

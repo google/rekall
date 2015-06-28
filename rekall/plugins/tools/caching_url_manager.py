@@ -88,7 +88,8 @@ class CachingManager(io_manager.IOManager):
 
     def GetData(self, name, **kwargs):
         if self.cache_io_manager.CheckInventory(name):
-            local_age = self.cache_io_manager.Metadata(name).get("LastModified", 0)
+            local_age = self.cache_io_manager.Metadata(name).get(
+                "LastModified", 0)
             remote_age = self.url_manager.Metadata(name).get("LastModified", 0)
 
             # Only get the local copy if it is not older than the remote
@@ -135,7 +136,7 @@ class CachingManager(io_manager.IOManager):
                 "$INVENTORY", {}).get(item)
 
             if (upstream_meta is None or
-                upstream_meta["LastModified"] > metadata["LastModified"]):
+                    upstream_meta["LastModified"] > metadata["LastModified"]):
                 cache_inventory["$INVENTORY"].pop(item)
                 modified = True
 
