@@ -462,12 +462,17 @@ class ListMixIn(object):
         Reference:
         http://en.wikipedia.org/wiki/Depth-first_search
         """
+        # Maintain the order of discovery.
+        result = []
         seen = set()
+
         stack = [self]
         while stack:
             item = stack.pop()
             if item.obj_offset not in seen:
-                seen.add(item.obj_offset)
+                offset = item.obj_offset
+                seen.add(offset)
+                result.append(offset)
 
                 Blink = item.m(self._backward)
                 if Blink.is_valid():
@@ -477,7 +482,7 @@ class ListMixIn(object):
                 if Flink.is_valid():
                     stack.append(Flink.dereference())
 
-        return seen
+        return result
 
     def list_of_type(self, type, member):
         relative_offset = self.obj_profile.get_obj_offset(type, member)

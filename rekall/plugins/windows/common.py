@@ -641,3 +641,25 @@ class PsListSessionsHook(AbstractWindowsParameterHook):
             "Listed %s processes using Sessions", len(result))
 
         return result
+
+
+class PsListHandlesHook(AbstractWindowsParameterHook):
+    name = "pslist_Handles"
+
+    def calculate(self):
+        """Enumerate processes by walking the SessionProcessLinks"""
+        result = set()
+        handle_table_list_head = self.session.profile.get_constant_object(
+            "HandleTableListHead", "_LIST_ENTRY")
+
+        for table in handle_table_list_head.list_of_type(
+                "_HANDLE_TABLE", "HandleTableList"):
+            proc = table.QuotaProcess.deref()
+            if proc and proc.pid > 0:
+                result.add(proc.obj_offset)
+
+        self.session.logging.debug(
+            "Listed %s processes using Handles", len(result))
+
+
+        return result
