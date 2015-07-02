@@ -77,7 +77,7 @@ setup(
         "codegen >= 1.0",
         "Flask >= 0.10.1",
         "Flask-Sockets >= 0",
-        "gevent >= 1.0.1",
+        "gevent == 1.0.2",
         "gevent-websocket >= 0.9.3",
         "PyAFF4 >= 0.13",
         ],
