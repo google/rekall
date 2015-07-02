@@ -64,45 +64,58 @@ class InspectHeap(common.WinProcessFilter):
 
         self.segments = utils.SortedCollection()
 
-    def enumerate_heap_allocations(self, task):
+    def enumerate_lfh_heap_allocations(self, heap, skip_freed=True):
+        """Dump the low fragmentation heap."""
+        for lfh_block in heap.FrontEndHeap.SubSegmentZones.list_of_type(
+                "_LFH_BLOCK_ZONE", "ListEntry"):
+            block_length = lfh_block.FreePointer.v() - lfh_block.obj_end
+            segments = heap.obj_profile.Array(
+                target="_HEAP_SUBSEGMENT",
+                offset=lfh_block.obj_end,
+                size=block_length)
+            for segment in segments:
+                allocation_length = segment.BlockSize * 16
+
+                for entry in segment.UserBlocks.Entries:
+                    # http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redux/
+                    # Skip freed blocks if requested.
+                    if skip_freed and entry.UnusedBytes & 0x38:
+                        continue
+
+                    UnusedBytes = entry.UnusedBytes & 0x3f - 0x8
+
+                    # The actual length of user allocation is the difference
+                    # between the HEAP allocation bin size and the unused bytes
+                    # at the end of the allocation.
+                    data_len = allocation_length - UnusedBytes
+
+                    # The data length can not be larger than the allocation
+                    # minus the critical parts of _HEAP_ENTRY. Sometimes,
+                    # allocations overrun into the next element's _HEAP_ENTRY so
+                    # they can store data in the next entry's
+                    # entry.PreviousBlockPrivateData. In this case the
+                    # allocation length seems to be larger by 8 bytes.
+                    if data_len > allocation_length - 0x8:
+                        data_len -= 0x8
+
+                    yield (heap.obj_profile.String(entry.obj_end, term=None,
+                                                   length=data_len),
+                           allocation_length)
+
+    def enumerate_backend_heap_allocations(self, heap):
         """Enumerate all allocations for _EPROCESS instance."""
-        cc = self.session.plugins.cc()
-        with cc:
-            cc.SwitchProcessContext(task)
-            resolver = self.session.address_resolver
-            ntdll_prof = resolver.LoadProfileForName("ntdll")
-            if not ntdll_prof:
-                return
 
-            # Set the ntdll profile on the _PEB member.
-            peb = task.m("Peb").cast(
-                "Pointer", target="_PEB", profile=ntdll_prof,
-                vm=task.get_process_address_space())
+        for seg in heap.Segments:
+            seg_end = seg.LastValidEntry.v()
 
-            for heap in peb.ProcessHeaps:
-                if self.heaps and heap.ProcessHeapsListIndex not in self.heaps:
-                    continue
+            for entry in seg.FirstEntry.walk_list("NextEntry", True):
+                # If this is the last entry it goes until the end of the
+                # segment.
+                start = entry.obj_offset + 0x10
+                if start > seg_end:
+                    break
 
-                # First dump the backend allocations.
-                for seg in heap.Segments:
-                    for entry in seg.FirstEntry.walk_list("NextEntry", True):
-                        yield entry.Allocation
-
-                # Now do the low fragmentation heap.
-                for segment_info in heap.FrontEndHeap.LocalData[0].m("SegmentInfo"):
-                    active_segment = segment_info.ActiveSubsegment
-                    if active_segment:
-                        allocation_length = active_segment.BlockSize * 16
-
-                        for entry in active_segment.UserBlocks.Entries:
-                            UnusedBytes = entry.UnusedBytes & 0x3f - 0x8
-                            data_len = allocation_length - UnusedBytes
-
-                            if data_len > allocation_length - 0x8:
-                                data_len -= 0x8
-
-                            yield heap.obj_profile.String(
-                                entry.obj_end, term=None, length=data_len)
+                yield entry.Allocation
 
     def GenerateHeaps(self):
         task = self.session.GetParameter("process_context")
@@ -142,43 +155,22 @@ class InspectHeap(common.WinProcessFilter):
             dict(name="Data", style="hexdump"),
         ])
 
-        for segment_info in heap.FrontEndHeap.LocalData[0].m("SegmentInfo"):
-            active_segment = segment_info.ActiveSubsegment
-            if active_segment:
-                # Size of bucket including header.
-                allocation_length = active_segment.BlockSize * 16
+        # Render the LFH allocations in increasing allocation sizes. Collect
+        # them first, then display by sorted allocation size, and offset.
+        entries_by_size = {}
+        for entry, allocation_length in self.enumerate_lfh_heap_allocations(
+                heap):
+            entries_by_size.setdefault(allocation_length, []).append(entry)
 
-                for entry in active_segment.UserBlocks.Entries:
-                    # http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redux/
-                    # Skip freed blocks if requested.
-                    if not self.free and not entry.UnusedBytes & 0x38:
-                        continue
+        for allocation_length, entries in sorted(entries_by_size.iteritems()):
+            for entry in sorted(entries, key=lambda x: x.obj_offset):
+                data = entry.v()[:64]
 
-                    UnusedBytes = entry.UnusedBytes & 0x3f - 0x8
-
-                    # The actual length of user allocation is the difference
-                    # between the HEAP allocation bin size and the unused bytes
-                    # at the end of the allocation.
-                    data_len = allocation_length - UnusedBytes
-
-                    # The data length can not be larger than the allocation
-                    # minus the critical parts of _HEAP_ENTRY. Sometimes,
-                    # allocations overrun into the next element's _HEAP_ENTRY so
-                    # they can store data in the next entry's
-                    # entry.PreviousBlockPrivateData. In this case the
-                    # allocation length seems to be larger by 8 bytes.
-                    if data_len > allocation_length - 0x8:
-                        data_len -= 0x8
-
-                    data_len = min(data_len, 64)
-
-                    data = heap.obj_vm.read(entry.obj_end, data_len)
-
-                    renderer.table_row(
-                        entry,
-                        allocation_length,
-                        data_len,
-                        data,
+                renderer.table_row(
+                    entry,
+                    allocation_length,
+                    entry.length,
+                    data,
                     )
 
     def render_process_heap_info(self, heap, renderer):
@@ -247,51 +239,86 @@ class ShowAllocation(common.WindowsCommandPlugin):
             "--preamble", type="IntParser", default=32,
             help="How many bytes prior to the address to display.")
 
-    def __init__(self, addresses=None, preamble=32, **kwargs):
-        super(ShowAllocation, self).__init__(**kwargs)
-        if isinstance(addresses, int):
-            addresses = [addresses]
+        parser.add_argument(
+            "--length", type="IntParser", default=50 * 16,
+            help="How many bytes after the address to display.")
 
-        self.addresses = addresses
-        self.offset = None
-        self.preamble = preamble
-        self.allocations = getattr(
-            self.session.address_resolver, "heap_allocations", None)
-
-        if self.allocations is None:
-            allocations = utils.RangedCollection()
-            inspect_heap = self.session.plugins.inspect_heap()
-            for allocation in inspect_heap.enumerate_heap_allocations(
-                    self.session.GetParameter("process_context")):
+    def BuildAllocationMap(self):
+        """Build a map of all allocations for fast looksup."""
+        allocations = utils.RangedCollection()
+        inspect_heap = self.session.plugins.inspect_heap()
+        for heap in inspect_heap.GenerateHeaps():
+            # First do the backend allocations.
+            for allocation in inspect_heap.enumerate_backend_heap_allocations(
+                    heap):
 
                 # Include the header in the allocation.
                 allocations.insert(
                     allocation.obj_offset - 16,
                     allocation.obj_offset + allocation.length + 16,
-                    (allocation.obj_offset, allocation.length))
+                    (allocation.obj_offset, allocation.length, "B"))
 
-                self.session.address_resolver.heap_allocations = allocations
-                self.allocations = allocations
                 self.session.report_progress(
-                    "Enumerating alllocation: %#x",
+                    "Enumerating backend allocation: %#x",
+                    lambda allocation=allocation: allocation.obj_offset)
+
+            # Now do the LFH allocations (These will mask the subsegments in the
+            # RangedCollection).
+            for _ in inspect_heap.enumerate_lfh_heap_allocations(
+                    heap, skip_freed=False):
+                allocation, allocation_length = _
+                self.session.report_progress(
+                    "Enumerating frontend allocation: %#x",
                     lambda: allocation.obj_offset)
+
+                # Front end allocations do not have their own headers.
+                allocations.insert(
+                    allocation.obj_offset,
+                    allocation.obj_offset + allocation_length,
+                    (allocation.obj_offset, allocation_length, "F"))
+
+        return allocations
+
+    def __init__(self, *args, **kwargs):
+        addresses = kwargs.pop("addresses", args)
+        self.preamble = kwargs.pop("preamble", 16)
+        self.length = kwargs.pop("length", 50 * 16)
+
+        super(ShowAllocation, self).__init__(**kwargs)
+
+        if isinstance(addresses, int):
+            addresses = [addresses]
+
+        self.addresses = addresses
+        self.offset = None
+
+        # Get cached allocations for current process context.
+        task = self.session.GetParameter("process_context")
+        cache_key = "heap_allocations_%x" % task.obj_offset
+        self.allocations = self.session.GetParameter(cache_key)
+        if self.allocations == None:
+            self.allocations = self.BuildAllocationMap()
+
+            # Cache the allocations for next time.
+            self.session.SetCache(cache_key, self.allocations)
 
     def GetAllocationForAddress(self, address):
         return self.allocations.get_range(address)
 
-    def CreateAllocationMap(self, start, length):
+    def CreateAllocationMap(self, start, length, alloc_start, alloc_type):
         address_map = core.AddressMap()
-        allocation = self.allocations.get_range(start)
-        if allocation:
-            address_map.AddRange(start, start + 16, "_HEAP_ENTRY")
+        # For backend allocs we highlight the heap entry before them.
+        if alloc_type == "B":
+            address_map.AddRange(alloc_start-16, alloc_start, "_HEAP_ENTRY")
 
+        # Try to interpret pointers to other allocations and highlight them.
         count = length / 8
         for pointer in self.profile.Array(
                 offset=start, count=count, target="Pointer"):
             name = None
             allocation = self.allocations.get_range(pointer.v())
             if allocation:
-                alloc_start, alloc_length = allocation
+                alloc_start, alloc_length, _ = allocation
 
                 # First check if the pointer points inside this allocation.
                 if alloc_start == start + 16:
@@ -309,46 +336,65 @@ class ShowAllocation(common.WindowsCommandPlugin):
             if name:
                 address_map.AddRange(
                     pointer.obj_offset, pointer.obj_offset + 8,
-                    "%s" % name)
+                    # Color it using a unique color related to the address. This
+                    # helps to visually relate the same address across different
+                    # dumps.
+                    "%s" % name, color_index=pointer.obj_offset)
 
         return address_map
 
     def render(self, renderer):
         for address in self.addresses:
+            # If the user requested to view more than one address we do not
+            # support plugin continuation (with v() plugin).
+            if len(self.addresses) > 1:
+                self.offset = None
+
             allocation = self.allocations.get_range(address)
             if not allocation:
                 renderer.format("Allocation not found for address "
                                 "{0:style=address} in any heap.\n", address)
-                start = address
-                length = 50 * 16
+                alloc_start = address
+                alloc_length = 50 * 16
+                alloc_type = None
 
             else:
-                start, length = allocation
+                alloc_start, alloc_length, alloc_type = allocation
 
                 renderer.format(
                     "Address {0:style=address} is {1} bytes into "
-                    "allocation of size {2} "
-                    "({3:style=address} - {4:style=address})\n",
-                    address, address - start,
-                    length, start, start + length)
-
-            # Also show the _HEAP_ENTRY before the allocation.
-            start -= 16
-            length += 16
+                    "{2} allocation of size {3} "
+                    "({4:style=address} - {5:style=address})\n",
+                    address, address - alloc_start, alloc_type,
+                    alloc_length, alloc_start, alloc_start + alloc_length)
 
             # Start dumping preamble before the address if self.offset is not
             # specified. It will be specified when we run the plugin again using
             # v().
             if self.offset is None:
-                self.offset = max(0, address - start - self.preamble)
+                # Start dumping a little before the requested address, but do
+                # not go before the start of the allocation.
+                start = max(alloc_start, address - self.preamble)
+            else:
+                # Continue dumping from the last run.
+                start = self.offset
+
+            # Also show the _HEAP_ENTRY before backend allocations (Front end
+            # allocations do not have a _HEAP_ENTRY).
+            if alloc_type == "B":
+                start -= 16
+
+            length = min(alloc_start + alloc_length - start,
+                         self.length)
 
             dump = self.session.plugins.dump(
-                offset=start + self.offset, length=length - self.offset,
-                address_map=self.CreateAllocationMap(start, length))
+                offset=start, length=length,
+                address_map=self.CreateAllocationMap(
+                    start, length, alloc_start, alloc_type))
 
             dump.render(renderer)
 
-            self.offset = dump.offset - start
+            self.offset = dump.offset
 
 
 class FindReferenceAlloc(common.WindowsCommandPlugin):

@@ -260,3 +260,21 @@ class JsonEnumerationRenderer(json_renderer.StateBasedObjectRenderer):
 
     def Summary(self, item, **_):
         return item.get("enum", "")
+
+
+class JsonRangedCollectionObjectRenderer(
+        json_renderer.StateBasedObjectRenderer):
+    """Serialize RangedCollection objects."""
+    renders_type = ["RangedCollection"]
+
+    def EncodeToJsonSafe(self, item, **_):
+        # Optimized this since we know we do not need to escape any item since
+        # this is a simple list of integers.
+        return dict(data=list(item.collection),
+                    mro="RangedCollection")
+
+    def DecodeFromJsonSafe(self, state, _):
+        result = utils.RangedCollection()
+        result.collection = utils.SortedCollection(state["data"])
+
+        return result

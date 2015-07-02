@@ -34,6 +34,7 @@ from rekall import constants
 from rekall import registry
 from rekall import plugin
 from rekall import obj
+from rekall import scan
 from rekall import testlib
 from rekall import utils
 
@@ -768,9 +769,16 @@ class AddressMap(object):
     # All color combinations except those with the same foreground an background
     # colors, since these will be invisible.
     COLORS = []
+    UNREADABLE = [
+        ("CYAN", "GREEN"),
+        ("GREEN", "CYAN"),
+        ("MAGENTA", "YELLOW"),
+        ("YELLOW", "MAGENTA"),
+
+        ]
     for x in _COLORS:
         for y in _COLORS:
-            if x != y:
+            if x != y and (x, y) not in UNREADABLE:
                 COLORS.append((x, y))
 
     def __init__(self):
@@ -778,12 +786,15 @@ class AddressMap(object):
         self.idx = 0
         self.label_color_map = {}
 
-    def AddRange(self, start, end, label):
+    def AddRange(self, start, end, label, color_index=None):
         try:
             fg, bg = self.label_color_map[label]
         except KeyError:
-            fg, bg = self.COLORS[self.idx]
-            self.idx = (self.idx + 1) % len(self.COLORS)
+            if color_index is None:
+                color_index = self.idx
+                self.idx += 1
+
+            fg, bg = self.COLORS[color_index % len(self.COLORS)]
             self.label_color_map[label] = (fg, bg)
 
         self.collection.insert(start, end, (label, fg, bg))
@@ -982,20 +993,23 @@ class Grep(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(Grep, cls).args(parser)
-        parser.add_argument("--address_space", default="Kernel",
-                            help="Name of the address_space to search.")
+        parser.add_argument("keyword", default=None, type="ArrayStringParser",
+                            help="The binary strings to find.")
 
         parser.add_argument("--offset", default=0, type="IntParser",
                             help="Start searching from this offset.")
 
-        parser.add_argument("keyword",
-                            help="The binary string to find.")
+        parser.add_argument("--address_space", default=None,
+                            help="Name of the address_space to search.")
 
-        parser.add_argument("--limit", default=1024*1024,
+        parser.add_argument("--context", default=20, type="IntParser",
+                            help="Context to print around the hit.")
+
+        parser.add_argument("--limit", default=2**64,
                             help="The length of data to search.")
 
-    def __init__(self, offset=0, keyword=None, context=20, address_space=None,
-                 limit=1024 * 1024, **kwargs):
+    def __init__(self, keyword=None, offset=0, address_space=None,
+                 context=20, limit=2**64, **kwargs):
         """Search an address space for keywords.
 
         Args:
@@ -1005,6 +1019,9 @@ class Grep(plugin.Command):
           limit: The length of data to search.
         """
         super(Grep, self).__init__(**kwargs)
+        if isinstance(keyword, basestring):
+            keyword = [keyword]
+
         self.keyword = keyword
         self.context = context
         self.offset = offset
@@ -1012,42 +1029,17 @@ class Grep(plugin.Command):
         load_as = self.session.plugins.load_as(session=self.session)
         self.address_space = load_as.ResolveAddressSpace(address_space)
 
-    def _GenerateHits(self, data):
-        start = 0
-        while 1:
-            idx = data.find(self.keyword, start)
-            if idx == -1:
-                break
-
-            yield idx
-            start = idx + 1
-
     def render(self, renderer):
-        renderer.table_header([("Offset", "offset", "[addr]"),
-                               ("Hex", "hex", str(3 * self.context)),
-                               ("Data", "data", str(self.context)),
-                               ("Comment", "comment", "40")]
-                             )
+        scanner = scan.MultiStringScanner(
+            needles=self.keyword, address_space=self.address_space,
+            session=self.session)
 
-        resolver = self.session.address_resolver
-        offset = self.offset
-        while offset < self.offset + self.limit:
-            data = self.address_space.read(offset, 4096)
-            for idx in self._GenerateHits(data):
-                for dump_offset, hexdata, translated_data in utils.Hexdump(
-                        data[idx-20:idx+20], width=self.context):
-                    comment = resolver.format_address(offset + idx,
-                                                      max_distance=1e6)
+        for hit, _ in scanner.scan(offset=self.offset, maxlen=self.limit):
+            hexdumper = self.session.plugins.dump(
+                offset=hit-16, length=self.context+16,
+                address_space=self.address_space)
 
-                    renderer.table_row(
-                        offset + idx - 20 + dump_offset,
-                        hexdata, "".join(translated_data),
-                        comment)
-
-            offset += len(data)
-
-        self.offset = offset
-
+            hexdumper.render(renderer)
 
 
 class MemmapMixIn(object):
