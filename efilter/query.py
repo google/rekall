@@ -54,8 +54,13 @@ class Query(object):
         if isinstance(source, basestring):
             parser = frontend.Frontend.get_frontend(syntax)(original=source,
                                                             params=params)
-            self.root = parser.root
             self.source = parser.original
+            self.root = parser.root
+
+            # Query is normalized by default because parsers are allowed to
+            # produce crazy AST and rely on the visitor engines to understand
+            # it.
+            self.root = self.run_engine("normalizer").root
         elif isinstance(source, expression.Expression):
             self.root = source
         else:

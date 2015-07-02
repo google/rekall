@@ -47,7 +47,7 @@ class HinterTest(unittest.TestCase):
 
     def testLegacy(self):
         self.assertHinted(
-            "MemoryDescriptor.process matches (Process.command == 'Adium')"
+            "MemoryDescriptor.process where (Process.command == 'Adium')"
             " and 'execute' in MemoryDescriptor.permissions"
             " and 'write' in MemoryDescriptor.permissions",
             "MemoryDescriptor.process",

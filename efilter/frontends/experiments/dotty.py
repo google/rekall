@@ -72,22 +72,16 @@ def FlattenComponentLiteral(*args, **kwargs):
 
 def TransformLetAny(let, **kwargs):
     if not isinstance(let, expression.Let):
-        raise ValueError("'any' must be followed by a 'matches' expression.")
+        raise ValueError("'any' must be followed by a 'where' expression.")
     context, expr = let.children
     return expression.LetAny(context, expr, **kwargs)
 
 
 def TransformLetEach(let, **kwargs):
     if not isinstance(let, expression.Let):
-        raise ValueError("'each' must be followed by a 'matches' expression.")
+        raise ValueError("'each' must be followed by a 'where' expression.")
     context, expr = let.children
     return expression.LetEach(context, expr, **kwargs)
-
-
-def ValidateLetDescend(let, **_):
-    if not isinstance(let, expression.Let):
-        raise ValueError("'with' must be followed by 'evaluate'.")
-    return let
 
 
 # Operators - infix and prefix.
@@ -112,12 +106,6 @@ INFIX = collections.OrderedDict([
     ("!=", Operator(precedence=2, assoc="left",
                     handler=ComplementEquivalence,
                     docstring="Inequivalence (same as 'is not').")),
-    ("is not", Operator(precedence=2, assoc="left",
-                        handler=ComplementEquivalence,
-                        docstring="Inequivalence (same as '!=').")),
-    ("is", Operator(precedence=2, assoc="left",
-                    handler=expression.Equivalence,
-                    docstring="Equivalence (same as '==')")),
     ("not in", Operator(precedence=2, assoc="left",
                         handler=ComplementMembership,
                         docstring="Left-hand operand is not in list.")),
@@ -136,15 +124,12 @@ INFIX = collections.OrderedDict([
     ("<=", Operator(precedence=2, assoc="left",
                     handler=ReversePartialOrderedSet,
                     docstring="Equal-or-less-than.")),
-    ("matches", Operator(precedence=2, assoc="left",
-                         handler=expression.Let,
-                         docstring="Left-hand operand matched subquery.")),
-    ("evaluate", Operator(precedence=2, assoc="left",
-                          handler=expression.Let,
-                          docstring="Left-hand let alternative.")),
+    ("where", Operator(precedence=2, assoc="left",
+                       handler=expression.Let,
+                       docstring="VALUE where SUBEXPRESSION")),
     (".", Operator(precedence=6, assoc="left",
                    handler=expression.Let,
-                   docstring="Shorthand for with V evaluate E.")),
+                   docstring="Shorthand for V where E.")),
     ("and", Operator(precedence=1, assoc="left",
                      handler=expression.Intersection,
                      docstring="Logical AND.")),
@@ -152,7 +137,7 @@ INFIX = collections.OrderedDict([
                     docstring="Logical OR.")),
     ("=~", Operator(precedence=2, assoc="left",
                     handler=expression.RegexFilter,
-                    docstring="Left-hand operand matches regex.")),
+                    docstring="Left-hand operand where regex.")),
 ])
 
 
@@ -165,13 +150,11 @@ PREFIX = {
                               handler=FlattenComponentLiteral,
                               docstring="Matching entity must have component."),
     "any": Operator(precedence=1, assoc=None, handler=TransformLetAny,
-                    docstring=("Following 'matches' should succeed if "
-                               "any left-hand value matches.")),
+                    docstring=("Following 'where' should succeed if "
+                               "any left-hand value where.")),
     "each": Operator(precedence=1, assoc=None, handler=TransformLetEach,
-                     docstring=("Following 'matches' should only "
-                                "succeed if all left-hand values match.")),
-    "with": Operator(precedence=1, assoc=None, handler=ValidateLetDescend,
-                     docstring=("Following 'evaluate' will give subquery."))
+                     docstring=("Following 'where' should only "
+                                "succeed if all left-hand values match."))
 }
 
 
@@ -198,11 +181,11 @@ class Pattern(object):
     """A token pattern.
 
     Args:
-      state_regex: If this regular expression matches the current state this
+      state_regex: If this regular expression where the current state this
                    rule is considered.
       regex: A regular expression to try and match from the current point.
       actions: A command separated list of method names in the Lexer to call.
-      next_state: The next state we transition to if this Pattern matches.
+      next_state: The next state we transition to if this Pattern where.
       flags: flags to re.compile.
     """
 
@@ -226,7 +209,7 @@ class Tokenizer(object):
     """Context-free tokenizer for the efilter language.
 
     This is a very basic pattern-based tokenizer. Any rule from patterns
-    will try to match the next token in the buffer if its state_regex matches
+    will try to match the next token in the buffer if its state_regex where
     the current state. Only meaningful tokens are emitted (not whitespace.)
     """
     patterns = [

@@ -29,6 +29,6 @@ class RuleAnalyzerTest(unittest.TestCase):
 
     def testNested(self):
         analysis = self.analyzeQuery(
-            "Process.parent matches (Process.name == 'init')")
+            "Process.parent where (Process.name == 'init')")
         self.assertIn("Process.parent", analysis.symbols)
         self.assertIn("Process.name", analysis.symbols)

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-EFILTER rule-based query analyzer.
+EFILTER query normalizer.
 """
 
 __author__ = "Adam Sindelar <adamsh@google.com>"

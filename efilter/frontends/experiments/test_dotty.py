@@ -35,10 +35,10 @@ class TokenizerTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testWhitespace(self):
-        query = "20 is not 10"
+        query = "20 not in 10"
         expected = [
             ("literal", 20),
-            ("infix", "is not"),
+            ("infix", "not in"),
             ("literal", 10)]
         self.assertQueryMatches(query, expected)
 
@@ -87,10 +87,17 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testDescendQuery(self):
-        query = "with ProcessParent evaluate (ProcessName)"
+        query = "Process where (name == 'init' and pid == 1)"
         expected = expression.Let(
-            expression.Binding("ProcessParent"),
-            expression.Binding("ProcessName"))
+            expression.Binding("Process"),
+            expression.Intersection(
+                expression.Equivalence(
+                    expression.Binding("name"),
+                    expression.Literal("init")
+                ),
+                expression.Equivalence(
+                    expression.Binding("pid"),
+                    expression.Literal(1))))
         self.assertQueryMatches(query, expected)
 
     def testDescendShorthand(self):
@@ -103,14 +110,14 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testEquivalence(self):
-        query = "10 is 10"
+        query = "10 == 10"
         expected = expression.Equivalence(
             expression.Literal(10),
             expression.Literal(10))
         self.assertQueryMatches(query, expected)
 
     def testPrecedence(self):
-        query = "5 == 1 * 5 and ProcessName is 'init'"
+        query = "5 == 1 * 5 and ProcessName == 'init'"
         expected = expression.Intersection(
             expression.Equivalence(
                 expression.Literal(5),
@@ -173,7 +180,7 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testLetSingle(self):
-        query = "ProcessParent matches ProcessCommand is 'init'"
+        query = "ProcessParent where ProcessCommand == 'init'"
         expected = expression.Let(
             expression.Binding("ProcessParent"),
             expression.Equivalence(
@@ -183,8 +190,8 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testLetSubexpr(self):
-        query = ("ProcessParent matches (ProcessCommand is 'init' and "
-                 "ProcessPid is 1)")
+        query = ("ProcessParent where (ProcessCommand == 'init' and "
+                 "ProcessPid == 1)")
         expected = expression.Let(
             expression.Binding("ProcessParent"),
             expression.Intersection(
@@ -198,7 +205,7 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testLetSingleAny(self):
-        query = "any ProcessParent matches ProcessCommand is 'init'"
+        query = "any ProcessParent where ProcessCommand == 'init'"
         expected = expression.LetAny(
             expression.Binding("ProcessParent"),
             expression.Equivalence(
@@ -208,7 +215,7 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testLetSubexprEach(self):
-        query = "each ProcessChildren matches ProcessCommand is 'foo'"
+        query = "each ProcessChildren where ProcessCommand == 'foo'"
         expected = expression.LetEach(
             expression.Binding("ProcessChildren"),
             expression.Equivalence(
@@ -231,8 +238,8 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testBigQuery(self):
-        query = ("(ProcessPid is 1 and ProcessCommand in ('init', 'initd')) "
-                 "or any ProcessChildren matches (ProcessCommand not in "
+        query = ("(ProcessPid == 1 and ProcessCommand in ('init', 'initd')) "
+                 "or any ProcessChildren where (ProcessCommand not in "
                  "('launchd', 'foo'))")
         expected = expression.Union(
             expression.Intersection(
@@ -252,7 +259,7 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testLooseAnyError(self):
-        query = "any ProcessCommand is 'init'"
+        query = "any ProcessCommand == 'init'"
         self.assertQueryRaises(query)
 
     def testMissingClosingParens(self):
@@ -302,8 +309,8 @@ class ParserTest(unittest.TestCase):
 
     def testParenParsing(self):
         # This query should fail on the lose 'name' token:
-        query = ("BufferPurpose is 'zones' and any BufferContext matches"
-                 " (AllocationZone name is {zone_name})")
+        query = ("BufferPurpose == 'zones' and any BufferContext where"
+                 " (AllocationZone name == {zone_name})")
         params = dict(zone_name="foo")
         parser = dotty.Parser(query, params=params)
         try:
