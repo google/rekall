@@ -36,6 +36,8 @@ Analysis = collections.namedtuple("Analysis",
 class RuleAnalyzer(engine.VisitorEngine):
     """This is a rule-driven analyzer that gets a list of symbols and indexing.
 
+    This class follows the visitor pattern. See documentation on VisitorEngine.
+
     The analyzer will produce a list of symbols required by the query (based on
     the Bindings/variables) and recommend a list of Bindings suitable for
     building an equivalence-based index (based on Equivalence expressions in
@@ -149,5 +151,6 @@ class RuleAnalyzer(engine.VisitorEngine):
                 symbols.update(analysis.symbols)
 
         return Analysis(symbols, indexables)
+
 
 engine.Engine.register_engine(RuleAnalyzer, "analyzer")

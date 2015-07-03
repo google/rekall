@@ -205,11 +205,13 @@ class ParserTest(unittest.TestCase):
         self.assertQueryMatches(query, expected)
 
     def testLetSingleAny(self):
-        query = "any ProcessParent where ProcessCommand == 'init'"
+        query = "any Process.parent where name == 'init'"
         expected = expression.LetAny(
-            expression.Binding("ProcessParent"),
+            expression.Let(
+                expression.Binding("Process"),
+                expression.Binding("parent")),
             expression.Equivalence(
-                expression.Binding("ProcessCommand"),
+                expression.Binding("name"),
                 expression.Literal("init")))
 
         self.assertQueryMatches(query, expected)

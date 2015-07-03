@@ -27,6 +27,8 @@ from efilter import expression
 class Normalizer(engine.VisitorEngine):
     """Optimizes the AST for better performance and simpler structure.
 
+    This class follows the visitor pattern. See documentation on VisitorEngine.
+
     The returned query will be logically equivalent to what was provided but
     transformations will be made to flatten and optimize the structure. This
     engine works by recognizing certain patterns and replacing them with nicer
@@ -60,6 +62,15 @@ class Normalizer(engine.VisitorEngine):
         return self.query.subquery(expr)
 
     def visit_Let(self, expr, **kwargs):
+        """Rotate repeated let-forms so they cascade on the RHS.
+
+        Basic let-forms should be rotated as follows:
+        (let (let x y) (...)) => (let x (let y) (...))
+
+        These are functionally equivalent, but the latter is easier to follow.
+
+        Returns rotated Let instance.
+        """
         lhs = self.visit(expr.lhs, **kwargs)
         rhs = self.visit(expr.rhs)
 
@@ -71,6 +82,18 @@ class Normalizer(engine.VisitorEngine):
 
         return type(expr)(lhs, rhs)
 
+    def visit_LetAny(self, expr, **kwargs):
+        """let-any|let-each forms are not cascaded.
+
+        This is basically a pass-through function.
+        """
+        lhs = self.visit(expr.lhs, **kwargs)
+        rhs = self.visit(expr.rhs, **kwargs)
+        return type(expr)(lhs, rhs)
+
+    def visit_LetEach(self, expr, **kwargs):
+        return self.visit_LetAny(expr, **kwargs)
+
     def visit_Expression(self, expr, **_):
         return expr
 
@@ -78,6 +101,19 @@ class Normalizer(engine.VisitorEngine):
         return self.visit_VariadicExpression(expr, **kwargs)
 
     def visit_VariadicExpression(self, expr, **kwargs):
+        """Pass through n-ary expressions, and eliminate empty branches.
+
+        Variadic and binary expressions recursively visit all their children.
+
+        If all children are eliminated then the parent expression is also
+        eliminated:
+
+        (& [removed] [removed]) => [removed]
+
+        If only one child is left, it is promoted to replace the parent node:
+
+        (& True) => True
+        """
         children = []
         for child in expr.children:
             branch = self.visit(child, **kwargs)
@@ -96,5 +132,6 @@ class Normalizer(engine.VisitorEngine):
             return children[0]
 
         return type(expr)(*children)
+
 
 engine.Engine.register_engine(Normalizer, "normalizer")

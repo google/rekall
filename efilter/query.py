@@ -33,6 +33,7 @@ class Query(object):
 
     def __init__(self, source, root=None, params=None, syntax="slashy",
                  application_delegate=None):
+        super(Query, self).__init__()
         self.application_delegate = application_delegate
         self.syntax = syntax
 
@@ -51,9 +52,9 @@ class Query(object):
             return
 
         # Need to parse. We assume the default frontend/syntax (slashy).
-        if isinstance(source, basestring):
-            parser = frontend.Frontend.get_frontend(syntax)(original=source,
-                                                            params=params)
+        if self.syntax and self.syntax != "expression":
+            parser_cls = frontend.Frontend.get_frontend(syntax)
+            parser = parser_cls(original=source, params=params)
             self.source = parser.original
             self.root = parser.root
 
@@ -80,7 +81,7 @@ class Query(object):
         return node.start, node.end
 
     def source_expression(self, node):
-        if self.source:
+        if isinstance(self.source, basestring):
             return self.source[node.start:node.end]
 
         return None

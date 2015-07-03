@@ -1,70 +1,58 @@
-import unittest
-
 from efilter import expression
-from efilter import query
+from efilter import testlib
 
 
-class RuleAnalyzerTest(unittest.TestCase):
-    def assertResult(self, source, expected, syntax="dotty"):
-        q = query.Query(source, syntax=syntax)
-        normalized = q.run_engine("normalizer")
-        baseline = query.Query(expected, syntax=syntax)
-        self.assertEqual(normalized, baseline)
-
+class NormalizerTest(testlib.EngineTestCase):
     def testBasic(self):
-        self.assertResult("ProcessName == 'init'",
-                          "ProcessName == 'init'")
+        self.assertTransform("normalizer", "ProcessName == 'init'",
+                             "ProcessName == 'init'")
 
     def testEliminateEmpties(self):
-        self.assertResult(
-            expression.Intersection(
-                expression.Literal(True)),
-            expression.Literal(True))
+        self.assertTransform(
+            "normalizer", ("&", True), expression.Literal(True))
+
+    def testLetForms(self):
+        """LetAny and LetEach forms are not rotated."""
+        original = ("let-any",
+                    ("let", ("var", "Process"), ("var", "parent")),
+                    ("==", ("var", "name"), "init"))
+
+        self.assertTransform("normalizer", original, original)
 
     def testRealExample(self):
-        original = expression.Intersection(
-            expression.Let(
-                expression.Let(
-                    expression.Binding('MemoryDescriptor'),
-                    expression.Binding('process')),
-                expression.Equivalence(
-                    expression.Let(
-                        expression.Binding('Process'),
-                        expression.Binding('command')),
-                    expression.Literal('Adium'))),
-            expression.Intersection(
-                expression.Membership(
-                    expression.Literal('execute'),
-                    expression.Let(
-                        expression.Binding('MemoryDescriptor'),
-                        expression.Binding('permissions'))),
-                expression.Membership(
-                    expression.Literal('write'),
-                    expression.Let(
-                        expression.Binding('MemoryDescriptor'),
-                        expression.Binding('permissions')))))
+        original = ("&",
+                    ("let",
+                     ("let", ("var", "MemoryDescriptor"), ("var", "process")),
+                     ("==",
+                      ("let", ("var", "Process"), ("var", "command")),
+                      "Adium")),
+                    ("&",
+                     ("in", "execute",
+                      ("let",
+                       ("var", "MemoryDescriptor"),
+                       ("var", "permissions"))),
+                     ("in", "write",
+                      ("let",
+                       ("var", "MemoryDescriptor"),
+                       ("var", "permissions")))))
 
         # Two binary intersections become one variadic intersection and the
         # let-forms now have a Binding as their LHS whenever possible.
-        expected = expression.Intersection(
-            expression.Let(
-                expression.Binding('MemoryDescriptor'),
-                expression.Let(
-                    expression.Binding('process'),
-                    expression.Equivalence(
-                        expression.Let(
-                            expression.Binding('Process'),
-                            expression.Binding('command')),
-                        expression.Literal('Adium')))),
-            expression.Membership(
-                expression.Literal('execute'),
-                expression.Let(
-                    expression.Binding('MemoryDescriptor'),
-                    expression.Binding('permissions'))),
-            expression.Membership(
-                expression.Literal('write'),
-                expression.Let(
-                    expression.Binding('MemoryDescriptor'),
-                    expression.Binding('permissions'))))
+        expected = ("&",
+                    ("let",
+                     ("var", "MemoryDescriptor"),
+                     ("let",
+                      ("var", "process"),
+                      ("==",
+                       ("let", ("var", "Process"), ("var", "command")),
+                       "Adium"))),
+                    ("in", "execute",
+                     ("let",
+                      ("var", "MemoryDescriptor"),
+                      ("var", "permissions"))),
+                    ("in", "write",
+                     ("let",
+                      ("var", "MemoryDescriptor"),
+                      ("var", "permissions"))))
 
-        self.assertResult(original, expected)
+        self.assertTransform("normalizer", original, expected)

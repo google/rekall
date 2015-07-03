@@ -1,54 +1,58 @@
-import unittest
-
-from efilter import query
+from efilter import testlib
 
 
-class HinterTest(unittest.TestCase):
-    def parseQuery(self, source, syntax="dotty"):
-        return query.Query(source, syntax=syntax)
-
-    def assertHinted(self, source, selector, expected, syntax="dotty"):
-        hinted = self.parseQuery(source).run_engine("hinter",
-                                                    selector=selector,
-                                                    syntax=syntax)
-        baseline = self.parseQuery(expected)
-        self.assertEqual(hinted, baseline)
-
+class HinterTest(testlib.EngineTestCase):
     def testNop(self):
-        self.assertHinted("Process.name == 'init'", None,
-                          "Process.name == 'init'")
+        self.assertTransform(
+            engine="hinter",
+            original="Process.name == 'init'",
+            expected="Process.name == 'init'",
+            selector=None)
 
     def testBasic(self):
-        self.assertHinted("Process.name == 'init'", "Process",
-                          "name == 'init'")
+        self.assertTransform(
+            engine="hinter",
+            original="Process.name == 'init'",
+            expected="name == 'init'",
+            selector="Process")
 
     def testMulti(self):
-        self.assertHinted("Process.parent.Process.name == 'init'",
-                          "Process.parent",
-                          "Process.name == 'init'")
+        self.assertTransform(
+            engine="hinter",
+            original="Process.parent.Process.name == 'init'",
+            selector="Process.parent",
+            expected="Process.name == 'init'")
 
     def testNested(self):
-        self.assertHinted("Process.parent.Process.name == 'init' "
-                          "and Process.pid > 10",
-                          "Process.parent",
-                          "Process.name == 'init'")
+        self.assertTransform(
+            engine="hinter",
+            original=("Process.parent.Process.name == 'init' "
+                      "and Process.pid > 10"),
+            selector="Process.parent",
+            expected="Process.name == 'init'")
 
     def testAndNested(self):
-        self.assertHinted("Process.parent.Process.name == 'init' "
-                          "and Process.parent.Process.pid > 10",
-                          "Process.parent",
-                          "Process.name == 'init' and Process.pid > 10")
+        self.assertTransform(
+            engine="hinter",
+            original=("Process.parent.Process.name == 'init' "
+                      "and Process.parent.Process.pid > 10"),
+            selector="Process.parent",
+            expected="Process.name == 'init' and Process.pid > 10")
 
     def testNestedWithComplement(self):
-        self.assertHinted("Process.parent.Process.name != 'init' "
-                          "and not Process.parent.Process.pid > 10",
-                          "Process.parent",
-                          "Process.name != 'init' and not Process.pid > 10")
+        self.assertTransform(
+            engine="hinter",
+            original=("Process.parent.Process.name != 'init' "
+                      "and not Process.parent.Process.pid > 10"),
+            selector="Process.parent",
+            expected="Process.name != 'init' and not Process.pid > 10")
 
     def testLegacy(self):
-        self.assertHinted(
-            "MemoryDescriptor.process where (Process.command == 'Adium')"
-            " and 'execute' in MemoryDescriptor.permissions"
-            " and 'write' in MemoryDescriptor.permissions",
-            "MemoryDescriptor.process",
-            "Process.command == 'Adium'")
+        self.assertTransform(
+            engine="hinter",
+            original=("MemoryDescriptor.process where "
+                      "(Process.command == 'Adium') "
+                      "and 'execute' in MemoryDescriptor.permissions "
+                      "and 'write' in MemoryDescriptor.permissions"),
+            selector="MemoryDescriptor.process",
+            expected="Process.command == 'Adium'")

@@ -21,3 +21,8 @@ class DottyOutputTest(unittest.TestCase):
         self.assertOutput(
             original="Process.parent where (name == 'foo' and pid == 5)",
             output="Process.parent where (name == 'foo' and pid == 5)")
+
+    def testAnywhere(self):
+        self.assertOutput(
+            original="any Process.parent where (name == 'foo')",
+            output="any Process.parent where (name == 'foo')")

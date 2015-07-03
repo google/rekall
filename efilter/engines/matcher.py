@@ -31,7 +31,10 @@ from efilter.protocols import superposition
 
 
 class ObjectMatcher(engine.VisitorEngine):
-    """Given a query and bindings will evaluate the query."""
+    """Given a query and bindings will evaluate the query.
+
+    This class follows the visitor pattern. See documentation on VisitorEngine.
+    """
 
     # run() sets this to the sort value for the latest object matched.
     latest_sort_order = None
@@ -222,5 +225,6 @@ class ObjectMatcher(engine.VisitorEngine):
             min_ = val
 
         return True
+
 
 engine.Engine.register_engine(ObjectMatcher, "filter")

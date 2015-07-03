@@ -28,6 +28,11 @@ from efilter import expression
 class Hinter(engine.VisitorEngine):
     """Retargets the query to apply to a subexpression, to be used for hinting.
 
+    This class follows the visitor pattern. See documentation on VisitorEngine.
+
+    Discussion of mechanism and rationale:
+    ======================================
+
     Bear with me on this one.
 
     As with any database-like system, certain EFILTER queries can be satisfied

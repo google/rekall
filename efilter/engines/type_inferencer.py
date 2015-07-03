@@ -30,7 +30,10 @@ from efilter.protocols import name_delegate
 
 
 class TypeInferencer(engine.VisitorEngine):
-    """Determines the types of each subexpression and validates sanity."""
+    """Determines the types of each subexpression and validates sanity.
+
+    This class follows the visitor pattern. See documentation on VisitorEngine.
+    """
 
     def visit_Literal(self, expr, **_):
         return type(expr.value)

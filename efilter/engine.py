@@ -41,12 +41,19 @@ name_delegate.INameDelegate.implement(
 
 
 class Engine(object):
-    """Base class representing the various behaviors of the EFILTER AST."""
+    """Base class representing the various behaviors of the EFILTER AST.
+
+    Attributes:
+        query: The query object this is running on.
+        application_delegate: The application delegate - should be the same as
+            the one on the query.
+    """
     __metaclass__ = abc.ABCMeta
 
     ENGINES = {}
 
     def __init__(self, query, application_delegate=None):
+        super(Engine, self).__init__()
         self.query = query
         if application_delegate:
             self.application_delegate = application_delegate
@@ -55,7 +62,7 @@ class Engine(object):
 
     @abc.abstractmethod
     def run(self, *_, **__):
-        pass
+        """Execute this engine and return its result."""
 
     @classmethod
     def register_engine(cls, subcls, shorthand=None):
@@ -73,7 +80,30 @@ class Engine(object):
 
 
 class VisitorEngine(Engine):
-    """Engine that implements the visitor pattern."""
+    """Engine that implements the visitor pattern.
+
+    Visitor engines start by calling self.visit(self.root). The default
+    implementation of self.visit will walk the MRO of the expression it got
+    and find the best available handler in the form of visit_<classname>.
+
+    (This ends up trying visit_Expression as last resort and then throwing a
+    TypeError if no handlers are available.)
+
+    The actual handlers themselves are implemented by subclasses providing
+    different behaviors (e.g. matcher, analyzer, etc.). Each handler is
+    responsible for evaluating the branch it's passed, usually by recursively
+    calling self.visit on any children and then combining the results of those
+    sub-branches according to its own logic.
+
+    For example, to implement expression.Sum (add up numbers), one would do:
+
+        def visit_Sum(self, expr):
+            result = 0
+            for branch in expr.children:
+                result += self.visit(branch)
+
+            return result
+    """
 
     def __hash__(self):
         return hash((type(self), self.query))
@@ -85,11 +115,26 @@ class VisitorEngine(Engine):
         return not self.__eq__(other)
 
     def run(self, *_, **kwargs):
+        """Visitors by default visit the root of the query."""
         super(VisitorEngine, self).run()
         self.node = self.query.root
         return self.visit(self.node, **kwargs)
 
     def fall_through(self, node, engine_shorthand, **kwargs):
+        """A visitor only implementing part of the AST can delegate with this.
+
+        If a visitor engine only implemenets a subset of the AST language, it
+        becomes useful to delegate to other visitor classes for subbranches the
+        original visitor cannot handle.
+
+        Arguments:
+            node: The subbranch to be handled by the other visitor.
+            engine_shorthand: The shorthand name of the other visitor.
+            kwargs: Are passed on verbatim.
+
+        Returns:
+            Whatever the other visitor engine returns.
+        """
         engine_cls = type(self).get_engine(engine_shorthand)
         if not issubclass(engine_cls, VisitorEngine):
             raise TypeError(
@@ -100,6 +145,7 @@ class VisitorEngine(Engine):
         return engine.visit(node, **kwargs)
 
     def visit(self, node, **kwargs):
+        """Visit the AST node by calling as specific a handler as we have."""
         # Walk the MRO and try to find a closest match for handler.
         for cls in type(node).mro():
             handler_name = "visit_%s" % cls.__name__

@@ -30,12 +30,26 @@ class Frontend(object):
 
     FRONTENDS = {}
 
-    def __init__(self, original):
+    def __init__(self, original, params=None):
+        """Create a frontend parser for this dialect.
+
+        Arguments:
+            original: The source code of this query. Most often this is a
+                string type, but there are exceptions (e.g. lisp)
+            params: Some dialects support parametric queries (for safety) -
+                if used, pass them as params. This should be a dict for
+                keywords or a tuple for positional.
+        """
+        super(Frontend, self).__init__()
+        self.params = params
         self.original = original
 
     @abc.abstractproperty
     def root(self):
-        pass
+        """The root of the resultant AST.
+
+        Subclasses MUST implement parsing here.
+        """
 
     @classmethod
     def register_frontend(cls, subcls, shorthand=None):

@@ -40,7 +40,10 @@ def build_operator_lookup(*tables):
 
 
 class DottyOutput(engine.VisitorEngine):
-    """Produces equivalent Dotty output to the AST."""
+    """Produces equivalent Dotty output to the AST.
+
+    This class follows the visitor pattern. See documentation on VisitorEngine.
+    """
 
     TOKENS = build_operator_lookup(dotty.INFIX, dotty.PREFIX)
 
@@ -51,7 +54,8 @@ class DottyOutput(engine.VisitorEngine):
         right = self.visit(rhs)
         token = "."
 
-        if not isinstance(expr.lhs, expression.ValueExpression):
+        if not isinstance(expr.lhs, (expression.ValueExpression,
+                                     expression.Let)):
             left = "(%s)" % left
             token = " where "
 
@@ -61,6 +65,12 @@ class DottyOutput(engine.VisitorEngine):
             token = " where "
 
         return token.join((left, right))
+
+    def visit_LetAny(self, expr):
+        return "any %s" % self.visit_Let(expr)
+
+    def visit_letEach(self, expr):
+        return "each %s" % self.visit_Let(expr)
 
     def visit_Literal(self, expr):
         return repr(expr.value)
@@ -78,5 +88,6 @@ class DottyOutput(engine.VisitorEngine):
         token = self.TOKENS[type(expr)]
         separator = " %s " % token
         return separator.join(self.visit(x) for x in expr.children)
+
 
 engine.Engine.register_engine(DottyOutput, "dotty_output")

@@ -1,7 +1,4 @@
-import unittest
-
-from efilter import protocol
-from efilter import query
+from efilter import testlib
 
 from efilter.protocols import boolean
 from efilter.protocols import number
@@ -34,58 +31,73 @@ name_delegate.INameDelegate.implement(
 )
 
 
-class TypeInferenceTest(unittest.TestCase):
-    def analyzeQuery(self, source):
-        q = query.Query(source, syntax="dotty",
-                        application_delegate=FakeApplicationDelegate())
-        return q.run_engine("infer_types")
-
-    def analyzeLegacyQuery(self, source):
-        q = query.Query(source, syntax="slashy")
-        return q.run_engine("infer_types")
-
-    def assertIsa(self, t, p):
-        self.assertTrue(protocol.isa(t, p))
-
+class TypeInferenceTest(testlib.EngineTestCase):
     def testDelegate(self):
-        t = self.analyzeQuery("ProcessName")
-        self.assertIsa(t, basestring)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="ProcessName",
+            expected=basestring,
+            assertion=self.assertIsa)
 
     def testBasic(self):
-        t = self.analyzeQuery("ProcessName == 'init'")
-        self.assertIsa(t, boolean.IBoolean)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="ProcessName == 'init'",
+            expected=boolean.IBoolean,
+            assertion=self.assertIsa)
 
-        t = self.analyzeLegacyQuery("Process/Name == 'init'")
-        self.assertIsa(t, boolean.IBoolean)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="Process/Name == 'init'",
+            source_syntax="slashy",
+            expected=boolean.IBoolean,
+            assertion=self.assertIsa)
 
     def testBinary(self):
-        t = self.analyzeQuery("'foo' in ('bar', 'foo')")
-        self.assertIsa(t, boolean.IBoolean)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="'foo' in ('bar', 'foo')",
+            expected=boolean.IBoolean,
+            assertion=self.assertIsa)
 
     def testRecursive(self):
-        t = self.analyzeQuery(
-            "ProcessParent where (ProcessName == 'init')")
-        self.assertIsa(t, boolean.IBoolean)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="ProcessParent where (ProcessName == 'init')",
+            expected=boolean.IBoolean,
+            assertion=self.assertIsa)
 
-        t = self.analyzeQuery(
-            "any ProcessChildren where (ProcessName == 'init')")
-        self.assertIsa(t, boolean.IBoolean)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="any ProcessChildren where (ProcessName == 'init')",
+            expected=boolean.IBoolean,
+            assertion=self.assertIsa)
 
     def testNumbers(self):
-        t = self.analyzeQuery("5 + 5")
-        self.assertIsa(t, number.INumber)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="5 + 5",
+            expected=number.INumber,
+            assertion=self.assertIsa)
 
-        t = self.analyzeQuery("10 * (1 - 4) / 5")
-        self.assertIsa(t, number.INumber)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="10 * (1 - 4) / 5",
+            expected=number.INumber,
+            assertion=self.assertIsa)
 
     def testDescendExpression(self):
-        t = self.analyzeQuery(
-            "ProcessParent where (ProcessPid + 10)")
-
-        self.assertIsa(t, number.INumber)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="ProcessParent where (ProcessPid + 10)",
+            expected=number.INumber,
+            app_delegate=FakeApplicationDelegate(),
+            assertion=self.assertIsa)
 
         # Should be the same using shorthand syntax.
-        t = self.analyzeQuery(
-            "ProcessParent.ProcessParent where (ProcessPid - 1)")
-
-        self.assertIsa(t, number.INumber)
+        self.assertEngineResult(
+            engine="infer_types",
+            source="ProcessParent.ProcessParent where (ProcessPid - 1)",
+            expected=number.INumber,
+            app_delegate=FakeApplicationDelegate(),
+            assertion=self.assertIsa)

@@ -18,7 +18,7 @@ Let's have a class in our custom project:
 
 	class Customer(object):
 		"""My awesome Customer business logic class."""
-
+		
 		@property
 		def name(self):
 			#...
@@ -37,7 +37,7 @@ We'd like to filter this class's instances using EFILTER, but we need a way to
 EFILTER uses the IAssociative protocol to access members of the objects its
 asked to filter. Implementing a protocol lets EFILTER know how each type should
 be accessed:
-	
+
 	from efilter.protocols import associative
 	associative.IAssociative.implement(
 		for_type=Customer,  # This is how you access Customer's data.
@@ -56,7 +56,7 @@ be accessed:
 			# accessed.
 			associative.getkeys: lambda _: ("name", "age", "admin")
 		})
-	
+
 Now we can filter the Customer class:
 
 	query = Query("name == 'Bob'")

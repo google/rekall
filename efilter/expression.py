@@ -56,6 +56,8 @@ class Expression(object):
         return not self.__eq__(other)
 
     def __init__(self, *children, **kwargs):
+        super(Expression, self).__init__()
+
         self.start = kwargs.pop("start", None)
         self.end = kwargs.pop("end", None)
 
