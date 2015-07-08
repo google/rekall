@@ -96,8 +96,12 @@ class MultiStringFinderCheck(ScannerCheck):
         if not needles:
             raise RuntimeError("No needles provided to search.")
 
-        tree = acora.AcoraBuilder(*needles)
+        # Passing large patterns to the acora module will cause huge memory
+        # consumption.
+        if len("".join(needles)) > 200:
+            raise RuntimeError("Pattern too large to search with ahocorasic.")
 
+        tree = acora.AcoraBuilder(*needles)
         self.engine = tree.build()
 
         self.base_offset = None
@@ -449,16 +453,22 @@ class MultiStringScanner(BaseScanner):
     # Override with the needles to check for.
     needles = []
 
-    checker_cls = MultiStringFinderCheck
-
     def __init__(self, needles=None, **kwargs):
         super(MultiStringScanner, self).__init__(**kwargs)
         if needles is not None:
             self.needles = needles
 
-        self.check = self.checker_cls(
-            profile=self.profile, address_space=self.address_space,
-            needles=self.needles)
+        # For large patterns acora seems to use huge amount of memory and
+        # CPU. Therefore when there is only a single pattern (common case) use
+        # the normal StringScanner instead.
+        if len(needles) == 1:
+            self.check = StringCheck(
+                profile=self.profile, address_space=self.address_space,
+                needle=self.needles[0])
+        else:
+            self.check = MultiStringFinderCheck(
+                profile=self.profile, address_space=self.address_space,
+                needles=self.needles)
 
     def check_addr(self, offset, buffer_as=None):
         # Ask the check if this offset is possible.

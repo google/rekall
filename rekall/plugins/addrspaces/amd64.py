@@ -199,6 +199,11 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         pde_value = self.read_long_long_phys(pde_addr)
         yield "pde", pde_value, pde_addr
 
+        normalized_pde_value = self.NormalizePDEValue(pde_value)
+        if normalized_pde_value != pde_value:
+            yield "normalized pde", normalized_pde_value, pde_addr
+            pde_value = normalized_pde_value
+
         if not pde_value & self.valid_mask:
             yield "Invalid PDE", None, None
             pte_value = 0

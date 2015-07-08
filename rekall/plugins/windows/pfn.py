@@ -126,8 +126,8 @@ class VtoP(core.VtoPMixin, common.WinProcessFilter):
                 renderer.format("{0}\n", name)
 
             if name == "pde" and not value & 1:
-                self.render_pte(0, value, renderer, vaddr)
-                break
+                renderer.format("PDE Resolution:")
+                self.render_pte(address, value, renderer, vaddr)
 
             if name == "pte":
                 self.render_pte(address, value, renderer, vaddr)

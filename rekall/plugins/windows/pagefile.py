@@ -302,6 +302,22 @@ class WindowsPagedMemoryMixin(object):
             if phys_addr is not None:
                 yield (vaddr, phys_addr, 0x1000)
 
+    disable_large_page_mask = (2 ** 64 - 1) ^ (1<<7)
+
+    def NormalizePDEValue(self, pte_value):
+        # If the pte_value is valid just return it.
+        if pte_value & self.valid_mask:
+            return pte_value
+
+        # On Windows we sometimes observe PDEs that appear in transition and
+        # have the large page bit set. Since large pages can not be in
+        # transition we need to disable the large page flag and make the PDE
+        # valid for further processing.
+        if pte_value & self.transition_mask:
+            return (pte_value | self.valid_mask) & self.disable_large_page_mask
+
+        return pte_value
+
     def get_phys_addr(self, virtual_address, pte_value):
         """First level resolution of PTEs.
 

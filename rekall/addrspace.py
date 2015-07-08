@@ -437,7 +437,7 @@ class RunBasedAddressSpace(PagedReader):
 
         # Our get_available_addresses() refers to the base address space we
         # overlay on.
-        self.phys_base = self.base
+        self.phys_base = weakref.proxy(self)
 
     def _read_chunk(self, addr, length):
         """Read from addr as much as possible up to a length of length."""
@@ -540,6 +540,7 @@ class MultiRunBasedAddressSpace(PagedReader):
     def __init__(self, **kwargs):
         super(MultiRunBasedAddressSpace, self).__init__(**kwargs)
         self.runs = utils.SortedCollection(key=lambda x: x[0])
+        self.phys_base = weakref.proxy(self)
 
     def add_run(self, virt_addr, file_address, file_len, address_space):
         self.runs.insert((virt_addr, file_address, file_len, address_space))
@@ -591,11 +592,15 @@ class MultiRunBasedAddressSpace(PagedReader):
     # FIXME: Deprecate this method in all address spaces in favor of
     # get_mappings() below.
     def get_available_addresses(self, start=0):
-        for run_start, file_address, length, _ in self.runs:
+        for run_start, _, length, _ in self.runs:
             if start > run_start + length:
                 continue
 
-            yield run_start, file_address, length
+            # We can not allow the scanner to try to access the phys_base
+            # directly because we have multiple phys_base and the scanner will
+            # not know which to read. When the scanner uses get_mappings() this
+            # should work again.
+            yield run_start, run_start, length
 
     def get_mappings(self, start=0):
         """Returns the mappings."""

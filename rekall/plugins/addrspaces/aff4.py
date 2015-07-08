@@ -34,6 +34,7 @@ import logging
 import os
 
 from rekall import addrspace
+from rekall import utils
 from rekall.plugins.addrspaces import standard
 
 from pyaff4 import data_store
@@ -59,6 +60,9 @@ class AFF4StreamWrapper(object):
 
     def end(self):
         return self.stream.Size()
+
+    def __unicode__(self):
+        return utils.SmartUnicode(self.stream.urn)
 
 
 class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
@@ -185,6 +189,25 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             self.runs.insert((0, 0, aff4_stream.Size(), self.image))
 
         self.session.logging.info("Added %s as physical memory", image_urn)
+
+    def describe(self, address):
+        try:
+            virt_addr, file_address, _, stream_as = self.runs.find_le(address)
+            # For normal physical memory addresses just be concise.
+            if stream_as == self.image:
+                return u"%#x" % address
+
+            # For other mapped streams, just say which ones they are.
+            return u"%#x @ %s (Mapped %#x)" % (
+                address - (virt_addr - address + file_address),
+                stream_as, address)
+
+        except ValueError:
+            pass
+
+        # For unmapped streams just say we have no idea.
+        return u"%#x (Unmapped)" % address
+
 
 
 # pylint: disable=unused-import

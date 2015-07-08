@@ -122,7 +122,15 @@ class IA32PagedMemory(addrspace.PagedReader):
         Bits 1:0 are 0.
         '''
         pde_addr = (self.dtb & 0xfffff000) | ((vaddr & 0xffc00000) >> 20)
-        return self.read_long_phys(pde_addr)
+        return self.NormalizePDEValue(self.read_long_phys(pde_addr))
+
+    def NormalizePDEValue(self, pde_value):
+        """A hook for OS specific address spaces.
+
+        Some OSs can mark PDEs as invalid. This hook allows the OS specific code
+        to deal with this and recover the PTE.
+        """
+        return pde_value
 
     def pte_paddr(self, pte):
         '''
@@ -354,7 +362,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         Bits 2:0 are 0
         '''
         pde_addr = (pdpte & 0xffffffffff000) | ((vaddr & 0x3fe00000) >> 18)
-        return self.read_long_long_phys(pde_addr)
+        return self.NormalizePDEValue(self.read_long_long_phys(pde_addr))
 
     def get_two_meg_paddr(self, vaddr, pde):
         '''

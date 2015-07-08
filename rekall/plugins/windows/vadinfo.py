@@ -290,7 +290,7 @@ class VAD(common.WinProcessFilter):
                                ('lev', 'level', '>3'),
                                ('Start Addr', 'start_pfn', '[addrpad]'),
                                ('End Addr', 'end_pfn', '[addrpad]'),
-                               ('com', 'com', '!>4'),
+                               dict(name='com', width=6, align="r"),
                                ('', 'type', '7'),
                                ('', 'executable', '6'),
                                ('Protect', 'protection', '!20'),
