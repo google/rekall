@@ -37,7 +37,7 @@ class Query(object):
         self.application_delegate = application_delegate
         self.syntax = syntax
 
-        # Copy constructor.
+        # Run as a copy constructor.
         if isinstance(source, Query):
             self.source = source.source
             self.root = root or source.root
@@ -51,8 +51,16 @@ class Query(object):
             self.root = root
             return
 
-        # Need to parse. We assume the default frontend/syntax (slashy).
+        # This is here to support calling Query with a positional argument
+        # that's the root of the AST.
+        if isinstance(source, expression.Expression):
+            self.root = source
+            return
+
+        # If we got here then source is actually a query and it's not been
+        # parsed, so we need to find the appropriate frontend parser and run it.
         if self.syntax and self.syntax != "expression":
+            # We need to parse the query.
             parser_cls = frontend.Frontend.get_frontend(syntax)
             parser = parser_cls(original=source, params=params)
             self.source = parser.original
@@ -62,8 +70,6 @@ class Query(object):
             # produce crazy AST and rely on the visitor engines to understand
             # it.
             self.root = self.run_engine("normalizer").root
-        elif isinstance(source, expression.Expression):
-            self.root = source
         else:
             raise TypeError("%r is not an expression.", source)
 
