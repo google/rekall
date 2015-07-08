@@ -80,7 +80,7 @@ static void *_test_contention_thread(__unused void *ctx) {
 
     // We don't return the results of reading pmem_info, but we want to
     // stress test it anyway.
-    int fd = open("/dev/pmem_info", O_RDONLY);
+    int fd = open(pmem_infodev, O_RDONLY);
     if (fd < 0) {
         goto error;
     }
@@ -98,7 +98,7 @@ static void *_test_contention_thread(__unused void *ctx) {
         goto error;
     }
 
-    fd = open("/dev/pmem", O_RDONLY);
+    fd = open(pmem_dev, O_RDONLY);
 
     if (fd < 0) {
         goto error;
@@ -183,9 +183,9 @@ int test_symbols() {
     }
 
     // If we read from the offset, we should get the kernel version string.
-    int fd = open("/dev/pmem", O_RDONLY);
+    int fd = open(pmem_dev, O_RDONLY);
     if (fd == -1) {
-        pmem_error("Could not open /dev/pmem for reading.");
+        pmem_error("Could not open %s for reading.", pmem_dev);
         return -1;
     }
 
@@ -217,12 +217,12 @@ int test_symbols() {
 
 int test_unload_with_open() {
     int res = 0;
-    int fd = open("/dev/pmem", O_RDONLY);
+    int fd = open(pmem_dev, O_RDONLY);
     char buffer[read_cmp_frame_len];
     ssize_t bytes_read = 0;
 
     if (fd == -1) {
-        pmem_error("Could not open /dev/pmem for reading.");
+        pmem_error("Could not open %s for reading.", pmem_dev);
         return -1;
     }
 
@@ -254,14 +254,14 @@ int test_unload_with_open() {
 
 
 int test_phys_read() {
-    int fd = open("/dev/pmem", O_RDONLY);
+    int fd = open(pmem_dev, O_RDONLY);
     int cres;
     const size_t len = 0x40;
     ssize_t rcv = 0;
     char buffer[len], buffer_[len];
 
     if (fd == -1) {
-        pmem_error("Could not open /dev/pmem for reading.");
+        pmem_error("Could not open %s for reading.", pmem_dev);
         return -1;
     }
 
@@ -270,8 +270,8 @@ int test_phys_read() {
     rcv = read(fd, buffer, len);
 
     if (rcv != len) {
-        pmem_error("Could not read from 0x2000 into /dev/pmem. Errno: %d",
-                   errno);
+        pmem_error("Could not read from 0x2000 into %s. Errno: %d",
+                   pmem_dev, errno);
         return -1;
     }
 
@@ -280,8 +280,8 @@ int test_phys_read() {
     rcv = read(fd, buffer_, len);
 
     if (rcv != len) {
-        pmem_error("Could not read from 0x2000 into /dev/pmem. Errno: %d",
-                   errno);
+        pmem_error("Could not read from 0x2000 into %s. Errno: %d",
+                   pmem_dev, errno);
         return -1;
     }
 
@@ -301,29 +301,28 @@ int test_phys_read() {
 
 
 int test_info_read() {
-    int fd = open("/dev/pmem_info", O_RDONLY);
+    int fd = open(pmem_infodev, O_RDONLY);
     char buffer[0x1000];
     ssize_t rcv;
     int cres;
     const char *yml_header = "%YAML";
 
     if (fd == -1) {
-        pmem_error("Could not open /dev/pmem_info for reading.");
+        pmem_error("Could not open %s for reading.", pmem_infodev);
         return -1;
     }
 
     rcv = read(fd, buffer, 0x1000);
     if (rcv < 0) {
-        pmem_error("Could not read from /dev/pmem_info. Errno: %d",
-                   errno);
+        pmem_error("Could not read from %s. Errno: %d", pmem_infodev, errno);
         return -1;
     }
 
     cres = strncmp(buffer, yml_header, strlen(yml_header));
 
     if (cres != 0) {
-        pmem_error("Expected /dev/pmem_info to start with '%s', not '%.*s'.",
-                   yml_header, (int)strlen(yml_header), buffer);
+        pmem_error("Expected %s to start with '%s', not '%.*s'.",
+                   pmem_infodev, yml_header, (int)strlen(yml_header), buffer);
         return -1;
     }
 
@@ -397,12 +396,12 @@ int test_kextload_stress() {
             return -1;
         }
 
-        fd_pmem = open("/dev/pmem", O_RDONLY);
+        fd_pmem = open(pmem_dev, O_RDONLY);
         if (fd_pmem == -1) {
             return -1;
         }
 
-        fd_info = open("/dev/pmem_info", O_RDONLY);
+        fd_info = open(pmem_infodev, O_RDONLY);
         if (fd_info == -1) {
             return -1;
         }
@@ -436,21 +435,21 @@ int test_kextload_stress() {
 // Tests invalid reads to /dev/pmem_info and /dev/pmem.
 int test_invalid_reads() {
     int res = 0;
-    int fd = open("/dev/pmem_info", O_RDONLY);
+    int fd = open(pmem_infodev, O_RDONLY);
     char buffer[0x1000];
     ssize_t bytes_read;
 
     if (fd < 0) {
-        pmem_error("Could not open /dev/pmem_info for reading.");
+        pmem_error("Could not open %s for reading.", pmem_infodev);
         return -1;
     }
 
     lseek(fd, -1000, SEEK_CUR);
     bytes_read = read(fd, buffer, 500);
     if (bytes_read > 0) {
-        pmem_warn(("Read %lu bytes from offset -1000 of /dev/pmem_info."
+        pmem_warn(("Read %lu bytes from offset -1000 of %s."
                    "Dump: %#016llx... (%.*s)"),
-                  bytes_read, *(unsigned long long *)buffer,
+                  bytes_read, pmem_infodev, *(unsigned long long *)buffer,
                   0x8, buffer);
         res = -1;
     }
@@ -458,27 +457,27 @@ int test_invalid_reads() {
     lseek(fd, 0x10000, SEEK_SET);
     bytes_read = read(fd, buffer, 0x1000);
     if (bytes_read > 0) {
-        pmem_warn(("Read %lu bytes from offset 0x10000 of /dev/pmem_info."
+        pmem_warn(("Read %lu bytes from offset 0x10000 of %s."
                    "Dump: %#016llx... (%.*s)"),
-                  bytes_read, *(unsigned long long *)buffer,
+                  bytes_read, pmem_infodev, *(unsigned long long *)buffer,
                   0x8, buffer);
         res = -1;
     }
 
     close(fd);
 
-    fd = open("/dev/pmem", O_RDONLY);
+    fd = open(pmem_dev, O_RDONLY);
     if (fd < 0) {
-        pmem_error("Could not open /dev/pmem for reading.");
+        pmem_error("Could not open %s for reading.", pmem_dev);
         return -1;
     }
 
     lseek(fd, -1000, SEEK_CUR);
     bytes_read = read(fd, buffer, 500);
     if (bytes_read > 0) {
-        pmem_warn(("Read %lu bytes from offset -1000 of /dev/pmem."
+        pmem_warn(("Read %lu bytes from offset -1000 of %s."
                    "Dump: %#016llx... (%.*s)"),
-                  bytes_read, *(unsigned long long *)buffer,
+                  bytes_read, pmem_dev, *(unsigned long long *)buffer,
                   0x8, buffer);
         res = -1;
     }

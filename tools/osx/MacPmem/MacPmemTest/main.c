@@ -33,8 +33,8 @@ const int threadc = 16;
 const ssize_t read_cmp_frame_len = 0x10;
 const off_t read_cmp_frame_off = 0x2000;
 
-const char *pmem_dev = "/dev/pmem";
-const char *pmem_infodev = "/dev/pmem_info";
+const char *pmem_dev = ("/dev/" PMEM_DEVNAME);
+const char *pmem_infodev = ("/dev/" PMEM_DEVINFO);
 
 // Options
 int do_check_perms = 1;

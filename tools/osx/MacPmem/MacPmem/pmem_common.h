@@ -54,6 +54,17 @@
 #define PMEM_SYSCTL_NAME "kern.pmem_info"
 
 
+// These are used for names of the physical memory device and the YAML device
+// respectively.
+#ifndef PMEM_DEVNAME
+#define PMEM_DEVNAME "pmem"
+#endif
+
+#ifndef PMEM_DEVINFO
+#define PMEM_DEVINFO "pmem_info"
+#endif
+
+
 // This enum tells you whether the memory range is categorized using the
 // EFI taxonomy or the PCI taxonomy, but it doesn't say where the information
 // came from - you have the hardware informant flag for that.

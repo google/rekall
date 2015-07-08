@@ -90,12 +90,12 @@ static int pmem_sysctl_needs_cleanup = 0;
 
 
 #define PMEM_DEV_MINOR 1
-static const char *pmem_devname = "pmem";
+static const char *pmem_devname = PMEM_DEVNAME;
 static void *pmem_infonode = 0;
 
 
 #define PMEM_INFO_MINOR 2
-static const char *pmem_infoname = "pmem_info";
+static const char *pmem_infoname = PMEM_DEVINFO;
 static void *pmem_devnode = 0;
 
 #ifdef DEBUG
