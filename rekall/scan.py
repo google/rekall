@@ -148,66 +148,6 @@ class MultiStringFinderCheck(ScannerCheck):
         return buffer_as.end() - offset
 
 
-class SignatureScannerCheck(ScannerCheck):
-    """A scanner that searches for a signature.
-
-    The signature is given as a list of strings and this scanner checks that
-    each part of the signature is present in memory in ascending order.
-    """
-
-    def __init__(self, needles=None, **kwargs):
-        """Init.
-
-        Args:
-          needles: A list of strings we search for.
-          **kwargs: passthrough.
-        Raises:
-          RuntimeError: No needles provided.
-        """
-        super(SignatureScannerCheck, self).__init__(**kwargs)
-
-        # It is an error to not provide something to search for.
-        if not needles:
-            raise RuntimeError("No needles provided to search.")
-
-        self.needles = needles
-        self.current_needle = 0
-
-    def check(self, buffer_as, offset):
-        if self.current_needle >= len(self.needles):
-            # We have found all parts already.
-            return False
-
-        # Just check the buffer without needing to copy it on slice.
-        buffer_offset = buffer_as.get_buffer_offset(offset)
-        next_part = self.needles[self.current_needle]
-        if buffer_as.data.startswith(next_part, buffer_offset):
-            self.current_needle += 1
-            return next_part
-        else:
-            return False
-
-    def skip(self, buffer_as, offset):
-        if self.current_needle >= len(self.needles):
-            # We have found all parts already, just skip the whole buffer.
-            return buffer_as.end() - offset
-
-        # Search the rest of the buffer for the needle.
-        buffer_offset = buffer_as.get_buffer_offset(offset)
-        next_part = self.needles[self.current_needle]
-        correction = 0
-        if self.current_needle:
-            # If this is not the very first hit we need to increase the offset
-            # or we might report identical parts only once.
-            correction = len(self.needles[self.current_needle - 1])
-        dindex = buffer_as.data.find(next_part, buffer_offset + correction)
-        if dindex > -1:
-            return dindex - buffer_offset
-
-        # Skip entire region.
-        return buffer_as.end() - offset
-
-
 class StringCheck(ScannerCheck):
     """Checks for a single string."""
     maxlen = 100
@@ -478,10 +418,6 @@ class MultiStringScanner(BaseScanner):
 
     def skip(self, buffer_as, offset):
         return self.check.skip(buffer_as, offset)
-
-
-class SignatureScanner(MultiStringScanner):
-    checker_cls = SignatureScannerCheck
 
 
 class PointerScanner(BaseScanner):
