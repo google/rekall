@@ -20,7 +20,6 @@
 """Address spaces specific to pmem live here."""
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-import intervaltree
 from os import path
 
 from rekall import addrspace
@@ -35,6 +34,24 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
     order = standard.FileAddressSpace.order - 2
     __image = True
     volatile = True
+    fd = None
+    fname = None
+    _writable = True
+
+    def _ensure_fd_writable(self):
+        """Reopen the device if necessary.
+
+        /dev/pmem is open read-only by default. This reopens it if writes are
+        requested.
+        """
+        if self.session.GetParameter("writable_address_space"):
+            expected_mode = "r+"
+        else:
+            expected_mode = "r"
+
+        if self.fd.mode != expected_mode:
+            self.fd.close()
+            self.fd = open(self.fname, expected_mode)
 
     def __init__(self, base=None, filename=None, **kwargs):
         super(MacPmemAddressSpace, self).__init__(**kwargs)
@@ -47,6 +64,10 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
             "filename"))
 
         self.as_assert(self.fname, "Filename must be specified.")
+
+        # Open as read-only even if writes are supported and allowed, because
+        # permissions may be set up such that opening for writing would be
+        # disallowed.
         self.fd = open(self.fname, "r")
 
         self.fname_info = "%s_info" % self.fname
@@ -87,6 +108,25 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         self.fd.seek(offset)
         return self.fd.read(min(length, available_length))
 
+    def do_write(self, *args, **kwargs):
+        self._ensure_fd_writable()
+        super(MacPmemAddressSpace, self).do_write(*args, **kwargs)
+
+    def _write_chunk(self, addr, buf):
+        buflen = len(buf)
+        offset, available_length = self._get_available_buffer(addr, buflen)
+        length = min(buflen, available_length)
+
+        if offset is None or length == 0:
+            return length
+
+        self.fd.seek(offset)
+
+        if self.fd.write(buf[:length])
+            return length
+
+        return 0
+
     def close(self):
         self.fd.close()
 
@@ -111,6 +151,7 @@ EFI_SEGMENTS_SAFETY = {
     "EfiPalCode": "r",  # OS-dependent. Largely read-only.
     "EfiMaxMemoryType": "rw",  # No idea (adamsh). Looks like general use?
 }
+
 
 def efi_type_readable(efi_type):
     return "r" in EFI_SEGMENTS_SAFETY[str(efi_type)]

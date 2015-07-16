@@ -30,7 +30,7 @@ from rekall.plugins.addrspaces import standard
 
 
 def CTL_CODE(DeviceType, Function, Method, Access):
-    return (DeviceType<<16) | (Access << 14) | (Function << 2) | Method
+    return (DeviceType << 16) | (Access << 14) | (Function << 2) | Method
 
 
 # IOCTLS for interacting with the driver.
@@ -82,12 +82,12 @@ class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         return data
 
-    def write(self, addr, data):
+    def do_write(self, addr, data):
         length = len(data)
         offset, available_length = self._get_available_buffer(addr, length)
         if offset is None:
             # Do not allow writing to reserved areas.
-            return
+            return 0
 
         to_write = min(len(data), available_length)
         win32file.SetFilePointer(self.fhandle, offset, 0)
@@ -103,7 +103,7 @@ class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
 class Win32FileAddressSpace(Win32AddressSpace):
     __name = "win32file"
 
-    ## We should be the AS of last resort but in front of the non win32 version.
+    # We should be the AS of last resort but in front of the non win32 version.
     order = standard.FileAddressSpace.order - 5
     __image = True
 
@@ -129,7 +129,7 @@ class Win32FileAddressSpace(Win32AddressSpace):
         except pywintypes.error:
             raise addrspace.ASAssertionError("Not a regular file.")
 
-    
+
 class WinPmemAddressSpace(Win32AddressSpace):
     """An address space specifically designed for communicating with WinPmem."""
 

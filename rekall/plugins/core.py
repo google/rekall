@@ -216,8 +216,7 @@ class Info(plugin.Command):
         renderer.section()
         renderer.table_header([('Command', 'function', "20"),
                                ('Provider Class', 'provider', '20'),
-                               ('Docs', 'docs', '50'),
-                              ])
+                               ('Docs', 'docs', '50')])
 
         for cls, name, doc in sorted(self.plugins(), key=lambda x: x[1]):
             renderer.table_row(name, cls, doc)
@@ -285,7 +284,6 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         else:
             impl = 'IA32PagedMemory'
 
-
         as_class = addrspace.BaseAddressSpace.classes[impl]
         return as_class
 
@@ -317,6 +315,7 @@ class LoadAddressSpace(plugin.Command):
     # Parse Address spaces from this specification. TODO: Support EPT
     # specification and nesting.
     ADDRESS_SPACE_RE = re.compile("([a-zA-Z0-9]+)@((0x)?[0-9a-zA-Z]+)")
+
     def ResolveAddressSpace(self, name=None):
         """Resolve the name into an address space.
 
@@ -376,7 +375,6 @@ class LoadAddressSpace(plugin.Command):
             else:
                 self.session.physical_address_space = self.AddressSpaceFactory(
                     specification=self.pas_spec)
-
 
             return self.session.physical_address_space
 
@@ -488,8 +486,8 @@ class LoadAddressSpace(plugin.Command):
 
                     raise
 
-            ## A full iteration through all the classes without anyone
-            ## selecting us means we are done:
+            # A full iteration through all the classes without anyone
+            # selecting us means we are done:
             if not found:
                 break
 
@@ -607,7 +605,7 @@ class DirectoryDumperMixin(object):
                 break
 
             out_offset = offset - start
-            self.session.report_progress("Dumping %s Mb", out_offset/BUFFSIZE)
+            self.session.report_progress("Dumping %s Mb", out_offset / BUFFSIZE)
             outfd.seek(out_offset)
             i = offset
 
@@ -748,7 +746,7 @@ class DT(plugin.ProfileCommand):
         for offset, k, v in sorted(fields):
             renderer.table_row(offset, k, v, depth=depth)
             if isinstance(v, obj.Struct):
-                self._render_Struct(renderer, v, depth=depth+1)
+                self._render_Struct(renderer, v, depth=depth + 1)
 
     def render(self, renderer):
         item = self.target
@@ -775,7 +773,7 @@ class AddressMap(object):
         ("MAGENTA", "YELLOW"),
         ("YELLOW", "MAGENTA"),
 
-        ]
+    ]
     for x in _COLORS:
         for y in _COLORS:
             if x != y and (x, y) not in UNREADABLE:
@@ -813,7 +811,7 @@ class AddressMap(object):
                 if relative:
                     i -= start
 
-                result.append([i, i+1, fg, bg])
+                result.append([i, i + 1, fg, bg])
 
         return result
 
@@ -862,7 +860,6 @@ class Dump(plugin.Command):
         parser.add_argument("--suppress_headers", default=False, type="Boolean",
                             help="Should headers be suppressed?.")
 
-
     def __init__(self, offset=0, address_space=None, data=None, length=None,
                  width=None, rows=None, suppress_headers=False,
                  address_map=None, **kwargs):
@@ -871,21 +868,21 @@ class Dump(plugin.Command):
         You can use this plugin repeateadely to keep dumping more data using the
         "p _" (print last result) operation:
 
-        In [2]: dump 0x814b13b0, address_space="K"
-        ------> dump(0x814b13b0, address_space="K")
-        Offset                         Hex                              Data
-        ---------- ------------------------------------------------ ----------------
-        0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
+    In [2]: dump 0x814b13b0, address_space="K"
+    ------> dump(0x814b13b0, address_space="K")
+    Offset                         Hex                              Data
+    ---------- ------------------------------------------------ ----------------
+    0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
 
-        Out[3]: <rekall.plugins.core.Dump at 0x2967510>
+    Out[3]: <rekall.plugins.core.Dump at 0x2967510>
 
-        In [4]: p _
-        ------> p(_)
-        Offset                         Hex                              Data
-        ---------- ------------------------------------------------ ----------------
-        0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
-        0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
-        0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
+    In [4]: p _
+    ------> p(_)
+    Offset                         Hex                              Data
+    ---------- ------------------------------------------------ ----------------
+    0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
+    0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
+    0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
 
         Args:
           offset: The offset to start dumping from.
@@ -1004,7 +1001,6 @@ class Grep(plugin.Command):
 
         parser.add_argument("--context", default=20, type="IntParser",
                             help="Context to print around the hit.")
-
         parser.add_argument("--limit", default=2**64,
                             help="The length of data to search.")
 
@@ -1036,7 +1032,7 @@ class Grep(plugin.Command):
 
         for hit, _ in scanner.scan(offset=self.offset, maxlen=self.limit):
             hexdumper = self.session.plugins.dump(
-                offset=hit-16, length=self.context+16,
+                offset=hit - 16, length=self.context + 16,
                 address_space=self.address_space)
 
             hexdumper.render(renderer)

@@ -21,9 +21,8 @@
 #
 
 """ These are standard address spaces supported by Rekall Memory Forensics """
-import struct
+
 import mmap
-import sys
 import os
 
 from rekall import addrspace
@@ -41,13 +40,13 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     3) base == self (we dont operate on anyone else so we need to be
     right at the bottom of the AS stack.)
     """
-    ## We should be the AS of last resort but before the FileAddressSpace
+    # We should be the AS of last resort but before the FileAddressSpace
     order = 110
     __image = True
 
     def __init__(self, filename=None, **kwargs):
         super(MmapFileAddressSpace, self).__init__(**kwargs)
-        self.as_assert(self.base is self , 'Must be first Address Space')
+        self.as_assert(self.base is self, 'Must be first Address Space')
 
         path = self.session.GetParameter("filename") or filename
         self.as_assert(path and os.path.exists(path),
@@ -55,7 +54,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
         self.fname = self.name = os.path.abspath(path)
         self.mode = 'rb'
-        if self.writeable:
+        if self.session.GetParameter("writable_address_space"):
             self.mode += '+'
 
         self.fhandle = open(self.fname, self.mode)
@@ -76,7 +75,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
     def read(self, addr, length):
         result = ""
         if addr != None:
-            result = self.map[addr:addr+length]
+            result = self.map[addr:addr + length]
 
         return result + "\x00" * (length - len(result))
 
@@ -93,16 +92,13 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         self.map.close()
         self.fhandle.close()
 
-    def write(self, addr, data):
-        if not self.writeable:
-            return False
-
+    def do_write(self, addr, data):
         try:
-            self.map[addr:addr+len(data)] = data
+            self.map[addr:addr + len(data)] = data
         except IOError:
-            return False
+            return 0
 
-        return True
+        return len(data)
 
     def __eq__(self, other):
         return (self.__class__ == other.__class__

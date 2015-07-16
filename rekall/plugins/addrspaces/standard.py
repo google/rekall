@@ -43,7 +43,7 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
 
     __name = "filelike"
 
-    ## We should be first.
+    # We should be first.
     order = 0
 
     def __init__(self, base=None, fhandle=None, **kwargs):
@@ -112,7 +112,7 @@ class FileAddressSpace(FDAddressSpace):
 
     __name = "file"
 
-    ## We should be the AS of last resort
+    # We should be the AS of last resort
     order = 100
 
     # This address space handles images.
@@ -167,23 +167,23 @@ class GlobalOffsetAddressSpace(addrspace.BaseAddressSpace):
             yield vaddr - self.file_offset, paddr, length
 
 
-class WriteableAddressSpaceMixIn(object):
+class WritableAddressSpaceMixIn(object):
     """This address space can be used to create new files.
 
     NOTE: This does not participate in voting or gets automatically
     selected. It can only be instantiated directly.
     """
-    writeable = True
+    writable = True
 
-    def write(self, addr, data):
+    def do_write(self, addr, data):
         try:
             self.fhandle.seek(addr)
             self.fhandle.write(data)
             self.fhandle.flush()
         except IOError:
-            return False
+            return 0
 
-        return True
+        return len(data)
 
     def is_valid_address(self, unused_addr):
         # All addresses are valid, we just grow the file there.
@@ -203,7 +203,8 @@ class WriteableAddressSpaceMixIn(object):
 
         return data
 
-class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
+
+class WritableAddressSpace(WritableAddressSpaceMixIn, FDAddressSpace):
 
     def __init__(self, filename=None, mode="w+b", **kwargs):
         self.as_assert(filename, "Filename must be specified.")
@@ -214,21 +215,21 @@ class WriteableAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
         fhandle = open(self.fname, self.mode)
         self._closer = weakref.ref(self, lambda x: fhandle.close())
 
-        super(WriteableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
+        super(WritableAddressSpace, self).__init__(fhandle=fhandle, **kwargs)
 
 
-class WritableFDAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
+class WritableFDAddressSpace(WritableAddressSpaceMixIn, FDAddressSpace):
     """An address space which can be initialized from a file handle.
 
     Note that file handle must be writable.
     """
 
 
-class DummyAddressSpace(WriteableAddressSpaceMixIn, FDAddressSpace):
+class DummyAddressSpace(WritableAddressSpaceMixIn, FDAddressSpace):
     """An AS which always returns nulls."""
     __name = 'dummy'
 
-    def __init__(self, size=10*1024, session=None, **_):
+    def __init__(self, size=10 * 1024, session=None, **_):
         super(DummyAddressSpace, self).__init__(
             session=session,
             fhandle=StringIO.StringIO(size * "\x00"))

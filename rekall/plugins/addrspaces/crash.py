@@ -67,7 +67,7 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         self.as_assert(self.base,
                        "Must stack on another address space")
 
-        ## Must start with the magic PAGEDUMP
+        # Must start with the magic PAGEDUMP
         self.as_assert((self.base.read(0, 8) == 'PAGEDUMP'),
                        "Header signature invalid")
 
@@ -83,22 +83,6 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
             raise IOError("This is not a full memory crash dump. "
                           "Kernel crash dumps are not supported.")
 
-    def write(self, vaddr, buf):
-        # Support writes straddling page runs.
-        written = 0
-        while len(buf):
-            file_offset, available_length = self._get_available_buffer(
-                vaddr, len(buf))
-            if file_offset is None:
-                raise IOError("Unable to write unmapped runs yet.")
-
-            written += self.base.write(
-                file_offset, buf[:available_length])
-
-            buf = buf[available_length:]
-
-        return written
-
 
 class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
     """This AS supports windows Crash Dump format."""
@@ -110,7 +94,7 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
     def check_file(self):
         """Check specifically for 64 bit crash dumps."""
 
-        ## Must start with the magic PAGEDU64
+        # Must start with the magic PAGEDU64
         self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
                        "Header signature invalid")
 
@@ -130,8 +114,8 @@ class WindowsCrashDumpSpace64(WindowsCrashDumpSpace32):
         # might consider making this a fatal error in future.
         if self.header.DumpType != "Full Dump":
             self.session.logging.warning(
-              "This is not a full memory crash dump. Kernel crash dumps are "
-              "not supported.")
+                "This is not a full memory crash dump. Kernel crash dumps are "
+                "not supported.")
 
         # Catch this error early or we will hog all memory trying to parse a
         # huge number of Runs. On Windows 8 we have observed the DumpType to be
@@ -164,7 +148,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
 
         self.as_assert(self.base, "Must stack on another address space")
 
-        ## Must start with the magic PAGEDU64
+        # Must start with the magic PAGEDU64
         self.as_assert((self.base.read(0, 8) == 'PAGEDU64'),
                        "Header signature invalid")
 
@@ -194,7 +178,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
 
                     # The next run starts here.
                     last_run = [
-                        pfn*PAGE_SIZE, last_run[1]+last_run[2], PAGE_SIZE]
+                        pfn * PAGE_SIZE, last_run[1] + last_run[2], PAGE_SIZE]
 
         # Flush the last run if needed.
         if last_run[2] > 0:

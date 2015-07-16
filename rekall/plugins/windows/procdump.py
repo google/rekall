@@ -79,7 +79,7 @@ class PEDump(common.WindowsCommandPlugin):
         plugin useful as a routine in other plugins.
 
         Args:
-          fd: A writeable filelike object which must support seeking.
+          fd: A writable filelike object which must support seeking.
           address_space: The address_space to read from.
           image_base: The offset of the dos file header.
         """
@@ -116,7 +116,7 @@ class PEDump(common.WindowsCommandPlugin):
 
         if not self.out_fd:
             self.session.logging.error(
-              "No output filename or file handle specified.")
+                "No output filename or file handle specified.")
             return
 
         # Default address space is the kernel if not specified.
@@ -275,7 +275,7 @@ class DLLDump(ProcExeDump):
 
                     # Skip the modules which do not match the regex.
                     if not self.regex.search(
-                        utils.SmartUnicode(module.BaseDllName)):
+                            utils.SmartUnicode(module.BaseDllName)):
                         continue
 
                     base_name = os.path.basename(

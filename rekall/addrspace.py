@@ -84,21 +84,18 @@ class BaseAddressSpace(object):
     # False) then reads from the same offset MUST always return the same bytes.
     volatile = False
 
-    def __init__(self, base=None, session=None, write=False, profile=None,
-                 **_):
+    def __init__(self, base=None, session=None, profile=None, **_):
         """Base is the AS we will be stacking on top of, opts are options which
         we may use.
 
         Args:
           base: A base address space to stack on top of (i.e. delegate to it for
-            satisfying read requests).
+              satisfying read requests).
 
           session: An optional session object.
 
-          write: Should writing be allowed? Not currently implemented.
-
           profile: An optional profile to use for parsing the address space
-            (e.g. needed for hibernation, crash etc.)
+              (e.g. needed for hibernation, crash etc.)
         """
         if session is None and base is not None:
             session = base.session
@@ -117,9 +114,6 @@ class BaseAddressSpace(object):
         self.session = session
         if session is None:
             raise RuntimeError("Session must be provided.")
-
-        self.writeable = (
-            self.session and self.session.writable_address_space or write)
 
         # This is a short lived cache. If we use a static image, this cache need
         # not expire, however, when analysing a live system we need to flush the
@@ -231,16 +225,35 @@ class BaseAddressSpace(object):
             yield (contiguous_voffset, contiguous_poffset, total_length)
 
     def is_valid_address(self, _addr):
-        """ Tell us if the address is valid """
+        """Tell us if the address is valid """
         return True
 
     def write(self, addr, buf):
-        try:
+        """Write to the address space, if writable.
+
+        Do not override this method - override do_write instead.
+
+        Returns:
+            Number of bytes written.
+        """
+        if not self.session.GetParameter("writable_address_space"):
+            raise IOError(
+                "Session parameter 'writable_address_space' is not set.")
+
+        return self.do_write(addr, buf)
+
+    def do_write(self, addr, buf):
+        """Actually write to the address space, if supported.
+
+        Returns:
+            Number of bytes written.
+        """
+        if self.base:
             return self.base.write(self.vtop(addr), buf)
-        except AttributeError:
-            raise NotImplementedError(
-                "Write support for this type of Address Space"
-                " has not been implemented")
+
+        raise IOError(
+            "Cannot write to %r because it delegates writes to the base "
+            "address space of which it has None." % self)
 
     def vtop(self, addr):
         """Return the physical address of this virtual address."""
@@ -273,6 +286,11 @@ class BaseAddressSpace(object):
 class BufferAddressSpace(BaseAddressSpace):
     __abstract = True
 
+    @property
+    def writable(self):
+        """Buffer AS is always writable, no matter what the session says."""
+        return True
+
     def __init__(self, base_offset=0, data='', metadata=None, **kwargs):
         super(BufferAddressSpace, self).__init__(**kwargs)
         self.fname = "Buffer"
@@ -296,9 +314,13 @@ class BufferAddressSpace(BaseAddressSpace):
         data = self.data[offset: offset + length]
         return data + "\x00" * (length - len(data))
 
-    def write(self, addr, data):
+    def do_write(self, addr, data):
+        if addr > len(self.data):
+            raise ValueError(
+                "Cannot write to offset %d of buffer with size %d.",
+                addr, len(self.data))
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
-        return True
+        return len(data)
 
     def get_available_addresses(self, start=None):
         yield (self.base_offset, self.base_offset, len(self.data))
@@ -380,8 +402,7 @@ class PagedReader(BaseAddressSpace):
     __abstract = True
 
     def _read_chunk(self, vaddr, length):
-        """
-        Read bytes from a virtual address.
+        """Read bytes from a virtual address.
 
         Args:
           vaddr: A virtual address to read from.
@@ -397,10 +418,31 @@ class PagedReader(BaseAddressSpace):
 
         return self.base.read(paddr, to_read)
 
+    def _write_chunk(self, vaddr, buf):
+        to_write = min(len(buf), self.PAGE_SIZE - (vaddr % self.PAGE_SIZE))
+        if not to_write:
+            return 0
+
+        paddr = self.vtop(vaddr)
+        if not paddr:
+            return 0
+
+        return self.base.write(paddr, buf[:to_write]):
+
+    def do_write(self, addr, buf):
+        available = len(buf)
+        written = 0
+
+        while available > written:
+            chunk_len = self._write_chunk(addr + written, buf[written:])
+            if not chunk_len:
+                break
+            written += chunk_len
+
+        return written
+
     def read(self, addr, length):
-        """
-        Read 'length' bytes from the virtual address 'vaddr'.
-        """
+        """Read 'length' bytes from the virtual address 'vaddr'."""
         if length > self.session.GetParameter("buffer_size"):
             raise IOError("Too much data to read.")
 
@@ -448,8 +490,20 @@ class RunBasedAddressSpace(PagedReader):
         if file_offset is None:
             return "\x00" * min(length, available_length)
 
-        else:
-            return self.base.read(file_offset, min(length, available_length))
+        return self.base.read(file_offset, min(length, available_length))
+
+    def _write_chunk(self, addr, buf):
+        buflen = len(buf)
+        file_offset, available_length = self._get_available_buffer(
+            addr, buflen)
+
+        length = min(buflen, available_length)
+
+        # Silently skip unavailable runs.
+        if file_offset is None or length == 0:
+            return length
+
+        return self.base.write(file_offset, buf[:length])
 
     def vtop(self, addr):
         file_offset, _ = self._get_available_buffer(addr, 1)
