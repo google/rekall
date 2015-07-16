@@ -25,7 +25,7 @@ SCAN_BLOCKSIZE = 1024 * 1024 * 10
 PROFILE_REPOSITORIES = [
     "https://raw.githubusercontent.com/google/rekall-profiles/master",
     "http://profiles.rekall-forensic.com",
-    ]
+]
 
 
 # The supported profile repository version we will use. This version needs to be
@@ -72,7 +72,9 @@ QUOTES = [
     "Hey, man, I got five kids to feed!",
     "I've been trying to tell you, someone has erased his memory.",
     "If I am not me, then who the hell am I?",
-    ]
+    "Give those people air!",
+    "You call this a delusion?",
+]
 
 def GetQuote():
     return QUOTES[int(time.time()) % len(QUOTES)]

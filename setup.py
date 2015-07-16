@@ -23,6 +23,7 @@
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import subprocess
 import sys
 
 try:
@@ -37,9 +38,69 @@ from rekall import constants
 
 rekall_description = "Rekall Memory Forensic Framework"
 
+
+def run_git_describe():
+    try:
+        p = subprocess.Popen(
+            ["git", "describe", "--tags", "--abbrev=10"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        p.stderr.close()
+        return p.stdout.readlines()[0]
+    except OSError:
+        return None
+
+
+def get_commits_since_tag(git_version):
+    """Return the number of commits since the last git tag.
+
+    The canonical format of git-describe is as follows:
+    v$TAG-$COMMITS_SINCE_TAG-$REF
+
+    We just want the second part, as integer.
+    """
+    try:
+        return int(git_version.split("-")[1])
+    except ValueError, IndexError:
+        return None
+
+
+def get_rekall_version():
+    """Return the current rekall version as x.y.z or x.y.z.w.
+
+    The first three digits are determined by the declared Rekall version in
+    constants.py. Provided we are running from a git repo, and there is a tag
+    for the current version, we append the number of commits since the tag.
+    """
+    release_version = constants.VERSION
+    git_version = run_git_describe()
+
+    # We're apparently not running in a git repo.
+    if not git_version:
+        return release_version
+
+    # The release version string (like "1.3.2") should be inside the the
+    # git version string (like "v1.3.2-59-5fd6fdb23") provided that it is tagged
+    # properly.
+    if release_version not in git_version:
+        sys.stderr.write(
+            "Release version %r is not the same as git tag %r." %
+            (release_version, git_version))
+
+        # Prefer the release version:
+        return release_version
+
+    # For our fourth version number, we use the number of commits since latest
+    # git tag.
+    commit_number = get_commits_since_tag(git_version)
+    if not commit_number:
+        return release_version
+
+    return "%s.%d" % (release_version, commit_number)
+
+
 setup(
     name="rekall",
-    version=constants.VERSION,
+    version=get_rekall_version(),
     description=rekall_description,
     long_description=open("README.rst").read(),
     license="GPL",
@@ -80,5 +141,5 @@ setup(
         "gevent == 1.0.2",
         "gevent-websocket >= 0.9.3",
         "PyAFF4 >= 0.13",
-        ],
+    ],
 )
