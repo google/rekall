@@ -19,7 +19,7 @@ Rekall supports investigations of the following 32bit and 64bit memory images:
 - Microsoft Windows 7 Service Pack 0 and 1
 - Microsoft Windows 8 and 8.1
 - Linux Kernels 2.6.24 to 3.10.
-- OSX 10.6-10.9.x.
+- OSX 10.7-10.10.x.
 
 Rekall also provides a complete memory sample acquisition capability for all
 major operating systems (see the tools directory).
