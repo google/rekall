@@ -224,6 +224,11 @@ int main(int argc, const char * argv[]) {
     pmem_logging_level = kPmemDebug;
     int error = 0;
 
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd))) {
+        pmem_debug("Current working directory: %s", cwd);
+    }
+
     if (do_test_kext) {
         error = load_kext();
         if (error != 0) {

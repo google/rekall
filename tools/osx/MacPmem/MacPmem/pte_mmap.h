@@ -88,7 +88,7 @@ void pmem_pte_cleanup(void);
 //   KERN_SUCCESS in most cases, even if the IO operation itself was
 //   zero-padded. Returns KERN_FAILURE for out of bounds, although with safety
 //   off, will permit reads from ABOVE max physical memory.
-kern_return_t pmem_read_physmem(struct uio *uio);
+kern_return_t pmem_readwrite_physmem(struct uio *uio);
 
 #ifdef __cplusplus
 }

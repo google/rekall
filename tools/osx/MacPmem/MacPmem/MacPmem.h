@@ -43,9 +43,11 @@
 // Major number of the devices we create.
 extern int pmem_majorno;
 
-// If this is set to 0, reading from /dev/pmem will not attempt to read physical
-// memory that the EFI physmap tells us is no backed by conventional RAM.
-extern int pmem_allow_unsafe_reads;
+// If this is set to 0 (default), reading from /dev/pmem will not attempt to
+// read physical memory that the EFI physmap tells us is no backed by
+// conventional RAM. If pmem is compiled with write support, this will need to
+// be set to 1 before writes are permitted to /dev/pmem.
+extern int pmem_allow_unsafe_operations;
 
 // How many times are our devices open?
 extern int pmem_open_count;

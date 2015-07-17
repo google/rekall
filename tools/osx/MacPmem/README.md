@@ -61,7 +61,14 @@ It exposes two devices:
 By default, IO operations to /dev/pmem will silently fail (return zeros) for any reads or writes to parts of memory marked as inaccessible by the EFI. The EFI creates a physical memory map early in the boot process for the bootloader and the kernel to interpret. This map demarks regions that are physically damaged, backed by a PCI device (as opposed to RAM) or otherwise deserving special consideration.
 
 	# Disable read/write safety.
+<<<<<<< HEAD
+	> sudo sysctl -w kern.pmem_allow_unsafe_operations=1
+	
+	# Re-enable read/write safety.
+	> sudo sysctl -w kern.pmem_allow_unsafe_operations=0
+=======
 	> sudo sysctl -w kern.pmem_allow_unsafe_reads=1
 	
 	# Re-enable read/write safety.
 	> sudo sysctl -w kern.pmem_allow_unsafe_reads=0
+>>>>>>> c4d4996e2edac7b6512a161c451c88417d6ad752

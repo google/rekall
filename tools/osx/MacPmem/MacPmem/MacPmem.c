@@ -38,13 +38,31 @@
 #include <libkern/OSAtomic.h>
 
 
+#ifndef PMEM_WRITE_ENABLED
+// If set to 1, this will allow writes to actually go through to the combined
+// rw handler and modify live memory. This is almost universally a bad idea
+// because it bypasses any locking and, if the pages being written to have a
+// corresponding virtual page with cache semantics then writing to the
+// underlying physical page will have undefined results. You've been warned.
+#define PMEM_WRITE_ENABLED 0
+
+#endif
+
+
+#if PMEM_WRITE_ENABLED
+// This will put the string "PMEM_WRITE_MODE" in the binary if it's compiled
+// with write support. We can use that to easily spot write-enabled extensions.
+const char * const pmem_write_safety = "PMEM_WRITE_MODE";
+#endif
+
+
 // Used to keep track of the number of active users. We can use this
 // information to decide when to turn on autounload on idle.
 int pmem_open_count = 0;
 
 // Owned by sysctl. Controls whether IO to the physical memory device will
 // permit access to ranges that EFI considers unsafe.
-int pmem_allow_unsafe_reads = 0;
+int pmem_allow_unsafe_operations = 0;
 
 int pmem_majorno = PMEM_MAJOR;
 OSKextLoadTag pmem_load_tag;
@@ -84,9 +102,23 @@ static kern_return_t pmem_open(dev_t dev, __unused int flags,
 //
 // Returns:
 //   KERN_SUCCESS if read completed successfully. Note that if the safety is on
-//   (see pmem_allow_unsafe_reads) then reading from an unsafe range WILL NOT
-//   cause this call to fail. Instead, the read will be silently padded with
+//   (see pmem_allow_unsafe_operations) then reading from an unsafe range WILL
+//   NOT cause this call to fail. Instead, the read will be silently padded with
 //   zeroed memory.
+static kern_return_t pmem_write(dev_t dev, struct uio *uio,
+                                __unused int rw);
+
+
+// Reads to pmem.
+//
+// Arguments:
+//   dev - the device to write to
+//   uio - uio struct to read from (see man page for uio)
+//   rw - this is ignored; pass any int
+//
+// Returns:
+//   KERN_SUCCESS if write succeeded. Writes can fail due to the safety bitmap
+//   or by attempting to write to an invalid offset.
 static kern_return_t pmem_read(dev_t dev, struct uio *uio,
                                __unused int rw);
 
@@ -109,7 +141,7 @@ static struct cdevsw pmem_cdevsw = {
     pmem_open,                            /* open */
     pmem_close,                           /* close */
     pmem_read,                            /* read */
-    eno_rdwrt,                            /* write */
+    pmem_write,                           /* write */
     eno_ioctl,                            /* ioctl */
     eno_stop,                             /* stop */
     eno_reset,                            /* reset */
@@ -128,12 +160,16 @@ static struct cdevsw pmem_cdevsw = {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Controls whether unsafe reads are allowed.
-SYSCTL_INT(_kern, OID_AUTO, pmem_allow_unsafe_reads, CTLTYPE_INT | CTLFLAG_WR,
-           &pmem_allow_unsafe_reads, 0, "Allow unsafe reads from pmem.");
+SYSCTL_INT(_kern, OID_AUTO, pmem_allow_unsafe_operations,
+           CTLTYPE_INT | CTLFLAG_WR,
+           &pmem_allow_unsafe_operations, 0,
+           "Allow writes and unsafe reads to pmem.");
 
 // Controls the logging level (defined in logging.h).
-SYSCTL_INT(_kern, OID_AUTO, pmem_logging, CTLTYPE_INT | CTLFLAG_WR,
-           &pmem_logging_level, 0, "Pmem logging level");
+SYSCTL_INT(_kern, OID_AUTO, pmem_logging,
+           CTLTYPE_INT | CTLFLAG_WR,
+           &pmem_logging_level, 0,
+           "Pmem logging level.");
 
 // Do we need to cleanup after sysctl when shutting down?
 static int pmem_sysctl_needs_cleanup = 0;
@@ -179,7 +215,8 @@ static kern_return_t pmem_open(dev_t dev, __unused int flags,
         OSIncrementAtomic(&pmem_open_count);
         break;
     default:
-        pmem_warn("Unknown minor device number %d.", minor(dev));
+        pmem_error("Unknown minor device number in pmem_open: %d.",
+                   minor(dev));
         ret = KERN_FAILURE;
     }
 
@@ -201,7 +238,8 @@ static kern_return_t pmem_close(dev_t dev, __unused int flags,
         OSDecrementAtomic(&pmem_open_count);
         break;
     default:
-        pmem_warn("Unknown minor device number %d.", minor(dev));
+        pmem_error("Unknown minor device number in pmem_close: %d.",
+                   minor(dev));
         ret = KERN_FAILURE;
     }
 
@@ -213,13 +251,41 @@ static kern_return_t pmem_read(dev_t dev, struct uio *uio,
                                __unused int rw) {
     switch (minor(dev)) {
     case PMEM_DEV_MINOR:
-        return pmem_read_physmem(uio);
+        return pmem_readwrite_physmem(uio);
     case PMEM_INFO_MINOR:
         // Reading from the info device is conceptually the same as calling
         // the sysctl to get the struct.
         return pmem_readmeta(uio);
     default:
-        pmem_warn("Unknown minor device number %d.", minor(dev));
+        pmem_error("Unknown minor device number in pmem_read: %d.",
+                   minor(dev));
+        return KERN_FAILURE;
+    }
+}
+
+
+static kern_return_t pmem_write(dev_t dev, struct uio *uio,
+                                __unused int rw) {
+    switch (minor(dev)) {
+    case PMEM_DEV_MINOR:
+#if PMEM_WRITE_ENABLED
+        if (!pmem_allow_unsafe_operations) {
+            // RW safety has to be disabled before writes are allowed.
+            pmem_warn("You must set kern.pmem_allow_unsafe_operations"
+                      "to 1 before writing to %s", pmem_devname);
+            return KERN_FAILURE;
+        }
+
+        return pmem_readwrite_physmem(uio);
+#else
+        return KERN_FAILURE;
+#endif
+    case PMEM_INFO_MINOR:
+        // Writing the info device isn't supported.
+        return KERN_FAILURE;
+    default:
+        pmem_error("Unknown minor device in pmem_write: %d.",
+                   minor(dev));
         return KERN_FAILURE;
     }
 }
@@ -262,7 +328,7 @@ static kern_return_t pmem_cleanup(kern_return_t error) {
 
     if (pmem_sysctl_needs_cleanup) {
         sysctl_unregister_oid(&sysctl__kern_pmem_logging);
-        sysctl_unregister_oid(&sysctl__kern_pmem_allow_unsafe_reads);
+        sysctl_unregister_oid(&sysctl__kern_pmem_allow_unsafe_operations);
     }
 
     lck_grp_attr_free(pmem_mutex_grp_attr);
@@ -384,7 +450,7 @@ kern_return_t com_google_MacPmem_start(kmod_info_t * ki, void *d) {
 //    }
 
     sysctl_register_oid(&sysctl__kern_pmem_logging);
-    sysctl_register_oid(&sysctl__kern_pmem_allow_unsafe_reads);
+    sysctl_register_oid(&sysctl__kern_pmem_allow_unsafe_operations);
     pmem_sysctl_needs_cleanup = 1;
 
     pmem_load_tag = OSKextGetCurrentLoadTag();

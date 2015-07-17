@@ -452,10 +452,10 @@ kern_return_t pmem_pte_destroy_mapping(pmem_pte_mapping *mapping) {
 // MARK: Public API - read handler and vtop
 ////////////////////////////////////////////////////////////////////////////////
 
-// Read handler for /dev/pmem. Does what you'd expect.
+// Read/write handler for /dev/pmem. Does what you'd expect.
 //
-// It's alright to call this for reads that cross page boundaries.
-kern_return_t pmem_read_physmem(struct uio *uio) {
+// It's alright to call this for io operations that cross page boundaries.
+kern_return_t pmem_readwrite_physmem(struct uio *uio) {
     kern_return_t error = KERN_SUCCESS;
 
     if (uio_offset(uio) < 0) {
@@ -472,20 +472,20 @@ kern_return_t pmem_read_physmem(struct uio *uio) {
         // How many bytes are we moving?
         unsigned long amount = 0;
 
-        if (!pmem_allow_unsafe_reads &&
+        if (!pmem_allow_unsafe_operations &&
             !pmem_bitmap_test(safety_bitmap, offset / PAGE_SIZE)) {
-            // This is not a readable page and rw safety is enabled.
+            // This page is not readable and unsafe operations are disabled,
+            // which also means we're definitely reading and not writing.
+            // Instead of doing an actual read, copy zeros from the zero page
+            // and call it a day.
 
             if (offset / PAGE_SIZE > safety_bitmap->highest_bit) {
                 // We're past the end of physical memory.
                 return KERN_FAILURE;
             }
 
-            // This is not a readable page and rw safety is enabled. Just copy
-            // some zero bytes and call it a day.
             amount = PAGE_SIZE - (offset % PAGE_SIZE);
             uiomove(zero_page, (int)amount, uio);
-
         } else {
             // We are allowed to touch this page. Do actual IO.
 
