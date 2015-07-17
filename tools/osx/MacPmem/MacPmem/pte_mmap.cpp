@@ -28,6 +28,7 @@
 #include "pte_mmap.h"
 #include "logging.h"
 #include "meta.h"
+#include "safety.h"
 #include "i386_ptable.h"
 #include "i386_ptable_log.h"
 
@@ -39,17 +40,31 @@
 // The headers don't include this, so this is just copied from vm internals.
 #define SUPERPAGE_SIZE (2*1024*1024)
 
+// Used to pad reads with zeros when necessary. Allocated in pmem_pte_init.
+static char *zero_page = 0;
+
 // This extern totally exists and kxld will find it, even though it's
 // technically part of the unsupported kpi and not in any headers. If Apple
 // eventually ends up not exporting this symbol we'll just have to get the
 // kernel map some other way (probably from the kernel_task).
 extern vm_map_t kernel_map;
 
-// More unsupported, but exported symbols we need. All these two routines do
-// is basically add 'paddr' to physmap_base and dereference the result, but
-// because physmap_base is private (sigh...) we have to use these for now.
+
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Hackish kernel routines to read/write physical memory
+////////////////////////////////////////////////////////////////////////////////
+
+// All the below two routines do is use physmap (kernel private) to find the
+// virtual address and write up to 8 bytes to it. The functions themselves are
+// not in the headers, but the kernel _does_ export them (at least as of 10.8
+// and later) so the linker will patch them in.
+//
+// What we should be doing is parsing the export tables or the DWARF stream to
+// get these and patch them in ourselves (because what could possibly go wrong)
+// but we're not quite there yet.
 
 #ifdef PMEM_LEGACY
+
 // The more modern phys read/write routines weren't exported by the kernel
 // until 10.8, so we have to hack together our own implementation.
 extern "C" {
@@ -65,7 +80,7 @@ extern void ml_phys_write(vm_offset_t, unsigned int data);
 
 static unsigned long long ml_phys_read_double_64(addr64_t paddr) {
     unsigned long long result;
-    
+
     result = ml_phys_read(paddr + 4);
     result = result << 32;
     result += ml_phys_read(paddr);
@@ -88,9 +103,14 @@ extern void ml_phys_write_double_64(addr64_t paddr64, unsigned long long data);
 
 #endif
 
+
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Finding and parsing paging structures
+////////////////////////////////////////////////////////////////////////////////
+
 // Flush this page's TLB.
 static void pmem_pte_flush_tlb(vm_address_t page) {
-    __asm__ __volatile__("invlpg (%0);"::"r"(page):);
+    __asm__ __volatile__ ("invlpg (%0);" ::"r" (page) :);
 }
 
 // Keeps track of a rogue page, and its original paging structure.
@@ -114,12 +134,13 @@ typedef struct _pmem_pte_mapping {
 // Reads the PML4E for the 'page' virtual address.
 //
 // Arguments:
-// page: virtual address of the address whose PML4E is wanted.
-//       page-aligned automatically.
-// pml4e: If provided, the PML4E struct is copied here.
-// pml4e_phys: If provided, the physical address of the PML4E is copied here.
+//   page: virtual address of the address whose PML4E is wanted.
+//     page-aligned automatically.
+//   pml4e: If provided, the PML4E struct is copied here.
+//   pml4e_phys: If provided, the physical address of the PML4E is copied here.
 //
-// Returns: KERN_SUCCESS or KERN_FAILURE
+// Returns:
+//   KERN_SUCCESS or KERN_FAILURE.
 static kern_return_t pmem_read_pml4e(vm_address_t page, PML4E *pml4e,
                                      addr64_t *pml4e_phys) {
     VIRT_ADDR vaddr;
@@ -137,17 +158,17 @@ static kern_return_t pmem_read_pml4e(vm_address_t page, PML4E *pml4e,
 
     cr3.value = meta->cr3;
     pmem_log_CR3(cr3, kPmemDebug, "Dumped CR3");
-    
+
     entry_paddr = PFN_TO_PAGE(cr3.pml4_p) + (vaddr.pml4_index * sizeof(PML4E));
-    
+
     pmem_debug("PML4E for vaddr %#016lx is at physical address %#016llx.",
                page, entry_paddr);
-    
+
     if (pml4e) {
         // ml_phys_* can only succeed or panic, there are no recoverable errors.
         pml4e->value = ml_phys_read_double_64(entry_paddr);
     }
-    
+
     pmem_log_PML4E(*pml4e, kPmemDebug, "for vaddr");
 
     if (pml4e_phys) {
@@ -306,6 +327,9 @@ kern_return_t pmem_write_pde(addr64_t pde_phys, PDE *pde) {
     return KERN_SUCCESS;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Page mapping lifecycle
+////////////////////////////////////////////////////////////////////////////////
 
 // Creates a new (non-global) rogue page mapped to paddr.
 //
@@ -370,7 +394,7 @@ kern_return_t pmem_pte_create_mapping(addr64_t paddr,
 #endif
 
     // Now we have a page of our own and can do horrible things to it.
-#ifdef PMEM_USE_LARGE_PAGES
+#if PMEM_USE_LARGE_PAGES
     PDE new_pde = mapping->orig_pde;
     new_pde.pt_p = PAGE_TO_PFN(paddr);
 
@@ -424,15 +448,14 @@ kern_return_t pmem_pte_destroy_mapping(pmem_pte_mapping *mapping) {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Public API - read handler and vtop
+////////////////////////////////////////////////////////////////////////////////
+
 // Read handler for /dev/pmem. Does what you'd expect.
 //
 // It's alright to call this for reads that cross page boundaries.
-//
-// NOTE: This function does absolutely no verification that the physical
-// offset being read from is actually backed by conventional, or, indeed, any
-// memory at all. It is the responsibility of the caller to ensure the offset
-// is valid.
-kern_return_t pmem_read_rogue(struct uio *uio) {
+kern_return_t pmem_read_physmem(struct uio *uio) {
     kern_return_t error = KERN_SUCCESS;
 
     if (uio_offset(uio) < 0) {
@@ -442,36 +465,63 @@ kern_return_t pmem_read_rogue(struct uio *uio) {
         return KERN_FAILURE;
     }
 
-    pmem_pte_mapping mapping;
-
     user_ssize_t resid = uio_resid(uio);
     off_t offset = uio_offset(uio);
-    unsigned long amount, rv;
-    while (resid > 0) {
-        error = pmem_pte_create_mapping(offset & ~PAGE_MASK, &mapping);
-        if (error != KERN_SUCCESS) {
-            pmem_error("Could not acquire a rogue page.");
-            goto bail;
-        }
-        user_ssize_t page_offset = offset % mapping.pagesize;
-        amount = MIN(resid, mapping.pagesize - page_offset);
-        rv = uiomove((char *)mapping.vaddr + page_offset, (int)amount, uio);
 
-        if (rv != 0) {
-            // If this happens, it's basically the kernel's problem.
-            // All we can do is fail and log.
-            pmem_error("uiomove returned %lu.", rv);
-            error = KERN_FAILURE;
-            goto bail;
+    while (resid > 0) {
+        // How many bytes are we moving?
+        unsigned long amount = 0;
+
+        if (!pmem_allow_unsafe_reads &&
+            !pmem_bitmap_test(safety_bitmap, offset / PAGE_SIZE)) {
+            // This is not a readable page and rw safety is enabled.
+
+            if (offset / PAGE_SIZE > safety_bitmap->highest_bit) {
+                // We're past the end of physical memory.
+                return KERN_FAILURE;
+            }
+
+            // This is not a readable page and rw safety is enabled. Just copy
+            // some zero bytes and call it a day.
+            amount = PAGE_SIZE - (offset % PAGE_SIZE);
+            uiomove(zero_page, (int)amount, uio);
+
+        } else {
+            // We are allowed to touch this page. Do actual IO.
+
+            // We make a mapping for the whole page that offset falls into.
+            pmem_pte_mapping mapping;
+            error = pmem_pte_create_mapping(offset & ~PAGE_MASK, &mapping);
+            if (error != KERN_SUCCESS) {
+                pmem_error("Could not acquire a rogue page.");
+                goto bail;
+            }
+
+            // We have a mapping - offset IO operations relative to the page
+            // boundary.
+            user_ssize_t in_page_offset = offset % mapping.pagesize;
+            amount = MIN(resid, mapping.pagesize - in_page_offset);
+            unsigned long rv = uiomove((char *)mapping.vaddr + in_page_offset,
+                                       (int)amount, uio);
+
+            if (rv != 0) {
+                // If this happens, it's basically the kernel's problem.
+                // All we can do is fail and log.
+                pmem_error("uiomove returned %lu.", rv);
+                error = KERN_FAILURE;
+                goto bail;
+            }
+
+            // Mappings are ephemeral.
+            error = pmem_pte_destroy_mapping(&mapping);
+            if (error != KERN_SUCCESS) {
+                pmem_error("Could not release a rogue page.");
+                goto bail;
+            }
         }
 
         offset += amount;
         resid = uio_resid(uio);
-        error = pmem_pte_destroy_mapping(&mapping);
-        if (error != KERN_SUCCESS) {
-            pmem_error("Could not release a rogue page.");
-            goto bail;
-        }
     }
 
 bail:
@@ -518,12 +568,27 @@ kern_return_t pmem_pte_vtop(vm_offset_t vaddr, unsigned long long *paddr) {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Init and teardown
+////////////////////////////////////////////////////////////////////////////////
+
 kern_return_t pmem_pte_init() {
-    // No initialization currently needed.
+    zero_page = (char *)OSMalloc(PAGE_SIZE, pmem_alloc_tag);
+
+    if (!zero_page) {
+        pmem_fatal("Could not allocate the zero page.");
+        return KERN_FAILURE;
+    }
+
+    bzero(zero_page, PAGE_SIZE);
+
     return KERN_SUCCESS;
 }
 
 
 void pmem_pte_cleanup() {
-    // No cleanup code needed.
+    if (zero_page) {
+        OSFree(zero_page, PAGE_SIZE, pmem_alloc_tag);
+        zero_page = 0;
+    }
 }

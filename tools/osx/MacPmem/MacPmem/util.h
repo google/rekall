@@ -63,7 +63,7 @@ kern_return_t pmem_copy(const pmem_OSBuffer *orig,
 
 
 kern_return_t pmem_make(const char *string, uint32_t len,
-                               OSMallocTag_t tag, pmem_OSBuffer **buffer);
+                        OSMallocTag_t tag, pmem_OSBuffer **buffer);
 
 // Resizes 'buffer' to 'size', preserving old content.
 // Size must be larger than current buffer->size.
@@ -71,7 +71,7 @@ kern_return_t pmem_make(const char *string, uint32_t len,
 // old buffer->buffer will be invalid memory.
 // On error, returns 0 and deallocates everything, so buffer will be invalid.
 kern_return_t pmem_resize(pmem_OSBuffer *buffer,
-                                 uint32_t size);
+                          uint32_t size);
 
 // Frees 'buffer', including the enclosed string pointer.
 void pmem_free(pmem_OSBuffer *buffer);

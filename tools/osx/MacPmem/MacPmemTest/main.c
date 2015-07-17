@@ -40,6 +40,8 @@ const char *pmem_infodev = ("/dev/" PMEM_DEVINFO);
 int do_check_perms = 1;
 int do_fix_perms = 1;
 int do_run_tests = 1;
+int do_test_writes = 0;
+int do_test_kext = 1;
 int do_unload_kext = 1;
 
 char *pmem_kext_path = DEFAULT_PMEM_KEXT_PATH;
@@ -62,67 +64,67 @@ static int prepare_kext() {
     tree = fts_open(tree_argv, FTS_LOGICAL, entcmp);
     while ((file = fts_read(tree))) {
         switch (file->fts_info) {
-            case FTS_ERR:
-                pmem_warn("FTS error at path %s.", file->fts_path);
-                break;
-            case FTS_DNR:
-                pmem_error("Could not open %s. Are you root?", file->fts_path);
-                res = -1;
-                goto bail;
-            case FTS_NS:
-                pmem_error("Could not stat %s. Are you root?", file->fts_path);
-                res = -1;
-                goto bail;
-            case FTS_DP:
-                continue;
-            case FTS_DC:
-                // Cycle.
-                pmem_warn("Cycle at path %s.", file->fts_path);
-                continue;
-            case FTS_F:
-            case FTS_D:
-                statp = file->fts_statp;
+        case FTS_ERR:
+            pmem_warn("FTS error at path %s.", file->fts_path);
+            break;
+        case FTS_DNR:
+            pmem_error("Could not open %s. Are you root?", file->fts_path);
+            res = -1;
+            goto bail;
+        case FTS_NS:
+            pmem_error("Could not stat %s. Are you root?", file->fts_path);
+            res = -1;
+            goto bail;
+        case FTS_DP:
+            continue;
+        case FTS_DC:
+            // Cycle.
+            pmem_warn("Cycle at path %s.", file->fts_path);
+            continue;
+        case FTS_F:
+        case FTS_D:
+            statp = file->fts_statp;
 
-                // Fix/validate ownership.
-                if (statp->st_gid != 0 || statp->st_uid != 0) {
-                    if (!do_fix_perms) {
-                        pmem_error("%s must be owned by root:wheel (is %d:%d).",
-                                   file->fts_path, statp->st_gid,
-                                   statp->st_uid);
-                        res = -1;
-                        goto bail;
-                    }
-
-                    res = chown(file->fts_path, 0, 0);
-                    if (res < 0) {
-                        pmem_error("Could not chown %s. Are you root?",
-                                   file->fts_path);
-                        goto bail;
-                    }
-
-                    ++fixes_count;
+            // Fix/validate ownership.
+            if (statp->st_gid != 0 || statp->st_uid != 0) {
+                if (!do_fix_perms) {
+                    pmem_error("%s must be owned by root:wheel (is %d:%d).",
+                               file->fts_path, statp->st_gid,
+                               statp->st_uid);
+                    res = -1;
+                    goto bail;
                 }
 
-                // Fix/validate chmod.
-                if ((statp->st_mode & 0777) != 0700) {
-                    if (!do_fix_perms) {
-                        pmem_error("Mode on %s must be 0700 (is %#03o).",
-                                   file->fts_path, statp->st_mode);
-                        res = -1;
-                        goto bail;
-                    }
-
-                    res = chmod(file->fts_path, 0700);
-                    if (res < 0) {
-                        pmem_error("Could not chmod %s. Are you root?",
-                                   file->fts_path);
-                        goto bail;
-                    }
-
-                    ++fixes_count;
+                res = chown(file->fts_path, 0, 0);
+                if (res < 0) {
+                    pmem_error("Could not chown %s. Are you root?",
+                               file->fts_path);
+                    goto bail;
                 }
 
-                break;
+                ++fixes_count;
+            }
+
+            // Fix/validate chmod.
+            if ((statp->st_mode & 0777) != 0700) {
+                if (!do_fix_perms) {
+                    pmem_error("Mode on %s must be 0700 (is %#03o).",
+                               file->fts_path, statp->st_mode);
+                    res = -1;
+                    goto bail;
+                }
+
+                res = chmod(file->fts_path, 0700);
+                if (res < 0) {
+                    pmem_error("Could not chmod %s. Are you root?",
+                               file->fts_path);
+                    goto bail;
+                }
+
+                ++fixes_count;
+            }
+
+            break;
         }
     }
 
@@ -192,6 +194,16 @@ int run_tests() {
     int test_count = sizeof(tests) / sizeof(test_t);
 
     for (int test = 0; test < test_count; ++test) {
+        // Are we testing the kext?
+        if (tests[test].flags & TEST_REQUIRE_KEXT && !do_test_kext) {
+            continue;
+        }
+
+        // Are we testing write support, too?
+        if (tests[test].flags & TEST_REQUIRE_WRITE && !do_test_writes) {
+            continue;
+        }
+
         if(tests[test].call() == 0) {
             pmem_info("%s [PASS]", tests[test].name);
         } else {
@@ -212,18 +224,20 @@ int main(int argc, const char * argv[]) {
     pmem_logging_level = kPmemDebug;
     int error = 0;
 
-    error = load_kext();
-    if (error != 0) {
-        pmem_error("Could not load kernel extension from %s. Bailing.",
-                   pmem_kext_path);
-        return -1;
+    if (do_test_kext) {
+        error = load_kext();
+        if (error != 0) {
+            pmem_error("Could not load kernel extension from %s. Bailing.",
+                       pmem_kext_path);
+            return -1;
+        }
     }
 
     if (do_run_tests) {
         error = run_tests();
     }
 
-    if (do_unload_kext) {
+    if (do_test_kext && do_unload_kext) {
         unload_kext();
     }
 

@@ -22,6 +22,10 @@
 #ifndef __MacPmem__logging__
 #define __MacPmem__logging__
 
+////////////////////////////////////////////////////////////////////////////////
+// Provides printf-like logging functions usable in kernel and userland
+////////////////////////////////////////////////////////////////////////////////
+
 #ifdef KERNEL
 #include <mach/mach_types.h>
 #include <libkern/libkern.h>
@@ -44,6 +48,7 @@ extern int pmem_logging_level;
 extern "C" {
 #endif
 
+// Works just like printf, but prepends a PMEM prefix.
 void pmem_log(PmemLogLevel lvl, const char *fmt, ...) __printflike(2, 3);
 void pmem_logv(PmemLogLevel lvl, const char *fmt, va_list args);
 

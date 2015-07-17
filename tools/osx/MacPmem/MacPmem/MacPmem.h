@@ -32,13 +32,6 @@
 #include <libkern/OSKextLib.h>
 
 
-#ifdef __LP64__
-#define PMEM_KERNEL_VOFFSET ((uint64_t) 0xFFFFFF8000000000ULL)
-#else
-#define PMEM_KERNEL_VOFFSET ((uint32_t) 0x00000000UL)
-#endif
-
-
 // Negative number causes the kernel to pick the device number. However,
 // -1 is not really any good for reasons discussed here:
 // https://github.com/opensource-apple/xnu/blob/10.10/bsd/kern/bsd_stubs.c#L242
@@ -46,20 +39,42 @@
 // While not explicitly stated anywhere, Apple's practice is to use -24 as
 // a safe value to call makedev with.
 #define PMEM_MAJOR -24
+
+// Major number of the devices we create.
 extern int pmem_majorno;
 
+// If this is set to 0, reading from /dev/pmem will not attempt to read physical
+// memory that the EFI physmap tells us is no backed by conventional RAM.
+extern int pmem_allow_unsafe_reads;
+
+// How many times are our devices open?
 extern int pmem_open_count;
+
+// This is my load tag. There are many like it, but this one is mine.
 extern OSKextLoadTag pmem_load_tag;
 
+// Used to keep track of IOKit allocations. Every part of the driver uses the
+// same alloc tag.
 extern const char * const pmem_tagname;
-extern OSMallocTag pmem_tag;
+extern OSMallocTag pmem_alloc_tag;
 
-// Lock groups to be used by all the modules.
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Lock groups to be used by all the modules.
+////////////////////////////////////////////////////////////////////////////////
+
+// Read/write locks, where readers don't block other readers, but writers block
+// everyone.
 extern lck_grp_t *pmem_rwlock_grp;
 extern lck_grp_attr_t *pmem_rwlock_grp_attr;
+
+// Basic mutexes for shared resources.
 extern lck_grp_t *pmem_mutex_grp;
 extern lck_grp_attr_t *pmem_mutex_grp_attr;
 
+
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Start/stop routines for IOKit
+////////////////////////////////////////////////////////////////////////////////
 
 kern_return_t com_google_MacPmem_start(kmod_info_t * ki, void *d);
 kern_return_t com_google_MacPmem_stop(kmod_info_t *ki, void *d);

@@ -24,45 +24,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef __MacPmem__i386_ptable_log__
-#define __MacPmem__i386_ptable_log__
+#ifndef __MacPmem__safety__
+#define __MacPmem__safety__
 
 ////////////////////////////////////////////////////////////////////////////////
-// Implements logging of paging structures, only if compiled with DEBUG flags.
+// Implements a page-level read/write safety based on EFI physmap ranges.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <mach/mach_types.h>
 #include <libkern/libkern.h>
-#include "MacPmem.h"
-#include "logging.h"
-#include "i386_ptable.h"
+#include "bitmap.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
-#ifdef PMEM_PTE_DEBUG
-void pmem_log_CR3(CR3 x, PmemLogLevel lvl, const char *reason);
-void pmem_log_CR4(CR4 x, PmemLogLevel lvl, const char *reason);
-void pmem_log_VIRT_ADDR(VIRT_ADDR x, PmemLogLevel lvl, const char *reason);
-void pmem_log_PML4E(PML4E x, PmemLogLevel lvl, const char *reason);
-void pmem_log_PDPTE(PDPTE x, PmemLogLevel lvl, const char *reason);
-void pmem_log_PDE(PDE x, PmemLogLevel lvl, const char *reason);
-void pmem_log_PTE(PTE x, PmemLogLevel lvl, const char *reason);
+// The init function bellow will initialize this bitmap to hold the readable
+// ranges in memory, with page-level resolution, as reported by the EFI physmap.
+//
+// The r/w handler to physical memory can use this bitmap to decide whether
+// an IO operation to a certain page should be permitted.
+extern pmem_bitmap *safety_bitmap;
 
-#else
+// Initializes the safety_bitmap.
+//
+// Uses the meta EFI enumeration code from meta.cpp.
+//
+// Returns:
+//   KERN_SUCCESS if everything works, otherwise KERN_FAILURE, which usually
+//   means the meta subsystem failed to get data.
+kern_return_t pmem_safety_init(void);
 
-#define pmem_log_CR3(x, lvl, reason)
-#define pmem_log_CR4(x, lvl, reason);
-#define pmem_log_VIRT_ADDR(x, lvl, reason);
-#define pmem_log_PML4E(x, lvl, reason);
-#define pmem_log_PDPTE(x, lvl, reason);
-#define pmem_log_PDE(x, lvl, reason);
-#define pmem_log_PTE(x, lvl, reason);
+// Tears down the safety bitmap.
+//
+// Returns:
+//   Not a thing.
+void pmem_safety_cleanup(void);
 
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-#endif
+#endif /* defined(__MacPmem__safety__) */

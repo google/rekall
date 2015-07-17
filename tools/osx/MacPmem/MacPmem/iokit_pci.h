@@ -31,6 +31,16 @@ typedef pmem_signal_t (*pmem_pci_callback_t)(IOPCIDevice *dev,
                                              IODeviceMemory *mem,
                                              unsigned mem_idx,
                                              void *ctx);
+
+// Goes over the PCI devices known to IOKit and tries to record memory they own.
+//
+// Arguments:
+//   callback: Every memory segment will be reported to this callback, along
+//      with the context pointer 'ctx'. If the callback signals pmem_Stop the
+//      iteration will stop (shocker, I know).
+//   ctx: Context to be passed to every call to 'callback'
+// Returns:
+//   As expected, except stopping from the callback is interpretted as failure.
 kern_return_t pmem_iokit_enumerate_pci(pmem_pci_callback_t callback, void *ctx);
 
 #endif /* defined(__MacPmem__iokit_pci__) */

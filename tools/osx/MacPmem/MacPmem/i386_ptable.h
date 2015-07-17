@@ -24,10 +24,14 @@
 
 #include <sys/types.h>
 
-
+// Page frame to page, and page to page frame.
 #define PFN_TO_PAGE(pfn) (pfn << PAGE_SHIFT)
 #define PAGE_TO_PFN(pfn) (pfn >> PAGE_SHIFT)
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Bitwise structs to reading x86/64 paging structures without macros.
+////////////////////////////////////////////////////////////////////////////////
 
 #pragma pack(push, 1)
 typedef union CR3_ {
@@ -37,8 +41,8 @@ typedef union CR3_ {
         uint64_t write_through : 1;
         uint64_t cache_disable : 1;
         uint64_t ignored_2     : 7;
-        uint64_t pml4_p        :40;
-        uint64_t reserved      :12;
+        uint64_t pml4_p        : 40;
+        uint64_t reserved      : 12;
     };
 } CR3;
 
@@ -63,7 +67,7 @@ typedef union CR4_ {
         uint64_t osxsave       : 1;
         uint64_t smep          : 1;
         uint64_t smap          : 1;
-        uint64_t reserved      :47;
+        uint64_t reserved      : 47;
     };
 } CR4;
 
@@ -97,8 +101,8 @@ typedef union PML4E_ {
         uint64_t ignored_1      : 1;
         uint64_t reserved_1     : 1;
         uint64_t ignored_2      : 4;
-        uint64_t pdpt_p         :40;
-        uint64_t ignored_3      :11;
+        uint64_t pdpt_p         : 40;
+        uint64_t ignored_3      : 11;
         uint64_t xd             : 1;
     };
 } PML4E;
@@ -116,8 +120,8 @@ typedef union PDPTE_ {
         uint64_t dirty          : 1;
         uint64_t page_size      : 1;
         uint64_t ignored_2      : 4;
-        uint64_t pd_p           :40;
-        uint64_t ignored_3      :11;
+        uint64_t pd_p           : 40;
+        uint64_t ignored_3      : 11;
         uint64_t xd             : 1;
     };
 } PDPTE;
@@ -135,8 +139,8 @@ typedef union PDE_ {
         uint64_t dirty          : 1;
         uint64_t page_size      : 1;
         uint64_t ignored_2      : 4;
-        uint64_t pt_p           :40;
-        uint64_t ignored_3      :11;
+        uint64_t pt_p           : 40;
+        uint64_t ignored_3      : 11;
         uint64_t xd             : 1;
     };
 } PDE;
@@ -156,8 +160,8 @@ typedef union PTE_ {
         uint64_t pat            : 1;
         uint64_t global         : 1;
         uint64_t ignored_1      : 3;
-        uint64_t page_frame     :40;
-        uint64_t ignored_3      :11;
+        uint64_t page_frame     : 40;
+        uint64_t ignored_3      : 11;
         uint64_t xd             : 1;
     };
 } PTE;

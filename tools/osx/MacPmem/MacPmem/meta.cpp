@@ -37,41 +37,41 @@
 
 
 static const char * const pmem_meta_fmt = \
-"%%YAML 1.2\n"
-"---\n"
-"meta:\n"
-"  pmem_api_version: %d\n"
-"  cr3: %llu\n"
-"  dtb_off: %llu\n"
-"  phys_mem_size: %llu\n"
-"  pci_config_space_base: %llu\n"
-"  mmap_poffset: %u\n"
-"  mmap_desc_version: %u\n"
-"  mmap_size: %u\n"
-"  mmap_desc_size: %u\n"
-"  kaslr_slide: %u\n"
-"  kernel_poffset: %u\n"
-"  kernel_version: \"%.*s\"\n"
-"  version_poffset: %llu\n"
-"records:\n"; // Range descriptions appended after this line.
+    "%%YAML 1.2\n"
+    "---\n"
+    "meta:\n"
+    "  pmem_api_version: %d\n"
+    "  cr3: %llu\n"
+    "  dtb_off: %llu\n"
+    "  phys_mem_size: %llu\n"
+    "  pci_config_space_base: %llu\n"
+    "  mmap_poffset: %u\n"
+    "  mmap_desc_version: %u\n"
+    "  mmap_size: %u\n"
+    "  mmap_desc_size: %u\n"
+    "  kaslr_slide: %u\n"
+    "  kernel_poffset: %u\n"
+    "  kernel_version: \"%.*s\"\n"
+    "  version_poffset: %llu\n"
+    "records:\n"; // Range descriptions appended after this line.
 
 
 static const char * const pmem_pci_range_fmt = \
-"  - purpose: \"%s\"\n"
-"    type: \"%s\"\n"
-"    pci_type: \"%s\"\n"
-"    start: %llu\n"
-"    length: %llu\n"
-"    hw_informant: %s\n";
+    "  - purpose: \"%s\"\n"
+    "    type: \"%s\"\n"
+    "    pci_type: \"%s\"\n"
+    "    start: %llu\n"
+    "    length: %llu\n"
+    "    hw_informant: %s\n";
 
 
 static const char * const pmem_efi_range_fmt = \
-"  - purpose: \"%s\"\n"
-"    type: \"%s\"\n"
-"    efi_type: \"%s\"\n"
-"    start: %llu\n"
-"    length: %llu\n"
-"    hw_informant: %s\n";
+    "  - purpose: \"%s\"\n"
+    "    type: \"%s\"\n"
+    "    efi_type: \"%s\"\n"
+    "    start: %llu\n"
+    "    length: %llu\n"
+    "    hw_informant: %s\n";
 
 
 // Used to cache /dev/pmem_info between reads.
@@ -94,7 +94,7 @@ static pmem_meta_t *pmem_sysctl_meta = nullptr;
 // Make a new meta struct.
 static pmem_meta_t *pmem_metaalloc() {
     uint32_t required_size = (uint32_t)sizeof(pmem_meta_t);
-    pmem_meta_t *meta = (pmem_meta_t *)OSMalloc(required_size, pmem_tag);
+    pmem_meta_t *meta = (pmem_meta_t *)OSMalloc(required_size, pmem_alloc_tag);
     if (!meta) {
         return nullptr;
     }
@@ -111,7 +111,7 @@ static pmem_meta_t *pmem_metaalloc() {
 
 // Free a meta struct.
 void pmem_metafree(pmem_meta_t *meta) {
-    OSFree(meta, meta->size, pmem_tag);
+    OSFree(meta, meta->size, pmem_alloc_tag);
 }
 
 
@@ -120,13 +120,13 @@ void pmem_metafree(pmem_meta_t *meta) {
 // buffer.
 //
 // Arguments:
-// metaret: The meta struct to resize. Will change to point to new struct.
-// min_room: The new struct will have at least this much room, but probably
+//   metaret: The meta struct to resize. Will change to point to new struct.
+//   min_room: The new struct will have at least this much room, but probably
 //           more.
 //
 // Returns:
-// KERN_SUCCESS or KERN_FAILURE. On KERN_FAILURE the old struct MAY still be
-// valid; if so, the pointer will not be updated.
+//   KERN_SUCCESS or KERN_FAILURE. On KERN_FAILURE the old struct MAY still be
+//   valid; if so, the pointer will not be updated.
 static kern_return_t pmem_metaresize(pmem_meta_t **metaret, uint32_t min_room) {
     pmem_meta_t *meta = *metaret;
     uint32_t min_size = meta->size + min_room;
@@ -140,7 +140,7 @@ static kern_return_t pmem_metaresize(pmem_meta_t **metaret, uint32_t min_room) {
         min_size = meta->size * 2;
     }
 
-    pmem_meta_t *newmeta = (pmem_meta_t *)OSMalloc(min_size, pmem_tag);
+    pmem_meta_t *newmeta = (pmem_meta_t *)OSMalloc(min_size, pmem_alloc_tag);
     if (!newmeta) {
         return KERN_FAILURE;
     }
@@ -186,13 +186,14 @@ static inline unsigned pmem_metaroom(pmem_meta_t *meta) {
 // Append 'record' to 'meta', resizing 'meta' as needed.
 //
 // Arguments:
-// metaret: The meta struct to insert into. The pointer will change if meta
-// needs to be resized; in that case, the old structure will be freed and any
-// pointers to it will need to be updated.
-// record: The metadata record struct to append.
+//   metaret: The meta struct to insert into. The pointer will change if meta
+//   needs to be resized; in that case, the old structure will be freed and any
+//   pointers to it will need to be updated.
+//   record: The metadata record struct to append.
 //
-// Returns: KERN_SUCCESS or KERN_FAILURE. On failure, the old struct MAY still
-// be valid; if so, the pointer to it won't be updated.
+// Returns:
+//   KERN_SUCCESS or KERN_FAILURE. On failure, the old struct MAY still
+//   be valid; if so, the pointer to it won't be updated.
 static kern_return_t pmem_metainsert(pmem_meta_t **metaret,
                                      const pmem_meta_record_t *record) {
     pmem_meta_t *meta = *metaret;
@@ -226,30 +227,30 @@ static kern_return_t pmem_append_record(pmem_OSBuffer *buffer,
     while(1) {
         cursor = buffer->buffer + buffer->cursor;
         switch (record->type) {
-            case pmem_efi_range_type:
-                fmt = snprintf(cursor, room, pmem_efi_range_fmt,
-                               record->purpose,
-                               pmem_record_type_names[pmem_efi_range_type],
-                               pmem_efi_type_names[record->efi_range.efi_type],
-                               record->efi_range.start,
-                               record->efi_range.length,
-                               (record->efi_range.hw_informant ?
-                                "true" : "false"));
-                break;
-            case pmem_pci_range_type:
-                fmt = snprintf(cursor, room, pmem_pci_range_fmt,
-                               record->purpose,
-                               pmem_record_type_names[pmem_pci_range_type],
-                               pmem_pci_type_names[record->pci_range.pci_type],
-                               record->pci_range.start,
-                               record->pci_range.length,
-                               (record->pci_range.hw_informant ?
-                                "true" : "false"));
-                break;
-            default:
-                pmem_fatal("Unknown record type encountered. This is a "
-                           "programmer error.");
-                return KERN_FAILURE;
+        case pmem_efi_range_type:
+            fmt = snprintf(cursor, room, pmem_efi_range_fmt,
+                           record->purpose,
+                           pmem_record_type_names[pmem_efi_range_type],
+                           pmem_efi_type_names[record->efi_range.efi_type],
+                           record->efi_range.start,
+                           record->efi_range.length,
+                           (record->efi_range.hw_informant ?
+                            "true" : "false"));
+            break;
+        case pmem_pci_range_type:
+            fmt = snprintf(cursor, room, pmem_pci_range_fmt,
+                           record->purpose,
+                           pmem_record_type_names[pmem_pci_range_type],
+                           pmem_pci_type_names[record->pci_range.pci_type],
+                           record->pci_range.start,
+                           record->pci_range.length,
+                           (record->pci_range.hw_informant ?
+                            "true" : "false"));
+            break;
+        default:
+            pmem_fatal("Unknown record type encountered. This is a "
+                       "programmer error.");
+            return KERN_FAILURE;
         }
 
         if (fmt <= room) {
@@ -370,11 +371,11 @@ static kern_return_t pmem_get_physmap(pmem_meta_t **meta) {
     // See osfmk/i386/machine_routines.c for the reference implementation of
     // ml_static_ptovirt.
 #if defined(__x86_64__)
-    #define VM_MIN_KERNEL_ADDRESS		((vm_offset_t) 0xFFFFFF8000000000UL)
+    #define VM_MIN_KERNEL_ADDRESS       ((vm_offset_t) 0xFFFFFF8000000000UL)
     mmap_voffset = \
-    (vm_offset_t)(((unsigned long) ba->MemoryMap) | VM_MIN_KERNEL_ADDRESS);
+        (vm_offset_t)(((unsigned long) ba->MemoryMap) | VM_MIN_KERNEL_ADDRESS);
 #else
-    #define LINEAR_KERNEL_ADDRESS	((vm_offset_t) 0x00000000)
+    #define LINEAR_KERNEL_ADDRESS   ((vm_offset_t) 0x00000000)
     mmap_voffset = (vm_offset_t)((paddr) | LINEAR_KERNEL_ADDRESS);
 #endif
 
@@ -419,7 +420,7 @@ kern_return_t pmem_fillmeta(pmem_meta_t **metaret, int flags) {
     kern_return_t error = KERN_SUCCESS;
 
     if (flags & PMEM_INFO_CR3) {
-        __asm__ __volatile__("movq %%cr3, %0" :"=r"(cr3));
+        __asm__ __volatile__ ("movq %%cr3, %0" : "=r" (cr3));
         meta->cr3 = cr3;
         meta->dtb_poffset = cr3 & ~PAGE_MASK;
     }
@@ -514,10 +515,10 @@ static kern_return_t pmem_buftouio(pmem_OSBuffer *buffer,
 // Escapes string in 'orig' so that it may be included in YAML output.
 //
 // Arguments:
-// orig: The buffer to read a string from. Will be read to first \x00 character
-//       or else for the entire buffer size.
-// escaped: If successful, the function will write a pointer to the escaped
-//          buffer here. Null-terminated if orig was.
+//   orig: The buffer to read a string from. Will be read to first \x00 character
+//     or else for the entire buffer size.
+//   escaped: If successful, the function will write a pointer to the escaped
+//     buffer here. Null-terminated if orig was.
 //
 // Returns:
 // KERN_SUCCESS or KERN_FAILURE
@@ -732,7 +733,7 @@ kern_return_t pmem_readmeta(struct uio *uio) {
     }
 
     lck_rw_lock_shared(pmem_cached_info_lock);
-    
+
     // (Re)build cache?
     if (uio_offset(uio) == 0 || pmem_cached_info == nullptr) {
         if (!lck_rw_lock_shared_to_exclusive(pmem_cached_info_lock)) {
@@ -745,7 +746,7 @@ kern_return_t pmem_readmeta(struct uio *uio) {
 
         if(pmem_cached_info) {
             pmem_free(pmem_cached_info);
-            pmem_cached_info = pmem_alloc(BUFLEN_INIT, pmem_tag);
+            pmem_cached_info = pmem_alloc(BUFLEN_INIT, pmem_alloc_tag);
         }
 
         // Fill the meta struct.
@@ -794,7 +795,7 @@ void pmem_meta_cleanup() {
 
 
 kern_return_t pmem_meta_init() {
-    pmem_cached_info = pmem_alloc(BUFLEN_INIT, pmem_tag);
+    pmem_cached_info = pmem_alloc(BUFLEN_INIT, pmem_alloc_tag);
     sysctl_register_oid(&sysctl__kern_pmem_info);
     pmem_sysctl = 1;
 

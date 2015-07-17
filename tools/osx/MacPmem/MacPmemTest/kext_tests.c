@@ -66,9 +66,9 @@ static pmem_meta_t *_get_sysctl_struct() {
                   meta->records_offset,
                   __offsetof(pmem_meta_t, records));
     }
-    
-    
-    
+
+
+
     return meta;
 }
 

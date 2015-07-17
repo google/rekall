@@ -1,9 +1,23 @@
+//  MacPmem - Rekall Memory Forensics
+//  Copyright (c) 2015 Google Inc. All rights reserved.
 //
-//  notifiers.cpp
-//  MacPmem
+//  Implements the /dev/pmem device to provide read/write access to
+//  physical memory.
 //
-//  Created by Adam Sindelar on 4/8/15.
-//  Copyright (c) 2015 Google. All rights reserved.
+//  Authors:
+//   Adam Sindelar (adam.sindelar@gmail.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 
 #include "notifiers.h"
@@ -26,7 +40,7 @@ IOReturn pmem_sleep_handler(void *target, void *refCon,
     OSReturn osret = kOSReturnSuccess;
 
     if ((messageType == kIOMessageSystemWillSleep ||
-        messageType == kIOMessageCanSystemSleep) &&
+         messageType == kIOMessageCanSystemSleep) &&
         pmem_open_count == 0) {
 
         // We got a sleep notification and our open count was zero. Let's
@@ -45,7 +59,6 @@ IOReturn pmem_sleep_handler(void *target, void *refCon,
         // autounload, and manual release causes a scan for autounload-enabled
         // kexts to begin immediately, which will likely preempt event the rest
         // of this routine.
-
         osret = OSKextRetainKextWithLoadTag(pmem_load_tag);
         if (osret == kOSReturnSuccess) {
             osret = OSKextReleaseKextWithLoadTag(pmem_load_tag);
@@ -55,8 +68,8 @@ IOReturn pmem_sleep_handler(void *target, void *refCon,
     acknowledgeSleepWakeNotification(refCon);
 
     if (osret != kOSReturnSuccess) {
-        pmem_warn(("Retaining or releasing the kext in sleep/wake handler"
-                   "has failed."));
+        pmem_warn("Retaining or releasing the kext in sleep/wake handler"
+                  "has failed.");
     }
 
     return kIOReturnSuccess;

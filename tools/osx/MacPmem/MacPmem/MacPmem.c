@@ -27,6 +27,7 @@
 #include "pmem_common.h"
 #include "meta.h"
 #include "pte_mmap.h"
+#include "safety.h"
 #include "notifiers.h"
 
 #include <libkern/libkern.h>
@@ -41,11 +42,15 @@
 // information to decide when to turn on autounload on idle.
 int pmem_open_count = 0;
 
+// Owned by sysctl. Controls whether IO to the physical memory device will
+// permit access to ranges that EFI considers unsafe.
+int pmem_allow_unsafe_reads = 0;
+
 int pmem_majorno = PMEM_MAJOR;
 OSKextLoadTag pmem_load_tag;
 
-const char * const pmem_tagname = "pmem_tag";
-OSMallocTag pmem_tag = 0;
+const char * const pmem_tagname = "pmem_alloc_tag";
+OSMallocTag pmem_alloc_tag = 0;
 
 lck_grp_t *pmem_rwlock_grp = 0;
 lck_grp_attr_t *pmem_rwlock_grp_attr = 0;
@@ -53,19 +58,53 @@ lck_grp_t *pmem_mutex_grp = 0;
 lck_grp_attr_t *pmem_mutex_grp_attr = 0;
 
 
-// Switch table callbacks - forward declarations.
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Shared character device switchtable and handlers
+////////////////////////////////////////////////////////////////////////////////
+
+// Opens the device - shared by info and pmem.
+//
+// Arguments:
+//   dev - device object
+//   devtype - unusued; safe to pass 0
+//   proc_t - process accessing the device
+//
+// Returns:
+//   KERN_SUCCESS if the device is valid. Otherwise fails.
 static kern_return_t pmem_open(dev_t dev, __unused int flags,
                                __unused int devtype,
                                __unused proc_t proc);
+
+// Reads from info or pmem.
+//
+// Arguments:
+//   dev - the device to read from
+//   uio - uio struct to read into (see man page for uio)
+//   rw - this is ignored; pass any int
+//
+// Returns:
+//   KERN_SUCCESS if read completed successfully. Note that if the safety is on
+//   (see pmem_allow_unsafe_reads) then reading from an unsafe range WILL NOT
+//   cause this call to fail. Instead, the read will be silently padded with
+//   zeroed memory.
 static kern_return_t pmem_read(dev_t dev, struct uio *uio,
-                                    __unused int rw);
+                               __unused int rw);
+
+// Close the device - shared by info and pmem.
+//
+// Arguments:
+//   dev - device object to close
+//   devtype - unusuded; safe to pass 0
+//   proc_t - the process that's closing this
+//
+// Returns:
+//   KERN_SUCCESS (can't fail).
 static kern_return_t pmem_close(dev_t dev, __unused int flags,
                                 __unused int devtype,
                                 __unused proc_t proc);
 
-// /dev/pmem and /dev/pmem_info switch table.
-// eno_ values mean the call is disabled.
-// This is a character device.
+
+// /dev/pmem and /dev/pmem_info shared character device switch table.
 static struct cdevsw pmem_cdevsw = {
     pmem_open,                            /* open */
     pmem_close,                           /* close */
@@ -84,43 +123,64 @@ static struct cdevsw pmem_cdevsw = {
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: sysctl handlers for configurable behavior
+////////////////////////////////////////////////////////////////////////////////
+
+// Controls whether unsafe reads are allowed.
+SYSCTL_INT(_kern, OID_AUTO, pmem_allow_unsafe_reads, CTLTYPE_INT | CTLFLAG_WR,
+           &pmem_allow_unsafe_reads, 0, "Allow unsafe reads from pmem.");
+
+// Controls the logging level (defined in logging.h).
 SYSCTL_INT(_kern, OID_AUTO, pmem_logging, CTLTYPE_INT | CTLFLAG_WR,
            &pmem_logging_level, 0, "Pmem logging level");
+
+// Do we need to cleanup after sysctl when shutting down?
 static int pmem_sysctl_needs_cleanup = 0;
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Individual device names, numbers and objects
+////////////////////////////////////////////////////////////////////////////////
+
+// /dev/pmem minor number and name.
 #define PMEM_DEV_MINOR 1
 static const char *pmem_devname = PMEM_DEVNAME;
 static void *pmem_infonode = 0;
 
-
+// /dev/pmem_info minor number and name.
 #define PMEM_INFO_MINOR 2
 static const char *pmem_infoname = PMEM_DEVINFO;
 static void *pmem_devnode = 0;
 
+// Debug builds don't require root on the machine. It's not a good idea to
+// distribute those.
 #ifdef DEBUG
 #define PMEM_DEV_PERMS 0666
 #else
 #define PMEM_DEV_PERMS 0660
 #endif
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Handler implementations
+////////////////////////////////////////////////////////////////////////////////
 
 static kern_return_t pmem_open(dev_t dev, __unused int flags,
                                __unused int devtype,
                                __unused proc_t proc) {
     kern_return_t ret;
     switch (minor(dev)) {
-        case PMEM_DEV_MINOR:
-            ret = KERN_SUCCESS;
-            OSIncrementAtomic(&pmem_open_count);
-            break;
-        case PMEM_INFO_MINOR:
-            ret = pmem_openmeta();
-            OSIncrementAtomic(&pmem_open_count);
-            break;
-        default:
-            pmem_warn("Unknown minor device number %d.", minor(dev));
-            ret = KERN_FAILURE;
+    case PMEM_DEV_MINOR:
+        ret = KERN_SUCCESS;
+        OSIncrementAtomic(&pmem_open_count);
+        break;
+    case PMEM_INFO_MINOR:
+        ret = pmem_openmeta();
+        OSIncrementAtomic(&pmem_open_count);
+        break;
+    default:
+        pmem_warn("Unknown minor device number %d.", minor(dev));
+        ret = KERN_FAILURE;
     }
 
     return ret;
@@ -132,29 +192,28 @@ static kern_return_t pmem_close(dev_t dev, __unused int flags,
                                 __unused proc_t proc) {
     kern_return_t ret;
     switch (minor(dev)) {
-        case PMEM_DEV_MINOR:
-            ret =  KERN_SUCCESS;
-            OSDecrementAtomic(&pmem_open_count);
-            break;
-        case PMEM_INFO_MINOR:
-            ret = pmem_closemeta();
-            OSDecrementAtomic(&pmem_open_count);
-            break;
-        default:
-            pmem_warn("Unknown minor device number %d.", minor(dev));
-            ret = KERN_FAILURE;
+    case PMEM_DEV_MINOR:
+        ret =  KERN_SUCCESS;
+        OSDecrementAtomic(&pmem_open_count);
+        break;
+    case PMEM_INFO_MINOR:
+        ret = pmem_closemeta();
+        OSDecrementAtomic(&pmem_open_count);
+        break;
+    default:
+        pmem_warn("Unknown minor device number %d.", minor(dev));
+        ret = KERN_FAILURE;
     }
 
     return ret;
 }
 
 
-
 static kern_return_t pmem_read(dev_t dev, struct uio *uio,
                                __unused int rw) {
     switch (minor(dev)) {
     case PMEM_DEV_MINOR:
-        return pmem_read_rogue(uio);
+        return pmem_read_physmem(uio);
     case PMEM_INFO_MINOR:
         // Reading from the info device is conceptually the same as calling
         // the sysctl to get the struct.
@@ -166,12 +225,16 @@ static kern_return_t pmem_read(dev_t dev, struct uio *uio,
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: MacPmem initialization and teardown
+////////////////////////////////////////////////////////////////////////////////
+
 // Tries to free all resources; passes through any errors.
 //
-// args: 'error' will be returned unchanged if no further errors are
-// encountered.
-// return: value of 'error' if no further errors encountered; otherwise
-//         KERN_FAILURE.
+// Arguments:
+//   error: Will be returned unchanged if no further errors are encountered.
+// Returns:
+//   Value of 'error' if no further errors encountered; otherwise KERN_FAILURE.
 static kern_return_t pmem_cleanup(kern_return_t error) {
     if (pmem_devnode) {
         devfs_remove(pmem_devnode);
@@ -192,24 +255,26 @@ static kern_return_t pmem_cleanup(kern_return_t error) {
         }
     }
 
-    if (pmem_tag) {
-        OSMalloc_Tagfree(pmem_tag);
-    }
-
     pmem_meta_cleanup();
     pmem_pte_cleanup();
+    pmem_safety_cleanup();
 //    pmem_sleep_cleanup(); // Disabled - see the start function.
 
     if (pmem_sysctl_needs_cleanup) {
         sysctl_unregister_oid(&sysctl__kern_pmem_logging);
+        sysctl_unregister_oid(&sysctl__kern_pmem_allow_unsafe_reads);
     }
 
-    // Free lock groups.
     lck_grp_attr_free(pmem_mutex_grp_attr);
     lck_grp_free(pmem_mutex_grp);
 
     lck_grp_attr_free(pmem_rwlock_grp_attr);
     lck_grp_free(pmem_rwlock_grp);
+
+    // Needs to be the last thing because we still may need it above for frees.
+    if (pmem_alloc_tag) {
+        OSMalloc_Tagfree(pmem_alloc_tag);
+    }
 
     return error;
 }
@@ -217,10 +282,11 @@ static kern_return_t pmem_cleanup(kern_return_t error) {
 
 // Creates both devices.
 static kern_return_t pmem_init() {
-    // Set up OSMalloc tag for everyone.
-    pmem_tag = OSMalloc_Tagalloc(pmem_tagname, OSMT_DEFAULT);
+    // This malloc tag is used by everyone - needs to be the first thing.
+    pmem_alloc_tag = OSMalloc_Tagalloc(pmem_tagname, OSMT_DEFAULT);
 
-    // Set up a pmem lock groups for mutexes and rw locks.
+    // Same as the malloc tag, lock groups are shared and need to be setup
+    // by the time we initialize other components.
     pmem_rwlock_grp_attr = lck_grp_attr_alloc_init();
     lck_grp_attr_setstat(pmem_rwlock_grp_attr);
     pmem_rwlock_grp = lck_grp_alloc_init("pmem_rwlock", pmem_rwlock_grp_attr);
@@ -228,7 +294,6 @@ static kern_return_t pmem_init() {
     pmem_mutex_grp_attr = lck_grp_attr_alloc_init();
     lck_grp_attr_setstat(pmem_mutex_grp_attr);
     pmem_mutex_grp = lck_grp_alloc_init("pmem_mutex", pmem_mutex_grp_attr);
-
 
     pmem_majorno = cdevsw_add(PMEM_MAJOR, &pmem_cdevsw);
     if (pmem_majorno < 0) {
@@ -279,6 +344,12 @@ kern_return_t com_google_MacPmem_start(kmod_info_t * ki, void *d) {
         return pmem_cleanup(error);
     }
 
+    error = pmem_safety_init();
+    if (error != KERN_SUCCESS) {
+        pmem_fatal("Could not initialize RW safety module.");
+        return pmem_cleanup(error);
+    }
+
     error = pmem_pte_init();
     if (error != KERN_SUCCESS) {
         pmem_fatal("Could not initialize PTE mmap module.");
@@ -313,6 +384,7 @@ kern_return_t com_google_MacPmem_start(kmod_info_t * ki, void *d) {
 //    }
 
     sysctl_register_oid(&sysctl__kern_pmem_logging);
+    sysctl_register_oid(&sysctl__kern_pmem_allow_unsafe_reads);
     pmem_sysctl_needs_cleanup = 1;
 
     pmem_load_tag = OSKextGetCurrentLoadTag();
