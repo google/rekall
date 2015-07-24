@@ -122,7 +122,7 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
 
         self.fd.seek(offset)
 
-        if self.fd.write(buf[:length])
+        if self.fd.write(buf[:length]):
             return length
 
         return 0

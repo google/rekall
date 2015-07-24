@@ -427,7 +427,7 @@ class PagedReader(BaseAddressSpace):
         if not paddr:
             return 0
 
-        return self.base.write(paddr, buf[:to_write]):
+        return self.base.write(paddr, buf[:to_write])
 
     def do_write(self, addr, buf):
         available = len(buf)
