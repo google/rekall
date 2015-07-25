@@ -232,9 +232,11 @@ int main(int argc, const char * argv[]) {
     if (do_test_kext) {
         error = load_kext();
         if (error != 0) {
-            pmem_error("Could not load kernel extension from %s. Bailing.",
-                       pmem_kext_path);
-            return -1;
+            pmem_warn("Could not load kernel extension from %s. Disabling "
+                      "kext tests.", pmem_kext_path);
+            do_test_kext = 0;
+            do_test_writes = 0;
+            do_unload_kext = 0;
         }
     }
 

@@ -54,7 +54,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
         self.fname = self.name = os.path.abspath(path)
         self.mode = 'rb'
-        if self.session.GetParameter("writable_address_space"):
+        if self.session.GetParameter("writable_physical_memory"):
             self.mode += '+'
 
         self.fhandle = open(self.fname, self.mode)
@@ -92,7 +92,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         self.map.close()
         self.fhandle.close()
 
-    def do_write(self, addr, data):
+    def write(self, addr, data):
         try:
             self.map[addr:addr + len(data)] = data
         except IOError:

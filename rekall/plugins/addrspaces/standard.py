@@ -173,15 +173,11 @@ class WritableAddressSpaceMixIn(object):
     NOTE: This does not participate in voting or gets automatically
     selected. It can only be instantiated directly.
     """
-    writable = True
 
-    def do_write(self, addr, data):
-        try:
-            self.fhandle.seek(addr)
-            self.fhandle.write(data)
-            self.fhandle.flush()
-        except IOError:
-            return 0
+    def write(self, addr, data):
+        self.fhandle.seek(addr)
+        self.fhandle.write(data)
+        self.fhandle.flush()
 
         return len(data)
 

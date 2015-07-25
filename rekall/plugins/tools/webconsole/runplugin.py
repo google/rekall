@@ -567,7 +567,7 @@ class RekallRunPlugin(manuskript_plugin.Plugin):
                     try:
                         session.RunPlugin(
                             source["plugin"]["name"],
-                            renderer=renderer, **kwargs)
+                            format=renderer, **kwargs)
 
                     except Exception:
                         message = traceback.format_exc()

@@ -82,7 +82,7 @@ class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         return data
 
-    def do_write(self, addr, data):
+    def write(self, addr, data):
         length = len(data)
         offset, available_length = self._get_available_buffer(addr, length)
         if offset is None:

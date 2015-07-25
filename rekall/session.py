@@ -415,6 +415,21 @@ class Session(object):
     This session contains the bare minimum to use rekall.
     """
 
+    # We only serialize the following session variables since they make this
+    # session unique. When we unserialize we merge the other state variables
+    # from this current session.
+    #
+    # TODO: This is, for the moment, necessary to support the web UI. Come up
+    # with a better way to represent or generate this list.
+    SERIALIZABLE_STATE_PARAMETERS = [
+        ("ept", u"IntParser"),
+        ("profile", u"FileName"),
+        ("filename", u"FileName"),
+        ("pagefile", u"FileName"),
+        ("session_name", u"String"),
+        ("timezone", u"TimeZone"),
+    ]
+
     __metaclass__ = registry.MetaclassRegistry
 
     # The currently active address resolver.

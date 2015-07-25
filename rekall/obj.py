@@ -666,7 +666,7 @@ class BitField(NativeType):
     def write(self, data):
         # To write we need to read the proxy, set the bits and then write the
         # proxy again.
-        return False
+        return 0
 
     def __repr__(self):
         return " [{0}({1}-{2}):{3}]: 0x{4:08X}".format(
@@ -1384,6 +1384,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         """Write a value to a member."""
         member = self.m(attr)
         # Try to make the member write the new value.
+        member.write(value)
         if not hasattr(member, 'write') or not member.write(value):
             raise ValueError("Error writing value to member " + attr)
 

@@ -44,10 +44,11 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         /dev/pmem is open read-only by default. This reopens it if writes are
         requested.
         """
-        if self.session.GetParameter("writable_address_space"):
+        if self.session.GetParameter("writable_physical_memory"):
             expected_mode = "r+"
         else:
-            expected_mode = "r"
+            raise RuntimeError(
+                "writable_physical_memory is not set in the Session.")
 
         if self.fd.mode != expected_mode:
             self.fd.close()
@@ -108,9 +109,9 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         self.fd.seek(offset)
         return self.fd.read(min(length, available_length))
 
-    def do_write(self, *args, **kwargs):
+    def write(self, *args, **kwargs):
         self._ensure_fd_writable()
-        super(MacPmemAddressSpace, self).do_write(*args, **kwargs)
+        return super(MacPmemAddressSpace, self).write(*args, **kwargs)
 
     def _write_chunk(self, addr, buf):
         buflen = len(buf)
@@ -121,11 +122,11 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
             return length
 
         self.fd.seek(offset)
+        self.fd.write(buf[:length])
 
-        if self.fd.write(buf[:length]):
-            return length
-
-        return 0
+        # io.write doesn't return anything, so if the write succeeds we just
+        # return length.
+        return length
 
     def close(self):
         self.fd.close()

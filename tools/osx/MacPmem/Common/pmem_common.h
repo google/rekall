@@ -65,6 +65,10 @@
 #endif
 
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Enums and their names to support metadata structs
+////////////////////////////////////////////////////////////////////////////////
+
 // This enum tells you whether the memory range is categorized using the
 // EFI taxonomy or the PCI taxonomy, but it doesn't say where the information
 // came from - you have the hardware informant flag for that.
@@ -116,6 +120,11 @@ static const char *pmem_pci_type_names[] = {
     "PCIUnknownMemory"
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Metadata record structs
+////////////////////////////////////////////////////////////////////////////////
+
 #pragma pack(push, 1)
 
 typedef struct {
@@ -164,6 +173,9 @@ typedef struct {
     };
 } pmem_meta_record_t;
 
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Main metadata struct
+////////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
     // Always set. Yes, reserved is also set (to zeroes).
@@ -210,7 +222,10 @@ typedef struct {
 
 #pragma pack(pop)
 
-// Info I/O flags
+////////////////////////////////////////////////////////////////////////////////
+// MARK: Metadata struct request flags
+////////////////////////////////////////////////////////////////////////////////
+
 #define PMEM_INFO_CR3              0x1  // Dump the CR3 register.
 #define PMEM_INFO_BOOTARGS         0x2  // Parse the boot args struct.
 #define PMEM_INFO_KERNEL_VERSION   0x4  // Copy the kernel version string.
@@ -219,8 +234,5 @@ typedef struct {
 #define PMEM_INFO_LIST_SYMBOLS     0x20 // List select symbols' offsets.
 
 #define PMEM_INFO_ALL 0xFFFFFFFF // Every flag, even some that don't exist yet.
-
-// Commands:
-#define PMEM_GET_INFO 10
 
 #endif

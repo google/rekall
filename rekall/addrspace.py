@@ -230,30 +230,28 @@ class BaseAddressSpace(object):
 
     def write(self, addr, buf):
         """Write to the address space, if writable.
+        
+        The default behavior is to delegate the write to the base address space.
+        If an address space has no base then this function will throw an
+        IOError. Address spaces that actually implement writing should override.
 
-        Do not override this method - override do_write instead.
+        Raises:
+            IOError if there is no base address space. Subclasses may raise
+                under additional circumstances.
+
+        Arguments:
+            addr: The address to write at, as understood by this AS (i.e.
+                a virtual address for virtual address spaces, physical for
+                physical).
+            buf: The data to write - most commonly a basestring instance.
 
         Returns:
             Number of bytes written.
         """
-        if not self.session.GetParameter("writable_address_space"):
-            raise IOError(
-                "Session parameter 'writable_address_space' is not set.")
+        if not self.base:
+            raise IOError("No base address space set on %r." % self)
 
-        return self.do_write(addr, buf)
-
-    def do_write(self, addr, buf):
-        """Actually write to the address space, if supported.
-
-        Returns:
-            Number of bytes written.
-        """
-        if self.base:
-            return self.base.write(self.vtop(addr), buf)
-
-        raise IOError(
-            "Cannot write to %r because it delegates writes to the base "
-            "address space of which it has None." % self)
+        return self.base.write(self.vtop(addr), buf)
 
     def vtop(self, addr):
         """Return the physical address of this virtual address."""
@@ -314,7 +312,7 @@ class BufferAddressSpace(BaseAddressSpace):
         data = self.data[offset: offset + length]
         return data + "\x00" * (length - len(data))
 
-    def do_write(self, addr, data):
+    def write(self, addr, data):
         if addr > len(self.data):
             raise ValueError(
                 "Cannot write to offset %d of buffer with size %d.",
@@ -429,7 +427,7 @@ class PagedReader(BaseAddressSpace):
 
         return self.base.write(paddr, buf[:to_write])
 
-    def do_write(self, addr, buf):
+    def write(self, addr, buf):
         available = len(buf)
         written = 0
 
