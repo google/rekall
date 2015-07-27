@@ -159,7 +159,7 @@ ript>
 
 <div class="container-fluid container">
 <div class="row-fluid">
-  <div class="col-md-2">
+  <div class="col-md-2 navigator">
     
  <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> docs
@@ -200,15 +200,16 @@ ript>
     <iframe src="/epydocs/index.html" width="100%" type="text/html" class="embedded_doc">
     </iframe>
   </div>
-  <div class="col-md-2 sidebar">
+  <div class="col-md-2 sidebar navigator">
     
   </div>
 </div>
 </div>
 <script>
   $(window).resize(function(){
-    var height = $(window).height() - 100;
+    var height = $(window).height() - 10;
     $('iframe').height(height);
+    $('.navigator').height($(window).height());
   });
 
   $(window).resize();

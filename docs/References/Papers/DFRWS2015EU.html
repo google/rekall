@@ -159,7 +159,7 @@ ript>
 
 <div class="container-fluid container">
 <div class="row-fluid">
-  <div class="col-md-2">
+  <div class="col-md-2 navigator">
     
  <a href="/docs/References/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> References
@@ -190,6 +190,11 @@ ript>
             DFRWS 2015EU: Characterization of the Windows Kernel version variability for accurate Memory analysis. Michael Cohen.
           </a>
         </li>
+        <li>
+          <a href='/docs/References/Papers/SFCS2015.html' class="category-link">
+            IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.
+          </a>
+        </li>
         </ul></ul>
 
 
@@ -200,15 +205,16 @@ ript>
     <embed src="http://www.dfrws.org/2015eu/proceedings/DFRWS-EU-2015-5.pdf" width="100%" type="application/pdf" class="embedded_doc">
     </embed>
   </div>
-  <div class="col-md-2 sidebar">
+  <div class="col-md-2 sidebar navigator">
     
   </div>
 </div>
 </div>
 <script>
   $(window).resize(function(){
-    var height = $(window).height() - 100;
+    var height = $(window).height() - 10;
     $('embed').height(height);
+    $('.navigator').height($(window).height());
   });
 
   $(window).resize();

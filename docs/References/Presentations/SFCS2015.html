@@ -136,7 +136,7 @@ ript>
     </li>
     
        <li>
-        <a href="https://github.com/google/rekall/edit/gh-pages/docs/References/Presentations/index.md?message=Describe%20your%20change..."
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/References/Presentations/SFCS2015.md?message=Describe%20your%20change..."
            data-toggle="tooltip"
            data-placement="bottom"
            title="Improve this page"
@@ -157,9 +157,9 @@ ript>
     </div>
    </header>
 
-<div class="container-fluid page-background container">
-<div class="main">
-  <div class="col-md-2">
+<div class="container-fluid container">
+<div class="row-fluid">
+  <div class="col-md-2 navigator">
     
  <a href="/docs/References/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> References
@@ -185,7 +185,7 @@ ript>
             DFRWS-EU 2014: Linux Memory Acquisition
           </a>
         </li>
-        <li>
+        <li class='active'>
           <a href='/docs/References/Presentations/SFCS2015.html' class="category-link">
             IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.
           </a>
@@ -198,30 +198,27 @@ ript>
         </ul></ul>
 
 
+    <a href="ISCC2015_presentation.pdf" class="btn btn-default">Download</a>
   </div>
-
-  <div class="col-md-10">
+  <div class="col-md-8" >
     
-
-
-<h1>Presentations</h1>
-
-<div class="abstract">
-
-</div>
-
-
-
-
-
-<p>These are some presentations and workshops about Rekall.</p>
-
-<p>
-
-
+    <embed src="ISCC2015_presentation.pdf" width="100%" type="application/pdf" class="embedded_doc">
+    </embed>
+  </div>
+  <div class="col-md-2 sidebar navigator">
+    
   </div>
 </div>
 </div>
+<script>
+  $(window).resize(function(){
+    var height = $(window).height() - 10;
+    $('embed').height(height);
+    $('.navigator').height($(window).height());
+  });
+
+  $(window).resize();
+</script>
   <div class="footer">
     <div class="container">
       <p class="text-muted">

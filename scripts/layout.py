@@ -288,13 +288,21 @@ def embedded(page=None):
     """Embed an iframe in the page."""
 
     tag = page.get("tag", "embed")
+    sidebar = ""
+    presentation = page.get("presentation")
+    if presentation:
+        sidebar = """
+<a href='{presentation}' class="btn btn-default">
+  Presentation
+</a>
+""".format(presentation=presentation)
 
     return u"""
 {head}
 {nav}
 <div class="container-fluid container">
 <div class="row-fluid">
-  <div class="col-md-2">
+  <div class="col-md-2 navigator">
     {page.navigator}
     <a href="{page.download}" class="btn btn-default">Download</a>
   </div>
@@ -303,21 +311,22 @@ def embedded(page=None):
     <{tag} src="{page.download}" width="100%" type="{page.mime}" class="embedded_doc">
     </{tag}>
   </div>
-  <div class="col-md-2 sidebar">
+  <div class="col-md-2 sidebar navigator">
     {sidebar}
   </div>
 </div>
 </div>
 <script>
   $(window).resize(function(){{
-    var height = $(window).height() - 100;
+    var height = $(window).height() - 10;
     $('{tag}').height(height);
+    $('.navigator').height($(window).height());
   }});
 
   $(window).resize();
 </script>
 {foot}
-""".format(head=HEAD, foot=FOOT, sidebar=SIDEBAR, page=page, tag=tag,
+""".format(head=HEAD, foot=FOOT, sidebar=sidebar, page=page, tag=tag,
            nav=navigation(page))
 
 

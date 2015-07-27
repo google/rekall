@@ -136,7 +136,7 @@ ript>
     </li>
     
        <li>
-        <a href="https://github.com/google/rekall/edit/gh-pages/docs/References/Presentations/index.md?message=Describe%20your%20change..."
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/References/Papers/SFCS2015.md?message=Describe%20your%20change..."
            data-toggle="tooltip"
            data-placement="bottom"
            title="Improve this page"
@@ -157,71 +157,72 @@ ript>
     </div>
    </header>
 
-<div class="container-fluid page-background container">
-<div class="main">
-  <div class="col-md-2">
+<div class="container-fluid container">
+<div class="row-fluid">
+  <div class="col-md-2 navigator">
     
  <a href="/docs/References/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> References
  </a>
 
- <a href='/docs/References/Presentations/index.html' class="btn btn-default btn-lg btn-block">
-   Presentations
+ <a href='/docs/References/Papers/index.html' class="btn btn-default btn-lg btn-block">
+   Papers
  </a>
  <p>
 
  <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/References/Presentations/AntiForensic.html' class="category-link">
-            DFRWS 2013: Anti-Forensic Resilient Memory Acquisition
+          <a href='/docs/References/Papers/DFRWS2013.html' class="category-link">
+            DFRWS 2013: Anti-Forensic Resilient Memory Acquisition, Johannes Stuettgen and Michael Cohen.
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/DFRWS EU 2014 Rekall workshop.html' class="category-link">
-            DFRWS-EU 2014: Forensic Memory Analysis Workshop
+          <a href='/docs/References/Papers/DFRWS2014EU.html' class="category-link">
+            DFRWS 2014EU: Robust Linux Memory Acquisition with Minimal Target Impact, Johannes Stuettgen and Michael Cohen
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/LMAP-DFRWS_EU_2014.html' class="category-link">
-            DFRWS-EU 2014: Linux Memory Acquisition
+          <a href='/docs/References/Papers/DFRWS2015EU2.html' class="category-link">
+            DFRWS 2015EU: Acquisition and Analysis of Compromised Firmware Using Memory Forensics. Johannes Stüttgen, Stefan Voemel and Michael Denzel.
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/SFCS2015.html' class="category-link">
+          <a href='/docs/References/Papers/DFRWS2015EU.html' class="category-link">
+            DFRWS 2015EU: Characterization of the Windows Kernel version variability for accurate Memory analysis. Michael Cohen.
+          </a>
+        </li>
+        <li class='active'>
+          <a href='/docs/References/Papers/SFCS2015.html' class="category-link">
             IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.
-          </a>
-        </li>
-        <li>
-          <a href='/docs/References/Presentations/Rekall Memory Forensics - SANS EU 2014.html' class="category-link">
-            SANS DFIR Summit - Prague 2014
           </a>
         </li>
         </ul></ul>
 
 
+    <a href="p1138-cohen.pdf" class="btn btn-default">Download</a>
   </div>
-
-  <div class="col-md-10">
+  <div class="col-md-8" >
     
-
-
-<h1>Presentations</h1>
-
-<div class="abstract">
-
-</div>
-
-
-
-
-
-<p>These are some presentations and workshops about Rekall.</p>
-
-<p>
-
+    <embed src="p1138-cohen.pdf" width="100%" type="application/pdf" class="embedded_doc">
+    </embed>
+  </div>
+  <div class="col-md-2 sidebar navigator">
+    
+<a href='../Presentations/SFCS2015.html' class="btn btn-default">
+  Presentation
+</a>
 
   </div>
 </div>
 </div>
+<script>
+  $(window).resize(function(){
+    var height = $(window).height() - 10;
+    $('embed').height(height);
+    $('.navigator').height($(window).height());
+  });
+
+  $(window).resize();
+</script>
   <div class="footer">
     <div class="container">
       <p class="text-muted">

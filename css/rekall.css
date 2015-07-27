@@ -243,3 +243,10 @@ margin-right: 10px;
 .dropdown-toggle {
     cursor: pointer;
 }
+
+.navigator {
+    overflow-y: auto;
+    height: 100%;
+    margin-top: 55px;
+    margin-bottom: 50px;
+}

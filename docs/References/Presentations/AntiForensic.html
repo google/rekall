@@ -159,7 +159,7 @@ ript>
 
 <div class="container-fluid container">
 <div class="row-fluid">
-  <div class="col-md-2">
+  <div class="col-md-2 navigator">
     
  <a href="/docs/References/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> References
@@ -186,6 +186,11 @@ ript>
           </a>
         </li>
         <li>
+          <a href='/docs/References/Presentations/SFCS2015.html' class="category-link">
+            IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.
+          </a>
+        </li>
+        <li>
           <a href='/docs/References/Presentations/Rekall Memory Forensics - SANS EU 2014.html' class="category-link">
             SANS DFIR Summit - Prague 2014
           </a>
@@ -200,15 +205,16 @@ ript>
     <embed src="http://www.dfrws.org/2013/proceedings/DFRWS2013-p13.pdf" width="100%" type="application/pdf" class="embedded_doc">
     </embed>
   </div>
-  <div class="col-md-2 sidebar">
+  <div class="col-md-2 sidebar navigator">
     
   </div>
 </div>
 </div>
 <script>
   $(window).resize(function(){
-    var height = $(window).height() - 100;
+    var height = $(window).height() - 10;
     $('embed').height(height);
+    $('.navigator').height($(window).height());
   });
 
   $(window).resize();

@@ -1,3 +1,4 @@
 _cache
 *.pyc
 *.pyo
+.rekall_cache
