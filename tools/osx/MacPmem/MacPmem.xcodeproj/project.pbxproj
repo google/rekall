@@ -111,19 +111,6 @@
 			path = Common;
 			sourceTree = "<group>";
 		};
-		492135731B5147D100685B7B /* Common */ = {
-			isa = PBXGroup;
-			children = (
-				496AEA4B1A8CEF5D00E39D3F /* pmem_common.h */,
-				496AEA371A8CACFD00E39D3F /* logging.cpp */,
-				496AEA381A8CACFD00E39D3F /* logging.h */,
-				492135741B51483A00685B7B /* bitmap.c */,
-				492135751B51483A00685B7B /* bitmap.h */,
-				49BBB3171B514AB0001533DC /* alloc.h */,
-			);
-			path = Common;
-			sourceTree = "<group>";
-		};
 		497AF3421ACBFCC80037A066 /* MacPmemTest */ = {
 			isa = PBXGroup;
 			children = (
@@ -142,7 +129,6 @@
 				492135731B5147D100685B7B /* Common */,
 				497AF3421ACBFCC80037A066 /* MacPmemTest */,
 				49D0DFE21A8B9DC200C833E8 /* MacPmem */,
-				490D41491ABA0F3D0027DBE9 /* Frameworks */,
 				49D0DFE11A8B9DC200C833E8 /* Products */,
 			);
 			sourceTree = "<group>";

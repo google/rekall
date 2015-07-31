@@ -443,7 +443,15 @@ class EntityManager(object):
             return analysis_copy
 
         analyzer = wanted.run_engine("slashy_analyzer")
-        include = analyzer.include
+
+        include = set()
+        for dependency in analyzer.include:
+            # Skip over general dependencies on Entity.
+            if dependency.component == "Entity" and not dependency.attribute:
+                continue
+
+            include.add(dependency)
+
         exclude = analyzer.exclude
         suggested_indices = analyzer.latest_indices
 

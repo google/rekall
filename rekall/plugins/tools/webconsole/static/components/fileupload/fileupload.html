@@ -69,6 +69,8 @@
                       rekall-zoom-{{node.source.size}}">
             <img ng-switch-when="image/jpeg"
                  src="worksheet/{{node.id}}/{{file.name}}?type={{file.type}}"/>
+            <img ng-switch-when="image/gif"
+                 src="worksheet/{{node.id}}/{{file.name}}?type={{file.type}}"/>
 
             <button ng-switch-default class="btn btn-default">
               <span class="glyphicon glyphicon-file" />

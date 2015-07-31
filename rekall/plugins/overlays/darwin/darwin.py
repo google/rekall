@@ -453,7 +453,7 @@ darwin64_types = {
 class LIST_ENTRY(obj.Struct):
     """XNU defines lists inline using an annonymous struct. This makes it hard
     for us to automatically support lists because the debugging symbols dont
-    indicate this inner struct is of any particular type( since its annonymous).
+    indicate this inner struct is of any particular type (since its annonymous).
 
     We therefore depend on the overlays to redefine each list memeber as a
     LIST_ENTRY member. For example we see code like:
@@ -520,11 +520,11 @@ class LIST_ENTRY(obj.Struct):
 
         seen.add(self)
 
-        Flink = self._GetNextEntry(type, member)
-        Flink.find_all_lists(type, member, seen=seen)
+        flink = self._GetNextEntry(type, member)
+        flink.find_all_lists(type, member, seen=seen)
 
-        # Blink = self._GetPreviousEntry()
-        # Blink.find_all_lists(type, member, seen=seen)
+        blink = self._GetPreviousEntry()
+        blink.find_all_lists(type, member, seen=seen)
 
         return seen
 
@@ -1139,6 +1139,13 @@ class proc(obj.Struct):
             result.pop(0)
 
         return result
+
+    def validate(self):
+        """Use heuristics to guess whether this proc is valid."""
+        return (self.p_argc > 0
+                and len(self.p_comm) > 0
+                and self.p_start.v() > 0
+                and 99999 > self.pid > 0)
 
 
 class vnode(obj.Struct):

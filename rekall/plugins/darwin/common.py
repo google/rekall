@@ -249,7 +249,7 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
           may already be set in session.
 
         Returns:
-          Kernel version string (should start with "Dawrin Kernel"
+          Kernel version string (should start with "Darwin Kernel"
         """
         version_offset = self.profile.get_constant(
             "_version", is_address=False)

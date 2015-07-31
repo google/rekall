@@ -59,6 +59,8 @@ static kern_return_t pmem_register_efi_range(pmem_efi_range_t *range,
     case EfiUnusableMemory:
     case EfiMemoryMappedIO:
     case EfiMemoryMappedIOPortSpace:
+        pmem_debug("EFI range at 0x%llx is non-readable; skipping.",
+                   range->start);
         return KERN_SUCCESS;
 
     // Other ranges are readable and we mark them as such in the bitmap.
@@ -74,6 +76,7 @@ static kern_return_t pmem_register_efi_range(pmem_efi_range_t *range,
         }
     }
 
+    pmem_debug("Added EFI range at 0x%llx.", range->start);
     return KERN_SUCCESS;
 }
 
@@ -104,7 +107,11 @@ kern_return_t pmem_safety_init(void) {
 
     // Iterate over the records in the meta struct and build up our bitmap.
     void *current_record = meta->records;
-    for (unsigned record_idx; record_idx < meta->record_count; ++record_idx) {
+
+    pmem_debug("Discovered %u memory ranges.", meta->record_count);
+    for (unsigned record_idx = 0;
+         record_idx < meta->record_count;
+         ++record_idx) {
         pmem_meta_record_t *record = current_record;
         if (record->type == pmem_efi_range_type) {
             error = pmem_register_efi_range(&record->efi_range, safety_bitmap);

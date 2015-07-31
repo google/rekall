@@ -284,7 +284,4 @@ class DarwinDeadProcessCollector(zones.DarwinZoneElementCollector):
     _name = "deadprocs"
 
     def validate_element(self, proc):
-        return (proc.p_argc > 0
-                and len(proc.p_comm) > 0
-                and proc.p_start.v() > 0
-                and 99999 > proc.pid > 0)
+        return proc.validate()

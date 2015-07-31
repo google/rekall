@@ -161,7 +161,7 @@ class DarwinSessionParser(common.DarwinEntityCollector):
                     base=session.s_ttyp,
                     type="tty")
 
-            if session.s_leader:
+            if session.s_leader and session.s_leader.validate():
                 yield definitions.Struct(
                     base=session.s_leader.deref(),
                     type="proc")

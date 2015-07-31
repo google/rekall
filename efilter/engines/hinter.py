@@ -155,7 +155,14 @@ class Hinter(engine.VisitorEngine):
         return type(expr)(*children)
 
     def visit_ValueExpression(self, expr, **kwargs):
-        return type(expr)(self.visit(expr.value, **kwargs))
+        child = self.visit(expr.value, **kwargs)
+        if child is None:
+            return None
+
+        return type(expr)(child)
+
+    def visit_ComponentLiteral(self, expr, **_):
+        return expr
 
     def visit_BinaryExpression(self, expr, **kwargs):
         lhs = self.visit(expr.lhs, **kwargs)

@@ -481,6 +481,9 @@ kern_return_t pmem_readwrite_physmem(struct uio *uio) {
 
             if (offset / PAGE_SIZE > safety_bitmap->highest_bit) {
                 // We're past the end of physical memory.
+                pmem_warn("Read attempted to page 0x%llx, which is past "
+                          "the top page 0x%llx.",
+                          offset / PAGE_SIZE, safety_bitmap->highest_bit);
                 return KERN_FAILURE;
             }
 

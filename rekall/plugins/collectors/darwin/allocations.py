@@ -89,19 +89,6 @@ class DarwinProcessVADs(common.DarwinEntityCollector):
                         keys=("Struct/base",))
                     yield file
 
-                # Sort out shared memory flags.
-                sharing_mode = address.sharing_mode
-                if sharing_mode in ("SM_SHARED", "SM_LARGE_PAGE"):
-                    sharing_enum = "shared"
-                elif sharing_mode == "SM_COW":
-                    sharing_enum = "copy-on-write"
-                elif sharing_mode == "SM_PRIVATE":
-                    sharing_enum = "private"
-                elif sharing_mode == "SM_EMPTY":
-                    sharing_mode = None
-                else:
-                    raise ValueError("Unknown sharing mode %r." % sharing_mode)
-
                 # Sort out permission bits.
                 perms = []
                 max_perms = []
@@ -116,6 +103,20 @@ class DarwinProcessVADs(common.DarwinEntityCollector):
                     if not perm:
                         raise ValueError("Unknown protection flag %r." % flag)
                     max_perms.append(perm)
+
+                # Sort out shared memory flags.
+                sharing_mode = address.sharing_mode
+                sharing_enum = None
+                if sharing_mode in ("SM_SHARED", "SM_LARGE_PAGE"):
+                    sharing_enum = "shared"
+                elif sharing_mode == "SM_COW":
+                    sharing_enum = "copy-on-write"
+                elif sharing_mode == "SM_PRIVATE":
+                    sharing_enum = "private"
+                elif sharing_mode == "SM_EMPTY":
+                    sharing_enum = None
+                else:
+                    raise ValueError("Unknown sharing mode %r." % sharing_mode)
 
                 _, result = self.prebuild(
                     components=[

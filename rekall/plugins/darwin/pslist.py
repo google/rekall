@@ -54,7 +54,8 @@ class DarwinPsxView(common.DarwinPlugin):
         collector_names = sorted([collector.name for collector in collectors])
 
         headers = [
-            dict(name="Process/Pid", cname="offset_v", width=40),
+            dict(name="PID", cname="pid", width=10),
+            dict(name="Process", cname="process", width=40),
         ]
 
         for collector_name in collector_names:
@@ -69,7 +70,8 @@ class DarwinPsxView(common.DarwinPlugin):
                 self.session.entities.find("has component Process"),
                 key=lambda e: e["Process/pid"]):
             row = [
-                entity["Struct/base"],
+                entity["Process/pid"],
+                entity["Process/command"],
             ]
 
             for collector_name in collector_names:
