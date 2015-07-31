@@ -29,6 +29,8 @@ from rekall.plugins.linux import psaux
 from rekall.plugins.linux import pslist
 from rekall.plugins.linux import pstree
 from rekall.plugins.linux import psxview
+from rekall.plugins.linux import sigscan
+
 try:
     from rekall.plugins.linux import yarascan
 except (ImportError, OSError):

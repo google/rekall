@@ -79,13 +79,13 @@ class LinYaraScan(common.LinProcessFilter):
 
         self.scan_physical = scan_physical
 
-    def generate_hits(self, address_space):
+    def generate_hits(self, address_space, end=None):
         scanner = yarascanner.BaseYaraASScanner(
             profile=self.profile, session=self.session,
             address_space=address_space,
             rules=self.rules)
 
-        return scanner.scan()
+        return scanner.scan(maxlen=end)
 
     def render_scan_physical(self, renderer):
         """This method scans the process memory using the VAD."""
@@ -115,8 +115,9 @@ class LinYaraScan(common.LinProcessFilter):
 
     def render_task_scan(self, renderer, task):
         task_as = task.get_process_address_space()
+        end = self.session.GetParameter("highest_usermode_address")
 
-        for rule, address, _, _ in self.generate_hits(task_as):
+        for rule, address, _, _ in self.generate_hits(task_as, end=end):
             renderer.format("Rule: {0}\n", rule)
 
             renderer.format("Owner: {0}\n", task.comm)

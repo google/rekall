@@ -126,7 +126,8 @@ config.DeclareOption("autodetect_build_local", default="basic",
 
 config.DeclareOption("autodetect_scan_length", default=1000000000,
                      group="Autodetection Overrides",
-                     help="How much of physical memory to scan before failing")
+                     help="How much of physical memory to scan before failing",
+                     type="IntParser")
 
 
 class WindowsIndexDetector(DetectionMethod):
@@ -462,6 +463,8 @@ class ProfileHook(kb.ParameterHook):
             session=self.session)
         scanner.progress_message = "Autodetecting profile: %(offset)#08x"
         for offset, hit in scanner.scan(maxlen=autodetect_scan_length):
+            self.session.logging.info(
+                "guess_profile: autodetection hit @ %x - %s", offset, hit)
             for method in needle_lookup[hit]:
                 profile = method.DetectFromHit(hit, offset, address_space)
                 if profile:

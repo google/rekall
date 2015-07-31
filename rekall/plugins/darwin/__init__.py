@@ -9,7 +9,8 @@ from rekall.plugins.darwin import hooks
 from rekall.plugins.darwin import lsof
 from rekall.plugins.darwin import lsmod
 from rekall.plugins.darwin import misc
+from rekall.plugins.darwin import networking
 from rekall.plugins.darwin import pas2kas
 from rekall.plugins.darwin import pslist
-from rekall.plugins.darwin import networking
+from rekall.plugins.darwin import sigscan
 from rekall.plugins.darwin import zones

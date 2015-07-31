@@ -18,29 +18,29 @@
 
 from rekall import testlib
 from rekall.plugins.common import sigscan
-from rekall.plugins.windows import common
+from rekall.plugins.linux import common
 
 
-class WinSigScan(sigscan.SigScanMixIn, common.WinProcessFilter):
+class LinuxSigScan(sigscan.SigScanMixIn, common.LinProcessFilter):
   """Runs a signature scans against physical, kernel or process memory."""
   pass
 
 
-class TestWinSigScanPhysical(testlib.SimpleTestCase):
+class TestLinuxSigScanPhysical(testlib.SimpleTestCase):
     """Runs sigscan against physical memory."""
 
     PARAMETERS = dict(commandline="sigscan %(signature)s --scan_physical",
                       signature="")
 
 
-class TestWinSigScanKernel(testlib.SimpleTestCase):
+class TestLinuxSigScanKernel(testlib.SimpleTestCase):
     """Runs sigscan against the kernel."""
 
     PARAMETERS = dict(commandline="sigscan %(signature)s --scan_kernel",
                       signature="")
 
 
-class TestWinSigScanProcess(testlib.SimpleTestCase):
+class TestLinuxSigScanProcess(testlib.SimpleTestCase):
     """Runs sigscan against processes."""
 
     PARAMETERS = dict(
