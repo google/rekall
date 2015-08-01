@@ -301,7 +301,7 @@ class IA32PagedMemory(addrspace.PagedReader):
             # Bits 31:22 are bits 31:22 of the PDE
             # Bits 21:0 are from the original linear address
             physical_address = (pde_value & 0xffc00000) | (vaddr & 0x3fffff)
-            collection.add(CommentDescriptor, "Large page mapped")
+            collection.add(CommentDescriptor, "Large page mapped\n")
             collection.add(PhysicalAddressDescriptor, address=physical_address)
 
             return collection
@@ -466,7 +466,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             # Bits 20:0 are from the original linear address
             physical_address = ((pde_value & 0xfffffffe00000) |
                                 (vaddr & 0x1fffff))
-            collection.add(CommentDescriptor, "Large page mapped")
+            collection.add(CommentDescriptor, "Large page mapped\n")
             collection.add(PhysicalAddressDescriptor, address=physical_address)
 
         else:
