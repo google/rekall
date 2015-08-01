@@ -16,34 +16,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from rekall import testlib
 from rekall.plugins.common import sigscan
 from rekall.plugins.darwin import common
 
 
 class DarwinSigScan(sigscan.SigScanMixIn, common.DarwinProcessFilter):
-  """Runs a signature scans against physical, kernel or process memory."""
-  pass
-
-
-class TestDarwinSigScanPhysical(testlib.SimpleTestCase):
-    """Runs sigscan against physical memory."""
-
-    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_physical",
-                      signature="")
-
-
-class TestDarwinSigScanKernel(testlib.SimpleTestCase):
-    """Runs sigscan against the kernel."""
-
-    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_kernel",
-                      signature="")
-
-
-class TestDarwinSigScanProcess(testlib.SimpleTestCase):
-    """Runs sigscan against processes."""
-
-    PARAMETERS = dict(
-        commandline="sigscan %(signature)s --proc_regex %(proc_regex)s",
-        signature="",
-        proc_regex=".")
+    """Runs a signature scans against physical, kernel or process memory."""

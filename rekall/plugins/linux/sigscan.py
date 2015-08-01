@@ -16,34 +16,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from rekall import testlib
 from rekall.plugins.common import sigscan
 from rekall.plugins.linux import common
 
 
 class LinuxSigScan(sigscan.SigScanMixIn, common.LinProcessFilter):
-  """Runs a signature scans against physical, kernel or process memory."""
-  pass
-
-
-class TestLinuxSigScanPhysical(testlib.SimpleTestCase):
-    """Runs sigscan against physical memory."""
-
-    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_physical",
-                      signature="")
-
-
-class TestLinuxSigScanKernel(testlib.SimpleTestCase):
-    """Runs sigscan against the kernel."""
-
-    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_kernel",
-                      signature="")
-
-
-class TestLinuxSigScanProcess(testlib.SimpleTestCase):
-    """Runs sigscan against processes."""
-
-    PARAMETERS = dict(
-        commandline="sigscan %(signature)s --proc_regex %(proc_regex)s",
-        signature="",
-        proc_regex=".")
+    """Runs a signature scans against physical, kernel or process memory."""

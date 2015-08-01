@@ -36,8 +36,10 @@ import re
 from rekall import scan
 from rekall import utils
 from rekall.plugins import core
+from rekall.plugins.addrspaces import intel
 from rekall.plugins.common import pfn
 from rekall.plugins.windows import common
+from rekall.plugins.windows import pagefile
 
 
 class VADInfo(common.WinProcessFilter):
@@ -339,31 +341,70 @@ class VAD(common.WinProcessFilter):
             self.render_vadroot(renderer, task.RealVadRoot, task)
 
 
-class VADMap(pfn.VADMapMixin,
-             common.WinProcessFilter):
+class VADMap(pfn.VADMapMixin, common.WinProcessFilter):
+    """Inspect each page in the VAD and report its status.
 
-    def _GetPTE(self, vaddr):
-        address_space = self.session.GetParameter("default_address_space")
-        for type, _, addr in address_space.describe_vtop(vaddr):
-            if type == "pte":
-                return self.profile._MMPTE(
-                    addr, vm=self.physical_address_space)
+    This allows us to see the address translation status of each page in the
+    VAD.
+    """
 
-        # If the PDE is invalid it means search the Vad. We just return an empty
-        # PTE here to trigger this search.
-        return self.profile._MMPTE(vm=self.physical_address_space)
+    def _CreateMetadata(self, collection):
+        metadata = {}
+        for descriptor_cls, _, _ in collection.descriptors:
+            # Any of the following kinds of PTE are considered prototype.
+            if descriptor_cls in (pagefile.WindowsProtoTypePTEDescriptor,
+                                  pagefile.VadPteDescriptor):
+                metadata["ProtoType"] = True
+                break
+
+        for descriptor_cls, args, kwargs in reversed(collection.descriptors):
+            if issubclass(descriptor_cls,
+                          pagefile.WindowsSubsectionPTEDescriptor):
+                metadata.update(descriptor_cls(
+                    session=self.session, *args, **kwargs).metadata())
+
+                return metadata
+
+            elif issubclass(descriptor_cls, pagefile.WindowsPTEDescriptor):
+                type = kwargs.get("pte_type")
+                if type == "Proto":
+                    metadata["ProtoType"] = True
+
+                pte_value = kwargs.get("pte_value")
+                if pte_value & 1:
+                    metadata["type"] = "Valid"
+                else:
+                    metadata["type"] = "Transition"
+
+                return metadata
+
+            elif issubclass(descriptor_cls, pagefile.WindowsPagefileDescriptor):
+                metadata["number"] = kwargs.get("pagefile_number", 0)
+                metadata["offset"] = kwargs.get("address", 0)
+                metadata["type"] = "Pagefile"
+
+                return metadata
+
+            elif issubclass(descriptor_cls, pagefile.DemandZeroDescriptor):
+                metadata["type"] = "Demand Zero"
+                return metadata
+
+            elif issubclass(descriptor_cls, intel.PhysicalAddressDescriptor):
+                metadata["offset"] = kwargs["address"]
+
+        return metadata
 
     def _GenerateVADRuns(self, vad):
-        pte_plugin = self.session.plugins.pte()
+        address_space = self.session.GetParameter("default_address_space")
+
         offset = vad.Start
         end = vad.End
 
         while offset < end:
             if self.start <= offset <= self.end:
-                pte = self._GetPTE(offset)
-                metadata = pte_plugin.ResolvePTE(pte, offset)
+                yield offset, self._CreateMetadata(
+                    address_space.describe_vtop(offset))
 
-                yield offset, metadata
                 self.session.report_progress("Inspecting 0x%08X", offset)
 
             offset += 0x1000
@@ -377,7 +418,6 @@ class VADMap(pfn.VADMapMixin,
 
             for vaddr, metadata in self._GenerateVADRuns(vad):
                 yield vaddr, metadata
-
 
 
 class VADDump(core.DirectoryDumperMixin, VAD):

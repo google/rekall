@@ -535,8 +535,12 @@ class WinProcessFilter(WindowsCommandPlugin):
                     seen.add(proc)
 
         # Sort by pid so that the output ordering remains stable.
-        return sorted([self.profile._EPROCESS(x) for x in seen],
-                      key=lambda x: x.pid)
+        result = []
+        for x in seen:
+            result.append(self.profile._EPROCESS(
+                x, vm=self.session.kernel_address_space))
+
+        return sorted(result, key=lambda x: x.pid)
 
     # Maintain the order of methods.
     METHODS = [

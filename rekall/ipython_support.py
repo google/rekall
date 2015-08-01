@@ -29,7 +29,10 @@ import readline
 
 from rekall import constants
 from IPython.terminal import embed
-from traitlets.config.loader import Config
+try:
+    from IPython.config.loader import Config
+except ImportError:
+    from traitlets.config.loader import Config
 
 
 def RekallCompleter(self, text):

@@ -139,7 +139,7 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
         vaddr = self.end() + 0x10000
 
         self.session.logging.info(
-          "Loading pagefile into physical offset %#08x", vaddr)
+            "Loading pagefile into physical offset %#08x", vaddr)
         self.runs.insert((vaddr, pagefile_offset, pagefile_size))
 
         # Remember the region for the pagefile.
@@ -159,9 +159,9 @@ class KCoreAddressSpace(Elf64CoreDump):
 
     http://lxr.free-electrons.com/source/Documentation/x86/x86_64/mm.txt
 
-    ffff880000000000 - ffffc7ffffffffff (=64 TB) direct mapping of all phys. memory
+    ffff880000000000 - ffffc7ffffffffff (=64 TB) direct mapping of all
+    physical memory.
     """
-
     # We must run before the regular Elf64CoreDump address space in the voting
     # order.
     order = Elf64CoreDump.order - 1

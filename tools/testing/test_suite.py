@@ -261,8 +261,11 @@ exit 0
         # Extra options to be used for testing.
         defaults["--format"] = "test"
 
-
+        # Interpolate parameters in dicts from the config.
         for test_config in config.values():
+            if not isinstance(test_config, dict):
+                continue
+
             # For each test config interpolate the parameter if it is a string.
             for k, v in test_config.items():
                 merged_config = defaults.copy()
@@ -332,13 +335,30 @@ exit 0
         with open(os.path.join(self.output_dir, "results"), "wb") as fd:
             json.dump(dict(passes=self.successes, fails=self.failures), fd)
 
-    def GenerateTests(self, config):
+    def GenerateInlineTests(self, config):
+        """Builds tests defined inline in the config file."""
+        result = []
+
+        for k, v in config.get("InlineTests", {}).items():
+            tempdir = config["DEFAULT"]["tempdir"]
+            script_file = os.path.join(tempdir, "%s.script" % k)
+            with open(script_file, "w") as fd:
+                fd.write(v)
+
+            result.append(type(
+                k, (testlib.SimpleTestCase,),
+                dict(PARAMETERS=dict(
+                    commandline="run --run %s" % script_file))))
+
+        return result
+
+    def GenerateTests(self, config, flags):
         """Generates test classes for all the plugins.
 
         Each plugin must have at least one test. Plugin tests are subclasses of
         the testlib.RekallBaseUnitTestCase class,
         """
-        result = []
+        result = self.GenerateInlineTests(config)
 
         # Pull the profile path etc from the rekall config file.
         kwargs = rekall_config.GetConfigFile()
@@ -346,7 +366,7 @@ exit 0
         # Get the disabled tests.
         disabled = config.pop("disabled", [])
 
-        for x, y in config.items():
+        for x, y in flags.items():
             if x.startswith("--"):
                 kwargs[x[2:]] = y
 
@@ -408,7 +428,7 @@ exit 0
                                     ("Expected Time", "expected", "20"),
                                     ("Error File", "error", "")])
 
-        for plugin_cls in self.GenerateTests(config_options):
+        for plugin_cls in self.GenerateTests(config, config_options):
             # Allow the user to specify only some tests to run.
             if self.FLAGS.tests and plugin_cls.__name__ not in self.FLAGS.tests:
                 continue

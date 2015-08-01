@@ -98,7 +98,7 @@ class MultiStringFinderCheck(ScannerCheck):
 
         # Passing large patterns to the acora module will cause huge memory
         # consumption.
-        if len("".join(needles)) > 200:
+        if max([len(x) for x in needles]) > 50:
             raise RuntimeError("Pattern too large to search with ahocorasic.")
 
         tree = acora.AcoraBuilder(*needles)

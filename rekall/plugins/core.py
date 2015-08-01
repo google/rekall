@@ -23,6 +23,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import inspect
 import pdb
+import math
 import re
 import os
 import textwrap
@@ -720,11 +721,15 @@ class DT(plugin.ProfileCommand):
     def render_Struct(self, renderer, struct):
         renderer.format(
             "[{0} {1}] @ {2:addrpad} \n",
-            struct.obj_type, struct.obj_name or '', struct.obj_offset)
+            struct.obj_type, struct.obj_name or '',
+            self.offset or struct.obj_offset)
+
+        width = int(math.ceil(math.log(struct.obj_size + 1, 16)))
 
         renderer.table_header([
             dict(name="Offset", type="TreeNode", max_depth=5,
-                 child=dict(style="address"), width=20),
+                 child=dict(style="address", width=width+5),
+                 align="l"),
             ("Field", "field", "30"),
             dict(name="Content", cname="content", style="typed")])
 
@@ -1217,34 +1222,24 @@ class VtoPMixin(object):
         renderer.section(name="{0:#08x}".format(vaddr))
         self.address_space = self.session.GetParameter("default_address_space")
 
-        renderer.format("Virtual {0:addrpad} DTB {1:addr}\n",
+        renderer.format("Virtual {0:addrpad} Page Directory {1:addr}\n",
                         vaddr, self.address_space.dtb)
 
-        address = None
-        for name, value, address in self.address_space.describe_vtop(vaddr):
-            if address:
-                # Properly format physical addresses.
-                renderer.format(
-                    "{0}@ {1} = {2:addr}\n",
-                    name,
-                    self.physical_address_space.describe(address),
-                    value or 0)
-            elif value:
-                renderer.format("{0} {1}\n",
-                                name,
-                                self.physical_address_space.describe(value))
-            else:
-                renderer.format("{0}\n", name)
+        # Render each step in the translation process.
+        for translation_descriptor in self.address_space.describe_vtop(vaddr):
+            translation_descriptor.render(renderer)
 
         # The below re-does all the analysis using the address space. It should
         # agree!
+        renderer.format("\nDeriving physical address from runtime "
+                        "physical address space:\n")
+
         physical_address = self.address_space.vtop(vaddr)
         if physical_address is None:
-            renderer.format("Physical Address Invalid\n")
-
-        elif address and address != physical_address:
+            renderer.format("Physical Address Unavailable.\n")
+        else:
             renderer.format(
-                "Something went wrong ... Physical address should be %s\n",
+                "Physical Address {0}\n",
                 self.physical_address_space.describe(physical_address))
 
 

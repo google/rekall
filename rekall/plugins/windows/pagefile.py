@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-""" This file adds pagefile support.
+"""This file adds pagefile support.
 
 Although much of the address translation machinery occurs in hardware, when a
 page fault occurs the operating system's pager is called. The pager is
@@ -24,9 +24,17 @@ specific support.
 
 Rekall's base paging address spaces emulate the hardware's MMU page translation,
 but when the page is invalid Rekall emulates the operating system's page fault
-handling code. The correct (OS depended) address space is selected in
+handling code. The correct (OS dependent) address space is selected in
 rekall.plugins.core.FindDTB.GetAddressSpaceImplementation() based on the profile
 metadata.
+
+This file implements the algorithms described in the paper:
+
+Forensic Analysis of Windows User space Applications through Heap allocations.
+Michael Cohen, 3rd IEEE International Workshop on Security and Forensics in
+Communication Systems 2015 [1]
+
+http://www.rekall-forensic.com/docs/References/Papers/p1138-cohen.pdf
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
@@ -40,14 +48,155 @@ from rekall.plugins.windows import common
 
 # pylint: disable=protected-access
 
+# Windows has some special steps in its address translation. We define some
+# windows specific descriptors here.
+class WindowsPTEDescriptor(intel.AddressTranslationDescriptor):
+    """Print the PTE in exploded view."""
+
+    default_pte_type = None
+
+    def __init__(self, pte_type=None, pte_value=None, pte_addr=None,
+                 session=None):
+        """Define a windows PTE object.
+
+        Valid PTE types are all the members inside the _MMPTE
+        union. e.g. "Hard", "Transition", "Soft", etc).
+        """
+        super(WindowsPTEDescriptor, self).__init__(
+            object_name="pte", object_value=pte_value,
+            object_address=pte_addr, session=session)
+        self.pte_type = pte_type or self.default_pte_type
+
+    def render(self, renderer):
+        super(WindowsPTEDescriptor, self).render(renderer)
+
+        pte = self.session.profile._MMPTE()
+        pte.u.Long = int(self.object_value)
+        if self.pte_type:
+            specific_pte = pte.u.m(self.pte_type)
+
+            self.session.plugins.dt(
+                specific_pte, offset=self.object_address).render(renderer)
+
+
+class WindowsProtoTypePTEDescriptor(WindowsPTEDescriptor):
+    default_pte_type = "Proto"
+
+
+class WindowsSoftwarePTEDescriptor(WindowsPTEDescriptor):
+    default_pte_type = "Soft"
+
+
+
+class DemandZeroDescriptor(intel.AddressTranslationDescriptor):
+    """Describe a Demand Zero page."""
+
+    def render(self, renderer):
+        renderer.format("Demand Zero")
+
+
+
+class WindowsValidPTEDescriptor(WindowsPTEDescriptor):
+    """A descriptor for Valid or in Transition PTEs."""
+
+    def __init__(self, **kwargs):
+        super(WindowsValidPTEDescriptor, self).__init__(**kwargs)
+        if self.object_value & 1:
+            self.pte_type = "Hard"
+        else:
+            self.pte_type = "Trans"
+
+
+class WindowsPagefileDescriptor(intel.AddressTranslationDescriptor):
+    """A descriptor to mark the final physical address resolution."""
+
+    def __init__(self, address=0, pagefile_number=0, session=None):
+        super(WindowsPagefileDescriptor, self).__init__(session=session)
+        self.address = address
+        self.pagefile_number = pagefile_number
+
+    def render(self, renderer):
+        renderer.format("Pagefile ({0}) @ {1:addr}\n",
+                        self.pagefile_number, self.address)
+
+
+class WindowsSubsectionPTEDescriptor(WindowsPTEDescriptor):
+    """A descriptor for a subsection PTE."""
+
+    def metadata(self):
+        pte = self.session.profile._MMPTE(self.object_address)
+        subsection = pte.u.Subsect.Subsection
+
+        # Calculate the file offset. The SubsectionBase is an array pointer
+        # to the linear arrays of section PTEs (one per file sector).
+        file_offset = (
+            (pte - subsection.SubsectionBase) * 0x1000 / pte.obj_size +
+            subsection.StartingSector * 512)
+
+        return dict(
+            type="File Mapping",
+            filename=subsection.ControlArea.FilePointer.file_name_with_drive(),
+            offset=file_offset)
+
+    def render(self, renderer):
+        metadata = self.metadata()
+        renderer.format("Subsection PTE to file {0} @ {1:addr}",
+                        metadata["filename"], metadata["offset"])
+
+
+class VadPteDescriptor(WindowsPTEDescriptor):
+    """A descriptor which applies specifically for Prototype PTEs from the VAD.
+
+    Windows uses placeholder values in the PTE to trigger a further resolution
+    of the PTE from the VAD. For example a PTE of 0xffffffff00000420 would
+    signal to consult the VAD for the real status of this PTE.
+    """
+
+    def __init__(self, virtual_address=None, **kwargs):
+        """Define a windows PTE object.
+
+        Valid PTE types are all the members inside the _MMPTE
+        union. e.g. "Hard", "Transition", "Soft", etc).
+        """
+        super(VadPteDescriptor, self).__init__(pte_type="Soft", **kwargs)
+        self.virtual_address = virtual_address
+
+    def render(self, renderer):
+        renderer.format("Prototype PTE is found in VAD\n")
+        task = self.session.GetParameter("process_context")
+
+        # Show the VAD region for the virtual address.
+        vad_plugin = self.session.plugins.vad(
+            eprocess=task, offset=self.virtual_address)
+        vad_plugin.render(renderer)
+
+        resolver = self.session.address_resolver
+        hit = resolver.FindProcessVad(self.virtual_address)
+        if hit:
+            start, _, _, mmvad = hit
+            # The MMVAD does not have any prototypes.
+            if mmvad.m("FirstPrototypePte").deref() == None:
+                renderer.format("Demand Zero page\n")
+
+            else:
+                renderer.format("\n_MMVAD.FirstPrototypePte: {0:#x}\n",
+                                mmvad.FirstPrototypePte)
+                pte = mmvad.FirstPrototypePte[
+                    (self.virtual_address - start) >> 12]
+
+                renderer.format(
+                    "Prototype PTE is at virtual address {0:#x} "
+                    "(Physical Address {1:#x})\n", pte,
+                    pte.obj_vm.vtop(pte.obj_offset))
+        else:
+            renderer.format("Demand Zero page\n")
+
 
 class WindowsPagedMemoryMixin(object):
     """A mixin to implement windows specific paged memory address spaces.
 
     This mixin allows us to share code between 32 and 64 bit implementations.
     """
-    # On windows translation pages are also valid.
-    valid_mask = 1 << 11 | 1
 
     def __init__(self, **kwargs):
         super(WindowsPagedMemoryMixin, self).__init__(**kwargs)
@@ -117,150 +266,6 @@ class WindowsPagedMemoryMixin(object):
         finally:
             self._resolve_vads = True
 
-    def _ConsultVad(self, virtual_address, pte_value):
-        if self.vad:
-            vad_hit = self.vad.get_range(virtual_address)
-            if vad_hit:
-                start, _, mmvad = vad_hit
-
-                # If the MMVAD has PTEs resolve those..
-                if "FirstPrototypePte" in mmvad.members:
-                    pte = mmvad.FirstPrototypePte[
-                        (virtual_address - start) >> 12]
-
-                    return "Vad", pte.u.Long.v() or 0
-
-        # Virtual address does not exist in any VAD region.
-        return "Demand Zero", pte_value
-
-    def DeterminePTEType(self, pte_value, virtual_address):
-        """Determine which type of pte this is.
-
-        This function performs the first stage PTE resolution. PTE value is a
-        hardware PTE as read from the page tables.
-
-        Returns:
-          a tuple of (description, pte_value) where description is the type of
-          PTE this is, and pte_value is the value of the PTE. The PTE value can
-          change if this PTE actually refers to a prototype PTE - we then read
-          the destination PTE location and return its real value.
-
-        """
-        if pte_value & self.valid_mask:
-            desc = "Valid"
-
-        elif (not pte_value & self.prototype_mask and  # Not a prototype
-              pte_value & self.transition_mask): # But in transition.
-            desc = "Transition"
-
-        # PTE Type is not known - we need to look it up in the vad.
-        elif (pte_value & self.prototype_mask and
-              self.proto_protoaddress_mask & pte_value >>
-              self.proto_protoaddress_start == 0xffffffff0000):
-            return self._ConsultVad(virtual_address, pte_value)
-
-        # Regular prototype PTE.
-        elif pte_value & self.prototype_mask:
-            # This PTE points at the prototype PTE in pte.ProtoAddress. NOTE:
-            # The prototype PTE address is specified in the kernel's address
-            # space since it is allocated from pool.
-            pte_value = struct.unpack("<Q", self.read(
-                pte_value >> self.proto_protoaddress_start, 8))[0]
-
-            desc = "Prototype"
-
-        # PTE value is not known, we need to look it up in the VAD.
-        elif pte_value & self.soft_pagefilehigh_mask == 0:
-            return self._ConsultVad(virtual_address, pte_value)
-
-        # Regular _MMPTE_SOFTWARE entry - look in pagefile.
-        else:
-            desc = "Pagefile"
-
-        return desc, pte_value
-
-    def ResolveProtoPTE(self, pte_value, virtual_address):
-        """Second level resolution of prototype PTEs.
-
-        This function resolves a prototype PTE. Some states must be interpreted
-        differently than the first level PTE.
-
-        Returns:
-          a tuple of (Description, physical_address) where description is the
-          type of the resolved PTE.
-        """
-        # If the prototype is Valid or in Transition, just resolve it with the
-        # hardware layer.
-        if pte_value & self.valid_mask:
-            return "Valid", super(WindowsPagedMemoryMixin, self).get_phys_addr(
-                virtual_address, pte_value)
-
-        # Not a prototype but in transition.
-        if pte_value & self.proto_transition_mask == self.transition_mask:
-            return ("Transition",
-                    super(WindowsPagedMemoryMixin, self).get_phys_addr(
-                        virtual_address, pte_value | self.valid_mask))
-
-        # If the target of the Prototype looks like a Prototype PTE, then it is
-        # a Subsection PTE. However, We cant do anything about it because we
-        # don't have the filesystem. Therefore we return an invalid page.
-        if pte_value & self.prototype_mask:
-            return "Subsection", None
-
-        # Prototype PTE is a Demand Zero page
-        if pte_value & self.soft_pagefilehigh_mask == 0:
-            return "DemandZero", None
-
-        # Regular _MMPTE_SOFTWARE entry - return physical offset into pagefile.
-        if self.pagefile_mapping is not None:
-            pte = self.session.profile._MMPTE()
-            pte.u.Long = pte_value
-
-            return "Pagefile", (
-                pte.u.Soft.PageFileHigh * 0x1000 + self.pagefile_mapping +
-                (virtual_address & 0xFFF))
-
-        return "Pagefile", None
-
-    def _get_available_PDEs(self, vaddr, pdpte_value, start):
-        tmp2 = vaddr
-        for pde in range(0, 0x200):
-            vaddr = tmp2 | (pde << 21)
-
-            next_vaddr = tmp2 | ((pde + 1) << 21)
-            if start >= next_vaddr:
-                continue
-
-            pde_value = self.get_pde(vaddr, pdpte_value)
-            if not pde_value & self.valid_mask:
-                # An invalid PDE means we read the vad, i.e. it is the same as
-                # an array of zero PTEs.
-                for x in self._get_available_PTEs(
-                        [0] * 0x200, vaddr, start=start):
-                    yield x
-
-                continue
-
-            if self.page_size_flag(pde_value):
-                yield (vaddr,
-                       self.get_two_meg_paddr(vaddr, pde_value),
-                       0x200000)
-                continue
-
-            # This reads the entire PTE table at once - On
-            # windows where IO is extremely expensive, its
-            # about 10 times more efficient than reading it
-            # one value at the time - and this loop is HOT!
-            pte_table_addr = ((pde_value & 0xffffffffff000) |
-                              ((vaddr & 0x1ff000) >> 9))
-
-            data = self.base.read(pte_table_addr, 8 * 0x200)
-            pte_table = struct.unpack("<" + "Q" * 0x200, data)
-
-            for x in self._get_available_PTEs(
-                    pte_table, vaddr, start=start):
-                yield x
-
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         """Scan the PTE table and yield address ranges which are valid."""
         tmp = vaddr
@@ -275,7 +280,7 @@ class WindowsPagedMemoryMixin(object):
             pte_value = pte_table[i]
 
             vaddr = tmp | pfn
-            next_vaddr = tmp | (pfn + 0x1000)
+            next_vaddr = tmp | ((i + 1) << 12)
             if start >= next_vaddr:
                 continue
 
@@ -288,103 +293,260 @@ class WindowsPagedMemoryMixin(object):
 
                 # Address is below the next available vad's start. We are not
                 # inside a vad range and a 0 PTE is unmapped.
-                if (pte_value == 0 and vads and
-                        vaddr < vads[-1][0]):
+                if (pte_value == 0 and vads and vaddr < vads[-1][0]):
                     continue
 
             elif pte_value == 0:
                 continue
 
-            phys_addr = self.get_phys_addr(vaddr, pte_value)
+            phys_addr = self._get_phys_addr_from_pte(vaddr, pte_value)
 
             # Only yield valid physical addresses. This will skip DemandZero
             # pages and File mappings into the filesystem.
             if phys_addr is not None:
                 yield (vaddr, phys_addr, 0x1000)
 
-    disable_large_page_mask = (2 ** 64 - 1) ^ (1<<7)
+    def _get_phys_addr_from_pte(self, vaddr, pte_value):
+        """Gets the final physical address from the PTE value."""
+        collection = intel.PhysicalAddressDescriptorCollector(self.session)
+        self._describe_pte(collection, None, pte_value, vaddr)
+        return collection.physical_address
 
-    def NormalizePDEValue(self, pte_value):
-        # If the pte_value is valid just return it.
-        if pte_value & self.valid_mask:
-            return pte_value
+    def _describe_pde(self, collection, pde_addr, vaddr):
+        """Describe processing of the PDE.
 
-        # On Windows we sometimes observe PDEs that appear in transition and
-        # have the large page bit set. Since large pages can not be in
-        # transition we need to disable the large page flag and make the PDE
-        # valid for further processing.
-        if pte_value & self.transition_mask:
-            return (pte_value | self.valid_mask) & self.disable_large_page_mask
-
-        return pte_value
-
-    def get_phys_addr(self, virtual_address, pte_value):
-        """First level resolution of PTEs.
-
-        pte_value must be the actual PTE from hardware page tables (Not software
-        PTEs which are prototype PTEs).
+        The PDE is sometimes not present in main memory, we then implement most
+        of the algorithm described in Figure 2 of the paper (except for the
+        prototype state since the PDE can not use a prototype).
         """
-        desc, pte_value = self.DeterminePTEType(pte_value, virtual_address)
+        pde_value = self.read_pte(pde_addr)
+        collection.add(intel.AddressTranslationDescriptor,
+                       object_name="pde", object_value=pde_value,
+                       object_address=pde_addr)
 
-        # Transition pages can be treated as Valid, let the hardware resolve
-        # it.
-        if desc == "Transition" or desc == "Valid":
-            return super(WindowsPagedMemoryMixin, self).get_phys_addr(
-                virtual_address, pte_value | self.valid_mask)
+        # PDE is valid or in transition:
+        if pde_value & self.transition_valid_mask:
+            # PDE refers to a valid large page.
+            if pde_value & self.valid_mask and  pde_value & self.page_size_mask:
+                physical_address = ((pde_value & 0xfffffffe00000) |
+                                    (vaddr & 0x1fffff))
+                collection.add(intel.CommentDescriptor, "Large page mapped\n")
 
-        if desc == "Prototype":
-            return self.ResolveProtoPTE(pte_value, virtual_address)[1]
+                collection.add(
+                    intel.PhysicalAddressDescriptor, address=physical_address)
 
-        # This is a prototype into a vad region.
-        elif desc == "Vad":
-            return self.ResolveProtoPTE(pte_value, virtual_address)[1]
+            # PDE is mapped in - just read the PTE.
+            else:
+                pte_addr = ((pde_value & 0xffffffffff000) |
+                            ((vaddr & 0x1ff000) >> 9))
+                pte_value = self.read_pte(pte_addr)
+                self._describe_pte(collection, pte_addr, pte_value, vaddr)
 
-        elif desc == "Pagefile" and self.pagefile_mapping:
+        # PDE is paged out into a valid pagefile address.
+        elif pde_value & self.soft_pagefilehigh_mask:
+            pde = self.session.profile._MMPTE()
+            pde.u.Long = pde_value
+
+            # This is the address in the pagefile where the PDE resides.
+            pagefile_address = (pde.u.Soft.PageFileHigh * 0x1000 +
+                                ((vaddr & 0x1ff000) >> 9))
+
+            collection.add(WindowsPagefileDescriptor,
+                           address=pagefile_address,
+                           pagefile_number=pde.u.Soft.PageFileLow.v())
+
+            # If we have the pagefile we can just read it now.
+            if self.pagefile_mapping:
+                pte_addr = pagefile_address + self.pagefile_mapping
+                pte_value = self.read_pte(pte_addr)
+
+                self._describe_pte(collection, pte_addr, pte_value, vaddr)
+
+        else:
+            collection.add(DemandZeroDescriptor)
+
+    def _describe_vad_pte(self, collection, pte_addr, pte_value, vaddr):
+        if not self.vad:
+            return
+
+        collection.add(intel.CommentDescriptor, "Consulting Vad: ")
+
+        vad_hit = self.vad.get_range(vaddr)
+        if vad_hit:
+            start, _, mmvad = vad_hit
+
+            # If the MMVAD has PTEs resolve those..
+            if "FirstPrototypePte" in mmvad.members:
+                pte = mmvad.FirstPrototypePte[(vaddr - start) >> 12]
+                collection.add(VadPteDescriptor,
+                               pte_value=pte_value, pte_addr=pte_addr,
+                               virtual_address=vaddr)
+
+                self._describe_proto_pte(
+                    collection, pte.obj_offset, pte.u.Long.v(), vaddr)
+
+                return
+
+            else:
+                collection.add(intel.CommentDescriptor,
+                               "Vad type {0}\n", mmvad.Tag)
+
+        # Virtual address does not exist in any VAD region.
+        collection.add(DemandZeroDescriptor)
+
+    def ResolveProtoPTE(self, pte_value, vaddr):
+        collection = intel.PhysicalAddressDescriptorCollector(self.session)
+        self._describe_proto_pte(collection, 0, pte_value, vaddr)
+
+        return collection.physical_address
+
+    def _describe_proto_pte(self, collection, pte_addr, pte_value, vaddr):
+        """Describe the analysis of the prototype PTE.
+
+        This essentially explains how we utilize the flow chart presented in [1]
+        Figure 3.
+
+        NOTE: pte_addr is given here in the kernel's Virtual Address Space since
+        prototype PTEs are always allocated from pool.
+        """
+        if pte_value & self.transition_valid_mask:
+            physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
+            collection.add(WindowsValidPTEDescriptor,
+                           pte_value=pte_value, pte_addr=self.vtop(pte_addr))
+
+            collection.add(intel.PhysicalAddressDescriptor,
+                           address=physical_address)
+
+        # File mapping subsection PTE.
+        elif pte_value & self.prototype_mask:
+            collection.add(WindowsSubsectionPTEDescriptor,
+                           pte_value=pte_value, pte_addr=pte_addr)
+
+        # PTE is paged out into a valid pagefile address.
+        elif pte_value & self.soft_pagefilehigh_mask:
             pte = self.session.profile._MMPTE()
             pte.u.Long = pte_value
 
-            return (pte.u.Soft.PageFileHigh * 0x1000 +
-                    self.pagefile_mapping + (virtual_address & 0xFFF))
+            # This is the address in the pagefle where the PTE resides.
+            pagefile_address = (pte.u.Soft.PageFileHigh * 0x1000 +
+                                (vaddr & 0xFFF))
+
+            collection.add(WindowsPTEDescriptor,
+                           pte_type="Soft", pte_value=pte_value,
+                           pte_addr=pte_addr)
+
+            collection.add(WindowsPagefileDescriptor,
+                           address=pagefile_address,
+                           pagefile_number=pte.u.Soft.PageFileLow.v())
+
+            # If we have the pagefile we can just read it now.
+            if self.pagefile_mapping:
+                physical_address = pagefile_address + self.pagefile_mapping
+                collection.add(
+                    intel.PhysicalAddressDescriptor, address=physical_address)
+
+        else:
+            collection.add(DemandZeroDescriptor)
+
+    def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
+        """Describe the initial analysis of the PTE.
+
+        This essentially explains how we utilize the flow chart presented in [1]
+        Figure 2.
+        """
+        if pte_value & self.transition_valid_mask:
+            physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
+            collection.add(WindowsValidPTEDescriptor,
+                           pte_value=pte_value, pte_addr=pte_addr)
+
+            collection.add(intel.PhysicalAddressDescriptor,
+                           address=physical_address)
+
+        # PTE Type is not known - we need to look it up in the vad. This case is
+        # triggered when the PTE ProtoAddress field is 0xffffffff - it means to
+        # consult the vad. An example PTE value is 0xffffffff00000420.
+        elif pte_value & self.prototype_mask:
+            if ((self.proto_protoaddress_mask & pte_value) >>
+                    self.proto_protoaddress_start in (0xffffffff0000,
+                                                      0xffffffff)):
+
+                collection.add(WindowsSoftwarePTEDescriptor,
+                               pte_value=pte_value, pte_addr=pte_addr)
+
+                self._describe_vad_pte(collection, pte_addr, pte_value, vaddr)
+
+            else:
+                collection.add(WindowsProtoTypePTEDescriptor,
+                               pte_value=pte_value, pte_addr=pte_addr)
+
+                # This PTE points at the prototype PTE in
+                # pte.ProtoAddress. NOTE: The prototype PTE address is specified
+                # in the kernel's address space since it is allocated from pool.
+                pte_addr = pte_value >> self.proto_protoaddress_start
+                pte_value = struct.unpack("<Q", self.read(pte_addr, 8))[0]
+
+                self._describe_proto_pte(collection, pte_addr, pte_value, vaddr)
+
+        # Case 2 of consult VAD: pte.u.Soft.PageFileHigh == 0.
+        elif pte_value & self.soft_pagefilehigh_mask == 0:
+            collection.add(WindowsSoftwarePTEDescriptor,
+                           pte_value=pte_value, pte_addr=pte_addr)
+
+            self._describe_vad_pte(collection, pte_addr, pte_value, vaddr)
+
+        # PTE is paged out into a valid pagefile address.
+        elif pte_value & self.soft_pagefilehigh_mask:
+            pte = self.session.profile._MMPTE()
+            pte.u.Long = pte_value
+
+            # This is the address in the pagefle where the PTE resides.
+            pagefile_address = (pte.u.Soft.PageFileHigh * 0x1000 +
+                                (vaddr & 0xFFF))
+
+            collection.add(WindowsPTEDescriptor,
+                           pte_type="Soft", pte_value=pte_value,
+                           pte_addr=pte_addr)
+
+            collection.add(WindowsPagefileDescriptor,
+                           address=pagefile_address,
+                           pagefile_number=pte.u.Soft.PageFileLow.v())
+
+            # If we have the pagefile we can just read it now.
+            if self.pagefile_mapping:
+                physical_address = pagefile_address + self.pagefile_mapping
+                collection.add(
+                    intel.PhysicalAddressDescriptor, address=physical_address)
+
+        # PTE is demand zero.
+        elif (pte_value >> 12) == 0:
+            collection.add(DemandZeroDescriptor)
+
+        else:
+            # Fallback
+            collection.add(intel.AddressTranslationDescriptor,
+                           object_name="pte", object_value=pte_value,
+                           object_address=pte_addr)
+
+            collection.add(intel.CommentDescriptor, "Error! Unknown PTE\n")
+
+    def _get_pte_addr(self, vaddr, pde_value):
+        if pde_value & self.transition_valid_mask:
+            return (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
+
+        if self.pagefile_mapping and pde_value & self.soft_pagefilehigh_mask:
+            pde = self.session.profile._MMPTE()
+            pde.u.Long = pde_value
+
+            # This is the address in the pagefle where the PDE resides.
+            pagefile_address = (pde.u.Soft.PageFileHigh * 0x1000 +
+                                ((vaddr & 0x1ff000) >> 9))
+
+            return pagefile_address + self.pagefile_mapping
 
 
 class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
                                 intel.IA32PagedMemoryPae):
     """A Windows specific IA32PagedMemoryPae."""
-
-    def vtop(self, vaddr):
-        '''Translates virtual addresses into physical offsets.
-
-        The function should return either None (no valid mapping) or the offset
-        in physical memory where the address maps.
-        '''
-        vaddr = int(vaddr)
-        try:
-            return self._tlb.Get(vaddr)
-        except KeyError:
-            pdpte = self.get_pdpte(vaddr)
-            if not pdpte & self.valid_mask:
-                return None
-
-            pde = self.get_pde(vaddr, pdpte)
-            if not pde & self.valid_mask:
-                # If PDE is not valid the page table does not exist
-                # yet. According to
-                # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
-                # slide 11 this is the same as PTE of zero - i.e. consult the
-                # VAD.
-                if not self._resolve_vads:
-                    return None
-
-                return self.get_phys_addr(vaddr, 0)
-
-            if self.page_size_flag(pde):
-                return self.get_two_meg_paddr(vaddr, pde)
-
-            pte = self.get_pte(vaddr, pde)
-            res = self.get_phys_addr(vaddr, pte)
-
-            self._tlb.Put(vaddr, res)
-            return res
 
 
 class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
@@ -393,51 +555,6 @@ class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
     Implements support for reading the pagefile if the base address space
     contains a pagefile.
     """
-
-    def vtop(self, vaddr):
-        '''Translates virtual addresses into physical offsets.
-
-        The function returns either None (no valid mapping) or the offset in
-        physical memory where the address maps.
-        '''
-        try:
-            return self._tlb.Get(vaddr)
-        except KeyError:
-            vaddr = long(vaddr)
-            pml4e = self.get_pml4e(vaddr)
-            if not pml4e & self.valid_mask:
-                # Add support for paged out PML4E
-                return None
-
-            pdpte = self.get_pdpte(vaddr, pml4e)
-            if not pdpte & self.valid_mask:
-                # Add support for paged out PDPTE
-                # Insert buffalo here!
-                return None
-
-            if self.page_size_flag(pdpte):
-                return self.get_one_gig_paddr(vaddr, pdpte)
-
-            pde = self.get_pde(vaddr, pdpte)
-            if not pde & self.valid_mask:
-                # If PDE is not valid the page table does not exist
-                # yet. According to
-                # http://i-web.i.u-tokyo.ac.jp/edu/training/ss/lecture/new-documents/Lectures/14-AdvVirtualMemory/AdvVirtualMemory.pdf
-                # slide 11 this is the same PTE of zero.
-                if not self._resolve_vads:
-                    return None
-
-                return self.get_phys_addr(vaddr, 0)
-
-            # Is this a 2 meg page?
-            if self.page_size_flag(pde):
-                return self.get_two_meg_paddr(vaddr, pde)
-
-            pte = self.get_pte(vaddr, pde)
-            res = self.get_phys_addr(vaddr, pte)
-
-            self._tlb.Put(vaddr, res)
-            return res
 
 
 class Pagefiles(common.WindowsCommandPlugin):

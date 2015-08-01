@@ -39,7 +39,6 @@ from Crypto.Cipher import ARC4
 
 from rekall import addrspace
 from rekall import obj
-from rekall import plugin
 
 from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
@@ -63,8 +62,9 @@ mimikatz_common_overlays = {
         'RawMax': lambda x: x.Buffer.dereference_as(
             'String', target_args=dict(length=x.MaximumLength)).v(),
     }],
-    '_LUID': [None,
-        {'Text': lambda x: '{:08x}:{:08x}'.format(x.HighPart, x.LowPart)}],
+    '_LUID': [None, {
+        'Text': lambda x: '{:08x}:{:08x}'.format(x.HighPart, x.LowPart)
+        }],
     '_SID': [None, {
         'IdentifierAuthority': [None, ['Enumeration', dict(
             choices={
@@ -103,14 +103,15 @@ class _SID(obj.Struct):
 class Lsasrv(pe_vtypes.BasicPEProfile):
     """A profile for lsasrv.dll"""
 
-    mimikatz_vtypes = ['_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
+    mimikatz_vtypes = [
+        '_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
         '_LSA_STRING', '_MSV1_0_PRIMARY_CREDENTIAL',
         '_KIWI_BCRYPT_HANDLE_KEY', '_KIWI_BCRYPT_KEY', '_KIWI_HARD_KEY',
         '_KIWI_MSV1_0_CREDENTIALS', '_KIWI_MSV1_0_PRIMARY_CREDENTIALS',
         '_KIWI_GENERIC_PRIMARY_CREDENTIAL',
         '_RPCE_CREDENTIAL_KEYCREDENTIAL', '_RPCE_COMMON_TYPE_HEADER',
         '_RPCE_PRIVATE_HEADER', '_MARSHALL_KEY',
-        '_KIWI_MASTERKEY_CACHE_ENTRY', '_FILETIME' ]
+        '_KIWI_MASTERKEY_CACHE_ENTRY', '_FILETIME']
 
     windows_vtypes = ['_SID', '_SID_IDENTIFIER_AUTHORITY', '_GUID']
 
@@ -136,15 +137,15 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
         kwargs = {}
         for name in cls.mimikatz_vtypes:
-            kwargs[name] =  mimikatz_profile.vtypes[name]
+            kwargs[name] = mimikatz_profile.vtypes[name]
 
         for name in cls.windows_vtypes:
-            kwargs[name] =  profile.session.profile.vtypes[name]
+            kwargs[name] = profile.session.profile.vtypes[name]
 
         profile.add_types(kwargs)
 
         profile.add_types({
-            'SIZED_DATA': [ lambda x: x.size + 4, {
+            'SIZED_DATA': [lambda x: x.size + 4, {
                 'size': [0, ['unsigned long', {}]],
                 'data': [4, ['String', dict(length=lambda x: x.size)]],
             }]
@@ -154,8 +155,10 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
         if version not in cls.mimikatz_msv_versioned:
             raise IOError('OS version not supported.')
 
-        profile.add_types({'MSV1_0_LIST' :
-            mimikatz_profile.vtypes[cls.mimikatz_msv_versioned[version]]})
+        profile.add_types({
+            'MSV1_0_LIST' : mimikatz_profile.vtypes[
+                cls.mimikatz_msv_versioned[version]]
+        })
 
         profile.add_classes(_SID=_SID)
 
@@ -187,12 +190,12 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
                     },
                 )]],
             }],
-            '_MSV1_0_PRIMARY_CREDENTIAL': [ None, {
+            '_MSV1_0_PRIMARY_CREDENTIAL': [None, {
                 'NtOwfPassword': [None, ['String', dict(length=16)]],
                 'LmOwfPassword': [None, ['String', dict(length=16)]],
                 'ShaOwPassword': [None, ['String', dict(length=20)]],
             }],
-            '_MARSHALL_KEY': [ None, {
+            '_MARSHALL_KEY': [None, {
                 'unkId': [None, ['Enumeration', dict(
                     target='unsigned long',
                     choices={
@@ -215,11 +218,11 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
                         'count': lambda x: x.unk0,
                         'target': '_MARSHALL_KEY'
                     }]],
-                    'key_data': [ lambda x: x.unk1.obj_end + x.key.obj_size,
-                        ['Array', {
+                    'key_data': [lambda x: x.unk1.obj_end + x.key.obj_size, [
+                        'Array', {
                             'count': lambda x: x.unk0,
                             'target': 'SIZED_DATA'
-                    }]],
+                        }]],
                 }
             ],
             '_KIWI_MASTERKEY_CACHE_ENTRY': [None, {
@@ -279,7 +282,7 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
             'g_pRandomKey', target='Pointer')
 
         self.rc4_key = rc4_key_ptr.dereference_as(
-           'String', target_args=dict(length=rc4_key_len, term=None)).v()
+            'String', target_args=dict(length=rc4_key_len, term=None)).v()
 
         desx_key_ptr = self.get_constant_object(
             'g_pDESXKey', target='Pointer')
@@ -315,7 +318,7 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
     def _msv_primary_credentials(self, data):
         vm = addrspace.BufferAddressSpace(data=data, session=self.session)
         cred_obj = self.Object('_MSV1_0_PRIMARY_CREDENTIAL',
-            profile=self, vm=vm)
+                               profile=self, vm=vm)
 
         # TODO: check NULL Pointer dereference with this VM.
         domain = ''
@@ -328,27 +331,27 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
         if cred_obj.isLmOwfPassword.v() == 1:
             yield (domain, user_name, 'LM',
-                cred_obj.LmOwfPassword.v().encode('hex'))
+                   cred_obj.LmOwfPassword.v().encode('hex'))
 
         if cred_obj.isNtOwfPassword.v() == 1:
             yield (domain, user_name, 'NTLM',
-                cred_obj.NtOwfPassword.v().encode('hex'))
+                   cred_obj.NtOwfPassword.v().encode('hex'))
 
         if cred_obj.isShaOwPassword.v() == 1:
             yield (domain, user_name, 'SHA1',
-                cred_obj.ShaOwPassword.v().encode('hex'))
+                   cred_obj.ShaOwPassword.v().encode('hex'))
 
     def _msv_rpce_credentials(self, data):
         vm = addrspace.BufferAddressSpace(data=data, session=self.session)
         cred_obj = self.Object('_RPCE_CREDENTIAL_KEYCREDENTIAL',
-            profile=self, vm=vm)
+                               profile=self, vm=vm)
 
         for i in range(0, cred_obj.unk0):
             yield (cred_obj.key[i].unkId,
-                cred_obj.key_data[i].data.v().encode('hex'))
+                   cred_obj.key_data[i].data.v().encode('hex'))
 
     def logons(self, lsass_logons):
-        for luid,lsass_logon in lsass_logons.iteritems():
+        for luid, lsass_logon in lsass_logons.iteritems():
             for cred in lsass_logon.Credentials.walk_list('next'):
                 for primary_cred in cred.PrimaryCredentials.walk_list('next'):
 
@@ -360,15 +363,15 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
 
                     if cur_cred_type == u'Primary':
                         for (domain, user_name, secret_type,
-                            secret) in self._msv_primary_credentials(dec_cred):
+                             secret) in self._msv_primary_credentials(dec_cred):
                             yield (luid, cur_cred_type, domain, user_name,
-                                secret_type, secret)
+                                   secret_type, secret)
 
                     elif cur_cred_type == u'CredentialKeys':
                         for (secret_type,
-                            secret) in self._msv_rpce_credentials(dec_cred):
+                             secret) in self._msv_rpce_credentials(dec_cred):
                             yield (luid, cur_cred_type, '', '', secret_type,
-                                secret)
+                                   secret)
                     else:
                         pass
 
@@ -377,14 +380,15 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
             'g_MasterKeyCacheList', target='_LIST_ENTRY')
         for entry in keys.list_of_type('_KIWI_MASTERKEY_CACHE_ENTRY', 'List'):
             yield (entry.LogonId.Text, '', # TODO: add entry.KeyUid,
-                '', '', 'masterkey',
-                self.decrypt(entry.key.v()).encode('hex'))
+                   '', '', 'masterkey',
+                   self.decrypt(entry.key.v()).encode('hex'))
 
 
 class Wdigest(pe_vtypes.BasicPEProfile):
     """A profile for wdigest.dll"""
 
-    mimikatz_vtypes = ['_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
+    mimikatz_vtypes = [
+        '_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
         '_KIWI_WDIGEST_LIST_ENTRY', '_KIWI_GENERIC_PRIMARY_CREDENTIAL',
         '_KIWI_HARD_KEY']
 
@@ -397,7 +401,7 @@ class Wdigest(pe_vtypes.BasicPEProfile):
 
         kwargs = {}
         for name in cls.mimikatz_vtypes:
-            kwargs[name] =  mimikatz_profile.vtypes[name]
+            kwargs[name] = mimikatz_profile.vtypes[name]
 
         profile.add_types(kwargs)
 
@@ -411,7 +415,7 @@ class Wdigest(pe_vtypes.BasicPEProfile):
             '_KIWI_WDIGEST_LIST_ENTRY': [None, {
                 'List': [0, ['_LIST_ENTRY']],
                 'Cred': [lambda x: (x.LocallyUniqueIdentifier.obj_end +
-                            kiwi_cred_offset),
+                                    kiwi_cred_offset),
                          ['_KIWI_GENERIC_PRIMARY_CREDENTIAL']]
             }],
             '_KIWI_HARD_KEY': [None, {
@@ -431,7 +435,8 @@ class Wdigest(pe_vtypes.BasicPEProfile):
 class Livessp(pe_vtypes.BasicPEProfile):
     """A profile for livessp.dll"""
 
-    mimikatz_vtypes = ['_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
+    mimikatz_vtypes = [
+        '_LIST_ENTRY', '_LSA_UNICODE_STRING', '_LUID',
         '_KIWI_LIVESSP_LIST_ENTRY', '_KIWI_LIVESSP_PRIMARY_CREDENTIAL',
         '_KIWI_GENERIC_PRIMARY_CREDENTIAL']
 
@@ -444,7 +449,7 @@ class Livessp(pe_vtypes.BasicPEProfile):
 
         kwargs = {}
         for name in cls.mimikatz_vtypes:
-            kwargs[name] =  mimikatz_profile.vtypes[name]
+            kwargs[name] = mimikatz_profile.vtypes[name]
 
         profile.add_types(kwargs)
 
@@ -461,11 +466,11 @@ class Livessp(pe_vtypes.BasicPEProfile):
             'LiveGlobalLogonSessionList', target='_LIST_ENTRY')
         for entry in logons.list_of_type('_KIWI_LIVESSP_LIST_ENTRY', 'List'):
             yield (entry.LocallyUniqueIdentifier.Text,
-                '',
-                entry.suppCreds.dereference().credentials.Domaine.Value,
-                entry.suppCreds.dereference().credentials.UserName.Value,
-                'password',
-                entry.suppCreds.dereference().credentials.Password)
+                   '',
+                   entry.suppCreds.dereference().credentials.Domaine.Value,
+                   entry.suppCreds.dereference().credentials.UserName.Value,
+                   'password',
+                   entry.suppCreds.dereference().credentials.Password)
 
 
 class Mimikatz(common.WindowsCommandPlugin):
@@ -489,16 +494,16 @@ class Mimikatz(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([
-            dict(name='LUID', width=5),
-            dict(name='Type', width=7),
-            dict(name='Session', width=2),
-            dict(name='SID', width=6),
+            dict(name='LUID', width=20),
+            dict(name='Type', width=16),
+            dict(name='Sess', width=2),
+            dict(name='SID', width=20),
             dict(name='Module', width=7),
             dict(name='Info', width=7),
-            dict(name='Domain', width=8),
-            dict(name='User', width=8),
-            dict(name='SType', width=5),
-            dict(name='Secret', width=8)])
+            dict(name='Domain', width=16),
+            dict(name='User', width=16),
+            dict(name='SType', width=9),
+            dict(name='Secret', width=32)])
 
         cc = self.session.plugins.cc()
         # Switch to the lsass process.
@@ -513,7 +518,7 @@ class Mimikatz(common.WindowsCommandPlugin):
             lsass_logons = lsasrv.get_lsass_logons()
 
             for (luid, info, domain, user_name, secret_type,
-                secret) in  lsasrv.logons(lsass_logons):
+                 secret) in  lsasrv.logons(lsass_logons):
 
                 lsass_entry = lsass_logons.get(luid, obj.NoneObject())
                 # TODO: add timestamp field?
@@ -560,7 +565,7 @@ class Mimikatz(common.WindowsCommandPlugin):
                 logging.warning('livessp not initializated, skipping it.')
             else:
                 for (luid, info, domain, user_name, secret_type,
-                    enc_secret) in livessp.logons():
+                     enc_secret) in livessp.logons():
                     lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
                     row = (luid,
@@ -577,7 +582,7 @@ class Mimikatz(common.WindowsCommandPlugin):
                     renderer.table_row(*row)
 
             for (luid, info, domain, user_name, secret_type,
-                secret) in lsasrv.master_keys():
+                 secret) in lsasrv.master_keys():
                 lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
                 row = (luid,

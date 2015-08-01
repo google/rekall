@@ -30,6 +30,7 @@ import sys
 
 from rekall import args
 from rekall import config
+from rekall import plugin
 from rekall import session
 
 # Import and register the core plugins
@@ -38,9 +39,31 @@ from rekall import plugins  # pylint: disable=unused-import
 from rekall.ui import text
 
 
-config.DeclareOption(
-    "-r", "--run", default=None,
-    help="Run this script before dropping into the interactive shell.")
+class Run(plugin.Command):
+    """A plugin which runs its argument (using eval).
+
+    Note: This plugin is only defined and available when using the main entry
+    point. It is not available when Rekall is used as a library since it allows
+    arbitrary code execution.
+    """
+
+    name = "run"
+
+    @classmethod
+    def args(cls, parser):
+        super(Run, cls).args(parser)
+        parser.add_argument("script", default="print 'hello!'",
+                            help="The script to evaluate")
+
+        parser.add_argument("--run", default=None,
+                            help="A file name to run.")
+
+    def __init__(self, script, run=None, **kwargs):
+        super(Run, self).__init__(**kwargs)
+        if run is not None:
+            script = open(run).read()
+
+        exec script in self.session.locals
 
 
 def main(argv=None):
@@ -52,12 +75,6 @@ def main(argv=None):
     with text_renderer.start():
         plugin_cls, flags = args.parse_args(argv=argv,
                                             user_session=user_session)
-
-        # Determine if an external script needs to be run first.
-        if getattr(flags, "run", None):
-            # Export the session object to the external script.
-            user_session.locals["session"] = user_session
-            exec open(flags.run) in user_session.locals
 
     try:
         # Run the plugin with plugin specific args.

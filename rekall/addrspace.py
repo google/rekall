@@ -230,7 +230,7 @@ class BaseAddressSpace(object):
 
     def write(self, addr, buf):
         """Write to the address space, if writable.
-        
+
         The default behavior is to delegate the write to the base address space.
         If an address space has no base then this function will throw an
         IOError. Address spaces that actually implement writing should override.
@@ -476,8 +476,10 @@ class RunBasedAddressSpace(PagedReader):
         self.runs = utils.SortedCollection(key=lambda x: x[0])
 
         # Our get_available_addresses() refers to the base address space we
-        # overlay on.
-        self.phys_base = weakref.proxy(self)
+        # overlay on. RunBasedAddressSpace is simply a translation layer on top
+        # of the base address space.
+        if self.base is not None:
+            self.phys_base = weakref.proxy(self.base)
 
     def _read_chunk(self, addr, length):
         """Read from addr as much as possible up to a length of length."""

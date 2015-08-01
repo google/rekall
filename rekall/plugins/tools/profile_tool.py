@@ -239,7 +239,7 @@ class LinuxConverter(ProfileConverter):
             ko_file = self.SelectFile(r"\.ko$")
             if ko_file:
                 self.session.logging.info(
-                  "Converting Linux profile with ko module.")
+                    "Converting Linux profile with ko module.")
                 parser = dwarfparser.DWARFParser(StringIO.StringIO(ko_file),
                                                  session=self.session)
 
@@ -250,7 +250,7 @@ class LinuxConverter(ProfileConverter):
             dwarf_file = self.SelectFile(r"\.dwarf$")
             if dwarf_file:
                 self.session.logging.info(
-                  "Converting Linux profile with dwarf dump output")
+                    "Converting Linux profile with dwarf dump output")
                 parser = dwarfdump.DWARFParser()
                 for line in dwarf_file.splitlines():
                     parser.feed_line(line)
@@ -712,10 +712,14 @@ class BuildProfileLocally(plugin.Command):
             help="The guid of the module.",
             required=False)
 
-    def __init__(self, module_name=None, guid=None, **kwargs):
+        parser.add_argument("--dumpfile",
+                            help="If specified also dump the json file here.")
+
+    def __init__(self, module_name=None, guid=None, dumpfile=None, **kwargs):
         super(BuildProfileLocally, self).__init__(**kwargs)
         self.module_name = module_name
         self.guid = guid
+        self.dumpfile = dumpfile
 
     def _fetch_and_parse(self, module_name, guid):
         """Fetch the profile from the symbol server.
@@ -745,7 +749,7 @@ class BuildProfileLocally(plugin.Command):
 
             return parse_pdb.parse_pdb()
 
-    def fetch_and_parse(self, module_name=None, guid=None):
+    def fetch_and_parse(self, module_name=None, guid=None, renderer=None):
         if module_name is None:
             module_name = self.module_name
 
@@ -767,6 +771,11 @@ class BuildProfileLocally(plugin.Command):
         repository = self.session.repository_managers[0][1]
         if module_name != "nt":
             data = self._fetch_and_parse(module_name, guid)
+
+            if self.dumpfile:
+                with renderer.open(filename=self.dumpfile, mode="wb") as fd:
+                    fd.write(utils.PPrint(data))
+
             return repository.StoreData(profile_name, data)
 
         for module_name in common.KERNEL_NAMES:
@@ -787,4 +796,13 @@ class BuildProfileLocally(plugin.Command):
         raise IOError("Profile not found")
 
     def render(self, renderer):
-        self.fetch_and_parse(self.module_name, self.guid)
+        self.fetch_and_parse(self.module_name, self.guid, renderer=renderer)
+
+
+class TestBuildProfileLocally(testlib.HashChecker):
+    PARAMETERS = dict(
+        commandline=("build_local_profile %(pdb_name)s %(guid)s "
+                     "--dumpfile %(tempdir)s/output"),
+        pdb_name="ntkrnlpa",
+        guid="BD8F451F3E754ED8A34B50560CEB08E31"
+    )

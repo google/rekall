@@ -94,6 +94,17 @@ class MIPS32PagedMemory(intel.IA32PagedMemory):
         '''
         return pte << 1
 
+    def get_phys_addr(self, vaddr, pte_value):
+        '''
+        Return the offset in a 4KB memory page from the given virtual
+        address and Page Table Entry.
+
+        Bits 31:12 are from the PTE
+        Bits 11:0 are from the original linear address
+        '''
+        if pte_value & self.valid_mask:
+            return (self.pte_paddr(pte_value) & 0xfffff000) | (vaddr & 0xfff)
+
     def get_available_addresses(self, start=0):
         """Enumerate all valid memory ranges.
 

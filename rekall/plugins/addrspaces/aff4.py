@@ -192,14 +192,16 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
     def describe(self, address):
         try:
-            virt_addr, file_address, _, stream_as = self.runs.find_le(address)
+            virt_addr, file_address, _, stream_as = self.runs.find_le(
+                address)
+
             # For normal physical memory addresses just be concise.
             if stream_as == self.image:
                 return u"%#x" % address
 
             # For other mapped streams, just say which ones they are.
             return u"%#x @ %s (Mapped %#x)" % (
-                address - (virt_addr - address + file_address),
+                address - virt_addr + file_address,
                 stream_as, address)
 
         except ValueError:

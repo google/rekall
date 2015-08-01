@@ -46,7 +46,7 @@ def run_git_describe():
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
         p.stderr.close()
         return p.stdout.readlines()[0]
-    except OSError:
+    except (OSError, IndexError):
         return None
 
 

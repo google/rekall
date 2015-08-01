@@ -160,8 +160,18 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
 
         for subsection in ca.FirstSubsection.walk_list("NextSubsection"):
             for i, pte in enumerate(subsection.SubsectionBase):
-                phys_address = self.kernel_address_space.ResolveProtoPTE(
-                    pte.u.Long.v(), 0)[1]
+                pte_value = pte.u.Long.v()
+                try:
+                    phys_address = self.kernel_address_space.ResolveProtoPTE(
+                        pte_value, 0)
+                except AttributeError:
+                    # For address spaces which do not support prototype
+                    # (currently non PAE 32 bits) just support the absolute
+                    # basic - valid PTE only.
+                    if pte & 1:
+                        phys_address = pte_value & 0xffffffffff000
+                    else:
+                        continue
 
                 if phys_address == None:
                     continue
@@ -178,7 +188,7 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                 if file_sectors_mapped_in_page < 0:
                     continue
 
-                # This should not happen by it does if the data is corrupt.
+                # This should not happen but it does if the data is corrupt.
                 if phys_address > self.physical_address_space.end():
                     continue
 

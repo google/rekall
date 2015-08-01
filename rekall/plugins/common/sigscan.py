@@ -23,6 +23,7 @@ import re
 
 from rekall import plugin
 from rekall import scan
+from rekall import testlib
 
 
 class SignatureScannerCheck(scan.ScannerCheck):
@@ -209,3 +210,26 @@ class SigScanMixIn(object):
             renderer, "Hit in task %s (%s):\n" % (task.name, task.pid),
             task.get_process_address_space(),
             end=self.session.GetParameter("highest_usermode_address"))
+
+
+class TestSigScanPhysical(testlib.SimpleTestCase):
+    """Runs sigscan against physical memory."""
+
+    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_physical",
+                      signature="")
+
+
+class TestSigScanKernel(testlib.SimpleTestCase):
+    """Runs sigscan against the kernel."""
+
+    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_kernel",
+                      signature="")
+
+
+class TestSigScanProcess(testlib.SimpleTestCase):
+    """Runs sigscan against processes."""
+
+    PARAMETERS = dict(
+        commandline="sigscan %(signature)s --proc_regex %(proc_regex)s",
+        signature="",
+        proc_regex=".")

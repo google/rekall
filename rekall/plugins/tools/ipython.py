@@ -63,14 +63,14 @@ def NativePythonSupport(user_session):
 
     # Try to enable tab completion
     try:
-        import rlcompleter, readline  # pylint: disable=W0612
+        import rlcompleter, readline  # pylint: disable=unused-variable
         readline.parse_and_bind("tab: complete")
     except ImportError:
         pass
 
     # Prepare the session for running within the native python interpreter.
     user_session.PrepareLocalNamespace()
-    code.interact(banner=constants.BANNER, local=user_session.locals)  # pylint: disable=protected-access
+    code.interact(banner=constants.BANNER, local=user_session.locals)
 
 
 class BaseSessionCommand(plugin.Command):

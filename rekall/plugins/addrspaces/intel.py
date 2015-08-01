@@ -1,10 +1,9 @@
 # Rekall Memory Forensics
 #
-# Copyright 2013 Google Inc. All Rights Reserved.
+# Copyright 2015 Google Inc. All Rights Reserved.
 
 # Authors:
-# {npetroni,awalters}@4tphi.net (Nick Petroni and AAron Walters)
-# Jesse Kornblum
+# Michael Cohen <scudette@google.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +20,57 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-""" This is Jesse Kornblum's patch to clean up the standard AS's.
+"""Implement the base translating address spaces.
+
+This is a complete rewrite of the previous translating address spaces
+implemented in Rekall. The goals are:
+
+1) To make a system that is provable and traceable - i.e. It should be possible
+   to trace the address translation process step by step as it is performed by
+   Rekall so we can verify how it is implemented.
+
+2) The system must be very fast at the same time. Address translation can be an
+   expensive operation so we need to ensure we are very quick.
+
+3) The system must be extensible and modifiable. Address translation is a
+   complex algorithm and varies a lot between operating systems and
+   architectures. Therefore this implementation is generic and tries to
+   encapsulate all the nuances of address translation in the OS specific
+   implementation itself.
+
+How does it work?
+-----------------
+
+There are a few main entry points into the translating Address Spaces:
+
+1) vtop(): (Virtual to Physical) This method accepts a virtual address and
+   translates it to the physical address in the base address space. This is the
+   workhorse method. It is designed to be very fast but does not give too much
+   information about how the translation was performed.
+
+2) describe_vtop(): This is the describing sister method of vtop(). It returns a
+   list of AddressTranslationDescriptor() objects. Each of these describes a
+   specific step in the translation process. If one was to render each step, the
+   output outlines exactly what happened in each step and how the address is
+   derived. If the address space translation process succeeds the last
+   descriptor will be a PhysicalAddressDescriptor() instance which describes the
+   final physical address.
+
+3) get_available_addresses(): This method generates tuples of (virtual address,
+   physical address, length) which encapsulate each region available in the
+   virtual address space. NOTE: the physical address returned here can be read
+   from the phys_base member of this address space. This method is important for
+   scanning over the sparse virtual address space. Without this we would be
+   unable to scan the very large (and very sparse) 64 bit address spaces.
+
+The vtop() method and the describe_vtop() method are very similar since they
+implement the same algorithms. However, we do not want to implement the same
+thing twice because that leads to maintenance problems and subtle
+bugs. Therefore vtop() is simply a wrapper around describe_vtop(). To achieve
+the required performance vtop() simply looks for the PhysicalAddressDescriptor()
+and returns it. This is essentially a noop for any of the other descriptors and
+therefore maintains the same speed benefits.
+
 """
 import struct
 
@@ -37,8 +86,99 @@ PAGE_SHIFT = 12
 PAGE_MASK = ~ 0xFFF
 
 
+class AddressTranslationDescriptor(object):
+    """A descriptor of a step in the translation process.
+
+    This is a class because there may be OS specific steps in the address
+    translation.
+    """
+    def __init__(self, object_name=None, object_value=None, object_address=None,
+                 session=None):
+        self.object_name = object_name
+        self.object_value = object_value
+        self.object_address = object_address
+        self.session = session
+
+    def render(self, renderer):
+        """Render this step."""
+        if self.object_address is not None:
+            # Properly format physical addresses.
+            renderer.format(
+                "{0}@ {1} = {2:addr}\n",
+                self.object_name,
+                self.session.physical_address_space.describe(
+                    self.object_address),
+                self.object_value or 0)
+        elif self.object_value:
+            renderer.format("{0} {1}\n",
+                            self.object_name,
+                            self.session.physical_address_space.describe(
+                                self.object_value))
+        else:
+            renderer.format("{0}\n", self.object_name)
+
+
+class CommentDescriptor(object):
+    def __init__(self, comment, *args, **kwargs):
+        self.session = kwargs.pop("session", None)
+        self.comment = comment
+        self.args = args
+
+    def render(self, renderer):
+        renderer.format(self.comment, *self.args)
+
+
+class InvalidAddress(CommentDescriptor):
+    """Mark an invalid address.
+
+    This should be the last descriptor in the collection sequence.
+    """
+
+
+class DescriptorCollection(object):
+    def __init__(self, session):
+        self.session = session
+        self.descriptors = []
+
+    def add(self, descriptor_cls, *args, **kwargs):
+        self.descriptors.append((descriptor_cls, args, kwargs))
+
+    def __iter__(self):
+        for cls, args, kwargs in self.descriptors:
+            kwargs["session"] = self.session
+            yield cls(*args, **kwargs)
+
+
+class PhysicalAddressDescriptorCollector(DescriptorCollection):
+    """A descriptor collector which only cares about PhysicalAddressDescriptor.
+
+    This allows us to reuse all the code in describing the address space
+    resolution and cheaply implement the standard vtop() method.
+    """
+    physical_address = None
+
+    def add(self, descriptor_cls, *_, **kwargs):
+        if descriptor_cls is PhysicalAddressDescriptor:
+            address = kwargs.pop("address")
+            self.physical_address = address
+
+
+class PhysicalAddressDescriptor(AddressTranslationDescriptor):
+
+    """A descriptor to mark the final physical address resolution."""
+
+    def __init__(self, address=0, session=None):
+        super(PhysicalAddressDescriptor, self).__init__(session=session)
+        self.address = address
+
+    def render(self, renderer):
+        renderer.format(
+            "Physical Address {0}\n",
+            self.session.physical_address_space.describe(self.address))
+
+
 class IA32PagedMemory(addrspace.PagedReader):
-    """ Standard x86 32 bit non PAE address space.
+    """Standard x86 32 bit non PAE address space.
 
     Provides an address space for IA32 paged memory, aka the x86
     architecture, without Physical Address Extensions (PAE). Allows
@@ -55,9 +195,13 @@ class IA32PagedMemory(addrspace.PagedReader):
     Similar information is also available from Advanced Micro Devices (AMD)
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
 
+    This address space implements paging as described in section "4.3 32-BIT
+    PAGING" of the above book.
+
     This is simplified from previous versions of rekall, by removing caching
     and automated DTB searching (which is now performed by specific plugins in
     an OS specific way).
+
     """
     order = 70
 
@@ -93,121 +237,32 @@ class IA32PagedMemory(addrspace.PagedReader):
 
         self._cache = utils.FastStore(100)
 
-    def page_access_flag(self, entry):
-        '''
-        Returns the user/supervisor bit of the entry.
-        '''
-        return entry & (1 << 2)
+        # Some important masks we can use.
 
-    def page_size_flag(self, entry):
-        '''
-        Returns whether or not the 'PS' (Page Size) flag is on
-        in the given entry
-        '''
-        return entry & (1 << 7)
-
-    def pde_index(self, vaddr):
-        '''
-        Returns the Page Directory Entry Index number from the given
-        virtual address. The index number is in bits 31:22.
-        '''
-        return vaddr >> 22
-
-    def get_pde(self, vaddr):
-        '''
-        Return the Page Directory Entry for the given virtual address.
-
-        Bits 31:12 are from CR3
-        Bits 11:2 are bits 31:22 of the linear address
-        Bits 1:0 are 0.
-        '''
-        pde_addr = (self.dtb & 0xfffff000) | ((vaddr & 0xffc00000) >> 20)
-        return self.NormalizePDEValue(self.read_long_phys(pde_addr))
-
-    def NormalizePDEValue(self, pde_value):
-        """A hook for OS specific address spaces.
-
-        Some OSs can mark PDEs as invalid. This hook allows the OS specific code
-        to deal with this and recover the PTE.
-        """
-        return pde_value
-
-    def pte_paddr(self, pte):
-        '''
-        Return the physical address for the given PTE.
-        This should return:
-           (pte >> pfn_shift) << page_shift
-        '''
-        return pte
-
-    def get_pte(self, vaddr, pde_value):
-        '''
-        Return the Page Table Entry for the given virtual address and
-        Page Directory Entry.
-
-        Bits 31:12 are from the PDE
-        Bits 11:2 are bits 21:12 of the linear address
-        Bits 1:0 are 0
-        '''
-        pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x3ff000) >> 10)
-        return self.read_long_phys(pte_addr)
-
-    def get_phys_addr(self, vaddr, pte_value):
-        '''
-        Return the offset in a 4KB memory page from the given virtual
-        address and Page Table Entry.
-
-        Bits 31:12 are from the PTE
-        Bits 11:0 are from the original linear address
-        '''
-        if pte_value & self.valid_mask:
-            return (self.pte_paddr(pte_value) & 0xfffff000) | (vaddr & 0xfff)
-
-    def get_four_meg_paddr(self, vaddr, pde_value):
-        '''
-        Bits 31:22 are bits 31:22 of the PDE
-        Bits 21:0 are from the original linear address
-        '''
-        return (pde_value & 0xffc00000) | (vaddr & 0x3fffff)
-
-    def vaddr_access(self, vaddr):
-        """Is the access bit set on the page for the vaddr?"""
-        pde_value = self.get_pde(vaddr)
-        if not pde_value & self.valid_mask:
-            return None
-
-        pte_value = self.get_pte(vaddr, pde_value)
-        if not pte_value & self.valid_mask:
-            return None
-
-        return (self.page_access_flag(pte_value) and
-                self.page_access_flag(pde_value))
+        # Is the pagesize flags on?
+        self.page_size_mask = (1 << 7)
 
     def vtop(self, vaddr):
-        '''
-        Translates virtual addresses into physical offsets.
+        """Translates virtual addresses into physical offsets.
+
         The function should return either None (no valid mapping)
         or the offset in physical memory where the address maps.
-        '''
+
+        This function is simply a wrapper around describe_vtop() which does all
+        the hard work. You probably never need to override it.
+        """
+        vaddr = int(vaddr)
+
         try:
             return self._tlb.Get(vaddr)
         except KeyError:
-            pde_value = self.get_pde(vaddr)
-            if not pde_value & self.valid_mask:
-                return None
+            collection = self.describe_vtop(
+                vaddr, PhysicalAddressDescriptorCollector(self.session))
 
-            if self.page_size_flag(pde_value):
-                return self.get_four_meg_paddr(vaddr, pde_value)
+            self._tlb.Put(vaddr, collection.physical_address)
+            return collection.physical_address
 
-            pte_value = self.get_pte(vaddr, pde_value)
-            if not pte_value & self.valid_mask:
-                return None
-            res = self.get_phys_addr(vaddr, pte_value)
-
-            self._tlb.Put(vaddr, res)
-            return res
-
-    def describe_vtop(self, vaddr):
+    def describe_vtop(self, vaddr, collection=None):
         """A generator of descriptive statements about stages in translation.
 
         While the regular vtop is called very frequently and therefore must be
@@ -215,38 +270,66 @@ class IA32PagedMemory(addrspace.PagedReader):
         detail. We therefore emit data about each step of the way - potentially
         re-implementing the vtop() method above, but yielding intermediate
         results.
+
+        Args:
+          vaddr: The address to translate.
+          collection: An instance of DescriptorCollection() which will receive
+            the address descriptors. If not provided we create a new collection.
+
+        Returns
+          A list of AddressTranslationDescriptor() instances.
+
         """
+        if collection is None:
+            collection = DescriptorCollection(self.session)
+
+        # Bits 31:12 are from CR3.
+        # Bits 11:2 are bits 31:22 of the linear address.
         pde_addr = ((self.dtb & 0xfffff000) |
                     ((vaddr & 0xffc00000) >> 20))
-
-        pde_value = self.read_long_phys(pde_addr)
-        yield "pde", pde_value, pde_addr
+        pde_value = self.read_pte(pde_addr)
+        collection.add(AddressTranslationDescriptor,
+                       object_name="pde", object_value=pde_value,
+                       object_address=pde_addr)
 
         if not pde_value & self.valid_mask:
-            yield "Invalid PDE", None, None
-            return
+            collection.add(InvalidAddress, "Invalid PDE")
+            return collection
 
-        if self.page_size_flag(pde_value):
-            yield "Large page mapped", self.get_four_meg_paddr(
-                vaddr, pde_value), None
-            return
+        # Large page PDE.
+        if pde_value & self.page_size_mask:
+            # Bits 31:22 are bits 31:22 of the PDE
+            # Bits 21:0 are from the original linear address
+            physical_address = (pde_value & 0xffc00000) | (vaddr & 0x3fffff)
+            collection.add(CommentDescriptor, "Large page mapped")
+            collection.add(PhysicalAddressDescriptor, address=physical_address)
 
+            return collection
+
+        # Bits 31:12 are from the PDE
+        # Bits 11:2 are bits 21:12 of the linear address
         pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x3ff000) >> 10)
-        pte_value = self.read_long_phys(pte_addr)
-        yield "pte", pte_value, pte_addr
+        pte_value = self.read_pte(pte_addr)
+        self._describe_pte(collection, pte_addr, pte_value, vaddr)
 
-        phys_addr = self.get_phys_addr(vaddr, pte_value)
-        if phys_addr is None:
-            yield "Invalid PTE", None, None
-            return
+    def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
+        collection.add(AddressTranslationDescriptor,
+                       object_name="pte", object_value=pte_value,
+                       object_address=pte_addr)
 
-        yield ("PTE mapped", phys_addr, pte_addr)
+        if pte_value & self.valid_mask:
+            # Bits 31:12 are from the PTE
+            # Bits 11:0 are from the original linear address
+            phys_addr = ((self.pte_paddr(pte_value) & 0xfffff000) |
+                         (vaddr & 0xfff))
 
-        yield ("Physical Address", self.get_phys_addr(
-            vaddr, pte_value), None)
+            collection.add(PhysicalAddressDescriptor, address=phys_addr)
+        else:
+            collection.add(InvalidAddress, "Invalid PTE")
 
-    def read_long_phys(self, addr):
+        return collection
 
+    def read_pte(self, addr):
         """Read an unsigned 32-bit integer from physical memory.
 
         Note this always succeeds - reads outside mapped addresses in the image
@@ -271,13 +354,16 @@ class IA32PagedMemory(addrspace.PagedReader):
             if start > next_vaddr:
                 continue
 
-            pde_value = self.get_pde(vaddr)
+            pde_addr = ((self.pte_value & 0xfffff000) |
+                        (vaddr & 0xfff))
+            pde_value = self.read_pte(pde_addr)
             if not pde_value & self.valid_mask:
                 continue
 
-            if self.page_size_flag(pde_value):
+            # PDE is for a large page.
+            if pde_value & self.page_size_mask:
                 yield (vaddr,
-                       self.get_four_meg_paddr(vaddr, pde_value),
+                       (pde_value & 0xffc00000) | (vaddr & 0x3fffff),
                        0x400000)
                 continue
 
@@ -301,7 +387,7 @@ class IA32PagedMemory(addrspace.PagedReader):
 
                 if pte_value & self.valid_mask:
                     yield (vaddr,
-                           self.get_phys_addr(vaddr, pte_value),
+                           (pte_value & 0xfffff000) | (vaddr & 0xfff),
                            0x1000)
 
     def __str__(self):
@@ -316,7 +402,7 @@ class IA32PagedMemory(addrspace.PagedReader):
 
 
 class IA32PagedMemoryPae(IA32PagedMemory):
-    """ Standard x86 32 bit PAE address space.
+    """Standard x86 32 bit PAE address space.
 
     Provides an address space for IA32 paged memory, aka the x86
     architecture, with Physical Address Extensions (PAE) enabled. Allows
@@ -328,142 +414,81 @@ class IA32PagedMemoryPae(IA32PagedMemory):
     for free at http://www.intel.com/products/processor/manuals/index.htm.
     Similar information is also available from Advanced Micro Devices (AMD)
     at http://support.amd.com/us/Processor_TechDocs/24593.pdf.
+
+    This implements the translation described in Section "4.4.2 Linear-Address
+    Translation with PAE Paging".
+
     """
     order = 80
 
-    def pdpte_index(self, vaddr):
-        '''
-        Compute the Page Directory Pointer Table index using the
-        virtual address.
+    def describe_vtop(self, vaddr, collection=None):
+        """Explain how a specific address was translated.
 
-        The index comes from bits 31:30 of the original linear address.
-        '''
-        return vaddr >> 30
+        Returns:
+          a list of AddressTranslationDescriptor() instances.
+        """
+        if collection is None:
+            collection = DescriptorCollection(self.session)
 
-    def get_pdpte(self, vaddr):
-        '''
-        Return the Page Directory Pointer Table Entry for the given
-        virtual address.
+        # Bits 31:5 come from CR3
+        # Bits 4:3 come from bits 31:30 of the original linear address
+        pdpte_addr = ((self.dtb & 0xffffffe0) |
+                      ((vaddr & 0xC0000000) >> 27))
+        pdpte_value = self.read_pte(pdpte_addr)
 
-        Bits 31:5 come from CR3
-        Bits 4:3 come from bits 31:30 of the original linear address
-        Bits 2:0 are all 0
-        '''
-        pdpte_addr = (self.dtb & 0xffffffe0) | ((vaddr & 0xc0000000) >> 27)
-        return self.read_long_long_phys(pdpte_addr)
-
-    def get_pde(self, vaddr, pdpte):
-        '''
-        Return the Page Directory Entry for the given virtual address
-        and Page Directory Pointer Table Entry.
-
-        Bits 51:12 are from the PDPTE
-        Bits 11:3 are bits 29:21 of the linear address
-        Bits 2:0 are 0
-        '''
-        pde_addr = (pdpte & 0xffffffffff000) | ((vaddr & 0x3fe00000) >> 18)
-        return self.NormalizePDEValue(self.read_long_long_phys(pde_addr))
-
-    def get_two_meg_paddr(self, vaddr, pde):
-        '''
-        Return the offset in a 2MB memory page from the given virtual
-        address and Page Directory Entry.
-
-        Bits 51:21 are from the PDE
-        Bits 20:0 are from the original linear address
-        '''
-        return (pde & 0xfffffffe00000) | (vaddr & 0x1fffff)
-
-    def get_pte(self, vaddr, pde):
-        '''
-        Return the Page Table Entry for the given virtual address
-        and Page Directory Entry.
-
-        Bits 51:12 are from the PDE
-        Bits 11:3 are bits 20:12 of the original linear address
-        Bits 2:0 are 0
-        '''
-        pte_addr = (pde & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
-        return self.read_long_long_phys(pte_addr)
-
-    def get_phys_addr(self, vaddr, pte):
-        '''
-        Return the offset in a 4KB memory page from the given virtual
-        address and Page Table Entry.
-
-        Bits 51:12 are from the PTE
-        Bits 11:0 are from the original linear address
-        '''
-        if pte & self.valid_mask:
-            return (pte & 0xffffffffff000) | (vaddr & 0xfff)
-
-    def vtop(self, vaddr):
-        '''
-        Translates virtual addresses into physical offsets.
-        The function returns either None (no valid mapping)
-        or the offset in physical memory where the address maps.
-        '''
-        try:
-            return self._tlb.Get(vaddr)
-        except KeyError:
-            pdpte = self.get_pdpte(vaddr)
-            if not pdpte & self.valid_mask:
-                # Add support for paged out PDPTE
-                # Insert buffalo here!
-                return None
-
-            pde = self.get_pde(vaddr, pdpte)
-            if not pde & self.valid_mask:
-                # Add support for paged out PDE
-                return None
-
-            if self.page_size_flag(pde):
-                return self.get_two_meg_paddr(vaddr, pde)
-
-            pte = self.get_pte(vaddr, pde)
-
-            res = self.get_phys_addr(vaddr, pte)
-
-            self._tlb.Put(vaddr, res)
-            return res
-
-    def describe_vtop(self, vaddr):
-        pdpte_addr = ((self.dtb & 0xfffffff0) |
-                      ((vaddr & 0x7FC0000000) >> 27))
-
-        pdpte_value = self.read_long_long_phys(pdpte_addr)
-        yield "pdpte", pdpte_value, pdpte_addr
+        collection.add(AddressTranslationDescriptor,
+                       object_name="pdpte", object_value=pdpte_value,
+                       object_address=pdpte_addr)
 
         if not pdpte_value & self.valid_mask:
-            yield "Invalid PDPTE", None, None
-            return
+            collection.add(InvalidAddress, "Invalid PDPTE")
+            return collection
 
+        # Bits 51:12 are from the PDPTE
+        # Bits 11:3 are bits 29:21 of the linear address
         pde_addr = (pdpte_value & 0xfffff000) | ((vaddr & 0x3fe00000) >> 18)
-        pde_value = self.read_long_long_phys(pde_addr)
-        yield "pde", pde_value, pde_addr
+        self._describe_pde(collection, pde_addr, vaddr)
+
+        return collection
+
+    def _describe_pde(self, collection, pde_addr, vaddr):
+        pde_value = self.read_pte(pde_addr)
+        collection.add(AddressTranslationDescriptor,
+                       object_name="pde", object_value=pde_value,
+                       object_address=pde_addr)
 
         if not pde_value & self.valid_mask:
-            yield "Invalid PDE", None, None
-            return
+            collection.add(InvalidAddress, "Invalid PDE")
 
-        if self.page_size_flag(pde_value):
-            physical_address = self.get_four_meg_paddr(
-                vaddr, pde_value)
-            yield "Large page mapped", physical_address, None
-            yield "Physical Address", physical_address, None
-            return
+        # Large page PDE accesses 2mb region.
+        elif pde_value & self.page_size_mask:
+            # Bits 51:21 are from the PDE
+            # Bits 20:0 are from the original linear address
+            physical_address = ((pde_value & 0xfffffffe00000) |
+                                (vaddr & 0x1fffff))
+            collection.add(CommentDescriptor, "Large page mapped")
+            collection.add(PhysicalAddressDescriptor, address=physical_address)
 
-        pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x1ff000) >> 9)
-        pte_value = self.read_long_long_phys(pte_addr)
+        else:
+            # Bits 51:12 are from the PDE
+            # Bits 11:3 are bits 20:12 of the original linear address
+            pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
+            pte_value = self.read_pte(pte_addr)
 
-        yield "pte", pte_value, pte_addr
+            self._describe_pte(collection, pte_addr, pte_value, vaddr)
+
+    def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
+        collection.add(AddressTranslationDescriptor,
+                       object_name="pte", object_value=pte_value,
+                       object_address=pte_addr)
 
         if pte_value & self.valid_mask:
+            # Bits 51:12 are from the PTE
+            # Bits 11:0 are from the original linear address
             physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
-            yield "Physical Address", physical_address, None
+            collection.add(PhysicalAddressDescriptor, address=physical_address)
 
-
-    def read_long_long_phys(self, addr):
+    def read_pte(self, addr):
         '''
         Returns an unsigned 64-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.
@@ -482,30 +507,37 @@ class IA32PagedMemoryPae(IA32PagedMemory):
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
-        for pdpte in range(0, 4):
-            vaddr = pdpte << 30
-            next_vaddr = (pdpte + 1) << 30
+        for pdpte_index in range(0, 4):
+            vaddr = pdpte_index << 30
+            next_vaddr = (pdpte_index + 1) << 30
             if start >= next_vaddr:
                 continue
 
-            pdpte_value = self.get_pdpte(vaddr)
+            # Bits 31:5 come from CR3
+            # Bits 4:3 come from bits 31:30 of the original linear address
+            pdpte_addr = (self.dtb & 0xffffffe0) | ((vaddr & 0xc0000000) >> 27)
+            pdpte_value = self.read_pte(pdpte_addr)
             if not pdpte_value & self.valid_mask:
                 continue
 
             tmp1 = vaddr
-            for pde in range(0, 0x200):
-                vaddr = tmp1 | (pde << 21)
-                next_vaddr = tmp1 | ((pde + 1) << 21)
+            for pde_index in range(0, 0x200):
+                vaddr = tmp1 | (pde_index << 21)
+                next_vaddr = tmp1 | ((pde_index + 1) << 21)
                 if start >= next_vaddr:
                     continue
 
-                pde_value = self.get_pde(vaddr, pdpte_value)
+                # Bits 51:12 are from the PDPTE
+                # Bits 11:3 are bits 29:21 of the linear address
+                pde_addr = ((pdpte_value & 0xffffffffff000) |
+                            ((vaddr & 0x3fe00000) >> 18))
+                pde_value = self.read_pte(pde_addr)
                 if not pde_value & self.valid_mask:
                     continue
 
-                if self.page_size_flag(pde_value):
+                if pde_value & self.page_size_mask:
                     yield (vaddr,
-                           self.get_two_meg_paddr(vaddr, pde_value),
+                           (pde_value & 0xfffffffe00000) | (vaddr & 0x1fffff),
                            0x200000)
                     continue
 
@@ -528,5 +560,6 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                             continue
 
                         yield (vaddr,
-                               self.get_phys_addr(vaddr, pte_value),
+                               ((pte_value & 0xffffffffff000) |
+                                (vaddr & 0xfff)),
                                0x1000)

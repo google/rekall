@@ -59,168 +59,61 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
     """
     order = 60
 
-    def pml4e_index(self, vaddr):
-        '''
-        Returns the Page Map Level 4 Entry Index number from the given
-        virtual address. The index number is in bits 47:39.
-        '''
-        return (vaddr & 0xff8000000000) >> 39
+    def describe_vtop(self, vaddr, collection=None):
+        """Describe the resolution process of a Virtual Address.
 
-    def get_pml4e(self, vaddr):
-        '''
-        Return the Page Map Level 4 Entry for the given virtual address.
-        If caching
+        See base method for docs.
+        """
+        if collection is None:
+            collection = intel.DescriptorCollection(self.session)
 
-        Bits 51:12 are from CR3
-        Bits 11:3 are bits 47:39 of the linear address
-        Bits 2:0 are 0.
-        '''
-        pml4e_addr = (
-            self.dtb & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36)
-        return self.read_long_long_phys(pml4e_addr)
-
-    def get_pdpte(self, vaddr, pml4e):
-        '''
-        Return the Page Directory Pointer Table Entry for the virtual address.
-
-        Bits 51:12 are from the PML4E
-        Bits 11:3 are bits 38:30 of the linear address
-        Bits 2:0 are all 0
-        '''
-        pdpte_addr = (pml4e & 0xffffffffff000) | ((vaddr & 0x7FC0000000) >> 27)
-        return self.read_long_long_phys(pdpte_addr)
-
-    def get_one_gig_paddr(self, vaddr, pdpte):
-        '''
-        Return the offset in a 1GB memory page from the given virtual
-        address and Page Directory Pointer Table Entry.
-
-        Bits 51:30 are from the PDE
-        Bits 29:0 are from the original linear address
-        '''
-        return (pdpte & 0xfffffc0000000) | (vaddr & 0x3fffffff)
-
-    lock = 0
-
-    def vaddr_access(self, vaddr):
-        """Is the access bit set on the page for the vaddr?"""
-        vaddr = long(vaddr)
-        pml4e = self.get_pml4e(vaddr)
-        if not pml4e & self.valid_mask:
-            return None
-
-        pdpte = self.get_pdpte(vaddr, pml4e)
-        if not pdpte & self.valid_mask:
-            return None
-
-        if self.page_size_flag(pdpte):
-            return (self.page_access_flag(pml4e) and
-                    self.page_access_flag(pdpte))
-
-        pde = self.get_pde(vaddr, pdpte)
-        if not pde & self.valid_mask:
-            return None
-
-        if self.page_size_flag(pde):
-            return (self.page_access_flag(pde) and
-                    self.page_access_flag(pml4e) and
-                    self.page_access_flag(pdpte))
-
-        pte = self.get_pte(vaddr, pde)
-        if not pte & self.valid_mask:
-            return None
-
-        return (self.page_access_flag(pte) and
-                self.page_access_flag(pde) and
-                self.page_access_flag(pml4e) and
-                self.page_access_flag(pdpte))
-
-    def vtop(self, vaddr):
-        '''
-        Translates virtual addresses into physical offsets.
-        The function returns either None (no valid mapping)
-        or the offset in physical memory where the address maps.
-        '''
-        vaddr = long(vaddr)
-        pml4e = self.get_pml4e(vaddr)
-        if not pml4e & self.valid_mask:
-            # Add support for paged out PML4E
-            return None
-
-        pdpte = self.get_pdpte(vaddr, pml4e)
-        if not pdpte & self.valid_mask:
-            # Add support for paged out PDPTE
-            # Insert buffalo here!
-            return None
-
-        if self.page_size_flag(pdpte):
-            return self.get_one_gig_paddr(vaddr, pdpte)
-
-        pde = self.get_pde(vaddr, pdpte)
-        if not pde & self.valid_mask:
-            # Add support for paged out PDE
-            return None
-
-        # Is this a 2 meg page?
-        if pde & 1 and self.page_size_flag(pde):
-            return self.get_two_meg_paddr(vaddr, pde)
-
-        pte = self.get_pte(vaddr, pde)
-
-        return self.get_phys_addr(vaddr, pte)
-
-    def describe_vtop(self, vaddr):
+        # Bits 51:12 are from CR3
+        # Bits 11:3 are bits 47:39 of the linear address
         pml4e_addr = ((self.dtb & 0xffffffffff000) |
                       ((vaddr & 0xff8000000000) >> 36))
+        pml4e_value = self.read_pte(pml4e_addr)
 
-        pml4e_value = self.read_long_long_phys(pml4e_addr)
-        yield "pml4e", pml4e_value, pml4e_addr
+        collection.add(intel.AddressTranslationDescriptor,
+                       object_name="pml4e", object_value=pml4e_value,
+                       object_address=pml4e_addr)
 
         if not pml4e_value & self.valid_mask:
-            yield "Invalid PDE", None, None
-            return
+            collection.add(intel.InvalidAddress, "Invalid PML4E\n")
+            return collection
 
+        # Bits 51:12 are from the PML4E
+        # Bits 11:3 are bits 38:30 of the linear address
         pdpte_addr = ((pml4e_value & 0xffffffffff000) |
                       ((vaddr & 0x7FC0000000) >> 27))
+        pdpte_value = self.read_pte(pdpte_addr)
 
-        pdpte_value = self.read_long_long_phys(pdpte_addr)
-        yield "pdpte", pdpte_value, pdpte_addr
+        collection.add(intel.AddressTranslationDescriptor,
+                       object_name="pdpte", object_value=pdpte_value,
+                       object_address=pdpte_addr)
 
         if not pdpte_value & self.valid_mask:
-            yield "Invalid PDPTE", None, None
+            collection.add(intel.InvalidAddress, "Invalid PDPTE\n")
 
-        if self.page_size_flag(pdpte_value):
-            yield "One Gig page", self.get_one_gig_paddr(
-                vaddr, pdpte_value), None
-            return
+        # Large page mapping.
+        if pdpte_value & self.page_size_mask:
+            # Bits 51:30 are from the PDE
+            # Bits 29:0 are from the original linear address
+            physical_address = ((pdpte_value & 0xfffffc0000000) |
+                                (vaddr & 0x3fffffff))
+            collection.add(intel.CommentDescriptor, "One Gig page\n")
 
+            collection.add(intel.PhysicalAddressDescriptor,
+                           address=physical_address)
+
+            return collection
+
+        # Bits 51:12 are from the PDPTE
+        # Bits 11:3 are bits 29:21 of the linear address
         pde_addr = ((pdpte_value & 0xffffffffff000) |
                     ((vaddr & 0x3fe00000) >> 18))
-        pde_value = self.read_long_long_phys(pde_addr)
-        yield "pde", pde_value, pde_addr
+        self._describe_pde(collection, pde_addr, vaddr)
 
-        normalized_pde_value = self.NormalizePDEValue(pde_value)
-        if normalized_pde_value != pde_value:
-            yield "normalized pde", normalized_pde_value, pde_addr
-            pde_value = normalized_pde_value
-
-        if not pde_value & self.valid_mask:
-            yield "Invalid PDE", None, None
-            pte_value = 0
-
-        elif self.page_size_flag(pde_value):
-            yield "Large page mapped", self.get_four_meg_paddr(
-                vaddr, pde_value), None
-            return
-
-        else:
-            pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
-            pte_value = self.read_long_long_phys(pte_addr)
-            yield "pte", pte_value, pte_addr
-
-        if pte_value & self.valid_mask:
-            physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
-            yield "Physical Address", physical_address, None
+        return collection
 
     def get_available_addresses(self, start=0):
         """Enumerate all available ranges.
@@ -231,54 +124,72 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
-        for pml4e in range(0, 0x200):
-            vaddr = pml4e << 39
+        for pml4e_index in range(0, 0x200):
+            vaddr = pml4e_index << 39
 
-            next_vaddr = (pml4e + 1) << 39
+            next_vaddr = (pml4e_index + 1) << 39
             if start >= next_vaddr:
                 continue
 
-            pml4e_value = self.get_pml4e(vaddr)
+            pml4e_addr = ((self.dtb & 0xffffffffff000) |
+                          ((vaddr & 0xff8000000000) >> 36))
+            pml4e_value = self.read_pte(pml4e_addr)
             if not pml4e_value & self.valid_mask:
                 continue
 
             tmp1 = vaddr
-            for pdpte in range(0, 0x200):
-                vaddr = tmp1 | (pdpte << 30)
+            for pdpte_index in range(0, 0x200):
+                vaddr = tmp1 | (pdpte_index << 30)
 
-                next_vaddr = tmp1 | ((pdpte + 1) << 30)
+                next_vaddr = tmp1 | ((pdpte_index + 1) << 30)
                 if start >= next_vaddr:
                     continue
 
-                pdpte_value = self.get_pdpte(vaddr, pml4e_value)
+                # Bits 51:12 are from the PML4E
+                # Bits 11:3 are bits 38:30 of the linear address
+                pdpte_addr = ((pml4e_value & 0xffffffffff000) |
+                              ((vaddr & 0x7FC0000000) >> 27))
+                pdpte_value = self.read_pte(pdpte_addr)
                 if not pdpte_value & self.valid_mask:
                     continue
 
-                if self.page_size_flag(pdpte_value):
+                # 1 gig page.
+                if pdpte_value & self.page_size_mask:
                     yield (vaddr,
-                           self.get_one_gig_paddr(vaddr, pdpte_value),
+                           ((pdpte_value & 0xfffffc0000000) |
+                            (vaddr & 0x3fffffff)),
                            0x40000000)
                     continue
 
                 for x in self._get_available_PDEs(vaddr, pdpte_value, start):
                     yield x
 
+    def _get_pte_addr(self, vaddr, pde_value):
+        if pde_value & self.valid_mask:
+            return (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
+
+    def _get_pde_addr(self, pdpte_value, vaddr):
+        if pdpte_value & self.valid_mask:
+            return ((pdpte_value & 0xffffffffff000) |
+                    ((vaddr & 0x3fe00000) >> 18))
+
     def _get_available_PDEs(self, vaddr, pdpte_value, start):
         tmp2 = vaddr
-        for pde in range(0, 0x200):
-            vaddr = tmp2 | (pde << 21)
+        for pde_index in range(0, 0x200):
+            vaddr = tmp2 | (pde_index << 21)
 
-            next_vaddr = tmp2 | ((pde + 1) << 21)
+            next_vaddr = tmp2 | ((pde_index + 1) << 21)
             if start >= next_vaddr:
                 continue
 
-            pde_value = self.get_pde(vaddr, pdpte_value)
-            if not pde_value & self.valid_mask:
+            pde_addr = self._get_pde_addr(pdpte_value, vaddr)
+            if pde_addr is None:
                 continue
 
-            if self.page_size_flag(pde_value):
+            pde_value = self.read_pte(pde_addr)
+            if pde_value & self.valid_mask and pde_value & self.page_size_mask:
                 yield (vaddr,
-                       self.get_two_meg_paddr(vaddr, pde_value),
+                       (pde_value & 0xfffffffe00000) | (vaddr & 0x1fffff),
                        0x200000)
                 continue
 
@@ -286,8 +197,11 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             # windows where IO is extremely expensive, its
             # about 10 times more efficient than reading it
             # one value at the time - and this loop is HOT!
-            pte_table_addr = ((pde_value & 0xffffffffff000) |
-                              ((vaddr & 0x1ff000) >> 9))
+            pte_table_addr = self._get_pte_addr(vaddr, pde_value)
+
+            # Invalid PTEs.
+            if pte_table_addr is None:
+                continue
 
             data = self.base.read(pte_table_addr, 8 * 0x200)
             pte_table = struct.unpack("<" + "Q" * 0x200, data)
@@ -308,7 +222,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                 continue
 
             yield (vaddr,
-                   self.get_phys_addr(vaddr, pte_value),
+                   (pte_value & 0xffffffffff000) | (vaddr & 0xfff),
                    0x1000)
 
     def end(self):

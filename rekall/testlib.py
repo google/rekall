@@ -53,9 +53,7 @@ import logging
 import subprocess
 import pdb
 import os
-import shutil
 import sys
-import tempfile
 import unittest
 
 from rekall import config
@@ -150,7 +148,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                         baseline_commandline = "%s '%s' %s" % (
                             k, v, baseline_commandline)
 
-            cmdline = config_options["executable"] + " " + baseline_commandline
+            cmdline = (config_options["executable"] + " -v " +
+                       baseline_commandline)
             logging.debug("%s: Launching %s", self.__class__.__name__, cmdline)
 
             config_options["executed_command"] = cmdline
@@ -174,7 +173,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                     error = error.decode("utf8", "ignore")
 
                     baseline_data = dict(output=output.splitlines(),
-                                         logging=error,
+                                         logging=error.splitlines(),
                                          return_code=pipe.returncode)
 
                     return baseline_data

@@ -1006,16 +1006,17 @@ class _OBJECT_HEADER(obj.Struct):
 
     # A mapping between the object type name and the struct name for it.
     type_lookup = dict(
-        File="_FILE_OBJECT",
         Device="_DEVICE_OBJECT",
-        Driver="_DRIVER_OBJECT",
         Directory="_OBJECT_DIRECTORY",
-        SymbolicLink="_OBJECT_SYMBOLIC_LINK",
+        Driver="_DRIVER_OBJECT",
+        File="_FILE_OBJECT",
+        Key="_CM_KEY_BODY",
         Mutant="_KMUTANT",
         Process="_EPROCESS",
-        Key="_CM_KEY_BODY",
-        Token="_TOKEN",
+        Section="_SECTION_OBJECT",
+        SymbolicLink="_OBJECT_SYMBOLIC_LINK",
         Thread="_ETHREAD",
+        Token="_TOKEN",
         )
 
 

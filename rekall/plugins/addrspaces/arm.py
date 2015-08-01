@@ -38,6 +38,7 @@ http://infocenter.arm.com/help/topic/com.arm.doc.ddi0198e/DDI0198E_arm926ejs_r0p
 import struct
 
 from rekall import addrspace
+from rekall.plugins.addrspaces import intel
 
 
 class ArmPagedMemory(addrspace.PagedReader):
@@ -126,94 +127,37 @@ class ArmPagedMemory(addrspace.PagedReader):
         return struct.unpack("<I", string)[0]
 
     def vtop(self, vaddr):
-        """Translate the virtual address to a physical address.
+        """Translates virtual addresses into physical offsets.
 
-        We basically implement the process described in Section 3.2 of the
-        manual. The manual uses slightly different terminology to Intel/AMD with
-        respect to the page table names (e.g. sections, coarse page table, fine
-        page table etc).
+        The function should return either None (no valid mapping)
+        or the offset in physical memory where the address maps.
+
+        This function is simply a wrapper around describe_vtop() which does all
+        the hard work. You probably never need to override it.
         """
-        first_level_descriptor = self.read_long_phys(self.dtb | (
-            (vaddr & self.table_index_mask) >> 18))
+        vaddr = int(vaddr)
 
-        first_level_descriptor_type = first_level_descriptor & 0b11
-        if first_level_descriptor_type == 0b00:
-            return self.page_fault_handler(
-                first_level_descriptor, vaddr)
+        collection = self.describe_vtop(
+            vaddr, intel.PhysicalAddressDescriptorCollector(self.session))
 
-        # first_level_descriptor is a Section descriptor. See Figure 3.8.
-        if first_level_descriptor_type == 0b10:
+        return collection.physical_address
 
-            # Super section. Figure 6.6.
-            # http://infocenter.arm.com/help/topic/com.arm.doc.ddi0333h/DDI0333H_arm1176jzs_r0p7_trm.pdf
-            if first_level_descriptor & self.super_section_mask:
-                return (
-                    (first_level_descriptor &
-                     self.super_section_base_address_mask) |
-                    (vaddr & self.super_section_index_mask))
+    def describe_vtop(self, vaddr, collection=None):
+        if collection is None:
+            collection = intel.DescriptorCollection(self.session)
 
-            # Regular section descriptor.
-            return ((first_level_descriptor & self.section_base_address_mask) |
-                    (vaddr & self.section_index_mask))
-
-        # first_level_descriptor is a coarse page table descriptor. Figure 3.10.
-        if first_level_descriptor_type == 0b01:
-            second_level_addr = (
-                (first_level_descriptor &
-                 self.coarse_page_table_base_address_mask) |
-                ((vaddr & self.l2_table_index_mask) >> 10))
-
-            second_level_descriptor = self.read_long_phys(second_level_addr)
-            return self._resolve_second_level_descriptor(
-                second_level_descriptor, vaddr)
-
-        # Fine page table descriptor. Section 3.2.6.
-        if first_level_descriptor_type == 0b11:
-            second_level_addr = (
-                (first_level_descriptor &
-                 self.fine_page_table_base_address_mask) |
-                ((vaddr & self.fine_l2_table_index_mask) >> 12))
-
-            second_level_descriptor = self.read_long_phys(second_level_addr)
-            return self._resolve_second_level_descriptor(
-                second_level_descriptor, vaddr)
-
-    def _resolve_second_level_descriptor(self, second_level_descriptor, vaddr):
-        second_level_descriptor_type = second_level_descriptor & 0b11
-
-        # Large page table.
-        if second_level_descriptor_type == 0b01:
-            return (
-                (second_level_descriptor &
-                 self.large_page_base_address_mask) |
-                (vaddr & self.large_page_index_mask))
-
-        # Small page translation. Figure 3-11.
-        if (second_level_descriptor_type == 0b10 or
-                second_level_descriptor_type == 0b11):
-            return (
-                (second_level_descriptor &
-                 self.small_page_base_address_mask) |
-                (vaddr & self.small_page_index_mask))
-
-        if second_level_descriptor_type == 0b00:
-            return self.page_fault_handler(
-                second_level_descriptor, vaddr)
-
-    def describe_vtop(self, vaddr):
         l1_descriptor_addr = (self.dtb | (
             (vaddr & self.table_index_mask) >> 18))
-
-        l1_descriptor = self.read_long_phys(
-            l1_descriptor_addr)
-
-        yield ("l1 descriptor", l1_descriptor,
-               l1_descriptor_addr)
+        l1_descriptor = self.read_long_phys(l1_descriptor_addr)
+        collection.add(intel.AddressTranslationDescriptor,
+                       object_name="l1 descriptor",
+                       object_value=l1_descriptor,
+                       object_address=l1_descriptor_addr)
 
         l1_descriptor_type = l1_descriptor & 0b11
         if l1_descriptor_type == 0b00:
-            yield "Invalid", None, None
-            return
+            collection.add(intel.InvalidAddress, "Invalid L1 descriptor")
+            return collection
 
         # l1_descriptor is a Section descriptor. See Figure 3.8.
         if l1_descriptor_type == 0b10:
@@ -221,30 +165,34 @@ class ArmPagedMemory(addrspace.PagedReader):
             # Super section. Figure 6.6.
             # http://infocenter.arm.com/help/topic/com.arm.doc.ddi0333h/DDI0333H_arm1176jzs_r0p7_trm.pdf
             if l1_descriptor & self.super_section_mask:
-                yield ("Super section base", (
-                    l1_descriptor &
-                    self.super_section_base_address_mask), None)
+                collection.add(
+                    intel.CommentDescriptor,
+                    "Super section base @ {0:#x}\n",
+                    l1_descriptor & self.super_section_base_address_mask)
 
-                yield ("Physical Address", (
-                    l1_descriptor &
-                    self.super_section_base_address_mask) | (
-                        vaddr & self.super_section_index_mask), None)
+                collection.add(
+                    intel.PhysicalAddressDescriptor,
+                    address=(l1_descriptor &
+                             self.super_section_base_address_mask) | (
+                                 vaddr & self.super_section_index_mask))
             else:
                 # Regular section descriptor.
-                yield ("Section base", (
-                    l1_descriptor & self.section_base_address_mask),
-                       None)
+                collection.add(intel.CommentDescriptor,
+                               "Section base @ {0:#x}\n",
+                               l1_descriptor & self.section_base_address_mask)
 
-                yield ("Physical Address", (
-                    l1_descriptor &
-                    self.section_base_address_mask) | (
-                        vaddr & self.section_index_mask), None)
+                collection.add(
+                    intel.PhysicalAddressDescriptor,
+                    address=(l1_descriptor &
+                             self.section_base_address_mask) | (
+                                 vaddr & self.section_index_mask))
 
         # l1_descriptor is a coarse page table descriptor. Figure 3.10.
         elif l1_descriptor_type == 0b01:
-            yield ("Coarse table base", (
-                l1_descriptor &
-                self.coarse_page_table_base_address_mask), None)
+            collection.add(
+                intel.CommentDescriptor, "Coarse table base @ {0:#x}\n",
+                address=(l1_descriptor &
+                         self.coarse_page_table_base_address_mask))
 
             l2_addr = (
                 (l1_descriptor &
@@ -253,15 +201,19 @@ class ArmPagedMemory(addrspace.PagedReader):
 
             l2_descriptor = self.read_long_phys(l2_addr)
 
-            yield ("2l descriptor", l2_descriptor, l2_addr)
-            for x in self._desc_l2_descriptor(l2_descriptor, vaddr):
-                yield x
+            collection.add(intel.AddressTranslationDescriptor,
+                           object_name="2l descriptor",
+                           object_value=l2_descriptor,
+                           object_address=l2_addr)
+
+            self._desc_l2_descriptor(collection, l2_descriptor, vaddr)
 
         # Fine page table descriptor. Section 3.2.6.
         elif l1_descriptor_type == 0b11:
-            yield ("Fine table base", (
-                l1_descriptor &
-                self.fine_page_table_base_address_mask), None)
+            collection.add(
+                intel.CommentDescriptor, "Fine table base @ {0:#x}\n",
+                address=(l1_descriptor &
+                         self.fine_page_table_base_address_mask))
 
             l2_addr = (
                 (l1_descriptor &
@@ -270,49 +222,56 @@ class ArmPagedMemory(addrspace.PagedReader):
 
             l2_descriptor = self.read_long_phys(l2_addr)
 
-            yield ("2l descriptor", l2_descriptor, l2_addr)
-            for x in self._desc_l2_descriptor(l2_descriptor, vaddr):
-                yield x
+            collection.add(intel.AddressTranslationDescriptor,
+                           object_name="2l descriptor",
+                           object_value=l2_descriptor,
+                           object_address=l2_addr)
 
-    def _desc_l2_descriptor(self, l2_descriptor, vaddr):
+            self._desc_l2_descriptor(collection, l2_descriptor, vaddr)
+
+        return collection
+
+    def _desc_l2_descriptor(self, collection, l2_descriptor, vaddr):
         l2_descriptor_type = l2_descriptor & 0b11
 
         # Large page table.
         if l2_descriptor_type == 0b01:
-            yield ("Coarse table base",
-                   (l2_descriptor &
-                    self.large_page_base_address_mask),
-                   None)
+            collection.add(
+                intel.CommentDescriptor, "Coarse table base @ {0:#x}\n",
+                l2_descriptor & self.large_page_base_address_mask)
 
-            yield ("Physical Address", (
-                l2_descriptor &
-                self.large_page_base_address_mask) | (
-                    vaddr & self.large_page_index_mask), None)
+            collection.add(
+                intel.PhysicalAddressDescriptor,
+                address=(l2_descriptor &
+                         self.large_page_base_address_mask) | (
+                             vaddr & self.large_page_index_mask))
 
         # Small page translation. Figure 3-11.
         elif l2_descriptor_type == 0b10 or l2_descriptor_type == 0b11:
-            yield ("Small page base",
-                   (l2_descriptor &
-                    self.small_page_base_address_mask), None)
+            collection.add(
+                intel.CommentDescriptor, "Coarse table base @ {0:#x}\n",
+                l2_descriptor & self.small_page_base_address_mask)
 
-            yield ("Physical Address", (
-                l2_descriptor &
-                self.small_page_base_address_mask) | (
-                    vaddr & self.small_page_index_mask), None)
+            collection.add(
+                intel.PhysicalAddressDescriptor,
+                address=(l2_descriptor &
+                         self.small_page_base_address_mask) | (
+                             vaddr & self.small_page_index_mask))
 
         # Tiny pages. Figure 3-12.
         elif l2_descriptor_type == 0b11:
-            yield ("Tiny page base",
-                   (l2_descriptor &
-                    self.tiny_page_base_address_mask), None)
+            collection.add(
+                intel.CommentDescriptor, "Coarse table base @ {0:#x}\n",
+                l2_descriptor & self.tiny_page_base_address_mask)
 
-            yield ("Physical Address", (
-                l2_descriptor &
-                self.tiny_page_base_address_mask) | (
-                    vaddr & self.tiny_page_index_mask), None)
+            collection.add(
+                intel.PhysicalAddressDescriptor,
+                address=(l2_descriptor &
+                         self.tiny_page_base_address_mask) | (
+                             vaddr & self.tiny_page_index_mask))
 
         elif l2_descriptor_type == 0b00:
-            yield "Invalid", None, None
+            collection.add(intel.InvalidAddress, "Invalid L2 descriptor")
 
 
     def page_fault_handler(self, descriptor, vaddr):
