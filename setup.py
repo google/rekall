@@ -141,5 +141,6 @@ setup(
         "gevent == 1.0.2",
         "gevent-websocket >= 0.9.3",
         "PyAFF4 >= 0.13",
+        "efilter == 1438631774",
     ],
 )
