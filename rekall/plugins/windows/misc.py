@@ -362,7 +362,6 @@ class Pools(common.WindowsCommandPlugin):
                 paged_pool_start + self.profile.get_constant_object(
                     "MmSizeOfPagedPoolInBytes", "address").v())
 
-
         for desc in vector_pool[1].dereference_as(
                 "Array",
                 target_args=dict(

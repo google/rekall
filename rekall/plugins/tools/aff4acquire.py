@@ -27,6 +27,7 @@ acquire more relevant information (e.g. mapped files etc).
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import os
+import re
 import stat
 import time
 
@@ -70,7 +71,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
             "If not specified we write output.aff4 in current directory.")
 
         parser.add_argument(
-            "--compression", default="zlib", required=False,
+            "--compression", default="snappy", required=False,
             choices=["snappy", "stored", "zlib"],
             help="The compression to use.")
 
@@ -82,7 +83,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
             "--also_pagefile", default=False, type="Boolean",
             help="Also get the pagefile/swap partition (requires a profile)")
 
-    def __init__(self, destination=None, compression="zlib", also_files=False,
+    def __init__(self, destination=None, compression="snappy", also_files=False,
                  also_pagefile=False, max_file_size=100*1024*1024, **kwargs):
         super(AFF4Acquire, self).__init__(**kwargs)
 
@@ -102,7 +103,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
         self.also_pagefile = also_pagefile
         self.max_file_size = max_file_size
 
-    def copy_physical_address_space(self, resolver, volume):
+    def copy_physical_address_space(self, renderer, resolver, volume):
         """Copies the physical address space to the output volume."""
         image_urn = volume.urn.Append("PhysicalMemory")
         source = self.physical_address_space
@@ -121,6 +122,8 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
 
             metadata_fd.Write(
                 yaml_utils.encode(self.create_metadata(source)))
+
+        renderer.format("Imaging Physical Memory:\n")
 
         with aff4_map.AFF4Map.NewAFF4Map(
             resolver, image_urn, volume.urn) as image_stream:
@@ -145,7 +148,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                         rate = 0
 
                     self.session.report_progress(
-                        "%s: Wrote %#x (%d total) (%02.2d Mb/s)",
+                        "%s: Wrote %#x (%d mb total) (%02.2d Mb/s)",
                         source, offset, total / 1e6, rate)
 
                     length -= read_len
@@ -154,8 +157,11 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                     last_tick = now
 
         resolver.Close(image_stream)
+        renderer.format("Wrote {0} mb of Physical Memory to {1}\n",
+                        total/1024/1024, image_stream.urn)
 
-    def _copy_address_space(self, resolver, volume, image_urn, source):
+    def _copy_address_space(self, renderer, resolver, volume, image_urn,
+                            source):
         if self.compression:
             resolver.Set(image_urn, lexicon.AFF4_IMAGE_COMPRESSION,
                          rdfvalue.URN(self.compression))
@@ -190,8 +196,9 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                     last_tick = now
 
         resolver.Close(image_stream)
+        renderer.format("Wrote {0} ({1} mb)\n", source.name, total/1024/1024)
 
-    def linux_copy_files(self, resolver, volume):
+    def linux_copy_files(self, renderer, resolver, volume):
         """Copy all the mapped or opened files to the volume."""
         # Build a set of all files.
         vma_files = set()
@@ -218,9 +225,10 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                     filenames.add(filename)
                     vma_files.add(vm_file_offset)
 
-                    self._copy_file_to_image(resolver, volume, filename)
+                    self._copy_file_to_image(
+                        renderer, resolver, volume, filename)
 
-    def _copy_file_to_image(self, resolver, volume, filename):
+    def _copy_file_to_image(self, renderer, resolver, volume, filename):
         image_urn = volume.urn.Append(filename)
         out_fd = None
         try:
@@ -228,7 +236,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                 with aff4_image.AFF4Image.NewAFF4Image(
                     resolver, image_urn, volume.urn) as out_fd:
 
-                    self.session.report_progress("Adding file %s", filename)
+                    renderer.format("Adding file {0}\n", filename)
                     resolver.Set(
                         image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
                         rdfvalue.XSDString(filename))
@@ -246,7 +254,8 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                     "Unable to read %s. Attempting raw access.", filename)
 
                 # We can not just read this file, parse it from the NTFS.
-                self._copy_raw_file_to_image(resolver, volume, filename)
+                self._copy_raw_file_to_image(
+                    renderer, resolver, volume, filename)
             except IOError:
                 self.session.logging.warn(
                     "Unable to read %s. Skipping.", filename)
@@ -256,7 +265,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
             if out_fd:
                 resolver.Close(out_fd)
 
-    def _copy_raw_file_to_image(self, resolver, volume, filename):
+    def _copy_raw_file_to_image(self, renderer, resolver, volume, filename):
         image_urn = volume.urn.Append(filename)
 
         drive, base_filename = os.path.splitdrive(filename)
@@ -273,12 +282,12 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
         mft_entry = ntfs.MFTEntryByName(base_filename)
         data_as = mft_entry.open_file()
 
-        self._copy_address_space(resolver, volume, image_urn, data_as)
+        self._copy_address_space(renderer, resolver, volume, image_urn, data_as)
 
         resolver.Set(image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
                      rdfvalue.XSDString(filename))
 
-    def windows_copy_files(self, resolver, volume):
+    def windows_copy_files(self, renderer, resolver, volume):
         filenames = set()
 
         for task in self.session.plugins.pslist().filter_processes():
@@ -296,7 +305,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                     continue
 
                 filenames.add(file_name)
-                self._copy_file_to_image(resolver, volume, file_name)
+                self._copy_file_to_image(renderer, resolver, volume, file_name)
 
         object_tree_plugin = self.session.plugins.object_tree()
         for module in self.session.plugins.modules().lsmod():
@@ -304,27 +313,29 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                 path = object_tree_plugin.FileNameWithDrive(
                     module.FullDllName.v())
 
-                self._copy_file_to_image(resolver, volume, path)
+                self._copy_file_to_image(renderer, resolver, volume, path)
             except IOError:
                 self.session.logging.debug(
                     "Unable to read %s. Skipping.", path)
 
 
-    def copy_files(self, resolver, volume):
+    def copy_files(self, renderer, resolver, volume):
         # Forces profile autodetection if needed.
         profile = self.session.profile
 
         os_name = profile.metadata("os")
         if os_name == "windows":
-            self.windows_copy_files(resolver, volume)
+            self.windows_copy_files(renderer, resolver, volume)
         elif os_name == "linux":
-            self.linux_copy_files(resolver, volume)
+            self.linux_copy_files(renderer, resolver, volume)
 
 
-    def copy_page_file(self, resolver, volume):
+    def copy_page_file(self, renderer, resolver, volume):
         pagefiles = self.session.GetParameter("pagefiles")
         for filename, _ in pagefiles.values():
-            self._copy_raw_file_to_image(resolver, volume, filename)
+            renderer.format("Imaging pagefile {0}\n", filename)
+            self._copy_raw_file_to_image(
+                renderer, resolver, volume, filename)
 
     def create_metadata(self, source):
         """Returns a dict with a standard metadata format.
@@ -348,6 +359,9 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
         return result
 
     def render(self, renderer):
+        if self.compression:
+            renderer.format("Will use compression: {0}\n", self.compression)
+
         with renderer.open(filename=self.destination, mode="w+b") as out_fd:
             with data_store.MemoryDataStore() as resolver:
                 output_urn = rdfvalue.URN.FromFileName(out_fd.name)
@@ -355,15 +369,29 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
                              rdfvalue.XSDString("truncate"))
 
                 with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
-                    self.copy_physical_address_space(resolver, volume)
+                    self.copy_physical_address_space(renderer, resolver, volume)
 
                     # We only copy files if we are running on a raw device.
                     if self.session.physical_address_space.volatile:
-                        self.copy_page_file(resolver, volume)
+                        self.copy_page_file(renderer, resolver, volume)
                         if self.also_files:
-                            self.copy_files(resolver, volume)
+                            self.copy_files(renderer, resolver, volume)
 
 # We can not check the file hash because AFF4 files contain UUID which will
 # change each time.
 class TestAFF4Acquire(testlib.SimpleTestCase):
     PARAMETERS = dict(commandline="aff4acquire %(tempdir)s/output_image.aff4")
+
+    def filter(self, output):
+        result = []
+        for line in output:
+            result.append(re.sub("aff4:/+[^/]+/", "aff4:/XXXX/", line))
+        return result
+
+    def testCase(self):
+        """AFF4 uses GUIDs which vary all the time."""
+        previous = self.filter(self.baseline['output'])
+        current = self.filter(self.current['output'])
+
+        # Compare the entire table
+        self.assertEqual(previous, current)

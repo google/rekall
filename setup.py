@@ -60,7 +60,7 @@ def get_commits_since_tag(git_version):
     """
     try:
         return int(git_version.split("-")[1])
-    except ValueError, IndexError:
+    except (ValueError, IndexError):
         return None
 
 
@@ -140,7 +140,7 @@ setup(
         "Flask-Sockets >= 0",
         "gevent == 1.0.2",
         "gevent-websocket >= 0.9.3",
-        "PyAFF4 >= 0.13",
+        "PyAFF4 >= 0.14",
         "efilter == 1438631774",
     ],
 )

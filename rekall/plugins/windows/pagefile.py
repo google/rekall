@@ -52,10 +52,10 @@ from rekall.plugins.windows import common
 def Reentrant(func):
     def Wrapper(self, *args, **kwargs):
         lock = "_lock" + func.__name__
-        if getattr(self, lock, False):
+        if not getattr(self, lock, False):
             try:
                 setattr(self, lock, True)
-                return func(*args, **kwargs)
+                return func(self, *args, **kwargs)
             finally:
                 setattr(self, lock, False)
 

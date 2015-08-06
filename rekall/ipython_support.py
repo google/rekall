@@ -85,6 +85,9 @@ def RekallCompleter(self, text):
 class RekallShell(embed.InteractiveShellEmbed):
     display_banner = constants.BANNER
 
+    def atexit_operations(self):
+        self.user_global_ns.session.Flush()
+
 
 def Shell(user_session):
     # This should bring back the old autocall behaviour. e.g.:

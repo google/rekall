@@ -1106,7 +1106,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
 
         return name
 
-    def file_name_with_drive(self):
+    def file_name_with_drive(self, vm=None):
         """Returns the name of the file prepended with the drive letter.
 
         We resolve the drive letter by matching it with the currently assigned
@@ -1117,16 +1117,18 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
         drive_letter_device_map = self.obj_session.GetParameter(
             "drive_letter_device_map")
 
-        if self.DeviceObject:
-            device_name = self.DeviceObject.ObjectHeader.NameInfo.Name
+        device_obj = self.DeviceObject.deref(vm=vm)
+        if device_obj:
+            device_name = device_obj.ObjectHeader.NameInfo.Name
             if device_name:
                 name = u"\\Device\\{0}".format(device_name)
 
                 if name in drive_letter_device_map:
                     name = drive_letter_device_map.get(name)
 
-        if self.FileName:
-            name += unicode(self.FileName)
+        filename = self.FileName.v(vm=vm)
+        if filename:
+            name += unicode(filename)
 
         return name
 

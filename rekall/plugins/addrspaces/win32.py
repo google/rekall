@@ -20,6 +20,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 """This is a windows specific address space."""
+import os
 import pywintypes
 import struct
 import weakref
@@ -39,8 +40,32 @@ INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
 PAGE_SHIFT = 12
 
 
+class Win32FileWrapper(object):
+    """A simple wrapper that makes a win32 file handle look like an AS."""
+
+    def __init__(self, fhandle, size=None):
+        self.fhandle = fhandle
+        self.size = size
+
+    def read(self, offset, length):
+        win32file.SetFilePointer(self.fhandle, offset, 0)
+        _, data = win32file.ReadFile(self.fhandle, length)
+
+        return data
+
+    def write(self, offset, data):
+        win32file.SetFilePointer(self.fhandle, offset, 0)
+        return win32file.WriteFile(self.fhandle, data)
+
+    def end(self):
+        return self.size
+
+    def close(self):
+        win32file.CloseHandle(self.fhandle)
+
+
 class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
-                        addrspace.RunBasedAddressSpace):
+                        addrspace.MultiRunBasedAddressSpace):
     """ This is a direct file AS for use in windows.
 
     In windows, in order to open raw devices we need to use the win32 apis. This
@@ -65,39 +90,14 @@ class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
                 self, lambda x: win32file.CloseHandle(fhandle))
 
             self.write_enabled = False
+            return fhandle
 
         except pywintypes.error as e:
             raise IOError("Unable to open %s: %s" % (path, e))
 
-    def _read_chunk(self, addr, length):
-        offset, available_length = self._get_available_buffer(addr, length)
-
-        # Offset is pointing into invalid range, pad until the next range.
-        if offset is None:
-            return "\x00" * min(length, available_length)
-
-        win32file.SetFilePointer(self.fhandle, offset, 0)
-        _, data = win32file.ReadFile(
-            self.fhandle, min(length, available_length))
-
-        return data
-
-    def write(self, addr, data):
-        length = len(data)
-        offset, available_length = self._get_available_buffer(addr, length)
-        if offset is None:
-            # Do not allow writing to reserved areas.
-            return 0
-
-        to_write = min(len(data), available_length)
-        win32file.SetFilePointer(self.fhandle, offset, 0)
-
-        win32file.WriteFile(self.fhandle, data[:to_write])
-
-        return to_write
-
     def close(self):
-        win32file.CloseHandle(self.fhandle)
+        for _, _, _, fhandle_as in self.runs:
+            fhandle_as.close()
 
 
 class Win32FileAddressSpace(Win32AddressSpace):
@@ -120,12 +120,14 @@ class Win32FileAddressSpace(Win32AddressSpace):
         self.fname = path
 
         # The file is just a regular file, we open for reading.
-        self._OpenFileForRead(path)
+        fhandle = self._OpenFileForRead(path)
 
         # If we can not get the file size it means this is not a regular file -
         # maybe a device.
         try:
-            self.runs.insert((0, 0, win32file.GetFileSize(self.fhandle)))
+            file_size = win32file.GetFileSize(fhandle)
+            self.fhandle_as = Win32FileWrapper(fhandle)
+            self.add_run(0, 0, file_size, self.fhandle_as)
         except pywintypes.error:
             raise addrspace.ASAssertionError("Not a regular file.")
 
@@ -142,6 +144,9 @@ class WinPmemAddressSpace(Win32AddressSpace):
     # We must be in front of the regular file based AS.
     order = Win32FileAddressSpace.order - 5
 
+    # This AS can map files into itself.
+    __can_map_files = True
+
     def __init__(self, base=None, filename=None, session=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
         path = filename or session.GetParameter("filename")
@@ -153,14 +158,20 @@ class WinPmemAddressSpace(Win32AddressSpace):
 
         try:
             # First open for write in case the driver is in write mode.
-            self._OpenFileForWrite(path)
+            fhandle = self._OpenFileForWrite(path)
         except IOError:
-            self._OpenFileForRead(path)
+            fhandle = self._OpenFileForRead(path)
+
+        self.fhandle_as = Win32FileWrapper(fhandle)
 
         try:
-            self.ParseMemoryRuns()
+            self.ParseMemoryRuns(fhandle)
         except Exception:
-            self.runs.insert((0, 0, 2**63))
+            self.add_run(0, 0, 2**63, self.fhandle_as)
+
+        # Key: lower cased filename, value: offset where it is mapped.
+        self.mapped_files = {}
+        self.filesystems = {}
 
     def _OpenFileForWrite(self, path):
         try:
@@ -176,6 +187,8 @@ class WinPmemAddressSpace(Win32AddressSpace):
             self._closer = weakref.ref(
                 self, lambda x: win32file.CloseHandle(fhandle))
 
+            return fhandle
+
         except pywintypes.error as e:
             raise IOError("Unable to open %s: %s" % (path, e))
 
@@ -185,9 +198,9 @@ class WinPmemAddressSpace(Win32AddressSpace):
               ["Padding%s" % i for i in xrange(0xff)] +
               ["NumberOfRuns"])
 
-    def ParseMemoryRuns(self):
+    def ParseMemoryRuns(self, fhandle):
         result = win32file.DeviceIoControl(
-            self.fhandle, INFO_IOCTRL, "", 102400, None)
+            fhandle, INFO_IOCTRL, "", 102400, None)
 
         fmt_string = "Q" * len(self.FIELDS)
         self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(
@@ -200,10 +213,52 @@ class WinPmemAddressSpace(Win32AddressSpace):
 
         for x in xrange(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
-            self.runs.insert((start, start, length))
+            self.add_run(start, start, length, self.fhandle_as)
 
         # Get the kernel base directly from the winpmem driver if that is
         # available.
         kernel_base = self.memory_parameters["KernBase"]
         if kernel_base > 0:
             self.session.SetCache("kernel_base", kernel_base)
+
+    def _map_raw_filename(self, filename):
+        drive, base_filename = os.path.splitdrive(filename)
+        try:
+            ntfs_session = self.filesystems[drive]
+        except KeyError:
+            ntfs_session = self.filesystems[drive] = self.session.add_session(
+                filename=r"\\.\%s" % drive,
+                profile="ntfs")
+
+        # Stat the MFT inode (MFT 2).
+        mft_stat = ntfs_session.plugins.istat(2)
+
+        # Lookup the mft entry by filename.
+        mft_entry = mft_stat.ntfs.MFTEntryByName(base_filename)
+
+        # Open the $DATA stream
+        return mft_entry.open_file()
+
+    def get_mapped_offset(self, filename, file_offset):
+        # Normalize filename for case insenstive comparisons.
+        filename = filename.lower()
+        mapped_offset = self.mapped_files.get(filename)
+        if mapped_offset is None:
+            try:
+                # Try to read the file with OS APIs.
+                file_as = Win32FileAddressSpace(filename=filename,
+                                                session=self.session)
+            except IOError:
+                try:
+                    # Try to read the file with raw access.
+                    file_as = self._map_raw_filename(filename)
+                except IOError:
+                    # Cant read this file - no mapping available.
+                    return
+
+            # Add a guard page.
+            mapped_offset = self.mapped_files[filename] = self.end() + 0x1000
+            self.add_run(mapped_offset, 0, file_as.end(), file_as)
+
+        if mapped_offset is not None:
+            return mapped_offset + file_offset

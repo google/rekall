@@ -92,6 +92,9 @@ class FileScan(common.PoolScannerPlugin):
             owner_process = object_obj.HandleInfo.SingleEntry.Process.deref(
                 vm=self.kernel_address_space)
 
+            filename = file_obj.file_name_with_drive(
+                vm=self.kernel_address_space)
+
             renderer.table_row(
                 'F' if pool_obj.FreePool else "",
                 file_obj.obj_offset,
@@ -99,7 +102,7 @@ class FileScan(common.PoolScannerPlugin):
                 object_obj.HandleCount,
                 file_obj.AccessString,
                 owner_process,
-                file_obj.FileName.v(vm=self.kernel_address_space))
+                filename)
 
 
 class PoolScanDriver(PoolScanFile):

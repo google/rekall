@@ -215,8 +215,12 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         guid_age = pe_helper.RSDS.GUID_AGE
         if guid_age:
             profile_name = "%s/GUID/%s" % (module_name, guid_age)
-            result = (self.session.LoadProfile(profile_name) or
-                      self._build_local_profile(module_name, profile_name))
+            result = self.session.LoadProfile(profile_name)
+            if not result:
+                try:
+                    self._build_local_profile(module_name, profile_name)
+                except RuntimeError:
+                    pass
 
             if result:
                 result.name = module_name

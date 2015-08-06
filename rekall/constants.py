@@ -18,8 +18,8 @@
 #
 import time
 
-VERSION = "1.3.2"
-CODENAME = "Dammastock"
+VERSION = "1.4.0"
+CODENAME = "Etzel"   # https://en.wikipedia.org/wiki/Etzel_Pass
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORIES = [

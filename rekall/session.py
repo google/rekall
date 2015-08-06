@@ -1125,6 +1125,7 @@ Cache (%r):
         new_session = self.__class__()
         new_session.locals = self.locals
         new_session._repository_managers = self._repository_managers
+        new_session.profile_cache = self.profile_cache
 
         with new_session:
             for k, v in kwargs.iteritems():
