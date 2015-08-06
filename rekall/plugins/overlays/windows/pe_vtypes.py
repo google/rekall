@@ -840,7 +840,7 @@ class PE(object):
                 filename=filename, session=self.session)
 
             self.vm = PEFileAddressSpace(
-                base=file_address_space, profile=self.profile)
+                base=file_address_space, session=self.session)
 
             self.image_base = self.vm.image_base
 
@@ -1025,6 +1025,8 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         self.as_assert(self.base is not None, "Must layer on another AS.")
         self.as_assert(self.base.read(0, 2) == "MZ",
                        "File does not have a valid signature for a PE file.")
+
+        self.profile = self.session.LoadProfile("pe")
 
         nt_header = self.profile._IMAGE_DOS_HEADER(vm=self.base).NTHeader
         self.image_base = obj.Pointer.integer_to_address(

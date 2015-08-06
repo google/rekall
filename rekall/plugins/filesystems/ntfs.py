@@ -396,11 +396,12 @@ class FixupAddressSpace(addrspace.BaseAddressSpace):
 class RunListAddressSpace(addrspace.RunBasedAddressSpace):
     """An address space which is initialized from a runlist."""
 
-    def __init__(self, run_list, cluster_size=None, size=0, **kwargs):
+    def __init__(self, run_list, cluster_size=None, size=0, name="", **kwargs):
         super(RunListAddressSpace, self).__init__(**kwargs)
         self.PAGE_SIZE = cluster_size or self.session.cluster_size
         self.compression_unit_size = 16 * self.PAGE_SIZE
         self._end = size
+        self.name = name
 
         # In clusters.
         file_offset = 0
@@ -484,9 +485,16 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
 
                 physical_offset = addr - virt_addr
 
-                return block_data[
+                result = block_data[
                     physical_offset:
                     physical_offset + min(length, available_length)]
+
+                # Decompression went wrong - just zero pad.
+                if len(result) < length:
+                    result += "\x00" * (length - len(result))
+
+                return result
+
 
             available_length = file_length - (addr - virt_addr)
             physical_offset = addr - virt_addr + file_address
@@ -523,6 +531,8 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
             if length > 0:
                 yield run_start, file_address, length
 
+    def __unicode__(self):
+        return utils.SmartUnicode(self.name or self.__class__.__name__)
 
     def end(self):
         return self._end
@@ -656,6 +666,7 @@ class MFT_ENTRY(obj.Struct):
                 run_list=runlists,
                 base=self.obj_session.physical_address_space,
                 session=self.obj_session,
+                name=self.full_path,
                 size=data_size)
 
         return obj.NoneObject("No data")

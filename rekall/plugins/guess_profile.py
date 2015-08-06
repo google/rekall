@@ -24,7 +24,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 # pylint: disable=protected-access
 import re
 
-from rekall import cache
+from rekall import addrspace
 from rekall import config
 from rekall import kb
 from rekall import obj
@@ -310,7 +310,9 @@ class WindowsRSDSDetector(DetectionMethod):
     def DetectFromHit(self, hit, offset, address_space):
         # Try Windows by GUID:
         rsds = self.pe_profile.CV_RSDS_HEADER(offset=offset, vm=address_space)
+        return self._test_rsds(rsds)
 
+    def _test_rsds(self, rsds):
         if (rsds.Signature.is_valid() and
                 str(rsds.Filename) in self.KERNEL_NAMES):
             profile = self.VerifyProfile("nt/GUID/%s" % rsds.GUID_AGE)
@@ -321,6 +323,35 @@ class WindowsRSDSDetector(DetectionMethod):
                     rsds.GUID_AGE)
 
                 return profile
+
+
+class WindowsKernelImageDetector(WindowsRSDSDetector):
+    name = "windows_kernel_file"
+
+    def Offsets(self):
+        return [0]
+
+    KERNEL_PATH = r"C:\Windows\System32\ntoskrnl.exe"
+
+    def DetectFromHit(self, hit, _, address_space):
+        # Try to make the kernel image into the address_space.
+        image_offset = address_space.get_mapped_offset(
+            self.KERNEL_PATH, 0)
+
+        if image_offset is not None:
+            file_as = addrspace.RunBasedAddressSpace(
+                base=address_space, session=self.session)
+            file_as.runs.insert((0, image_offset, 2**63))
+
+            pe_file_as = pe_vtypes.PEFileAddressSpace(
+                base=file_as, session=self.session)
+
+            pe_helper = pe_vtypes.PE(
+                session=self.session,
+                address_space=pe_file_as,
+                image_base=pe_file_as.image_base)
+
+            return self._test_rsds(pe_helper.RSDS)
 
 
 class LinuxBannerDetector(DetectionMethod):
@@ -465,6 +496,7 @@ class ProfileHook(kb.ParameterHook):
         for offset, hit in scanner.scan(maxlen=autodetect_scan_length):
             self.session.logging.info(
                 "guess_profile: autodetection hit @ %x - %s", offset, hit)
+
             for method in needle_lookup[hit]:
                 profile = method.DetectFromHit(hit, offset, address_space)
                 if profile:

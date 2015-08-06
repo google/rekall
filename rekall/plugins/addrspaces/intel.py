@@ -50,11 +50,14 @@ There are a few main entry points into the translating Address Spaces:
 
 2) describe_vtop(): This is the describing sister method of vtop(). It returns a
    list of AddressTranslationDescriptor() objects. Each of these describes a
-   specific step in the translation process. If one was to render each step, the
-   output outlines exactly what happened in each step and how the address is
+   specific step in the translation process. If one was to render each step,
+   this outlines exactly what happened in each step and how the address is
    derived. If the address space translation process succeeds the last
    descriptor will be a PhysicalAddressDescriptor() instance which describes the
-   final physical address.
+   final physical address. Note that the translation process may request files
+   to be mapped into the physical address space, so the
+   PhysicalAddressDescriptor() will point at mapped files (i.e. it may not
+   actually refer to the physical memory image).
 
 3) get_available_addresses(): This method generates tuples of (virtual address,
    physical address, length) which encapsulate each region available in the

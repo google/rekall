@@ -57,6 +57,26 @@ class RobustEncoder(json.JSONEncoder):
         return None
 
 
+def CacheableState(func):
+    """A decorator which caches objects in the renderer's LRU.
+
+    This applies to StateBasedObjectRenderer state dicts, which must have a
+    unique id member.
+    """
+    def DecodeFromJsonSafe(self, value, options):
+        try:
+            obj_id = value.get("id")
+            result = self.renderer.cache.Get(obj_id)
+        except KeyError:
+            result = func(self, value, options)
+            if obj_id is not None:
+                self.renderer.cache.Put(obj_id, result)
+
+        return result
+
+    return DecodeFromJsonSafe
+
+
 class JsonObjectRenderer(renderer_module.ObjectRenderer):
     """An ObjectRenderer for Json encoding.
 
@@ -215,6 +235,7 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
         _ = item
         return {}
 
+    @CacheableState
     def DecodeFromJsonSafe(self, value, options):
         value.pop("id", None)
         return super(StateBasedObjectRenderer, self).DecodeFromJsonSafe(
@@ -288,6 +309,7 @@ class StringRenderer(StateBasedObjectRenderer):
 class BaseObjectRenderer(StateBasedObjectRenderer):
     renders_type = "BaseObject"
 
+    @CacheableState
     def DecodeFromJsonSafe(self, value, options):
         value = super(BaseObjectRenderer, self).DecodeFromJsonSafe(
             value, options)
@@ -308,12 +330,14 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
 class BaseAddressSpaceObjectRenderer(StateBasedObjectRenderer):
     renders_type = "BaseAddressSpace"
 
+    @CacheableState
     def DecodeFromJsonSafe(self, value, options):
         value = super(BaseAddressSpaceObjectRenderer,
                       self).DecodeFromJsonSafe(value, options)
 
         cls_name = value.pop("cls")
         cls = addrspace.BaseAddressSpace.classes[cls_name]
+
         return cls(session=self.session, **value)
 
     def GetState(self, item, **_):

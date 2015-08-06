@@ -159,7 +159,8 @@ class StringCheck(ScannerCheck):
     def check(self, buffer_as, offset):
         # Just check the buffer without needing to copy it on slice.
         buffer_offset = buffer_as.get_buffer_offset(offset)
-        return buffer_as.data.startswith(self.needle, buffer_offset)
+        if buffer_as.data.startswith(self.needle, buffer_offset):
+            return self.needle
 
     def skip(self, buffer_as, offset):
         # Search the rest of the buffer for the needle.

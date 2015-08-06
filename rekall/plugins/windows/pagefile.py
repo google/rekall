@@ -48,12 +48,27 @@ from rekall.plugins.windows import common
 
 # pylint: disable=protected-access
 
+
+def Reentrant(func):
+    def Wrapper(self, *args, **kwargs):
+        lock = "_lock" + func.__name__
+        if getattr(self, lock, False):
+            try:
+                setattr(self, lock, True)
+                return func(*args, **kwargs)
+            finally:
+                setattr(self, lock, False)
+
+    return Wrapper
+
+
 # Windows has some special steps in its address translation. We define some
 # windows specific descriptors here.
 class WindowsPTEDescriptor(intel.AddressTranslationDescriptor):
     """Print the PTE in exploded view."""
 
     default_pte_type = None
+    object_name = "pte"
 
     def __init__(self, pte_type=None, pte_value=None, pte_addr=None,
                  session=None):
@@ -63,7 +78,7 @@ class WindowsPTEDescriptor(intel.AddressTranslationDescriptor):
         union. e.g. "Hard", "Transition", "Soft", etc).
         """
         super(WindowsPTEDescriptor, self).__init__(
-            object_name="pte", object_value=pte_value,
+            object_name=self.object_name, object_value=pte_value,
             object_address=pte_addr, session=session)
         self.pte_type = pte_type or self.default_pte_type
 
@@ -77,6 +92,10 @@ class WindowsPTEDescriptor(intel.AddressTranslationDescriptor):
 
             self.session.plugins.dt(
                 specific_pte, offset=self.object_address).render(renderer)
+
+
+class WindowsPDEDescriptor(WindowsPTEDescriptor):
+    object_name = "pde"
 
 
 class WindowsProtoTypePTEDescriptor(WindowsPTEDescriptor):
@@ -139,8 +158,15 @@ class WindowsSubsectionPTEDescriptor(WindowsPTEDescriptor):
             offset=file_offset)
 
     def render(self, renderer):
+        pte = self.session.profile._MMPTE()
+        pte.u.Long = int(self.object_value)
+        specific_pte = pte.u.Subsect
+
+        self.session.plugins.dt(
+            specific_pte, offset=self.object_address).render(renderer)
+
         metadata = self.metadata()
-        renderer.format("Subsection PTE to file {0} @ {1:addr}",
+        renderer.format("Subsection PTE to file {0} @ {1:addr}\n",
                         metadata["filename"], metadata["offset"])
 
 
@@ -203,8 +229,6 @@ class WindowsPagedMemoryMixin(object):
 
         # This is the offset at which the pagefile is mapped into the physical
         # address space.
-        self.pagefile_mapping = getattr(self.base, "pagefile_offset", None)
-
         self._resolve_vads = True
         self._vad = None
 
@@ -226,6 +250,12 @@ class WindowsPagedMemoryMixin(object):
                                             self.valid_mask)
         self.transition_valid_mask = self.transition_mask | self.valid_mask
         self.task = None
+
+        self.base_as_can_map_files = self.base.metadata("can_map_files")
+
+        # A Guard flag for protecting against re-entrancy when resolving the
+        # pagefiles.
+        self._resolving_pagefiles = False
 
     @property
     def vad(self):
@@ -320,12 +350,12 @@ class WindowsPagedMemoryMixin(object):
         prototype state since the PDE can not use a prototype).
         """
         pde_value = self.read_pte(pde_addr)
-        collection.add(intel.AddressTranslationDescriptor,
-                       object_name="pde", object_value=pde_value,
-                       object_address=pde_addr)
 
         # PDE is valid or in transition:
         if pde_value & self.transition_valid_mask:
+            collection.add(WindowsPDEDescriptor, pte_value=pde_value,
+                           pte_addr=pde_addr)
+
             # PDE refers to a valid large page.
             if pde_value & self.valid_mask and  pde_value & self.page_size_mask:
                 physical_address = ((pde_value & 0xfffffffe00000) |
@@ -344,52 +374,101 @@ class WindowsPagedMemoryMixin(object):
 
         # PDE is paged out into a valid pagefile address.
         elif pde_value & self.soft_pagefilehigh_mask:
+            collection.add(WindowsPDEDescriptor, pte_value=pde_value,
+                           pte_addr=pde_addr, pte_type="Soft")
+
             pde = self.session.profile._MMPTE()
             pde.u.Long = pde_value
 
             # This is the address in the pagefile where the PDE resides.
-            pagefile_address = (pde.u.Soft.PageFileHigh * 0x1000 +
+            soft_pte = pde.u.Soft
+            pagefile_address = (soft_pte.PageFileHigh * 0x1000 +
                                 ((vaddr & 0x1ff000) >> 9))
 
             collection.add(WindowsPagefileDescriptor,
                            address=pagefile_address,
                            pagefile_number=pde.u.Soft.PageFileLow.v())
 
-            # If we have the pagefile we can just read it now.
-            if self.pagefile_mapping:
-                pte_addr = pagefile_address + self.pagefile_mapping
-                pte_value = self.read_pte(pte_addr)
+            # Try to make the pagefile into the base address space.
+            pte_addr = self._get_pagefile_mapped_address(
+                soft_pte.PageFileLow.v(), pagefile_address)
 
+            if pte_addr is not None:
+                pte_value = self.read_pte(pte_addr)
                 self._describe_pte(collection, pte_addr, pte_value, vaddr)
 
         else:
             collection.add(DemandZeroDescriptor)
 
-    def _describe_vad_pte(self, collection, pte_addr, pte_value, vaddr):
-        if not self.vad:
-            return
+    @Reentrant
+    def _get_subsection_mapped_address(self, subsection_pte_address):
+        """Map the subsection into the physical address space.
 
-        collection.add(intel.CommentDescriptor, "Consulting Vad: ")
+        Returns:
+          The offset in the physical AS where this subsection PTE is mapped to.
+        """
+        if self.base_as_can_map_files:
+            pte = self.session.profile._MMPTE(subsection_pte_address)
+            subsection = pte.u.Subsect.Subsection
 
-        vad_hit = self.vad.get_range(vaddr)
-        if vad_hit:
-            start, _, mmvad = vad_hit
+            filename = subsection.ControlArea.FilePointer.file_name_with_drive()
+            file_offset = (
+                (pte - subsection.SubsectionBase) * 0x1000 / pte.obj_size +
+                subsection.StartingSector * 512)
 
-            # If the MMVAD has PTEs resolve those..
-            if "FirstPrototypePte" in mmvad.members:
-                pte = mmvad.FirstPrototypePte[(vaddr - start) >> 12]
-                collection.add(VadPteDescriptor,
-                               pte_value=pte_value, pte_addr=pte_addr,
-                               virtual_address=vaddr)
+            if filename:
+                return self.base.get_mapped_offset(filename, file_offset)
 
-                self._describe_proto_pte(
-                    collection, pte.obj_offset, pte.u.Long.v(), vaddr)
+    def _get_pagefile_mapped_address(self, pagefile_number, pagefile_offset):
+        """Map the required pagefile into the physical AS.
 
+        Returns:
+          the mapped address of the required offset in the physical AS.
+        """
+        if self.base_as_can_map_files:
+            # If we are in the process of resolving the pagefiles, break
+            # re-entrancy.
+            if (self._resolving_pagefiles and
+                    not self.session.HasParameter("pagefiles")):
                 return
 
-            else:
-                collection.add(intel.CommentDescriptor,
-                               "Vad type {0}\n", mmvad.Tag)
+            # If we have the pagefile we can just read it now.
+            try:
+                self._resolving_pagefiles = True
+                pagefile_name, _ = self.session.GetParameter("pagefiles")[
+                    pagefile_number]
+            except (KeyError, ValueError):
+                return
+
+            finally:
+                self._resolving_pagefiles = False
+
+            # Try to make the pagefile into the base address space.
+            return self.base.get_mapped_offset(pagefile_name, pagefile_offset)
+
+    def _describe_vad_pte(self, collection, pte_addr, pte_value, vaddr):
+        if self.vad:
+            collection.add(intel.CommentDescriptor, "Consulting Vad: ")
+
+            vad_hit = self.vad.get_range(vaddr)
+            if vad_hit:
+                start, _, mmvad = vad_hit
+
+                # If the MMVAD has PTEs resolve those..
+                if "FirstPrototypePte" in mmvad.members:
+                    pte = mmvad.FirstPrototypePte[(vaddr - start) >> 12]
+                    collection.add(VadPteDescriptor,
+                                   pte_value=pte_value, pte_addr=pte_addr,
+                                   virtual_address=vaddr)
+
+                    self._describe_proto_pte(
+                        collection, pte.obj_offset, pte.u.Long.v(), vaddr)
+
+                    return
+
+                else:
+                    collection.add(intel.CommentDescriptor,
+                                   "Vad type {0}\n", mmvad.Tag)
 
         # Virtual address does not exist in any VAD region.
         collection.add(DemandZeroDescriptor)
@@ -422,14 +501,20 @@ class WindowsPagedMemoryMixin(object):
             collection.add(WindowsSubsectionPTEDescriptor,
                            pte_value=pte_value, pte_addr=pte_addr)
 
+            # Try to map the file into the physical address space.
+            file_mapping = self._get_subsection_mapped_address(pte_addr)
+            if file_mapping is not None:
+                collection.add(intel.PhysicalAddressDescriptor,
+                               address=file_mapping)
+
         # PTE is paged out into a valid pagefile address.
         elif pte_value & self.soft_pagefilehigh_mask:
             pte = self.session.profile._MMPTE()
             pte.u.Long = pte_value
 
             # This is the address in the pagefle where the PTE resides.
-            pagefile_address = (pte.u.Soft.PageFileHigh * 0x1000 +
-                                (vaddr & 0xFFF))
+            soft_pte = pte.u.Soft
+            pagefile_address = soft_pte.PageFileHigh * 0x1000 + (vaddr & 0xFFF)
 
             collection.add(WindowsPTEDescriptor,
                            pte_type="Soft", pte_value=pte_value,
@@ -440,8 +525,10 @@ class WindowsPagedMemoryMixin(object):
                            pagefile_number=pte.u.Soft.PageFileLow.v())
 
             # If we have the pagefile we can just read it now.
-            if self.pagefile_mapping:
-                physical_address = pagefile_address + self.pagefile_mapping
+            physical_address = self._get_pagefile_mapped_address(
+                soft_pte.PageFileLow.v(), pagefile_address)
+
+            if pagefile_address is not None:
                 collection.add(
                     intel.PhysicalAddressDescriptor, address=physical_address)
 
@@ -494,14 +581,18 @@ class WindowsPagedMemoryMixin(object):
 
             self._describe_vad_pte(collection, pte_addr, pte_value, vaddr)
 
+        # PTE is demand zero.
+        elif (pte_value >> 12) == 0:
+            collection.add(DemandZeroDescriptor)
+
         # PTE is paged out into a valid pagefile address.
         elif pte_value & self.soft_pagefilehigh_mask:
             pte = self.session.profile._MMPTE()
             pte.u.Long = pte_value
 
             # This is the address in the pagefle where the PTE resides.
-            pagefile_address = (pte.u.Soft.PageFileHigh * 0x1000 +
-                                (vaddr & 0xFFF))
+            soft_pte = pte.u.Soft
+            pagefile_address = soft_pte.PageFileHigh * 0x1000 + (vaddr & 0xFFF)
 
             collection.add(WindowsPTEDescriptor,
                            pte_type="Soft", pte_value=pte_value,
@@ -511,15 +602,13 @@ class WindowsPagedMemoryMixin(object):
                            address=pagefile_address,
                            pagefile_number=pte.u.Soft.PageFileLow.v())
 
+            physical_address = self._get_pagefile_mapped_address(
+                soft_pte.PageFileLow.v(), pagefile_address)
+
             # If we have the pagefile we can just read it now.
-            if self.pagefile_mapping:
-                physical_address = pagefile_address + self.pagefile_mapping
+            if physical_address is not None:
                 collection.add(
                     intel.PhysicalAddressDescriptor, address=physical_address)
-
-        # PTE is demand zero.
-        elif (pte_value >> 12) == 0:
-            collection.add(DemandZeroDescriptor)
 
         else:
             # Fallback
@@ -533,15 +622,19 @@ class WindowsPagedMemoryMixin(object):
         if pde_value & self.transition_valid_mask:
             return (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
 
-        if self.pagefile_mapping and pde_value & self.soft_pagefilehigh_mask:
+        if pde_value & self.soft_pagefilehigh_mask:
             pde = self.session.profile._MMPTE()
             pde.u.Long = pde_value
+            soft_pte = pde.u.Soft
 
             # This is the address in the pagefle where the PDE resides.
-            pagefile_address = (pde.u.Soft.PageFileHigh * 0x1000 +
+            pagefile_address = (soft_pte.PageFileHigh * 0x1000 +
                                 ((vaddr & 0x1ff000) >> 9))
 
-            return pagefile_address + self.pagefile_mapping
+            physical_address = self._get_pagefile_mapped_address(
+                soft_pte.PageFileLow.v(), pagefile_address)
+
+            return physical_address
 
 
 class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
@@ -563,7 +656,27 @@ class Pagefiles(common.WindowsCommandPlugin):
     name = "pagefiles"
 
     def render(self, renderer):
-        pagingfiles = self.profile.get_constant_object(
+        renderer.table_header([
+            ('_MMPAGING_FILE', '', '[addrpad]'),
+            ('Number', 'number', '>3'),
+            ('Size (b)', 'size', '>10'),
+            ('Filename', 'filename', '20'),
+            ])
+
+        for pf_num, (pf_name, pf) in self.session.GetParameter(
+                "pagefiles").items():
+            pf = self.profile._MMPAGING_FILE(pf)
+            renderer.table_row(pf, pf_num, pf.Size * 0x1000, pf_name)
+
+
+class PagefileHook(common.AbstractWindowsParameterHook):
+    """Map pagefile number to the filename."""
+
+    name = "pagefiles"
+
+    def calculate(self):
+        result = {}
+        pagingfiles = self.session.profile.get_constant_object(
             'MmPagingFile',
             target='Array', target_args=dict(
                 target='Pointer',
@@ -574,14 +687,9 @@ class Pagefiles(common.WindowsCommandPlugin):
                 )
             )
 
-        renderer.table_header([
-            ('_MMPAGING_FILE', '', '[addrpad]'),
-            ('Number', 'number', '>3'),
-            ('Size (b)', 'size', '>10'),
-            ('Filename', 'filename', '20'),
-            ])
-
         for pf in pagingfiles:
             if pf:
-                renderer.table_row(
-                    pf, pf.PageFileNumber, pf.Size * 0x1000, pf.PageFileName)
+                result[pf.PageFileNumber.v()] = (
+                    pf.File.file_name_with_drive(), pf.v())
+
+        return result

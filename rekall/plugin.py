@@ -190,13 +190,14 @@ class ProfileCommand(Command):
 
     @classmethod
     def is_active(cls, session):
-        # Note! This will trigger profile autodetection if this plugin is
-        # needed. This might be slightly unexpected: When command line
-        # completing the available plugins we will trigger profile autodetection
-        # in order to determine which plugins are active.
-        profile = (super(ProfileCommand, cls).is_active(session) and
-                   session.profile != None)
         if cls.PROFILE_REQUIRED:
+            # Note! This will trigger profile autodetection if this plugin is
+            # needed. This might be slightly unexpected: When command line
+            # completing the available plugins we will trigger profile
+            # autodetection in order to determine which plugins are active.
+            profile = (super(ProfileCommand, cls).is_active(session) and
+                       session.profile != None)
+
             return profile
 
         else:
@@ -216,10 +217,21 @@ class ProfileCommand(Command):
         if profile is not None:
             self.session.profile = profile
 
-        self.profile = self.session.profile
-        if self.PROFILE_REQUIRED and not self.profile:
-            raise PluginError("Profile not specified. (use vol(plugins.info) "
-                              "to see available profiles.).")
+        # If the session already has a profile, use it.
+        if self.session.HasParameter("profile_obj"):
+            self.profile = self.session.profile
+
+        # If the profile is required but the session has nothing yet, force
+        # autodetection.
+        elif self.PROFILE_REQUIRED:
+            # Force autodetection...
+            self.profile = self.session.profile
+
+            # Nothing found... bail out!
+            if not self.profile:
+                raise PluginError(
+                    "Profile could not detected. "
+                    "Try specifying one explicitly.")
 
 
 class KernelASMixin(object):
@@ -354,7 +366,7 @@ class PluginMetadataDatabase(object):
         # time.
         if len(results) > 1:
             raise RuntimeError("Multiple plugin implementations for %s: %s" % (
-                               plugin_name, results))
+                plugin_name, results))
 
         if results:
             return results[0]

@@ -967,3 +967,15 @@ def SplitPath(path):
 
     result.reverse()
     return result
+
+
+def CaseInsensitiveDictLookup(key, dictionary):
+    """Lookup the dictionary with a case insensitive key."""
+    # First try as is.
+    result = dictionary.get(key)
+    if result is None:
+        for k, v in dictionary.iteritems():
+            if k.lower() == key.lower():
+                return v
+
+    return result

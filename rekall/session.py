@@ -658,14 +658,6 @@ class Session(object):
           *pos_args: Args passed to the plugin if it is not an instance.
           **kwargs: kwargs passed to the plugin if it is not an instance.
         """
-
-        # On multiple calls to RunPlugin, we need to make sure the
-        # HoardingLogHandler doesn't send messages to the wrong renderer.
-        # We reset the renderer and make it hoard messages until we have the
-        # new one.
-        self.logging.debug(
-            "Running plugin (%s) with args (%s) kwargs (%s)",
-            plugin_obj, args, kwargs)
         kwargs = self._CorrectKWArgs(kwargs)
         output = kwargs.pop("output", self.GetParameter("output"))
         ui_renderer = kwargs.pop("format", None)
@@ -682,6 +674,14 @@ class Session(object):
         except Exception as e:
             raise ValueError(
                 "Invalid plugin_obj parameter (%s)." % repr(plugin))
+
+        # On multiple calls to RunPlugin, we need to make sure the
+        # HoardingLogHandler doesn't send messages to the wrong renderer.
+        # We reset the renderer and make it hoard messages until we have the
+        # new one.
+        self.logging.debug(
+            "Running plugin (%s) with args (%s) kwargs (%s)",
+            plugin_name, args, kwargs)
 
         with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
             try:
@@ -1122,8 +1122,13 @@ Cache (%r):
             kwargs["session_name"] = u"%s (%s)" % (
                 kwargs.get("filename", session_id), session_id)
 
-        new_session = self.__class__(**kwargs)
+        new_session = self.__class__()
         new_session.locals = self.locals
+        new_session._repository_managers = self._repository_managers
+
+        with new_session:
+            for k, v in kwargs.iteritems():
+                new_session.SetParameter(k, v)
 
         self.session_list.append(new_session)
         self.session_list.sort(key=lambda x: x.session_id)

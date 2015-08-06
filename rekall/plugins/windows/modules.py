@@ -108,19 +108,23 @@ class Modules(common.WindowsCommandPlugin):
         return obj.NoneObject("Unknown")
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
-                               ("Name", "file_name", "20"),
-                               ('Base', "module_base", "[addrpad]"),
-                               ('Size', "module_size", "[addr]"),
-                               ('File', "path", "")
-                              ])
+        object_tree_plugin = self.session.plugins.object_tree()
+
+        renderer.table_header(
+            [("_LDR_DATA_TABLE_ENTRY", "offset_v", "[addrpad]"),
+             ("Name", "file_name", "20"),
+             ('Base', "module_base", "[addrpad]"),
+             ('Size', "module_size", "[addr]"),
+             ('File', "path", "")
+            ])
 
         for module in self.lsmod():
-            renderer.table_row(module.obj_offset,
-                               module.BaseDllName,
-                               module.DllBase,
-                               module.SizeOfImage,
-                               module.FullDllName)
+            renderer.table_row(
+                module.obj_offset,
+                module.BaseDllName,
+                module.DllBase,
+                module.SizeOfImage,
+                object_tree_plugin.FileNameWithDrive(module.FullDllName.v()))
 
 
 class RSDSScanner(scan.BaseScanner):

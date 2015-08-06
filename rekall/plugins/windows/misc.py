@@ -471,7 +471,7 @@ class ObjectTree(common.WindowsCommandPlugin):
         parser.add_argument("--type_regex", default=".",
                             help="Filter the type of objects shown.")
 
-    def __init__(self, type_regex=".", **kwargs):
+    def __init__(self, type_regex=None, **kwargs):
         super(ObjectTree, self).__init__(**kwargs)
 
         if type_regex:
@@ -485,6 +485,74 @@ class ObjectTree(common.WindowsCommandPlugin):
 
         return self.profile.Object(type_name=root["type_name"],
                                    offset=root["offset"])
+
+    def FileNameWithDrive(self, path):
+        """Tries to resolve the path back to something with a drive letter."""
+        # First normalize the path.
+        try:
+            path = self.ResolveSymlinks(path)
+
+        # This will be triggered if the path does not resolve to anything in the
+        # object tree.
+        except KeyError:
+            return path
+
+        for prefix, drive_letter in self.session.GetParameter(
+                "drive_letter_device_map").iteritems():
+            prefix = self.ResolveSymlinks(prefix)
+            if path.startswith(prefix):
+                return drive_letter + path[len(prefix):]
+
+    def ResolveSymlinks(self, path):
+        """Takes a path and resolves any intermediate symlinks in it.
+
+        Returns:
+          A direct path to the object.
+        """
+        components = path.split("\\")
+        return "\\".join(self._parse_path_components(components))
+
+    def _parse_path_components(self, components):
+        node = self.session.GetParameter("object_tree")
+        new_components = []
+
+        for i, component in enumerate(components):
+            if not component:
+                continue
+
+            if component == "??":
+                component = "GLOBAL??"
+
+            next_node = utils.CaseInsensitiveDictLookup(
+                component, node["Children"])
+
+            # If the first component is not found, search for it in the global
+            # namespace.
+            if next_node is None and i == 0 and component != "GLOBAL??":
+                return self._parse_path_components(["GLOBAL??"] + components)
+
+            if next_node is None:
+                raise KeyError(
+                    "component %r not found at %s" % (
+                        component, "\\".join(new_components)))
+
+            elif next_node["type"] == "SymbolicLink":
+                object_header = self.session.profile._OBJECT_HEADER(
+                    next_node["offset"])
+
+                target = object_header.Object.LinkTarget.v()
+
+                # Append the next components to the target and re-parse
+                return self._parse_path_components(
+                    target.split("\\") + components[i+1:])
+
+            elif next_node["type"] != "Directory":
+                return new_components + components[i:]
+
+            new_components.append(component)
+            node = next_node
+
+        return new_components
 
     def _render_directory(self, directory, renderer, seen, depth=0):
         for obj_header in directory.list():

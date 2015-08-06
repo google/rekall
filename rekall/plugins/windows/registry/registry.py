@@ -301,7 +301,11 @@ class _CMHIVE(obj.Struct):
         except AttributeError:
             pass
 
-        return u"{0} @ {1:#010x}".format(name, self.obj_offset)
+        object_tree_plugin = self.obj_session.plugins.object_tree()
+
+        return u"{0} @ {1:#010x}".format(
+            object_tree_plugin.FileNameWithDrive(name) or "Unnamed",
+            self.obj_offset)
 
 
 class _CM_KEY_NODE(obj.Struct):
@@ -632,7 +636,7 @@ class RegistryPlugin(common.WindowsCommandPlugin):
         if hive_regex is not None:
             hive_offsets = []
             for hive in self.hive_offsets:
-                m = re.search(hive_regex, utils.SmartUnicode(hive.Name))
+                m = re.search(hive_regex, utils.SmartUnicode(hive.Name), re.I)
                 if m:
                     hive_offsets.append(hive)
 

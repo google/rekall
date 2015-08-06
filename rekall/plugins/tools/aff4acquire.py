@@ -26,10 +26,14 @@ acquire more relevant information (e.g. mapped files etc).
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+import os
+import stat
 import time
 
+from rekall import constants
 from rekall import plugin
 from rekall import testlib
+from rekall import yaml_utils
 
 from pyaff4 import data_store
 from pyaff4 import aff4_image
@@ -41,12 +45,20 @@ from pyaff4 import rdfvalue
 from pyaff4 import plugins  # pylint: disable=unused-import
 
 
-class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
-    """Copy the physical address space to an AFF4 file."""
+class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
+    """Copy the physical address space to an AFF4 file.
+
+
+    NOTE: This plugin does not required a working profile - unless the user also
+    wants to copy the pagefile or mapped files. In that case we must analyze the
+    live memory to gather the required files.
+    """
 
     name = "aff4acquire"
 
     BUFFERSIZE = 1024 * 1024
+
+    PROFILE_REQUIRED = False
 
     @classmethod
     def args(cls, parser):
@@ -62,7 +74,16 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
             choices=["snappy", "stored", "zlib"],
             help="The compression to use.")
 
-    def __init__(self, destination=None, compression=None, **kwargs):
+        parser.add_argument(
+            "--also_files", default=False, type="Boolean",
+            help="Also get mapped or opened files (requires a profile)")
+
+        parser.add_argument(
+            "--also_pagefile", default=False, type="Boolean",
+            help="Also get the pagefile/swap partition (requires a profile)")
+
+    def __init__(self, destination=None, compression="zlib", also_files=False,
+                 also_pagefile=False, max_file_size=100*1024*1024, **kwargs):
         super(AFF4Acquire, self).__init__(**kwargs)
 
         self.destination = destination or "output.aff4"
@@ -77,23 +98,32 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
                 "Compression scheme not supported.")
 
         self.compression = compression
+        self.also_files = also_files
+        self.also_pagefile = also_pagefile
+        self.max_file_size = max_file_size
 
     def copy_physical_address_space(self, resolver, volume):
         """Copies the physical address space to the output volume."""
         image_urn = volume.urn.Append("PhysicalMemory")
         source = self.physical_address_space
 
+        # Mark the stream as a physical memory stream.
+        resolver.Set(image_urn, lexicon.AFF4_CATEGORY,
+                     rdfvalue.URN(lexicon.AFF4_MEMORY_PHYSICAL))
+
         if self.compression:
             storage_urn = image_urn.Append("data")
             resolver.Set(storage_urn, lexicon.AFF4_IMAGE_COMPRESSION,
                          rdfvalue.URN(self.compression))
 
+        with volume.CreateMember(
+                image_urn.Append("information.yaml")) as metadata_fd:
+
+            metadata_fd.Write(
+                yaml_utils.encode(self.create_metadata(source)))
+
         with aff4_map.AFF4Map.NewAFF4Map(
             resolver, image_urn, volume.urn) as image_stream:
-
-            # Mark the stream as a physical memory stream.
-            resolver.Set(image_stream.urn, lexicon.AFF4_CATEGORY,
-                         rdfvalue.URN(lexicon.AFF4_MEMORY_PHYSICAL))
 
             total = 0
             last_tick = time.time()
@@ -115,13 +145,207 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
                         rate = 0
 
                     self.session.report_progress(
-                        "Wrote %#x (%d total) (%02.2d Mb/s)", offset,
-                        total / 1e6, rate)
+                        "%s: Wrote %#x (%d total) (%02.2d Mb/s)",
+                        source, offset, total / 1e6, rate)
 
                     length -= read_len
                     offset += read_len
                     total += read_len
                     last_tick = now
+
+        resolver.Close(image_stream)
+
+    def _copy_address_space(self, resolver, volume, image_urn, source):
+        if self.compression:
+            resolver.Set(image_urn, lexicon.AFF4_IMAGE_COMPRESSION,
+                         rdfvalue.URN(self.compression))
+
+        with aff4_image.AFF4Image.NewAFF4Image(
+            resolver, image_urn, volume.urn) as image_stream:
+
+            total = 0
+            last_tick = time.time()
+
+            for offset, _, length in source.get_address_ranges():
+                while length > 0:
+                    to_read = min(length, self.BUFFERSIZE)
+                    data = source.read(offset, to_read)
+
+                    image_stream.write(data)
+                    now = time.time()
+
+                    read_len = len(data)
+                    if now > last_tick:
+                        rate = read_len / (now - last_tick) / 1e6
+                    else:
+                        rate = 0
+
+                    self.session.report_progress(
+                        "%s: Wrote %#x (%d total) (%02.2d Mb/s)",
+                        source, offset, total / 1e6, rate)
+
+                    length -= read_len
+                    offset += read_len
+                    total += read_len
+                    last_tick = now
+
+        resolver.Close(image_stream)
+
+    def linux_copy_files(self, resolver, volume):
+        """Copy all the mapped or opened files to the volume."""
+        # Build a set of all files.
+        vma_files = set()
+        filenames = set()
+
+        for task in self.session.plugins.pslist().filter_processes():
+            for vma in task.mm.mmap.walk_list("vm_next"):
+                vm_file_offset = vma.vm_file.obj_offset
+                if vm_file_offset in vma_files:
+                    continue
+
+                filename = task.get_path(vma.vm_file)
+                if filename in filenames:
+                    continue
+
+                try:
+                    stat_entry = os.stat(filename)
+                except (OSError, IOError):
+                    continue
+
+                mode = stat_entry.st_mode
+                if (stat.S_ISREG(mode) and
+                        stat_entry.st_size <= self.max_file_size):
+                    filenames.add(filename)
+                    vma_files.add(vm_file_offset)
+
+                    self._copy_file_to_image(resolver, volume, filename)
+
+    def _copy_file_to_image(self, resolver, volume, filename):
+        image_urn = volume.urn.Append(filename)
+        out_fd = None
+        try:
+            with open(filename, "rb") as in_fd:
+                with aff4_image.AFF4Image.NewAFF4Image(
+                    resolver, image_urn, volume.urn) as out_fd:
+
+                    self.session.report_progress("Adding file %s", filename)
+                    resolver.Set(
+                        image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
+                        rdfvalue.XSDString(filename))
+
+                    while 1:
+                        data = in_fd.read(self.BUFFERSIZE)
+                        if not data:
+                            break
+
+                        out_fd.write(data)
+
+        except IOError:
+            try:
+                self.session.logging.debug(
+                    "Unable to read %s. Attempting raw access.", filename)
+
+                # We can not just read this file, parse it from the NTFS.
+                self._copy_raw_file_to_image(resolver, volume, filename)
+            except IOError:
+                self.session.logging.warn(
+                    "Unable to read %s. Skipping.", filename)
+
+
+        finally:
+            if out_fd:
+                resolver.Close(out_fd)
+
+    def _copy_raw_file_to_image(self, resolver, volume, filename):
+        image_urn = volume.urn.Append(filename)
+
+        drive, base_filename = os.path.splitdrive(filename)
+        if not base_filename:
+            return
+
+        ntfs_session = self.session.add_session(
+            filename=r"\\.\%s" % drive,
+            profile="ntfs")
+
+        ntfs_session.plugins.istat(2)
+
+        ntfs = ntfs_session.GetParameter("ntfs")
+        mft_entry = ntfs.MFTEntryByName(base_filename)
+        data_as = mft_entry.open_file()
+
+        self._copy_address_space(resolver, volume, image_urn, data_as)
+
+        resolver.Set(image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
+                     rdfvalue.XSDString(filename))
+
+    def windows_copy_files(self, resolver, volume):
+        filenames = set()
+
+        for task in self.session.plugins.pslist().filter_processes():
+            for vad in task.RealVadRoot.traverse():
+                try:
+                    file_obj = vad.ControlArea.FilePointer
+                    file_name = file_obj.file_name_with_drive()
+                    if not file_name:
+                        continue
+
+                except AttributeError:
+                    continue
+
+                if file_name in filenames:
+                    continue
+
+                filenames.add(file_name)
+                self._copy_file_to_image(resolver, volume, file_name)
+
+        object_tree_plugin = self.session.plugins.object_tree()
+        for module in self.session.plugins.modules().lsmod():
+            try:
+                path = object_tree_plugin.FileNameWithDrive(
+                    module.FullDllName.v())
+
+                self._copy_file_to_image(resolver, volume, path)
+            except IOError:
+                self.session.logging.debug(
+                    "Unable to read %s. Skipping.", path)
+
+
+    def copy_files(self, resolver, volume):
+        # Forces profile autodetection if needed.
+        profile = self.session.profile
+
+        os_name = profile.metadata("os")
+        if os_name == "windows":
+            self.windows_copy_files(resolver, volume)
+        elif os_name == "linux":
+            self.linux_copy_files(resolver, volume)
+
+
+    def copy_page_file(self, resolver, volume):
+        pagefiles = self.session.GetParameter("pagefiles")
+        for filename, _ in pagefiles.values():
+            self._copy_raw_file_to_image(resolver, volume, filename)
+
+    def create_metadata(self, source):
+        """Returns a dict with a standard metadata format.
+
+        We gather data from the session.
+        """
+        result = dict(Imager="Rekall %s (%s)" % (constants.VERSION,
+                                                 constants.CODENAME),
+                      Registers={},
+                      Runs=[])
+
+        if self.session.HasParameter("dtb"):
+            result["Registers"]["CR3"] = self.session.GetParameter("dtb")
+
+        if self.session.HasParameter("kernel_base"):
+            result["KernBase"] = self.session.GetParameter("kernel_base")
+
+        for vaddr, _, length in source.get_address_ranges():
+            result["Runs"].append(dict(start=vaddr, length=length))
+
+        return result
 
     def render(self, renderer):
         with renderer.open(filename=self.destination, mode="w+b") as out_fd:
@@ -133,6 +357,11 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.Command):
                 with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
                     self.copy_physical_address_space(resolver, volume)
 
+                    # We only copy files if we are running on a raw device.
+                    if self.session.physical_address_space.volatile:
+                        self.copy_page_file(resolver, volume)
+                        if self.also_files:
+                            self.copy_files(resolver, volume)
 
 # We can not check the file hash because AFF4 files contain UUID which will
 # change each time.

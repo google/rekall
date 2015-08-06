@@ -31,9 +31,11 @@ pip install pyaff4
 
 """
 import logging
+import re
 import os
 
 from rekall import addrspace
+from rekall import yaml_utils
 from rekall import utils
 from rekall.plugins.addrspaces import standard
 
@@ -89,6 +91,9 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
     __name = "aff4"
     __image = True
 
+    # This AS can map files into itself.
+    __can_map_files = True
+
     order = standard.FileAddressSpace.order - 10
 
     def __init__(self, filename=None, **kwargs):
@@ -103,6 +108,10 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.image = None
         self.phys_base = self
         self.resolver = data_store.MemoryDataStore()
+
+        # A map between the filename and the offset it is mapped into the
+        # address space.
+        self.mapped_files = {}
 
         try:
             volume_path, stream_path = self._LocateAFF4Volume(path)
@@ -122,6 +131,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         # you can still load the pagefile manually using the --pagefile
         # parameter.
         with zip.ZipFile.NewZipFile(self.resolver, volume_path) as volume:
+            self.volumes.add(volume.urn)
             self._LoadMemoryImage(volume.urn.Append(stream_path))
 
     def _LocateAFF4Volume(self, filename):
@@ -146,7 +156,9 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         raise IOError("Not found")
 
     def _AutoLoadAFF4Volume(self, path):
-        with zip.ZipFile.NewZipFile(self.resolver, path):
+        with zip.ZipFile.NewZipFile(self.resolver, path) as volume:
+            self.volume_urn = volume.urn
+
             # We are searching for images with the physical memory category.
             for (subject, _, value) in self.resolver.QueryPredicate(
                     lexicon.AFF4_CATEGORY):
@@ -157,22 +169,37 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.as_assert(self.image is not None,
                        "No physical memory categories found.")
 
-        # Attempt to load any page files if there are any.
+        self.filenames = {}
+        # Newer AFF4 images should have the AFF4_STREAM_ORIGINAL_FILENAME
+        # attribute set.
         for (subject, _, value) in self.resolver.QueryPredicate(
-                lexicon.AFF4_CATEGORY):
-            if value == lexicon.AFF4_MEMORY_PAGEFILE:
-                pagefile_stream = self.resolver.AFF4FactoryOpen(subject)
+                lexicon.AFF4_STREAM_ORIGINAL_FILENAME):
+            # Normalize the filename for case insensitive filesysyems.
+            self.filenames[unicode(value).lower()] = subject
 
-                self.pagefile_offset = self.end() + 0x10000
-                self.pagefile_end = (
-                    self.pagefile_offset + pagefile_stream.Size())
+        # TODO: Deprecate this guessing once all images have the
+        # AFF4_STREAM_ORIGINAL_FILENAME attribute.
+        for subject in self.resolver.QuerySubject(re.compile(".")):
+            relative_name = self.volume_urn.RelativePath(subject)
+            if relative_name:
+                filename = self._normalize_filename(relative_name)
+                self.filenames[filename] = subject
 
-                self.add_run(
-                    self.pagefile_offset, 0, pagefile_stream.Size(),
-                    AFF4StreamWrapper(pagefile_stream))
+    def _normalize_filename(self, filename):
+        """Normalize the filename based on the source OS."""
+        m = re.match(r"/?([a-zA-Z]:[/\\].+)", filename)
+        if m:
+            # This is a windows filename.
+            filename = m.group(1).replace("/", "\\")
 
-                self.session.logging.info(
-                    "Added %s as pagefile", subject)
+            # The 32 bit WinPmem imager access native files via SysNative but
+            # they are really located in System32.
+            filename = filename.replace("SysNative", "System32")
+
+            return filename.lower()
+
+        return filename
+
 
     def _LoadMemoryImage(self, image_urn):
         aff4_stream = self.resolver.AFF4FactoryOpen(image_urn)
@@ -188,7 +215,58 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         except AttributeError:
             self.runs.insert((0, 0, aff4_stream.Size(), self.image))
 
+        self._parse_physical_memory_metadata(aff4_stream.urn)
         self.session.logging.info("Added %s as physical memory", image_urn)
+
+    def get_mapped_offset(self, filename, file_offset):
+        """Map the filename into the address space.
+
+        If the filename is found in the AFF4 image, we return the offset at
+        which it is mapped. Otherwise return None.
+        """
+        mapped_offset = None
+        filename = self._normalize_filename(filename)
+        mapped_offset = utils.CaseInsensitiveDictLookup(
+                filename, self.mapped_files)
+        if mapped_offset is None:
+            # Try to map the file.
+            subject = utils.CaseInsensitiveDictLookup(
+                filename, self.filenames)
+            if subject:
+                stream = self.resolver.AFF4FactoryOpen(subject)
+
+                # Give a bit of space for the mapping.
+                mapped_offset = self.end() + 0x10000
+                self.add_run(mapped_offset, 0, stream.Size(),
+                             AFF4StreamWrapper(stream))
+                self.session.logging.info(
+                    "Mapped %s into address %#x", subject, mapped_offset)
+
+            else:
+                # Cache failures too.
+                mapped_offset = -1
+
+        # Cache for next time.
+        self.mapped_files[filename] = mapped_offset
+        if mapped_offset > 0:
+            return mapped_offset + file_offset
+
+    def _parse_physical_memory_metadata(self, image_urn):
+        try:
+            with self.resolver.AFF4FactoryOpen(image_urn.Append(
+                    "information.yaml")) as fd:
+                metadata = yaml_utils.decode(fd.read(10e6))
+                # Allow the user to override the AFF4 file.
+                if not self.session.HasParameter("dtb"):
+                    self.session.SetCache(
+                        "dtb", metadata.get("Registers", {}).get("CR3"))
+
+                if not self.session.HasParameter("kernel_base"):
+                    self.session.SetCache(
+                        "kernel_base", metadata.get("KernBase"))
+        except IOError:
+            self.session.logging.warn(
+                "AFF4 volume does not contain PhysicalMemory metadata.")
 
     def describe(self, address):
         try:

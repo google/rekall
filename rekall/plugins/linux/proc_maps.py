@@ -43,7 +43,7 @@ class ProcMaps(common.LinProcessFilter):
                                ("Minor", "minor", "6"),
                                ("Inode", "inode", "13"),
                                ("File Path", "file_path", "80"),
-                               ])
+                              ])
 
         for task in self.filter_processes():
             if not task.mm:
@@ -60,7 +60,7 @@ class ProcMaps(common.LinProcessFilter):
                     (major, minor, ino, pgoff) = [0] * 4
 
                     if (vma.vm_start <= task.mm.start_brk and
-                        vma.vm_end >= task.mm.brk):
+                            vma.vm_end >= task.mm.brk):
                         fname = "[heap]"
                     elif (vma.vm_start <= task.mm.start_stack and
                           vma.vm_end >= task.mm.start_stack):

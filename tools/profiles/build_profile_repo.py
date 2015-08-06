@@ -295,8 +295,9 @@ def RebuildInventory():
                     last_modified = old_inventory[profile_name]["LastModified"]
 
                     # If the current file is not fresher than the old file, we
-                    # just copy the metadata from the old profile.
-                    if file_modified_time >= last_modified:
+                    # just copy the metadata from the old profile. Allow 1
+                    # second grace for float round ups.
+                    if file_modified_time <= last_modified + 1:
                         inventory[profile_name] = old_inventory[profile_name]
                         continue
 

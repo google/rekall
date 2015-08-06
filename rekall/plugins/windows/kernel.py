@@ -95,7 +95,7 @@ class DriveLetterDeviceHook(common.AbstractWindowsParameterHook):
         for global_obj in obj_tree_plugin.GetObjectByName(r"\GLOBAL??").Object:
             name = global_obj.NameInfo.Name.v()
             if (global_obj.get_object_type() == "SymbolicLink" and
-                    name[1] == ":"):
+                    len(name) > 1 and name[1] == ":"):
                 target = global_obj.Object.LinkTarget.v()
 
                 result[target] = name

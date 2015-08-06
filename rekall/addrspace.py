@@ -278,6 +278,10 @@ class BaseAddressSpace(object):
                 self.base == other.base)
 
 
+    def get_mapped_offset(self, filename, offset):
+        """Implement this if we can map files into this address space."""
+
+
 # This is a specialised AS for use internally - Its used to provide
 # transparent support for a string buffer so types can be
 # instantiated off the buffer.
@@ -663,6 +667,7 @@ class MultiRunBasedAddressSpace(PagedReader):
                 continue
 
             yield run_start, file_address, length, _as
+
 
 
 class Error(Exception):

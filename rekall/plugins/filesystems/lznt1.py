@@ -100,7 +100,7 @@ def decompress_data(cdata, logger=None):
                         data = output_fd.read(symbol_length)
 
                         # Pad the data to make it fit.
-                        if len(data) < symbol_length:
+                        if 0 < len(data) < symbol_length:
                             data = data * (symbol_length / len(data) + 1)
                             data = data[:symbol_length]
 
@@ -123,4 +123,6 @@ def decompress_data(cdata, logger=None):
             data = in_fd.read(size + 1)
             output_fd.write(data)
 
-    return output_fd.getvalue()
+    result = output_fd.getvalue()
+
+    return result

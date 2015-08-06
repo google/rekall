@@ -126,6 +126,7 @@ class SessionObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
         return state
 
+    @json_renderer.CacheableState
     def DecodeFromJsonSafe(self, state, options):
         state = super(SessionObjectRenderer, self).DecodeFromJsonSafe(
             state, options)
@@ -145,6 +146,7 @@ class ProfileObjectRenderer(json_renderer.StateBasedObjectRenderer):
     def GetState(self, item, **_):
         return dict(name=item.name)
 
+    @json_renderer.CacheableState
     def DecodeFromJsonSafe(self, state, options):
         state = super(ProfileObjectRenderer, self).DecodeFromJsonSafe(
             state, options)

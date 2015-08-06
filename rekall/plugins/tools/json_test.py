@@ -130,8 +130,10 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         object_renderer_cls = json_renderer.JsonObjectRenderer.ForTarget(
             obj, "JsonRenderer")
 
-        object_renderer = object_renderer_cls(session=self.session,
-                                              renderer="JsonRenderer")
+        renderer = json_renderer.JsonRenderer(session=self.session)
+
+        object_renderer = object_renderer_cls(
+            session=self.session, renderer=renderer)
 
         encoded = object_renderer.EncodeToJsonSafe(obj, strict=True)
 
