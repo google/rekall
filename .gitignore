@@ -9,10 +9,11 @@
 
 # Specific auto-generated build files
 /py27
-/build
-/dist
-/rekall.egg-info
-/yara-build
+build
+dist
+rekall.egg-info
+rekall_gui.egg-info
+rekall_core.egg-info
 
 # Xcode & OS X-related stuff
 .DS_Store

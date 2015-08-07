@@ -20,25 +20,34 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-"""Meta-script for pulling in all Rekall components."""
-
+"""Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
+import distutils
+import os
 import versioneer
 
 try:
-    from setuptools import setup
+    from setuptools import find_packages, setup
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import find_packages, setup
 
 rekall_description = "Rekall Memory Forensic Framework"
 
+def find_data_files_directory(source):
+    prefix = distutils.sysconfig.get_python_lib()
+    result = []
+    for directory, _, files in os.walk(source):
+        files = [os.path.join(directory, x) for x in files]
+        result.append((os.path.join(prefix, directory), files))
+
+    return result
+
 setup(
-    name="rekall",
+    name="rekall_gui",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     description=rekall_description,
-    long_description=open("README.md").read(),
+    long_description="This is the GUI component of the Rekall framework.",
     license="GPL",
     url="https://www.rekall-forensic.com/",
     author="The Rekall team",
@@ -49,11 +58,28 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
     ],
+    scripts=["rekal.py"],
+    package_dir={'rekall_gui': 'rekall_gui'},
+    packages=find_packages('.'),
+    include_package_data=True,
+    data_files=(
+        find_data_files_directory('manuskript/static/') +
+        find_data_files_directory(
+            'rekall_gui/plugins/webconsole/static/')
+    ),
+    entry_points="""
+      [rekall.plugins]
+      webconsole=rekall_gui.plugins.webconsole_plugin:RekallWebConsole
+    """,
 
-    # This requires an exact version to ensure that installing the meta package
-    # pulls in tested dependencies.
     install_requires=[
-        "rekall-core == 1.3.2",
-        "rekall-gui == 1.3.2",
+        "rekall-core >= 1.3.2",
+        "ipython >= 3.0.0",
+        "codegen >= 1.0",
+        "Flask >= 0.10.1",
+        "Flask-Sockets >= 0",
+        "gevent == 1.0.2",
+        "gevent-websocket >= 0.9.3",
+        "ipython >= 3.0.0",
     ],
 )

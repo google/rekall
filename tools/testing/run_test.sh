@@ -12,6 +12,13 @@ source $HOME/Test/bin/activate
 cd $HOME/rekall/
 git fetch --all
 git reset --hard origin/master
+
+# Install all the components separately in the right order.
+cd rekall-core/
+python setup.py install
+cd ../rekall-gui/
+python setup.py install
+cd ../
 python setup.py install
 
 # Sync to the latest test harness.

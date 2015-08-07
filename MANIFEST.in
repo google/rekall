@@ -1,17 +1,6 @@
-include AUTHORS.txt CREDITS.txt LEGAL.txt LICENSE.txt README.rst README.md
-exclude .gitignore
-exclude *.pyc
-recursive-exclude .git
-recursive-exclude build
-
-#recursive-include contrib *
-recursive-include docs *
+include versioneer.py
+include _version.py
 recursive-include resources *
 recursive-include src *.c *.h *.py
 recursive-include test_data *
 recursive-include tools *
-recursive-include resources *
-recursive-exclude rekall *.pyc
-recursive-exclude tools *.a *.la *.lo *.o
-recursive-include manuskript/static *
-recursive-include rekall/plugins/tools/webconsole/static *
