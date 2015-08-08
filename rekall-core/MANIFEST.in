@@ -10,3 +10,4 @@ include _version.py
 
 exclude .gitignore
 exclude *.pyc
+include rekall/_version.py

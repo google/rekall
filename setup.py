@@ -33,9 +33,11 @@ except ImportError:
 
 rekall_description = "Rekall Memory Forensic Framework"
 
+MY_VERSION = versioneer.get_version()
+
 setup(
     name="rekall",
-    version=versioneer.get_version(),
+    version=MY_VERSION,
     cmdclass=versioneer.get_cmdclass(),
     description=rekall_description,
     long_description=open("README.md").read(),
@@ -53,7 +55,7 @@ setup(
     # This requires an exact version to ensure that installing the meta package
     # pulls in tested dependencies.
     install_requires=[
-        "rekall-core == 1.3.2",
-        "rekall-gui == 1.3.2",
+        "rekall-core == %s" % MY_VERSION,
+        "rekall-gui == %s" % MY_VERSION,
     ],
 )

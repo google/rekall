@@ -42,9 +42,12 @@ def find_data_files_directory(source):
 
     return result
 
+
+MY_VERSION = versioneer.get_version()
+
 setup(
     name="rekall_gui",
-    version=versioneer.get_version(),
+    version=MY_VERSION,
     cmdclass=versioneer.get_cmdclass(),
     description=rekall_description,
     long_description="This is the GUI component of the Rekall framework.",
@@ -73,7 +76,8 @@ setup(
     """,
 
     install_requires=[
-        "rekall-core >= 1.3.2",
+        # We need the exact same version of rekall-core as we are.
+        "rekall-core == %s" % MY_VERSION,
         "ipython >= 3.0.0",
         "codegen >= 1.0",
         "Flask >= 0.10.1",

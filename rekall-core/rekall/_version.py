@@ -35,10 +35,10 @@ def get_config():
     # _version.py
     cfg = VersioneerConfig()
     cfg.VCS = "git"
-    cfg.style = "pep440"
+    cfg.style = "pep440-pre"
     cfg.tag_prefix = "v"
     cfg.parentdir_prefix = "None"
-    cfg.versionfile_source = "_version.py"
+    cfg.versionfile_source = "rekall/_version.py"
     cfg.verbose = False
     return cfg
 
@@ -183,7 +183,7 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
     # _version.py hasn't already been rewritten with a short version string,
     # meaning we're inside a checked out source tree.
 
-    if not os.path.exists(os.path.join(root, ".git")):
+    if 0 and not os.path.exists(os.path.join(root, ".git")):
         if verbose:
             print("no .git in %s" % root)
         raise NotThisMethod("no .git directory")

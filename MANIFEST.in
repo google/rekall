@@ -1,6 +1,11 @@
 include versioneer.py
 include _version.py
+include README.md
 recursive-include resources *
 recursive-include src *.c *.h *.py
 recursive-include test_data *
-recursive-include tools *
+recursive-exclude tools *.a *.la *.lo *.o
+recursive-exclude .git *
+recursive-exclude build *
+recursive-exclude tools/pmem/.deps *
+exclude tools/pmem/linpmem

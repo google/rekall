@@ -17,8 +17,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 import time
+from rekall import _version
 
-VERSION = "1.4.0"
+VERSION = _version.get_versions()["version"]
 CODENAME = "Etzel"   # https://en.wikipedia.org/wiki/Etzel_Pass
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 

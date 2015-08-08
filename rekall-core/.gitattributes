@@ -1,1 +1,2 @@
 _version.py export-subst
+rekall/_version.py export-subst
