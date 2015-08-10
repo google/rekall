@@ -64,8 +64,10 @@ class InspectHeap(common.WinProcessFilter):
 
         self.segments = utils.SortedCollection()
 
-    def enumerate_lfh_heap_allocations(self, heap, skip_freed=True):
+    def enumerate_lfh_heap_allocations(self, heap, skip_freed=False):
         """Dump the low fragmentation heap."""
+        seen_blocks = set()
+
         for lfh_block in heap.FrontEndHeap.SubSegmentZones.list_of_type(
                 "_LFH_BLOCK_ZONE", "ListEntry"):
             block_length = lfh_block.FreePointer.v() - lfh_block.obj_end
@@ -73,8 +75,14 @@ class InspectHeap(common.WinProcessFilter):
                 target="_HEAP_SUBSEGMENT",
                 offset=lfh_block.obj_end,
                 size=block_length)
+
             for segment in segments:
                 allocation_length = segment.BlockSize * 16
+
+                if segment.UserBlocks.v() in seen_blocks:
+                    break
+
+                seen_blocks.add(segment.UserBlocks.v())
 
                 for entry in segment.UserBlocks.Entries:
                     # http://www.leviathansecurity.com/blog/understanding-the-windows-allocator-a-redux/
@@ -108,6 +116,14 @@ class InspectHeap(common.WinProcessFilter):
         for seg in heap.Segments:
             seg_end = seg.LastValidEntry.v()
 
+            # Ensure sanity.
+            if seg.Heap.deref() != heap:
+                continue
+
+            # The segment is empty - often seg_end is zero here.
+            if seg_end < seg.FirstEntry.v():
+                break
+
             for entry in seg.FirstEntry.walk_list("NextEntry", True):
                 # If this is the last entry it goes until the end of the
                 # segment.
@@ -115,7 +131,8 @@ class InspectHeap(common.WinProcessFilter):
                 if start > seg_end:
                     break
 
-                yield entry.Allocation
+                allocation = entry.Allocation
+                yield allocation
 
     def GenerateHeaps(self):
         task = self.session.GetParameter("process_context")
@@ -413,7 +430,7 @@ class FindReferenceAlloc(common.WindowsCommandPlugin):
         super(FindReferenceAlloc, self).__init__(**kwargs)
         self.address = address
 
-    def get_referrers(self, address):
+    def get_referrers(self, address, maxlen=None):
         addr = self.profile.address()
         addr.write(address)
 
@@ -424,16 +441,14 @@ class FindReferenceAlloc(common.WindowsCommandPlugin):
                 ('StringCheck', dict(needle=addr.obj_vm.getvalue()))
             ])
 
-        inspect_heap = self.session.plugins.inspect_heap()
-        for heap in inspect_heap.GenerateHeaps():
-            for seg in heap.Segments:
-                seg_start = seg.FirstEntry.obj_offset
-                seg_end = seg.LastValidEntry.v()
-                length = min(seg_end - seg_start, 1024*1024*10)
+        # Just scan the entire userspace address space. This means we might find
+        # hits outside the heap but this is usually useful as it would locate
+        # static pointers in dlls.
+        if maxlen is None:
+            maxlen = self.session.GetParameter("highest_usermode_address")
 
-                for hit in pointer_scanner.scan(
-                        seg_start, maxlen=length):
-                    yield hit
+        for hit in pointer_scanner.scan(maxlen=maxlen):
+            yield hit
 
     def render(self, renderer):
         show_allocation = None

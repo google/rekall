@@ -38,6 +38,8 @@ from pkg_resources import iter_entry_points
 for entry_point in iter_entry_points(group='rekall.plugins', name=None):
     entry_point.load()
 
+from rekall import plugins
+
 
 class Run(plugin.Command):
     """A plugin which runs its argument (using eval).

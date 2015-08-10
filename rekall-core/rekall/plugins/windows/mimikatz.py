@@ -346,6 +346,10 @@ class Lsasrv(pe_vtypes.BasicPEProfile):
         cred_obj = self.Object('_RPCE_CREDENTIAL_KEYCREDENTIAL',
                                profile=self, vm=vm)
 
+        # This seems to be corrupt sometimes.
+        if cred_obj.unk0 > 10:
+            return
+
         for i in range(0, cred_obj.unk0):
             yield (cred_obj.key[i].unkId,
                    cred_obj.key_data[i].data.v().encode('hex'))

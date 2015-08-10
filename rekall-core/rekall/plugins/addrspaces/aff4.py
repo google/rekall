@@ -218,6 +218,25 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         self._parse_physical_memory_metadata(aff4_stream.urn)
         self.session.logging.info("Added %s as physical memory", image_urn)
 
+    def file_mapping_offset(self, filename):
+        """Returns the offset where the filename should be mapped.
+
+        This function manages the session cache. By storing the file mappings in
+        the session cache we can guarantee repeatable mappings.
+        """
+        mapped_files = self.session.GetParameter("file_mappings", {})
+        if filename in mapped_files:
+            return utils.CaseInsensitiveDictLookup(
+                filename, mapped_files)
+
+        # Give a bit of space for the mapping and page align it.
+        mapped_offset = (self.end() + 0x10000) & 0xFFFFFFFFFFFFF000
+        mapped_files[filename] = mapped_offset
+
+        self.session.SetCache("file_mappings", mapped_files)
+
+        return mapped_offset
+
     def get_mapped_offset(self, filename, file_offset):
         """Map the filename into the address space.
 
@@ -232,15 +251,15 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             # Try to map the file.
             subject = utils.CaseInsensitiveDictLookup(
                 filename, self.filenames)
+
             if subject:
                 stream = self.resolver.AFF4FactoryOpen(subject)
-
-                # Give a bit of space for the mapping.
-                mapped_offset = self.end() + 0x10000
+                mapped_offset = self.file_mapping_offset(filename)
                 self.add_run(mapped_offset, 0, stream.Size(),
                              AFF4StreamWrapper(stream))
+
                 self.session.logging.info(
-                    "Mapped %s into address %#x", subject, mapped_offset)
+                    "Mapped %s into address %#x", stream.urn, mapped_offset)
 
             else:
                 # Cache failures too.
@@ -253,8 +272,8 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
     def _parse_physical_memory_metadata(self, image_urn):
         try:
-            with self.resolver.AFF4FactoryOpen(image_urn.Append(
-                    "information.yaml")) as fd:
+            with self.resolver.AFF4FactoryOpen(
+                    image_urn.Append("information.yaml")) as fd:
                 metadata = yaml_utils.decode(fd.read(10e6))
                 # Allow the user to override the AFF4 file.
                 if not self.session.HasParameter("dtb"):

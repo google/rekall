@@ -207,7 +207,7 @@ class BaseScanner(object):
            window_size: The size of the overlap window between each buffer read.
         """
         self.session = session or address_space.session
-        self.address_space = address_space
+        self.address_space = address_space or self.session.default_address_space
         self.window_size = window_size
         self.constraints = None
         self.profile = profile
@@ -441,7 +441,7 @@ class PointerScanner(BaseScanner):
         # Find the common string between all the addresses.
         for address in pointers:
             # Encode the address as a pointer according to the current profile.
-            tmp = self.profile.address()
+            tmp = self.session.profile.address()
             tmp.write(address)
 
             self.needles.append(tmp.obj_vm.read(0, tmp.obj_size))

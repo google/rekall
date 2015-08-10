@@ -19,8 +19,8 @@ Source: ..\windows\winpmem_{#WINPMEM_VERSION}.exe; DestDir: {app}
 DestDir: {app}; Source: ..\..\dist\rekal\*; Excludes: "_MEI"; Flags: recursesubdirs
 
 ; Manuscript files for webconsole
-DestDir: {app}\manuskript\; Source: ..\..\manuskript\*; Flags: recursesubdirs
-DestDir: {app}\webconsole\; Source: ..\..\rekall\plugins\tools\webconsole\*; Flags: recursesubdirs
+DestDir: {app}\manuskript\; Source: ..\..\rekall-gui\manuskript\*; Flags: recursesubdirs
+DestDir: {app}\webconsole\; Source: ..\..\rekall-gui\rekall_gui\plugins\webconsole\*; Flags: recursesubdirs
 
 [Setup]
 ChangesAssociations=yes

@@ -256,8 +256,10 @@ class WinPmemAddressSpace(Win32AddressSpace):
                     # Cant read this file - no mapping available.
                     return
 
-            # Add a guard page.
-            mapped_offset = self.mapped_files[filename] = self.end() + 0x1000
+            # Add a guard page and align.
+            mapped_offset = self.mapped_files[filename] = (
+                self.end() + 0x10000) & 0xFFFFFFFFFFFFF000
+
             self.add_run(mapped_offset, 0, file_as.end(), file_as)
 
         if mapped_offset is not None:

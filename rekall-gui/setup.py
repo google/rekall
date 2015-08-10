@@ -26,6 +26,8 @@ import distutils
 import os
 import versioneer
 
+from distutils import sysconfig
+
 try:
     from setuptools import find_packages, setup
 except ImportError:
@@ -34,7 +36,7 @@ except ImportError:
 rekall_description = "Rekall Memory Forensic Framework"
 
 def find_data_files_directory(source):
-    prefix = distutils.sysconfig.get_python_lib()
+    prefix = sysconfig.get_python_lib()
     result = []
     for directory, _, files in os.walk(source):
         files = [os.path.join(directory, x) for x in files]
@@ -44,6 +46,9 @@ def find_data_files_directory(source):
 
 
 MY_VERSION = versioneer.get_version()
+if "unknown" in MY_VERSION:
+    import rekall
+    MY_VERSION = rekall.__version__
 
 setup(
     name="rekall_gui",
@@ -82,7 +87,7 @@ setup(
         "codegen >= 1.0",
         "Flask >= 0.10.1",
         "Flask-Sockets >= 0",
-        "gevent == 1.0.2",
+        "gevent >= 1.0.2",
         "gevent-websocket >= 0.9.3",
         "ipython >= 3.0.0",
     ],

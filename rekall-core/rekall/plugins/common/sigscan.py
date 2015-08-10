@@ -146,7 +146,8 @@ class SigScanMixIn(object):
             sig = sig.upper()
             if not sig_re.match(sig):
                 raise plugin.PluginError(
-                    "Signature %s has invalid format." % sig)
+                    "Signature %s has invalid format. Format is eg. "
+                    "000102*0506*AAFF" % sig)
             parts = sig.split("*")
             decoded_parts = []
             for p in parts:
@@ -192,7 +193,7 @@ class SigScanMixIn(object):
 
     def render_physical_scan(self, renderer):
         """This method scans the physical memory."""
-        self.session.logging.debug("sigscanning against physical memory.",
+        self.session.logging.debug("sigscanning against physical memory: %s.",
                                    self.physical_address_space)
         return self._scan(renderer, "Hit in physical AS:\n",
                           self.physical_address_space)
