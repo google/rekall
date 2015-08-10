@@ -540,6 +540,10 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
     "radix_tree_node": [None, {
         "rcu_head": lambda x: x.m("rcu_head") or x.m("u1.rcu_head"),
         }],
+    "tk_core": [None,  {
+        "seq": [0, ["seqcount"]],
+        "timekeeper": [8, ["timekeeper"]],
+        }],
     }
 
 
@@ -696,6 +700,20 @@ class task_struct(obj.Struct):
 
         return name
 
+    @property
+    def task_start_time(self):
+        if self.obj_profile.get_constant("tk_core"):
+            # Kernel 3.17 changes how start_time is stored. Now it's
+            # in nsecs monotonic or boot based.
+            start_timespec = self.obj_profile.timespec()
+            start_timespec.tv_sec = self.m("start_time") / 1000000000
+            start_timespec.tv_nsec = self.m("start_time") % 1000000000
+            boot_time = self.obj_profile.getboottime()
+            start_time = self.obj_profile.UnixTimeStamp(
+                value = start_timespec.tv_sec - boot_time.tv_sec)
+            return start_time
+        return self.m("start_time").as_timestamp()
+
     def get_path(self, filp):
         """Resolve the dentry, vfsmount relative to this task's chroot.
 
@@ -768,6 +786,12 @@ class timespec(obj.Struct):
 
         return result
 
+    def __sub__(self, other):
+        ts = self.obj_profile.timespec()
+        ts.tv_sec = -other.tv_sec
+        ts.tv_nsec = -other.tv_nsec
+        return self + ts
+
     def normalized_timespec(self):
         """Normalizes a timespec's secs and nsecs.
 
@@ -784,7 +808,7 @@ class timespec(obj.Struct):
 
     def as_timestamp(self):
         """Returns the time as a UnixTimestamp."""
-        the_time = self.obj_profile.getboottime(vm=self.obj_vm) + self
+        the_time = self - self.obj_profile.getboottime(vm=self.obj_vm)
         the_time = the_time.normalized_timespec()
         return self.obj_profile.UnixTimeStamp(value=the_time.tv_sec.v())
 
@@ -1015,12 +1039,43 @@ class Linux(basic.BasicClasses):
 
     def getboottime(self, vm=None):
         """Returns the real time of system boot."""
-        boottime = (self.get_wall_to_monotonic(vm=vm) +
-                    self.get_total_sleep_time(vm=vm))
-        corrected_boottime = self.timespec()
-        corrected_boottime.tv_sec = -boottime.tv_sec
-        corrected_boottime.tv_nsec = -boottime.tv_nsec
-        return corrected_boottime.normalized_timespec()
+        if self.get_constant("tk_core"):
+            tk_core = self.get_constant_object("tk_core", "tk_core")
+            tk = tk_core.timekeeper
+            t = self.ktime_sub(tk.offs_real, tk.offs_boot)
+            return self.ktime_to_timespec(t)
+        else:
+            boottime = (self.get_wall_to_monotonic(vm=vm) +
+                        self.get_total_sleep_time(vm=vm))
+            return boottime.normalized_timespec()
+
+    def ktime_sub(self, lhs, rhs):
+        """Substracts two ktime_t instances."""
+        kt = self.ktime()
+        kt.tv64 = lhs.tv64 - rhs.tv64
+        return kt
+
+    def ktime_to_timespec(self, kt):
+        """Transforms a ktime_t to a timespec."""
+        return self.ns_to_timespec(kt.tv64)
+
+    def ns_to_timespec(self, nsec):
+        """Transforms nanoseconds to a timespec."""
+        ts = self.timespec()
+
+        if not nsec:
+            ts.tv_sec = 0
+            ts.tv_nsec = 0
+        else:
+          tv_sec = nsec / timespec.NSEC_PER_SEC
+          rem = nsec % timespec.NSEC_PER_SEC
+          ts.tv_sec = tv_sec
+
+          if rem < 0:
+            ts.tv_sec -= 1
+            rem += timespec.NSEC_PER_SEC
+          ts.tv_nsec = rem
+        return ts
 
     def phys_addr(self, va):
         """Returns the physical address of a given virtual address va.
@@ -1046,6 +1101,21 @@ class Linux(basic.BasicClasses):
     def GetPageOffset(self):
         """Gets the page offset without accounting for relocations or KASLR."""
         return self.session.GetParameter("linux_page_offset")
+
+    def nsec_to_clock_t(self, x):
+        """Convers nanoseconds to a clock_t. Introduced in 3.17.
+
+        http://lxr.free-electrons.com/source/kernel/time/time.c?v=3.17#L703
+        """
+        NSEC_PER_SEC = 1000000000L
+        USER_HZ = 100
+
+        if NSEC_PER_SEC % USER_HZ == 0:
+            return x / (NSEC_PER_SEC / USER_HZ)
+        elif USER_HZ % 512 == 0:
+            return ((x * USER_HZ) / 512) / (NSEC_PER_SEC / 512)
+        else:
+            return (x*9) / ((9 * NSEC_PER_SEC + (USER_HZ/2)) / USER_HZ)
 
 
 # Legacy for old profiles

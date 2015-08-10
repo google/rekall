@@ -50,8 +50,6 @@ class LinuxPsList(common.LinProcessFilter):
                               ])
 
         for task in self.filter_processes():
-            start_time = task.start_time.as_timestamp()
-
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
             renderer.table_row(task.obj_offset,
                                task.comm,
@@ -59,7 +57,7 @@ class LinuxPsList(common.LinProcessFilter):
                                task.parent.pid,
                                task.uid,
                                task.gid,
-                               dtb, start_time)
+                               dtb, task.task_start_time)
 
 
 class LinMemMap(core.MemmapMixIn, common.LinProcessFilter):
