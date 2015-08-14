@@ -75,8 +75,7 @@ setup(
         "pyelftools >= 0.22",
         "distorm3 >= 0",
         "acora >= 1.8",
-        "PyAFF4 >= 0.14",
+        "PyAFF4 >= 0.15",
         "efilter == 1438631774",
-        "python-snappy >= 0.5",
     ],
 )

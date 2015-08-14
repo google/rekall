@@ -55,7 +55,7 @@ setup(
     # This requires an exact version to ensure that installing the meta package
     # pulls in tested dependencies.
     install_requires=[
-        "rekall-core == %s" % MY_VERSION,
-        "rekall-gui == %s" % MY_VERSION,
+        "rekall-core >= 1.4.0.pre3",
+        "rekall-gui >= 1.4.0.pre3",
     ],
 )

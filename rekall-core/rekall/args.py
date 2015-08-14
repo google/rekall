@@ -376,6 +376,9 @@ def parse_args(argv=None, user_session=None):
         epilog="When no module is provided, drops into interactive mode",
         formatter_class=RekallHelpFormatter)
 
+    # Parse the global and critical args from the command line.
+    ParseGlobalArgs(parser, argv, user_session)
+
     # The plugin name is taken from the command line, but it is not enough to
     # know which specific implementation will be used. For example there are 3
     # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.
@@ -388,9 +391,6 @@ def parse_args(argv=None, user_session=None):
     # plugin.
     for metadata in user_session.plugins.plugin_db.MetadataByName(plugin_name):
         ConfigureCommandLineParser(metadata, parser, critical=True)
-
-    # Parse the global and critical args from the command line.
-    ParseGlobalArgs(parser, argv, user_session)
 
     # Find the specific implementation of the plugin that applies here. For
     # example, we have 3 different pslist implementations depending on the

@@ -155,19 +155,36 @@ class FileCache(Cache):
 
         # Record all the dirty cached keys.
         self.dirty = set()
+        self.cache_dir = None
+        self.enabled = True
 
     @property
     def io_manager(self):
+        if not self.enabled:
+            return
+
         cache_dir = self.session.GetParameter("cache_dir", cached=False)
+        cache_dir = os.path.join(config.GetHomeDir(), cache_dir)
+
+        # Force the IO manager to be recreated if the cache dir has
+        # changed. This allows the session to change it's cache directory on the
+        # fly (which is actually done when setting it from the command line).
+        if cache_dir != self.cache_dir:
+            self._io_manager = None
+            self.cache_dir = cache_dir
+
         if self._io_manager is None and cache_dir:
             # Cache dir may be specified relative to the home directory.
-            if config.GetHomeDir():
-                cache_dir = os.path.join(config.GetHomeDir(), cache_dir)
-
             if os.access(cache_dir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
                 self._io_manager = PicklingDirectoryIOManager(
                     "%s/sessions" % cache_dir, session=self.session,
                     mode="w")
+
+                self.cache_dir = cache_dir
+            else:
+                self.session.logging.warn(
+                    "Cache directory inaccessible. Disabling.")
+                self.enabled = False
 
         return self._io_manager
 

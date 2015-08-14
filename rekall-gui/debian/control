@@ -1,0 +1,12 @@
+Source: rekall-forensic
+Section: python
+Priority: extra
+Maintainer: The Rekall Team <rekall-dev@googlegroups.com>
+Build-Depends: debhelper (>= 9), python, dh-virtualenv
+Standards-Version: 3.9.5
+
+Package: rekall-forensic
+Architecture: any
+Depends: ${python:Depends}, ${misc:Depends}, libdistorm64-1
+Description: Rekall Memory Forensics is a framework for memory analysis.
+  More information at http://www.rekall-forensic.com/

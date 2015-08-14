@@ -435,7 +435,7 @@ class PointerScanner(BaseScanner):
         super(PointerScanner, self).__init__(**kwargs)
 
         # The size of a pointer depends on the profile.
-        self.address_size = self.profile.get_obj_size("address")
+        self.address_size = self.session.profile.get_obj_size("address")
         self.needles = []
 
         # Find the common string between all the addresses.
@@ -471,7 +471,8 @@ class ScannerGroup(BaseScanner):
         self.result = {}
 
     def scan(self, offset=0, maxlen=None):
-        available_length = maxlen or self.profile.get_constant("MaxPointer")
+        available_length = maxlen or self.session.profile.get_constant(
+            "MaxPointer")
 
         while available_length > 0:
             to_read = min(constants.SCAN_BLOCKSIZE + self.overlap,
@@ -492,7 +493,7 @@ class DiscontigScannerGroup(ScannerGroup):
     """A scanner group which works over a virtual address space."""
 
     def scan(self, offset=0, maxlen=None):
-        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+        maxlen = maxlen or self.session.profile.get_constant("MaxPointer")
 
         for (start, _, length) in self.address_space.get_address_ranges(
                 offset, offset + maxlen):

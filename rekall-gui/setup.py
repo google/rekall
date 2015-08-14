@@ -47,8 +47,12 @@ def find_data_files_directory(source):
 
 MY_VERSION = versioneer.get_version()
 if "unknown" in MY_VERSION:
-    import rekall
-    MY_VERSION = rekall.__version__
+    try:
+        import rekall
+        MY_VERSION = rekall.__version__
+    except ImportError:
+        pass
+
 
 setup(
     name="rekall_gui",
@@ -66,7 +70,6 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
     ],
-    scripts=["rekal.py"],
     package_dir={'rekall_gui': 'rekall_gui'},
     packages=find_packages('.'),
     include_package_data=True,
@@ -81,9 +84,9 @@ setup(
     """,
 
     install_requires=[
-        # We need the exact same version of rekall-core as we are.
-        "rekall-core == %s" % MY_VERSION,
+        "rekall-core >= 1.4.0.pre3",
         "ipython >= 3.0.0",
+        "gnureadline==6.3.3",
         "codegen >= 1.0",
         "Flask >= 0.10.1",
         "Flask-Sockets >= 0",
