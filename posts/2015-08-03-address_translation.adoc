@@ -1,0 +1,572 @@
+---
+layout: blog
+date: 2015-08-03
+title: Windows Virtual Address Translation and the Pagefile Part 2
+abstract: |
+
+  We have previously discussed the Windows address translation mechanism back in
+  [2014](http://rekall-forensic.blogspot.ch/2014/10/windows-virtual-address-translation-and.html). As
+  far as we know, Rekall is still the only memory forensic tool that actually
+  performs accurate address translation (even without the use of the
+  pagefile). In this post we examine some of the new features in the latest
+  Rekall release supporting advanced address translation, and how this is used
+  in practice.
+
+author: Michael Cohen <scudette@gmail.com>
+---
+
+:toc2: left
+:icons:
+:numbered:
+:website: http://www.rekall-forensic.com
+
+Windows Virtual Address Translation - Part 2.
+=============================================
+Michael Cohen <scudette@google.com>
+
+______________________________________________________
+
+We have previously discussed the Windows address translation mechanism back in
+http://rekall-forensic.blogspot.ch/2014/10/windows-virtual-address-translation-and.html[2014]. As
+far as we know, Rekall is still the only memory forensic tool that actually
+performs accurate address translation. In this post we examine some of the new
+features in the latest Rekall release supporting advanced address translation,
+and how this is used in practice.
+______________________________________________________
+
+
+I recently attended http://www.ieee-iscc.org/[The Twentieth IEEE Symposium on
+Computers and Communications] conference where we presented our paper titled
+http://www.rekall-forensic.com/docs/References/Papers/SFCS2015.html[Forensic
+Analysis of Windows User space Applications through Heap allocations]. The paper
+covers the work we did in Rekall in researching the Windows address translation
+algorithm, and the Microsoft heap implementation. (Both these topics were
+previously also discussed on this blog).
+
+The paper is quite large and covers a lot of ground. In this blog post we will
+focus on the first part, namely the address translation process. In a future
+blog post we will discuss the second part of the paper, namely using heap
+allocations for reverse engineering.
+
+Since our original blog posts, we have discovered several cases which were not
+covered by the original research. It seems that the Windows address translation
+process is quite complex and subtle. In order to properly support the full
+algorithm we have rewritten the address translation code in Rekall from
+scratch. The new implementation has some interesting features:
+
+1. The implementation balances provenance with efficiency - It is always
+   possible to query Rekall about how it arrived at a particular result. This is
+   important when implementing complex address translation algorithms. You can
+   inspect the address translation process, step by step, using the *vtop()*
+   plugin.
+
+2. The new implementation is able to map files into the physical address
+   space. This makes them available to the rest of Rekall transparently. For
+   example, the pagefile may be mapped into the physical address space at a
+   particular offset, then a read() operation on the physical address space will
+   actually end up reading from the pagefile. Rekall's address translation
+   process therefore only need return an offset into the physical address space
+   at the file's mapping.
+
+This second point is actually very cool as it can be used to map memory mapped
+files into the physical address space too. When a file is mapped into memory,
+the PTE corresponding to the virtual page may be pointing to a _SUBSECTION
+struct. In practice on a running system, if an application tries to access this
+virtual address, a page fault will occur and Windows will read the file into a
+physical page, on demand. Unfortunately, for memory forensics analysts it is
+impossible to recover this data from an image of physical memory - since the
+data is not actually in physical memory. So previously the best we could do, was
+to show that this virtual address is a subsection PTE and where the data would
+be coming from (e.g. filename and offset inside the file).
+
+With the new address translation code, it is possible for Rekall to resolve this
+if it can find the file itself. This requires that the mapped file be acquired
+together with the physical memory, but once this is done, Rekall will
+transparently map the file into the physical address space and serve read()
+requests from it. Here is an example:
+
+------------------------------------------------------------------------
+[1] test.aff4 09:15:28> vtop 0x00013fb91000
+
+****************** 0x13fb91000 ******************
+Virtual 0x00013fb91000 Page Directory 0x2e142000
+pml4e@ 0x2e142000 = 0x10f000002e85f867
+pdpte@ 0x2e85f020 = 0x3b000002ebe0867
+pde@ 0x2ebe0fe8 = 0x2d0000013821867
+pte@ 0x13821c88 = 0xf8a001ca40600400
+[_MMPTE_PROTOTYPE Proto] @ 0x000013821c88
+Offset             Field              Content
+------ ------------------------------ -------
+  0x-1   Proto                          <_MMPTE Pointer to [0xF8A001CA4060] (Pointer)>
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000000 (MM_ZERO_ACCESS)
+  0x0    ProtoAddress                    [BitField(16-64):ProtoAddress]: 0xF8A001CA4060
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000001
+  0x0    ReadOnly                        [BitField(8-9):ReadOnly]: 0x00000000
+  0x0    Unused0                         [BitField(1-8):Unused0]: 0x00000000
+  0x0    Unused1                         [BitField(9-10):Unused1]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+[_MMPTE_SUBSECTION Subsect] @ 0xf8a001ca4060
+Offset             Field              Content
+------ ------------------------------ -------
+  0x-1   Subsection                     <_SUBSECTION Pointer to [0xFA8002A52EA8] (Pointer)>
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000003 (MM_EXECUTE_READ)
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000001
+  0x0    SubsectionAddress               [BitField(16-64):SubsectionAddress]: 0xFA8002A52EA8
+  0x0    Unused0                         [BitField(1-5):Unused0]: 0x00000000
+  0x0    Unused1                         [BitField(11-16):Unused1]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+Subsection PTE to file C:\Windows\System32\VBoxTray.exe @ 0x400
+Physical Address 0x400 @ aff4://dea18f67-b60c-495f-9f23-ff3f2eeaf30b/C%3A%5CWindows%5CSystem32%5CVBoxTray.exe (Mapped 0x406eb5a4)
+
+Deriving physical address from runtime physical address space:
+Physical Address 0x400 @ aff4://dea18f67-b60c-495f-9f23-ff3f2eeaf30b/C%3A%5CWindows%5CSystem32%5CVBoxTray.exe (Mapped 0x406eb5a4)
+------------------------------------------------------------------------
+
+In this example, the hardware PTE is recognized as a Prototype PTE (i.e. it is a
+`symlink` to the real PTE). The real PTE is, however, a _MMPT_SUBSECTION PTE
+which means it is simply a placeholder pointing at a _SUBSECTION structure
+which manages a mapping to the file  *C:\Windows\System32\VBoxTray.exe*.
+
+In this case, however, Rekall has the actual file in the AFF4 volume. It
+therefore can map it into the physical address space. A read() request will
+recover the relevant data directly from the mapped file!
+
+The *vadmap* plugin enumerates the state of each page in a process's address
+space. This is very useful to see an overview of how pages are arranged in the
+process virtual address space. For example, examining the VBoxTray.exe process:
+
+------------------------------------------------------------------------
+[1] test.aff4 09:28:56> vadmap 2084, start=0x00013fb90000
+DEBUG:rekall.1:Running plugin (vadmap) with args ((2084,)) kwargs ({'start': 5364056064})
+**************************************************
+Pid: 2084 VBoxTray.exe
+  Virt Addr        Length             Type         Comments
+-------------- -------------- -------------------- --------
+0x00013fb90000         0x1000 Valid                PhysAS @ 0x18f2e000
+0x00013fb91000         0x1000 File Mapping         C:\Windows\System32\VBoxTray.exe @ 0x400 (P)
+0x00013fb92000         0x1000 Valid                PhysAS @ 0x2ea47000
+0x00013fb93000         0x1000 File Mapping         C:\Windows\System32\VBoxTray.exe @ 0x2400 (P)
+0x00013fb94000         0x1000 Transition           PhysAS @ 0x31086000 (P)
+0x00013fb95000         0x1000 File Mapping         C:\Windows\System32\VBoxTray.exe @ 0x4400 (P)
+0x00013fb96000         0x8000 Valid                PhysAS @ 0x543b000
+0x00013fb9e000         0x1000 File Mapping         C:\Windows\System32\VBoxTray.exe @ 0xd400 (P)
+0x00013fb9f000         0x2000 Valid                PhysAS @ 0x2e65d000
+0x00013fba1000         0x1000 File Mapping         C:\Windows\System32\VBoxTray.exe @ 0x10400 (P)
+0x00013fba2000         0x1000 Valid                PhysAS @ 0x2e820000
+------------------------------------------------------------------------
+
+If we wanted to dump the executable from memory, previously, the *dumpfiles*
+plugin would dump the pages in the "Valid" or "Transition" state, but would have
+to zero pad the pages in "File Mapping" state (since the data was not
+available). However, now that Rekall can map the acquired executable from disk
+into the gaps, the dumped executable is kind of a combination of some pages from
+disk, and some pages from memory. This is especially important if malware
+manipulates the code in memory (e.g. installing detour hooks or other code
+modification) which are not present on disk. What we get now is the overlay of
+memory with the disk as it is visible to the running system.
+
+
+Live Analysis
+-------------
+
+The example above demonstrates how this works with an AFF4 image (once all
+mapped files have been captured). But the new address transition mechanism works
+just as well with live analysis using the WinPmem memory acquisition driver. In
+this case, Rekall is able to directly open any mapped files on demand - and even
+parse the NTFS on the live system in order to recover locked files.
+
+For example, consider the following (`swapper.exe`) program which maps
+"notepad.exe" for reading (it is not actually running notepad, it is only mapped
+into the address space) and then read some bytes from the third page. This
+causes some of the pages to be faulted in but many of the mapped pages remain as
+Subsection PTEs.
+
+[source,cpp]
+------------------------------------------------------------------------
+char *create_file_mapping() {
+    TCHAR *filename = L"c:\\windows\\notepad.exe";
+    HANDLE h = CreateFile(filename, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,
+                          FILE_FLAG_SEQUENTIAL_SCAN,NULL);
+
+    DWORD size = GetFileSize(h, NULL);
+    HANDLE hFileMapping = CreateFileMapping(h, NULL,PAGE_READONLY, 0, 0, NULL);
+    if (h=INVALID_HANDLE_VALUE) {
+       LogLastError();
+    };
+
+    char *view = (char*) MapViewOfFileEx(hFileMapping, FILE_MAP_READ, 0,  0,0,NULL);
+    if (!view) {
+        LogLastError();
+    };
+
+    // Read the third page of the file mapping.
+    view += 0x1000 * 3;
+    printf("Contents of %p %s\n", view, view);
+
+    return view;
+}
+------------------------------------------------------------------------
+
+Lets examine what it looks like in the vad output (a little truncated for
+briefness):
+
+------------------------------------------------------------------------
+[1] pmem 21:08:05> vad 2668
+Pid: 2668 swapper.exe
+     VAD       lev   Start Addr      End Addr     com   ------- ------       Protect        Filename
+-------------- --- -------------- -------------- ------                -------------------- --------
+......
+0xfa80027775c0   5 0x000000300000 0x00000030ffff      8 Private        READWRITE
+0xfa800262b2e0   6 0x000000310000 0x00000033ffff      0 Mapped         READONLY             \Windows\notepad.exe
+0xfa8002d42170   4 0x000000370000 0x0000003effff      6 Private        READWRITE
+.....
+
+[1] pmem 21:08:08> vadmap 2668, start=0x000000310000
+**************************************************
+Pid: 2668 swapper.exe
+  Virt Addr        Length             Type         Comments
+-------------- -------------- -------------------- --------
+0x000000310000         0x3000 File Mapping         C:\Windows\notepad.exe (P)
+0x000000313000         0x1000 Valid                PhysAS @ 0x20b89000
+0x000000314000         0x7000 Transition           PhysAS @ 0x3218a000 (P)
+0x00000031b000        0x25000 File Mapping         C:\Windows\notepad.exe @ 0xb000 (P)
+0x000000370000         0x6000 Valid                PhysAS @ 0x1e8bc000
+0x000000376000        0x7a000 Demand Zero
+0x0000005a0000         0x6000 Valid                PhysAS @ 0x2d057000
+------------------------------------------------------------------------
+
+As we can see the first 3 pages are merely mapped (i.e. not read), the next 8
+pages are read into memory and the rest of the file is also not read but mapped
+in. Let us examine the first page of the mapped file in details:
+
+------------------------------------------------------------------------ [1]
+pmem 21:11:33> vtop 0x000000310000
+
+******************** 0x310000 ********************
+Virtual 0x000000310000 Page Directory 0x1b1da000
+pml4e@ 0x1b1da000 = 0x700000297bd867668)
+pdpte@ 0x297bd000 = 0xb00000054c1867
+pde@ 0x54c1008 = 0x8c00000229bb867
+pte@ 0x229bb880 = 0x0
+[_MMPTE_SOFTWARE Soft] @ 0x0000229bb880
+Offset             Field              Content
+------ ------------------------------ -------
+  0x0    InStore                         [BitField(22-23):InStore]: 0x00000000
+  0x0    PageFileHigh                    [BitField(32-64):PageFileHigh]: 0x00000000
+  0x0    PageFileLow                     [BitField(1-5):PageFileLow]: 0x00000000
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000000 (MM_ZERO_ACCESS)
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000000
+  0x0    Reserved                        [BitField(23-32):Reserved]: 0x00000000
+  0x0    Transition                      [BitField(11-12):Transition]: 0x00000000
+  0x0    UsedPageTableEntries            [BitField(12-22):UsedPageTableEntries]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+Consulting Vad: Prototype PTE is found in VAD
+**************************************************
+Pid: 2668 swapper.exe
+     VAD       lev   Start Addr      End Addr     com   ------- ------       Protect        Filename
+-------------- --- -------------- -------------- ------                -------------------- --------
+0xfa800262b2e0   6 0x000000310000 0x00000033ffff      0 Mapped         READONLY             \Windows\notepad.exe
+
+_MMVAD.FirstPrototypePte: 0xf8a000ce6820
+Prototype PTE is at virtual address 0xf8a000ce6820 (Physical Address 0x18540820)
+[_MMPTE_SUBSECTION Subsect] @ 0xf8a000ce6820
+Offset             Field              Content
+------ ------------------------------ -------
+  0x-1   Subsection                     <_SUBSECTION Pointer to [0xFA8000E032E0] (Pointer)>
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000006 (MM_EXECUTE_READWRITE)
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000001
+  0x0    SubsectionAddress               [BitField(16-64):SubsectionAddress]: 0xFA8000E032E0
+  0x0    Unused0                         [BitField(1-5):Unused0]: 0x00000000
+  0x0    Unused1                         [BitField(11-16):Unused1]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+Subsection PTE to file C:\Windows\notepad.exe @ 0x0
+Physical Address 0x547f4000
+
+Deriving physical address from runtime physical address space:
+Physical Address 0x547f4000
+------------------------------------------------------------------------
+
+Despite the PTE only referring to the mapped page, Rekall can find the file on
+disk (Rekall maps a view of the file into the physical address space), and so
+now if we use the dump plugin to view a hexdump of that first page we can see
+the familiar `MZ` PE file header. It must be stressed that this data is not in
+memory at all: Rekall has recovered it from the disk itself - on demand, using
+live analysis.
+
+------------------------------------------------------------------------
+[1] pmem 21:11:46> dump 0x000000310000
+DEBUG:rekall.1:Running plugin (dump) with args ((3211264,)) kwargs ({})
+    Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+      0x310000 4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00  MZ.............. \Windows\notepad.exe
+      0x310010 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00  ........@.......
+      0x310020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+      0x310030 00 00 00 00 00 00 00 00 00 00 00 00 e8 00 00 00  ................
+      0x310040 0e 1f ba 0e 00 b4 09 cd 21 b8 01 4c cd 21 54 68  ........!..L.!Th
+      0x310050 69 73 20 70 72 6f 67 72 61 6d 20 63 61 6e 6e 6f  is.program.canno
+------------------------------------------------------------------------
+
+Rekall can similarly use the pagefile on a live system too. In that case Rekall
+reads the page file using the raw NTFS support - bypassing the OS APIs (which
+normally lock the pagefile while the system is running).
+
+Test images
+-----------
+
+We did not reverse engineer any code in order to research the Windows address
+translation process. Instead we created a test program that generated known
+patterns of user space memory. We then ran the program and acquired the
+image. Our goal was to have Rekall reconstruct the known memory pattern, as a
+test of Rekall's efficacy. The program was previously already published
+http://rekall-forensic.blogspot.ch/2014/10/windows-virtual-address-translation-and.html[here],
+so readers can repeat this test on their own.
+
+To make it even easier to independently verify and discuss the Windows address
+translation process, we are now making a reference image available
+http://images.rekall-forensic.com/address_translation_tests/[here]. In this blog
+post we will examine the
+http://images.rekall-forensic.com/address_translation_tests/swapper_test_paged_pde.aff4[swapper_test_paged_pde.aff4]
+image in details. Readers can replicate the analysis using at least Rekall 1.4
+(Etzel). We also hope that readers can use these images to test and evaluate
+other memory analysis tools. Tool testing and verification can only improve the
+general state of memory analysis tools.
+
+
+Forensic provenance
+-------------------
+
+Since we introduced complex, OS specific address translation to Rekall, there
+was a need to explain the address translation process in detail. This improved
+forensic provenance and assists users in really understanding what Rekall is
+doing under the covers. We added the **vtop** plugin to Rekall for this
+purpose. To use this plugin, the users can switch first into the desired process
+context, and then run the vtop plugin on a specific virtual address:
+
+------------------------------------------------------------------------
+[1] swapper_test_paged_pde.aff4 17:24:41> cc proc_regex="swap"
+Switching to process context: swapper.exe (Pid 2236@0xfa8000f47270)
+
+[1] swapper_test_paged_pde.aff4 17:24:44> vtop 0x000074770000
+
+******************* 0x74770000 *******************
+Virtual 0x000074770000 Page Directory 0x33a5a000
+pml4e@ 0x33a5a000 = 0x2a00000383a9867
+pdpte@ 0x383a9008 = 0x1500000384b0867
+pde@ 0x384b0d18 = 0x117000003369a867
+pte@ 0x3369ab80 = 0xf8a001b759280400
+[_MMPTE_PROTOTYPE Proto] @ 0x00003369ab80
+Offset             Field              Content
+------ ------------------------------ -------
+  0x-1   Proto                          <_MMPTE Pointer to [0xF8A001B75928] (Pointer)>
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000000 (MM_ZERO_ACCESS)
+  0x0    ProtoAddress                    [BitField(16-64):ProtoAddress]: 0xF8A001B75928
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000001
+  0x0    ReadOnly                        [BitField(8-9):ReadOnly]: 0x00000000
+  0x0    Unused0                         [BitField(1-8):Unused0]: 0x00000000
+  0x0    Unused1                         [BitField(9-10):Unused1]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+[_MMPTE_SUBSECTION Subsect] @ 0xf8a001b75928
+Offset             Field              Content
+------ ------------------------------ -------
+  0x-1   Subsection                     <_SUBSECTION Pointer to [0xFA8000F75090] (Pointer)>
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000001 (MM_READONLY)
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000001
+  0x0    SubsectionAddress               [BitField(16-64):SubsectionAddress]: 0xFA8000F75090
+  0x0    Unused0                         [BitField(1-5):Unused0]: 0x00000000
+  0x0    Unused1                         [BitField(11-16):Unused1]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+Subsection PTE to file C:\Users\mic\msvcr100.dll @ 0x0
+Deriving physical address from runtime physical address space:
+Physical Address Unavailable.
+------------------------------------------------------------------------
+
+Consider the example above. We first switch to the process context of the
+process with the name matching "swap". We then can see that Rekall is
+translating the *pml4e*, *pdpdt*, *pde* to arrive at the *pte*. The *pte*
+contains the value 0xf8a001b759280400 which Rekall identifies as being in the
+PROTOTYPE state (As described previously a prototype PTE is like a symlink to
+another PTE which describes the real state of this virtual address).
+
+Rekall then prints the _MMPTE_PROTOTYPE record indicating that the real PTE is
+found in virtual address 0xF8A001B75928. Rekall then identifies that PTE as a
+Subsection PTE and prints its content (A Subsection PTE is a placeholder for
+file mappings). The _MMPTE_SUBSECTION has a pointer to the subsection object for
+this file mapping.
+
+Finally, in this case, Rekall does not have the file itself, hence we can not
+retrieve the content of this virtual address (On a real system, accessing the
+virtual address will cause the page fault handler to read the file into memory).
+
+That was a simple example. Lets look at a more complex example:
+------------------------------------------------------------------------
+[1] swapper_test_paged_pde.aff4 17:41:12> vtop 0x000000600000
+******************** 0x600000 ********************
+Virtual 0x000000600000 Page Directory 0x33a5a000
+pml4e@ 0x33a5a000 = 0x2a00000383a9867
+pdpte@ 0x383a9000 = 0x2f0000038a6c867
+pde@ 0x38a6c018 = 0x213ff00200080
+[_MMPTE_SOFTWARE Soft] @ 0x000038a6c018
+Offset             Field              Content
+------ ------------------------------ -------
+  0x0    InStore                         [BitField(22-23):InStore]: 0x00000000
+  0x0    PageFileHigh                    [BitField(32-64):PageFileHigh]: 0x000213FF
+  0x0    PageFileLow                     [BitField(1-5):PageFileLow]: 0x00000000
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000004 (MM_READWRITE)
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000000
+  0x0    Reserved                        [BitField(23-32):Reserved]: 0x00000000
+  0x0    Transition                      [BitField(11-12):Transition]: 0x00000000
+  0x0    UsedPageTableEntries            [BitField(12-22):UsedPageTableEntries]: 0x00000200
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+Pagefile (0) @ 0x213ff000
+pte@ 0x213ff000 @ aff4://c7201492-0876-45f4-ba90-a7cccec6453d/c:/pagefile.sys (Mapped 0x613ff000) = 0x1cee00000080
+[_MMPTE_SOFTWARE Soft] @ 0x0000613ff000
+Offset             Field              Content
+------ ------------------------------ -------
+  0x0    InStore                         [BitField(22-23):InStore]: 0x00000000
+  0x0    PageFileHigh                    [BitField(32-64):PageFileHigh]: 0x00001CEE
+  0x0    PageFileLow                     [BitField(1-5):PageFileLow]: 0x00000000
+  0x0    Protection                      [Enumeration:Enumeration]: 0x00000004 (MM_READWRITE)
+  0x0    Prototype                       [BitField(10-11):Prototype]: 0x00000000
+  0x0    Reserved                        [BitField(23-32):Reserved]: 0x00000000
+  0x0    Transition                      [BitField(11-12):Transition]: 0x00000000
+  0x0    UsedPageTableEntries            [BitField(12-22):UsedPageTableEntries]: 0x00000000
+  0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
+Pagefile (0) @ 0x1cee000
+Physical Address 0x1cee000 @ aff4://c7201492-0876-45f4-ba90-a7cccec6453d/c:/pagefile.sys (Mapped 0x41cee000)
+
+------------------------------------------------------------------------
+
+In this example, Rekall identifies the PDE at physical address 0x38a6c018
+contains 0x213ff00200080. Since the PDE does not have bit 0 set - it is not
+valid. However, Rekall identifies that the PTE table resides in the pagefile at
+offset 0x213ff000. Note how Rekall maps the pagefile into the physical address
+space - by mapping the pagefile into the physical address space, the address
+transition process can simply refer to it by a single physical offset.
+
+Rekall then reads the value of the PTE (from the pagefile) and finds that it is
+0x1cee00000080. This again refers to the pagefile, this time at address
+0x1cee000.
+
+Note that in the second example we consulted the pagefile twice - once for
+reading the PTE table (referenced by a paged out PDE) and once by resolving the
+actual PTE which also refers to the pagefile. Being able to see the full
+transition process at work is extremely useful. As forensic analysts we must
+justify how we arrive at our conclusions and the *vtop* plugin allows us to so
+this.
+
+
+How important is this?
+----------------------
+
+We were previously surprised that correct address transition has not been
+implemented by other tools, and in particular by the lack of tools that are able
+to use the pagefile during analysis. Additionally, other researchers theorized
+that smear will be a big problem - there is a reasonably long time difference
+between aquiring the memory and acquiring the pagefile itself. Even we have
+previously observed that page tables may change between the two times causing
+the physical memory to be out of sync with the pagefile (we describe this as
+*pagetable smear* in the paper).
+
+We wanted to check how many pages from the known VAD region can be recovered
+with and without the pagefile. We use the Rekall *vaddump* plugin to dump all
+vad regions for the *swapper.exe* process. We can then test how many pages were
+as expected and how many were incorrect (possibly due to smear) using the
+following python script:
+
+[source,python]
+-----------------------------------------------------------------------------
+import sys
+import struct
+
+i = errors = success = 0
+with open(sys.argv[1]) as fd:
+     while 1:
+        i += 1
+        fd.seek(i * 0x1000)
+        data = fd.read(8)
+        if not data: break
+
+        unpacked_data = struct.unpack("<Q", data)[0]
+        if unpacked_data != i:
+            errors += 1
+        else:
+            success += 1
+
+print "Total errors: %s, Total success: %s" % (errors, success)
+-----------------------------------------------------------------------------
+
+When using the pagefile, Rekall could correctly recover all but 3691 pages out
+of 202400 (error rate of 1.8%). However, without the pagefile, Rekall could only
+recover 119198 out of 202400 (41% error rate). We attribute most of the errors
+to acquisition smear in the case where the pagefile was used. However, this
+demonstrates that the pagefile is critical to collect and analyze - almost half
+the pages of interest were in the pagefile.
+
+
+The AFF4 acquisition plugin
+---------------------------
+
+Our goal in acquisition is to preserve as much of system state as possible for
+later analysis. As we have seen, from the point of view of the address
+translation process, the system state comprises of:
+
+1. The physical memory.
+2. The pagefile.
+3. Any mapped files.
+
+Previously, we used a dedicated imaging tool to acquire memory and the pagefile
+on the side. For example, the WinPmem 2.0.1 acquisition tool was written in C++
+and acquired physical memory, while shelling out to the Sleuthkit's fcat program
+to parse the NTFS file system when acquiring the pagefile (The pagefile is
+locked during normal system operation and can not be opened via the normal
+system APIs).
+
+Quite independent of that, Rekall had for a long time the ability to perform
+live analysis: The raw physical memory device was used as a kind of memory
+image, and Rekall could perform triage live analysis without having to acquire
+memory first.
+
+We have realized that in order to best preserve system state, especially on
+utilized systems, we should combine the two approaches to get a better copy of
+system state! Rekall can start to acquire the physical memory, then analyze the
+running system to determine which files are mapped and should be acquired in
+addition. Rekall now even parses the NTFS file system directory, and therefore
+can acquire locked files without using the OS APIs (There is no need to shell
+out to the Sleuthkit).
+
+The final product is therefore an AFF4 volume containing physical memory as well
+as any mapped files and pagefile from the system. The AFF4 imaging format
+provides us with the required features, such as compression, sparse images
+(Physical memory is often sparse) and the ability to store multiple data streams
+in the same image format.
+
+Now we can write a sophisticated memory acquisition tool right inside Rekall
+instead of having to rely on a dedicated imager. This is more powerful since we
+can leverage the triage and analysis capability in Rekall. It does come at a
+cost of increased complexity to the acquisition tool, and potentially increased
+footprint due to the larger executable size. However we believe this is a good
+trade off: Even if memory is forced to be swapped due to an increased footprint,
+we can just recover it from the pagefile anyway so we do not actually lose
+anything. We believe that when acquiring the pagefile and mapped files, demands
+on memory pressure and smaller tool footprint are less important. We will
+continue to maintain the old single program acquisition tool, which might be
+useful in some situations.
+
+Conclusions
+-----------
+
+In this blog post we discussed Rekall's advanced virtual address transition
+algorithms. To our knowledge, Rekall is the only memory analysis framework to
+support incorporating the pagefile and mapped files.
+
+We have also shared some test images, and examined some cases where address
+transition is particularly complex.
+
+We hope to convince you, the reader, that properly supporting the pagefile is
+critical for accurate memory analysis! It is difficult to build complex memory
+analysis tools and techniques (such as e.g. analysis of heap allocations) on top
+of a framework which does not support reliable and accurate address
+transition. In Rekall we choose to have a strong and solid foundation on top of
+which we can develop better memory analysis techniques. In the next blog post we
+will discuss how this foundation can be used in order to reliably analyze user
+space heap allocations.

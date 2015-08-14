@@ -627,11 +627,12 @@ from rekall import session
 from rekall import plugins                           # <1>
 
 # Setup logging as required. Rekall will log to the standard logging service.
-logging.getLogger().setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 s = session.Session(                                 # <2>
   filename="win7.elf",
   autodetect=["rsds"],
+  logger=logging.getLogger(),
   profile_path=[
      "http://profiles.rekall-forensic.com"
   ])
@@ -670,10 +671,12 @@ from rekall import plugins
 from rekall import session
 from rekall.plugins.addrspaces import standard
 
-logging.getLogger().setLevel(logging.DEBUG)
+# Setup logging as required. Rekall will log to the standard logging service.
+logging.basicConfig(level=logging.DEBUG)
 
 s = session.Session(                                      # <1>
     autodetect=["rsds"],
+    logger=logging.getLogger(),
     profile_path=[
         "http://profiles.rekall-forensic.com"
     ])
