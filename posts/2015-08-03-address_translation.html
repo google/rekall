@@ -391,9 +391,11 @@ Pid: 2668 swapper.exe
 <div class="paragraph"><p>As we can see the first 3 pages are merely mapped (i.e. not read), the next 8
 pages are read into memory and the rest of the file is also not read but mapped
 in. Let us examine the first page of the mapped file in details:</p></div>
-<div class="paragraph"><p>------------------------------------------------------------------------ [1]
-pmem 21:11:33&gt; vtop 0x000000310000</p></div>
-<div class="paragraph"><p><strong><strong></strong></strong><strong><strong></strong></strong><strong><strong></strong></strong><strong> 0x310000 </strong><strong><strong></strong></strong><strong><strong></strong></strong><strong><strong></strong></strong>
+<div class="listingblock">
+<div class="content">
+<pre><code>[1] pmem 21:11:33&gt; vtop 0x000000310000
+
+******************** 0x310000 ********************
 Virtual 0x000000310000 Page Directory 0x1b1da000
 pml4e@ 0x1b1da000 = 0x700000297bd867668)
 pdpte@ 0x297bd000 = 0xb00000054c1867
@@ -411,14 +413,14 @@ Offset             Field              Content
   0x0    Transition                      [BitField(11-12):Transition]: 0x00000000
   0x0    UsedPageTableEntries            [BitField(12-22):UsedPageTableEntries]: 0x00000000
   0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
-Consulting Vad: Prototype PTE is found in VAD</p></div>
-<div class="sidebarblock">
-<div class="content">
-<div class="paragraph"><p>Pid: 2668 swapper.exe
+Consulting Vad: Prototype PTE is found in VAD
+**************************************************
+Pid: 2668 swapper.exe
      VAD       lev   Start Addr      End Addr     com   ------- ------       Protect        Filename
 -------------- --- -------------- -------------- ------                -------------------- --------
-0xfa800262b2e0   6 0x000000310000 0x00000033ffff      0 Mapped         READONLY             \Windows\notepad.exe</p></div>
-<div class="paragraph"><p>_MMVAD.FirstPrototypePte: 0xf8a000ce6820
+0xfa800262b2e0   6 0x000000310000 0x00000033ffff      0 Mapped         READONLY             \Windows\notepad.exe
+
+_MMVAD.FirstPrototypePte: 0xf8a000ce6820
 Prototype PTE is at virtual address 0xf8a000ce6820 (Physical Address 0x18540820)
 [_MMPTE_SUBSECTION Subsect] @ 0xf8a000ce6820
 Offset             Field              Content
@@ -431,36 +433,38 @@ Offset             Field              Content
   0x0    Unused1                         [BitField(11-16):Unused1]: 0x00000000
   0x0    Valid                           [BitField(0-1):Valid]: 0x00000000
 Subsection PTE to file C:\Windows\notepad.exe @ 0x0
-Physical Address 0x547f4000</p></div>
-<div class="paragraph"><p>Deriving physical address from runtime physical address space:
-Physical Address 0x547f4000</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>Despite the PTE only referring to the mapped page, Rekall can find the file on
+Physical Address 0x547f4000
+
+Deriving physical address from runtime physical address space:
+Physical Address 0x547f4000</code></pre>
+</div></div>
+<div class="paragraph"><p>Despite the PTE only referring to the mapped page, Rekall can find the file on
 disk (Rekall maps a view of the file into the physical address space), and so
 now if we use the dump plugin to view a hexdump of that first page we can see
-the familiar `MZ` PE file header. It must be stressed that this data is not in
+the familiar <code>MZ</code> PE file header. It must be stressed that this data is not in
 memory at all: Rekall has recovered it from the disk itself - on demand, using
-live analysis.</code></pre>
-</div></div>
-<div class="paragraph"><p>[1] pmem 21:11:46&gt; dump 0x000000310000
-DEBUG:rekall.1:Running plugin (dump) with args 3211264 kwargs ({})
-    Offset                                   Data                                                Comment
--------------- ----------------------------------------------------------------- ----------------------------------------
-      0x310000 4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00  MZ&#8230;&#8230;&#8230;&#8230;.. \Windows\notepad.exe
-      0x310010 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00  &#8230;&#8230;..@&#8230;&#8230;.
-      0x310020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  &#8230;&#8230;&#8230;&#8230;&#8230;.
-      0x310030 00 00 00 00 00 00 00 00 00 00 00 00 e8 00 00 00  &#8230;&#8230;&#8230;&#8230;&#8230;.
-      0x310040 0e 1f ba 0e 00 b4 09 cd 21 b8 01 4c cd 21 54 68  &#8230;&#8230;..!..L.!Th
-      0x310050 69 73 20 70 72 6f 67 72 61 6d 20 63 61 6e 6e 6f  is.program.canno</p></div>
+live analysis.</p></div>
 <div class="listingblock">
 <div class="content">
-<pre><code>Rekall can similarly use the pagefile on a live system too. In that case Rekall
-reads the page file using the raw NTFS support - bypassing the OS APIs (which
-normally lock the pagefile while the system is running).
-
-Test images</code></pre>
+<pre><code>[1] pmem 21:11:46&gt; dump 0x000000310000
+DEBUG:rekall.1:Running plugin (dump) with args ((3211264,)) kwargs ({})
+    Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+      0x310000 4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00  MZ.............. \Windows\notepad.exe
+      0x310010 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00  ........@.......
+      0x310020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+      0x310030 00 00 00 00 00 00 00 00 00 00 00 00 e8 00 00 00  ................
+      0x310040 0e 1f ba 0e 00 b4 09 cd 21 b8 01 4c cd 21 54 68  ........!..L.!Th
+      0x310050 69 73 20 70 72 6f 67 72 61 6d 20 63 61 6e 6e 6f  is.program.canno</code></pre>
 </div></div>
+<div class="paragraph"><p>Rekall can similarly use the pagefile on a live system too. In that case Rekall
+reads the page file using the raw NTFS support - bypassing the OS APIs (which
+normally lock the pagefile while the system is running).</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_images">2. Test images</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>We did not reverse engineer any code in order to research the Windows address
 translation process. Instead we created a test program that generated known
 patterns of user space memory. We then ran the program and acquired the
@@ -477,6 +481,11 @@ image in details. Readers can replicate the analysis using at least Rekall 1.4
 (Etzel). We also hope that readers can use these images to test and evaluate
 other memory analysis tools. Tool testing and verification can only improve the
 general state of memory analysis tools.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_forensic_provenance">3. Forensic provenance</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>Since we introduced complex, OS specific address translation to Rekall, there
 was a need to explain the address translation process in detail. This improved
 forensic provenance and assists users in really understanding what Rekall is
@@ -586,8 +595,13 @@ transition process can simply refer to it by a single physical offset.</p></div>
 reading the PTE table (referenced by a paged out PDE) and once by resolving the
 actual PTE which also refers to the pagefile. Being able to see the full
 transition process at work is extremely useful. As forensic analysts we must
-justify how we arrive at our conclusions and the <strong>vtop</strong> plugin allows us to so
+justify how we arrive at our conclusions and the <strong>vtop</strong> plugin allows us to do
 this.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_important_is_this">4. How important is this?</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>We were previously surprised that correct address transition has not been
 implemented by other tools, and in particular by the lack of tools that are able
 to use the pagefile during analysis. Additionally, other researchers theorized
@@ -630,6 +644,11 @@ recover 119198 out of 202400 (41% error rate). We attribute most of the errors
 to acquisition smear in the case where the pagefile was used. However, this
 demonstrates that the pagefile is critical to collect and analyze - almost half
 the pages of interest were in the pagefile.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_aff4_acquisition_plugin">5. The AFF4 acquisition plugin</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>Our goal in acquisition is to preserve as much of system state as possible for
 later analysis. As we have seen, from the point of view of the address
 translation process, the system state comprises of:</p></div>
@@ -663,10 +682,10 @@ memory first.</p></div>
 <div class="paragraph"><p>We have realized that in order to best preserve system state, especially on
 utilized systems, we should combine the two approaches to get a better copy of
 system state! Rekall can start to acquire the physical memory, then analyze the
-running system to determine which files are mapped and should be acquired in
-addition. Rekall now even parses the NTFS file system directory, and therefore
-can acquire locked files without using the OS APIs (There is no need to shell
-out to the Sleuthkit).</p></div>
+running system to determine which files are mapped and should be acquired
+additionally. Rekall now even parses the NTFS file system directly, and
+therefore can acquire locked files without using the OS APIs (There is no need
+to shell out to the Sleuthkit).</p></div>
 <div class="paragraph"><p>The final product is therefore an AFF4 volume containing physical memory as well
 as any mapped files and pagefile from the system. The AFF4 imaging format
 provides us with the required features, such as compression, sparse images
@@ -683,27 +702,97 @@ anything. We believe that when acquiring the pagefile and mapped files, demands
 on memory pressure and smaller tool footprint are less important. We will
 continue to maintain the old single program acquisition tool, which might be
 useful in some situations.</p></div>
+<div class="paragraph"><p>Consider acquiring memory now from the command line:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>D:\AMD64&gt;winpmem_2.0.1.exe -l
+Driver Unloaded.
+CR3: 0x0000187000
+ 2 memory ranges:
+Start 0x00001000 - Length 0x0009E000
+Start 0x00100000 - Length 0x3FEF0000
+Memory access driver left loaded since you specified the -l flag.
+
+D:\AMD64&gt;rekal -f \\.\pmem aff4acquire c:\temp\image.aff4 --also_files
+Will use compression: https://github.com/google/snappy
+Imaging Physical Memory:
+ WinPmemAddressSpace: Wrote 0xc000000 (200 mb total) (11 Mb/s)
+...
+Wrote 1023 mb of Physical Memory to aff4://6567a47c-dd5d-4060-9a39-399fe735d959/PhysicalMemory
+Imaging pagefile C:\pagefile.sys
+ pagefile.sys: Wrote 0x20b5a000 (548 total) (22 Mb/s)
+Wrote pagefile.sys (1000 mb)
+Adding file C:\Windows\System32\ntdll.dll
+Adding file C:\Windows\SysWOW64\ntdll.dll
+Adding file C:\Windows\System32\smss.exe
+Adding file C:\Windows\System32\apisetschema.dll
+Adding file C:\Windows\System32\locale.nls
+Adding file C:\Windows\System32\en-US\cmd.exe.mui
+Adding file C:\Windows\Globalization\Sorting\SortDefault.nls
+Adding file C:\Windows\System32\kernel32.dll
+...</code></pre>
+</div></div>
+<div class="paragraph"><p>Lets examine the content of the AFF4 image using the aff4imager tool:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><code>$ aff4imager -V image.aff4
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+@prefix aff4: &lt;http://aff4.org/Schema#&gt; .
+@prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
+
+&lt;aff4://6567a47c-dd5d-4060-9a39-399fe735d959/C%3A%5CProgram%20Files%20%28x86%29%5CMiranda%20IM%5CPlugins%5CGG.dll&gt;
+    aff4:chunk_size 32768 ;
+    aff4:chunks_per_segment 1024 ;
+    aff4:compression &lt;https://www.ietf.org/rfc/rfc1950.txt&gt; ;
+    aff4:original_filename "C:\\Program Files (x86)\\Miranda IM\\Plugins\\GG.dll"^^xsd:string ;
+    aff4:size 316416 ;
+    aff4:stored &lt;aff4://6567a47c-dd5d-4060-9a39-399fe735d959&gt; ;
+    a aff4:image .
+
+...
+&lt;aff4://6567a47c-dd5d-4060-9a39-399fe735d959/PhysicalMemory&gt;
+    aff4:category &lt;http://aff4.org/Schema#memory/physical&gt; ;
+    aff4:stored &lt;aff4://6567a47c-dd5d-4060-9a39-399fe735d959&gt; ;
+    a aff4:map .
+
+...
+&lt;aff4://6567a47c-dd5d-4060-9a39-399fe735d959/C%3A%5Cpagefile.sys&gt;
+    aff4:chunk_size 32768 ;
+    aff4:chunks_per_segment 1024 ;
+    aff4:compression &lt;https://github.com/google/snappy&gt; ;
+    aff4:original_filename "C:\\pagefile.sys"^^xsd:string ;
+    aff4:size 1380974592 ;
+    aff4:stored &lt;aff4://6567a47c-dd5d-4060-9a39-399fe735d959&gt; ;
+    a aff4:image .</code></pre>
+</div></div>
+<div class="paragraph"><p>We can see an example of a file stream ("C:\\Program Files (x86)\\Miranda
+IM\\Plugins\\GG.dll"), the physical memory stream, and the pagefile are also
+acquired.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusions">6. Conclusions</h2>
+<div class="sectionbody">
 <div class="paragraph"><p>In this blog post we discussed Rekall&#8217;s advanced virtual address transition
-algorithms. To our knowledge, Rekall is the only memory analysis framework to
-support incorporating the pagefile and mapped files.</p></div>
+algorithms. To our knowledge, Rekall is the only open source memory analysis
+framework to support incorporating the pagefile and mapped files. We also
+discussed the new <strong>aff4acquire</strong> plugin which aims to simplify the process of
+memory acquisition and ensure that more relevant evidence is collected
+automatically during acquisition time, to complete subsequent analysis.</p></div>
 <div class="paragraph"><p>We have also shared some test images, and examined some cases where address
 transition is particularly complex.</p></div>
 <div class="paragraph"><p>We hope to convince you, the reader, that properly supporting the pagefile is
-critical for accurate memory analysis! It is difficult to build complex memory
-analysis tools and techniques (such as e.g. analysis of heap allocations) on top
-of a framework which does not support reliable and accurate address
-transition. In Rekall we choose to have a strong and solid foundation on top of
-which we can develop better memory analysis techniques. In the next blog post we
-will discuss how this foundation can be used in order to reliably analyze user
-space heap allocations.</p></div>
-</div></div>
+critical for accurate memory analysis! In Rekall we choose to have a strong and
+solid foundation on top of which we can develop better memory analysis
+techniques. In the next blog post we will discuss how this foundation can be
+used in order to reliably analyze user space heap allocations.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-08-14 11:12:58 PDT
+Last updated 2015-08-14 13:37:30 PDT
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

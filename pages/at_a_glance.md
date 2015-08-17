@@ -29,6 +29,12 @@ platforms (For example Rekall features the only memory imaging tool available
 for recent versions of OSX, that we know of - and it is open source and free as
 well!).
 
+Rekall is the only open source memory analysis tool that can work with the
+windows page file and mapped files. Rekall also includes a full acquisition
+solution (in the *aff4acquire* plugin) which allows the acquisition of the
+pagefile and all relevant mapped files (Rekall does this by executing a triaging
+routine during acquisition).
+
 ### Fully usable as a library.
 
 One of the major goals of Rekall is to make it possible to embed Rekall as a

@@ -474,8 +474,8 @@ In [20]: v
 The Rekall Session
 ------------------
 
-Rekall uses a `Session` to encapsulate analysis a single interactive analysis
-session. The reason Rekall is so fast is because information is cached in the
+Rekall uses a `Session` to encapsulate the analysis of a single image. The
+reason Rekall is so fast is because information is cached in the
 session. Normally when running from the interactive console, the session
 persists in memory and therefore, the cache remains available for subsequent
 modules.
@@ -488,98 +488,81 @@ filtered by process id, process name, etc).
 You can see this by printing the session object:
 -----------------------------------------------------------------------------
 win7.elf 22:57:28> print session
-Rekall Memory Forensics session Started on Tue Jun 17 22:57:30 2014.
+Rekall Memory Forensics session Started on Mon Aug 17 14:25:26 2015.
 
 Config:
 {
+  __dummy = False
+  autodetect = ['nt_index', 'osx', 'pe', 'windows_kernel_file', 'rsds', 'ntfs', 'linux']
+  autodetect_build_local = basic
+  autodetect_build_local_tracked = set(['win32k', 'ntdll', 'nt', 'tcpip'])
+  autodetect_scan_length = 1000000000
   autodetect_threshold = 1.0
-  base_filename = win7.elf
+  base_filename = win7.elf.E01
   buffer_size = 20971520
-  cache = {
-    ObjectTypeMap = <Array 0 x Pointer @ 0xF80002841300>
-    PsActiveProcessHead = [_LIST_ENTRY _LIST_ENTRY] @ 0xF8000283EB30
-    default_address_space = AMD64PagedMemory@0x00187000 (Kernel AS@0x187000)
-    idle_process = [_EPROCESS _EPROCESS] @ 0x02818140 (pid=0)
-    kernel_base = 272678923661312
-    pslist_cache = {'Handles': set([275427700679504, 4, 275427701205808, 275427706255504, 275427701697328, 275427705361984, 275427697963104, 275427706065648, 275427702292576, 27542770046756, 275427696760304, 275427700103984, 275427703556656, 275427703140448, 275427707650448, 275427701734192])}
-  }
+  cache = file
+  cache_dir = .rekall_cache
+  colors = auto
   debug = False
-  dtb = 1601536
   ept = None
   filename = /home/scudette/images/win7.elf
+  format = text
   help = False
-  ipython_engine = None
-  no_autodetect = False
-  nocolors = False
-  notebook_dir = /home/scudette/Worksheets/
-  output = None
-  pager = None
-  paging_limit = None
+  logging_level = DEBUG
+  max_collector_cost = 4
+  name_resolution_strategies = ['Module', 'Symbol', 'Export']
+  notebook_dir = /home/scudette
+  output_style = concise
+  pagefile = []
   plugin = []
-  profile = <AMD64 profile nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 (Nt)>
-  profile_autodetect = True
-  profile_path = ['https://raw.githubusercontent.com/google/rekall-profiles/master',
-                  'http://profiles.rekall-forensic.com']
-  renderer = TextRenderer
-  run = None
-  session_filename = None
+  profile_path = ['/home/scudette/projects/rekall-profiles/']
+  quiet = False
+  repository_path = []
+  session_id = 1
+  session_list = [<rekall.session.InteractiveSession object at 0x7fbf7a38c550>]
+  session_name = Default session
   timezone = UTC
   verbose = True
 }
+
+Cache (<FileCache @ /home/scudette/.rekall_cache/sessions/de814bea95020499e782df54aa4b0d5ce4544823>):
+{
+  default_address_space = WindowsAMD64PagedMemory@0x17851000 (Kernel AS@0x17851000)
+  dtb = 1601536
+  image_fingerprint = {'tests': [(41740160L, u'7600.win7_rtm.090713-1255\x00'), (41740416L, u'7600.16385.amd64fre.win7_rtm ...
+  profile = nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942
+  profile_obj = <AMD64 profile nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 (Nt)>
+  pslist_CSRSS = set([275427705947968, 275427703135024, 275427707404384, 275427696227600, 275427701196688, 2754276960 ...
+  pslist_Handles = set([275427705361984, 275427703135024, 275427688164144, 275427696227600, 275427701196688, 2754277015 ...
+  pslist_PsActiveProcessHead = set([275427705947968, 275427703135024, 275427701697328, 275427707404384, 275427706255504, 2754277015 ...
+  pslist_PspCidTable = set([275427706779456, 275427703135024, 275427688164144, 275427696227600, 275427701196688, 2754277015 ...
+  pslist_Sessions = set([275427700679504, 275427705361984, 275427705947968, 275427688984672, 275427701697328, 2754276962 ...
+}
 -----------------------------------------------------------------------------
 
-As can be been above, the session stores not only the `pslist_cache`, but also
-the profile (as discovered by profile autodetection) as well as configuration
-parameters such as the location of the profile repository.
+As can be been above, the session state can be divided into the configuration,
+and the cache. In the above case the cache is persistent (It is a FileCache) and
+stores a number of useful objects (e.g. the various output the process listing
+techniques). Note that the cache will only show objects currently loaded
+(i.e. have been used in this run). There may be other objects on disk.
 
-Saving the session
-~~~~~~~~~~~~~~~~~~
+If Rekall is analysing a volatile image - such as a memory device, the cache
+will not be persistent - instead it will be time based, to allow items to expire
+promptly from the cache as the live system evolves. For normal images, the cache
+may persist so that even if the user quits and restarts Rekall on the same
+image, the cache is considered valid.
 
-In order to save time the next time this image is examined, we can save the
-session to disk. This essentially serializes the session cache, configuration
-and the results of previous plugins. To do this we can tell Rekall to use a file
-as the cache using the `-s` flag. This will cause Rekall to store the session
-after it exists and reloads it at start up time.
-
-
-The below example shows that the first time we run the `pslist` plugin it takes
-significantly longer since it needs to actually list all processes using all
-supported methods, while the next time it is much faster since the process
-listing is coming from cache. Note also that on subsequent executions we do not
-need to provide any information to Rekall (such as the image filename) since it
-can read that information from the stored session.
-
------------------------------------------------------------------------------
-$ time rekal -v -f ~/images/win7.elf -s my_session.rekall pslist
-....
-INFO:root:Detected kernel base at 0xF8000261F000
-DEBUG:root:Listed 41 processes using PsActiveProcessHead
-DEBUG:root:Listed 37 processes using CSRSS
-DEBUG:root:Listed 41 processes using PspCidTable
-DEBUG:root:Listed 39 processes using Sessions
-DEBUG:root:Listed 40 processes using Handles
-0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
-...
-INFO:root:Saving session to my_session.rekall
-
-real             0m3.051s
-user             0m2.576s
-sys              0m0.289s
-$ time rekal -v -s my_session.rekall pslist
-0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
-.....
-real           0m1.090s
-user           0m0.830s
-sys            0m0.093s
------------------------------------------------------------------------------
+If you suspect something unusual with the cache (e.g. the cache is out of sync
+or was created by an earlier version) it should be quite safe to remove all
+files from the cache directory. Otherwise you can force the memory cache to be
+used by issuing the `--cache memory` flag.
 
 [NOTE]
-The on disk version of the session is considered an ephemeral cache of the
+The on disk version of the session cache is considered an ephemeral cache of the
 session data. We do not consider this a stable interchange format. This means
 that we do not guarantee compatibility with future versions of Rekall. At best
-the session file is merely a cache which can be deleted and recreated at any
-time. The content of the file is also not considered user viewable and should
-not be edited manually.
+the cache files can be deleted and recreated at any time. The content of the
+file is also not considered user viewable and should not be edited manually.
 
 Automating Rekall
 -----------------
@@ -667,12 +650,14 @@ file-like object (For this example we directly open the file).
 .Example of embedding Rekall in a python application
 -----------------------------------------------------------------------------
 import logging
+
+# Setup logging as required. Rekall will log to the standard logging service or
+# to a provided logger.
+logging.basicConfig(level=logging.DEBUG)
+
 from rekall import plugins
 from rekall import session
 from rekall.plugins.addrspaces import standard
-
-# Setup logging as required. Rekall will log to the standard logging service.
-logging.basicConfig(level=logging.DEBUG)
 
 s = session.Session(                                      # <1>
     autodetect=["rsds"],
@@ -681,10 +666,10 @@ s = session.Session(                                      # <1>
         "http://profiles.rekall-forensic.com"
     ])
 
-with s:                                                   # <2>
-    s.physical_address_space = standard.FDAddressSpace(fhandle=open(
-            "/home/scudette/images/win7x86.raw"), session=s)
-    s.GetParameter("profile")                             # <3>
+s.physical_address_space = standard.FDAddressSpace(       # <2>
+    fhandle=open(
+       "/home/scudette/images/win7x86.raw"),
+    session=s)
 
 print s.plugins.pslist(method="PsActiveProcessHead")
 
@@ -692,12 +677,8 @@ print s.plugins.pslist(method="PsActiveProcessHead")
 
 <1> We create a session but do not provide a filename.
 
-<2> Using the `with` operator we can directly add the FDAddressSpace() as the
-    physical address space to the session.
-
-<3> This step triggers the profile autodetection code which looks at the
-    physical address space, figures out the profile and enables all the active
-    plugins which work with this profile.
+<2> We can directly add the FDAddressSpace() as the physical address space to
+    the session.
 
 
 Example: Automating the Rekall Console

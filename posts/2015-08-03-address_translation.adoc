@@ -239,8 +239,8 @@ As we can see the first 3 pages are merely mapped (i.e. not read), the next 8
 pages are read into memory and the rest of the file is also not read but mapped
 in. Let us examine the first page of the mapped file in details:
 
------------------------------------------------------------------------- [1]
-pmem 21:11:33> vtop 0x000000310000
+------------------------------------------------------------------------
+[1] pmem 21:11:33> vtop 0x000000310000
 
 ******************** 0x310000 ********************
 Virtual 0x000000310000 Page Directory 0x1b1da000
@@ -451,7 +451,7 @@ Note that in the second example we consulted the pagefile twice - once for
 reading the PTE table (referenced by a paged out PDE) and once by resolving the
 actual PTE which also refers to the pagefile. Being able to see the full
 transition process at work is extremely useful. As forensic analysts we must
-justify how we arrive at our conclusions and the *vtop* plugin allows us to so
+justify how we arrive at our conclusions and the *vtop* plugin allows us to do
 this.
 
 
@@ -529,10 +529,10 @@ memory first.
 We have realized that in order to best preserve system state, especially on
 utilized systems, we should combine the two approaches to get a better copy of
 system state! Rekall can start to acquire the physical memory, then analyze the
-running system to determine which files are mapped and should be acquired in
-addition. Rekall now even parses the NTFS file system directory, and therefore
-can acquire locked files without using the OS APIs (There is no need to shell
-out to the Sleuthkit).
+running system to determine which files are mapped and should be acquired
+additionally. Rekall now even parses the NTFS file system directly, and
+therefore can acquire locked files without using the OS APIs (There is no need
+to shell out to the Sleuthkit).
 
 The final product is therefore an AFF4 volume containing physical memory as well
 as any mapped files and pagefile from the system. The AFF4 imaging format
@@ -552,21 +552,90 @@ on memory pressure and smaller tool footprint are less important. We will
 continue to maintain the old single program acquisition tool, which might be
 useful in some situations.
 
+Consider acquiring memory now from the command line:
+-----------------------------------------------------------------------------
+D:\AMD64>winpmem_2.0.1.exe -l
+Driver Unloaded.
+CR3: 0x0000187000
+ 2 memory ranges:
+Start 0x00001000 - Length 0x0009E000
+Start 0x00100000 - Length 0x3FEF0000
+Memory access driver left loaded since you specified the -l flag.
+
+D:\AMD64>rekal -f \\.\pmem aff4acquire c:\temp\image.aff4 --also_files
+Will use compression: https://github.com/google/snappy
+Imaging Physical Memory:
+ WinPmemAddressSpace: Wrote 0xc000000 (200 mb total) (11 Mb/s)
+...
+Wrote 1023 mb of Physical Memory to aff4://6567a47c-dd5d-4060-9a39-399fe735d959/PhysicalMemory
+Imaging pagefile C:\pagefile.sys
+ pagefile.sys: Wrote 0x20b5a000 (548 total) (22 Mb/s)
+Wrote pagefile.sys (1000 mb)
+Adding file C:\Windows\System32\ntdll.dll
+Adding file C:\Windows\SysWOW64\ntdll.dll
+Adding file C:\Windows\System32\smss.exe
+Adding file C:\Windows\System32\apisetschema.dll
+Adding file C:\Windows\System32\locale.nls
+Adding file C:\Windows\System32\en-US\cmd.exe.mui
+Adding file C:\Windows\Globalization\Sorting\SortDefault.nls
+Adding file C:\Windows\System32\kernel32.dll
+...
+-----------------------------------------------------------------------------
+
+Lets examine the content of the AFF4 image using the aff4imager tool:
+
+-----------------------------------------------------------------------------
+$ aff4imager -V image.aff4
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix aff4: <http://aff4.org/Schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<aff4://6567a47c-dd5d-4060-9a39-399fe735d959/C%3A%5CProgram%20Files%20%28x86%29%5CMiranda%20IM%5CPlugins%5CGG.dll>
+    aff4:chunk_size 32768 ;
+    aff4:chunks_per_segment 1024 ;
+    aff4:compression <https://www.ietf.org/rfc/rfc1950.txt> ;
+    aff4:original_filename "C:\\Program Files (x86)\\Miranda IM\\Plugins\\GG.dll"^^xsd:string ;
+    aff4:size 316416 ;
+    aff4:stored <aff4://6567a47c-dd5d-4060-9a39-399fe735d959> ;
+    a aff4:image .
+
+...
+<aff4://6567a47c-dd5d-4060-9a39-399fe735d959/PhysicalMemory>
+    aff4:category <http://aff4.org/Schema#memory/physical> ;
+    aff4:stored <aff4://6567a47c-dd5d-4060-9a39-399fe735d959> ;
+    a aff4:map .
+
+...
+<aff4://6567a47c-dd5d-4060-9a39-399fe735d959/C%3A%5Cpagefile.sys>
+    aff4:chunk_size 32768 ;
+    aff4:chunks_per_segment 1024 ;
+    aff4:compression <https://github.com/google/snappy> ;
+    aff4:original_filename "C:\\pagefile.sys"^^xsd:string ;
+    aff4:size 1380974592 ;
+    aff4:stored <aff4://6567a47c-dd5d-4060-9a39-399fe735d959> ;
+    a aff4:image .
+-----------------------------------------------------------------------------
+
+We can see an example of a file stream ("C:\\Program Files (x86)\\Miranda
+IM\\Plugins\\GG.dll"), the physical memory stream, and the pagefile are also
+acquired.
+
+
 Conclusions
 -----------
 
 In this blog post we discussed Rekall's advanced virtual address transition
-algorithms. To our knowledge, Rekall is the only memory analysis framework to
-support incorporating the pagefile and mapped files.
+algorithms. To our knowledge, Rekall is the only open source memory analysis
+framework to support incorporating the pagefile and mapped files. We also
+discussed the new *aff4acquire* plugin which aims to simplify the process of
+memory acquisition and ensure that more relevant evidence is collected
+automatically during acquisition time, to complete subsequent analysis.
 
 We have also shared some test images, and examined some cases where address
 transition is particularly complex.
 
 We hope to convince you, the reader, that properly supporting the pagefile is
-critical for accurate memory analysis! It is difficult to build complex memory
-analysis tools and techniques (such as e.g. analysis of heap allocations) on top
-of a framework which does not support reliable and accurate address
-transition. In Rekall we choose to have a strong and solid foundation on top of
-which we can develop better memory analysis techniques. In the next blog post we
-will discuss how this foundation can be used in order to reliably analyze user
-space heap allocations.
+critical for accurate memory analysis! In Rekall we choose to have a strong and
+solid foundation on top of which we can develop better memory analysis
+techniques. In the next blog post we will discuss how this foundation can be
+used in order to reliably analyze user space heap allocations.

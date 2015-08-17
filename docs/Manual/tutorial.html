@@ -815,8 +815,8 @@ rerun the last plugin using the <em>v</em> plugin:</p></div>
 <div class="sect1">
 <h2 id="_the_rekall_session">4. The Rekall Session</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Rekall uses a <code>Session</code> to encapsulate analysis a single interactive analysis
-session. The reason Rekall is so fast is because information is cached in the
+<div class="paragraph"><p>Rekall uses a <code>Session</code> to encapsulate the analysis of a single image. The
+reason Rekall is so fast is because information is cached in the
 session. Normally when running from the interactive console, the session
 persists in memory and therefore, the cache remains available for subsequent
 modules.</p></div>
@@ -828,85 +828,71 @@ filtered by process id, process name, etc).</p></div>
 <div class="listingblock">
 <div class="content">
 <pre><code>win7.elf 22:57:28&gt; print session
-Rekall Memory Forensics session Started on Tue Jun 17 22:57:30 2014.
+Rekall Memory Forensics session Started on Mon Aug 17 14:25:26 2015.
 
 Config:
 {
+  __dummy = False
+  autodetect = ['nt_index', 'osx', 'pe', 'windows_kernel_file', 'rsds', 'ntfs', 'linux']
+  autodetect_build_local = basic
+  autodetect_build_local_tracked = set(['win32k', 'ntdll', 'nt', 'tcpip'])
+  autodetect_scan_length = 1000000000
   autodetect_threshold = 1.0
-  base_filename = win7.elf
+  base_filename = win7.elf.E01
   buffer_size = 20971520
-  cache = {
-    ObjectTypeMap = &lt;Array 0 x Pointer @ 0xF80002841300&gt;
-    PsActiveProcessHead = [_LIST_ENTRY _LIST_ENTRY] @ 0xF8000283EB30
-    default_address_space = AMD64PagedMemory@0x00187000 (Kernel AS@0x187000)
-    idle_process = [_EPROCESS _EPROCESS] @ 0x02818140 (pid=0)
-    kernel_base = 272678923661312
-    pslist_cache = {'Handles': set([275427700679504, 4, 275427701205808, 275427706255504, 275427701697328, 275427705361984, 275427697963104, 275427706065648, 275427702292576, 27542770046756, 275427696760304, 275427700103984, 275427703556656, 275427703140448, 275427707650448, 275427701734192])}
-  }
+  cache = file
+  cache_dir = .rekall_cache
+  colors = auto
   debug = False
-  dtb = 1601536
   ept = None
   filename = /home/scudette/images/win7.elf
+  format = text
   help = False
-  ipython_engine = None
-  no_autodetect = False
-  nocolors = False
-  notebook_dir = /home/scudette/Worksheets/
-  output = None
-  pager = None
-  paging_limit = None
+  logging_level = DEBUG
+  max_collector_cost = 4
+  name_resolution_strategies = ['Module', 'Symbol', 'Export']
+  notebook_dir = /home/scudette
+  output_style = concise
+  pagefile = []
   plugin = []
-  profile = &lt;AMD64 profile nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 (Nt)&gt;
-  profile_autodetect = True
-  profile_path = ['https://raw.githubusercontent.com/google/rekall-profiles/master',
-                  'http://profiles.rekall-forensic.com']
-  renderer = TextRenderer
-  run = None
-  session_filename = None
+  profile_path = ['/home/scudette/projects/rekall-profiles/']
+  quiet = False
+  repository_path = []
+  session_id = 1
+  session_list = [&lt;rekall.session.InteractiveSession object at 0x7fbf7a38c550&gt;]
+  session_name = Default session
   timezone = UTC
   verbose = True
+}
+
+Cache (&lt;FileCache @ /home/scudette/.rekall_cache/sessions/de814bea95020499e782df54aa4b0d5ce4544823&gt;):
+{
+  default_address_space = WindowsAMD64PagedMemory@0x17851000 (Kernel AS@0x17851000)
+  dtb = 1601536
+  image_fingerprint = {'tests': [(41740160L, u'7600.win7_rtm.090713-1255\x00'), (41740416L, u'7600.16385.amd64fre.win7_rtm ...
+  profile = nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942
+  profile_obj = &lt;AMD64 profile nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 (Nt)&gt;
+  pslist_CSRSS = set([275427705947968, 275427703135024, 275427707404384, 275427696227600, 275427701196688, 2754276960 ...
+  pslist_Handles = set([275427705361984, 275427703135024, 275427688164144, 275427696227600, 275427701196688, 2754277015 ...
+  pslist_PsActiveProcessHead = set([275427705947968, 275427703135024, 275427701697328, 275427707404384, 275427706255504, 2754277015 ...
+  pslist_PspCidTable = set([275427706779456, 275427703135024, 275427688164144, 275427696227600, 275427701196688, 2754277015 ...
+  pslist_Sessions = set([275427700679504, 275427705361984, 275427705947968, 275427688984672, 275427701697328, 2754276962 ...
 }</code></pre>
 </div></div>
-<div class="paragraph"><p>As can be been above, the session stores not only the <code>pslist_cache</code>, but also
-the profile (as discovered by profile autodetection) as well as configuration
-parameters such as the location of the profile repository.</p></div>
-<div class="sect2">
-<h3 id="_saving_the_session">4.1. Saving the session</h3>
-<div class="paragraph"><p>In order to save time the next time this image is examined, we can save the
-session to disk. This essentially serializes the session cache, configuration
-and the results of previous plugins. To do this we can tell Rekall to use a file
-as the cache using the <code>-s</code> flag. This will cause Rekall to store the session
-after it exists and reloads it at start up time.</p></div>
-<div class="paragraph"><p>The below example shows that the first time we run the <code>pslist</code> plugin it takes
-significantly longer since it needs to actually list all processes using all
-supported methods, while the next time it is much faster since the process
-listing is coming from cache. Note also that on subsequent executions we do not
-need to provide any information to Rekall (such as the image filename) since it
-can read that information from the stored session.</p></div>
-<div class="listingblock">
-<div class="content">
-<pre><code>$ time rekal -v -f ~/images/win7.elf -s my_session.rekall pslist
-....
-INFO:root:Detected kernel base at 0xF8000261F000
-DEBUG:root:Listed 41 processes using PsActiveProcessHead
-DEBUG:root:Listed 37 processes using CSRSS
-DEBUG:root:Listed 41 processes using PspCidTable
-DEBUG:root:Listed 39 processes using Sessions
-DEBUG:root:Listed 40 processes using Handles
-0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
-...
-INFO:root:Saving session to my_session.rekall
-
-real             0m3.051s
-user             0m2.576s
-sys              0m0.289s
-$ time rekal -v -s my_session.rekall pslist
-0xfa80008959e0 System                    4      0     84      511 ------  False 2012-10-01 21:39:51+0000 -
-.....
-real           0m1.090s
-user           0m0.830s
-sys            0m0.093s</code></pre>
-</div></div>
+<div class="paragraph"><p>As can be been above, the session state can be divided into the configuration,
+and the cache. In the above case the cache is persistent (It is a FileCache) and
+stores a number of useful objects (e.g. the various output the process listing
+techniques). Note that the cache will only show objects currently loaded
+(i.e. have been used in this run). There may be other objects on disk.</p></div>
+<div class="paragraph"><p>If Rekall is analysing a volatile image - such as a memory device, the cache
+will not be persistent - instead it will be time based, to allow items to expire
+promptly from the cache as the live system evolves. For normal images, the cache
+may persist so that even if the user quits and restarts Rekall on the same
+image, the cache is considered valid.</p></div>
+<div class="paragraph"><p>If you suspect something unusual with the cache (e.g. the cache is out of sync
+or was created by an earlier version) it should be quite safe to remove all
+files from the cache directory. Otherwise you can force the memory cache to be
+used by issuing the <code>--cache memory</code> flag.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -956,14 +942,12 @@ lmUMDQ1RKpXOm9EXvV6v1+tWr9eZnp5mZmaGWq1GjLHF62aiNZ+bnPfe45xrvTZzxMyYmZk56+LX
 zKjX661DvHOOJElIkoRSqYT3/vLvRlW15eHCa4VxzdvmpjZDfubzuXeb3vuzqCEixBhbo0NTkyS5
 PAr9L8j/96+U/w3yCoCXW14B8HLLvwDd67nwZIEPdgAAAABJRU5ErkJggg==" />
 </td>
-<td class="content">The on disk version of the session is considered an ephemeral cache of the
+<td class="content">The on disk version of the session cache is considered an ephemeral cache of the
 session data. We do not consider this a stable interchange format. This means
 that we do not guarantee compatibility with future versions of Rekall. At best
-the session file is merely a cache which can be deleted and recreated at any
-time. The content of the file is also not considered user viewable and should
-not be edited manually.</td>
+the cache files can be deleted and recreated at any time. The content of the
+file is also not considered user viewable and should not be edited manually.</td>
 </tr></table>
-</div>
 </div>
 </div>
 </div>
@@ -1115,27 +1099,29 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> logging
-<span style="color: #000000">    2:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
-<span style="color: #000000">    3:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
-<span style="color: #000000">    4:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span>addrspaces <span style="font-weight: bold"><span style="color: #000080">import</span></span> standard
-<span style="color: #000000">    5:</span>
-<span style="color: #000000">    6:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service.</span></span>
-<span style="color: #000000">    7:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
-<span style="color: #000000">    8:</span>
-<span style="color: #000000">    9:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                                      <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+<span style="color: #000000">    2:</span>
+<span style="color: #000000">    3:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service or</span></span>
+<span style="color: #000000">    4:</span> <span style="font-style: italic"><span style="color: #9A1900"># to a provided logger.</span></span>
+<span style="color: #000000">    5:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
+<span style="color: #000000">    6:</span>
+<span style="color: #000000">    7:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
+<span style="color: #000000">    8:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">    9:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span>addrspaces <span style="font-weight: bold"><span style="color: #000080">import</span></span> standard
+<span style="color: #000000">   10:</span>
+<span style="color: #000000">   11:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                                      <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
 YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
 dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
 ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">   10:</span>     autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
-<span style="color: #000000">   11:</span>     logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
-<span style="color: #000000">   12:</span>     profile_path<span style="color: #990000">=[</span>
-<span style="color: #000000">   13:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
-<span style="color: #000000">   14:</span>     <span style="color: #990000">])</span>
-<span style="color: #000000">   15:</span>
-<span style="color: #000000">   16:</span> with s<span style="color: #990000">:</span>                                                   <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+<span style="color: #000000">   12:</span>     autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
+<span style="color: #000000">   13:</span>     logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
+<span style="color: #000000">   14:</span>     profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   15:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   16:</span>     <span style="color: #990000">])</span>
+<span style="color: #000000">   17:</span>
+<span style="color: #000000">   18:</span> s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>       <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
 HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
 Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
@@ -1143,19 +1129,12 @@ izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
 AAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">   17:</span>     s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
-<span style="color: #000000">   18:</span>             <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span> session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
-<span style="color: #000000">   19:</span>     s<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">GetParameter</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"profile"</span><span style="color: #990000">)</span>                             <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
-JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
-7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
-Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
-cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
-NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
-SUVORK5CYII=" /></span></span>
-<span style="color: #000000">   20:</span>
-<span style="color: #000000">   21:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
-<span style="color: #000000">   22:</span> </tt></pre></div></div>
+<span style="color: #000000">   19:</span>     fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
+<span style="color: #000000">   20:</span>        <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span>
+<span style="color: #000000">   21:</span>     session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
+<span style="color: #000000">   22:</span>
+<span style="color: #000000">   23:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
+<span style="color: #000000">   24:</span> </tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1172,19 +1151,8 @@ izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
 AAAASUVORK5CYII=" /></td><td>
-Using the <code>with</code> operator we can directly add the FDAddressSpace() as the
-    physical address space to the session.
-</td></tr>
-<tr><td><img alt="3" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
-JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
-7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
-Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
-cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
-NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
-SUVORK5CYII=" /></td><td>
-This step triggers the profile autodetection code which looks at the
-    physical address space, figures out the profile and enables all the active
-    plugins which work with this profile.
+We can directly add the FDAddressSpace() as the physical address space to
+    the session.
 </td></tr>
 </table></div>
 </div>
@@ -1375,7 +1343,7 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-08-14 11:13:04 PDT
+Last updated 2015-08-17 14:56:18 PDT
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>
