@@ -117,7 +117,7 @@ static kern_return_t pmem_write(dev_t dev, struct uio *uio,
 //   rw - this is ignored; pass any int
 //
 // Returns:
-//   KERN_SUCCESS if write succeeded. Writes can fail due to the safety bitmap
+//   KERN_SUCCESS if write succeeded. Writes can fail due to the safety rangemap
 //   or by attempting to write to an invalid offset.
 static kern_return_t pmem_read(dev_t dev, struct uio *uio,
                                __unused int rw);

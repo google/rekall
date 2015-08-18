@@ -473,17 +473,20 @@ kern_return_t pmem_readwrite_physmem(struct uio *uio) {
         unsigned long amount = 0;
 
         if (!pmem_allow_unsafe_operations &&
-            !pmem_bitmap_test(safety_bitmap, offset / PAGE_SIZE)) {
+            !pmem_rangemap_test(safety_rangemap, offset)) {
             // This page is not readable and unsafe operations are disabled,
             // which also means we're definitely reading and not writing.
             // Instead of doing an actual read, copy zeros from the zero page
             // and call it a day.
 
-            if (offset / PAGE_SIZE > safety_bitmap->highest_bit) {
+            if (offset >
+                safety_rangemap->ranges[safety_rangemap->top_range].end) {
                 // We're past the end of physical memory.
-                pmem_warn("Read attempted to page 0x%llx, which is past "
-                          "the top page 0x%llx.",
-                          offset / PAGE_SIZE, safety_bitmap->highest_bit);
+                pmem_warn("Read attempted at %#016llx, which is past the end "
+                          "of physical memory at %#016llx.",
+                          offset,
+                          safety_rangemap->
+                            ranges[safety_rangemap->top_range].end);
                 return KERN_FAILURE;
             }
 

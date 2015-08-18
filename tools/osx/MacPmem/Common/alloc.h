@@ -35,19 +35,38 @@
 // actually set by MacPmem.c.
 extern OSMallocTag pmem_alloc_tag;
 
-// Allocate memory of 'size', as a void pointer.
-#define PMEM_ALLOC(size) ((void *)OSMalloc((size), pmem_alloc_tag))
+// Allocate memory of 'size', as a void pointer. Returns zeroed memory.
+static inline void *PMEM_ALLOC(uint32_t size) {
+    void *result = OSMalloc(size, pmem_alloc_tag);
+    if (result) {
+        bzero(result, size);
+    }
+
+    return result;
+}
 
 // Free memory at void *ptr of 'size' bytes in total. The 'size' must be the
 // same as what was passed to create this allocation with PMEM_ALLOC.
-#define PMEM_FREE(ptr, size) OSFree((char *)(ptr), (size), pmem_alloc_tag)
+static inline void PMEM_FREE(void *ptr, uint32_t size) {
+    OSFree(ptr, size, pmem_alloc_tag);
+}
 
 #else /* ifdef KERNEL */
 
 #include <stdlib.h>
 
-#define PMEM_ALLOC(size) malloc((size))
-#define PMEM_FREE(ptr, size) free((ptr))
+static inline void *PMEM_ALLOC(uint32_t size) {
+    void *result = malloc(size);
+    if (result) {
+        bzero(result, size);
+    }
+
+    return result;
+}
+
+static inline void PMEM_FREE(void *ptr, __unused uint32_t size) {
+    free(ptr);
+}
 
 #endif
 
@@ -76,7 +95,6 @@ static inline void *pmem_realloc(void *ptr, unsigned size, unsigned newsize) {
         return 0;
     }
 
-    bzero(newmem, newsize);
     memcpy(newmem, ptr, size);
     PMEM_FREE(ptr, size);
 

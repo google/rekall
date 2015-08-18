@@ -30,53 +30,55 @@
 #include "logging.h"
 #include <mach/vm_param.h>
 
-pmem_bitmap *safety_bitmap = 0;
+pmem_rangemap *safety_rangemap = 0;
 
 
-// Add the range to the safety bitmap if it's read-friendly.
+// Add the range to the safety rangemap if it's read-friendly.
 //
 // Interprets the 'range', and if it decides that it's ok to read from, will
-// mark its pages are such in the 'bitmap'.
+// mark its pages are such in the 'rangemap'.
 //
 // Arguments:
 //   range: The EFI physmap range to examine.
-//   bitmap: The safety bitmap where 1 means read-friendly.
+//   rangemap: The safety rangemap where 1 means read-friendly.
 //
 // Returns:
-//   As expected - fails if 'range' or 'bitmap' are invalid.
+//   As expected - fails if 'range' or 'rangemap' are invalid.
 static kern_return_t pmem_register_efi_range(pmem_efi_range_t *range,
-                                             pmem_bitmap *bitmap) {
+                                             pmem_rangemap *rangemap) {
     if (range->start % PAGE_SIZE || range->length % PAGE_SIZE) {
-        pmem_fatal("EFI range is not page-aligned: 0x%llx + 0x%llx.",
+        pmem_fatal("EFI range is not page-aligned: %#016llx + %#016llx.",
                    range->start, range->length);
         return KERN_FAILURE;
     }
 
-    uint64_t bits_set = 0;
     switch (range->efi_type) {
     // These range types cannot be read and we skip them.
     case EfiReservedMemoryType:
     case EfiUnusableMemory:
     case EfiMemoryMappedIO:
     case EfiMemoryMappedIOPortSpace:
-        pmem_debug("EFI range at 0x%llx is non-readable; skipping.",
-                   range->start);
+        // We can just skip ranges we don't care about, because the rangemap
+        // will automatically pad up to the next readable range.
+        pmem_debug("EFI range %#016llx - %#016llx is non-readable; skipping.",
+                   range->start, range->start + range->length - 1);
         return KERN_SUCCESS;
 
-    // Other ranges are readable and we mark them as such in the bitmap.
+    // Other ranges are readable and we mark them as such in the rangemap.
     default:
-        bits_set = pmem_bitmap_set(bitmap,
-                                   range->start / PAGE_SIZE,
-                                   range->length / PAGE_SIZE);
-        if (bits_set != range->length / PAGE_SIZE) {
-            pmem_error("Failed to set bit %llu + %llu",
-                       range->start / PAGE_SIZE,
-                       range->length / PAGE_SIZE);
+        if (!pmem_rangemap_add(safety_rangemap,
+                               range->start,
+                               range->start + range->length - 1,
+                               PMEM_MAP_READABLE)) {
+            pmem_error("Failed to register EFI range %#016llx - %#016llx.",
+                       range->start,
+                       range->start + range->length - 1);
             return KERN_FAILURE;
         }
     }
 
-    pmem_debug("Added EFI range at 0x%llx.", range->start);
+    pmem_debug("Added EFI range %#016llx - %#016llx as readable.",
+               range->start, range->start + range->length - 1);
     return KERN_SUCCESS;
 }
 
@@ -92,29 +94,31 @@ kern_return_t pmem_safety_init(void) {
         goto bail;
     }
 
-    // This will give the bitmap one bit per every 4K physical page. It can
+    // This will give the rangemap one bit per every 4K physical page. It can
     // grow if it turns out this number is wrong.
     uint64_t physical_page_count = meta->phys_mem_size / PAGE_SIZE;
     if (physical_page_count > UINT32_MAX) {
         return KERN_FAILURE;
     }
-    safety_bitmap = pmem_bitmap_make((uint32_t) physical_page_count);
+    safety_rangemap = pmem_rangemap_make((uint32_t) physical_page_count);
 
     if (error != KERN_SUCCESS) {
-        pmem_error("Failed to allocate EFI safety bitmap.");
+        pmem_error("Failed to allocate EFI safety rangemap.");
         goto bail;
     }
 
-    // Iterate over the records in the meta struct and build up our bitmap.
+    // Iterate over the records in the meta struct and build up our rangemap.
     void *current_record = meta->records;
 
     pmem_debug("Discovered %u memory ranges.", meta->record_count);
+
     for (unsigned record_idx = 0;
          record_idx < meta->record_count;
          ++record_idx) {
         pmem_meta_record_t *record = current_record;
         if (record->type == pmem_efi_range_type) {
-            error = pmem_register_efi_range(&record->efi_range, safety_bitmap);
+            error = pmem_register_efi_range(&record->efi_range,
+                                            safety_rangemap);
             if (error != KERN_SUCCESS) {
                 goto bail;
             }
@@ -123,8 +127,10 @@ kern_return_t pmem_safety_init(void) {
         current_record += record->size;
     }
 
-    pmem_info("Initialized EFI range bitmap of size %u with max bit %llu.",
-              safety_bitmap->size_bytes, safety_bitmap->highest_bit);
+    pmem_info("Initialized EFI range map with %u merged ranges, "
+              "ending at %#016llx.",
+              safety_rangemap->top_range,
+              (safety_rangemap->ranges + safety_rangemap->top_range)->end);
 
     error = KERN_SUCCESS;
 
@@ -137,8 +143,8 @@ bail:
 }
 
 void pmem_safety_cleanup(void) {
-    if (safety_bitmap) {
-        pmem_bitmap_destroy(safety_bitmap);
-        safety_bitmap = 0;
+    if (safety_rangemap) {
+        pmem_rangemap_destroy(safety_rangemap);
+        safety_rangemap = 0;
     }
 }

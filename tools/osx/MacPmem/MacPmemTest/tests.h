@@ -45,16 +45,14 @@ int test_sysctl();
 int test_kextload_stress();
 int test_invalid_reads();
 int test_symbols();
+int test_rangemap_real();
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // MARK: Tests that don't require the driver
 ////////////////////////////////////////////////////////////////////////////////
-int test_bitmap();
-int test_bitmap_nonsequential();
-int test_bitmap_range();
-int test_bitmap_high_bit();
-
+int test_rangemap();
+int test_rangemap_nonsequential();
 
 // Table of all the tests we'll run.
 static const test_t tests[] = {
@@ -69,10 +67,9 @@ static const test_t tests[] = {
     {"test_symbols", &test_symbols, TEST_REQUIRE_KEXT},
 
     // Tests with no driver:
-    {"test_bitmap", &test_bitmap, 0},
-    {"test_bitmap_high_bit", &test_bitmap_high_bit, 0},
-    {"test_bitmap_range", &test_bitmap_range, 0},
-    {"test_bitmap_nonsequential", &test_bitmap_nonsequential, 0}
+    {"test_rangemap", &test_rangemap, 0},
+    {"test_rangemap_nonsequential", &test_rangemap_nonsequential, 0},
+    {"test_rangemap_real", &test_rangemap_real, 0},
 };
 
 #endif /* defined(__MacPmem__tests__) */

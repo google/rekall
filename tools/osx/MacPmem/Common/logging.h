@@ -42,6 +42,7 @@ typedef enum {
     kPmemFatal = 0,
 } PmemLogLevel;
 
+// FYI: for production builds, calls to pmem_debug are not compiled at all.
 extern int pmem_logging_level;
 
 #ifdef __cplusplus
@@ -52,7 +53,11 @@ extern "C" {
 void pmem_log(PmemLogLevel lvl, const char *fmt, ...) __printflike(2, 3);
 void pmem_logv(PmemLogLevel lvl, const char *fmt, va_list args);
 
+#ifdef DEBUG
 void pmem_debug(const char *fmt, ...) __printflike(1, 2);
+#else
+#define pmem_debug(fmt, args...)
+#endif
 void pmem_info(const char *fmt, ...) __printflike(1, 2);
 void pmem_warn(const char * fmt, ...) __printflike(1, 2);
 void pmem_error(const char *fmt, ...) __printflike(1, 2);

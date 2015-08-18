@@ -33,17 +33,17 @@
 
 #include <mach/mach_types.h>
 #include <libkern/libkern.h>
-#include "bitmap.h"
+#include "rangemap.h"
 
 
-// The init function bellow will initialize this bitmap to hold the readable
+// The init function bellow will initialize this rangemap to hold the readable
 // ranges in memory, with page-level resolution, as reported by the EFI physmap.
 //
-// The r/w handler to physical memory can use this bitmap to decide whether
+// The r/w handler to physical memory can use this rangemap to decide whether
 // an IO operation to a certain page should be permitted.
-extern pmem_bitmap *safety_bitmap;
+extern pmem_rangemap *safety_rangemap;
 
-// Initializes the safety_bitmap.
+// Initializes the safety_rangemap.
 //
 // Uses the meta EFI enumeration code from meta.cpp.
 //
@@ -52,7 +52,7 @@ extern pmem_bitmap *safety_bitmap;
 //   means the meta subsystem failed to get data.
 kern_return_t pmem_safety_init(void);
 
-// Tears down the safety bitmap.
+// Tears down the safety rangemap.
 //
 // Returns:
 //   Not a thing.
