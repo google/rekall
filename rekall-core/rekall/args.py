@@ -392,6 +392,9 @@ def parse_args(argv=None, user_session=None):
     for metadata in user_session.plugins.plugin_db.MetadataByName(plugin_name):
         ConfigureCommandLineParser(metadata, parser, critical=True)
 
+    # Parse the global and critical args from the command line.
+    ParseGlobalArgs(parser, argv, user_session)
+
     # Find the specific implementation of the plugin that applies here. For
     # example, we have 3 different pslist implementations depending on the
     # specific profile loaded.

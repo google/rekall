@@ -1,4 +1,5 @@
 import os
+import sys
 import StringIO
 
 from flask import Flask
@@ -9,7 +10,10 @@ from manuskript import plugins as manuskript_plugins
 from werkzeug import serving
 
 
-STATIC_PATH = os.path.join(os.path.dirname(__file__), "static")
+# If the binary is frozen it has an empty __file__ path, then use the main
+# executable path instead.
+STATIC_PATH = os.path.join(
+    os.path.dirname(__file__ or sys.executable), "static")
 
 DEFAULT_PLUGINS = [manuskript_plugins.PlainText,
                    manuskript_plugins.Markdown,

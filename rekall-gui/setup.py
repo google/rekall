@@ -22,7 +22,6 @@
 #
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import distutils
 import os
 import versioneer
 
@@ -36,11 +35,10 @@ except ImportError:
 rekall_description = "Rekall Memory Forensic Framework"
 
 def find_data_files_directory(source):
-    prefix = sysconfig.get_python_lib()
     result = []
     for directory, _, files in os.walk(source):
         files = [os.path.join(directory, x) for x in files]
-        result.append((os.path.join(prefix, directory), files))
+        result.append(directory, files)
 
     return result
 

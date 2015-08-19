@@ -999,7 +999,7 @@ class Array(BaseObject):
                     pdb.set_trace()
 
                 self.obj_session.logging.warn(
-                  "%s Array iteration truncated by max_count!", self.obj_name)
+                    "%s Array iteration truncated by max_count!", self.obj_name)
                 break
 
             # We don't want to stop on a NoneObject.  Its
@@ -1143,8 +1143,8 @@ class ListArray(Array):
 
             if count >= self.max_count:
                 self.obj_session.logging.warn(
-                  "%s ListArray iteration truncated by max_count!",
-                  self.obj_name)
+                    "%s ListArray iteration truncated by max_count!",
+                    self.obj_name)
                 break
 
             item = self.obj_profile.Object(
@@ -1953,7 +1953,7 @@ class Profile(object):
         else:
             ## If we get here we have no idea what this list is
             self.session.logging.warning(
-                "Unable to find a type for %s, assuming int",typeList)
+                "Unable to find a type for %s, assuming int", typeList)
 
         return Curry(self.Object, type_name='int', name=name)
 

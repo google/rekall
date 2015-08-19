@@ -862,11 +862,11 @@ class _POOL_HEADER(obj.Struct):
 
     @property
     def NonPagedPool(self):
-        return self.PoolType.v() % 2 == 1
+        return str(self.PoolType).startswith("NonPagedPool")
 
     @property
     def PagedPool(self):
-        return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
+        return str(self.PoolType).startswith("PagedPool")
 
 
 class _TOKEN(obj.Struct):
@@ -1121,7 +1121,10 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
         if device_obj:
             device_name = device_obj.ObjectHeader.NameInfo.Name
             if device_name:
-                name = u"\\Device\\{0}".format(device_name)
+                try:
+                    name = u"\\Device\\{0}".format(device_name)
+                except UnicodeError:
+                    return obj.NoneObject("Invalid filename")
 
                 if name in drive_letter_device_map:
                     name = drive_letter_device_map.get(name)

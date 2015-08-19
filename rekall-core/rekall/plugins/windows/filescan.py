@@ -72,6 +72,13 @@ class FileScan(common.PoolScannerPlugin):
             if not file_obj.FileName.v(vm=self.kernel_address_space):
                 continue
 
+            # Real file objects have valid DeviceObject types.
+            device_obj = file_obj.DeviceObject.deref(
+                vm=self.session.kernel_address_space)
+
+            if not device_obj.DeviceType.is_valid():
+                continue
+
             yield (pool_obj, object_obj, file_obj)
 
     def render(self, renderer):
