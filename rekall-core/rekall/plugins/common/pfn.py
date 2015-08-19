@@ -43,6 +43,9 @@ class VADMapMixin(plugin.VerbosityMixIn):
 
     def FormatMetadata(self, type, metadata, offset=None):
         result = ""
+        if not metadata:
+            result = "Invalid PTE "
+
         if "filename" in metadata:
             result += "%s " % metadata["filename"]
 
@@ -103,7 +106,7 @@ class VADMapMixin(plugin.VerbosityMixIn):
                         length += 0x1000
                         continue
 
-                    type = old_metadata.pop("type", None)
+                    type = old_metadata.get("type", None)
                     if type:
                         comment = self.FormatMetadata(
                             type, old_metadata, offset=old_offset)

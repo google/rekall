@@ -1648,6 +1648,7 @@ class Profile(object):
         self.constants.update(other.constants)
         self.object_classes.update(other.object_classes)
         self.flush_cache()
+        self.enums.update(other.enums)
         self.name = u"%s + %s" % (self.name, other.name)
 
         # Merge in the other's profile metadata which is not in this profile.

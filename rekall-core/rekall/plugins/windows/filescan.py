@@ -347,13 +347,20 @@ class PoolScanProcess(common.PoolScanner):
             ('CheckPoolSize', dict(min_size=self.profile.get_obj_size(
                 "_EPROCESS"))),
 
-            # FIXME: _EPROCESS is never allocated from paged pool. We need to
-            # cross correlate with the pool tracker plugin.
+            # It seems that on old XP versions _EPROCESS was allocated from
+            # paged pool but it's rare to see that.
             ('CheckPoolType', dict(
-                paged=False, non_paged=True, free=True)),
+                paged=True, non_paged=True, free=True)),
 
             ('CheckPoolIndex', dict(value=0)),
-            ]
+        ]
+
+        # The DTB is page aligned on AMD64 and I386 but aligned to 0x20
+        # on PAE kernels.
+        if self.session.kernel_address_space.metadata("pae"):
+            self.dtb_alignment = 0x20
+        else:
+            self.dtb_alignment = 0x1000
 
     def scan(self, **kwargs):
         for pool_obj in super(PoolScanProcess, self).scan(**kwargs):
@@ -367,9 +374,7 @@ class PoolScanProcess(common.PoolScanner):
             if eprocess.Pcb.DirectoryTableBase == 0:
                 continue
 
-            # The DTB is page aligned on AMD64 and I386 but aligned to 0x20
-            # on PAE kernels.
-            if eprocess.Pcb.DirectoryTableBase % 0x20 != 0:
+            if eprocess.Pcb.DirectoryTableBase % self.dtb_alignment != 0:
                 continue
 
             # Pointers must point to the kernel part of the address space.

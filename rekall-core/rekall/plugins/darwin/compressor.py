@@ -53,7 +53,7 @@ class DarwinDumpCompressedPages(core.DirectoryDumperMixin, common.DarwinPlugin):
                 "target": "Array",
                 "target_args": {
                     "target": "c_segu",
-                "count": int(pages),
+                    "count": int(pages),
                 }})
 
         segu_array = p_segu.deref()
@@ -64,8 +64,8 @@ class DarwinDumpCompressedPages(core.DirectoryDumperMixin, common.DarwinPlugin):
             c_seg = segu.c_seg
 
             if (c_seg.c_ondisk or
-                c_seg.c_on_swappedout_q or
-                c_seg.c_on_swappedout_sparse_q):
+                    c_seg.c_on_swappedout_q or
+                    c_seg.c_on_swappedout_sparse_q):
                 # Data swapped out.
                 continue
 
@@ -132,4 +132,3 @@ class DarwinDumpCompressedPages(core.DirectoryDumperMixin, common.DarwinPlugin):
 
                 except Exception as e:
                     renderer.report_error(str(e))
-

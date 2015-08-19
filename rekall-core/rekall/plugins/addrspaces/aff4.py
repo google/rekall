@@ -98,7 +98,6 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
     def __init__(self, filename=None, **kwargs):
         super(AFF4AddressSpace, self).__init__(**kwargs)
-
         self.as_assert(self.base == None,
                        "Must stack on another address space")
 

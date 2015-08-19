@@ -315,6 +315,8 @@ class IA32PagedMemory(addrspace.PagedReader):
         pte_value = self.read_pte(pte_addr)
         self._describe_pte(collection, pte_addr, pte_value, vaddr)
 
+        return collection
+
     def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
         collection.add(AddressTranslationDescriptor,
                        object_name="pte", object_value=pte_value,
@@ -323,7 +325,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         if pte_value & self.valid_mask:
             # Bits 31:12 are from the PTE
             # Bits 11:0 are from the original linear address
-            phys_addr = ((self.pte_paddr(pte_value) & 0xfffff000) |
+            phys_addr = ((pte_value & 0xfffff000) |
                          (vaddr & 0xfff))
 
             collection.add(PhysicalAddressDescriptor, address=phys_addr)
@@ -357,8 +359,8 @@ class IA32PagedMemory(addrspace.PagedReader):
             if start > next_vaddr:
                 continue
 
-            pde_addr = ((self.pte_value & 0xfffff000) |
-                        (vaddr & 0xfff))
+            pde_addr = ((self.dtb & 0xfffff000) |
+                        (vaddr & 0xffc00000) >> 20)
             pde_value = self.read_pte(pde_addr)
             if not pde_value & self.valid_mask:
                 continue
@@ -423,6 +425,8 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
     """
     order = 80
+
+    __pae = True
 
     def describe_vtop(self, vaddr, collection=None):
         """Explain how a specific address was translated.

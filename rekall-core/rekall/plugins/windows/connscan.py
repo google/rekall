@@ -36,7 +36,7 @@ from rekall.plugins.windows import common
 class PoolScanConnFast(common.PoolScanner):
     checks = [('PoolTagCheck', dict(tag="TCPT")),
               ('CheckPoolSize', dict(condition=lambda x: x >= 0x198)),
-              ('CheckPoolType', dict(non_paged=True, free=True)),
+              ('CheckPoolType', dict(non_paged=True, paged=True, free=True)),
               ('CheckPoolIndex', dict(value=0)),
               ]
 

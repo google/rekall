@@ -443,7 +443,7 @@ class WindowsPagedMemoryMixin(object):
             except RuntimeError:
                 # Sometimes we cant recover the name of the pagefile because it
                 # is paged. We just take a guess here.
-                pagefile_name = u"c:\pagefile.sys"
+                pagefile_name = ur"c:\pagefile.sys"
 
             finally:
                 self._resolving_pagefiles = False
@@ -645,6 +645,8 @@ class WindowsPagedMemoryMixin(object):
 class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
                                 intel.IA32PagedMemoryPae):
     """A Windows specific IA32PagedMemoryPae."""
+
+    __pae = True
 
 
 class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):

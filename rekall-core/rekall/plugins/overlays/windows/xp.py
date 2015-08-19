@@ -94,6 +94,9 @@ class _MMVAD(common.VadTraverser):
 
 
 def InitializeXPProfile(profile):
-    profile.add_constants(PoolAlignment=8)
+    if profile.metadata("arch") == "AMD64":
+        profile.add_constants(PoolAlignment=16)
+    else:
+        profile.add_constants(PoolAlignment=8)
     profile.add_overlay(win_xp_overlays)
     profile.add_classes(dict(_MMVAD=_MMVAD))

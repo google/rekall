@@ -490,9 +490,6 @@ windows_overlay = {
     }],
 
     '_SHARED_CACHE_MAP': [None, {
-        'FileObjectFastRef': lambda x: x.m('FileObjectFastRef').dereference_as(
-            "_FILE_OBJECT"),
-
         'Vacbs': [None, ['Pointer', dict(
             target="Array",
             target_args=dict(
@@ -1249,7 +1246,7 @@ class VadTraverser(obj.Struct):
         """
         if depth > 100:
             self.obj_session.logging.error(
-              "Vad tree too deep - something went wrong!")
+                "Vad tree too deep - something went wrong!")
             return
 
         if visited == None:
@@ -1327,6 +1324,17 @@ class _KTIMER(obj.Struct):
                                       vm=self.obj_vm)
 
 
+class _SHARED_CACHE_MAP(obj.Struct):
+    @property
+    def FileObject(self):
+        result = self.m("FileObject")
+        if result == None:
+            result = self.m('FileObjectFastRef').dereference_as(
+                "_FILE_OBJECT")
+
+        return result
+
+
 def InitializeWindowsProfile(profile):
     """Install the basic windows overlays."""
     profile.add_classes({
@@ -1346,6 +1354,7 @@ def InitializeWindowsProfile(profile):
         "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
         "_SID": _SID,
         "_KTIMER": _KTIMER,
+        "_SHARED_CACHE_MAP": _SHARED_CACHE_MAP,
         "RVAPointer": pe_vtypes.RVAPointer,
         "SentinelArray": pe_vtypes.SentinelArray,
         "SentinelListArray": pe_vtypes.SentinelListArray,

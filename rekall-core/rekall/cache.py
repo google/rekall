@@ -78,8 +78,8 @@ class Cache(object):
                 v = repr(v)
 
             value = "\n  ".join(str(v).splitlines())
-            if len(value) > 1000:
-                value = "%s ..." % value[:1000]
+            if len(value) > 100:
+                value = "%s ..." % value[:100]
 
             result.append("  %s = %s" % (k, value))
 
@@ -250,6 +250,13 @@ class FileCache(Cache):
                 # Force current data to be flushed to disk so we do not lose it.
                 self.Flush()
                 return item.name
+
+    def __repr__(self):
+        if self._io_manager:
+            return "<FileCache @ %s/v1.0/sessions/%s>" % (
+                self._io_manager.location, self.name)
+        else:
+            return "<FileCache (unbacked)>"
 
 
 class SessionIndex(object):

@@ -343,8 +343,8 @@ class Configuration(utils.AttributeDict):
                 v = repr(v)
 
             value = "\n  ".join(str(v).splitlines())
-            if len(value) > 1000:
-                value = "%s ..." % value[:1000]
+            if len(value) > 100:
+                value = "%s ..." % value[:100]
 
             result.append("  %s = %s" % (k, value))
 

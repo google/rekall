@@ -43,7 +43,7 @@ class EnumerateVacbs(common.WindowsCommandPlugin):
     """Enumerate all blocks cached in the cache manager."""
     name = "vacbs"
 
-    def GetVACBs(self):
+    def GetVACBs_Win7(self):
         """Yield all system VACBs.
 
         Walks the VACB tables and produce all valid VACBs. This essentially
@@ -80,6 +80,40 @@ class EnumerateVacbs(common.WindowsCommandPlugin):
 
                 yield vacb
 
+    def GetVACBs_WinXP(self):
+        """Yield all system VACBs for older Windows XP based kernels.
+
+        Walks the VACB tables and produce all valid VACBs. This essentially
+        produces the entire contents of the cache manager.
+        """
+        # The Kernel variable CcVacbArrays is a pointer to an array of pointers
+        # to the _VACB_ARRAY_HEADER tables. The total number of tables is stored
+        # in CcVacbArraysAllocated.
+        total_vacb_arrays = self.profile.get_constant_object(
+            'CcNumberVacbs', 'unsigned int')
+
+        vacb_array = self.profile.get_constant_object(
+            'CcVacbs',
+            target="Pointer",
+            target_args=dict(
+                target='Array',
+                target_args=dict(
+                    target="_VACB",
+                    count=int(total_vacb_arrays),
+                )
+            )
+        )
+
+        for vacb in vacb_array:
+            yield vacb
+
+    def GetVACBs(self):
+        # Support the old XP way.
+        if self.session.profile.get_constant("CcVacbs"):
+            return self.GetVACBs_WinXP()
+
+        return self.GetVACBs_Win7()
+
     def render(self, renderer):
         renderer.table_header([
             ("_VACB", "vacb", "[addrpad]"),
@@ -90,7 +124,7 @@ class EnumerateVacbs(common.WindowsCommandPlugin):
         ])
 
         for vacb in self.GetVACBs():
-            filename = vacb.SharedCacheMap.FileObjectFastRef.FileName
+            filename = vacb.SharedCacheMap.FileObject.file_name_with_drive()
             if filename:
                 renderer.table_row(
                     vacb,
@@ -330,7 +364,7 @@ class MftDump(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         for vacb in self.session.plugins.vacbs().GetVACBs():
-            filename = vacb.SharedCacheMap.FileObjectFastRef.FileName
+            filename = vacb.SharedCacheMap.FileObject.FileName
             if filename == r"\$Mft":
                 self.extract_mft_entries_from_vacb(vacb)
 

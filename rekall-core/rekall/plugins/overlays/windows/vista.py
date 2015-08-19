@@ -102,9 +102,12 @@ class _ETHREAD(common._ETHREAD):
 
 
 def InitializeVistaProfile(profile):
-    profile.add_constants(PoolAlignment=8)
+    if profile.metadata("arch") == "AMD64":
+        profile.add_constants(PoolAlignment=16)
+    else:
+        profile.add_constants(PoolAlignment=8)
     profile.add_overlay(vista_overlays)
     profile.add_classes(dict(
-            _ETHREAD=_ETHREAD,
-            _MMADDRESS_NODE=_MMADDRESS_NODE
-            ))
+        _ETHREAD=_ETHREAD,
+        _MMADDRESS_NODE=_MMADDRESS_NODE
+    ))

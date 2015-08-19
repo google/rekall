@@ -391,6 +391,10 @@ class VADMap(pfn.VADMapMixin, common.WinProcessFilter):
 
             elif issubclass(descriptor_cls, intel.PhysicalAddressDescriptor):
                 metadata["offset"] = kwargs["address"]
+                metadata.setdefault("type", "Valid")
+
+            elif issubclass(descriptor_cls, intel.InvalidAddress):
+                metadata["type"] = "Invalid"
 
         return metadata
 
