@@ -238,7 +238,6 @@ class WindowsPagedMemoryMixin(object):
         pte = self.session.profile._MMPTE()
         self.prototype_mask = pte.u.Proto.Prototype.mask
         self.transition_mask = pte.u.Trans.Transition.mask
-        self.subsection_mask = pte.u.Subsect.Subsection.mask
         self.valid_mask = pte.u.Hard.Valid.mask
         self.proto_protoaddress_mask = pte.u.Proto.ProtoAddress.mask
         self.proto_protoaddress_start = pte.u.Proto.ProtoAddress.start_bit

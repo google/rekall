@@ -254,6 +254,9 @@ class WinImageFingerprint(common.AbstractWindowsParameterHook):
     name = "image_fingerprint"
 
     def calculate(self):
+        if not self.session.physical_address_space:
+            return None
+
         if self.session.physical_address_space.volatile:
             return obj.NoneObject("No fingerprint for volatile image.")
 

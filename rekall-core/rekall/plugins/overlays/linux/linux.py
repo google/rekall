@@ -129,9 +129,6 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
 """))]],
         'name' : [None, ['UnicodeString', dict(length=16)]],
 
-        'mac_addr': lambda x: (x.perm_addr or x.dev_addr).cast(
-            "MacAddress"),
-
         'ip_ptr': [None, ['Pointer', dict(target="in_device")]],
         }],
 
@@ -813,6 +810,17 @@ class timespec(obj.Struct):
         return self.obj_profile.UnixTimeStamp(value=the_time.tv_sec.v())
 
 
+class net_device(obj.Struct):
+    @property
+    def mac_addr(self):
+        addr = self.perm_addr
+        if (addr.obj_vm.read(addr.obj_offset, addr.obj_size) ==
+                "\x00" * addr.obj_size):
+            addr = self.dev_addr.deref()
+
+        return addr.cast("MacAddress")
+
+
 class PermissionFlags(basic.Flags):
     """A Flags object for printing vm_area_struct permissions
     in a format like rwx or r-x"""
@@ -928,16 +936,17 @@ class Linux(basic.BasicClasses):
     def Initialize(cls, profile):
         super(Linux, cls).Initialize(profile)
         profile.add_classes(dict(
-            list_head=list_head,
+            InodePermission=InodePermission,
+            PermissionFlags=PermissionFlags,
+            dentry=dentry,
             hlist_head=hlist_head,
             hlist_node=hlist_node,
-            dentry=dentry,
-            task_struct=task_struct,
-            timespec=timespec, inet_sock=inet_sock,
-            PermissionFlags=PermissionFlags,
-            InodePermission=InodePermission,
+            list_head=list_head,
+            net_device=net_device,
             page=page, kgid_t=kgid_t, kuid_t=kuid_t,
             proc_dir_entry=proc_dir_entry,
+            task_struct=task_struct,
+            timespec=timespec, inet_sock=inet_sock,
             ))
         profile.add_overlay(linux_overlay)
         profile.add_constants(default_text_encoding="utf8")
