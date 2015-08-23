@@ -88,13 +88,16 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
                 if efi_type_readable(record["efi_type"]):
                     yield record["start"], record["start"], record["length"]
 
+    def ConfigureSession(self, session_obj):
+        session_obj.SetCache("dtb", self.pmem_metadata["meta"]["dtb_off"],
+                             volatile=False)
+        session_obj.SetCache("vm_kernel_slide",
+                             self.pmem_metadata["meta"]["kaslr_slide"],
+                             volatile=False)
+
     def _load_yml(self, yml_path):
         with open(yml_path) as fp:
             data = self.pmem_metadata = yaml_utils.decode(fp.read())
-
-        self.session.SetCache("dtb", data["meta"]["dtb_off"])
-        self.session.SetCache("vm_kernel_slide",
-                              data["meta"]["kaslr_slide"])
 
         for run in self._get_readable_runs(data["records"]):
             self.runs.insert(run)

@@ -25,6 +25,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import re
 
 from rekall import addrspace
+from rekall import cache
 from rekall import config
 from rekall import kb
 from rekall import obj
@@ -545,7 +546,7 @@ class ProfileHook(kb.ParameterHook):
                 # No physical address space - nothing to do here.
                 return obj.NoneObject("No Physical Address Space.")
 
-        if self.session.GetParameter("cache") == "file":
+        if self.session.cache.__class__ == cache.FileCache:
             name = self.session.cache.DetectImage(
                 self.session.physical_address_space)
             if name:

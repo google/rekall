@@ -421,7 +421,8 @@ class LoadAddressSpace(plugin.Command):
             for address_space in find_dtb.address_space_hits():
                 with self.session:
                     self.session.kernel_address_space = address_space
-                    self.session.SetCache("dtb", address_space.dtb)
+                    self.session.SetCache("dtb", address_space.dtb,
+                                          volatile=False)
                     break
 
             if self.session.kernel_address_space is None:
@@ -444,7 +445,8 @@ class LoadAddressSpace(plugin.Command):
         # Set the default address space for plugins like disassemble and dump.
         if not self.session.HasParameter("default_address_space"):
             self.session.SetCache(
-                "default_address_space", self.session.kernel_address_space)
+                "default_address_space", self.session.kernel_address_space,
+                volatile=False)
 
         return self.session.kernel_address_space
 
@@ -1143,7 +1145,8 @@ class SetProcessContextMixin(object):
         if process == None:
             message = "Switching to Kernel context"
             self.session.SetCache("default_address_space",
-                                  self.session.kernel_address_space)
+                                  self.session.kernel_address_space,
+                                  volatile=False)
         else:
             message = ("Switching to process context: {0} "
                        "(Pid {1}@{2:#x})").format(
@@ -1151,10 +1154,11 @@ class SetProcessContextMixin(object):
 
             self.session.SetCache(
                 "default_address_space",
-                process.get_process_address_space() or None)
+                process.get_process_address_space() or None,
+                volatile=False)
 
         # Reset the address resolver for the new context.
-        self.session.SetCache("process_context", process)
+        self.session.SetCache("process_context", process, volatile=False)
         self.session.logging.debug(message)
 
         return message

@@ -184,15 +184,6 @@ class Configuration(utils.AttributeDict):
     def __repr__(self):
         return "<Configuration Object>"
 
-    def _set_cache(self, cache_type, _):
-        # For volatile sessions we use a timed cache (which expires after a
-        # short time).
-        if self.session.volatile:
-            cache_type = "timed"
-
-        self.session.cache = cache.Factory(self.session, cache_type)
-        return cache_type
-
     def _set_filename(self, filename, parameters):
         """Callback for when a filename is set in the session.
 
@@ -541,9 +532,15 @@ class Session(object):
     def Reset(self):
         self.context_cache = {}
         self.profile_cache = {}
-        self.physical_address_space = None
         self.kernel_address_space = None
-        self.cache.Clear()
+
+        # For volatile sessions we use a timed cache (which expires after a
+        # short time).
+        cache_type = self.GetParameter("cache", "memory")
+        if self.volatile:
+            cache_type = "timed"
+
+        self.cache = cache.Factory(self.session, cache_type)
 
     @property
     def default_address_space(self):
@@ -860,6 +857,23 @@ class Session(object):
             ui_renderer = ui_renderer_cls(session=self, output=output)
 
         return ui_renderer
+
+    @property
+    def physical_address_space(self):
+        res = self.GetParameter("physical_address_space", None)
+        return res
+
+    @physical_address_space.setter
+    def physical_address_space(self, value):
+        # The physical_address_space is not part of the cache because
+        # it needs to be set first before we know which cache
+        # fingerprint to use (getting the fingerprint depends on the
+        # physical_address_space).
+        self.SetParameter("physical_address_space", value)
+        self.Reset()
+
+        # Ask the physical_address_space to configure this session.
+        value.ConfigureSession(self)
 
     @property
     def profile(self):

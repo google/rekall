@@ -214,8 +214,10 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         except AttributeError:
             self.runs.insert((0, 0, aff4_stream.Size(), self.image))
 
-        self._parse_physical_memory_metadata(aff4_stream.urn)
         self.session.logging.info("Added %s as physical memory", image_urn)
+
+    def ConfigureSession(self):
+        self._parse_physical_memory_metadata(self.image.stream.urn)
 
     def file_mapping_offset(self, filename):
         """Returns the offset where the filename should be mapped.

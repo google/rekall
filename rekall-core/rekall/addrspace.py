@@ -277,9 +277,11 @@ class BaseAddressSpace(object):
         return (isinstance(other, self.__class__) and
                 self.base == other.base)
 
-
     def get_mapped_offset(self, filename, offset):
         """Implement this if we can map files into this address space."""
+
+    def ConfigureSession(self, session_obj):
+        """Implement this method if you need to configure the session."""
 
 
 # This is a specialised AS for use internally - Its used to provide
