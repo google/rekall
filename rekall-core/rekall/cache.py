@@ -237,6 +237,8 @@ class FileCache(Cache):
 
             self.io_manager.FlushInventory()
 
+        self.data.clear()
+
     def DetectImage(self, address_space):
         if not self.io_manager:
             return

@@ -88,7 +88,28 @@ def MOUNTAIN_LION_OR_LATER(profile):
     return bool(profile.get_constant("_BootPML4", False))
 
 
-class KernelSlideHook(kb.ParameterHook):
+class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
+                                  plugin.ProfileCommand):
+    """A base class for all darwin based plugins."""
+    __abstract = True
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is darwin."""
+        return (session.profile.metadata("os") == "darwin" and
+                plugin.Command.is_active(session))
+
+
+class AbstractDarwinParameterHook(kb.ParameterHook):
+
+    @classmethod
+    def is_active(cls, session):
+        """We are only active if the profile is Darwin."""
+        return (super(AbstractDarwinParameterHook, cls).is_active(session) and
+                session.profile.metadata("os") == 'darwin')
+
+
+class KernelSlideHook(AbstractDarwinParameterHook):
     """Find the kernel slide if needed."""
 
     name = "vm_kernel_slide"
@@ -107,7 +128,7 @@ class CatfishScanner(scan.BaseScanner):
     ]
 
 
-class CatfishOffsetHook(kb.ParameterHook):
+class CatfishOffsetHook(AbstractDarwinParameterHook):
     """Find the actual offset of the _lowGlo struct."""
 
     name = "catfish_offset"
@@ -143,27 +164,6 @@ class DarwinKASLRMixin(object):
 
         if vm_kernel_slide is not None:
             self.session.SetCache("vm_kernel_slide", vm_kernel_slide)
-
-
-class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
-                                  plugin.ProfileCommand):
-    """A base class for all darwin based plugins."""
-    __abstract = True
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is darwin."""
-        return (session.profile.metadata("os") == "darwin" and
-                plugin.Command.is_active(session))
-
-
-class AbstractDarwinParameterHook(kb.ParameterHook):
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is Darwin."""
-        return (super(AbstractDarwinParameterHook, cls).is_active(session) and
-                session.profile.metadata("os") == 'darwin')
 
 
 class DarwinFindKASLR(AbstractDarwinCommandPlugin):
@@ -457,16 +457,12 @@ class DarwinProcessFilter(DarwinPlugin):
         parser.add_argument("--proc", type="ArrayIntParser",
                             help="Kernel addresses of proc structs.")
 
-        parser.add_argument("--first", type="IntParser",
-                            help="Kernel addresses of first proc to start "
-                            "following.")
-
         parser.add_argument(
             "--method", choices=list(cls.METHODS), nargs="+",
             help="Method to list processes (Default uses all methods).")
 
     def __init__(self, pid=None, proc_regex=None, phys_proc=None, proc=None,
-                 first=None, method=None, **kwargs):
+                 method=None, **kwargs):
         """Filters processes by parameters.
 
         Args:
@@ -515,152 +511,25 @@ class DarwinProcessFilter(DarwinPlugin):
 
         self.proc_regex = proc_regex
 
-        # Without a specified proc head, we use the proclist from _allproc
-        # constant.
-        if not first:
-            first = self.profile.get_constant_object(
-                "_allproc", target="proclist").lh_first
-
-        self.first = first
-
         # Sometimes its important to know if any filtering is specified at all.
         self.filtering_requested = (self.pids or self.proc_regex or
                                     self.phys_proc or self.proc)
 
-    def list_using_dead_procs(self):
-        """List deallocated proc structs using the zone allocator."""
-        # Find the proc zone from the allocator.
-        proc_zone = self.session.manager.find_first(
-            "AllocationZone/name is 'proc'")["Struct/base"]
-
-        # Walk over the free list and get all the proc objects.
-        obj_list = proc_zone.free_elements.walk_list("next")
-        result = []
-        for object in obj_list:
-            proc = object.cast("proc")
-
-            # Validate the proc. Real procs have a non zero argc.
-            if proc.p_argc > 0:
-                result.append(proc)
-
-        return result
-
-    def list_using_allproc(self):
-        """List all processes by following the _allproc list head."""
-        result = set(self.first.p_list)
-        return result
-
-    def list_using_tasks(self):
-        """List processes using the processor tasks queue.
-
-        See
-        /osfmk/kern/processor.c (processor_set_things)
-        """
-        seen = set()
-
-        tasks = self.profile.get_constant_object(
-            "_tasks",
-            target="queue_entry",
-            vm=self.kernel_address_space)
-
-        for task in tasks.list_of_type("task", "tasks"):
-            proc = task.bsd_info.deref()
-            if proc:
-                seen.add(proc)
-
-        return seen
-
-    def list_using_pgrp_hash(self):
-        """Process groups are organized in a hash chain.
-
-        xnu-1699.26.8/bsd/sys/proc_internal.h
-        """
-        seen = set()
-
-        # Note that _pgrphash is initialized through:
-
-        # xnu-1699.26.8/bsd/kern/kern_proc.c:195
-        # hashinit(int elements, int type, u_long *hashmask)
-
-        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
-        # hashinit(int elements, int type, u_long *hashmask) {
-        #    ...
-        # *hashmask = hashsize - 1;
-
-        # Hence the value in _pgrphash is one less than the size of the hash
-        # table.
-        pgr_hash_table = self.profile.get_constant_object(
-            "_pgrphashtbl",
-            target="Pointer",
-            target_args=dict(
-                target="Array",
-                target_args=dict(
-                    target="pgrphashhead",
-                    count=self.profile.get_constant_object(
-                        "_pgrphash", "unsigned long") + 1
-                )
-            )
-        )
-
-        for slot in pgr_hash_table.deref():
-            for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
-                for proc in pgrp.pg_members.lh_first.walk_list(
-                        "p_pglist.le_next"):
-                    seen.add(proc)
-
-        return seen
-
-    def list_using_pid_hash(self):
-        """Lists processes using pid hash tables.
-
-        xnu-1699.26.8/bsd/kern/kern_proc.c:834:
-        pfind_locked(pid_t pid)
-        """
-        seen = set()
-
-        # Note that _pidhash is initialized through:
-
-        # xnu-1699.26.8/bsd/kern/kern_proc.c:194
-        # pidhashtbl = hashinit(maxproc / 4, M_PROC, &pidhash);
-
-        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
-        # hashinit(int elements, int type, u_long *hashmask) {
-        #    ...
-        # *hashmask = hashsize - 1;
-
-        # Hence the value in pidhash is one less than the size of the hash
-        # table.
-        pid_hash_table = self.profile.get_constant_object(
-            "_pidhashtbl",
-            target="Pointer",
-            target_args=dict(
-                target="Array",
-                target_args=dict(
-                    target="pidhashhead",
-                    count=self.profile.get_constant_object(
-                        "_pidhash", "unsigned long") + 1
-                )
-            )
-        )
-
-        for plist in pid_hash_table.deref():
-            for proc in plist.lh_first.walk_list("p_hash.le_next"):
-                if proc:
-                    seen.add(proc)
-
-        return seen
 
     def list_procs(self, sort=True):
         """Uses a few methods to list the procs."""
         seen = set()
 
-        for method, handler in self.METHODS.iteritems():
+        for method in self.METHODS:
             if method not in self.methods:
                 continue
 
-            procs = self.cache.setdefault(method, handler(self))
+            procs = self.session.GetParameter(
+                "darwin_pslist_%s" % method, [])
             self.session.logging.debug("Listed %d processes using %s",
                                        len(procs), method)
+
+            procs = [self.session.profile.proc(x) for x in procs]
 
             seen.update(procs)
 
@@ -716,13 +585,13 @@ class DarwinProcessFilter(DarwinPlugin):
         # Now we get the proc_struct object from the list entry.
         return our_list_entry.dereference_as("proc_struct", "procs")
 
-    METHODS = {
-        "allproc": list_using_allproc,
-        "deadprocs": list_using_dead_procs,
-        "tasks": list_using_tasks,
-        "pgrphash": list_using_pgrp_hash,
-        "pidhash": list_using_pid_hash,
-    }
+    METHODS = [
+        "allproc",
+        "deadprocs",
+        "tasks",
+        "pidhash",
+        "pgrphash",
+    ]
 
 
 class KernelAddressCheckerMixIn(object):
@@ -734,3 +603,159 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
+
+
+class PsListAllProcHook(AbstractDarwinParameterHook):
+    """List all processes by following the _allproc list head."""
+
+    name = "darwin_pslist_allproc"
+
+    def calculate(self):
+        first = self.session.profile.get_constant_object(
+        "_allproc", target="proclist").lh_first
+
+        result = set(first.p_list)
+
+        return [x.obj_offset for x in result]
+
+
+class PsListDeadProcHook(AbstractDarwinParameterHook):
+    """List all processes by following the _allproc list head."""
+
+    name = "darwin_pslist_deadprocs"
+
+    def calculate(self):
+        """List deallocated proc structs using the zone allocator."""
+        # Find the proc zone from the allocator.
+        proc_zone = self.session.manager.find_first(
+            "AllocationZone/name is 'proc'")["Struct/base"]
+
+        # Walk over the free list and get all the proc objects.
+        obj_list = proc_zone.free_elements.walk_list("next")
+        result = []
+        for object in obj_list:
+            proc = object.cast("proc")
+
+            # Validate the proc. Real procs have a non zero argc.
+            if proc.p_argc > 0:
+                result.append(proc.obj_offset)
+
+        return result
+
+
+class PsListTasksHook(AbstractDarwinParameterHook):
+    """List all processes by following the _allproc list head."""
+
+    name = "darwin_pslist_tasks"
+
+    def calculate(self):
+        """List processes using the processor tasks queue.
+
+        See
+        /osfmk/kern/processor.c (processor_set_things)
+        """
+        seen = set()
+
+        tasks = self.session.profile.get_constant_object(
+            "_tasks",
+            target="queue_entry",
+            vm=self.session.kernel_address_space)
+
+        for task in tasks.list_of_type("task", "tasks"):
+            proc = task.bsd_info.deref()
+            if proc:
+                seen.add(proc.obj_offset)
+
+        return seen
+
+
+class PsListPgrpHashHook(AbstractDarwinParameterHook):
+    """List all processes by following the _allproc list head."""
+
+    name = "darwin_pslist_pgrphash"
+
+    def calculate(self):
+        """Process groups are organized in a hash chain.
+
+        xnu-1699.26.8/bsd/sys/proc_internal.h
+        """
+        seen = set()
+
+        # Note that _pgrphash is initialized through:
+
+        # xnu-1699.26.8/bsd/kern/kern_proc.c:195
+        # hashinit(int elements, int type, u_long *hashmask)
+
+        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
+        # hashinit(int elements, int type, u_long *hashmask) {
+        #    ...
+        # *hashmask = hashsize - 1;
+
+        # Hence the value in _pgrphash is one less than the size of the hash
+        # table.
+        pgr_hash_table = self.session.profile.get_constant_object(
+            "_pgrphashtbl",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="pgrphashhead",
+                    count=self.session.profile.get_constant_object(
+                        "_pgrphash", "unsigned long") + 1
+                )
+            )
+        )
+
+        for slot in pgr_hash_table.deref():
+            for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
+                for proc in pgrp.pg_members.lh_first.walk_list(
+                        "p_pglist.le_next"):
+                    seen.add(proc.obj_offset)
+
+        return seen
+
+
+class PsListPidHashHook(AbstractDarwinParameterHook):
+    """List all processes by following the _allproc list head."""
+
+    name = "darwin_pslist_pidhash"
+
+    def calculate(self):
+        """Lists processes using pid hash tables.
+
+        xnu-1699.26.8/bsd/kern/kern_proc.c:834:
+        pfind_locked(pid_t pid)
+        """
+        seen = set()
+
+        # Note that _pidhash is initialized through:
+
+        # xnu-1699.26.8/bsd/kern/kern_proc.c:194
+        # pidhashtbl = hashinit(maxproc / 4, M_PROC, &pidhash);
+
+        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
+        # hashinit(int elements, int type, u_long *hashmask) {
+        #    ...
+        # *hashmask = hashsize - 1;
+
+        # Hence the value in pidhash is one less than the size of the hash
+        # table.
+        pid_hash_table = self.session.profile.get_constant_object(
+            "_pidhashtbl",
+            target="Pointer",
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    target="pidhashhead",
+                    count=self.session.profile.get_constant_object(
+                        "_pidhash", "unsigned long") + 1
+                )
+            )
+        )
+
+        for plist in pid_hash_table.deref():
+            for proc in plist.lh_first.walk_list("p_hash.le_next"):
+                if proc:
+                    seen.add(proc.obj_offset)
+
+        return seen

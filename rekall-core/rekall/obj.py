@@ -1388,7 +1388,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         if not hasattr(member, 'write') or not member.write(value):
             raise ValueError("Error writing value to member " + attr)
 
-    def walk_list(self, list_member, include_current=True):
+    def walk_list(self, list_member, include_current=True, deref_as=None):
         """Walk a single linked list in this struct.
 
         The current object can be optionally yielded as the first element.
@@ -1405,7 +1405,10 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         item = self
         while True:
-            item = getattr(item, list_member).deref()
+            if deref_as:
+                item = getattr(item, list_member).dereference_as(deref_as)
+            else:
+                item = getattr(item, list_member).deref()
 
             # Sometimes in usermode page 0 is mapped, hence bool(item) == True
             # even if item == 0 since bool(item) refers to the pointer's

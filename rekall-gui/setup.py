@@ -84,7 +84,7 @@ setup(
     install_requires=[
         "rekall-core >= 1.4.0.pre3",
         "ipython >= 3.0.0",
-        "gnureadline==6.3.3",
+        "pyreadline >= 2.0",
         "codegen >= 1.0",
         "Flask >= 0.10.1",
         "Flask-Sockets >= 0",

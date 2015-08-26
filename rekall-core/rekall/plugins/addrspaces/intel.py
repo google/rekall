@@ -494,6 +494,10 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             # Bits 11:0 are from the original linear address
             physical_address = (pte_value & 0xffffffffff000) | (vaddr & 0xfff)
             collection.add(PhysicalAddressDescriptor, address=physical_address)
+        else:
+            collection.add(InvalidAddress, "Invalid PTE\n")
+
+        return collection
 
     def read_pte(self, addr):
         '''

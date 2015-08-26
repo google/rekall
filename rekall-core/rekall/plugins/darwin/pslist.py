@@ -123,6 +123,7 @@ class DarwinMaps(common.DarwinProcessFilter):
 
     def render(self, renderer):
         renderer.table_header([
+            dict(name="vm_map_entry", style="address"),
             dict(name="Proc", width=40),
             ("Start", "start", "[addrpad]"),
             ("End", "end", "[addrpad]"),
@@ -144,6 +145,7 @@ class DarwinMaps(common.DarwinProcessFilter):
                 vnode = map.find_vnode_object()
 
                 renderer.table_row(
+                    map,
                     proc,
                     map.links.start,
                     map.links.end,

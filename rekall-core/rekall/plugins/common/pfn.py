@@ -68,6 +68,15 @@ class VADMapMixin(plugin.VerbosityMixIn):
         _ = task
         return []
 
+    def render_metadata(self, renderer, old_metadata, old_vaddr, type,
+                        offset, length, old_offset):
+        comment = self.FormatMetadata(
+            type, old_metadata, offset=old_offset)
+        if self.verbosity < 5:
+            renderer.table_row(old_vaddr, length, type, comment)
+        else:
+            renderer.table_row(old_vaddr, old_offset, length, type, comment)
+
     def render(self, renderer):
         for task in self.filter_processes():
             renderer.section()
@@ -108,15 +117,14 @@ class VADMapMixin(plugin.VerbosityMixIn):
 
                     type = old_metadata.get("type", None)
                     if type:
-                        comment = self.FormatMetadata(
-                            type, old_metadata, offset=old_offset)
-                        row = [old_vaddr, old_offset, length, type, comment]
-                        if self.verbosity < 5:
-                            row.pop(1)
-
-                        renderer.table_row(*row)
+                        self.render_metadata(renderer, old_metadata, old_vaddr,
+                                             type, offset, length, old_offset)
 
                     old_metadata = metadata
                     old_vaddr = vaddr
                     old_offset = offset
                     length = 0x1000
+
+            if old_metadata:
+                self.render_metadata(renderer, old_metadata, old_vaddr,
+                                     type, offset, length, old_offset)

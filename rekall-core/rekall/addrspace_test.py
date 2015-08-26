@@ -52,6 +52,3 @@ class RunBasedTest(testlib.RekallBaseUnitTestCase):
         # Read past the end
         self.assertEqual(self.contiguous_as.read(2000, 10),
                          "\x00" * 10)
-
-if __name__ == "__main__":
-    unittest.main()

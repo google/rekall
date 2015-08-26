@@ -588,7 +588,7 @@ class LIST_ENTRY(obj.Struct):
         return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
 
 
-class queue_entry(LIST_ENTRY):
+class queue_entry(basic.ListMixIn, obj.Struct):
     _forward = "next"
     _backward = "prev"
 

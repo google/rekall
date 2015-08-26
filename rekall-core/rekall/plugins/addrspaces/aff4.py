@@ -216,8 +216,8 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         self.session.logging.info("Added %s as physical memory", image_urn)
 
-    def ConfigureSession(self):
-        self._parse_physical_memory_metadata(self.image.stream.urn)
+    def ConfigureSession(self, session):
+        self._parse_physical_memory_metadata(session, self.image.stream.urn)
 
     def file_mapping_offset(self, filename):
         """Returns the offset where the filename should be mapped.
@@ -271,23 +271,23 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         if mapped_offset > 0:
             return mapped_offset + file_offset
 
-    def _parse_physical_memory_metadata(self, image_urn):
+    def _parse_physical_memory_metadata(self, session, image_urn):
         try:
             with self.resolver.AFF4FactoryOpen(
                     image_urn.Append("information.yaml")) as fd:
                 metadata = yaml_utils.decode(fd.read(10e6))
                 # Allow the user to override the AFF4 file.
-                if not self.session.HasParameter("dtb"):
-                    self.session.SetCache(
+                if not session.HasParameter("dtb"):
+                    session.SetCache(
                         "dtb", metadata.get("Registers", {}).get("CR3"),
                         volatile=False)
 
-                if not self.session.HasParameter("kernel_base"):
-                    self.session.SetCache(
+                if not session.HasParameter("kernel_base"):
+                    session.SetCache(
                         "kernel_base", metadata.get("KernBase"),
                         volatile=False)
         except IOError:
-            self.session.logging.warn(
+            session.logging.warn(
                 "AFF4 volume does not contain PhysicalMemory metadata.")
 
     def describe(self, address):

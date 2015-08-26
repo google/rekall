@@ -540,7 +540,7 @@ class Session(object):
         if self.volatile:
             cache_type = "timed"
 
-        self.cache = cache.Factory(self.session, cache_type)
+        self.cache = cache.Factory(self, cache_type)
 
     @property
     def default_address_space(self):
@@ -873,7 +873,8 @@ class Session(object):
         self.Reset()
 
         # Ask the physical_address_space to configure this session.
-        value.ConfigureSession(self)
+        if value:
+            value.ConfigureSession(self)
 
     @property
     def profile(self):

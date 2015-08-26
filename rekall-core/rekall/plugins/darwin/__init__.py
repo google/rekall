@@ -8,6 +8,7 @@ from rekall.plugins.darwin import compressor
 from rekall.plugins.darwin import hooks
 from rekall.plugins.darwin import lsof
 from rekall.plugins.darwin import lsmod
+from rekall.plugins.darwin import maps
 from rekall.plugins.darwin import misc
 from rekall.plugins.darwin import networking
 from rekall.plugins.darwin import pas2kas
