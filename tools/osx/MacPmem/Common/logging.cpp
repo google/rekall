@@ -67,12 +67,16 @@ void pmem_logv(PmemLogLevel lvl, const char *fmt, va_list args) {
     printf("\n");
 }
 
+#ifdef DEBUG
+
 void pmem_debug(const char *fmt, ...) {
     va_list argptr;
     va_start(argptr, fmt);
     pmem_logv(kPmemDebug, fmt, argptr);
     va_end(argptr);
 }
+
+#endif
 
 void pmem_info(const char *fmt, ...) {
     va_list argptr;
