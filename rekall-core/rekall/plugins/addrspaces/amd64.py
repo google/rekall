@@ -69,9 +69,9 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
         # Bits 51:12 are from CR3
         # Bits 11:3 are bits 47:39 of the linear address
-        pml4e_addr = ((self.dtb & 0xffffffffff000) |
+        pml4e_addr = ((self.get_pml4() & 0xffffffffff000) |
                       ((vaddr & 0xff8000000000) >> 36))
-        pml4e_value = self.read_pte(pml4e_addr)
+        pml4e_value = self.read_pte(pml4e_addr, collection=collection)
 
         collection.add(intel.AddressTranslationDescriptor,
                        object_name="pml4e", object_value=pml4e_value,
@@ -85,7 +85,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # Bits 11:3 are bits 38:30 of the linear address
         pdpte_addr = ((pml4e_value & 0xffffffffff000) |
                       ((vaddr & 0x7FC0000000) >> 27))
-        pdpte_value = self.read_pte(pdpte_addr)
+        pdpte_value = self.read_pte(pdpte_addr, collection=collection)
 
         collection.add(intel.AddressTranslationDescriptor,
                        object_name="pdpte", object_value=pdpte_value,
@@ -115,6 +115,10 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
         return collection
 
+    def get_pml4(self):
+        """Returns the PML4, the base of the paging tree."""
+        return self.dtb
+
     def get_available_addresses(self, start=0):
         """Enumerate all available ranges.
 
@@ -131,7 +135,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             if start >= next_vaddr:
                 continue
 
-            pml4e_addr = ((self.dtb & 0xffffffffff000) |
+            pml4e_addr = ((self.get_pml4() & 0xffffffffff000) |
                           ((vaddr & 0xff8000000000) >> 36))
             pml4e_value = self.read_pte(pml4e_addr)
             if not pml4e_value & self.valid_mask:
@@ -288,11 +292,13 @@ class VTxPagedMemory(AMD64PagedMemory):
         self._ept = this_ept
         self.name = "VTxPagedMemory@%#x" % self._ept
 
-    def get_pml4e(self, vaddr):
+    @property
+    def ept(self):
+        return self._ept
+
+    def get_pml4(self):
         # PML4 for VT-x is in the EPT, not the DTB as AMD64PagedMemory does.
-        ept_pml4e_paddr = ((self._ept & 0xffffffffff000) |
-                           ((vaddr & 0xff8000000000) >> 36))
-        return self.read_long_long_phys(ept_pml4e_paddr)
+        return self._ept
 
     def __str__(self):
         return "%s@0x%08X" % (self.__class__.__name__, self._ept)
@@ -304,13 +310,45 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
     PAGE_SIZE = 0x1000
     P2M_PER_PAGE = P2M_TOP_PER_PAGE = P2M_MID_PER_PAGE = PAGE_SIZE / 8
 
+    # From include/xen/interface/features.h
+    XENFEAT_writable_page_tables = 0
+    XENFEAT_writable_descriptor_tables = 1
+    XENFEAT_auto_translated_physmap = 2
+    XENFEAT_supervisor_mode_kernel = 3
+    XENFEAT_pae_pgdir_above_4gb = 4
+    XENFEAT_mmu_pt_update_preserve_ad = 5
+    XENFEAT_hvm_callback_vector = 8
+    XENFEAT_hvm_safe_pvclock = 9
+    XENFEAT_hvm_pirqs = 10
+    XENFEAT_dom0 = 11
+
     def __init__(self, **kwargs):
         super(XenParaVirtAMD64PagedMemory, self).__init__(**kwargs)
         self.page_offset = self.session.GetParameter("page_offset")
         self.m2p_mapping = {}
+        self._xen_features = None
         self.rebuilding_map = False
         if self.page_offset:
             self._RebuildM2PMapping()
+
+    def xen_feature(self, flag):
+        """Obtains the state of a XEN feature."""
+        if not self._xen_features:
+          # We have to instantiate xen_features manually from the physical
+          # address space since we are building a virtual one when xen_feature
+          # is called.
+          xen_features_p = self.session.profile.get_constant("xen_features")
+          xen_features_phys = (xen_features_p -
+                               self.session.profile.GetPageOffset())
+          self._xen_features = obj.Array(
+              vm=self.session.physical_address_space,
+              target="unsigned char",
+              offset=xen_features_phys,
+              session=self.session,
+              profile=self.session.profile,
+              count=32)
+
+        return self._xen_features[flag]
 
     def _ReadP2M(self, offset, p2m_size):
         """Helper function to return p2m entries at offset.
@@ -353,32 +391,116 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         self.rebuilding_map = True
         try:
             p2m_top_location = self.session.profile.get_constant_object(
-                "p2m_top", "Pointer", vm=self).deref()
-
-            end_value = self.session.profile.get_constant("__bss_stop", False)
+                "p2m_top", "Pointer", vm=self)
+            p2m_missing = self.session.profile.get_constant_object(
+                "p2m_missing", "Pointer", vm=self)
+            p2m_mid_missing = self.session.profile.get_constant_object(
+                "p2m_mid_missing", "Pointer", vm=self)
+            p2m_identity = self.session.profile.get_constant_object(
+                "p2m_identity", "Pointer", vm=self)
             new_mapping = {}
+
+            self.session.logging.debug("p2m_top = %#0x", p2m_top_location)
+            self.session.logging.debug("p2m_missing = %#0x", p2m_missing)
+            self.session.logging.debug("p2m_mid_missing = %#0x",
+                                       p2m_mid_missing)
+            self.session.logging.debug("p2m_identity = %#0x", p2m_identity)
+
+            # Obtained for debugging purposes as we don't have explicit support
+            # for it yet, and it doesn't seem to be common.
+            self.session.logging.debug(
+                "XENFEAT_auto_translated_physmap = %d",
+                self.xen_feature(self.XENFEAT_auto_translated_physmap))
+
+            # A mapping of offset to symbol name
+            OFF2SYM = {
+                long(p2m_missing): "p2m_missing",
+                long(p2m_mid_missing): "p2m_mid_missing",
+                ~0: "INVALID_P2M",
+                }
+
+            new_mapping = {}
+
+            # TOP entries
             for p2m_top in self._ReadP2M(
                     p2m_top_location, self.P2M_TOP_PER_PAGE):
                 p2m_top_idx, p2m_top_entry = p2m_top
+                p2m_top_entry = obj.Pointer.integer_to_address(p2m_top_entry)
+
                 self.session.report_progress(
                     "Building m2p map %.02f%%" % (
                         100 * (float(p2m_top_idx) / self.P2M_TOP_PER_PAGE)))
 
-                if p2m_top_entry == end_value:
+                self.session.logging.debug(
+                    "p2m_top[%d] = %s",
+                    p2m_top_idx,
+                    OFF2SYM.get(p2m_top_entry, "%#0x" % p2m_top_entry))
+
+                if p2m_top_entry == p2m_mid_missing:
                     continue
 
+                # MID entries
                 for p2m_mid in self._ReadP2M(
                         p2m_top_entry, self.P2M_MID_PER_PAGE):
+
                     p2m_mid_idx, p2m_mid_entry = p2m_mid
-                    if p2m_mid_entry == end_value:
+                    p2m_mid_entry = obj.Pointer.integer_to_address(
+                        p2m_mid_entry)
+
+                    if p2m_mid_entry == p2m_identity:
+                        # Logging because we haven't seen IDENTITY mid_entries
+                        # before.
+                        self.session.logging.debug(
+                            "p2m_top[%d][%d] IS IDENTITY",
+                            p2m_top_idx, p2m_mid_idx)
+
+                        # XXX: [Experimental] based on the kernel source code.
+                        # get_phys_to_machine returns the IDENTITY_FRAME of the
+                        # PFN as the MFN when the mid_entry was marked as
+                        # being an identity.
+                        # http://lxr.free-electrons.com/source/arch/x86/xen/p2m.c?v=3.8#L494
+                        #
+                        # We fill all the MFNs under this mid_entry as
+                        # identities.
+                        for idx in xrange(self.P2M_PER_PAGE):
+                            pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
+                                   * self.P2M_PER_PAGE
+                                   + p2m_mid_idx * self.P2M_PER_PAGE
+                                   + idx)
+                            mfn = self.IDENTITY_FRAME(pfn)
+                            new_mapping[mfn] = pfn
                         continue
+
+                    # Uninitialized p2m_mid_entries can be skipped entirely.
+                    if p2m_mid_entry == p2m_missing:
+                        continue
+
+                    self.session.logging.debug(
+                        "p2m_top[%d][%d] = %s",
+                        p2m_top_idx,
+                        p2m_mid_idx,
+                        OFF2SYM.get(p2m_mid_entry, "%#0x" % p2m_mid_entry))
 
                     for p2m in self._ReadP2M(p2m_mid_entry, self.P2M_PER_PAGE):
                         p2m_idx, mfn = p2m
                         pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
                                * self.P2M_PER_PAGE
-                               + p2m_mid_idx * self.P2M_PER_PAGE
-                               + p2m_idx)
+                                 + p2m_mid_idx * self.P2M_PER_PAGE
+                                 + p2m_idx)
+
+                        if p2m_mid_entry == p2m_identity:
+                            self.session.logging.debug(
+                                "p2m_top[%d][%d][%d] is IDENTITY",
+                                p2m_top_idx,
+                                p2m_mid_idx,
+                                p2m_idx)
+
+                        # For debugging purposes. Not found commonly as far as
+                        # we've seen.
+                        if mfn == ~0:
+                            self.session.logging.debug(
+                                "p2m_top[%d][%d][%d] is INVALID")
+                            continue
 
                         new_mapping[mfn] = pfn
 
@@ -387,12 +509,24 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         finally:
             self.rebuilding_map = False
 
+    def IDENTITY_FRAME(self, pfn):
+        """Returns the identity frame of pfn.
+
+        From http://lxr.free-electrons.com/source/arch/x86/include/asm/xen/page.h?v=3.8#L36
+        """
+
+        BITS_PER_LONG = 64
+        IDENTITY_BIT = 1 << (BITS_PER_LONG - 2)
+        return pfn | IDENTITY_BIT
+
     def m2p(self, machine_address):
         """Translates from a machine address to a physical address.
 
         This translates host physical addresses to guest physical.
         Requires a machine to physical mapping to have been calculated.
         """
+        if not self.m2p_mapping:
+          self._RebuildM2PMapping()
         machine_address = obj.Pointer.integer_to_address(machine_address)
         mfn = machine_address / 0x1000
         pfn = self.m2p_mapping.get(mfn)
@@ -400,21 +534,15 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
             return 0
         return (pfn * 0x1000) | (0xFFF & machine_address)
 
-    def get_pml4e(self, vaddr):
-        return self.m2p(
-            super(XenParaVirtAMD64PagedMemory, self).get_pml4e(vaddr))
-
-    def get_pdpte(self, vaddr, pml4e):
-        return self.m2p(
-            super(XenParaVirtAMD64PagedMemory, self).get_pdpte(vaddr, pml4e))
-
-    def get_pde(self, vaddr, pml4e):
-        return self.m2p(
-            super(XenParaVirtAMD64PagedMemory, self).get_pde(vaddr, pml4e))
-
-    def get_pte(self, vaddr, pml4e):
-        return self.m2p(
-            super(XenParaVirtAMD64PagedMemory, self).get_pte(vaddr, pml4e))
+    def read_pte(self, vaddr, collection=None):
+        mfn = super(XenParaVirtAMD64PagedMemory, self).read_pte(vaddr)
+        pfn = self.m2p(mfn)
+        if collection != None:
+          collection.add(
+              intel.CommentDescriptor,
+              ("\n(XEN resolves MFN 0x%x to PFN 0x%x)\n"
+               % (mfn, pfn)))
+        return pfn
 
     def vtop(self, vaddr):
         vaddr = obj.Pointer.integer_to_address(vaddr)

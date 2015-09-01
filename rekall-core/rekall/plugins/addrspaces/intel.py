@@ -290,7 +290,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         # Bits 11:2 are bits 31:22 of the linear address.
         pde_addr = ((self.dtb & 0xfffff000) |
                     ((vaddr & 0xffc00000) >> 20))
-        pde_value = self.read_pte(pde_addr)
+        pde_value = self.read_pte(pde_addr, collection=collection)
         collection.add(AddressTranslationDescriptor,
                        object_name="pde", object_value=pde_value,
                        object_address=pde_addr)
@@ -312,7 +312,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         # Bits 31:12 are from the PDE
         # Bits 11:2 are bits 21:12 of the linear address
         pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x3ff000) >> 10)
-        pte_value = self.read_pte(pte_addr)
+        pte_value = self.read_pte(pte_addr, collection=collection)
         self._describe_pte(collection, pte_addr, pte_value, vaddr)
 
         return collection
@@ -334,7 +334,7 @@ class IA32PagedMemory(addrspace.PagedReader):
 
         return collection
 
-    def read_pte(self, addr):
+    def read_pte(self, addr, collection=None):
         """Read an unsigned 32-bit integer from physical memory.
 
         Note this always succeeds - reads outside mapped addresses in the image
@@ -499,7 +499,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
         return collection
 
-    def read_pte(self, addr):
+    def read_pte(self, addr, collection=None):
         '''
         Returns an unsigned 64-bit integer from the address addr in
         physical memory. If unable to read from that location, returns None.
