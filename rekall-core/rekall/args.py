@@ -182,7 +182,7 @@ def ParseGlobalArgs(parser, argv, user_session):
     ConfigureCommandLineParser(config.OPTIONS, parser)
 
     # Parse the known args.
-    known_args, _ = parser.parse_known_args(args=argv)
+    known_args, unknown_args = parser.parse_known_args(args=argv)
 
     with user_session.state as state:
         for arg, value in vars(known_args).items():
@@ -225,6 +225,8 @@ def ParseGlobalArgs(parser, argv, user_session):
         # DB.
         user_session.plugins.plugin_db.Rebuild()
 
+    return known_args, unknown_args
+        
 
 def FindPlugin(argv=None, user_session=None):
     """Search the argv for the first occurrence of a valid plugin name.
@@ -364,8 +366,18 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             group.add_argument(*positional_args, **kwargs)
 
 
-def parse_args(argv=None, user_session=None):
-    """Parse the args from the command line argv."""
+def parse_args(argv=None, user_session=None, global_arg_cb=None):
+    """Parse the args from the command line argv.
+
+    Args:
+      argv: The args to process.
+      user_session: The session we work with.
+      global_arg_cb: A callback that will be used to process global
+         args. Global args are those which affect the state of the
+         Rekall framework and must be processed prior to any plugin
+         specific args. In essence these flags control which plugins
+         can be available.
+    """
     if argv is None:
         argv = sys.argv[1:]
 
@@ -377,8 +389,10 @@ def parse_args(argv=None, user_session=None):
         formatter_class=RekallHelpFormatter)
 
     # Parse the global and critical args from the command line.
-    ParseGlobalArgs(parser, argv, user_session)
-
+    global_flags, unknown_flags = ParseGlobalArgs(parser, argv, user_session)
+    if global_arg_cb:
+        global_arg_cb(global_flags, unknown_flags)
+    
     # The plugin name is taken from the command line, but it is not enough to
     # know which specific implementation will be used. For example there are 3
     # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.

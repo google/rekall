@@ -23,6 +23,7 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 # pylint: disable=unused-import
 import logging
+import platform
 
 from rekall.plugins.tools import aff4acquire
 from rekall.plugins.tools import caching_url_manager
@@ -36,3 +37,12 @@ try:
     from rekall.plugins.tools import webconsole_plugin
 except ImportError as e:
     logging.info("Webconsole disabled: %s", e)
+
+
+system = platform.system()
+if system == "Linux":
+    from rekall.plugins.tools import live_linux
+elif system == "Windows":
+    from rekall.plugins.tools import live_windows
+elif system == "Darwin":
+    from rekall.plugins.tools import live_darwin

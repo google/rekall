@@ -56,6 +56,8 @@ def Reentrant(func):
             try:
                 setattr(self, lock, True)
                 return func(self, *args, **kwargs)
+            except RuntimeError:
+                pass
             finally:
                 setattr(self, lock, False)
 

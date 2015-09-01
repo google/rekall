@@ -22,7 +22,7 @@
 #
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
+import platform
 import os
 import versioneer
 
@@ -35,7 +35,29 @@ rekall_description = "Rekall Memory Forensic Framework"
 
 current_directory = os.path.dirname(__file__)
 
-print versioneer.get_version()
+def find_data_files_directory(source):
+    result = []
+    for directory, _, files in os.walk(source):
+        files = [os.path.join(directory, x) for x in files]
+        result.append((directory, files))
+
+    return result
+
+install_requires = [
+    "argparse >= 0.9",
+    "PyYAML >= 2.10",
+    "pytz >= 2012",
+    "intervaltree >= 2.0.4",
+    "pycrypto >= 2.3.1",
+    "pyelftools >= 0.22",
+    "distorm3 >= 0",
+    "acora >= 1.8",
+    "PyAFF4 >= 0.15",
+    "efilter == 1438631774",
+]
+
+if platform.system() == "Windows":
+    install_requires.append("pypiwin32 >= 219")
 
 setup(
     name="rekall-core",
@@ -57,7 +79,9 @@ setup(
     package_dir={'rekall': 'rekall'},
     packages=find_packages('.'),
     include_package_data=True,
-
+    data_files=(
+        find_data_files_directory('resources')
+    ),
     entry_points="""
     [rekall.plugins]
     plugins=rekall.plugins
@@ -66,16 +90,5 @@ setup(
     rekal = rekall.rekal:main
     rekall = rekall.rekal:main
     """,
-    install_requires=[
-        "argparse >= 0.9",
-        "PyYAML >= 2.10",
-        "pytz >= 2012",
-        "intervaltree >= 2.0.4",
-        "pycrypto >= 2.3.1",
-        "pyelftools >= 0.22",
-        "distorm3 >= 0",
-        "acora >= 1.8",
-        "PyAFF4 >= 0.15",
-        "efilter == 1438631774",
-    ],
+    install_requires=install_requires,
 )

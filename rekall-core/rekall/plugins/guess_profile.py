@@ -45,7 +45,9 @@ class DetectionMethod(object):
 
     __metaclass__ = registry.MetaclassRegistry
     name = None
-
+    
+    order = 100
+    
     def __init__(self, session=None):
         self.session = session
 
@@ -242,7 +244,8 @@ class WindowsIndexDetector(DetectionMethod):
 class PEImageFileDetector(DetectionMethod):
 
     name = "pe"
-
+    order = 50
+    
     def __init__(self, **kwargs):
         super(PEImageFileDetector, self).__init__(**kwargs)
         self.pe_profile = self.session.LoadProfile("pe")
@@ -327,7 +330,8 @@ class WindowsRSDSDetector(DetectionMethod):
 
 class WindowsKernelImageDetector(WindowsRSDSDetector):
     name = "windows_kernel_file"
-
+    order = 50
+    
     def Offsets(self):
         return [0]
 
@@ -478,6 +482,9 @@ class ProfileHook(kb.ParameterHook):
             method = DetectionMethod.classes_by_name[method_name](
                 session=self.session)
             methods.append(method)
+
+        methods.sort(key=lambda x: x.order)
+        for method in methods:
             for keyword in method.Keywords():
                 needles.append(keyword)
                 needle_lookup.setdefault(keyword, []).append(method)

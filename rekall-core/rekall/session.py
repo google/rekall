@@ -430,6 +430,9 @@ class Session(object):
     # unique among the sessions currently active.
     session_id = 0
 
+    # Priviledged sessions are allowed to run dangerous plugins.
+    priviledged = False
+    
     def __init__(self, **kwargs):
         self.progress = ProgressDispatcher()
 
@@ -540,7 +543,7 @@ class Session(object):
         if self.volatile:
             cache_type = "timed"
 
-        self.cache = cache.Factory(self, cache_type)
+        self.cache = cache.Factory(self.session, cache_type)
 
     @property
     def default_address_space(self):

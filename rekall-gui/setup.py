@@ -38,7 +38,7 @@ def find_data_files_directory(source):
     result = []
     for directory, _, files in os.walk(source):
         files = [os.path.join(directory, x) for x in files]
-        result.append(directory, files)
+        result.append((directory, files))
 
     return result
 
@@ -72,9 +72,9 @@ setup(
     packages=find_packages('.'),
     include_package_data=True,
     data_files=(
-        find_data_files_directory('manuskript/static/') +
+        find_data_files_directory('manuskript/static') +
         find_data_files_directory(
-            'rekall_gui/plugins/webconsole/static/')
+            'rekall_gui/plugins/webconsole/static')
     ),
     entry_points="""
       [rekall.plugins]

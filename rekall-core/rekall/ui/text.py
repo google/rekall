@@ -1442,6 +1442,12 @@ class TextRenderer(renderer_module.BaseRenderer):
         if directory:
             filename = os.path.join(directory, "./", filename)
 
+        if "w" in mode:
+            try:
+                os.makedirs(directory)
+            except (OSError, IOError):
+                pass
+
         return open(filename, mode)
 
 

@@ -283,6 +283,9 @@ class BaseAddressSpace(object):
     def ConfigureSession(self, session_obj):
         """Implement this method if you need to configure the session."""
 
+    def close(self):
+        pass
+        
 
 # This is a specialised AS for use internally - Its used to provide
 # transparent support for a string buffer so types can be

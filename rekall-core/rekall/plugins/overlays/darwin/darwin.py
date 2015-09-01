@@ -589,9 +589,37 @@ class LIST_ENTRY(obj.Struct):
 
 
 class queue_entry(basic.ListMixIn, obj.Struct):
+    """A queue_entry is an externalized linked list.
+
+    Although the queue_entry is defined as:
+
+    struct queue_entry {
+	struct queue_entry	*next;		/* next element */
+	struct queue_entry	*prev;		/* previous element */
+    };
+
+    This is in fact not correct since the next, and prev pointers
+    point to the start of the next struct. A queue_entry has a queue
+    head which is also a queue entry and this can eb iterated over
+    using the list_of_type method.
+
+    NOTE: list_of_type should only be called on the head queue_entry.
+    """
     _forward = "next"
     _backward = "prev"
 
+    def list_of_type(self, type, member):
+        seen = set()
+        seen.add(self.prev.v())
+        
+        item = self.next.dereference_as(type)
+        while item != None:
+            yield item
+            if item.obj_offset in seen:
+                return
+
+            item = item.m(member).next.dereference_as(type)
+    
 
 class sockaddr_dl(obj.Struct):
     def __unicode__(self):

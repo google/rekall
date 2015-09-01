@@ -41,7 +41,12 @@ for entry_point in iter_entry_points(group='rekall.plugins', name=None):
 from rekall import plugins
 
 
-class Run(plugin.Command):
+config.DeclareOption(
+    "--live", default=False, type="Boolean",
+    help="Enable live memory analysis.")
+
+
+class Run(plugin.PriviledgedMixIn, plugin.Command):
     """A plugin which runs its argument (using eval).
 
     Note: This plugin is only defined and available when using the main entry
@@ -67,16 +72,23 @@ class Run(plugin.Command):
 
         exec script in self.session.locals
 
-
+        
 def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
     user_session.session_list.append(user_session)
-    text_renderer = text.TextRenderer(session=user_session)
+    
+    # Alow all special plugins to run.
+    user_session.priviledged = True
 
-    with text_renderer.start():
-        plugin_cls, flags = args.parse_args(argv=argv,
-                                            user_session=user_session)
+    def global_arg_cb(global_flags, _):
+        if global_flags.live:
+            user_session.live_plugin = user_session.plugins.live()
+            user_session.live_plugin.live()
+            
+    plugin_cls, flags = args.parse_args(
+        argv=argv, global_arg_cb=global_arg_cb,
+        user_session=user_session)
 
     try:
         # Run the plugin with plugin specific args.
@@ -87,8 +99,8 @@ def main(argv=None):
             pdb.post_mortem(sys.exc_info()[2])
         raise
     finally:
+        user_session.live_plugin.close()
         user_session.Flush()
-
 
 if __name__ == '__main__':
     main()

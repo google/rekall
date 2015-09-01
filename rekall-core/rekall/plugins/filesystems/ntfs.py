@@ -77,7 +77,7 @@ class NTFSDetector(guess_profile.DetectionMethod):
         ntfs_profile = self.session.LoadProfile("ntfs")
         try:
             ntfs = NTFS(address_space=address_space, session=self.session)
-            self.session.SetCache("ntfs", ntfs)
+            self.session.SetCache("ntfs", ntfs, volatile=False)
 
             return ntfs_profile
         except NTFSParseError:
@@ -1036,7 +1036,7 @@ class NTFSPlugins(plugin.PhysicalASMixin, plugin.ProfileCommand):
         if self.ntfs == None:
             self.ntfs = NTFS(self.session.physical_address_space,
                              session=self.session)
-            self.session.SetCache("ntfs", self.ntfs)
+            self.session.SetCache("ntfs", self.ntfs, volatile=False)
             self.session.ntfs = self.ntfs
 
 

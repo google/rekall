@@ -124,14 +124,16 @@ class Win32FileAddressSpace(Win32AddressSpace):
 
         # If we can not get the file size it means this is not a regular file -
         # maybe a device.
+        self.fhandle_as = Win32FileWrapper(fhandle)
         try:
             file_size = win32file.GetFileSize(fhandle)
-            self.fhandle_as = Win32FileWrapper(fhandle)
             self.add_run(0, 0, file_size, self.fhandle_as)
         except pywintypes.error:
-            raise addrspace.ASAssertionError("Not a regular file.")
+            # This may be a device, we just read the whole space.
+            self.add_run(0, 0, 2**63, self.fhandle_as)
+            self.volatile = True
 
-
+            
 class WinPmemAddressSpace(Win32AddressSpace):
     """An address space specifically designed for communicating with WinPmem."""
 
@@ -167,7 +169,8 @@ class WinPmemAddressSpace(Win32AddressSpace):
         try:
             self.ParseMemoryRuns(fhandle)
         except Exception:
-            self.add_run(0, 0, 2**63, self.fhandle_as)
+            raise addrspace.ASAssertionError(
+                "This is not a WinPmem based driver.")
 
         # Key: lower cased filename, value: offset where it is mapped.
         self.mapped_files = {}
@@ -206,30 +209,30 @@ class WinPmemAddressSpace(Win32AddressSpace):
         self.memory_parameters = dict(zip(self.FIELDS, struct.unpack_from(
             fmt_string, result)))
 
-        self.dtb = self.memory_parameters["CR3"]
-        self.session.SetCache("dtb", int(self.dtb))
-
         offset = struct.calcsize(fmt_string)
-
         for x in xrange(self.memory_parameters["NumberOfRuns"]):
             start, length = struct.unpack_from("QQ", result, x * 16 + offset)
             self.add_run(start, start, length, self.fhandle_as)
+
+    def ConfigureSession(self, session):
+        dtb = self.memory_parameters["CR3"]
+        self.session.SetCache("dtb", int(dtb), volatile=False)
 
         # Get the kernel base directly from the winpmem driver if that is
         # available.
         kernel_base = self.memory_parameters["KernBase"]
         if kernel_base > 0:
-            self.session.SetCache("kernel_base", kernel_base)
-
+            self.session.SetCache("kernel_base", kernel_base, volatile=False)
+            
     def _map_raw_filename(self, filename):
         drive, base_filename = os.path.splitdrive(filename)
         try:
             ntfs_session = self.filesystems[drive]
         except KeyError:
             ntfs_session = self.filesystems[drive] = self.session.add_session(
-                filename=r"\\.\%s" % drive,
+                filename=r"\\.\%s" % drive, verbose=True,
                 profile="ntfs")
-
+            
         # Stat the MFT inode (MFT 2).
         mft_stat = ntfs_session.plugins.istat(2)
 

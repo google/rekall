@@ -27,6 +27,7 @@ acquire more relevant information (e.g. mapped files etc).
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import os
+import posixpath
 import re
 import stat
 import time
@@ -35,6 +36,7 @@ from rekall import constants
 from rekall import plugin
 from rekall import testlib
 from rekall import yaml_utils
+from rekall.plugins import core
 
 from pyaff4 import data_store
 from pyaff4 import aff4_image
@@ -46,7 +48,7 @@ from pyaff4 import rdfvalue
 from pyaff4 import plugins  # pylint: disable=unused-import
 
 
-class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
+class AFF4Acquire(plugin.Command):
     """Copy the physical address space to an AFF4 file.
 
 
@@ -106,7 +108,7 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
     def copy_physical_address_space(self, renderer, resolver, volume):
         """Copies the physical address space to the output volume."""
         image_urn = volume.urn.Append("PhysicalMemory")
-        source = self.physical_address_space
+        source = self.session.physical_address_space
 
         # Mark the stream as a physical memory stream.
         resolver.Set(image_urn, lexicon.AFF4_CATEGORY,
@@ -362,6 +364,19 @@ class AFF4Acquire(plugin.PhysicalASMixin, plugin.ProfileCommand):
         if self.compression:
             renderer.format("Will use compression: {0}\n", self.compression)
 
+        # If no address space is specified we try to operate in live mode.
+        if self.session.plugins.load_as().GetPhysicalAddressSpace() == None:
+            renderer.format("Will load physical address space from live plugin.")
+            live = self.session.plugins.live()
+            try:
+                live.live()
+                self.render_acquisition(renderer)
+            finally:
+                live.close()
+        else:
+            self.render_acquisition(renderer)
+
+    def render_acquisition(self, renderer):
         with renderer.open(filename=self.destination, mode="w+b") as out_fd:
             with data_store.MemoryDataStore() as resolver:
                 output_urn = rdfvalue.URN.FromFileName(out_fd.name)
@@ -395,3 +410,185 @@ class TestAFF4Acquire(testlib.SimpleTestCase):
 
         # Compare the entire table
         self.assertEqual(previous, current)
+
+
+class AFF4Ls(plugin.Command):
+    """List the content of an AFF4 file."""
+
+    name = "aff4ls"
+
+    @classmethod
+    def args(cls, parser):
+        super(AFF4Ls, cls).args(parser)
+
+        parser.add_argument(
+            "-l", "--long", default=False, type="Boolean",
+            help="Include additional information about each stream.")
+
+        parser.add_argument(
+            "volume", default=None, required=True,
+            help="Volume to list.")
+
+    def __init__(self, long=False, volume=None, **kwargs):
+        super(AFF4Ls, self).__init__(**kwargs)
+        self.long = long
+        self.volume_path = volume
+        self.resolver = data_store.MemoryDataStore()
+
+    def render_long(self, renderer, volume):
+        """Render a detailed description of the contents of an AFF4 volume."""
+        renderer.table_header([
+            dict(name="Size", width=15),
+            dict(name="Original Name", width=50),
+            dict(name="URN", width=150),
+        ])
+
+        for subject in self.resolver.QuerySubject(
+                re.compile(".")):
+            urn = unicode(subject)
+            filename = None
+            if (self.resolver.Get(subject, lexicon.AFF4_CATEGORY) ==
+                lexicon.AFF4_MEMORY_PHYSICAL):
+                filename = "Physical Memory"
+            else:
+                filename = self.resolver.Get(subject, lexicon.AFF4_STREAM_ORIGINAL_FILENAME)
+
+            if not filename:
+                filename = volume.urn.RelativePath(urn)
+
+            size = self.resolver.Get(subject, lexicon.AFF4_STREAM_SIZE)
+            if size is None and filename == "Physical Memory":
+                with self.resolver.AFF4FactoryOpen(urn) as fd:
+                    last_range = fd.GetRanges()[-1]
+                    size = last_range.map_offset + last_range.length
+
+            renderer.table_row(size, filename, urn)
+
+    def interesting_streams(self, volume):
+        """Returns the interesting URNs and their filenames."""
+        urns = {}
+
+        for (subject, _, value) in self.resolver.QueryPredicate(
+                lexicon.AFF4_STREAM_ORIGINAL_FILENAME):
+            # Normalize the filename for case insensitive filesysyems.
+            urn = unicode(subject)
+            urns[urn] = unicode(value)
+
+        for (subject, _, value) in self.resolver.QueryPredicate(
+                lexicon.AFF4_CATEGORY):
+            if value == lexicon.AFF4_MEMORY_PHYSICAL:
+                urn = unicode(subject)
+                urns[urn] = "Physical Memory"
+
+        # Add metadata files.
+        for subject in self.resolver.QuerySubject(
+                re.compile(".+(yaml|turtle)")):
+                urn = unicode(subject)
+                urns[urn] = volume.urn.RelativePath(urn)
+
+        return urns
+
+    def render_short(self, renderer, volume):
+        """Render a concise description of the contents of an AFF4 volume."""
+        renderer.table_header([
+            dict(name="Size", width=15),
+            dict(name="Original Name", width=50),
+            dict(name="URN", width=150),
+        ])
+
+        for urn, filename in self.interesting_streams(volume).iteritems():
+            size = self.resolver.Get(urn, lexicon.AFF4_STREAM_SIZE)
+            if size is None and filename == "Physical Memory":
+                with self.resolver.AFF4FactoryOpen(urn) as fd:
+                    last_range = fd.GetRanges()[-1]
+                    size = last_range.map_offset + last_range.length
+
+            renderer.table_row(size, filename, urn)
+
+    def render(self, renderer):
+        volume_urn = rdfvalue.URN().FromFileName(self.volume_path)
+        with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
+            if self.long:
+                self.render_long(renderer, volume)
+            else:
+                self.render_short(renderer, volume)
+
+
+class AFF4Export(core.DirectoryDumperMixin, plugin.Command):
+    """Exports all the streams in an AFF4 Volume."""
+    dump_dir_optional = False
+    default_dump_dir = None
+
+    BUFFERSIZE = 1024 * 1024
+
+    name = "aff4export"
+
+    @classmethod
+    def args(cls, parser):
+        super(AFF4Export, cls).args(parser)
+
+        parser.add_argument(
+            "--regex", default=".",
+            help="Regex of filenames to dump.")
+
+        parser.add_argument(
+            "volume", default=None, required=True,
+            help="Volume to list.")
+
+    def __init__(self, volume=None, regex=".", **kwargs):
+        super(AFF4Export, self).__init__(**kwargs)
+        self.volume_path = volume
+        self.regex = re.compile(regex)
+        self.aff4ls = self.session.plugins.aff4ls()
+        self.resolver = self.aff4ls.resolver
+
+    def _sanitize_filename(self, filename):
+        filename = filename.replace("\\", "/")
+        filename = filename.strip("/")
+        result = []
+        for x in filename:
+            if x == "/":
+                result.append("_")
+            elif x.isalnum() or x in "_-=.,; ":
+                result.append(x)
+            else:
+                result.append("%" + x.encode("hex"))
+
+        return "".join(result)
+
+    def copy_stream(self, in_fd, out_fd, length=2**64):
+        total = 0
+        while 1:
+            available_to_read = min(length - total, self.BUFFERSIZE)
+            data = in_fd.read(available_to_read)
+            if not data:
+                break
+
+            out_fd.write(data)
+            total += len(data)
+            self.session.report_progress("Reading %s @ %#x", in_fd.urn, total)
+
+    def copy_map(self, in_fd, out_fd):
+        for range in in_fd.GetRanges():
+            self.session.logging.info("Range %s", range)
+            out_fd.seek(range.map_offset)
+            in_fd.seek(range.map_offset)
+            self.copy_stream(in_fd, out_fd, range.length)
+
+    def render(self, renderer):
+        volume_urn = rdfvalue.URN().FromFileName(self.volume_path)
+        with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
+            for urn, filename in self.aff4ls.interesting_streams(volume).items():
+                if self.regex.match(filename):
+                    # Force the file to be under the dumpdir.
+                    filename=self._sanitize_filename(filename)
+                    self.session.logging.info("Dumping %s", filename)
+
+                    with renderer.open(directory=self.dump_dir,
+                                       filename=filename,
+                                       mode="wb") as out_fd:
+                        with self.resolver.AFF4FactoryOpen(urn) as in_fd:
+                            if isinstance(in_fd, aff4_map.AFF4Map):
+                                self.copy_map(in_fd, out_fd)
+                            else:
+                                self.copy_stream(in_fd, out_fd)

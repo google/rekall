@@ -199,7 +199,6 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         return filename
 
-
     def _LoadMemoryImage(self, image_urn):
         aff4_stream = self.resolver.AFF4FactoryOpen(image_urn)
         self.image = AFF4StreamWrapper(aff4_stream)

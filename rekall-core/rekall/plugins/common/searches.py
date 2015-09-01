@@ -163,3 +163,7 @@ class SocketNetstat(DarwinOnlyMixin, entities.EntityFind):
 class EntityNetstat(DarwinOnlyMixin, entities.FindBatch):
     __name = "netstat"
     batch = ["ipnetstat", "unix_sockets"]
+
+
+class TestEntityNetstat(testlib.SortedComparison):
+    PARAMETERS = dict(commandline="netstat")
