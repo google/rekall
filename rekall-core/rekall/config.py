@@ -35,6 +35,7 @@ import collections
 import logging
 import yaml
 import os
+import sys
 import tempfile
 
 from rekall import constants
@@ -145,6 +146,7 @@ class CommandMetadata(object):
 
         return args
 
+
 def GetHomeDir():
     return (os.environ.get("HOME") or      # Unix
             os.environ.get("USERPROFILE") or # Windows
@@ -179,18 +181,30 @@ def GetConfigFile():
       configuration stored in the config file. If the file is not found, returns
       an empty configuration.
     """
-    search_path = [".rekallrc"]  # Current directory.
+    search_path = [
+        # Next to the main binary (in case of pyinstaller - rekall.exe).
+        os.path.join(os.path.dirname(sys.executable), ".rekallrc"),
+        ".rekallrc",   # Current directory.
+        "/etc/rekallrc",
+    ]
+
+    # If we still can not find it, look for it in the home directory.
     homedir = GetHomeDir()
     if homedir:
         search_path.append("%s/.rekallrc" % homedir)
-
-    search_path.append("/etc/rekallrc")
 
     for path in search_path:
         try:
             with open(path, "rb") as fd:
                 result = yaml.safe_load(fd)
                 logging.debug("Loaded configuration from %s", path)
+
+                # Allow the config file to update the
+                # environment. This is handy in standalone deployment
+                # where one can update %HOME% and ensure Rekall does
+                # not touch the drive.
+                os.environ.update(result.get("environment", {}))
+
                 return result
 
         except (IOError, ValueError):
