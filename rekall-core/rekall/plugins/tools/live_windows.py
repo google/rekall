@@ -102,7 +102,7 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
         self.session.logging.debug("Loading driver from %s", driver)
         
         if not os.access(driver, os.R_OK):
-            raise plugin.PluginError("Driver file is not accessible.")
+            raise plugin.PluginError("Driver file %s is not accessible." % driver)
 
         # Must have absolute path here.
         self.hScm = win32service.OpenSCManager(
