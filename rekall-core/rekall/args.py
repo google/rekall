@@ -60,6 +60,8 @@ class RekallArgParser(argparse.ArgumentParser):
 
     def __init__(self, session=None, **kwargs):
         kwargs["formatter_class"] = RekallHelpFormatter
+        if session == None:
+            raise RuntimeError("Session must be set")
         self.session = session
         super(RekallArgParser, self).__init__(**kwargs)
 
@@ -385,6 +387,7 @@ def parse_args(argv=None, user_session=None, global_arg_cb=None):
         description=constants.BANNER,
         conflict_handler='resolve',
         add_help=True,
+        session=user_session,
         epilog="When no module is provided, drops into interactive mode",
         formatter_class=RekallHelpFormatter)
 

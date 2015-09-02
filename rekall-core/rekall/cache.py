@@ -149,6 +149,9 @@ class FileCache(Cache):
     def __init__(self, session):
         super(FileCache, self).__init__()
         self._io_manager = None
+        if session == None:
+            raise RuntimeError("Session must be set")
+
         self.session = session
         self.fingerprint = None
         self.name = None

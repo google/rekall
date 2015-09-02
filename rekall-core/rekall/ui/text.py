@@ -127,6 +127,9 @@ class Pager(object):
     encoding = "utf8"
 
     def __init__(self, session=None, term_fd=None):
+        if session == None:
+            raise RuntimeError("Session must be set")
+
         self.session = session
 
         # More is the least common denominator of pagers :-(. Less is better,
@@ -269,6 +272,9 @@ class Colorizer(object):
           color: If "no" we suppress using colors, even if the output stream
              can support them.
         """
+        if session == None:
+            raise RuntimeError("Session must be set")
+
         self.session = session
         self.logging = self.session.logging.getChild("colorizer")
 

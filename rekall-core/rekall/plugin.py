@@ -345,6 +345,9 @@ class PluginMetadataDatabase(object):
     """A database of all the currently registered plugin's metadata."""
 
     def __init__(self, session):
+        if session == None:
+            raise RuntimeError("Session must be set")
+
         self.session = session
         self.Rebuild()
 

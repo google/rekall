@@ -110,6 +110,9 @@ class IOManager(object):
         self.mode = mode
         self.urn = urn
         self.version = version
+        if session == None:
+            raise RuntimeError("Session must be set")
+
         self.session = session
         self.pretty_print = pretty_print
         self._inventory = None

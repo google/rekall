@@ -264,32 +264,30 @@ class WinImageFingerprint(common.AbstractWindowsParameterHook):
         profile = self.session.profile
         phys_as = self.session.physical_address_space
 
+        address_space = self.session.GetParameter("default_address_space")
+
         label = profile.get_constant_object("NtBuildLab", "String")
-        result.append(
-            (self.session.kernel_address_space.vtop(label.obj_offset),
-             label.v()))
+        result.append((address_space.vtop(label.obj_offset), label.v()))
 
         label = profile.get_constant_object("NtBuildLabEx", "String")
-        result.append(
-            (self.session.kernel_address_space.vtop(label.obj_offset),
-             label.v()))
+        result.append((address_space.vtop(label.obj_offset), label.v()))
 
         kuser_shared = profile._KUSER_SHARED_DATA(
             profile.get_constant("KI_USER_SHARED_DATA"))
 
-        system_time_offset = self.session.kernel_address_space.vtop(
+        system_time_offset = address_space.vtop(
             kuser_shared.SystemTime.obj_offset)
+
         result.append((system_time_offset, phys_as.read(system_time_offset, 8)))
 
-        tick_time_offset = self.session.kernel_address_space.vtop(
+        tick_time_offset = address_space.vtop(
             kuser_shared.multi_m("TickCountQuad", "TickCountLow").obj_offset)
         result.append((tick_time_offset, phys_as.read(tick_time_offset, 8)))
 
         # List of processes should also be pretty unique.
         for task in self.session.plugins.pslist().filter_processes():
             name = task.name.cast("String", length=30)
-            task_name_offset = self.session.kernel_address_space.vtop(
-                name.obj_offset)
+            task_name_offset = address_space.vtop(name.obj_offset)
 
             # Read the raw data for the task name. Usually the task name is
             # encoded in utf8 but then we might not be able to compare it

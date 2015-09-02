@@ -43,6 +43,9 @@ class ParameterHook(object):
         return True
 
     def __init__(self, session):
+        if session == None:
+            raise RuntimeError("Session must be set")
+
         self.session = session
 
     def calculate(self):

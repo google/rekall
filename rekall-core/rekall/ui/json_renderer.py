@@ -86,6 +86,14 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
     renderers = ["JsonRenderer"]
 
     @classmethod
+    def cache_key_from_object(cls, item):
+        """Get the cache key from the object."""
+        try:
+            return item._object_id
+        except AttributeError:
+            return id(item)
+        
+    @classmethod
     def FromEncoded(cls, item, renderer):
         """Get an JsonObjectRenderer class to parse the encoded item."""
         if isinstance(item, dict):
@@ -229,6 +237,7 @@ class StateBasedObjectRenderer(JsonObjectRenderer):
 
     @classmethod
     def cache_key(cls, item):
+        """Get the decoding cache key from the json safe encoding."""
         return item.get("id")
 
     def GetState(self, item, **_):
@@ -369,47 +378,11 @@ class JSTreeNodeRenderer(StateBasedObjectRenderer):
 
 
 class JsonEncoder(object):
-    def __init__(self, session=None, compression=False, renderer=None):
-        self.compression = compression
+    def __init__(self, session=None, renderer=None):
         self.renderer = renderer
         self.session = session
 
-        # Maps lexicon id to a json safe object.
-        self.lexicon = {}
-
-        # Maps json safe objects into a lexicon id.
-        self.reverse_lexicon = {}
-
-        # A counter used to generate a unique id in the lexicon.
-        self.lexicon_counter = 0
-
-        self.cache = {}
-
-    def GetLexicon(self):
-        return self.lexicon
-
-    def flush(self):
-        self.lexicon.clear()
-        self.reverse_lexicon.clear()
-        self.lexicon_counter = 0
-
-    def _get_encoded_id(self, value):
-        """Gets the lexicon id of the value.
-
-        If the value does not exist in the lexicon, make a new ID and store the
-        value in the lexicon.
-
-        Args:
-          value: A Json safe python object. NOTE: This must also be hasheable.
-        """
-        encoded_id = self.reverse_lexicon.get(value)
-        if encoded_id is None:
-            self.lexicon_counter += 1
-            encoded_id = str(self.lexicon_counter)
-            self.reverse_lexicon[value] = encoded_id
-            self.lexicon[encoded_id] = value
-
-        return encoded_id
+        self.cache = utils.FastStore(100)
 
     def Encode(self, item, **options):
         """Convert item to a json safe object."""
@@ -417,33 +390,15 @@ class JsonEncoder(object):
         object_renderer = JsonObjectRenderer.ForTarget(item, self.renderer)(
             session=self.session, renderer=self.renderer)
 
-        json_safe_item = object_renderer.EncodeToJsonSafe(item, **options)
+        # First check the cache.
+        cache_key = object_renderer.cache_key_from_object(item)
+        try:
+            return self.cache.Get(cache_key)
+        except KeyError:
+            json_safe_item = object_renderer.EncodeToJsonSafe(item, **options)
 
-        # If compression is enabled we compress as well.
-        if self.compression:
-            return self.Compress(json_safe_item)
-
-        return json_safe_item
-
-    def Compress(self, item):
-        """Compresses the item based on the lexicon.
-
-        Args:
-          item: A json safe object (e.g. as obtained by the Encode() method.
-
-        Returns:
-          A compressed object. Callers need to also obtain the lexicon using
-          GetLexicon() in order to decode the data.
-        """
-        if isinstance(item, dict):
-            # Compressed dicts are marked as such.
-            result = {"_": 1}
-            for k, v in item.items():
-                result[self.Compress(k)] = self.Compress(v)
-
-            return result
-
-        return self._get_encoded_id(item)
+            self.cache.Put(cache_key, json_safe_item)
+            return json_safe_item
 
 
 class _Empty(object):
@@ -459,34 +414,6 @@ class JsonDecoder(object):
     def __init__(self, session, renderer):
         self.session = session
         self.renderer = renderer
-        self.lexicon = {}
-
-    def SetLexicon(self, lexicon):
-        self.lexicon = lexicon
-
-    def _decompress_value(self, value):
-        try:
-            return self.lexicon[str(value)]
-        except KeyError:
-            raise DecodingError("Lexicon corruption: Tag %s" % value)
-
-    def Decompress(self, item, options):
-        if "_" in item:
-            state = {}
-            for k, v in item.items():
-                if k == "_":
-                    continue
-
-                decoded_key = self._decompress_value(k)
-                decoded_value = self._decompress_value(v)
-                if decoded_value.__class__ is dict:
-                    decoded_value = self.Decode(decoded_value, options)
-
-                state[decoded_key] = decoded_value
-
-            return state
-
-        return item
 
     def Decode(self, item, options=None):
         if options is None:
@@ -545,9 +472,6 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     Currently the following commands are supported:
 
-    l: Reset the lexicon. Followed by a lexicon dict. Following entries will be
-       decoded with this lexicon.
-
     m: This is a metadata, followed by a dict of various metadata.
 
     s: Start a new section. Followed by section name.
@@ -563,6 +487,8 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     p: A progress message. Followed by a single string which is the formatted
        message.
+
+    L: Log message sent via session.logging logger.
     """
 
     name = "json"
@@ -603,7 +529,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
             fd = sys.stdout
 
         self.fd = fd
-        self.encoder = JsonEncoder(compression=False, renderer=self)
+        self.encoder = JsonEncoder(renderer=self)
         self.decoder = JsonDecoder(session=self.session, renderer=self)
 
         # A general purpose cache for encoders and decoders.
@@ -668,7 +594,6 @@ class JsonRenderer(renderer_module.BaseRenderer):
 
     def flush(self):
         self.write_data_stream()
-        self.encoder.flush()
 
         # We store the data here.
         self.data = []

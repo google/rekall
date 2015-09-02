@@ -76,13 +76,11 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
                 dict(a="hello"),
                 dict(b=dict(a="hello")), # Nested dict.
             ]:
-            self.encoder.flush()
             data = self.encoder.Encode(case)
             logging.debug("%s->%s" % (case, data))
 
             # Make sure the data is JSON serializable.
             self.assertEqual(data, json.loads(json.dumps(data)))
-            self.decoder.SetLexicon(self.encoder.GetLexicon())
             self.assertEqual(case, self.decoder.Decode(data))
 
     def testObjectSerization(self):
@@ -95,14 +93,12 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         seamlessly.
         """
         for task in self.session.plugins.pslist().filter_processes():
-            self.encoder.flush()
             data = self.encoder.Encode(task)
             logging.debug("%r->%s" % (task, data))
 
             # Make sure the data is JSON serializable.
             self.assertEqual(data, json.loads(json.dumps(data)))
 
-            self.decoder.SetLexicon(self.encoder.GetLexicon())
             decoded_task = self.decoder.Decode(data)
             self.assertEqual(task.obj_offset, decoded_task.obj_offset)
             self.assertEqual(task.obj_name, decoded_task.obj_name)

@@ -203,6 +203,9 @@ class FastStore(object):
             self.lock = threading.RLock()
         self.hits = self.misses = 0
 
+    def __len__(self):
+        return len(self._hash)
+    
     @Synchronized
     def Expire(self):
         """Expires old cache entries."""
@@ -979,3 +982,14 @@ def CaseInsensitiveDictLookup(key, dictionary):
                 return v
 
     return result
+
+
+def TimeIt(f):
+    def NewFunction(self, *args, **kw):
+        try:
+            now = time.time()
+            return f(self, *args, **kw)
+        finally:
+            print "Took %s sec" % (time.time() - now)
+        
+    return NewFunction

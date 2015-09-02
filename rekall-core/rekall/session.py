@@ -543,7 +543,7 @@ class Session(object):
         if self.volatile:
             cache_type = "timed"
 
-        self.cache = cache.Factory(self.session, cache_type)
+        self.cache = cache.Factory(self, cache_type)
 
     @property
     def default_address_space(self):

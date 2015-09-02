@@ -231,18 +231,17 @@ class DarwinImageFingerprint(common.AbstractDarwinParameterHook):
         profile = self.session.profile
         phys_as = self.session.physical_address_space
 
+        address_space = self.session.GetParameter("default_address_space")
+        
         label = profile.get_constant_object("_osversion", "String")
-        result.append((self.session.kernel_address_space.vtop(
-            label.obj_offset), label.v()))
+        result.append((address_space.vtop(label.obj_offset), label.v()))
 
         label = profile.get_constant_object("_version", "String")
-        result.append((self.session.kernel_address_space.vtop(
-            label.obj_offset), label.v()))
+        result.append((address_space.vtop(label.obj_offset), label.v()))
 
         label = profile.get_constant_object("_sched_tick", "String",
                                             length=8, term=None)
-        result.append((self.session.kernel_address_space.vtop(
-            label.obj_offset), label.v()))
+        result.append((address_space.vtop(label.obj_offset), label.v()))
 
         catfish_offset = self.session.GetParameter("catfish_offset")
         result.append((catfish_offset, phys_as.read(catfish_offset, 8)))
@@ -250,8 +249,7 @@ class DarwinImageFingerprint(common.AbstractDarwinParameterHook):
         # List of processes should also be pretty unique.
         for task in self.session.plugins.pslist().filter_processes():
             name = task.name.cast("String", length=30)
-            task_name_offset = self.session.kernel_address_space.vtop(
-                name.obj_offset)
+            task_name_offset = address_space.vtop(name.obj_offset)
 
             result.append((task_name_offset, name.v()))
 
