@@ -361,7 +361,7 @@ exit 0
         result = self.GenerateInlineTests(config)
 
         # Pull the profile path etc from the rekall config file.
-        kwargs = rekall_config.GetConfigFile()
+        kwargs = rekall_config.GetConfigFile(session.Session())
 
         # Get the disabled tests.
         disabled = config.pop("disabled", [])

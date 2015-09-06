@@ -193,7 +193,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
         user_session = rekall_session.InteractiveSession()
         with user_session.state as state:
-            config.MergeConfigOptions(state)
+            config.MergeConfigOptions(state, user_session)
             for k, v in config_options.items():
                 if k.startswith("--"):
                     state.Set(k[2:], v)
