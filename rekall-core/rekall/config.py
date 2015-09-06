@@ -147,10 +147,13 @@ class CommandMetadata(object):
         return args
 
 
-def GetHomeDir():
-    return (os.environ.get("HOME") or      # Unix
-            os.environ.get("USERPROFILE") or # Windows
-            tempfile.gettempdir()) # Fallback tmp dir.
+def GetHomeDir(session):
+    return (
+        session.GetParameter("home", cached=False) or
+        os.environ.get("HOME") or      # Unix
+        os.environ.get("USERPROFILE") or # Windows
+        tempfile.gettempdir() or  # Fallback tmp dir.
+        ".")
 
 
 # This is the configuration file template which will be created if the user does
@@ -158,9 +161,6 @@ def GetHomeDir():
 # options, rather to ensure that reasonable defaults are specified initially.
 DEFAULT_CONFIGURATION = dict(
     repository_path=constants.PROFILE_REPOSITORIES,
-
-    # By default we just drop the notebooks at the home directory.
-    notebook_dir=GetHomeDir(),
 
     # This is the path of the cache directory - given relative to the config
     # file (or it can be specified as an absolute path).
@@ -172,7 +172,7 @@ DEFAULT_CONFIGURATION = dict(
 OPTIONS = CommandMetadata()
 
 
-def GetConfigFile():
+def GetConfigFile(session):
     """Gets the configuration stored in the config file.
 
     Searches for the config file in reasonable locations.
@@ -185,13 +185,9 @@ def GetConfigFile():
         # Next to the main binary (in case of pyinstaller - rekall.exe).
         os.path.join(os.path.dirname(sys.executable), ".rekallrc"),
         ".rekallrc",   # Current directory.
+        os.path.join(GetHomeDir(session), ".rekallrc"), # Home directory overrides system.
         "/etc/rekallrc",
     ]
-
-    # If we still can not find it, look for it in the home directory.
-    homedir = GetHomeDir()
-    if homedir:
-        search_path.append("%s/.rekallrc" % homedir)
 
     for path in search_path:
         try:
@@ -213,9 +209,9 @@ def GetConfigFile():
     return {}
 
 
-def CreateDefaultConfigFile():
+def CreateDefaultConfigFile(session):
     """Creates a default config file."""
-    homedir = GetHomeDir()
+    homedir = GetHomeDir(session)
     if homedir:
         try:
             filename = "%s/.rekallrc" % homedir
@@ -237,12 +233,12 @@ def CreateDefaultConfigFile():
     return DEFAULT_CONFIGURATION
 
 
-def MergeConfigOptions(state):
+def MergeConfigOptions(state, session):
     """Read the config file and apply the config options to the session."""
-    config_data = GetConfigFile()
+    config_data = GetConfigFile(session)
     # An empty configuration file - we try to initialize a new one.
     if not config_data:
-        config_data = CreateDefaultConfigFile()
+        config_data = CreateDefaultConfigFile(session)
 
     # First apply the defaults:
     for name, options in OPTIONS.args.iteritems():

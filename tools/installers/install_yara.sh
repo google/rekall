@@ -50,8 +50,3 @@ autoreconf --force --install
 autoreconf --force --install
 
 ./configure --prefix=$BUILD/autotools-bin && make && make install
-
-source $VIRTUALENV/bin/activate
-cd yara-python
-python setup.py build
-python setup.py install

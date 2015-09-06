@@ -310,7 +310,8 @@ class DirectoryIOManager(IOManager):
     def __init__(self, urn=None, **kwargs):
         super(DirectoryIOManager, self).__init__(**kwargs)
 
-        self.location = self.dump_dir = os.path.normpath(os.path.abspath(urn))
+        self.location = self.dump_dir = os.path.normpath(os.path.abspath(
+            os.path.expandvars(urn)))
         if not self.version:
             self.version = ""
 

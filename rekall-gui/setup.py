@@ -23,9 +23,9 @@
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
+import platform
 import versioneer
 
-from distutils import sysconfig
 
 try:
     from setuptools import find_packages, setup
@@ -50,6 +50,22 @@ if "unknown" in MY_VERSION:
         MY_VERSION = rekall.__version__
     except ImportError:
         pass
+
+install_requires=[
+    "rekall-core >= 1.4.0.pre3",
+    "ipython >= 3.0.0",
+    "codegen >= 1.0",
+    "Flask >= 0.10.1",
+    "Flask-Sockets >= 0",
+    "gevent >= 1.0.2",
+    "gevent-websocket >= 0.9.3",
+]
+
+
+# IPython's setup.py is broken since it does not include this dependency on
+# windows. For the other OS's this is OK.
+if platform.system() == "Windows":
+    install_requires.append("pyreadline >= 2.0")
 
 
 setup(
@@ -80,16 +96,5 @@ setup(
       [rekall.plugins]
       webconsole=rekall_gui.plugins.webconsole_plugin:RekallWebConsole
     """,
-
-    install_requires=[
-        "rekall-core >= 1.4.0.pre3",
-        "ipython >= 3.0.0",
-        "pyreadline >= 2.0",
-        "codegen >= 1.0",
-        "Flask >= 0.10.1",
-        "Flask-Sockets >= 0",
-        "gevent >= 1.0.2",
-        "gevent-websocket >= 0.9.3",
-        "ipython >= 3.0.0",
-    ],
+    install_requires=install_requires,
 )

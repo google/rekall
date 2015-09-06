@@ -50,7 +50,7 @@ class CachingManager(io_manager.IOManager):
     order = DELEGATE.order - 10
 
     def __init__(self, session=None, **kwargs):
-        cache_dir = session.GetParameter("cache_dir")
+        cache_dir = os.path.expandvars(session.GetParameter("cache_dir"))
 
         if not cache_dir:
             raise io_manager.IOManagerError(
@@ -58,8 +58,7 @@ class CachingManager(io_manager.IOManager):
                 "add a cache_dir parameter to ~/.rekallrc.")
 
         # Cache dir may be specified relative to the home directory.
-        if config.GetHomeDir():
-            cache_dir = os.path.join(config.GetHomeDir(), cache_dir)
+        cache_dir = os.path.join(config.GetHomeDir(session), cache_dir)
 
         if not os.access(cache_dir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
             try:

@@ -166,8 +166,10 @@ class FileCache(Cache):
         if not self.enabled:
             return
 
-        cache_dir = self.session.GetParameter("cache_dir", cached=False)
-        cache_dir = os.path.join(config.GetHomeDir(), cache_dir)
+        cache_dir = os.path.expandvars(
+            self.session.GetParameter("cache_dir", cached=False))
+
+        cache_dir = os.path.join(config.GetHomeDir(self.session), cache_dir)
 
         # Force the IO manager to be recreated if the cache dir has
         # changed. This allows the session to change it's cache directory on the

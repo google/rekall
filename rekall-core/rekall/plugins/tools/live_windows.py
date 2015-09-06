@@ -55,10 +55,10 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
     def args(cls, parser):
         parser.add_argument("--driver", default=None,
                             help="Driver file to load")
-        
+
         parser.add_argument("--device", default=r"\\.\pmem",
                             help="Device name to use")
-        
+
         parser.add_argument("--service_name", default=r"pmem",
                             help="Service name to use")
 
@@ -94,13 +94,13 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
                 driver = "winpmem_x86.sys"
             else:
                 raise plugin.PluginError("Unsupported architecture")
-            
+
             self.driver = os.path.join(rekall.RESOURCES_PATH,
                                        "WinPmem/%s" % driver)
 
         driver = os.path.join(os.getcwd(), self.driver)
         self.session.logging.debug("Loading driver from %s", driver)
-        
+
         if not os.access(driver, os.R_OK):
             raise plugin.PluginError("Driver file %s is not accessible." % driver)
 
@@ -121,7 +121,7 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
             self.session.logging.debug("Created service %s", self.name)
             # Remember to cleanup afterwards.
             self.we_started_service = True
-            
+
         except win32service.error as e:
             # Service is already there, try to open it instead.
             self.hSvc = win32service.OpenService(
@@ -145,7 +145,7 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
                 session=self.session, filename=self.device)
         except IOError as e:
             raise plugin.PluginError(*e.args)
-        
+
     def live(self):
         try:
             phys_as = win32.WinPmemAddressSpace(
@@ -162,7 +162,7 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
 
             else:
                 raise plugin.PluginError("%s" % e)
-            
+
         self.session.physical_address_space = phys_as
 
     def remove_service(self):
@@ -181,7 +181,14 @@ class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
     def close(self):
         if self.we_started_service:
             self.remove_service()
-            
+
+    def __enter__(self):
+        self.live()
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.close()
+
     def render(self, renderer):
         renderer.format("Launching live memory analysis\n")
         try:

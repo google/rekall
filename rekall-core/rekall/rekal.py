@@ -27,9 +27,10 @@ import logging
 import pdb
 import sys
 
-
+import rekall
 from rekall import args
 from rekall import config
+from rekall import constants
 from rekall import plugin
 from rekall import session
 from rekall.ui import text
@@ -44,6 +45,10 @@ from rekall import plugins
 config.DeclareOption(
     "--live", default=False, type="Boolean",
     help="Enable live memory analysis.")
+
+config.DeclareOption(
+    "--version", default=False, type="Boolean",
+    help="Prints the Rekall version and exits.")
 
 
 class Run(plugin.PriviledgedMixIn, plugin.Command):
@@ -72,20 +77,28 @@ class Run(plugin.PriviledgedMixIn, plugin.Command):
 
         exec script in self.session.locals
 
-        
+
 def main(argv=None):
     # New user interactive session (with extra bells and whistles).
     user_session = session.InteractiveSession()
     user_session.session_list.append(user_session)
-    
+
     # Alow all special plugins to run.
     user_session.priviledged = True
 
     def global_arg_cb(global_flags, _):
+        if global_flags.version:
+            print "This is Rekall Version %s (%s)" % (
+                constants.VERSION, constants.CODENAME)
+
+            print rekall.get_versions()
+            sys.exit(0)
+
         if global_flags.live:
             user_session.live_plugin = user_session.plugins.live()
             user_session.live_plugin.live()
-            
+
+
     plugin_cls, flags = args.parse_args(
         argv=argv, global_arg_cb=global_arg_cb,
         user_session=user_session)

@@ -70,6 +70,10 @@ config.DeclareOption(
     "--max_collector_cost", default=4, type="IntParser",
     help="If specified, collectors with higher cost will not be used.")
 
+config.DeclareOption(
+    "--home", default=None,
+    help="An alternative home directory path. If not set we use $HOME.")
+
 
 class PluginContainer(object):
     """A container for plugins.
@@ -183,6 +187,21 @@ class Configuration(utils.AttributeDict):
 
     def __repr__(self):
         return "<Configuration Object>"
+
+    def _set_home(self, home, _):
+        """Ensure the home directory is valid."""
+        if home:
+            home = os.path.abspath(home)
+            if not os.path.isdir(home):
+                raise ValueError("Home directory must be a directory.")
+        else:
+            home = config.GetHomeDir(self.session)
+
+        # We must update the environment so things like os.path.expandvars
+        # work.
+        os.environ["HOME"] = home
+        return home
+
 
     def _set_filename(self, filename, parameters):
         """Callback for when a filename is set in the session.
@@ -432,7 +451,7 @@ class Session(object):
 
     # Priviledged sessions are allowed to run dangerous plugins.
     priviledged = False
-    
+
     def __init__(self, **kwargs):
         self.progress = ProgressDispatcher()
 
@@ -1064,7 +1083,7 @@ class InteractiveSession(Session):
         # Configure the session from the config file and kwargs.
         if use_config_file:
             with self.state:
-                config.MergeConfigOptions(self.state)
+                config.MergeConfigOptions(self.state, self)
 
             with self.state:
                 for k, v in kwargs.items():

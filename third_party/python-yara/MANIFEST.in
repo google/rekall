@@ -1,0 +1,3 @@
+include config.h
+recursive-include yara/libyara/modules *
+prune build

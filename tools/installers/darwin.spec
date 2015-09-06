@@ -4,7 +4,7 @@ import sys
 import distorm3
 
 a = Analysis(
-    ['rekall/rekal.py'],
+    ['tools/installers/rekal.py'],
     hiddenimports=[],
     hookspath=None,
     runtime_hooks=None)
@@ -30,7 +30,7 @@ for dirpath, _, files in os.walk(sys.prefix):
         break
 
 if LIBYARA is None:
-    raise RuntimeException("Could not find yara.so.")
+    raise RuntimeError("Could not find yara.so.")
 
 
 LIBDISTORM3 = os.path.join(distorm3.__path__[0], "libdistorm3.so")
@@ -38,7 +38,7 @@ LIBDISTORM3 = os.path.join(distorm3.__path__[0], "libdistorm3.so")
 coll = COLLECT(
     exe,
     a.binaries + [
-        ("distorm3/libdistorm3.so", LIBDISTORM3, "BINARY"),
+        ("libdistorm3.so", LIBDISTORM3, "BINARY"),
         ("lib/yara.so", LIBYARA, "BINARY"),
     ],
     a.zipfiles,

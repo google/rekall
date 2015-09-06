@@ -18,9 +18,9 @@ def patch_distorm():
         re.S|re.M)
     replacement="""
 # Guess the DLL filename and load the library.
-import sys
+import sys, os
 if getattr(sys, "frozen", None):
-  _distorm_path = '.'
+  _distorm_path = os.path.dirname(sys.executable)
 else:
   _distorm_path = split(__file__)[0]
 """
@@ -50,7 +50,12 @@ def patch_gevent():
     with open(filename,  "wb") as fd:
         fd.write("")
         print "Patching %s" % filename
-        
-if __name__ == "__main__":
+
+
+def patch_all():
     patch_distorm()
     patch_gevent()
+
+
+if __name__ == "__main__":
+    patch_all()
