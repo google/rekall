@@ -389,6 +389,20 @@ class VirtualMachine(object):
 
         validated = False
 
+
+        # EPTP bits 11:6 are reserved and must be set to 0
+        # and the page_walk_length, bits 5:3, must be 3 (4 - 1)
+        #
+        # Ref: Intel(r) 64 and IA-32 Architectures Software Developer's Manual -
+        # System Programming Guide Volume 3B, 21-20, 21.6.11
+
+        page_walk_length = (vmcs.EPT_POINTER_FULL & 0b111000) >> 3
+
+        if (vmcs.EPT_POINTER_FULL & 0b111111000000 or
+            page_walk_length != 3):
+            self.vmcs_validation[vmcs] = validated
+            return validated
+
         # If we are dealing with L1 VMCS, the address space to validate
         # is the same as the VMCS.
         try:
@@ -401,7 +415,7 @@ class VirtualMachine(object):
                 self.base_session.report_progress(
                     "Validating VMCS %08X @ %08X" % (
                         vmcs.obj_offset, vaddr))
-            if paddr <= vmcs.obj_offset and vmcs.obj_offset < paddr + size:
+            if vmcs.obj_offset >= paddr and vmcs.obj_offset < paddr + size:
                 validated = True
                 break
         self.vmcs_validation[vmcs] = validated

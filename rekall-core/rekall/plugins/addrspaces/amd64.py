@@ -388,6 +388,10 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
         self.session.logging.debug(
             "Rebuilding the machine to physical mapping...")
+
+        if self.rebuilding_map:
+            raise RuntimeError("RebuildM2PMapping recursed... aborting.")
+
         self.rebuilding_map = True
         try:
             p2m_top_location = self.session.profile.get_constant_object(
