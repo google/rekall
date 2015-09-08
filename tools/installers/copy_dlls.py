@@ -36,7 +36,7 @@ def EnumMissingModules():
       process_handle, ctypes.byref(module_handle), ctypes.sizeof(module_handle),
       ctypes. byref(count))
 
-  # The size of a handle is pointer size (i.e. 64 bit of amd64 and 32 bit on
+  # The size of a handle is pointer size (i.e. 64 bit on amd64 and 32 bit on
   # i386).
   if sys.maxsize > 2 ** 32:
     handle_type = ctypes.c_ulonglong
@@ -51,7 +51,9 @@ def EnumMissingModules():
 
   for x in module_list:
     module_filename = win32process.GetModuleFileNameEx(process_handle, x).lower()
-    if "winsxs" in module_filename or "site-packages" in module_filename:
+    # PyInstaller is pretty bad in finding all the imported pyd files, and dlls.
+    if ("winsxs" in module_filename or "site-packages" in module_filename or
+        module_filename.endswith(".pyd")):
         yield module_filename
 
 target_dir = "dist/rekal"
