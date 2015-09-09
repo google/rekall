@@ -325,7 +325,6 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
     def __init__(self, **kwargs):
         super(XenParaVirtAMD64PagedMemory, self).__init__(**kwargs)
         self.page_offset = self.session.GetParameter("page_offset")
-        self.m2p_mapping = {}
         self._xen_features = None
         self.rebuilding_map = False
         if self.page_offset:
@@ -386,13 +385,17 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         reference.
         """
 
-        self.session.logging.debug(
-            "Rebuilding the machine to physical mapping...")
+        if self.session.GetParameter("m2p_mapping"):
+          return
 
         if self.rebuilding_map:
             raise RuntimeError("RebuildM2PMapping recursed... aborting.")
 
         self.rebuilding_map = True
+
+        self.session.logging.debug(
+            "Rebuilding the machine to physical mapping...")
+
         try:
             p2m_top_location = self.session.profile.get_constant_object(
                 "p2m_top", "Pointer", vm=self)
@@ -507,9 +510,9 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                             continue
 
                         new_mapping[mfn] = pfn
-
-            self.m2p_mapping = new_mapping
-            self.session.SetCache("mapping", self.m2p_mapping)
+            self.session.logging.debug("Caching m2p_mapping (%d entries)...",
+                                       len(new_mapping))
+            self.session.SetCache("m2p_mapping", new_mapping)
         finally:
             self.rebuilding_map = False
 
@@ -529,13 +532,14 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         This translates host physical addresses to guest physical.
         Requires a machine to physical mapping to have been calculated.
         """
-        if not self.m2p_mapping:
+        m2p_mapping = self.session.GetParameter("m2p_mapping", cached=True)
+        if not m2p_mapping:
           self._RebuildM2PMapping()
         machine_address = obj.Pointer.integer_to_address(machine_address)
         mfn = machine_address / 0x1000
-        pfn = self.m2p_mapping.get(mfn)
+        pfn = m2p_mapping.get(mfn)
         if pfn is None:
-            return 0
+            return obj.NoneObject("No PFN mapping found for MFN %d" % mfn)
         return (pfn * 0x1000) | (0xFFF & machine_address)
 
     def read_pte(self, vaddr, collection=None):
@@ -551,7 +555,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
     def vtop(self, vaddr):
         vaddr = obj.Pointer.integer_to_address(vaddr)
 
-        if not self.session.GetParameter("mapping"):
+        if not self.session.GetParameter("m2p_mapping"):
             # Simple shortcut for linux. This is required for the first set
             # of virtual to physical resolutions while we're building the
             # mapping.
@@ -565,3 +569,28 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                 self._RebuildM2PMapping()
 
         return super(XenParaVirtAMD64PagedMemory, self).vtop(vaddr)
+
+    def _get_available_PTEs(self, pte_table, vaddr, start=0):
+        """Returns PFNs for each PTE entry."""
+        tmp3 = vaddr
+        for i, pte_value in enumerate(pte_table):
+            # Each of the PTE values has to be translated back to a PFN, since
+            # they are MFNs.
+            pte_value = self.m2p(pte_value)
+
+            # When no translation was found, we skip the PTE, since we don't
+            # know where it's pointing to.
+            if pte_value == None:
+                continue
+
+            if not pte_value & self.valid_mask:
+                continue
+
+            vaddr = tmp3 | i << 12
+            next_vaddr = tmp3 | ((i + 1) << 12)
+            if start >= next_vaddr:
+                continue
+
+            yield (vaddr,
+                   (pte_value & 0xffffffffff000) | (vaddr & 0xfff),
+                   0x1000)

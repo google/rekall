@@ -734,7 +734,7 @@ class task_struct(obj.Struct):
         try:
             process_as = self.obj_vm.__class__(
                 base=self.obj_vm.base, session=self.obj_vm.session,
-                dtb=directory_table_base)
+                dtb=directory_table_base, profile=self.obj_profile)
 
         except AssertionError:
             return obj.NoneObject("Unable to get process AS")
@@ -1099,9 +1099,14 @@ class Linux(basic.BasicClasses):
         phys_addr detects the relocation and returns the correct physical
         address.
         """
-        return (obj.Pointer.integer_to_address(va)
-                - obj.Pointer.integer_to_address(self.GetPageOffset())
-                + self.GetRelocationDelta())
+        va_addr = obj.Pointer.integer_to_address(va)
+        page_offset_addr = obj.Pointer.integer_to_address(
+            self.GetPageOffset())
+
+        if va_addr >= page_offset_addr:
+            return (va_addr - page_offset_addr + self.GetRelocationDelta())
+        else:
+            return obj.NoneObject("Unable to translate VA 0x%x", va)
 
     def GetRelocationDelta(self):
         """Returns the number of bytes the kernel base is shifted."""
