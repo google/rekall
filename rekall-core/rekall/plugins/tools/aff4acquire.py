@@ -35,6 +35,7 @@ import time
 from rekall import constants
 from rekall import plugin
 from rekall import testlib
+from rekall import utils
 from rekall import yaml_utils
 from rekall.plugins import core
 
@@ -231,7 +232,7 @@ class AFF4Acquire(plugin.Command):
                         renderer, resolver, volume, filename)
 
     def _copy_file_to_image(self, renderer, resolver, volume, filename):
-        image_urn = volume.urn.Append(filename)
+        image_urn = volume.urn.Append(utils.SmartStr(filename))
         out_fd = None
         try:
             with open(filename, "rb") as in_fd:
@@ -268,7 +269,7 @@ class AFF4Acquire(plugin.Command):
                 resolver.Close(out_fd)
 
     def _copy_raw_file_to_image(self, renderer, resolver, volume, filename):
-        image_urn = volume.urn.Append(filename)
+        image_urn = volume.urn.Append(utils.SmartStr(filename))
 
         drive, base_filename = os.path.splitdrive(filename)
         if not base_filename:

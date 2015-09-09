@@ -285,7 +285,7 @@ class BaseAddressSpace(object):
 
     def close(self):
         pass
-        
+
 
 # This is a specialised AS for use internally - Its used to provide
 # transparent support for a string buffer so types can be
@@ -381,10 +381,12 @@ class CachingAddressSpaceMixIn(object):
         chunk_number = addr / self.CHUNK_SIZE
         chunk_offset = addr % self.CHUNK_SIZE
 
-        # Do not cache large reads.
+        # Do not cache large reads but still pad them to CHUNK_SIZE.
         if chunk_offset == 0 and length > self.CHUNK_SIZE:
+            # Deliberately do a short read to avoid copying.
+            to_read = length - length % self.CHUNK_SIZE
             return super(CachingAddressSpaceMixIn, self).read(
-                addr, length)
+                addr, to_read)
 
         available_length = min(length, self.CHUNK_SIZE - chunk_offset)
 
