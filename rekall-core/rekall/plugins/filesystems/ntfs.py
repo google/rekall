@@ -1292,7 +1292,7 @@ class IExport(core.DirectoryDumperMixin, IDump):
             with renderer.open(directory=self.dump_dir,
                                filename=filename, mode="wb") as out_fd:
                 utils.CopyAStoFD(
-                    in_as, out_fd, cb=lambda x: renderer.RenderProgress(
+                    in_as, out_fd, cb=lambda x, _: renderer.RenderProgress(
                         "Wrote %s bytes" % x))
 
 
