@@ -57,9 +57,11 @@ class VirtualMachine_DataExportRenderer(data_export.DataExportObjectRenderer):
         return json_renderer.JsonObjectRenderer.EncodeToJsonSafe(self, result)
 
     def Summary(self, vm, **_):
-        return "VM [{0:s} vCORE(s), {1:s}]".format(
-            (vm.get("_quick") and "??") or vm.get("num_cores"),
-            vm.get("guest_arch"))
+        if vm.get("_quick"):
+            return "VM [?? vCORE(s), {1}]".format(vm.get("guest_arch"))
+        else:
+            return "VM [{0} vCORE(s), {1}]".format(
+                vm.get("num_cores"), vm.get("guest_arch"))
 
 
 class VirtualMachine_JsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
