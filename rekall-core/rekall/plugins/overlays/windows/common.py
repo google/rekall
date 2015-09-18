@@ -519,8 +519,17 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
         return unicode(self.BaseDllName)
 
     @property
+    def size(self):
+        return int(self.SizeOfImage)
+
+    @property
     def base(self):
         return int(self.DllBase)
+
+    @property
+    def filename(self):
+        object_tree_plugin = self.obj_session.plugins.object_tree()
+        return object_tree_plugin.FileNameWithDrive(self.FullDllName.v())
 
     @property
     def end(self):

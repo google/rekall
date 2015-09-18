@@ -188,21 +188,20 @@ class PointerTextRenderer(NativeTypeTextRenderer):
 
 
 class ListRenderer(text.TextObjectRenderer):
-    """Renders a long as an address."""
+    """Renders a list of other objects."""
     renders_type = ("list", "tuple")
 
     def render_row(self, target, **options):
+        width = options.pop("width", None)
         result = []
         for item in target:
             object_renderer = self.ForTarget(item, self.renderer)(
                 session=self.session, renderer=self.renderer)
-            result.append(object_renderer.render_row(item, **options))
-            result.append(text.Cell(","))
 
-        if result:
-            result.pop(-1)
+            cell = object_renderer.render_row(item, wrap=False, **options)
+            result.append("\\n".join(cell.lines))
 
-        return text.JoinedCell(*result)
+        return text.Cell(", ".join(result), width=width)
 
 
 class VoidTextRenderer(PointerTextRenderer):

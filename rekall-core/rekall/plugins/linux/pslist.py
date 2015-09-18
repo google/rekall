@@ -26,6 +26,7 @@
 from rekall import plugin
 from rekall import testlib
 from rekall.plugins import core
+from rekall.plugins.common import memmap
 from rekall.plugins.linux import common
 from rekall.ui import text
 
@@ -60,89 +61,13 @@ class LinuxPsList(common.LinProcessFilter):
                                dtb, task.task_start_time)
 
 
-class LinMemMap(core.MemmapMixIn, common.LinProcessFilter):
+class LinMemMap(memmap.MemmapMixIn, common.LinProcessFilter):
     """Dumps the memory map for linux tasks."""
     __name = "memmap"
 
 
-class LinMemDump(core.DirectoryDumperMixin, LinMemMap):
-    """Dump the addressable memory for a process.
-
-    This plugin traverses the page tables and dumps all accessible memory for
-    the task. Note that this excludes kernel memory even though it is mapped
-    into the task.
-    """
-
-    __name = "memdump"
-
-    def dump_process(self, task, fd):
-        task_as = task.get_process_address_space()
-
-        # We want to stop dumping memory when we reach the max addressable
-        # memory by the process (anything above that is kernel memory).
-        # See: arch/x86/include/asm/processor.h
-        if self.session.profile.metadata("arch") == "I386":
-            max_task_size = 0x80000000
-        elif self.session.profile.metadata("arch") == "MIPS":
-            max_task_size = 0x80000000
-        else:
-            max_task_size = (1 << 47) - task_as.PAGE_SIZE
-        max_memory = task.mm.task_size or max_task_size
-
-        result = []
-        for vaddr, paddr, length in task_as.get_address_ranges(end=max_memory):
-            result.append((fd.tell(), length, vaddr))
-            fd.write(self.physical_address_space.read(paddr, length))
-
-        return result
-
-    def write_index(self, renderer, maps):
-        file_addr = old_file_addr = old_length = old_virtual = 0
-        for file_addr, length, virtual in maps:
-            # Merge the addresses as much as possible.
-            if (old_virtual + old_length == virtual and
-                    old_file_addr + old_length == file_addr):
-                old_length += length
-                continue
-
-            renderer.table_row(old_file_addr, old_length, old_virtual)
-
-            old_file_addr = file_addr
-            old_length = length
-            old_virtual = virtual
-
-        if old_file_addr != file_addr:
-            renderer.table_row(old_file_addr, old_length, old_virtual)
-
-    def render(self, renderer):
-        if self.dump_dir is None:
-            raise plugin.PluginError("Dump directory not specified.")
-
-        for task in self.filter_processes():
-            filename = u"{0}_{1:d}.dmp".format(task.comm, task.pid)
-
-            renderer.write(u"Writing {0} {1:6x} to {2}\n".format(
-                task.comm, task, filename))
-
-            with renderer.open(directory=self.dump_dir,
-                               filename=filename,
-                               mode='wb') as fd:
-                maps = self.dump_process(task, fd)
-
-            # Make an index file.
-            with renderer.open(directory=self.dump_dir,
-                               filename=filename + ".idx",
-                               mode='wb') as fd:
-                temp_renderer = text.TextRenderer(session=self.session,
-                                                  fd=fd, mode="wb")
-
-                with temp_renderer.start():
-                    temp_renderer.table_header([
-                        ("File Address", "file_addr", "[addrpad]"),
-                        ("Length", "length", "[addrpad]"),
-                        ("Virtual Addr", "virtual", "[addrpad]")])
-
-                    self.write_index(temp_renderer, maps)
+class LinMemDump(memmap.MemDumpMixin, common.LinProcessFilter):
+    """Dump the addressable memory for a process."""
 
 
 class TestLinMemDump(common.LinuxTestMixin, testlib.HashChecker):

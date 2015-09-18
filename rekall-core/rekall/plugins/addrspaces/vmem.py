@@ -64,7 +64,7 @@ class VMemAddressSpace(addrspace.RunBasedAddressSpace):
         lengths = self.header.GetTags("memory", "regionSize")
 
         for v, p, l in zip(virtual_offsets, file_offsets, lengths):
-            self.runs.insert((v * 0x1000, p * 0x1000, l * 0x1000))
+            self.add_run(v * 0x1000, p * 0x1000, l * 0x1000)
 
 
 class VMSSAddressSpace(addrspace.RunBasedAddressSpace):
@@ -94,13 +94,10 @@ class VMSSAddressSpace(addrspace.RunBasedAddressSpace):
             if not mem_regions:
                 raise IOError("Unable to locate mem region tag in VMSS file.")
 
-            self.runs.insert(
-                (0, mem_regions[0].obj_offset, mem_regions[0].length))
+            self.add_run(0, mem_regions[0].obj_offset, mem_regions[0].length)
         else:
-            for v, l, m in zip(
-                    virtual_offsets, lengths, mem_regions):
-                self.runs.insert(
-                    (v * 0x1000, m.obj_offset, l * 0x1000))
+            for v, l, m in zip(virtual_offsets, lengths, mem_regions):
+                self.add_run(v * 0x1000, m.obj_offset, l * 0x1000)
 
 
 class _VMWARE_HEADER(obj.Struct):

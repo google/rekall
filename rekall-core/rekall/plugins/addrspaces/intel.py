@@ -59,12 +59,8 @@ There are a few main entry points into the translating Address Spaces:
    PhysicalAddressDescriptor() will point at mapped files (i.e. it may not
    actually refer to the physical memory image).
 
-3) get_available_addresses(): This method generates tuples of (virtual address,
-   physical address, length) which encapsulate each region available in the
-   virtual address space. NOTE: the physical address returned here can be read
-   from the phys_base member of this address space. This method is important for
-   scanning over the sparse virtual address space. Without this we would be
-   unable to scan the very large (and very sparse) 64 bit address spaces.
+3) get_mappings(): This method generates Run instances which encapsulate each
+   region available in the virtual address space.
 
 The vtop() method and the describe_vtop() method are very similar since they
 implement the same algorithms. However, we do not want to implement the same
@@ -234,10 +230,6 @@ class IA32PagedMemory(addrspace.PagedReader):
         # Use a TLB to make this faster.
         self._tlb = addrspace.TranslationLookasideBuffer(1000)
 
-        # Our get_available_addresses() refers to the base address space we
-        # overlay on.
-        self.phys_base = self.base
-
         self._cache = utils.FastStore(100)
 
         # Some important masks we can use.
@@ -343,7 +335,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         string = self.base.read(addr, 4)
         return struct.unpack('<I', string)[0]
 
-    def get_available_addresses(self, start=0):
+    def get_mappings(self, start=0):
         """Enumerate all valid memory ranges.
 
         Yields:
@@ -367,9 +359,10 @@ class IA32PagedMemory(addrspace.PagedReader):
 
             # PDE is for a large page.
             if pde_value & self.page_size_mask:
-                yield (vaddr,
-                       (pde_value & 0xffc00000) | (vaddr & 0x3fffff),
-                       0x400000)
+                yield addrspace.Run(start=vaddr,
+                                    end=vaddr + 0x400000,
+                                    file_offset=(pde_value & 0xffc00000) | (vaddr & 0x3fffff),
+                                    address_space=self.base)
                 continue
 
             # This reads the entire PTE table at once - On
@@ -391,9 +384,10 @@ class IA32PagedMemory(addrspace.PagedReader):
                     continue
 
                 if pte_value & self.valid_mask:
-                    yield (vaddr,
-                           (pte_value & 0xfffff000) | (vaddr & 0xfff),
-                           0x1000)
+                    yield addrspace.Run(start=vaddr,
+                                        end=vaddr + 0x1000,
+                                        file_offset=(pte_value & 0xfffff000) | (vaddr & 0xfff),
+                                        address_space=self.base)
 
     def __str__(self):
         return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
@@ -513,7 +507,7 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
             return result
 
-    def get_available_addresses(self, start=0):
+    def get_mappings(self, start=0):
         """A generator of address, length tuple for all valid memory regions."""
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
@@ -547,9 +541,10 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                     continue
 
                 if pde_value & self.page_size_mask:
-                    yield (vaddr,
-                           (pde_value & 0xfffffffe00000) | (vaddr & 0x1fffff),
-                           0x200000)
+                    yield addrspace.Run(start=vaddr,
+                                        end=vaddr+0x200000,
+                                        file_offset=(pde_value & 0xfffffffe00000) | (vaddr & 0x1fffff),
+                                        address_space=self.base)
                     continue
 
                 # This reads the entire PTE table at once - On
@@ -570,7 +565,8 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                         if start >= next_vaddr:
                             continue
 
-                        yield (vaddr,
-                               ((pte_value & 0xffffffffff000) |
-                                (vaddr & 0xfff)),
-                               0x1000)
+                        yield addrspace.Run(start=vaddr,
+                                            end=vaddr+0x1000,
+                                            file_offset=((pte_value & 0xffffffffff000) |
+                                                         (vaddr & 0xfff)),
+                                            address_space=self.base)

@@ -17,9 +17,9 @@
 #
 
 """This module implements renderers specific to Linux structures."""
-
 from rekall.ui import json_renderer
 from rekall.ui import text
+from rekall.plugins.addrspaces import amd64
 
 
 class kuid_t_TextObjectRenderer(text.TextObjectRenderer):
@@ -39,3 +39,17 @@ class kuid_t_JsonObjectRenderer(json_renderer.JsonObjectRenderer):
 
     def EncodeToJsonSafe(self, task, **_):
         return task.val.v()
+
+
+class XenM2PMapperObjectRenderer(json_renderer.JsonObjectRenderer):
+    renders_type = "XenM2PMapper"
+
+    def EncodeToJsonSafe(self, item, **_):
+        result = {}
+        result["m2p_map"] = dict(item)
+        result["mro"] = ":".join(self.get_mro(item))
+
+        return result
+
+    def DecodeFromJsonSafe(self, value, _):
+        return amd64.XenM2PMapper(value["m2p_map"])

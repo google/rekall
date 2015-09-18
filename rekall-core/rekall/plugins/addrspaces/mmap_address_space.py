@@ -77,11 +77,12 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
         if addr != None:
             result = self.map[addr:addr + length]
 
-        return result + "\x00" * (length - len(result))
+        return result + addrspace.ZEROER.GetZeros(length - len(result))
 
-    def get_available_addresses(self):
-        # TODO: Explain why this is always fsize - 1?
-        yield (0, 0, self.fsize - 1)
+    def get_mappings(self):
+        yield addrspace.Run(start=0,
+                            end=self.fsize, file_offset=0,
+                            address_space=self.base)
 
     def is_valid_address(self, addr):
         if addr == None:

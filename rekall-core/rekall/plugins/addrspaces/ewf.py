@@ -23,10 +23,13 @@
 """ This Address Space allows us to open ewf files """
 
 from rekall import addrspace
+from rekall import utils
 from rekall.plugins.tools import ewf
 
 
-class EWFAddressSpace(addrspace.BaseAddressSpace):
+
+class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
+                      addrspace.BaseAddressSpace):
     """ An EWF capable address space.
 
     In order for us to work we need:
@@ -52,15 +55,19 @@ class EWFAddressSpace(addrspace.BaseAddressSpace):
         self.ewf_file = ewf.EWFFile(
             session=self.session, address_space=self.base)
 
-    def read(self, offset, length):
+    def cached_read_partial(self, offset, length):
+        """Implement our own read method for caching."""
         res = ""
         if offset != None:
             res = self.ewf_file.read(offset, length)
 
         if len(res) < length:
-            res += "\x00" * (length - len(res))
+            to_read = length - len(res)
+            data = addrspace.ZEROER.GetZeros(to_read)
+            return res + data
 
         return res
 
-    def get_available_addresses(self, start=0):
-        yield (0, 0, self.ewf_file.size)
+    def get_mappings(self, start=0):
+        yield addrspace.Run(start=0, end=self.ewf_file.size,
+                            file_offset=0, address_space=self)

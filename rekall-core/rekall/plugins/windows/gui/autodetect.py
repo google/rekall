@@ -33,8 +33,9 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
     name = "win32k_autodetect"
 
     def render(self, renderer):
-        win32k_profile = self.session.address_resolver.LoadProfileForName(
+        win32k_module = self.session.address_resolver.GetModuleByName(
             "win32k")
+        win32k_profile = win32k_module.profile
 
         overlay = self.GetWin32kOverlay(win32k_profile)
 

@@ -72,12 +72,15 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
                 # Add the run to the memory map.
                 virtual_address = int(segment.p_paddr) or int(segment.p_vaddr)
-                self.runs.insert((virtual_address,  # Virtual Addr
-                                  int(segment.p_offset), # File Addr
-                                  int(segment.p_memsz))) # Length
+                self.add_run(virtual_address,  # Virtual Addr
+                             int(segment.p_offset), # File Addr
+                             int(segment.p_memsz)) # Run end.
 
             elif segment.p_type == PT_PMEM_METADATA:
                 self.LoadMetadata(segment.p_offset)
+
+        # NOTE: Deprecated! This will be removed soon. If you want to store
+        # metadata use AFF4 format.
 
         # Search for the pmem footer signature.
         footer = self.base.read(self.base.end() - 10000, 10000)
@@ -98,6 +101,9 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
     def LoadMetadata(self, offset):
         """Load the WinPmem metadata from the elf file."""
+        self.session.logging.error(
+            "DEPRECATED Elf metadata found! "
+            "This will not be supported in the next release.")
         try:
             data = self.base.read(offset, 1024*1024)
             yaml_file = data.split('...\n')[0]
@@ -140,7 +146,9 @@ class Elf64CoreDump(addrspace.RunBasedAddressSpace):
 
         self.session.logging.info(
             "Loading pagefile into physical offset %#08x", vaddr)
-        self.runs.insert((vaddr, pagefile_offset, pagefile_size))
+
+        # Map the pagefile into the
+        self.add_run(vaddr, pagefile_offset, pagefile_size)
 
         # Remember the region for the pagefile.
         self.pagefile_offset = vaddr
@@ -177,9 +185,10 @@ class KCoreAddressSpace(Elf64CoreDump):
         # Collect all ranges between ffff880000000000 - ffffc7ffffffffff
         runs = []
 
-        for vaddr, paddr, length in self.runs:
+        for vaddr, vaddr_end, paddr in self.runs:
             if 0xffff880000000000 < vaddr < 0xffffc7ffffffffff:
-                runs.append((vaddr - 0xffff880000000000, paddr, length))
+                runs.append((vaddr - 0xffff880000000000,
+                             paddr, vaddr_end - vaddr))
 
         self.as_assert(runs, "No kcore compatible virtual ranges.")
         self.runs.clear()
@@ -206,7 +215,7 @@ class KCoreAddressSpace(Elf64CoreDump):
                 pass
 
         for x in runs:
-            self.runs.insert(x)
+            self.add_run(*x)
 
 
 def WriteElfFile(address_space, outfd, session=None):
@@ -215,7 +224,7 @@ def WriteElfFile(address_space, outfd, session=None):
     The Core dump will be written to outfd which is expected to have a .write()
     method.
     """
-    runs = list(address_space.get_available_addresses())
+    runs = list(address_space.get_mappings())
 
     elf_profile = elf.ELFProfile(session=session)
     elf64_pheader = elf_profile.elf64_phdr()
@@ -238,19 +247,21 @@ def WriteElfFile(address_space, outfd, session=None):
                    len(runs) * elf64_pheader.obj_size)
 
     outfd.write(elf64_header.GetData())
-    for offset, _, length in runs:
-        elf64_pheader.p_paddr = offset
-        elf64_pheader.p_memsz = length
+    for run in runs:
+        elf64_pheader.p_paddr = run.start
+        elf64_pheader.p_memsz = run.length
         elf64_pheader.p_offset = file_offset
-        elf64_pheader.p_filesz = length
+        elf64_pheader.p_filesz = run.length
 
         outfd.write(elf64_pheader.GetData())
 
-        file_offset += length
+        file_offset += run.length
 
     # Now just copy all the runs
     total_data = 0
-    for offset, _, length in runs:
+    for run in runs:
+        offset = run.start
+        length = run.length
         while length > 0:
             data = address_space.read(offset, min(10000000, length))
             session.report_progress("Writing %sMb", total_data/1024/1024)

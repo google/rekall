@@ -17,10 +17,13 @@ config.DeclareOption(
 
 
 class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
+
+    def __init__(self, *args, **kwargs):
+        super(PicklingDirectoryIOManager, self).__init__(*args, **kwargs)
+        self.renderer = json_renderer.JsonRenderer(session=self.session)
+
     def Encoder(self, data, **_):
-        encoder = json_renderer.JsonEncoder(
-            session=self.session, renderer="JsonRenderer")
-        data = encoder.Encode(data)
+        data = self.renderer.encoder.Encode(data)
 
         try:
             return cPickle.dumps(data, -1)
@@ -34,20 +37,19 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
         strings. Specifically does not allow arbitrary instances to be
         recovered.
         """
+        now = time.time()
         unpickler = cPickle.Unpickler(cStringIO.StringIO(raw))
         unpickler.find_global = None
-
-        json_renderer_obj = json_renderer.JsonRenderer(
-            session=self.session)
-        decoder = json_renderer.JsonDecoder(
-            self.session, json_renderer_obj)
 
         try:
             decoded = unpickler.load()
         except Exception:
             raise io_manager.DecodeError("Unable to unpickle cached object")
 
-        return decoder.Decode(decoded)
+        result = self.renderer.decoder.Decode(decoded)
+        self.session.logging.debug("Decoded in %s sec.", time.time() - now)
+
+        return result
 
 
 class Cache(object):
@@ -243,6 +245,7 @@ class FileCache(Cache):
             self.io_manager.FlushInventory()
 
         self.data.clear()
+        self.dirty.clear()
 
     def DetectImage(self, address_space):
         if not self.io_manager:

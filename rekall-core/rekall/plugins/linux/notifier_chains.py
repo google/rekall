@@ -49,13 +49,10 @@ class NotifierChainPlugin(common.LinuxPlugin):
                                ("Symbol", "symbol", "40"),
                               ])
 
-        lsmod_plugin = self.session.plugins.lsmod()
         for symbol_name, index, notifier_block in self.walk_chains():
-            related_module = lsmod_plugin.find_module(
+            symbol_name = self.session.address_resolver.format_address(
                 notifier_block.notifier_call)
-            # TODO: Switch by self.session.address_resolver
-            symbol_name = self.session.profile.get_constant_by_address(
-                notifier_block.notifier_call)
+
             renderer.table_row(symbol_name,
                                index, notifier_block.priority,
                                notifier_block.notifier_call,

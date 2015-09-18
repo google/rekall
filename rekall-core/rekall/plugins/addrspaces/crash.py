@@ -52,9 +52,9 @@ class WindowsCrashDumpSpace32(addrspace.RunBasedAddressSpace):
         file_offset = self.header.obj_size
 
         for run in self.header.PhysicalMemoryBlockBuffer.Run:
-            self.runs.insert((int(run.BasePage) * self.PAGE_SIZE,
-                              file_offset,
-                              int(run.PageCount) * self.PAGE_SIZE))
+            self.add_run(int(run.BasePage) * self.PAGE_SIZE,
+                         file_offset,
+                         int(run.PageCount) * self.PAGE_SIZE)
 
             file_offset += run.PageCount * self.PAGE_SIZE
 
@@ -174,7 +174,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
                 else:
                     # Dump the last run only if it has non zero length.
                     if last_run[2] > 0:
-                        self.runs.insert(last_run)
+                        self.add_run(*last_run)
 
                     # The next run starts here.
                     last_run = [
@@ -182,7 +182,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
 
         # Flush the last run if needed.
         if last_run[2] > 0:
-            self.runs.insert(last_run)
+            self.add_run(*last_run)
 
     def _generate_bitmap(self):
         """Generate Present/Not Present for each page in the dump."""

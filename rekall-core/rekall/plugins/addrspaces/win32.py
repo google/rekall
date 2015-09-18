@@ -65,7 +65,7 @@ class Win32FileWrapper(object):
 
 
 class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
-                        addrspace.MultiRunBasedAddressSpace):
+                        addrspace.RunBasedAddressSpace):
     """ This is a direct file AS for use in windows.
 
     In windows, in order to open raw devices we need to use the win32 apis. This
@@ -96,8 +96,8 @@ class Win32AddressSpace(addrspace.CachingAddressSpaceMixIn,
             raise IOError("Unable to open %s: %s" % (path, e))
 
     def close(self):
-        for _, _, _, fhandle_as in self.runs:
-            fhandle_as.close()
+        for run in self.get_mappings():
+            run.address_space.close()
 
 
 class Win32FileAddressSpace(Win32AddressSpace):
@@ -110,7 +110,6 @@ class Win32FileAddressSpace(Win32AddressSpace):
     def __init__(self, base=None, filename=None, **kwargs):
         self.as_assert(base == None, 'Must be first Address Space')
         super(Win32FileAddressSpace, self).__init__(**kwargs)
-        self.phys_base = self
 
         path = filename or self.session.GetParameter("filename")
 
@@ -133,7 +132,7 @@ class Win32FileAddressSpace(Win32AddressSpace):
             self.add_run(0, 0, 2**63, self.fhandle_as)
             self.volatile = True
 
-            
+
 class WinPmemAddressSpace(Win32AddressSpace):
     """An address space specifically designed for communicating with WinPmem."""
 
@@ -223,7 +222,7 @@ class WinPmemAddressSpace(Win32AddressSpace):
         kernel_base = self.memory_parameters["KernBase"]
         if kernel_base > 0:
             self.session.SetCache("kernel_base", kernel_base, volatile=False)
-            
+
     def _map_raw_filename(self, filename):
         drive, base_filename = os.path.splitdrive(filename)
         try:
@@ -232,7 +231,7 @@ class WinPmemAddressSpace(Win32AddressSpace):
             ntfs_session = self.filesystems[drive] = self.session.add_session(
                 filename=r"\\.\%s" % drive, verbose=True,
                 profile="ntfs")
-            
+
         # Stat the MFT inode (MFT 2).
         mft_stat = ntfs_session.plugins.istat(2)
 

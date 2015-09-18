@@ -36,6 +36,24 @@ from rekall import registry
 from rekall import utils
 
 
+
+class Zeroer(object):
+    def __init__(self):
+        self.store = utils.FastStore(10)
+
+    def GetZeros(self, length):
+        try:
+            return self.store.Get(length)
+        except KeyError:
+            zeros = "\x00" * length
+            self.store.Put(length, zeros)
+            return zeros
+
+
+# Keep a bunch of zeros around for speed.
+ZEROER = Zeroer()
+
+
 class TranslationLookasideBuffer(utils.FastStore):
     """An implementation of a TLB.
 
@@ -58,6 +76,41 @@ class TranslationLookasideBuffer(utils.FastStore):
 
         super(TranslationLookasideBuffer, self).Put(
             vaddr >> self.PAGE_SHIFT, paddr)
+
+
+class Run(object):
+    """A container for runs."""
+    __slots__ = ("start", "end", "address_space", "file_offset", "data")
+
+    def __init__(self, start=None, end=None, address_space=None,
+                 file_offset=None, data=None):
+        self.start = start
+        self.end = end
+        self.address_space = address_space
+        self.file_offset = file_offset
+        self.data = data
+
+    @property
+    def length(self):
+        return self.end - self.start
+
+    @length.setter
+    def length(self, value):
+        self.end = self.start + value
+
+    def copy(self, **kw):
+        kwargs = dict(start=self.start, end=self.end,
+                      address_space=self.address_space,
+                      file_offset=self.file_offset,
+                      data=self.data)
+        kwargs.update(kw)
+
+        return self.__class__(**kwargs)
+
+    def __str__(self):
+        return "<%#x, %#x> -> %s @ %s" % (
+            self.start, self.end, self.file_offset,
+            self.address_space)
 
 
 class BaseAddressSpace(object):
@@ -104,12 +157,6 @@ class BaseAddressSpace(object):
         if base:
             self.volatile = self.base.volatile
 
-        # This is the base address space which this address space reads from. In
-        # this context, this address space is used to read physical addresses as
-        # obtained from get_available_addresses(). NOTE: This is a weak
-        # reference to avoid creating a cycle.
-        self.phys_base = weakref.proxy(self)
-
         self.profile = profile
         self.session = session
         if session is None:
@@ -139,90 +186,145 @@ class BaseAddressSpace(object):
         if length > self.session.GetParameter("buffer_size"):
             raise IOError("Too much data to read.")
 
-        return "\x00" * length
+        return ZEROER.GetZeros(length)
 
-    def get_available_addresses(self, start=0):
-        """Generates address ranges (offset, phys_offset, size) for this AS.
+    def get_mappings(self, start=0):
+        """Generates a sequence of Run() objects.
 
-        NOTE!! The phys_offset here refers to an address read from the phys_base
-        member of this address space. I.e. it should be possible for callers to
-        call get_available_addresses() and then directly get data via
-        address_space.phys_base.read(phys_offset, length).
+        Each Run object describes a single range transformation from this
+        address space to another address space at a potentially different
+        mapped_offset.
 
-        Address ranges must be returned ordered by the virtual address.
+        Runs are assumed to not overlap and are generated in increasing order.
+
+        Args:
+          start: The suggested start address we are interested in. This function
+              may omit runs that lie entirely below this start address. Note:
+              Runs are not adjusted to begin at the start address - it may be
+              possible that this method returns a run which starts earlier than
+              the specified start address.
         """
-        _ = start
         return []
 
     def end(self):
-        runs = list(self.get_available_addresses())
+        runs = list(self.get_mappings())
         if runs:
-            return runs[-1][0] + runs[-1][2]
+            last_run = runs[-1]
+            return last_run.end
 
-    def get_address_ranges(self, start=0, end=None):
-        """Generates the address ranges which fall between start and end.
+    def get_address_ranges(self, start=0, end=0xfffffffffffff):
+        """Generates the runs which fall between start and end.
 
         Note that start and end are here specified in the virtual address
         space. More importantly this does not say anything about the pages in
         the physical address space - just because pages in the virtual address
         space are contiguous does not mean they are also contiguous in the
         physical address space.
+
+        Yields:
+          Run objects describing merged virtual address ranges. NOTE: These runs
+          do not have file_offset or address_space members since the file_offset
+          is not the same across the entire range and therefore it does not make
+          sense to directly read the base address space - If you want to do
+          this, use merge_base_ranges() instead.
         """
-        if end is None:
-            end = 0xfffffffffffff
+        last_voffset = last_voffset_end = 0
 
-        for voffset, poffset, length in self._get_address_ranges(
-                start=start, end=end):
-            # The entire range is below what is required - ignore it.
-            if voffset + length < start:
-                continue
-
-            # The range starts after the address we care about - we are done.
-            if voffset > end:
-                return
-
-            # Clip the bottom of the range to the start point, and the end of
-            # the range to the end point.
-            range_start = max(start, voffset)
-            phys_range_start = poffset + range_start - voffset
-            range_end = min(end, voffset + length)
-
-            if range_end > range_start:
-                yield range_start, phys_range_start, range_end - range_start
-
-    def _get_address_ranges(self, start=0, end=None):
-        """Generates merged address ranges from get_available_addresses()."""
-        contiguous_voffset = 0
-        contiguous_poffset = 0
-        total_length = 0
-
-        for (voffset, poffset, length) in self.get_available_addresses(
-                start=start):
-
-            if end and voffset > end:
+        for run in self.get_mappings(start=start):
+            # No more runs apply.
+            if run.start > end:
                 break
+
+            if run.start < start:
+                # We dont care about the file_offset here since it will be
+                # dropped later.
+                run = run.copy(start=start)
 
             # This can take some time as we enumerate all the address ranges.
             self.session.report_progress(
                 "%(name)s: Merging Address Ranges %(offset)#x %(spinner)s",
-                offset=voffset, name=self.name)
+                offset=run.start, name=self.name)
 
-            # Try to join up adjacent pages as much as possible.
-            if (voffset == contiguous_voffset + total_length and
-                    poffset == contiguous_poffset + total_length):
-                total_length += length
+            # Extend the last range if this range starts at the end of the last
+            # one.
+            if run.start == last_voffset_end:
+                last_voffset_end = run.end
 
             else:
-                if total_length > 0:
-                    yield (contiguous_voffset, contiguous_poffset, total_length)
+                # Emit the last range
+                if last_voffset_end > last_voffset:
+                    yield Run(start=last_voffset,
+                              end=last_voffset_end)
 
                 # Reset the contiguous range.
-                contiguous_voffset = voffset
-                contiguous_poffset = poffset or 0
-                total_length = length
+                last_voffset = run.start
+                last_voffset_end = min(run.end, end)
 
-        if total_length > 0:
-            yield (contiguous_voffset, contiguous_poffset, total_length)
+        if last_voffset_end > last_voffset:
+            yield Run(start=last_voffset, end=last_voffset_end)
+
+    def merge_base_ranges(self, start=0, end=0xfffffffffffff):
+        """Generates merged address ranges from get_mapping().
+
+        This method is subtly different from get_address_ranges in that runs are
+        contiguous in the base address space, hence the yielded runs have a
+        valid file_offset member. Callers can safely issue read operations to
+        the address space.
+
+        Yields:
+          runs which are contiguous in the base address space. This function
+            is designed to produce ranges more optimized for reducing the number
+            of read operations from the underlying base address space.
+
+        """
+        contiguous_voffset = 0
+        contiguous_voffset_end = 0
+        contiguous_poffset = 0
+        last_run_length = 0
+        last_as = None
+
+        for run in self.get_mappings(start=start):
+            # No more runs apply.
+            if end and run.start > end:
+                break
+
+            if run.start < start:
+                run = run.copy(
+                    start=start,
+                    file_offset=run.file_offset + start - run.start)
+
+            # This can take some time as we enumerate all the address ranges.
+            self.session.report_progress(
+                "%(name)s: Merging Address Ranges %(offset)#x %(spinner)s",
+                offset=run.start, name=self.name)
+
+            # Try to join up adjacent pages as much as possible.
+            if (run.start == contiguous_voffset_end and
+                    run.file_offset == contiguous_poffset + last_run_length and
+                    run.address_space is last_as):
+                contiguous_voffset_end = min(run.end, end)
+                last_run_length = contiguous_voffset_end - contiguous_voffset
+                last_as = run.address_space
+
+            else:
+                if last_run_length > 0:
+                    yield Run(start=contiguous_voffset,
+                              end=contiguous_voffset_end,
+                              address_space=last_as,
+                              file_offset=contiguous_poffset)
+
+                # Reset the contiguous range.
+                contiguous_voffset = run.start
+                contiguous_voffset_end = min(run.end, end)
+                contiguous_poffset = run.file_offset or 0
+                last_run_length = contiguous_voffset_end - contiguous_voffset
+                last_as = run.address_space
+
+        if last_run_length > 0:
+            yield Run(start=contiguous_voffset,
+                      end=contiguous_voffset_end,
+                      address_space=last_as,
+                      file_offset=contiguous_poffset)
 
     def is_valid_address(self, _addr):
         """Tell us if the address is valid """
@@ -319,7 +421,7 @@ class BufferAddressSpace(BaseAddressSpace):
     def read(self, addr, length):
         offset = addr - self.base_offset
         data = self.data[offset: offset + length]
-        return data + "\x00" * (length - len(data))
+        return data + ZEROER.GetZeros(length - len(data))
 
     def write(self, addr, data):
         if addr > len(self.data):
@@ -329,8 +431,12 @@ class BufferAddressSpace(BaseAddressSpace):
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
         return len(data)
 
-    def get_available_addresses(self, start=None):
-        yield (self.base_offset, self.base_offset, len(self.data))
+    def get_mappings(self, start=None):
+        if self.end > start:
+            yield Run(start=self.base_offset,
+                      end=self.end,
+                      file_offset=self.base_offset,
+                      address_space=self)
 
     def get_buffer_offset(self, offset):
         """Returns the offset in self.data for the virtual offset."""
@@ -374,6 +480,11 @@ class CachingAddressSpaceMixIn(object):
 
         return result
 
+    def cached_read_partial(self, addr, length):
+        """Implement this to allow the caching mixin to cache these reads."""
+        # By default call the next read_partial in the inheritance tree.
+        return super(CachingAddressSpaceMixIn, self).read(addr, length)
+
     def read_partial(self, addr, length):
         if addr == None:
             return addr
@@ -385,8 +496,7 @@ class CachingAddressSpaceMixIn(object):
         if chunk_offset == 0 and length > self.CHUNK_SIZE:
             # Deliberately do a short read to avoid copying.
             to_read = length - length % self.CHUNK_SIZE
-            return super(CachingAddressSpaceMixIn, self).read(
-                addr, to_read)
+            return self.cached_read_partial(addr, to_read)
 
         available_length = min(length, self.CHUNK_SIZE - chunk_offset)
 
@@ -394,7 +504,7 @@ class CachingAddressSpaceMixIn(object):
             data = self._cache.Get(chunk_number)
         except KeyError:
             # Just read the data from the real class.
-            data = super(CachingAddressSpaceMixIn, self).read(
+            data = self.cached_read_partial(
                 chunk_number * self.CHUNK_SIZE, self.CHUNK_SIZE)
 
             self._cache.Put(chunk_number, data)
@@ -423,7 +533,7 @@ class PagedReader(BaseAddressSpace):
         to_read = min(length, self.PAGE_SIZE - (vaddr % self.PAGE_SIZE))
         paddr = self.vtop(vaddr)
         if paddr is None:
-            return "\x00" * to_read
+            return ZEROER.GetZeros(to_read)
 
         return self.base.read(paddr, to_read)
 
@@ -476,107 +586,6 @@ class PagedReader(BaseAddressSpace):
 
 
 class RunBasedAddressSpace(PagedReader):
-    """An address space which uses a list of runs to specify a mapping."""
-
-    # This is a list of (memory_offset, file_offset, length) tuples.
-    runs = None
-    __abstract = True
-
-    def __init__(self, **kwargs):
-        super(RunBasedAddressSpace, self).__init__(**kwargs)
-        self.runs = utils.SortedCollection(key=lambda x: x[0])
-
-        # Our get_available_addresses() refers to the base address space we
-        # overlay on. RunBasedAddressSpace is simply a translation layer on top
-        # of the base address space.
-        if self.base is not None:
-            self.phys_base = weakref.proxy(self.base)
-
-    def _read_chunk(self, addr, length):
-        """Read from addr as much as possible up to a length of length."""
-        file_offset, available_length = self._get_available_buffer(
-            addr, length)
-
-        # Mapping not valid. We need to pad until the next run.
-        if file_offset is None:
-            return "\x00" * min(length, available_length)
-
-        return self.base.read(file_offset, min(length, available_length))
-
-    def _write_chunk(self, addr, buf):
-        buflen = len(buf)
-        file_offset, available_length = self._get_available_buffer(
-            addr, buflen)
-
-        length = min(buflen, available_length)
-
-        # Silently skip unavailable runs.
-        if file_offset is None or length == 0:
-            return length
-
-        return self.base.write(file_offset, buf[:length])
-
-    def vtop(self, addr):
-        file_offset, _ = self._get_available_buffer(addr, 1)
-        return file_offset
-
-    def _get_available_buffer(self, addr, length):
-        """Resolves the address into the file offset.
-
-        This function finds the run that contains this page and returns the file
-        address where this page can be found.
-
-        Returns:
-          A tuple of (physical_offset, available_length). The
-          physical_offset can be None to signify that the address is not
-          valid. In this case the available_length signifies the number of
-          bytes until the next available run.
-        """
-        addr = int(addr)
-        try:
-            virt_addr, file_address, file_length = self.runs.find_le(addr)
-            available_length = file_length - (addr - virt_addr)
-            physical_offset = addr - virt_addr + file_address
-
-            if available_length > 0:
-                return physical_offset, min(length, available_length)
-
-        except ValueError:
-            pass
-
-        try:
-            # Addr is outside any run, we need to find the next available
-            # run and return the number of bytes we need to skip until then.
-            virt_addr, _, _ = self.runs.find_ge(addr)
-
-            return None, virt_addr - addr
-
-        except ValueError:
-            pass
-
-        # A physical_offset of None means the address is not valid. If we get
-        # here we dont have a next valid range.
-        return None, 0xfffffffffffff
-
-    def is_valid_address(self, addr):
-        return self.vtop(addr) is not None
-
-    def get_available_addresses(self, start=0):
-        for run in self.runs:
-            run_start, file_address, length = run[:3]
-            if start > run_start + length:
-                continue
-
-            yield run_start, file_address, length
-
-    def __eq__(self, other):
-        return (super(RunBasedAddressSpace, self).__eq__(other) and
-                self.runs == other.runs)
-
-
-# TODO: Replace the RunBasedAddressSpace with this one since it is a super set.
-
-class MultiRunBasedAddressSpace(PagedReader):
     """An address space which uses a list of runs to specify a mapping.
 
     This essentially delegates certain address ranges to other address spaces
@@ -603,78 +612,67 @@ class MultiRunBasedAddressSpace(PagedReader):
     __abstract = True
 
     def __init__(self, **kwargs):
-        super(MultiRunBasedAddressSpace, self).__init__(**kwargs)
-        self.runs = utils.SortedCollection(key=lambda x: x[0])
-        self.phys_base = weakref.proxy(self)
+        super(RunBasedAddressSpace, self).__init__(**kwargs)
+        self.runs = utils.RangedCollection()
 
-    def add_run(self, virt_addr, file_address, file_len, address_space):
-        self.runs.insert((virt_addr, file_address, file_len, address_space))
+    def add_run(self, virt_addr, file_address, file_len, address_space=None,
+                data=None):
+        """Add a new run to this address space."""
+        if address_space is None:
+            address_space = self.base
+
+        start = virt_addr  # Range start
+        end = virt_addr + file_len  # Range end
+
+        self.runs.insert(start, end,
+                         Run(start=start,
+                             end=end,
+                             address_space=address_space,
+                             file_offset=file_address,
+                             data=data))
 
     def _read_chunk(self, addr, length):
         """Read from addr as much as possible up to a length of length."""
-        try:
-            virt_addr, file_address, file_len, _as = self.runs.find_le(addr)
-            available_length = file_len - (addr - virt_addr)
-            physical_offset = addr - virt_addr + file_address
+        start, end, data = self.runs.get_containing_range(addr)
 
-            if available_length > 0:
-                return _as.read(physical_offset, min(length, available_length))
+        # addr is not in any range, pad to the next range.
+        if start is None:
+            end = self.runs.get_next_range_start(addr)
+            if end is None:
+                end = addr + length
 
-        except ValueError:
-            pass
+            return ZEROER.GetZeros(min(end - addr, length))
 
-        try:
-            # Addr is outside any run, we need to find the next available
-            # run and return the number of bytes we need to pad until then.
-            virt_addr, _, _, _ = self.runs.find_ge(addr)
+        # Read as much as we can from this address space.
+        available_length = min(end - addr, length)
+        file_offset = data.file_offset + addr - start
 
-            return "\x00" * min(length, virt_addr - addr)
-
-        except ValueError:
-            # If we get here we dont have a next valid range.
-            return "\x00" * length
+        return data.address_space.read(file_offset, available_length)
 
     def vtop(self, addr):
         """Returns the physical address for this virtual address.
 
         Note that this does not mean much without also knowing the address space
-        to read from. Maybe we need to change this method prototype?
+        to read from. Maybe we need to change this method's prototype?
         """
-        try:
-            virt_addr, file_address, file_len, _ = self.runs.find_le(addr)
-            available_length = file_len - (addr - virt_addr)
-            physical_offset = addr - virt_addr + file_address
-
-            if available_length > 0:
-                return physical_offset
-
-        except ValueError:
-            pass
+        start, end, data = self.runs.get_containing_range(addr)
+        if start is not None:
+            if addr < end:
+                return data.file_offset + addr - start
 
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None
 
-    # FIXME: Deprecate this method in all address spaces in favor of
-    # get_mappings() below.
-    def get_available_addresses(self, start=0):
-        for run_start, _, length, _ in self.runs:
-            if start > run_start + length:
-                continue
-
-            # We can not allow the scanner to try to access the phys_base
-            # directly because we have multiple phys_base and the scanner will
-            # not know which to read. When the scanner uses get_mappings() this
-            # should work again.
-            yield run_start, run_start, length
-
     def get_mappings(self, start=0):
-        """Returns the mappings."""
-        for run_start, file_address, length, _as in self.runs:
-            if start > run_start + length:
+        """Yields the mappings.
+
+        Yields: A seqence of Run objects representing each run.
+        """
+        for _, _, run in self.runs:
+            if start > run.end:
                 continue
 
-            yield run_start, file_address, length, _as
-
+            yield run
 
 
 class Error(Exception):

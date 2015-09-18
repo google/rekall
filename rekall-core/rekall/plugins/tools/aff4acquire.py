@@ -134,7 +134,10 @@ class AFF4Acquire(plugin.Command):
             total = 0
             last_tick = time.time()
 
-            for offset, _, length in source.get_address_ranges():
+            for run in source.get_address_ranges():
+                length = run.length
+                offset = run.start
+
                 image_stream.seek(offset)
 
                 while length > 0:
@@ -175,7 +178,10 @@ class AFF4Acquire(plugin.Command):
             total = 0
             last_tick = time.time()
 
-            for offset, _, length in source.get_address_ranges():
+            for run in source.get_address_ranges():
+                offset = run.start
+                length = run.length
+
                 while length > 0:
                     to_read = min(length, self.BUFFERSIZE)
                     data = source.read(offset, to_read)
@@ -356,8 +362,8 @@ class AFF4Acquire(plugin.Command):
         if self.session.HasParameter("kernel_base"):
             result["KernBase"] = self.session.GetParameter("kernel_base")
 
-        for vaddr, _, length in source.get_address_ranges():
-            result["Runs"].append(dict(start=vaddr, length=length))
+        for run in source.get_address_ranges():
+            result["Runs"].append(dict(start=run.start, length=run.length))
 
         return result
 
@@ -427,7 +433,7 @@ class AFF4Ls(plugin.Command):
             help="Include additional information about each stream.")
 
         parser.add_argument(
-            "volume", default=None, required=True,
+            "volume", default=None, required=False,
             help="Volume to list.")
 
     def __init__(self, long=False, volume=None, **kwargs):
@@ -507,7 +513,13 @@ class AFF4Ls(plugin.Command):
             renderer.table_row(size, filename, urn)
 
     def render(self, renderer):
+        if self.volume_path is None:
+            self.volume_path = self.session.GetParameter("filename")
+
         volume_urn = rdfvalue.URN().FromFileName(self.volume_path)
+        if not volume_urn:
+            raise plugin.PluginError("No Volume specified.")
+
         with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
             if self.long:
                 self.render_long(renderer, volume)

@@ -70,7 +70,7 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
                     task,
                     task.InheritedFromUniqueProcessId,
                     task.ActiveThreads,
-                    task.ObjectTable.HandleCount,
+                    task.ObjectTable.m("HandleCount"),
                     task.CreateTime, depth=pad, parent=pid)
 
                 if self.verbosity > 1:

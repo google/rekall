@@ -119,11 +119,11 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         """Returns the PML4, the base of the paging tree."""
         return self.dtb
 
-    def get_available_addresses(self, start=0):
+    def get_mappings(self, start=0):
         """Enumerate all available ranges.
 
-        Yields tuples of (vaddr, physical address, length) for all available
-        ranges in the virtual address space.
+        Yields Run objects for all available ranges in the virtual address
+        space.
         """
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
@@ -178,6 +178,17 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                     ((vaddr & 0x3fe00000) >> 18))
 
     def _get_available_PDEs(self, vaddr, pdpte_value, start):
+        # This reads the entire PDE table at once - On
+        # windows where IO is extremely expensive, its
+        # about 10 times more efficient than reading it
+        # one value at the time - and this loop is HOT!
+        pde_table_addr = self._get_pde_addr(pdpte_value, vaddr)
+        if pde_table_addr is None:
+            return
+
+        data = self.base.read(pde_table_addr, 8 * 0x200)
+        pde_table = struct.unpack("<" + "Q" * 0x200, data)
+
         tmp2 = vaddr
         for pde_index in range(0, 0x200):
             vaddr = tmp2 | (pde_index << 21)
@@ -186,15 +197,14 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             if start >= next_vaddr:
                 continue
 
-            pde_addr = self._get_pde_addr(pdpte_value, vaddr)
-            if pde_addr is None:
-                continue
-
-            pde_value = self.read_pte(pde_addr)
+            pde_value = pde_table[pde_index]
             if pde_value & self.valid_mask and pde_value & self.page_size_mask:
-                yield (vaddr,
-                       (pde_value & 0xfffffffe00000) | (vaddr & 0x1fffff),
-                       0x200000)
+                yield addrspace.Run(
+                    start=vaddr,
+                    end=vaddr + 0x200000,
+                    file_offset=(pde_value & 0xfffffffe00000) | (
+                        vaddr & 0x1fffff),
+                    address_space=self.base)
                 continue
 
             # This reads the entire PTE table at once - On
@@ -225,9 +235,10 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             if start >= next_vaddr:
                 continue
 
-            yield (vaddr,
-                   (pte_value & 0xffffffffff000) | (vaddr & 0xfff),
-                   0x1000)
+            yield addrspace.Run(start=vaddr,
+                                end=vaddr + 0x1000,
+                                file_offset=(pte_value & 0xffffffffff000) | (vaddr & 0xfff),
+                                address_space=self.base)
 
     def end(self):
         return (2 ** 64) - 1
@@ -302,6 +313,10 @@ class VTxPagedMemory(AMD64PagedMemory):
 
     def __str__(self):
         return "%s@0x%08X" % (self.__class__.__name__, self._ept)
+
+
+class XenM2PMapper(dict):
+    """A maping between machine and physical addresses."""
 
 
 class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
@@ -405,7 +420,6 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                 "p2m_mid_missing", "Pointer", vm=self)
             p2m_identity = self.session.profile.get_constant_object(
                 "p2m_identity", "Pointer", vm=self)
-            new_mapping = {}
 
             self.session.logging.debug("p2m_top = %#0x", p2m_top_location)
             self.session.logging.debug("p2m_missing = %#0x", p2m_missing)
@@ -426,7 +440,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                 ~0: "INVALID_P2M",
                 }
 
-            new_mapping = {}
+            new_mapping = XenM2PMapper()
 
             # TOP entries
             for p2m_top in self._ReadP2M(
@@ -570,6 +584,53 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
         return super(XenParaVirtAMD64PagedMemory, self).vtop(vaddr)
 
+    def _get_available_PDEs(self, vaddr, pdpte_value, start):
+        # This reads the entire PDE table at once - On
+        # windows where IO is extremely expensive, its
+        # about 10 times more efficient than reading it
+        # one value at the time - and this loop is HOT!
+        pde_table_addr = self._get_pde_addr(pdpte_value, vaddr)
+        if pde_table_addr is None:
+            return
+
+        data = self.base.read(pde_table_addr, 8 * 0x200)
+        pde_table = struct.unpack("<" + "Q" * 0x200, data)
+
+        tmp2 = vaddr
+        for pde_index in range(0, 0x200):
+            vaddr = tmp2 | (pde_index << 21)
+
+            next_vaddr = tmp2 | ((pde_index + 1) << 21)
+            if start >= next_vaddr:
+                continue
+
+            pde_value = self.m2p(pde_table[pde_index])
+            if pde_value & self.valid_mask and pde_value & self.page_size_mask:
+                yield addrspace.Run(
+                    start=vaddr,
+                    end=vaddr + 0x200000,
+                    file_offset=(pde_value & 0xfffffffe00000) | (
+                        vaddr & 0x1fffff),
+                    address_space=self.base)
+                continue
+
+            # This reads the entire PTE table at once - On
+            # windows where IO is extremely expensive, its
+            # about 10 times more efficient than reading it
+            # one value at the time - and this loop is HOT!
+            pte_table_addr = self._get_pte_addr(vaddr, pde_value)
+
+            # Invalid PTEs.
+            if pte_table_addr is None:
+                continue
+
+            data = self.base.read(pte_table_addr, 8 * 0x200)
+            pte_table = struct.unpack("<" + "Q" * 0x200, data)
+
+            for x in self._get_available_PTEs(
+                    pte_table, vaddr, start=start):
+                yield x
+
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         """Returns PFNs for each PTE entry."""
         tmp3 = vaddr
@@ -591,6 +652,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
             if start >= next_vaddr:
                 continue
 
-            yield (vaddr,
-                   (pte_value & 0xffffffffff000) | (vaddr & 0xfff),
-                   0x1000)
+            yield addrspace.Run(start=vaddr,
+                                end=vaddr + 0x1000,
+                                file_offset=(pte_value & 0xffffffffff000) | (vaddr & 0xfff),
+                                address_space=self.base)

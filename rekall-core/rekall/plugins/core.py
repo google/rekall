@@ -245,8 +245,8 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         """Finds DTBs and yields virtual address spaces that expose kernel.
 
         Yields:
-          BaseAddressSpace-derived instances, validated using the
-          verify_address_space() method..
+          BaseAddressSpace-derived instances, validated using the VerifyHit()
+          method.
         """
         for hit in self.dtb_hits():
             address_space = self.VerifyHit(hit)
@@ -264,7 +264,7 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         except IOError:
             return None
 
-    def GetAddressSpaceImplementation(self):
+    def GetAddressSpaceImplementation(self, simple=False):
         """Returns the correct address space class for this profile."""
         # The virtual address space implementation is chosen by the profile.
         architecture = self.profile.metadata("arch")
@@ -274,10 +274,6 @@ class FindDTB(plugin.PhysicalASMixin, plugin.ProfileCommand):
         # PAE profiles go with the pae address space.
         elif architecture == "I386" and self.profile.metadata("pae"):
             impl = 'IA32PagedMemoryPae'
-
-            # Add specific support for windows.
-            if self.profile.metadata("os") == "windows":
-                impl = "WindowsIA32PagedMemoryPae"
 
         elif architecture == "MIPS":
             impl = "MIPS32PagedMemory"
@@ -392,9 +388,6 @@ class LoadAddressSpace(plugin.Command):
         loaded from guess_profile.ApplyFindDTB() when profiles are guessed. This
         function is only used when the profile is directly provided by the user.
         """
-        if dtb is None:
-            dtb = self.session.GetParameter("dtb")
-
         if not self.session.physical_address_space:
             self.GetPhysicalAddressSpace()
 
@@ -408,6 +401,9 @@ class LoadAddressSpace(plugin.Command):
 
         # If we know the DTB, just build the address space.
         # Otherwise, delegate to a find_dtb plugin.
+        if dtb is None:
+            dtb = self.session.GetParameter("dtb")
+
         find_dtb = self.session.plugins.find_dtb()
         if find_dtb == None:
             return find_dtb
@@ -598,23 +594,15 @@ class DirectoryDumperMixin(object):
         """
         BUFFSIZE = 1024 * 1024
 
-        for offset, _, length in address_space.get_available_addresses(
-                start=start):
-
-            if start > offset:
-                continue
-
-            if offset >= end:
-                break
-
-            out_offset = offset - start
+        for run in address_space.get_address_ranges(start=start, end=end):
+            out_offset = run.start - start
             self.session.report_progress("Dumping %s Mb", out_offset / BUFFSIZE)
             outfd.seek(out_offset)
-            i = offset
+            i = run.start
 
             # Now copy the region in fixed size buffers.
-            while i < offset + length:
-                to_read = min(BUFFSIZE, length)
+            while i < run.end:
+                to_read = min(BUFFSIZE, run.end - i)
 
                 data = address_space.read(i, to_read)
                 outfd.write(data)
@@ -812,7 +800,7 @@ class AddressMap(object):
         """
         result = []
         for i in range(start, end):
-            hit = self.collection.get_range(i)
+            _, _, hit = self.collection.get_containing_range(i)
             if hit:
                 _, fg, bg = hit
                 if relative:
@@ -826,7 +814,7 @@ class AddressMap(object):
         """Returns a tuple of labels and their highlights."""
         labels = []
         for i in range(start, end):
-            hit = self.collection.get_range(i)
+            start, end, hit = self.collection.get_containing_range(i)
             if hit:
                 if hit not in labels:
                     labels.append(hit)
@@ -968,9 +956,9 @@ class Dump(plugin.Command):
 
         resolver = self.session.address_resolver
         for offset in range(self.offset, self.offset + to_read):
-            comment = resolver.format_address(offset, max_distance=1)
+            comment = resolver.format_address(offset, max_distance=0)
             if comment:
-                self.address_map.AddRange(offset, offset + 1, comment)
+                self.address_map.AddRange(offset, offset + 1, ",".join(comment))
 
         offset = self.offset
         for offset in range(self.offset, self.offset + to_read, self.width):
@@ -989,10 +977,12 @@ class Dump(plugin.Command):
         self.offset = offset
 
 
-class Grep(plugin.Command):
+class Grep(plugin.ProfileCommand):
     """Search an address space for keywords."""
 
     __name = "grep"
+
+    PROFILE_REQUIRED = False
 
     @classmethod
     def args(cls, parser):
@@ -1043,79 +1033,6 @@ class Grep(plugin.Command):
                 address_space=self.address_space)
 
             hexdumper.render(renderer)
-
-
-class MemmapMixIn(object):
-    """A Mixin to create the memmap plugins for all the operating systems."""
-
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(MemmapMixIn, cls).args(parser)
-        parser.add_argument(
-            "--coalesce", default=False, type="Boolean",
-            help="Merge contiguous pages into larger ranges.")
-
-        parser.add_argument(
-            "--all", default=False, type="Boolean",
-            help="Use the entire range of address space.")
-
-    def __init__(self, *pos_args, **kwargs):
-        """Calculates the memory regions mapped by a process or the kernel.
-
-        If no process filtering directives are provided, enumerates the kernel
-        address space.
-        """
-        self.coalesce = kwargs.pop("coalesce", False)
-        self.all = kwargs.pop("all", False)
-        super(MemmapMixIn, self).__init__(*pos_args, **kwargs)
-
-    def _render_map(self, task_space, renderer, highest_address):
-        renderer.format(u"Dumping address space at DTB {0:#x}\n\n",
-                        task_space.dtb)
-
-        renderer.table_header([("Virtual", "offset_v", "[addrpad]"),
-                               ("Physical", "offset_p", "[addrpad]"),
-                               ("Size", "process_size", "[addr]")])
-
-        if self.coalesce:
-            ranges = task_space.get_address_ranges()
-        else:
-            ranges = task_space.get_available_addresses()
-
-        for virtual_address, phys_address, length in ranges:
-            # When dumping out processes do not dump the kernel.
-            if not self.all and virtual_address > highest_address:
-                break
-
-            renderer.table_row(virtual_address, phys_address, length)
-
-    def _get_highest_user_address(self):
-        """Returns the highest process address to display.
-
-        This is operating system dependent.
-        """
-        return 2**64
-
-    def render(self, renderer):
-        if not self.filtering_requested:
-            # Dump the entire kernel address space.
-            return self._render_map(self.kernel_address_space, renderer, 2**64)
-
-        for task in self.filter_processes():
-            renderer.section()
-            renderer.RenderProgress("Dumping pid {0}".format(task.pid))
-
-            task_space = task.get_process_address_space()
-            renderer.format(u"Process: '{0}' pid: {1:6}\n\n",
-                            task.name, task.pid)
-
-            if not task_space:
-                renderer.write("Unable to read pages for task.\n")
-                continue
-
-            self._render_map(task_space, renderer,
-                             self._get_highest_user_address())
 
 
 class SetProcessContextMixin(object):

@@ -135,8 +135,7 @@ def main():
                      "tools/installers/rekal.py"])
 
     print "Copy missing DLLs."
-    subprocess.call(["rekal", "run", "--run",
-                     "tools/installers/copy_dlls.py"])
+    subprocess.call(["python", "tools/installers/copy_dlls.py"])
 
     print "Copy resources into the package."
     copy("rekall-core/resources/*", "dist/rekal")

@@ -80,7 +80,7 @@ class LimeAddressSpace(addrspace.RunBasedAddressSpace):
 
         header = LimeProfile(session=self.session).lime_header(vm=self.base)
         while header.magic == "EMiL":
-            self.runs.insert((header.start, header.obj_end, header.size))
+            self.add_run(header.start, header.obj_end, header.size)
             header = header.next
 
     def vtop(self, addr):
@@ -89,13 +89,16 @@ class LimeAddressSpace(addrspace.RunBasedAddressSpace):
         This hack is also present in the Volatility address space without
         suitable explanation, so we just blindly add it here.
         """
-        if addr < self.runs[0][0]:
-            addr = self.runs[0][0] + addr
+        smallest_address = self.runs.get_next_range_start(-1)
+
+        if addr < smallest_address:
+            addr = smallest_address + addr
 
         return super(LimeAddressSpace, self).vtop(addr)
 
-    def _get_available_buffer(self, addr, length):
-        if addr > 0 and addr < self.runs[0][0]:
-            addr = self.runs[0][0] + addr
+    def read(self, addr, length):
+        smallest_address = self.runs.get_next_range_start(-1)
+        if addr > 0 and addr < smallest_address:
+            addr = smallest_address + addr
 
-        return super(LimeAddressSpace, self)._get_available_buffer(addr, length)
+        return super(LimeAddressSpace, self).read(addr, length)

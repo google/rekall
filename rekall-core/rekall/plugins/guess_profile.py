@@ -45,9 +45,9 @@ class DetectionMethod(object):
 
     __metaclass__ = registry.MetaclassRegistry
     name = None
-    
+
     order = 100
-    
+
     def __init__(self, session=None):
         self.session = session
 
@@ -66,6 +66,7 @@ class DetectionMethod(object):
     find_dtb_impl = None
 
     def VerifyProfile(self, profile_name):
+        """Check that the profile name is valid."""
         profile = self.session.LoadProfile(profile_name)
 
         if profile != None:
@@ -83,9 +84,14 @@ class DetectionMethod(object):
         # Allow the dtb to be specified on the command line.
         dtb = self.session.GetParameter("dtb")
         if dtb:
+            # Verify the DTB to make sure it is correct.
+            if not find_dtb_plugin.VerifyHit(dtb):
+                return
+
             address_space = find_dtb_plugin.CreateAS(dtb)
             self.session.SetCache(
                 "default_address_space", address_space, volatile=False)
+
             return profile
 
         for address_space in find_dtb_plugin.address_space_hits():
@@ -206,16 +212,19 @@ class WindowsIndexDetector(DetectionMethod):
         # Make use of already known dtb and kernel_base parameters - this speeds
         # up live analysis significantly since we do not need to search for
         # anything then.
-        if (filename_offset == 0 and self.session.HasParameter("dtb") and
-                self.session.HasParameter("kernel_base")):
-            test_as = amd64.AMD64PagedMemory(
-                session=self.session, base=address_space,
-                dtb=self.session.GetParameter("dtb"))
+        if filename_offset == 0:
+            if (self.session.HasParameter("dtb") and
+                    self.session.HasParameter("kernel_base")):
+                test_as = amd64.AMD64PagedMemory(
+                    session=self.session, base=address_space,
+                    dtb=self.session.GetParameter("dtb"))
 
-            if self.VerifyDTB(test_as):
-                return self._match_profile_for_kernel_base(
-                    self.session.GetParameter("kernel_base"),
-                    test_as)
+                if self.VerifyDTB(test_as):
+                    return self._match_profile_for_kernel_base(
+                        self.session.GetParameter("kernel_base"),
+                        test_as)
+
+            return
 
         # Get potential kernel address spaces.
         for test_as in self.DetectWindowsDTB(filename_offset, address_space):
@@ -245,7 +254,7 @@ class PEImageFileDetector(DetectionMethod):
 
     name = "pe"
     order = 50
-    
+
     def __init__(self, **kwargs):
         super(PEImageFileDetector, self).__init__(**kwargs)
         self.pe_profile = self.session.LoadProfile("pe")
@@ -276,6 +285,7 @@ class WindowsRSDSDetector(DetectionMethod):
     """A detection method based on the scanning for RSDS signatures."""
 
     name = "rsds"
+    order = 90
 
     # Windows kernel pdb files.
     KERNEL_NAMES = win_common.KERNEL_NAMES
@@ -288,6 +298,9 @@ class WindowsRSDSDetector(DetectionMethod):
 
     def Keywords(self):
         return ["RSDS"]
+
+    def Offsets(self):
+        return [0]
 
     def VerifyProfile(self, profile_name):
         profile = self.session.LoadProfile(profile_name)
@@ -311,6 +324,22 @@ class WindowsRSDSDetector(DetectionMethod):
             return self._ApplyFindDTB(self.find_dtb_impl, profile)
 
     def DetectFromHit(self, hit, offset, address_space):
+        # Make use of already known dtb and kernel_base parameters - this speeds
+        # up live analysis significantly since we do not need to search for
+        # anything then.
+        if (offset == 0 and self.session.HasParameter("dtb") and
+                self.session.HasParameter("kernel_base")):
+            test_as = amd64.AMD64PagedMemory(
+                session=self.session, base=address_space,
+                dtb=self.session.GetParameter("dtb"))
+
+            pe_helper = pe_vtypes.PE(
+                session=self.session,
+                address_space=test_as,
+                image_base=self.session.GetParameter("kernel_base"))
+
+            return self._test_rsds(pe_helper.RSDS)
+
         # Try Windows by GUID:
         rsds = self.pe_profile.CV_RSDS_HEADER(offset=offset, vm=address_space)
         return self._test_rsds(rsds)
@@ -331,7 +360,7 @@ class WindowsRSDSDetector(DetectionMethod):
 class WindowsKernelImageDetector(WindowsRSDSDetector):
     name = "windows_kernel_file"
     order = 50
-    
+
     def Offsets(self):
         return [0]
 
@@ -345,7 +374,7 @@ class WindowsKernelImageDetector(WindowsRSDSDetector):
         if image_offset is not None:
             file_as = addrspace.RunBasedAddressSpace(
                 base=address_space, session=self.session)
-            file_as.runs.insert((0, image_offset, 2**63))
+            file_as.add_run(0, image_offset, 2**63)
 
             pe_file_as = pe_vtypes.PEFileAddressSpace(
                 base=file_as, session=self.session)
@@ -374,7 +403,6 @@ class LinuxBannerDetector(DetectionMethod):
 
     def DetectFromHit(self, hit, offset, address_space):
         guess = address_space.read(offset-100, 300)
-
         m = self.LINUX_TEMPLATE.search(guess)
         if m:
             # Try to guess the distribution.
@@ -492,6 +520,9 @@ class ProfileHook(kb.ParameterHook):
             for offset in method.Offsets():
                 profile = method.DetectFromHit(None, offset, address_space)
                 if profile:
+                    self.session.logging.info(
+                        "Detection method %s yielded profile %s",
+                        method.name, profile)
                     return profile
 
         # Build and configure the scanner.
@@ -580,7 +611,7 @@ class ProfileHook(kb.ParameterHook):
         self.session.profile = profile_obj
 
         if (self.session.GetParameter("cache") == "file" and
-                self.session.GetParameter("image_fingerprint")):
+                self.session.HasParameter("image_fingerprint")):
             self.session.cache.SetFingerprint(
                 self.session.GetParameter("image_fingerprint"))
 

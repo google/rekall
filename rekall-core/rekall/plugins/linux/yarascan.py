@@ -97,18 +97,14 @@ class LinYaraScan(common.LinProcessFilter):
             utils.WriteHexdump(renderer, context, base=address)
 
     def render_kernel_scan(self, renderer):
-        modules = self.session.plugins.lsmod()
-
         for rule, address, _, _ in self.generate_hits(
                 self.kernel_address_space):
             renderer.format("Rule: {0}\n", rule)
+            owner = self.session.address_resolver.format_address(address)
+            if not owner:
+                owner = "Unknown"
 
-            # Find out who owns this hit.
-            owner = modules.find_module(address)
-            if owner:
-                renderer.format("Owner: {0}\n", owner.name)
-            else:
-                renderer.format("Owner: (Unknown Kernel Memory)\n")
+            renderer.format("Owner: {0}\n", owner)
 
             context = self.kernel_address_space.read(address, 0x40)
             utils.WriteHexdump(renderer, context, base=address)

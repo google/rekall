@@ -573,9 +573,8 @@ class TcpipPluginMixin(object):
         if tcpip_guid:
             self.session.SetCache("tcpip_guid", tcpip_guid)
 
-        self.tcpip_profile = self.session.address_resolver.LoadProfileForName(
-            "tcpip")
-
+        tcpip_module = self.session.address_resolver.GetModuleByName("tcpip")
+        self.tcpip_profile = tcpip_module.profile
         if not self.tcpip_profile:
             raise RuntimeError("Unable to load the profile for tcpip.sys")
 

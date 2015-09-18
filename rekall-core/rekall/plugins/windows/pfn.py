@@ -504,9 +504,8 @@ class DTBScan(common.WinProcessFilter):
         seen_dtbs = set()
 
         # Now scan all the physical address space for DTBs.
-        for _ in self.physical_address_space.get_available_addresses():
-            start, _, length = _
-            for page in range(start, start + length, 0x1000):
+        for run in self.physical_address_space.get_mappings():
+            for page in range(run.start, run.end, 0x1000):
                 self.session.report_progress("Scanning 0x%08X (%smb)" % (
                     page, page/1024/1024))
 

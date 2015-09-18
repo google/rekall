@@ -92,7 +92,7 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
             return item._object_id
         except AttributeError:
             return id(item)
-        
+
     @classmethod
     def FromEncoded(cls, item, renderer):
         """Get an JsonObjectRenderer class to parse the encoded item."""

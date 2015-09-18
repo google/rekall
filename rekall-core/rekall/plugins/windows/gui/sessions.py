@@ -83,9 +83,6 @@ class Sessions(common.WinProcessFilter):
         return obj.NoneObject("Cannot locate a session %s", session_id)
 
     def render(self, renderer):
-        # Use the modules plugin to resolve the module addresses.
-        module_plugin = self.session.plugins.modules()
-
         for session in self.session_spaces():
             renderer.section()
 
@@ -111,10 +108,11 @@ class Sessions(common.WinProcessFilter):
             # kernel modules loaded in this session.
             for image in session.ImageList.list_of_type(
                     "_IMAGE_ENTRY_IN_SESSION", "Link"):
-                module = module_plugin.find_module(image.Address)
+                symbol = self.session.address_resolver.format_address(
+                    image.Address)
 
                 renderer.format(
                     " Image: {0:addrpad}, Address {1:addrpad}, Name: {2}\n",
                     image.obj_offset,
                     image.Address,
-                    module.BaseDllName)
+                    symbol)

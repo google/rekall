@@ -66,9 +66,20 @@ class CheckSyscall(common.LinuxPlugin):
         258 ret_from_sys_call:
         259        movl $_TIF_ALLWORK_MASK,%edi
         260        /* edi: flagmask */
+
+
+        - sysenter_do_call
+           Linux> dis "linux!sysenter_do_call"
+           Address    Rel           Op Codes           Instruction    Comment
+           ------- ---------- -------------------- ------------------ -------
+           ------ linux!sysenter_do_call ------: 0xc12c834d
+           0xc12c834d        0x0 3d5d010000           CMP EAX, 0x15d
+           0xc12c8352        0x5 0f8397baffff         JAE 0xc12c3def  linux!syscall_badsys
+
         """
         for func_name, rewind in [("system_call_fastpath", 0),
-                                  ("ret_from_sys_call", 40)]:
+                                  ("ret_from_sys_call", 40),
+                                  ("sysenter_do_call", 0)]:
             func = self.profile.get_constant_object(
                 func_name, target="Function").Rewind(rewind)
 
@@ -141,7 +152,7 @@ class CheckSyscall(common.LinuxPlugin):
             ("Table Name", "table", "20"),
             ("Index", "index", "[addr]"),
             ("Address", "address", "[addrpad]"),
-            ("Symbol", "symbol", "<30")])
+            ("Symbol", "symbol", "<130")])
 
         for table_name, i, call_addr, sym_name in self.CheckSyscallTables():
             renderer.table_row(table_name, i, call_addr, sym_name or "Unknown",

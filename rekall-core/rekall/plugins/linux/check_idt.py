@@ -43,8 +43,6 @@ class CheckIdt(common.LinuxPlugin):
         Yields:
           slot, address, function or module containing this function.
         """
-        lsmod = self.session.plugins.lsmod(session=self.session)
-
         if check_indexes is None:
             check_indexes = range(256)
 
@@ -52,18 +50,7 @@ class CheckIdt(common.LinuxPlugin):
             entry = table[i]
             idt_addr = entry.address
 
-            resolver = self.session.address_resolver
-            # Try to resolve the address from the profile.
-            name = (resolver.format_address(idt_addr) or
-
-                    # Search for a module which contains this address.
-                    lsmod.find_module(idt_addr).name or
-
-                    # We really dont know where this is going.
-                    "Unknown")
-
-            yield i, entry, name
-
+            yield i, entry
 
     def CheckIDTTables(self):
         """
@@ -99,10 +86,14 @@ class CheckIdt(common.LinuxPlugin):
                                ("DPL", "dpl", ">3"),
                                ("Symbol", "symbol", "")])
 
-        for (i, entry, symbol) in self.CheckIDTTables():
-            highlight = None
-            if symbol == "Unknown":
-                highlight = "important"
+        for (i, entry) in self.CheckIDTTables():
+            symbol = ", ".join(
+                self.session.address_resolver.format_address(
+                    func.obj_offset))
+
+            # Point out suspicious constants.
+            highlight = None if symbol.startswith("linux") else "important"
 
             renderer.table_row(i, entry.address, entry.gate_type,
-                               entry.present, entry.dpl, symbol, highlight=highlight)
+                               entry.present, entry.dpl, symbol,
+                               highlight=highlight)

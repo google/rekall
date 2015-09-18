@@ -44,7 +44,7 @@ from rekall import session
 from rekall.plugins.addrspaces import win32
 
 
-class Live(plugin.PriviledgedMixIn, plugin.ProfileCommand):
+class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"

@@ -22,6 +22,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 from rekall.plugins import core
 from rekall.plugins.darwin import common
 from rekall.plugins.common import entities
+from rekall.plugins.common import memmap
 
 
 class Processes(entities.EntityFind,
@@ -244,9 +245,13 @@ class DarwinPSAUX(common.DarwinProcessFilter):
                 " ".join(proc.argv))
 
 
-class DarwinMemMap(core.MemmapMixIn, common.DarwinProcessFilter):
-    """Dumps the memory map for darwin tasks."""
+class DarwinMemMap(memmap.MemmapMixIn, common.DarwinProcessFilter):
+    """Prints the memory map for darwin tasks."""
     __name = "memmap"
 
     def _get_highest_user_address(self):
         return 0x800000000000
+
+
+class DarwinMemDump(memmap.MemDumpMixin, common.DarwinProcessFilter):
+    """Dumps the memory map for darwin tasks."""

@@ -632,8 +632,11 @@ class JoinedCell(BaseCell):
     """
 
     def __init__(self, *cells, **kwargs):
-        super(JoinedCell, self).__init__()
+        super(JoinedCell, self).__init__(**kwargs)
         self.tablesep = kwargs.pop("tablesep", " ")
+
+        if not cells:
+            cells = [Cell("")]
 
         self.cells = []
         for cell in cells:
@@ -664,13 +667,18 @@ class JoinedCell(BaseCell):
         contents_width = 0
         for cell in self.cells:
             contents_width += cell.width + len(self.tablesep)
-        contents_width -= len(self.tablesep)
 
-        self._width = max(self.width, contents_width)
+        contents_width = max(0, contents_width - len(self.tablesep))
+
+        if self.width_explicit or self.width is None:
+            self._width = max(self.width, contents_width)
+        else:
+            self._width = self.width
+
         adjustment = self._width - contents_width
 
         # Wrap or pad children.
-        if adjustment and self.mode == "stretch":
+        if adjustment and self.mode == "stretch" and self.cells:
             align = self.align
 
             if align == "l":

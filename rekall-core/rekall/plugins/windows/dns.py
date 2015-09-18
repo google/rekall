@@ -323,8 +323,11 @@ class WinDNSCache(common.WindowsCommandPlugin):
         self.cc.SwitchProcessContext(task)
 
         # Load the profile for dnsrslvr and add the new types.
-        self.profile = InitializedDNSTypes(
-            self.session.address_resolver.LoadProfileForName("dnsrslvr"))
+        dnsrslvr_mod = self.session.address_resolver.GetModuleByName("dnsrslvr")
+        if not dnsrslvr_mod:
+            raise RuntimeError("Unable to find dnsrslvr.dll.")
+
+        self.profile = InitializedDNSTypes(dnsrslvr_mod.profile)
 
         hash_table = self.session.address_resolver.get_constant_object(
             "dnsrslvr!g_HashTable",
@@ -344,8 +347,8 @@ class WinDNSCache(common.WindowsCommandPlugin):
         if hash_table:
             return hash_table.deref()
 
-        self.heap_profile = self.session.address_resolver.LoadProfileForName(
-            "ntdll")
+        ntdll_mod = self.session.address_resolver.GetModuleByName("ntdll")
+        self.heap_profile = ntdll_mod.profile
 
         # First try to locate the hash table using the index, then fallback to
         # using scanning techniques:

@@ -44,8 +44,11 @@ class MemoryTranslation(plugin.KernelASMixin,
             address)
 
     def _GetASName(self, address_space):
+        if address_space is None:
+            return ""
+
         if address_space.name:
-            return unicode(address_space.name)[:30]
+            return address_space.name
         return address_space.__class__.__name__
 
     def render(self, renderer):
@@ -60,18 +63,18 @@ class MemoryTranslation(plugin.KernelASMixin,
         address = self.address
 
         # Traverse the address space stack and report each address space.
-        while 1:
+        while address_space.base is not None:
             paddr = address_space.vtop(address)
 
-            if address_space == address_space.phys_base:
+            if address_space == address_space.base:
                 break
 
             renderer.table_row(
                 self._GetASName(address_space),
                 address,
-                self._GetASName(address_space.phys_base),
+                self._GetASName(address_space.base),
                 paddr,
             )
 
-            address_space = address_space.phys_base
+            address_space = address_space.base
             address = paddr

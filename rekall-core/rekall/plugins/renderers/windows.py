@@ -131,7 +131,7 @@ class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
             return self.table.get_row(target.obj_offset, target.name,
                                       target.pid)
         else:
-            return text.Cell("%s %s (%d)" % (
+            return text.Cell(u"%s %s (%d)" % (
                 self.format_address(target.obj_offset),
                 target.name, target.pid))
 
@@ -142,7 +142,7 @@ class EPROCESS_WideTextObjectRenderer(EPROCESS_TextObjectRenderer):
 
     def render_row(self, target, **_):
         return text.Cell(
-            self.formatter.format("{0:s} Pid: {1:s} (@{2:#x})",
+            self.formatter.format(u"{0:s} Pid: {1:s} (@{2:#x})",
                                   target.name, target.pid, target))
 
 
@@ -159,7 +159,7 @@ class MMVAD_FLAGS_TextRenderer(text.TextObjectRenderer):
             try:
                 attribute = getattr(target, name)
                 if attribute.v():
-                    result.append("%s: %s" % (name, attribute))
+                    result.append(u"%s: %s" % (name, attribute))
             except AttributeError:
                 pass
 

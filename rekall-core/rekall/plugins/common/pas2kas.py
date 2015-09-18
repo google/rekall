@@ -117,14 +117,14 @@ class Pas2VasResolver(object):
             highest_virtual_address = self.session.GetParameter(
                 "highest_usermode_address")
 
-            for va, pa, length in address_space.get_available_addresses():
+            for run in address_space.get_mappings():
                 # Only consider userspace addresses for processes.
-                if userspace and va > highest_virtual_address:
+                if userspace and run.start > highest_virtual_address:
                     break
 
-                tmp_lookup_map.append((pa, length, va))
+                tmp_lookup_map.append((run.file_offset, run.length, run.start))
                 self.session.report_progress(
-                    "Enumerating memory for dtb %#x (%#x)", dtb, va)
+                    "Enumerating memory for dtb %#x (%#x)", dtb, run.start)
 
             # Now sort the map and return it.
             tmp_lookup_map.sort()

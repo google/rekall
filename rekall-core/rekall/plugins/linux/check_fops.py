@@ -58,13 +58,7 @@ class CheckProcFops(common.LinuxPlugin):
             func = ptr.dereference_as(target="Function",
                                       target_args=dict(name=member))
 
-            # Check if the symbol is pointing into a module.
-            module = self.module_plugin.find_module(func.obj_offset)
-            if module:
-                yield member, func, module.name
-                continue
-
-            yield member, func, "Unknown"
+            yield member, func
 
     def _walk_proc(self, current, seen, path=""):
         """Recursively traverse the proc filesystem yielding proc_dir_entry.
@@ -103,17 +97,17 @@ class CheckProcFops(common.LinuxPlugin):
             vm=self.kernel_address_space)
 
         root = proc_mnt.mnt_root
-        for member, func, location in self._check_members(
+        for member, func in self._check_members(
             root.d_inode.i_fop, f_op_members):
-            yield (proc_mnt, "proc_mnt: root", member, func, location)
+            yield (proc_mnt, "proc_mnt: root", member, func)
 
 
         # only check the root directory
         for dentry in root.d_subdirs.list_of_type("dentry", "d_u"):
             name = dentry.d_name.name.deref()
-            for member, func, location in self._check_members(
+            for member, func in self._check_members(
                 dentry.d_inode.i_fop, f_op_members):
-                yield dentry, name, member, func, location
+                yield dentry, name, member, func
 
     def check_fops(self):
         """Check the file ops for all the open file handles."""
@@ -125,9 +119,9 @@ class CheckProcFops(common.LinuxPlugin):
 
         seen = set()
         for proc_dir_entry, full_path in self._walk_proc(proc_root, seen):
-            for member, func, location in self._check_members(
+            for member, func in self._check_members(
                 proc_dir_entry.proc_fops, f_op_members):
-                yield proc_dir_entry, full_path, member, func, location
+                yield proc_dir_entry, full_path, member, func
 
     def render(self, renderer):
         renderer.table_header([
@@ -135,19 +129,23 @@ class CheckProcFops(common.LinuxPlugin):
             ("Path", "path", "<50"),
             ("Member", "member", "<20"),
             ("Address", "address", "[addrpad]"),
-            ("Module", "module", "<20")])
+            ("Module", "module", "")])
 
-        for proc_dir_entry, path, member, func, location in itertools.chain(
+        for proc_dir_entry, path, member, func in itertools.chain(
             self.check_proc_fop(), self.check_fops()):
-            highlight = "important" if location == "Unknown" else None
+            location = ", ".join(
+                self.session.address_resolver.format_address(
+                    func.obj_offset))
 
-            if location != "Unknown" and not self.all:
-                self.session.report_progress(
-                    "Checking proc f_ops for %(path)s", path=path)
+            # Point out suspicious constants.
+            highlight = None if location else "important"
 
-            else:
+            if highlight or self.all:
                 renderer.table_row(proc_dir_entry, path, member, func,
                                    location, highlight=highlight)
+
+            self.session.report_progress(
+                    "Checking proc f_ops for %(path)s", path=path)
 
 
 class TestCheckProcFops(testlib.SimpleTestCase):
@@ -171,9 +169,9 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
 
         for task in self.filter_processes():
             for file_struct, _ in lsof.get_open_files(task):
-                for member, func, location in self._check_members(
+                for member, func in self._check_members(
                     file_struct.f_op, f_op_members):
-                    yield task, member, func, location
+                    yield task, member, func
 
     def render(self, renderer):
         renderer.table_header([("Pid", "pid", "6"),
@@ -182,16 +180,20 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
                                ("Address", "address", "[addrpad]"),
                                ("Module", "module", "<20")])
 
-        for task, member, func, location in self.check_fops():
-            highlight = "important" if location == "Unknown" else None
+        for task, member, func in self.check_fops():
+            location = ", ".join(
+                self.session.address_resolver.format_address(
+                    func.obj_offset))
 
-            if location != "Unknown" and not self.all:
-                self.session.report_progress(
-                    "Checking task f_ops for %(comm)s (%(pid)s)",
-                    comm=task.comm, pid=task.pid)
-            else:
+            highlight = None if location else "important"
+
+            if highlight or self.all:
                 renderer.table_row(task.pid, task.comm, member, func,
                                    location, highlight=highlight)
+
+            self.session.report_progress(
+                "Checking task f_ops for %(comm)s (%(pid)s)",
+                comm=task.comm, pid=task.pid)
 
 
 class TestCheckTaskFops(testlib.SimpleTestCase):

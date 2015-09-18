@@ -410,14 +410,16 @@ class VirtualMachine(object):
         except TypeError:
             return False
 
-        for vaddr, paddr, size in validation_as.get_available_addresses():
+        for run in validation_as.get_mappings():
             if self.base_session:
                 self.base_session.report_progress(
                     "Validating VMCS %08X @ %08X" % (
                         vmcs.obj_offset, vaddr))
-            if vmcs.obj_offset >= paddr and vmcs.obj_offset < paddr + size:
+            if (vmcs.obj_offset >= run.file_offset and
+                    vmcs.obj_offset < run.file_offset + run.length):
                 validated = True
                 break
+
         self.vmcs_validation[vmcs] = validated
         return validated
 
@@ -462,12 +464,12 @@ class VirtualMachine(object):
         # If a VM is running under us, its VMCS has to be mapped in our
         # physical address space.
         phys_as = self.physical_address_space
-        for vaddr, paddr, size in phys_as.get_available_addresses():
+        for run in phys_as.get_mappings():
             for vm in vm_list:
                 if self.base_session:
                     self.base_session.report_progress(
                         u"Validating VM(%X) > VM(%X) @ %#X",
-                        self.ept, vm.ept, paddr)
+                        self.ept, vm.ept, run.file_offset)
 
                 for vmcs in vm.vmcss:
                     # Skip VMCS that we already validated
@@ -476,8 +478,8 @@ class VirtualMachine(object):
 
                     # This step makes sure the VMCS is mapped in the
                     # Level1 guest physical memory (us).
-                    if (paddr <= vmcs.obj_offset and
-                            vmcs.obj_offset < paddr+size):
+                    if (run.file_offset <= vmcs.obj_offset and
+                            vmcs.obj_offset < run.file_offset + run.length):
                         # Now we need to validate the VMCS under our context.
                         # For this we need to fix the VMCS AS and its offset.
                         vm.set_parent(self)
@@ -485,13 +487,14 @@ class VirtualMachine(object):
                         vmcs_stored_offset = vmcs.obj_offset
                         # Change the VMCS to be mapped in this VM's physical AS.
                         vmcs.obj_vm = self.physical_address_space
-                        # The new offset is the vaddr + the offset within the
+
+                        # The new offset is the run.start + the offset within the
                         # physical page. We need to do this when we're dealing
                         # with large/huge pages.
-                        # Note that vaddr here really means the physical
-                        # address of the L1 guest. paddr means the physical
+                        # Note that run.start here really means the physical
+                        # address of the L1 guest. run.file_offset means the physical
                         # address of the base AS (the host).
-                        vmcs.obj_offset = vaddr + (paddr - vmcs.obj_offset)
+                        vmcs.obj_offset = run.start + (run.file_offset - vmcs.obj_offset)
                         if vm.validate_vmcs(vmcs):
                             # This steps validates that the VMCS is mapped in
                             # the Level1 guest hypervisor AS.

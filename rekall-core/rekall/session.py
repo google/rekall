@@ -449,8 +449,8 @@ class Session(object):
     # unique among the sessions currently active.
     session_id = 0
 
-    # Priviledged sessions are allowed to run dangerous plugins.
-    priviledged = False
+    # Privileged sessions are allowed to run dangerous plugins.
+    privileged = False
 
     def __init__(self, **kwargs):
         self.progress = ProgressDispatcher()
@@ -563,6 +563,8 @@ class Session(object):
             cache_type = "timed"
 
         self.cache = cache.Factory(self, cache_type)
+        if self.physical_address_space:
+            self.physical_address_space.ConfigureSession(self)
 
     @property
     def default_address_space(self):
@@ -837,11 +839,13 @@ class Session(object):
                             name, path)
                         continue
 
+                    now = time.time()
                     result = obj.Profile.LoadProfileFromData(
                         manager.GetData(name), self, name=name)
                     if result:
                         self.logging.info(
-                            "Loaded profile %s from %s", name, manager)
+                            "Loaded profile %s from %s (in %s sec)", name, manager,
+                            time.time() - now)
                         break
 
                 except (IOError, KeyError) as e:

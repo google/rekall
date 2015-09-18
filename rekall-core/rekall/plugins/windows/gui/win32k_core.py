@@ -765,18 +765,9 @@ class Win32kPluginMixin(object):
         if win32k_profile:
             self.session.SetCache("win32k_profile", win32k_profile)
 
-        resolver = self.session.address_resolver
-        self.win32k_profile = resolver.LoadProfileForName("win32k")
-        self.win32k_profile.EnsureInitialized()
-
-        if self.win32k_profile.guessed_types:
-            self.session.logging.debug(
-                "Win32k profile is incomplete - attempting autodetection.")
-            overlay = self.session.plugins.win32k_autodetect().GetWin32kOverlay(
-                self.win32k_profile)
-
-            self.win32k_profile.add_overlay(overlay)
-            self.win32k_profile.guessed_types = False
+        # Ask the address resolver to load this profile.
+        module = self.session.address_resolver.GetModuleByName("win32k")
+        self.win32k_profile = module.profile
 
         # If the resolver loads the dummy profile this is not good enough.
         if not self._is_valid(self.win32k_profile):
@@ -862,6 +853,17 @@ class Win32k(pe_vtypes.BasicPEProfile):
             else:
                 profile.add_types(xp.vtypes_xp_64)
 
+        if profile.guessed_types:
+            profile.session.logging.debug(
+                "Win32k profile is incomplete - attempting autodetection.")
+
+            profile.add_overlay(
+                profile.session.plugins.win32k_autodetect().GetWin32kOverlay(
+                    profile))
+
+        # Merge the kernel's symbols for _RTL_ATOM_TABLE etc.
+        profile.merge(profile.session.profile)
+
         # The below code needs refactoring.
         return
 
@@ -939,7 +941,10 @@ class Win32k(pe_vtypes.BasicPEProfile):
 
 
 class Win32kHook(kb.ParameterHook):
-    """Guess the version of win32k.sys from the index."""
+    """Guess the version of win32k.sys from the index.
+
+    NOTE: Win32k needs special attention because it is often not easily detected. This
+    """
 
     name = "win32k_profile"
 

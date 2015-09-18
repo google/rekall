@@ -21,6 +21,7 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import re
 
+from rekall import addrspace
 from rekall import config
 from rekall import obj
 from rekall import plugin
@@ -41,213 +42,90 @@ config.DeclareOption(
     "modules directly from the symbol server.")
 
 
-class KernelModule(object):
-    def __init__(self, session):
-        self.session = session
-        self.name = "nt"
-        self.base = self.session.GetParameter("kernel_base")
+# In windows there are two types of mapped PE files - kernel modules and Dlls.
 
+class PEModule(address_resolver.Module):
+    """Windows overlays PE files in memory."""
 
-class WindowsAddressResolver(address_resolver.AddressResolverMixin,
-                             common.WindowsCommandPlugin):
-    """A windows specific address resolver plugin."""
+    _profile = None
 
-    def __init__(self, **kwargs):
-        super(WindowsAddressResolver, self).__init__(**kwargs)
-        self.vad = None
-        self.modules = None
-        self.modules_by_name = {}
+    def detect_profile_from_session(self):
+        """Get the module guid from the session cache.
 
-    def _EnsureInitialized(self):
-        if self.modules is None:
-            try:
-                self.modules = self.session.plugins.modules()
-                for module in self.modules.lsmod():
-                    module_name = self.NormalizeModuleName(module)
-                    self.modules_by_name[module_name] = module
-
-                    # Update the image base of our profiles.
-                    if module_name in self.profiles:
-                        self.profiles[module_name].image_base = module.base
-
-                self.profiles["nt"] = self.session.profile
-                self.modules_by_name["nt"] = KernelModule(self.session)
-
-            except AttributeError:
-                self.modules = None
-
-        # In kernel context no need for vads.
-        if (self.vad is None and hasattr(self.session.plugins, "vad") and
-                self.session.GetParameter("process_context")):
-            # Hold on to the vad plugin for resolving process address
-            # spaces. The vad plugin maintains its own per-process cache so we
-            # do not need to reset it here.
-            self.vad = self.session.plugins.vad()
-
-    def NormalizeModuleName(self, module):
-        try:
-            module_name = module.name
-        except AttributeError:
-            module_name = module
-
-        module_name = unicode(module_name)
-        module_name = re.split(r"[/\\]", module_name)[-1]
-        result = module_name.split(".")[0]
-        if result == "ntoskrnl":
-            result = "nt"
-
-        return result.lower()
-
-    def FindProcessVad(self, address, cache_only=False):
-        """Find the VAD corresponding with the address.
-
-        If cache_only is specified we can only use cached values. If the cache
-        is empty we fail the request. This is needed to avoid recursion loops in
-        the address space.
+        This allows the user to override the GUID detection with their own.
         """
-        if cache_only and self.vad is None:
-            return
+        return self.session.GetParameter("%s_profile" % self.name)
 
-        self._EnsureInitialized()
-        task = self.session.GetParameter("process_context")
-        if task and self.vad:
-            return self.vad.find_file_in_task(address, task)
+    def detect_guid_from_mapped_file(self):
+        """Guess the guid for the PE file."""
+        # Try to load the file from the physical address space.
+        if self.session.physical_address_space.metadata("can_map_files"):
+            phys_as = self.session.physical_address_space
+            if self.filename:
+                image_offset = phys_as.get_mapped_offset(self.filename, 0)
+                if image_offset:
+                    try:
+                        file_as = addrspace.RunBasedAddressSpace(
+                            base=phys_as, session=self.session)
 
-    def GetVADs(self):
-        self._EnsureInitialized()
-        task = self.session.GetParameter("process_context")
-        if task and self.vad:
-            return self.vad.GetVadsForProcess(task)
+                        file_as.add_run(0, image_offset, 2**63)
 
-        return []
+                        pe_file_as = pe_vtypes.PEFileAddressSpace(
+                            base=file_as, session=self.session)
 
-    def _FindContainingModule(self, address):
-        """Find the kernel module which contains the address."""
-        if self.modules:
-            return self.modules.find_module(address)
+                        pe_helper = pe_vtypes.PE(
+                            address_space=pe_file_as,
+                            image_base=pe_file_as.image_base,
+                            session=self.session)
 
-    def FindContainingModule(self, address):
-        """Finds the name of the module containing the specified address.
+                        return pe_helper.RSDS.GUID_AGE
+                    except IOError:
+                        pass
 
-        In windows we search in the following order:
-        1) Search all kernel modules to see if we can find the address.
-
-        2) If we are in process context - search all vads to see if the address
-           is found.
-
-        Returns:
-          A tuple of start address, end address, name
-          """
-        self._EnsureInitialized()
-
-        # The address may be in kernel space or user space.
-        containing_module = self._FindContainingModule(address)
-
-        if containing_module:
-            name = self.NormalizeModuleName(containing_module.name)
-            return containing_module.base, containing_module.size, name
-
-        # Maybe the address is in userspace.
-        containing_VAD = self.FindProcessVad(address)
-
-        # We find the vad and it
-        if containing_VAD:
-            start, end, name, _ = containing_VAD
-            return start, end, self.NormalizeModuleName(name)
-
-        # If we dont know anything about the address just return Nones.
-        return None, None, None
-
-    def _LoadProfile(self, module_name, profile):
-        self._EnsureInitialized()
-        try:
-            module_name = self.NormalizeModuleName(module_name)
-            # Try to get the profile directly from the local cache.
-            if module_name in self.profiles:
-                return self.profiles[module_name]
-
-            module = self.modules_by_name[module_name]
-
-            module_profile = (self.session.LoadProfile(profile) or
-                              self._build_local_profile(module_name, profile))
-
-            module_profile.image_base = module.base
-
-            # Merge in the kernel profile into this profile.
-            module_profile.merge(self.session.profile)
-
-            self.profiles[module_name] = module_profile
-
-            return module_profile
-
-        except (ValueError, KeyError):
-            # Cache the fact that we did not find this profile.
-            self.profiles[module_name] = None
-            self.session.logging.debug("Unable to resolve symbols in module %s",
-                                       module_name)
-
-            return obj.NoneObject()
-
-    def LoadProfileForDll(self, module_base, module_name):
-        """Loads a profile for the PE file located at the module_base.
-
-        This method gets a profile using the following methods in order:
-
-        1 - Have session load it from the profile repository.
-        2 - Build locally from the MS symbols server.
-        3 - Look up a the profile using index if an index exists for this
-            binary.
-        4 - Build it from export tables of the PE binary.
-        """
-        self._EnsureInitialized()
-
-        if module_name in self.profiles:
-            return self.profiles[module_name]
-
-        result = None
-
-        # Try to determine the DLL's GUID.
+    def detect_guid_pe_header(self):
+        # Overlay on the virtual AS.
         pe_helper = pe_vtypes.PE(
             address_space=self.session.GetParameter("default_address_space"),
-            image_base=module_base,
-            session=self.session)
+            image_base=self.start, session=self.session)
 
-        guid_age = pe_helper.RSDS.GUID_AGE
-        if guid_age:
-            profile_name = "%s/GUID/%s" % (module_name, guid_age)
-            result = self.session.LoadProfile(profile_name)
-            if not result:
-                try:
-                    self._build_local_profile(module_name, profile_name)
-                except RuntimeError:
-                    pass
+        return pe_helper.RSDS.GUID_AGE
 
-            if result:
-                result.name = module_name
-                result.image_base = module_base
+    def detect_profile_from_index(self):
+        index = self.session.LoadProfile("%s/index" % self.name)
+        for profile_name, _ in index.LookupIndex(self.start):
+            return profile_name
 
-        if not result:
-            # Try to apply the profile index if possible.
-            index_profile = self.session.LoadProfile("%s/index" % module_name)
-            if index_profile:
-                for test_profile, _ in index_profile.LookupIndex(
-                        module_base, minimal_match=1):
-                    result = self.session.LoadProfile(test_profile)
-                    result.image_base = module_base
-                    break
+    def detect_profile_name(self):
+        """Try to figure out the profile name for this module.
 
-        if not result:
-            result = self._build_profile_from_exports(module_base, module_name)
+        We have a number of methods as we need to call these in the most
+        appropriate order.
+        """
+        # Firt check the session - this allows the user to specify the profile
+        # directly by storing e.g. win32_profile in the session.
+        profile = self.detect_profile_from_session()
+        if profile:
+            return profile
 
-        self.profiles[module_name] = result
-        return result
+        # We might have the original file, e.g. in the AFF4 image.
+        guid = (self.detect_guid_from_mapped_file() or
 
-    def _build_local_profile(self, module_name, profile_name):
-        """Fetch a build a local profile from the symbol server."""
+                # Maybe we can just read the RSDS value from the mapped pe
+                # header.
+                self.detect_guid_pe_header())
+
+        if guid:
+            return "%s/GUID/%s" % (self.name, guid)
+
+        # Finally try to apply the index if available.
+        return self.detect_profile_from_index()
+
+    def build_local_profile(self, profile_name, force=False):
+        """Fetch and build a local profile from the symbol server."""
         mode = self.session.GetParameter("autodetect_build_local")
-        if mode == "full" or (
+        if force or mode == "full" or (
                 mode == "basic" and
-                module_name in self.session.GetParameter(
+                self.name in self.session.GetParameter(
                     "autodetect_build_local_tracked")):
             build_local_profile = self.session.plugins.build_local_profile()
             try:
@@ -260,16 +138,18 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         return obj.NoneObject()
 
-    def _build_profile_from_exports(self, module_base, module_name):
+    def build_profile_from_exports(self):
         """Create a dummy profile from PE exports."""
+        self.session.logging.debug("Building profile from PE Exports for %s",
+                                   self.name)
         result = obj.Profile.classes["BasicPEProfile"](
-            name=module_name,
+            name=self.name,
             session=self.session)
 
-        result.image_base = module_base
+        result.image_base = self.start
 
         peinfo = self.session.plugins.peinfo(
-            image_base=module_base, address_space=self.session.GetParameter(
+            image_base=self.start, address_space=self.session.GetParameter(
                 "default_address_space"))
 
         constants = {}
@@ -278,191 +158,117 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 self.session.report_progress("Merging export table: %s", name)
                 func_offset = func.v()
                 if not result.get_constant_by_address(func_offset):
-                    constants[str(name or "")] = func_offset - module_base
+                    constants[str(name or "")] = func_offset - self.start
 
         result.add_constants(constants_are_addresses=True, **constants)
-
-        self.profiles[module_name] = result
-
         return result
 
-    def LoadProfileForModule(self, module):
-        self._EnsureInitialized()
-        module_base = module.base
-        module_name = self.NormalizeModuleName(module)
+    @property
+    def profile(self):
+        if self._profile:
+            return self._profile
 
-        return self.LoadProfileForDll(module_base, module_name)
+        profile_name = self.detect_profile_name()
+        if profile_name:
+            self._profile = (self.session.LoadProfile(profile_name) or
+                             self.build_local_profile(profile_name))
 
-    def LoadProfileForModuleNameByName(self, module_name, profile_name):
-        """Loads a profile for a module by its full profile name.
+        if not self._profile:
+            # Profile is not available, should we build it?
+            self._profile = self.build_profile_from_exports()
 
-        This is needed if we can not determine the GUID for some reason from the
-        memory image. The user is able to provide the GUID (E.g. from disk
-        image).
+        if not self._profile:
+            return obj.NoneObject("Unable to detect GUID")
+
+        self._profile.image_base = self.start
+        return self._profile
+
+    @profile.setter
+    def profile(self, value):
+        """Allow the profile for this module to be overridden."""
+        self._profile = value
+        if value:
+            self._profile.image_base = self.start
+
+
+class VadModule(PEModule):
+    """A Module corresponding to a VAD entry."""
+
+    def __init__(self, vad=None, session=None):
+        name = "vad_%#x" % vad.Start
+        try:
+            # The filename of the _MMVAD
+            self.file_obj = vad.ControlArea.FilePointer
+            if self.file_obj.v():
+                self.filename = self.file_obj.file_name_with_drive()
+                name = WindowsAddressResolver.NormalizeModuleName(self.filename)
+        except AttributeError:
+            # Anonymous module has no name but can be enumerated via
+            # address_resolver.modules().
+            self.file_obj = self.filename = None
+
+        self.vad = vad
+        super(VadModule, self).__init__(
+            name=name,
+            start=vad.Start,
+            end=vad.End,
+            session=session)
+
+
+class KernelModule(PEModule):
+    """A Windows kernel module."""
+    def __init__(self, ldr_module=None, session=None):
+        self.ldr_module = ldr_module
+        self.filename = ldr_module.filename
+        name = WindowsAddressResolver.NormalizeModuleName(self.filename)
+        super(KernelModule, self).__init__(
+            name=name,
+            start=ldr_module.base,
+            end=ldr_module.end,
+            session=session)
+
+
+class WindowsAddressResolver(address_resolver.AddressResolverMixin,
+                             common.WindowsCommandPlugin):
+    """A windows specific address resolver plugin."""
+
+    @staticmethod
+    def NormalizeModuleName(module_name):
+        result = unicode(module_name)
+        result = re.split(r"[/\\]", result)[-1]
+
+        # Drop the file extension.
+        result = result.split(".")[0]
+
+        # The kernel is treated specially - just like windbg.
+        if result in ["ntoskrnl", "ntkrnlpa", "ntkrnlmp"]:
+            result = "nt"
+
+        return result.lower()
+
+    def _EnsureInitialized(self):
+        """Initialize the address resolver.
+
+        In windows we populate the virtual address space map from kernel modules
+        and VAD mapped files (dlls).
         """
-        self._EnsureInitialized()
+        if self._initialized:
+            return
 
-        profile = self.session.LoadProfile(profile_name, use_cache=False)
-        module_base = self._resolve_module_base_address(module_name)
-        if module_base:
-            profile.image_base = module_base
-            self.profiles[module_name] = profile
+        try:
+            # First populate with kernel modules.
+            for ldr_entry in self.session.plugins.modules().lsmod():
+                self.AddModule(
+                    KernelModule(ldr_module=ldr_entry, session=self.session))
 
-    def LoadProfileForName(self, name):
-        """Returns the profile responsible for the symbol name."""
-        if not isinstance(name, basestring):
-            raise TypeError("Name should be a string.")
+            # Now use the vad.
+            process_context = self.session.GetParameter("process_context")
+            if process_context != None:
+                for vad in process_context.RealVadRoot.traverse():
+                    self.AddModule(VadModule(vad=vad, session=self.session))
 
-        self._EnsureInitialized()
-
-        components = self._ParseAddress(name)
-        module_name = components["module"]
-
-        # See if the user has specified the profile in the session cache.
-        profile = self.session.GetParameter("%s_profile" % module_name)
-        if profile:
-            return self._LoadProfile(module_name, profile)
-
-        # Try to detect the profile from the module object.
-        module = self.modules_by_name.get(module_name)
-        if module:
-            return self.LoadProfileForModule(module)
-
-        module_base = self._resolve_module_base_address(module_name)
-        if module_base:
-            return self.LoadProfileForDll(module_base, module_name)
-
-        return obj.NoneObject()
-
-    def _resolve_module_base_address(self, name):
-        module = self.modules_by_name.get(name)
-        if module is not None:
-            return module.base
-
-        # Try to match the module name to a VAD region (e.g. a DLL).
-        task = self.session.GetParameter("process_context")
-        if task and self.vad:
-            name = name.lower()
-            for start, _, filename, _ in self.vad.GetVadsForProcess(task):
-                if re.search("%s.(dll|exe)$" % name, filename.lower()):
-                    return start
-
-    def _format_address_from_profile(self, profile, address,
-                                     max_distance=0x1000):
-        nearest_offset, name = profile.get_nearest_constant_by_address(
-            address)
-
-        if name:
-            difference = address - nearest_offset
-            if difference == 0:
-                return "%s!%s" % (profile.name, name)
-            elif 0 < difference < max_distance:
-                return "%s!%s+%#x" % (profile.name, name, difference)
-        else:
-            return "%s!+%#x" % (profile.name, address - profile.image_base)
-
-    def format_address(self, address, max_distance=0x1000):
-        address = obj.Pointer.integer_to_address(address)
-
-        # Try to locate the symbol below it.
-        offset, name = self.get_nearest_constant_by_address(address)
-        difference = address - offset
-
-        if name:
-            if difference == 0:
-                return name
-
-            # Ensure address falls within the current module.
-            containing_module = self._FindContainingModule(address)
-            if (containing_module and address < containing_module.end and
-                    0 < difference < max_distance):
-                return "%s + %#x" % (
-                    name, address - offset)
-
-            else:
-                hit = self.FindProcessVad(address)
-                if hit:
-                    start, end, name, _ = hit
-                    if (start < address < end and
-                            0 < address - start < max_distance):
-                        module_name = self.NormalizeModuleName(name)
-
-                        profile = self.LoadProfileForDll(start, module_name)
-                        return self._format_address_from_profile(
-                            profile, address, max_distance=max_distance)
-
-        return ""
-
-    def get_nearest_constant_by_address(self, address):
-        self._EnsureInitialized()
-
-        address = obj.Pointer.integer_to_address(address)
-        nearest_offset = 0
-        full_name = module_name = symbol_name = ""
-        profile = None
-
-        # Find the containing module and see if we have a profile for it.
-        containing_module = self._FindContainingModule(address)
-        if containing_module:
-            nearest_offset = containing_module.base
-            full_name = module_name = self.NormalizeModuleName(
-                containing_module)
-
-            # Try to load the module profile.
-            profile = self.LoadProfileForName(module_name)
-            if profile:
-                offset, name = profile.get_nearest_constant_by_address(
-                    address)
-
-                # The profile's constant is closer than the module.
-                if address - offset < address - nearest_offset:
-                    nearest_offset = offset
-                    symbol_name = name
-
-            if symbol_name:
-                full_name = "%s!%s" % (module_name, symbol_name)
-        else:
-            vad_desc = self.FindProcessVad(address)
-            if vad_desc:
-                start, _, full_name, _ = vad_desc
-                module_name = self.NormalizeModuleName(full_name)
-                nearest_offset = start
-                profile = self.LoadProfileForDll(start, module_name)
-
-                if profile:
-                    offset, name = profile.get_nearest_constant_by_address(
-                        address)
-
-                    # The profile's constant is closer than the module.
-                    if address - offset < address - nearest_offset:
-                        nearest_offset = offset
-                        symbol_name = name
-
-                if symbol_name:
-                    full_name = "%s!%s" % (module_name, symbol_name)
-
-        return nearest_offset, full_name
-
-    def search_symbol(self, pattern):
-        # Currently we only allow searching in the same module.
-        self._EnsureInitialized()
-        result = []
-
-        components = self._ParseAddress(pattern)
-        module_name = components["module"]
-        if module_name == None:
-            raise RuntimeError(
-                "Module name must be specified for symbol search.")
-
-        profile = self.LoadProfileForName(module_name)
-
-        # Match all symbols.
-        symbol_regex = re.compile(components["symbol"].replace("*", ".*"))
-        for constant in profile.constants:
-            if symbol_regex.match(constant):
-                result.append("%s!%s" % (module_name, constant))
-
-        return result
+        finally:
+            self._initialized = True
 
 
 class PECommandPlugin(plugin.KernelASMixin, plugin.PhysicalASMixin,
@@ -477,12 +283,8 @@ class PECommandPlugin(plugin.KernelASMixin, plugin.PhysicalASMixin,
                 session.profile.name == 'pe')
 
 
-class PESectionModule(object):
-    def __init__(self, name, start, length):
-        self.name = utils.SmartStr(name)
-        self.base = start
-        self.length = length
-        self.end = self.base + self.length
+class PESectionModule(address_resolver.Module):
+    """A section in a PE file."""
 
 
 class PEAddressResolver(address_resolver.AddressResolverMixin,
@@ -491,76 +293,39 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
 
     def __init__(self, **kwargs):
         super(PEAddressResolver, self).__init__(**kwargs)
-        self.address_map = utils.SortedCollection(key=lambda x: x[0])
-        self.section_map = utils.SortedCollection(key=lambda x: x[0])
         self.image_base = self.kernel_address_space.image_base
         self.pe_helper = pe_vtypes.PE(
             address_space=self.session.kernel_address_space,
             image_base=self.image_base,
             session=self.session)
 
-        # Delay initialization until we need it.
-        self._initialized = False
+    @staticmethod
+    def NormalizeModuleName(module_name):
+        result = unicode(module_name)
+        result = re.split(r"[/\\]", result)[-1]
 
-    def NormalizeModuleName(self, module):
-        try:
-            module_name = module.name
-        except AttributeError:
-            module_name = module
-
-        module_name = utils.SmartUnicode(module_name)
-        module_name = re.split(r"[/\\]", module_name)[-1]
-        result = module_name.split(".")[0]
+        # The kernel is treated specially - just like windbg.
+        if result in ["ntoskrnl.pdb", "ntkrnlpa.pdb", "ntkrnlmp.pdb"]:
+            result = "nt"
 
         return result.lower()
-
-    def LoadProfileForName(self, _):
-        self._EnsureInitialized()
-
-        return self.pe_profile
-
-    def _FindContainingModule(self, address):
-        self._EnsureInitialized()
-
-        address = obj.Pointer.integer_to_address(address)
-        try:
-            _, module = self.section_map.find_le(address)
-            if address < module.end:
-                return module
-
-        except ValueError:
-            pass
-
-        return obj.NoneObject("Unknown module")
 
     def _EnsureInitialized(self):
         if self._initialized:
             return
 
-        self.modules_by_name = {}
         symbols = {}
+        self.pe_profile = None
 
-        # Insert a psuedo module for each section
-        module_end = self.image_base
+        # Get a usable profile.
+        if "Symbol" in self.session.GetParameter("name_resolution_strategies"):
+            # Load the profile for this binary.
+            self.pe_profile = self.session.LoadProfile("%s/GUID/%s" % (
+                self.NormalizeModuleName(self.pe_helper.RSDS.Filename),
+                self.pe_helper.RSDS.GUID_AGE))
 
-        # If the executable has a pdb file, we use that as its .text module
-        # name.
-        if self.pe_helper.RSDS.Filename:
-            module_name = self.NormalizeModuleName(self.pe_helper.RSDS.Filename)
-        else:
-            module_name = ""
-
-        # Find the highest address covered in this executable image.
-        for _, name, virtual_address, length in self.pe_helper.Sections():
-            if self.image_base + virtual_address + length > module_end:
-                module_end = virtual_address + length + self.image_base
-
-        # Make a single module which covers the entire length of the executable
-        # in virtual memory.
-        module = PESectionModule(
-            module_name, self.image_base, module_end - self.image_base)
-        self.modules_by_name[module.name] = module
-        self.section_map.insert((module.base, module))
+        if self.pe_profile == None:
+            self.pe_profile = pe_vtypes.BasicPEProfile(session=self.session)
 
         if "Export" in self.session.GetParameter("name_resolution_strategies"):
             # Extract all exported symbols into the profile's symbol table.
@@ -571,81 +336,26 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
                 except ValueError:
                     continue
 
-        if "Symbol" in self.session.GetParameter("name_resolution_strategies"):
-            # Load the profile for this binary.
-            self.pe_profile = self.session.LoadProfile("%s/GUID/%s" % (
-                utils.SmartUnicode(self.pe_helper.RSDS.Filename).split(".")[0],
-                self.pe_helper.RSDS.GUID_AGE))
-        else:
-            self.pe_profile = windows.BasicPEProfile(session=self.session)
-
         self.pe_profile.image_base = self.image_base
-
         self.pe_profile.add_constants(constants_are_addresses=True,
                                       relative_to_image_base=False,
                                       **symbols)
 
+        # Insert a psuedo module for each section
+        module_end = self.image_base
+
+        # Find the highest address covered in this executable image.
+        for _, name, virtual_address, length in self.pe_helper.Sections():
+            if length > 0:
+                virtual_address += self.image_base
+                self.AddModule(
+                    PESectionModule(start=virtual_address,
+                                    end=virtual_address + length,
+                                    name=self.NormalizeModuleName(name),
+                                    profile = self.pe_profile,
+                                    session=self.session))
+
         self._initialized = True
-
-    def format_address(self, address, max_distance=0x1000):
-        self._EnsureInitialized()
-
-        address = obj.Pointer.integer_to_address(address)
-
-        # Try to locate the symbol below it.
-        offset, name = self.get_nearest_constant_by_address(address)
-        difference = address - offset
-
-        if name:
-            if difference == 0:
-                return name
-
-            # Ensure address falls within the current module.
-            containing_module = self._FindContainingModule(address)
-            if (containing_module and address < containing_module.end and
-                    0 < difference < max_distance):
-                return "%s + %#x" % (
-                    name, address - offset)
-
-        return ""
-
-    def get_nearest_constant_by_address(self, address):
-        self._EnsureInitialized()
-
-        if self.pe_profile == None:
-            return 0, ""
-
-        offset, name = self.pe_profile.get_nearest_constant_by_address(address)
-
-        # Find the containing section.
-        containing_module = self._FindContainingModule(address)
-        if containing_module:
-            if name:
-                name = "%s!%s" % (containing_module.name, name)
-            else:
-                name = containing_module.name
-
-        return offset, name
-
-    def search_symbol(self, pattern):
-        self._EnsureInitialized()
-        result = []
-
-        components = self._ParseAddress(pattern)
-        module_name = components["module"]
-        if module_name == None:
-            raise RuntimeError(
-                "Module name must be specified for symbol search.")
-
-        profile = self.LoadProfileForName(module_name)
-
-        # Match all symbols.
-        symbol_regex = re.compile(components["symbol"].replace("*", ".*"))
-        for constant in profile.constants:
-            if symbol_regex.match(constant):
-                result.append("%s!%s" % (module_name, constant))
-
-        return result
 
     def __str__(self):
         self._EnsureInitialized()

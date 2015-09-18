@@ -417,9 +417,9 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
                 # Identify a compressed range if the current range is sparse and
                 # the last range's length is smaller than a compression unit.
                 try:
-                    run = self.runs[-1]
-                    if run[2] < self.compression_unit_size:
-                        run[-1] = True
+                    start, end, run = self.runs[-1]
+                    if run.length < self.compression_unit_size:
+                        run.data["compression"] = True
 
                 except (ValueError, IndexError):
                     pass
@@ -443,16 +443,6 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
 
             file_offset += compressed_subrange
 
-    def vtop(self, addr):
-        if addr > self.end():
-            return
-
-        try:
-            virt_addr, file_address, _, _ = self.runs.find_le(addr)
-            return addr - virt_addr + file_address
-        except ValueError:
-            pass
-
     def _store_run(self, file_offset, range_start, length):
         """Store a new run with all items given in self.PAGE_SIZE."""
         # The runs contain a list of:
@@ -465,71 +455,66 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
         # compressed - A flag to indicate if this run is compressed. Note that
         #     we dont decide it is compressed until we see it followed by a
         #     sparse run which adds us to compression_unit_size.
-        self.runs.insert(
-            [file_offset * self.PAGE_SIZE,
-             range_start * self.PAGE_SIZE,
-             length * self.PAGE_SIZE,
-             False])
+        self.add_run(file_offset * self.PAGE_SIZE,
+                     range_start * self.PAGE_SIZE,
+                     length * self.PAGE_SIZE,
+                     data=dict(compression=False))
 
     def _read_chunk(self, addr, length):
         addr = int(addr)
-        try:
-            virt_addr, file_address, file_length, comp = self.runs.find_le(addr)
-            if comp:
-                block_data = lznt1.decompress_data(
-                    self.base.read(file_address, file_length) + "\x00" * 10,
-                    logger=self.session.logging.getChild("ntfs"))
+        start, end, run = self.runs.get_containing_range(addr)
 
-                available_length = (self.compression_unit_size - (
-                    addr - virt_addr))
+        # addr is not in any range, pad to the next range.
+        if start is None:
+            end = self.runs.get_next_range_start(addr)
+            if end is None:
+                end = addr + length
 
-                physical_offset = addr - virt_addr
+            return "\x00" * min(end - addr, length)
 
-                result = block_data[
-                    physical_offset:
-                    physical_offset + min(length, available_length)]
+        if run.data.get("compression"):
+            block_data = lznt1.decompress_data(
+                self.base.read(run.file_offset, run.length) + "\x00" * 10,
+                logger=self.session.logging.getChild("ntfs"))
 
-                # Decompression went wrong - just zero pad.
-                if len(result) < length:
-                    result += "\x00" * (length - len(result))
+            available_length = (self.compression_unit_size - (addr - run.start))
 
-                return result
+            block_offset = addr - run.start
 
+            result = block_data[
+                block_offset:
+                block_offset + min(length, available_length)]
 
-            available_length = file_length - (addr - virt_addr)
-            physical_offset = addr - virt_addr + file_address
+            # Decompression went wrong - just zero pad.
+            if len(result) < length:
+                result += "\x00" * (length - len(result))
 
-            if available_length > 0:
-                return self.base.read(
-                    physical_offset, min(length, available_length))
+            return result
 
-        except ValueError:
-            pass
+        available_length = run.length - (addr - run.start)
+        block_offset = addr - run.start + run.file_offset
 
-        try:
-            # Addr is outside any run, (i.e. run is sparse). We need to find the
-            # next available run and return the number of bytes we need to skip
-            # until then.
-            virt_addr, _, _ = self.runs.find_ge(addr)
-            return "\x00" * (virt_addr - addr)
-        except ValueError:
-            return "\x00" * length
+        if available_length > 0:
+            return self.base.read(
+                block_offset, min(length, available_length))
 
-    def get_available_addresses(self, start=0):
-        for run in self.runs:
-            run_start, file_address, length, compression = run
-            if start > run_start + length:
+    def get_mappings(self, start=0):
+        for run in super(RunListAddressSpace, self).get_mappings(start=start):
+            if start > run.end:
                 continue
 
+            length = run.length
             # When the run is compressed it really contains an entire
             # compression unit.
-            if compression:
+            if run.data.get("compression"):
                 length = self.compression_unit_size
 
-
-            length = min(length, self.end() - run_start)
+            length = min(run.length, self.end() - run.start)
             if length > 0:
-                yield run_start, file_address, length
+                yield addrspace.Run(start=run.start,
+                                    end=run.start + length,
+                                    address_space=run.address_space,
+                                    file_offset=run.file_offset)
 
     def __unicode__(self):
         return utils.SmartUnicode(self.name or self.__class__.__name__)

@@ -515,89 +515,99 @@ class Mimikatz(common.WindowsCommandPlugin):
                 proc_regex='lsass.exe').filter_processes():
             cc.SwitchProcessContext(task)
 
-            lsasrv = self.session.address_resolver.LoadProfileForName(
+            lsasrv_module = self.session.address_resolver.GetModuleByName(
                 'lsasrv')
 
-            lsasrv.init_crypto()
-            lsass_logons = lsasrv.get_lsass_logons()
+            # lsasrv not mapped in lsass? Weird!
+            if lsasrv_module:
+                lsasrv = lsasrv_module.profile
+                lsasrv.init_crypto()
+                lsass_logons = lsasrv.get_lsass_logons()
 
-            for (luid, info, domain, user_name, secret_type,
-                 secret) in  lsasrv.logons(lsass_logons):
-
-                lsass_entry = lsass_logons.get(luid, obj.NoneObject())
-                # TODO: add timestamp field?
-                row = (luid,
-                       lsass_entry.LogonType,
-                       lsass_entry.Session,
-                       lsass_entry.pSid.deref(),
-                       'msv',
-                       info,
-                       domain,
-                       user_name,
-                       secret_type,
-                       secret)
-
-                renderer.table_row(*row)
-
-            wdigest = self.session.address_resolver.LoadProfileForName(
-                'wdigest')
-
-            if not wdigest.get_constant('l_LogSessList'):
-                logging.warning('wdigest not initializated, skipping it.')
-            else:
-                for entry in wdigest.logons():
-                    luid = entry.LocallyUniqueIdentifier.Text
-                    lsass_entry = lsass_logons.get(luid, obj.NoneObject())
-
-                    row = (luid,
-                           lsass_entry.LogonType,
-                           lsass_entry.Session,
-                           lsass_entry.pSid.deref(),
-                           'wdigest',
-                           '',
-                           entry.Cred.Domaine.Value,
-                           entry.Cred.UserName.Value,
-                           'password',
-                           lsasrv.decrypt(entry.Cred.Password.RawMax))
-
-                    renderer.table_row(*row)
-
-            livessp = self.session.address_resolver.LoadProfileForName(
-                'livessp')
-
-            if not livessp.get_constant('LiveGlobalLogonSessionList'):
-                logging.warning('livessp not initializated, skipping it.')
-            else:
                 for (luid, info, domain, user_name, secret_type,
-                     enc_secret) in livessp.logons():
-                    lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+                     secret) in lsasrv.logons(lsass_logons):
 
+                    lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+                    # TODO: add timestamp field?
                     row = (luid,
                            lsass_entry.LogonType,
                            lsass_entry.Session,
                            lsass_entry.pSid.deref(),
-                           'livessp',
+                           'msv',
                            info,
                            domain,
                            user_name,
                            secret_type,
-                           lsasrv.decrypt(enc_secret))
+                           secret)
 
                     renderer.table_row(*row)
 
-            for (luid, info, domain, user_name, secret_type,
-                 secret) in lsasrv.master_keys():
-                lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+            wdigest_module = self.session.address_resolver.GetModuleByName(
+                'wdigest')
 
-                row = (luid,
-                       lsass_entry.LogonType,
-                       lsass_entry.Session,
-                       lsass_entry.pSid.deref(),
-                       'lsasrv',
-                       info,
-                       domain,
-                       user_name,
-                       secret_type,
-                       secret)
+            # Wdigest is mapped
+            if wdigest_module:
+                wdigest = wdigest_module.profile
 
-                renderer.table_row(*row)
+                if not wdigest.get_constant('l_LogSessList'):
+                    logging.warning('wdigest not initialized, skipping it.')
+                else:
+                    for entry in wdigest.logons():
+                        luid = entry.LocallyUniqueIdentifier.Text
+                        lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+
+                        row = (luid,
+                               lsass_entry.LogonType,
+                               lsass_entry.Session,
+                               lsass_entry.pSid.deref(),
+                               'wdigest',
+                               '',
+                               entry.Cred.Domaine.Value,
+                               entry.Cred.UserName.Value,
+                               'password',
+                               lsasrv.decrypt(entry.Cred.Password.RawMax))
+
+                        renderer.table_row(*row)
+
+            livessp_module = self.session.address_resolver.GetModuleByName(
+                'livessp')
+            if livessp_module:
+                livessp = livessp_module.profile
+
+                if not livessp.get_constant('LiveGlobalLogonSessionList'):
+                    logging.warning('livessp not initializated, skipping it.')
+                else:
+                    for (luid, info, domain, user_name, secret_type,
+                         enc_secret) in livessp.logons():
+                        lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+
+                        row = (luid,
+                               lsass_entry.LogonType,
+                               lsass_entry.Session,
+                               lsass_entry.pSid.deref(),
+                               'livessp',
+                               info,
+                               domain,
+                               user_name,
+                               secret_type,
+                               lsasrv.decrypt(enc_secret))
+
+                        renderer.table_row(*row)
+
+            if lsasrv_module:
+                for (luid, info, domain, user_name, secret_type,
+                     secret) in lsasrv.master_keys():
+                    lsass_entry = lsass_logons.get(luid, obj.NoneObject())
+
+                    row = (luid,
+                           lsass_entry.LogonType,
+                           lsass_entry.Session,
+                           lsass_entry.pSid.deref(),
+                           'lsasrv',
+                           info,
+                           domain,
+                           user_name,
+                           secret_type,
+                           secret)
+
+                    renderer.table_row(*row)

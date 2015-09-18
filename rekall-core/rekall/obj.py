@@ -415,7 +415,7 @@ class BaseObject(object):
             # objects may exist in different address spaces, but be mapped to
             # the same physical memory. In Rekall we assume these two objects
             # are actually equivalent since they share the same physical memory.
-            (self.obj_vm.phys_base == other.obj_vm.phys_base) and
+            (self.obj_vm.base == other.obj_vm.base) and
             (self.obj_vm.vtop(self.obj_offset) ==
              other.obj_vm.vtop(other.obj_offset)))
 
@@ -1243,7 +1243,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             self.obj_type,
             self.obj_offset,
             self.obj_vm.vtop(self.obj_offset),
-            self.obj_vm.phys_base,
+            self.obj_vm.base,
             ),)
 
     def __long__(self):
@@ -1659,6 +1659,19 @@ class Profile(object):
         metadata.update(self._metadata)
         self._metadata = metadata
 
+    def merge_symbols(self, other, *args):
+        for arg in args:
+            if arg in other.vtypes:
+                self.vtypes[arg] = other.vtypes[arg]
+
+            if arg in other.overlays:
+                self.overlays[arg] = other.overlays[arg]
+
+            if arg in other.object_classes:
+                self.object_classes[arg] = other.object_classes[arg]
+
+        self.flush_cache()
+
     def metadata(self, name, default=None):
         """Obtain metadata about this profile."""
         self.EnsureInitialized()
@@ -1695,16 +1708,20 @@ class Profile(object):
     def add_constants(self, constants_are_addresses=False, **kwargs):
         """Add the kwargs as constants for this profile."""
         self.flush_cache()
-
         for k, v in kwargs.iteritems():
             self.constants[k] = v
             if constants_are_addresses:
                 try:
                     # We need to interpret the value as a pointer.
                     address = Pointer.integer_to_address(v)
-                    if (address, 0) not in self.constant_addresses:
-                        self.constant_addresses.insert((address, k))
-
+                    existing_value = self.constant_addresses.get(address)
+                    if existing_value is None:
+                        self.constant_addresses[address] = k
+                    elif isinstance(existing_value, list):
+                        if k not in existing_value:
+                            existing_value.append(k)
+                    elif existing_value != k:
+                        self.constant_addresses[address] = [existing_value, k]
                 except ValueError:
                     pass
 
@@ -2163,16 +2180,19 @@ class Profile(object):
         address = Pointer.integer_to_address(address)
 
         if below:
-            func = self.constant_addresses.find_le
+            offset, names = self.constant_addresses.get_value_smaller_than(
+                address)
         else:
-            func = self.constant_addresses.find_ge
+            offset, names = self.constant_addresses.get_value_larger_than(
+                address)
 
-        try:
-            offset, name = func(address)
-
-            return offset, name
-        except ValueError:
+        if offset is None:
             return -1, NoneObject("Constant not found")
+
+        if not isinstance(names, list):
+            names = [names]
+
+        return offset, names
 
     def get_enum(self, enum_name, field=None):
         result = self.enums.get(enum_name)

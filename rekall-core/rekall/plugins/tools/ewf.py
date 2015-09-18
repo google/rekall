@@ -539,7 +539,7 @@ class EWFAcquire(plugin.PhysicalASMixin, plugin.Command):
                                    mode="w+b")
 
         with out_fd:
-            runs = list(self.physical_address_space.get_available_addresses())
+            runs = list(self.physical_address_space.get_mappings())
 
             out_address_space = standard.WritableFDAddressSpace(
                 fhandle=out_fd, session=self.session)
@@ -552,7 +552,7 @@ class EWFAcquire(plugin.PhysicalASMixin, plugin.Command):
                         writer, session=self.session)
 
                 else:
-                    last_address = runs[0][0] + runs[0][2]
+                    last_address = runs[0].end
                     block_size = 1024 * 1024
 
                     for offset in xrange(0, last_address, block_size):

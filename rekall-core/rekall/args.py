@@ -228,7 +228,7 @@ def ParseGlobalArgs(parser, argv, user_session):
         user_session.plugins.plugin_db.Rebuild()
 
     return known_args, unknown_args
-        
+
 
 def FindPlugin(argv=None, user_session=None):
     """Search the argv for the first occurrence of a valid plugin name.
@@ -395,7 +395,7 @@ def parse_args(argv=None, user_session=None, global_arg_cb=None):
     global_flags, unknown_flags = ParseGlobalArgs(parser, argv, user_session)
     if global_arg_cb:
         global_arg_cb(global_flags, unknown_flags)
-    
+
     # The plugin name is taken from the command line, but it is not enough to
     # know which specific implementation will be used. For example there are 3
     # classes implementing the pslist plugin WinPsList, LinPsList and OSXPsList.
@@ -424,13 +424,13 @@ def parse_args(argv=None, user_session=None, global_arg_cb=None):
     plugin_cls = command_metadata.plugin_cls
     ConfigureCommandLineParser(command_metadata, parser)
 
-    # Parse the final command line.
-    result = parser.parse_args(argv)
-
-    # We handle help especially since we want to enumerate all plugins.
-    if getattr(result, "help", None):
+    # We handle help especially.
+    if global_flags.help:
         parser.print_help()
         sys.exit(-1)
+
+    # Parse the final command line.
+    result = parser.parse_args(argv)
 
     # Apply the defaults to the parsed args.
     result = utils.AttributeDict(vars(result))

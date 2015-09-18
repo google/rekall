@@ -72,17 +72,18 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         try:
             self.fhandle.seek(addr)
             data = self.fhandle.read(length)
-            return data + "\x00" * (length - len(data))
+            return data + addrspace.ZEROER.GetZeros(length - len(data))
         except IOError:
-            return "\x00" * length
+            return addrspace.ZEROER.GetZeros(length)
 
     def read_long(self, addr):
         string = self.read(addr, 4)
         (longval,) = struct.unpack('=I', string)
         return longval
 
-    def get_available_addresses(self, start=0):
-        yield (0, 0, self.fsize)
+    def get_mappings(self, start=0):
+        yield addrspace.Run(start=0, end=self.fsize,
+                            file_offset=0, address_space=self)
 
     def is_valid_address(self, addr):
         if addr == None:
@@ -142,7 +143,7 @@ class FileAddressSpace(FDAddressSpace):
             fhandle=fhandle, session=session, **kwargs)
 
 
-class GlobalOffsetAddressSpace(addrspace.BaseAddressSpace):
+class GlobalOffsetAddressSpace(addrspace.RunBasedAddressSpace):
     """An address space to add a constant offset."""
 
     __image = True
@@ -153,18 +154,12 @@ class GlobalOffsetAddressSpace(addrspace.BaseAddressSpace):
     def __init__(self, **kwargs):
         super(GlobalOffsetAddressSpace, self).__init__(**kwargs)
         self.file_offset = self.session.GetParameter("file_offset")
+
         self.as_assert(self.file_offset, "File offset not specified.")
         self.as_assert(self.base.__class__ is not GlobalOffsetAddressSpace,
                        "Can not stack on GlobalOffsetAddressSpace")
-        self.phys_base = self.base
 
-    def read(self, address, length):
-        return self.base.read(address + self.file_offset, length)
-
-    def get_available_addresses(self, start=0):
-        for vaddr, paddr, length in self.base.get_available_addresses(
-                start=start):
-            yield vaddr - self.file_offset, paddr, length
+        self.add_run(0, self.file_offset, self.base.end())
 
 
 class WritableAddressSpaceMixIn(object):
@@ -195,7 +190,7 @@ class WritableAddressSpaceMixIn(object):
         data = self.fhandle.read(length)
 
         if len(data) < length:
-            data += "\x00" * (length - len(data))
+            data += addrspace.ZEROER.GetZeros(length - len(data))
 
         return data
 

@@ -306,30 +306,14 @@ class BaseScanner(object):
         # from the second chunk.
         chunk_end = 0
 
-        for run in self.address_space.get_address_ranges(start=offset, end=end):
-            range_start, phys_start, length = run
-
-            # Find a new range if offset is past this range.
-            range_end = range_start + length
-            if range_end < offset:
-                continue
-
-            # Stop searching for ranges if this is past end.
-            if range_start > end:
-                break
-
-            # Calculate where in the range we'll be reading data from.
-            # Covers the case where offset falls within a range.
-            start = max(range_start, offset)
-
+        for run in self.address_space.merge_base_ranges(start=offset, end=end):
             # Store where this chunk will start. Absolute offset.
-            chunk_offset = start
-
+            chunk_offset = run.start
             buffer_as = addrspace.BufferAddressSpace(session=self.session)
 
             # Keep scanning this range as long as the current chunk isn't
             # past the end of the range or the end of the scanner.
-            while chunk_offset < end and chunk_offset < range_end:
+            while chunk_offset < run.end:
                 if self.session:
                     self.session.report_progress(
                         self.progress_message % dict(
@@ -342,24 +326,20 @@ class BaseScanner(object):
                 if chunk_offset != chunk_end:
                     overlap = ""
 
-                chunk_offset = max(start, chunk_offset)
-
                 # Our chunk is SCAN_BLOCKSIZE long or as much data there's
                 # left in the range.
                 chunk_size = min(constants.SCAN_BLOCKSIZE,
-                                 range_end - chunk_offset)
-
-                # Adjust chunk_size if the chunk we're gonna read goes past
-                # the end or we could end up scanning more data than requested.
-                chunk_size = min(chunk_size, end - chunk_offset)
+                                 run.end - chunk_offset)
 
                 chunk_end = chunk_offset + chunk_size
 
-                phys_chunk_offset = phys_start + (chunk_offset - range_start)
+                # Consume the next block in this range. We read directly from
+                # the physical address space to save an extra translation by the
+                # virtual address space's read() method.
+                phys_chunk_offset = run.file_offset + (chunk_offset - run.start)
 
-                # Consume the next block in this range.
                 buffer_as.assign_buffer(
-                    overlap + self.address_space.phys_base.read(
+                    overlap + run.address_space.read(
                         phys_chunk_offset, chunk_size),
                     base_offset=chunk_offset - len(overlap))
 

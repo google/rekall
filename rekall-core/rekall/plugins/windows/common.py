@@ -119,6 +119,7 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
     def __init__(self, process_name="Idle", **kwargs):
         super(WinFindDTB, self).__init__(**kwargs)
         self.process_name = process_name
+        self.eprocess_index = self.session.LoadProfile("nt/eprocess_index")
 
     def scan_for_process(self):
         """Scan the image for the idle process."""
@@ -128,25 +129,26 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
                 address_space=self.physical_address_space).scan():
             yield process
 
-    def dtb_hits(self):
+    def address_space_hits(self):
+        """Finds DTBs and yields virtual address spaces that expose kernel.
+
+        Yields:
+          BaseAddressSpace-derived instances, validated using the VerifyHit()
+          method.
+        """
+        for dtb, eprocess in self.dtb_eprocess_hits():
+            address_space = self.VerifyHit(dtb)
+            if address_space is not None and self.TestEProcess(
+                    address_space, eprocess):
+                yield address_space
+
+    def dtb_eprocess_hits(self):
         for eprocess in self.scan_for_process():
             result = eprocess.Pcb.DirectoryTableBase.v()
             if result:
                 yield result, eprocess
 
-    def VerifyHit(self, hit):
-        """Check the eprocess for sanity."""
-        dtb, eprocess = hit
-        address_space = self.CreateAS(dtb)
-
-        # In windows the DTB must be page aligned, except for PAE images where
-        # its aligned to a 0x20 size.
-        if not self.profile.metadata("pae") and address_space.dtb & 0xFFF != 0:
-            return
-
-        if self.profile.metadata("pae") and address_space.dtb & 0xF != 0:
-            return
-
+    def TestEProcess(self, address_space, eprocess):
         # Reflect through the address space at ourselves. Note that the Idle
         # process is not usually in the PsActiveProcessHead list, so we use
         # the ThreadListHead instead.
@@ -162,10 +164,38 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
                 "_EPROCESS.ThreadListHead does not reflect.")
             return
 
-        self.session.SetCache("idle_process", eprocess)
+        # We passed the tests.X
+        return True
+
+    def VerifyHit(self, dtb):
+        """Check the eprocess for sanity."""
+        # In windows the DTB must be page aligned, except for PAE images where
+        # its aligned to a 0x20 size.
+        if not self.profile.metadata("pae") and dtb & 0xFFF != 0:
+            return
+
+        if self.profile.metadata("pae") and dtb & 0xF != 0:
+            return
+
+        # Select simple address space implementations as test address spaces.
+        address_space = super(WinFindDTB, self).GetAddressSpaceImplementation()(
+            session=self.session, dtb=dtb,
+            base=self.session.physical_address_space)
+
+        # Check that the _KUSER_SHARED_DATA makes sense. This structure is always
+        # at a known offset since it must be shared with user space apps.
+        kuser_shared = self.eprocess_index._KUSER_SHARED_DATA(
+            offset=0xFFFFF78000000000, vm=address_space)
+
+        # Must be a valid version of windows.
+        if (address_space.vtop(kuser_shared.obj_offset) and
+                (kuser_shared.NtMajorVersion not in [5, 6, 10] or
+                 kuser_shared.NtMinorVersion not in [0, 1, 2, 3])):
+            return
+
         self.session.SetCache("dtb", dtb)
 
-        return address_space
+        return self.CreateAS(dtb)
 
     def GetAddressSpaceImplementation(self):
         """Returns the correct address space class for this profile."""
@@ -189,10 +219,10 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
              ("DTB", "dtv", "[addrpad]"),
              ("Valid", "valid", "10")])
 
-        for dtb, eprocess in self.dtb_hits():
+        for dtb, eprocess in self.dtb_eprocess_hits():
             renderer.table_row(
                 eprocess.obj_offset, dtb,
-                self.VerifyHit((dtb, eprocess)) is not None)
+                self.VerifyHit(dtb) is not None)
 
 
 ## The following are checks for pool scanners.

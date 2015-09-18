@@ -25,7 +25,7 @@
 
 from rekall import testlib
 
-from rekall.plugins import core
+from rekall.plugins.common import memmap
 from rekall.plugins.windows import common
 from rekall import plugin
 from rekall.ui import text
@@ -118,7 +118,7 @@ class WinDllList(common.WinProcessFilter):
                 renderer.format("Unable to read PEB for task.\n")
 
 
-class WinMemMap(core.MemmapMixIn, common.WinProcessFilter):
+class WinMemMap(memmap.MemmapMixIn, common.WinProcessFilter):
     """Calculates the memory regions mapped by a process."""
     __name = "memmap"
 
@@ -127,52 +127,6 @@ class WinMemMap(core.MemmapMixIn, common.WinProcessFilter):
             "MmHighestUserAddress", "Pointer").v()
 
 
-class WinMemDump(core.DirectoryDumperMixin, WinMemMap):
-    """Dump the addressable memory for a process"""
-
-    __name = "memdump"
-
-    def dump_process(self, eprocess, fd, index_fd):
-        task_as = eprocess.get_process_address_space()
-        highest_address = self._get_highest_user_address()
-
-        temp_renderer = text.TextRenderer(session=self.session,
-                                          fd=index_fd)
-        with temp_renderer.start():
-            temp_renderer.table_header([
-                ("File Address", "file_addr", "[addrpad]"),
-                ("Length", "length", "[addrpad]"),
-                ("Virtual Addr", "virtual", "[addrpad]")])
-
-            for _ in task_as.get_available_addresses():
-                virt_address, phys_address, length = _
-                if not self.all and virt_address > highest_address:
-                    break
-
-                data = self.physical_address_space.read(phys_address, length)
-
-                temp_renderer.table_row(fd.tell(), length, virt_address)
-                fd.write(data)
-
-    def render(self, renderer):
-        if self.dump_dir is None:
-            raise plugin.PluginError("Dump directory not specified.")
-
-        for task in self.filter_processes():
-            renderer.section()
-            filename = u"{0}_{1:d}.dmp".format(
-                task.ImageFileName, task.UniqueProcessId)
-
-            renderer.format(u"Writing {0} {1:#x} to {2}\n",
-                            task.ImageFileName, task, filename)
-
-            with renderer.open(directory=self.dump_dir,
-                               filename=filename,
-                               mode='wb') as fd:
-                with renderer.open(directory=self.dump_dir,
-                                   filename=filename + ".idx",
-                                   mode='wb') as index_fd:
-                    self.dump_process(task, fd, index_fd)
 
 
 class Threads(common.WinProcessFilter):
@@ -185,8 +139,10 @@ class Threads(common.WinProcessFilter):
              ("PID", "pid", ">6"),
              ("TID", "tid", ">6"),
              ("Start Address", "start", "[addrpad]"),
+             dict(name="Start Symbol", width=30),
              ("Process", "name", "16"),
-             ("Symbol", "symbol", "")])
+             ("Win32 Start", "start", "[addrpad]"),
+             dict(name="Win32 Symbol")])
 
         cc = self.session.plugins.cc()
         with cc:
@@ -202,13 +158,19 @@ class Threads(common.WinProcessFilter):
                         thread.Cid.UniqueProcess,
                         thread.Cid.UniqueThread,
                         thread.StartAddress,
+                        self.session.address_resolver.format_address(
+                            thread.StartAddress,
+                            max_distance=0xffffffff),
                         task.ImageFileName,
+                        thread.Win32StartAddress,
                         self.session.address_resolver.format_address(
                             thread.Win32StartAddress,
                             max_distance=0xffffffff),
                     )
 
 
+class WinMemDump(memmap.MemDumpMixin, common.WinProcessFilter):
+    """Dump windows processes."""
 
 
 class TestWinMemDump(testlib.HashChecker):

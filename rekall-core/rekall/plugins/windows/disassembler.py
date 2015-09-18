@@ -271,8 +271,8 @@ class Disassemble(plugin.Command):
             "address", offset=operand, vm=self.address_space).v()
 
         resolver = self.session.address_resolver
-        target_name = resolver.format_address(target)
-        operand_name = resolver.format_address(operand)
+        target_name = ", ".join(resolver.format_address(target))
+        operand_name = ", ".join(resolver.format_address(operand))
 
         if target_name:
             return "0x%x %s -> %s" % (target, operand_name, target_name)
@@ -299,7 +299,7 @@ class Disassemble(plugin.Command):
             operand = int(match.group(0), 16)
             resolver = self.session.address_resolver
 
-            return resolver.format_address(operand) or ""
+            return ", ".join(resolver.format_address(operand))
 
         return ""
 
@@ -347,9 +347,10 @@ class Disassemble(plugin.Command):
 
             resolver = self.session.address_resolver
             if resolver:
-                (f_offset, f_name) = resolver.get_nearest_constant_by_address(
+                (f_offset, f_names) = resolver.get_nearest_constant_by_address(
                     offset)
 
+                f_name = ", ".join(f_names)
                 self.session.report_progress(
                     "Disassembled %s: 0x%x", f_name, offset)
 

@@ -33,6 +33,7 @@ pip install pyaff4
 import logging
 import re
 import os
+import weakref
 
 from rekall import addrspace
 from rekall import yaml_utils
@@ -68,7 +69,7 @@ class AFF4StreamWrapper(object):
 
 
 class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
-                       addrspace.MultiRunBasedAddressSpace):
+                       addrspace.RunBasedAddressSpace):
     """Handle AFF4Map or AFF4Image type streams.
 
     Since AFF4 volumes may contain multiple streams, we allow the stream to be
@@ -105,7 +106,6 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.as_assert(path != None, "Filename must be specified")
 
         self.image = None
-        self.phys_base = self
         self.resolver = data_store.MemoryDataStore()
 
         # A map between the filename and the offset it is mapped into the
@@ -206,12 +206,13 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         # Add the ranges if this is a map.
         try:
             for map_range in aff4_stream.GetRanges():
-                self.runs.insert((map_range.map_offset,
-                                  map_range.map_offset,
-                                  map_range.length,
-                                  self.image))
+                self.add_run(map_range.map_offset,
+                             map_range.map_offset,
+                             map_range.length,
+                             self.image)
+
         except AttributeError:
-            self.runs.insert((0, 0, aff4_stream.Size(), self.image))
+            self.add_run(0, 0, aff4_stream.Size(), self.image)
 
         self.session.logging.info("Added %s as physical memory", image_urn)
 
@@ -237,11 +238,13 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         return mapped_offset
 
-    def get_mapped_offset(self, filename, file_offset):
+    def get_mapped_offset(self, filename, file_offset=0):
         """Map the filename into the address space.
 
-        If the filename is found in the AFF4 image, we return the offset at
-        which it is mapped. Otherwise return None.
+        If the filename is found in the AFF4 image, we return the offset in this
+        address space corresponding to file_offset in the mapped file.
+
+        If the file is not mapped, return None.
         """
         mapped_offset = None
         filename = self._normalize_filename(filename)
@@ -290,24 +293,18 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                 "AFF4 volume does not contain PhysicalMemory metadata.")
 
     def describe(self, address):
-        try:
-            virt_addr, file_address, _, stream_as = self.runs.find_le(
-                address)
+        start, end, run = self.runs.get_containing_range(address)
+        if start is None:
+            # For unmapped streams just say we have no idea.
+            return u"%#x (Unmapped)" % address
 
-            # For normal physical memory addresses just be concise.
-            if stream_as == self.image:
-                return u"%#x" % address
+        # For normal physical memory addresses just be concise.
+        if run.address_space == self.image:
+            return u"%#x" % address
 
-            # For other mapped streams, just say which ones they are.
-            return u"%#x @ %s (Mapped %#x)" % (
-                address - virt_addr + file_address,
-                stream_as, address)
-
-        except ValueError:
-            pass
-
-        # For unmapped streams just say we have no idea.
-        return u"%#x (Unmapped)" % address
+        # For other mapped streams, just say which ones they are.
+        return u"%#x @ %s (Mapped %#x)" % (
+            address - start, address_space, address)
 
 
 

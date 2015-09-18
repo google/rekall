@@ -250,7 +250,7 @@ class StreamBasedAddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.PAGE_SIZE = page_size = int(page_size)
         i = 0
         for i, page in enumerate(pages):
-            self.runs.insert((i * page_size, page * page_size, page_size))
+            self.add_run(i * page_size, page * page_size, page_size)
 
         # Record the total size of the file.
         self.size = (i+1) * page_size

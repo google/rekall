@@ -69,10 +69,6 @@ class Lsmod(common.LinuxPlugin):
             (self.profile.get_constant_object(x, target="Function"), y)
             for x, y in self.arg_lookuptable.items())
 
-        # Cache of modules and their start addresses.
-        self.modlist = None
-        self.mod_lookup = {}
-
     def get_module_sections(self, module):
         num_sects = module.sect_attrs.nsections or 25
         for i in range(num_sects):
@@ -131,41 +127,6 @@ class Lsmod(common.LinuxPlugin):
                 value = None
 
             yield kernel_param.name.deref(), value
-
-    def _make_cache(self):
-        # Add the kernel to the cache so we can dereference addresses in the
-        # kernel.
-        kernel = address_resolver.KernelModule(self.session)
-        self.mod_lookup = {int(kernel.module_core): kernel}
-
-        for module in self.get_module_list():
-            self.mod_lookup[int(module.module_core.deref())] = module
-
-        # The start addresses in sorted order.
-        self.modlist = sorted(self.mod_lookup.keys())
-
-    def find_module(self, addr):
-        """Returns the module which contains this address.
-
-        If the address does not exist in any module, returns a NoneObject.
-        """
-        if self.modlist is None:
-            self._make_cache()
-
-        addr = obj.Pointer.integer_to_address(addr)
-        pos = bisect.bisect_right(self.modlist, addr) - 1
-        if pos == -1:
-            return obj.NoneObject("Unknown address")
-
-        # Get the module.
-        module = self.mod_lookup[self.modlist[pos]]
-        start = int(module.module_core)
-
-        if (addr >= start and
-            addr < start + module.core_size):
-            return module
-
-        return obj.NoneObject("Unknown address")
 
     def get_module_list(self):
         modules = self.profile.get_constant_object(

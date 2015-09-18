@@ -27,6 +27,19 @@ from rekall import yaml_utils
 from rekall.plugins.addrspaces import standard
 
 
+class _StreamWrapper(object):
+    def __init__(self, stream):
+        self.stream = stream
+
+    def read(self, offset, length):
+        self.stream.seek(offset)
+        return self.stream.read(length)
+
+    def write(self, offset, length):
+        self.stream.seek(offset)
+        return self.stream.write(length)
+
+
 class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
     """Implements an address space to overlay the new MacPmem device."""
 
@@ -59,8 +72,6 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
 
         self.as_assert(base == None,
                        "Must be mapped directly over a raw device.")
-        self.phys_base = self
-
         self.fname = filename or (self.session and self.session.GetParameter(
             "filename"))
 
@@ -86,7 +97,8 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         for record in records:
             if record["type"] == "efi_range":
                 if efi_type_readable(record["efi_type"]):
-                    yield record["start"], record["start"], record["length"]
+                    yield (record["start"], record["start"], record["length"],
+                           _StreamWrapper(self.fd))
 
     def ConfigureSession(self, session_obj):
         session_obj.SetCache("dtb", self.pmem_metadata["meta"]["dtb_off"],
@@ -100,36 +112,7 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
             data = self.pmem_metadata = yaml_utils.decode(fp.read())
 
         for run in self._get_readable_runs(data["records"]):
-            self.runs.insert(run)
-
-    def _read_chunk(self, addr, length):
-        offset, available_length = self._get_available_buffer(addr, length)
-
-        # We're not allowed to read from the offset, so just return zeros.
-        if offset is None:
-            return "\x00" * min(length, available_length)
-
-        self.fd.seek(offset)
-        return self.fd.read(min(length, available_length))
-
-    def write(self, *args, **kwargs):
-        self._ensure_fd_writable()
-        return super(MacPmemAddressSpace, self).write(*args, **kwargs)
-
-    def _write_chunk(self, addr, buf):
-        buflen = len(buf)
-        offset, available_length = self._get_available_buffer(addr, buflen)
-        length = min(buflen, available_length)
-
-        if offset is None or length == 0:
-            return length
-
-        self.fd.seek(offset)
-        self.fd.write(buf[:length])
-
-        # io.write doesn't return anything, so if the write succeeds we just
-        # return length.
-        return length
+            self.add_run(*run)
 
     def close(self):
         self.fd.close()

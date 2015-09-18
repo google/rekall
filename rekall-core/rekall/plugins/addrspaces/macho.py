@@ -46,8 +46,8 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
         for segment in self.header.segments:
             # We only map segments into memory.
             if segment.cmd == "LC_SEGMENT_64":
-                self.runs.insert(
-                    (segment.vmaddr, segment.fileoff, segment.filesize))
+                self.add_run(
+                    segment.vmaddr, segment.fileoff, segment.filesize)
 
     def check_file(self):
         """Check for a valid MACH-O file."""

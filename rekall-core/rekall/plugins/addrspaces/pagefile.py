@@ -35,7 +35,7 @@ config.DeclareOption(
     help="A pagefile to load into the image.")
 
 
-class PagefilePhysicalAddressSpace(addrspace.MultiRunBasedAddressSpace):
+class PagefilePhysicalAddressSpace(addrspace.RunBasedAddressSpace):
     __image = True
     name = "pagefile"
     order = 200
@@ -48,8 +48,9 @@ class PagefilePhysicalAddressSpace(addrspace.MultiRunBasedAddressSpace):
         self.as_assert(self.base.__class__ is not self.__class__)
 
         length = vaddr = 0
-        for vaddr, _, length in self.base.get_available_addresses():
-            self.add_run(vaddr, vaddr, length, self.base)
+        # Copy the base's runs to our runs and pass them through.
+        for run in self.base.get_mappings():
+            self.add_run(run.start, run.start, run.length, self.base)
 
         vaddr += length + 0x10000
 

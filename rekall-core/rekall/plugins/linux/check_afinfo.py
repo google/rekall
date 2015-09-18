@@ -31,10 +31,6 @@ class CheckAFInfo(common.LinuxPlugin):
 
     __name = "check_afinfo"
 
-    def __init__(self, **kwargs):
-        super(CheckAFInfo, self).__init__(**kwargs)
-        self.module_plugin = self.session.plugins.lsmod(session=self.session)
-
     def CreateChecks(self):
         """Builds the sequence of function checks we need to look at.
 
@@ -87,13 +83,7 @@ class CheckAFInfo(common.LinuxPlugin):
             func = ptr.dereference_as(target="Function",
                                       target_args=dict(name=member))
 
-            # Check if the symbol is pointing into a module.
-            module = self.module_plugin.find_module(func.obj_offset)
-            if module:
-                yield member, func, module.name
-                continue
-
-            yield member, func, "Unknown"
+            yield member, func
 
     def check_functions(self, checks):
         """Apply the checks to the kernel and yields the results."""
@@ -103,21 +93,24 @@ class CheckAFInfo(common.LinuxPlugin):
                     variable, target=check["constant_type"],
                     vm=self.kernel_address_space)
 
-                for member, func, location in self.check_members(
+                for member, func in self.check_members(
                     var_ptr, check["members"]):
-                    yield variable, member, func, location
+                    yield variable, member, func
 
     def render(self, renderer):
         renderer.table_header([("Constant Name", "symbol", "30"),
                                ("Member", "member", "30"),
                                ("Address", "address", "[addrpad]"),
-                               ("Module", "module", "<20")])
+                               ("Module", "module", "")])
 
         checks = self.CreateChecks()
-        for variable, member, func, location in self.check_functions(checks):
+        for variable, member, func in self.check_functions(checks):
+            location = ", ".join(
+                self.session.address_resolver.format_address(
+                    func.obj_offset))
+
             # Point out suspicious constants.
-            highlight = "important" if location=="Unknown" else None
+            highlight = None if location else "important"
 
             renderer.table_row(variable, member, func, location,
                                highlight=highlight)
-

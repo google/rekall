@@ -38,6 +38,7 @@ from rekall import utils
 from rekall.plugins import core
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.common import pfn
+from rekall.plugins.windows import address_resolver
 from rekall.plugins.windows import common
 from rekall.plugins.windows import pagefile
 
@@ -67,7 +68,7 @@ class VADInfo(common.WinProcessFilter):
                 try:
                     self.write_vad_ext(renderer, vad)
                 except AttributeError:
-                    pass
+                   pass
 
                 renderer.format("\n")
 
@@ -246,20 +247,17 @@ class VAD(common.WinProcessFilter):
 
     def find_file_in_task(self, addr, task):
         resolver = self.GetVadsForProcess(task)
-        try:
-            if resolver:
-                return resolver.find_le(addr)
-        except ValueError:
-            return None
+        if resolver:
+            start, end, data = resolver.get_containing_range(addr)
+            return data
 
     def _make_cache(self, task):
-        result = utils.SortedCollection(key=lambda x: x[0])
+        result = utils.RangedCollection()
         self.session.report_progress(
             " Enumerating VADs in %s (%s)", task.name, task.pid)
 
         for vad in task.RealVadRoot.traverse():
-            result.insert(
-                (vad.Start, vad.End, self._get_filename(vad), vad))
+            result.insert(vad.Start, vad.End, (self._get_filename(vad), vad))
 
         return result
 
@@ -414,14 +412,14 @@ class VADMap(pfn.VADMapMixin, common.WinProcessFilter):
             offset += 0x1000
 
     def GeneratePageMetatadata(self, task):
-        resolver = self.session.address_resolver
-        for _, _, _, vad in resolver.GetVADs():
-            # Skip guard regions for Wow64.
-            if vad.CommitCharge >= 0x7fffffff:
-                continue
+        for module in self.session.address_resolver.modules():
+            if isinstance(module, address_resolver.VadModule):
+                # Skip guard regions for Wow64.
+                if module.vad.CommitCharge >= 0x7fffffff:
+                    continue
 
-            for vaddr, metadata in self._GenerateVADRuns(vad):
-                yield vaddr, metadata
+                for vaddr, metadata in self._GenerateVADRuns(module.vad):
+                    yield vaddr, metadata
 
 
 class VADDump(core.DirectoryDumperMixin, VAD):
@@ -483,6 +481,7 @@ class VADDump(core.DirectoryDumperMixin, VAD):
                             continue
 
                         self.session.report_progress("Dumping %s" % filename)
+
                         self.CopyToFile(task_space, start, end + 1, fd)
                         renderer.table_row(
                             start, end, end-start, filename,

@@ -992,7 +992,7 @@ class PEProfile(basic.BasicClasses):
         profile.add_overlay(pe_overlays)
 
 
-class PEFileAddressSpace(addrspace.BaseAddressSpace):
+class PEFileAddressSpace(addrspace.RunBasedAddressSpace):
     """An address space which applies to PE files.
 
     This basically remaps sections in the PE file to the virtual address space.
@@ -1032,22 +1032,15 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
         self.image_base = obj.Pointer.integer_to_address(
             nt_header.OptionalHeader.ImageBase)
 
-        # Now map all the sections into a virtual address space.
-        self.runs = []
-
         # The first run maps the file header over the base address
-        self.runs.append(
-            (self.image_base, nt_header.OptionalHeader.SizeOfHeaders, 0))
+        self.add_run(self.image_base, 0, nt_header.OptionalHeader.SizeOfHeaders)
 
         for section in nt_header.Sections:
-            virtual_address = section.VirtualAddress.v() + self.image_base
-            self.runs.append(
-                (virtual_address, section.SizeOfRawData.v(),
-                 section.PointerToRawData.v()))
-
-        # TODO: The sections may overlap: What to do then?
-        # Make sure that the sections are sorted.
-        self.runs.sort()
+            length = section.SizeOfRawData.v()
+            if length > 0:
+                virtual_address = section.VirtualAddress.v() + self.image_base
+                file_offset = section.PointerToRawData.v()
+                self.add_run(virtual_address, file_offset, length)
 
         # The real nt header is based at the virtual address of the image.
         self.nt_header = self.profile._IMAGE_DOS_HEADER(
@@ -1056,34 +1049,6 @@ class PEFileAddressSpace(addrspace.BaseAddressSpace):
 
     def __str__(self):
         return "<PEFileAddressSpace @ %#x >" % self.image_base
-
-    def read_partial(self, addr, length):
-        # Not a particularly efficient algorithm, but probably fast enough since
-        # usually there are not too many sections.
-        for virtual_address, run_length, physical_address in self.runs:
-            if addr >= virtual_address and addr <= virtual_address + run_length:
-                offset = addr - virtual_address
-                to_read = min(run_length - offset, length)
-
-                return self.base.read(physical_address + offset, to_read)
-
-        # Otherwise just null pad the results.
-        return '\x00' * length
-
-    def read(self, addr, length):
-        addr, length = int(addr), int(length)
-
-        result = ""
-        while length > 0:
-            data = self.read_partial(addr, length)
-            if not data:
-                data = "\x00"
-
-            result += data
-            length -= len(data)
-            addr += len(data)
-
-        return result
 
 
 class Demangler(object):

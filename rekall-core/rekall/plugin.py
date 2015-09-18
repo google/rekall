@@ -313,15 +313,15 @@ class PhysicalASMixin(object):
             raise PluginError("Physical address space is not set. "
                               "(Try plugins.load_as)")
 
-class PriviledgedMixIn(object):
+class PrivilegedMixIn(object):
     def __init__(self, **kwargs):
-        super(PriviledgedMixIn, self).__init__(**kwargs)
-        if not self.session.priviledged:
+        super(PrivilegedMixIn, self).__init__(**kwargs)
+        if not self.session.privileged:
             raise PluginError(
                 "Live analysis is only available for interactive or "
-                "priviledged sessions.")
-        
-        
+                "privileged sessions.")
+
+
 class VerbosityMixIn(object):
     """Use this mixin to provide a --verbosity option to a plugin."""
 

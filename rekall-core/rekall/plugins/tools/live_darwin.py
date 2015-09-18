@@ -42,7 +42,7 @@ from rekall import utils
 from rekall.plugins.addrspaces import pmem
 
 
-class Live(plugin.ProfileCommand):
+class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"

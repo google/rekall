@@ -14,6 +14,8 @@ import shutil
 import sys
 import win32process
 
+from rekall import plugins
+
 PROCESS_QUERY_INFORMATION = 0x400
 PROCESS_VM_READ = 0x10
 
@@ -53,8 +55,11 @@ def EnumMissingModules():
     module_filename = win32process.GetModuleFileNameEx(process_handle, x).lower()
     # PyInstaller is pretty bad in finding all the imported pyd files, and dlls.
     if ("winsxs" in module_filename or "site-packages" in module_filename or
-        module_filename.endswith(".pyd")):
+        module_filename.endswith(".pyd") or "msvc" in module_filename or
+        "\\dlls" in module_filename):
         yield module_filename
+    else:
+        print "Skipping %s" % module_filename
 
 target_dir = "dist/rekal"
 if not os.path.isdir(target_dir):

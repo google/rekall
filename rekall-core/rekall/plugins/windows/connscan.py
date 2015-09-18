@@ -59,8 +59,10 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
         Yields:
           _TCPT_OBJECT instantiated on the physical address space.
         """
+        # The pool is managed by the kernel so we need to use the kernel's
+        # profile here.
         scanner = PoolScanConnFast(
-            session=self.session, profile=self.tcpip_profile,
+            session=self.session, profile=self.profile,
             address_space=self.address_space)
 
         for pool_obj in scanner.scan():

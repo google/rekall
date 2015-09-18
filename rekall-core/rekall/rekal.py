@@ -51,7 +51,7 @@ config.DeclareOption(
     help="Prints the Rekall version and exits.")
 
 
-class Run(plugin.PriviledgedMixIn, plugin.Command):
+class Run(plugin.PrivilegedMixIn, plugin.Command):
     """A plugin which runs its argument (using eval).
 
     Note: This plugin is only defined and available when using the main entry
@@ -84,7 +84,7 @@ def main(argv=None):
     user_session.session_list.append(user_session)
 
     # Alow all special plugins to run.
-    user_session.priviledged = True
+    user_session.privileged = True
 
     def global_arg_cb(global_flags, _):
         if global_flags.version:

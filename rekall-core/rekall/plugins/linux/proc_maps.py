@@ -22,9 +22,11 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-
 from rekall import testlib
+from rekall import utils
 from rekall.plugins import core
+from rekall.plugins.addrspaces import intel
+from rekall.plugins.common import pfn
 from rekall.plugins.linux import common
 
 
@@ -123,3 +125,44 @@ class TestLinVadDump(common.LinuxTestMixin, testlib.HashChecker):
         commandline="vaddump --proc_regex %(proc_name)s --dump_dir %(tempdir)s",
         proc_name="bash"
         )
+
+
+
+class LinuxVADMap(pfn.VADMapMixin, common.LinProcessFilter):
+    """Inspect each page in the VAD and report its status.
+
+    This allows us to see the address translation status of each page in the
+    VAD.
+    """
+
+    def _CreateMetadata(self, collection):
+        metadata = {}
+        for descriptor_cls, args, kwargs in reversed(collection.descriptors):
+            if issubclass(descriptor_cls, intel.PhysicalAddressDescriptor):
+                metadata["offset"] = kwargs["address"]
+                metadata.setdefault("type", "Valid")
+
+            elif issubclass(descriptor_cls, intel.InvalidAddress):
+                metadata["type"] = "Invalid"
+
+        return metadata
+
+    def GeneratePageMetatadata(self, task):
+        address_space = self.session.GetParameter("default_address_space")
+
+        for vma in task.mm.mmap.walk_list("vm_next"):
+            start = vma.vm_start
+            end = vma.vm_end
+
+            # Skip the entire region.
+            if end < self.start:
+                continue
+
+            # Done.
+            if start > self.end:
+                break
+
+            for vaddr in utils.xrange(start, end, 0x1000):
+                if self.start <= vaddr <= self.end:
+                    yield vaddr, self._CreateMetadata(
+                        address_space.describe_vtop(vaddr))

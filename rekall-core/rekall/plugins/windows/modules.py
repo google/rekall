@@ -34,10 +34,6 @@ class Modules(common.WindowsCommandPlugin):
 
     __name = "modules"
 
-    # A local cache for find_modules. Key is module base and value is the
-    # _LDR_DATA_TABLE_ENTRY for the module.
-    mod_lookup = None
-
     @classmethod
     def args(cls, parser):
         """Declare the command line args we need."""
@@ -45,26 +41,16 @@ class Modules(common.WindowsCommandPlugin):
         parser.add_argument("--name_regex",
                             help="Filter module names by this regex.")
 
-        parser.add_argument("-a", "--address_space", default=None,
-                            help="The address space to use.")
-
-    def __init__(self, name_regex=None, address_space=None, **kwargs):
+    def __init__(self, name_regex=None, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
         super(Modules, self).__init__(**kwargs)
         self.name_regex = re.compile(name_regex or ".", re.I)
 
-        # Resolve the correct address space. This allows the address space to be
-        # specified from the command line (e.g.
-        load_as = self.session.plugins.load_as(session=self.session)
-        self.address_space = load_as.ResolveAddressSpace(address_space)
-        self.modlist = []
-
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """
-        if not self.mod_lookup:
-            self._make_cache()
+        for module in self.session.GetParameter("PsLoadedModuleList").list_of_type(
+                "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
 
-        for module in self.mod_lookup.values():
             # Skip modules which do not match.
             if not self.name_regex.search(str(module.FullDllName)):
                 continue
@@ -73,39 +59,7 @@ class Modules(common.WindowsCommandPlugin):
 
     def addresses(self):
         """Returns a list of module addresses."""
-        if not self.mod_lookup:
-            self._make_cache()
-
         return sorted(self.mod_lookup.keys())
-
-    def _make_cache(self):
-        self.mod_lookup = {}
-        for l in self.session.GetParameter("PsLoadedModuleList").list_of_type(
-                "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
-            self.mod_lookup[l.DllBase.v()] = l
-
-        self.modlist = sorted(self.mod_lookup.keys())
-
-    def find_module(self, addr):
-        """Uses binary search to find what module a given address resides in.
-
-        This is much faster than a series of linear checks if you have
-        to do it many times. Note that modlist and mod_addrs must be sorted
-        in order of the module base address."""
-        if self.mod_lookup is None:
-            self._make_cache()
-
-        addr = int(addr)
-        pos = bisect.bisect_right(self.modlist, addr) - 1
-        if pos == -1:
-            return obj.NoneObject("Unknown")
-        mod = self.mod_lookup[self.modlist[pos]]
-
-        if (addr >= mod.DllBase.v() and
-                addr < mod.DllBase.v() + mod.SizeOfImage.v()):
-            return mod
-
-        return obj.NoneObject("Unknown")
 
     def render(self, renderer):
         object_tree_plugin = self.session.plugins.object_tree()

@@ -187,7 +187,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
                 symbol_name = resolver.format_address(function)
                 if symbol_name:
                     symbol_name = u"%s!%s (%s)" % (
-                        dll, name or "", symbol_name)
+                        dll, name or "", ", ".join(symbol_name))
                 else:
                     symbol_name = u"%s!%s" % (dll, name or "")
 

@@ -105,6 +105,14 @@ class SignatureScanner(scan.BaseScanner):
     def skip(self, buffer_as, offset):
         return self.check.skip(buffer_as, offset)
 
+    def scan(self, **kwargs):
+        for hit in super(SignatureScanner, self).scan(**kwargs):
+            yield hit
+
+            # If a single hit is found, we are done.
+            if self.check.current_needle >= len(self.check.needles):
+                break
+
 
 class SigScanMixIn(object):
     """Scan memory for signatures."""

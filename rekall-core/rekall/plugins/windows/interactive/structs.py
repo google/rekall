@@ -134,7 +134,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
                     member.v())
 
                 if symbol and sym_offset == member.v():
-                    address_info.append("Const:%s" % symbol)
+                    address_info.append("Const:%s" % ", ".join(symbol))
 
         return result
 

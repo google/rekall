@@ -170,7 +170,6 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
 
     def VerifyHit(self, dtb):
         """Returns a valid address_space if the dtb is valid."""
-
         address_space = super(LinuxFindDTB, self).VerifyHit(dtb)
         if address_space:
             # Try to verify the profile by checking the linux_proc_banner.

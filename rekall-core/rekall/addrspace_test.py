@@ -10,7 +10,7 @@ class CustomRunsAddressSpace(addrspace.RunBasedAddressSpace):
         self.base = addrspace.BufferAddressSpace(data=data,
                                                  session=self.session)
         for i in runs:
-            self.runs.insert(i)
+            self.add_run(*i)
 
 
 class RunBasedTest(testlib.RekallBaseUnitTestCase):
@@ -18,37 +18,109 @@ class RunBasedTest(testlib.RekallBaseUnitTestCase):
 
     def setUp(self):
         self.session = session.Session()
-        self.contiguous_as = CustomRunsAddressSpace(session=self.session,
-            runs = [(1000, 0, 1), (1001, 1, 9)],
-            data="0123456789")
-        self.discontiguous_as = CustomRunsAddressSpace(session=self.session,
-            runs=[(1000, 0, 1), (1020, 1, 9)],
+        self.test_as = CustomRunsAddressSpace(
+            session=self.session,
+            #        Voff, Poff, length
+            runs = [(1000, 0, 10),    # This contains data.
+                    (1020, 40, 10),
+                    (1030, 50, 10),   # Contiguous runs.
+                    (1050, 0, 2),
+                    (1052, 5, 2)],
             data="0123456789")
 
-    def testDiscontiguousRunsRead(self):
+    def testRunsRead(self):
         # Read from an address without data
-        self.assertEqual(self.discontiguous_as.read(0, 20),
-                         "\x00" * 20)
-        # Read spanning two runs
-        self.assertEqual(self.discontiguous_as.read(1000, 30),
-                         "0" + "\x00"*19 + "123456789" +  "\x00")
-        # Read in the middle of a run
-        self.assertEqual(self.discontiguous_as.read(1025, 10),
-                         "6789" + "\x00" * 6)
-        # Read past the end
-        self.assertEqual(self.discontiguous_as.read(2000, 10),
-                         "\x00" * 10)
+        self.assertEqual(self.test_as.read(0, 20), "\x00" * 20)
 
-    def testContiguousRunsRead(self):
-        # Read from an address without data
-        self.assertEqual(self.contiguous_as.read(0, 20),
-                         "\x00" * 20)
+        # Address translation.
+        self.assertEqual(self.test_as.vtop(0), None)
+        self.assertEqual(self.test_as.vtop(1005), 5)
+
         # Read spanning two runs
-        self.assertEqual(self.contiguous_as.read(1000, 30),
-                         "0123456789" + "\x00"*20)
+        self.assertEqual(self.test_as.read(1050, 4), "0156")
+
         # Read in the middle of a run
-        self.assertEqual(self.contiguous_as.read(1005, 10),
+        self.assertEqual(self.test_as.read(1005, 10),
                          "56789" + "\x00" * 5)
         # Read past the end
-        self.assertEqual(self.contiguous_as.read(2000, 10),
+        self.assertEqual(self.test_as.read(2000, 10),
                          "\x00" * 10)
+
+    def testDiscontiguousRunsGetRanges(self):
+        """Test the range merging."""
+        runs = []
+        # The pure mapping is not merged.
+        for run in self.test_as.get_mappings():
+            self.assertTrue(isinstance(run, addrspace.Run))
+            self.assertEqual(run.address_space, self.test_as.base)
+            runs.append([run.start, run.end, run.file_offset])
+
+        self.assertEqual(runs,
+                         [[1000, 1010, 0],
+                          [1020, 1030, 40],
+                          [1030, 1040, 50],
+                          [1050, 1052, 0],
+                          [1052, 1054, 5]])
+
+        runs = []
+        for run in self.test_as.merge_base_ranges():
+            runs.append([run.start, run.end, run.file_offset])
+
+        # merge_base_ranges is supposed to merge contiguous runs but still
+        # maintain contiguous ranges in the base address space.
+        self.assertEqual(runs,
+                         [[1000, 1010, 0],
+                          [1020, 1040, 40],
+                          [1050, 1052, 0],
+                          [1052, 1054, 5]])
+
+        runs = []
+        for run in self.test_as.get_address_ranges():
+            # No valid physical mapping given here.
+            self.assertTrue(run.file_offset is None)
+            self.assertTrue(run.address_space is None)
+            runs.append([run.start, run.end])
+
+        # get_address_ranges is supposed to merge contiguous runs in the virtual AS.
+        self.assertEqual(runs,
+                         [[1000, 1010],
+                          [1020, 1040],
+                          [1050, 1054]])
+
+
+        # Check that get_address_ranges honors the start and end parameters.
+        run = None
+        for run in self.test_as.get_address_ranges(start=1022, end=1024):
+            self.assertEqual(run.start, 1022)
+            self.assertEqual(run.end, 1024)
+
+            # get_address_ranges does not have a file_offset member.
+            self.assertEqual(run.file_offset, None)
+
+        self.assertTrue(run)
+
+
+        # Check that merge_base_ranges honors the start and end parameters.
+        run = None
+        for run in self.test_as.merge_base_ranges(start=1022, end=1024):
+            self.assertEqual(run.start, 1022)
+            self.assertEqual(run.end, 1024)
+
+            # The file_offset must be properly adjusted too.
+            self.assertEqual(run.file_offset, 40 + 2)
+
+        self.assertTrue(run)
+
+        # Check that get_mappings honors the start parameter.
+        run = None
+        for run in self.test_as.get_mappings(start=1022):
+            # get_mappings does not clip ranges so we may get a range which
+            # starts below the specified limit.
+            self.assertEqual(run.start, 1020)
+            self.assertEqual(run.end, 1030)
+
+            # The file_offset is unchanged.
+            self.assertEqual(run.file_offset, 40)
+            break
+
+        self.assertTrue(run)

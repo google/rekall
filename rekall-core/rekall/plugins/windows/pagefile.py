@@ -40,10 +40,12 @@ http://www.rekall-forensic.com/docs/References/Papers/p1138-cohen.pdf
 __author__ = "Michael Cohen <scudette@google.com>"
 import struct
 
+from rekall import addrspace
 from rekall import obj
 from rekall import utils
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
+from rekall.plugins.windows import address_resolver
 from rekall.plugins.windows import common
 
 # pylint: disable=protected-access
@@ -199,9 +201,10 @@ class VadPteDescriptor(WindowsPTEDescriptor):
         vad_plugin.render(renderer)
 
         resolver = self.session.address_resolver
-        hit = resolver.FindProcessVad(self.virtual_address)
-        if hit:
-            start, _, _, mmvad = hit
+        module = resolver.GetContainingModule(self.virtual_address)
+        if isinstance(module, address_resolver.VadModule):
+            mmvad = module.vad
+
             # The MMVAD does not have any prototypes.
             if mmvad.m("FirstPrototypePte").deref() == None:
                 renderer.format("Demand Zero page\n")
@@ -210,7 +213,7 @@ class VadPteDescriptor(WindowsPTEDescriptor):
                 renderer.format("\n_MMVAD.FirstPrototypePte: {0:#x}\n",
                                 mmvad.FirstPrototypePte)
                 pte = mmvad.FirstPrototypePte[
-                    (self.virtual_address - start) >> 12]
+                    (self.virtual_address - module.start) >> 12]
 
                 renderer.format(
                     "Prototype PTE is at virtual address {0:#x} "
@@ -289,9 +292,9 @@ class WindowsPagedMemoryMixin(object):
                 self.task = self.session.GetParameter("dtb2task").get(self.dtb)
 
             self._vad = utils.RangedCollection()
-            for x in self.session.plugins.vad().GetVadsForProcess(
-                    self.session.profile._EPROCESS(self.task)):
-                self._vad.insert(x[0], x[1], (x[0], x[1], x[3]))
+            task = self.session.profile._EPROCESS(self.task)
+            for vad in task.RealVadRoot.traverse():
+                self._vad.insert(vad.Start, vad.End, vad)
 
             return self._vad
         finally:
@@ -300,12 +303,6 @@ class WindowsPagedMemoryMixin(object):
     def _get_available_PTEs(self, pte_table, vaddr, start=0):
         """Scan the PTE table and yield address ranges which are valid."""
         tmp = vaddr
-        if self.vad:
-            vads = sorted([(x[0], x[1]) for x in self.vad.collection],
-                          reverse=True)
-        else:
-            vads = []
-
         for i in xrange(0, len(pte_table)):
             pfn = i << 12
             pte_value = pte_table[i]
@@ -315,16 +312,13 @@ class WindowsPagedMemoryMixin(object):
             if start >= next_vaddr:
                 continue
 
-            # Remove all the vads that end below this address. This optimization
-            # allows us to skip DemandZero pages which occur outsize the VAD
-            # ranges.
-            if vads:
-                while vads and vads[-1][1] < vaddr:
-                    vads.pop(-1)
 
-                # Address is below the next available vad's start. We are not
-                # inside a vad range and a 0 PTE is unmapped.
-                if (pte_value == 0 and vads and vaddr < vads[-1][0]):
+            # A PTE value of 0 means to consult the vad, but the vad shows no
+            # mapping at this virtual address, so we can just skip this PTE in
+            # the iteration.
+            if self.vad:
+                start, end, run = self.vad.get_containing_range(vaddr)
+                if pte_value == 0 and start is None:
                     continue
 
             elif pte_value == 0:
@@ -335,7 +329,10 @@ class WindowsPagedMemoryMixin(object):
             # Only yield valid physical addresses. This will skip DemandZero
             # pages and File mappings into the filesystem.
             if phys_addr is not None:
-                yield (vaddr, phys_addr, 0x1000)
+                yield addrspace.Run(start=vaddr,
+                                    end=vaddr + 0x1000,
+                                    file_offset=phys_addr,
+                                    address_space=self.base)
 
     def _get_phys_addr_from_pte(self, vaddr, pte_value):
         """Gets the final physical address from the PTE value."""
@@ -456,10 +453,8 @@ class WindowsPagedMemoryMixin(object):
         if self.vad:
             collection.add(intel.CommentDescriptor, "Consulting Vad: ")
 
-            vad_hit = self.vad.get_range(vaddr)
-            if vad_hit:
-                start, _, mmvad = vad_hit
-
+            start, end, mmvad = self.vad.get_containing_range(vaddr)
+            if start is not None:
                 # If the MMVAD has PTEs resolve those..
                 if "FirstPrototypePte" in mmvad.members:
                     pte = mmvad.FirstPrototypePte[(vaddr - start) >> 12]

@@ -99,7 +99,15 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
     def __init__(self, destination=None, rebuild=False, **kwargs):
         super(Raw2Dump, self).__init__(**kwargs)
-        self.profile = crashdump.CrashDump64Profile.Initialize(self.profile)
+        if self.session.profile.metadata("arch") == "I386":
+            self.profile = crashdump.CrashDump32Profile.Initialize(
+                self.profile.copy())
+        elif self.session.profile.metadata("arch") == "AMD64":
+            self.profile = crashdump.CrashDump64Profile.Initialize(
+                self.profile.copy())
+        else:
+            raise plugin.PluginError(
+                "Unable to write crashdump for this architecture.")
 
         self.buffer_size = 10 * 1024 * 1024
         self.rebuild = rebuild
@@ -291,11 +299,10 @@ class Raw2Dump(common.WindowsCommandPlugin):
         number_of_pages = 0
         i = None
 
-        for i, (start, _, length) in enumerate(
-                self.physical_address_space.get_available_addresses()):
+        for i, run in enumerate(self.physical_address_space.get_mappings()):
             # Convert to pages
-            start = start / PAGE_SIZE
-            length = length / PAGE_SIZE
+            start = run.start / PAGE_SIZE
+            length = run.length / PAGE_SIZE
 
             header.PhysicalMemoryBlockBuffer.Run[i].BasePage = start
             header.PhysicalMemoryBlockBuffer.Run[i].PageCount = length
@@ -366,12 +373,10 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
         # Now copy the physical address space to the output file.
         output_offset = header.obj_size
-        for start, _, length in (
-                self.physical_address_space.get_available_addresses()):
-
+        for run in self.physical_address_space.get_mappings():
             # Convert to pages
-            start = start / PAGE_SIZE
-            length = length / PAGE_SIZE
+            start = run.start / PAGE_SIZE
+            length = run.length / PAGE_SIZE
 
             renderer.write("\nRun [0x%08X, 0x%08X] \n" % (
                 start, length))
