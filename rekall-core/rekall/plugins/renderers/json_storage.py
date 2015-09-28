@@ -109,7 +109,7 @@ class FileAddressSpaceObjectRenderer(BaseAddressSpaceObjectRenderer):
     def GetState(self, item, **options):
         state = super(FileAddressSpaceObjectRenderer, self).GetState(
             item, **options)
-        state["filename"] = utils.SmartUnicode(item.name)
+        state["filename"] = utils.SmartUnicode(item.fname)
 
         return state
 
