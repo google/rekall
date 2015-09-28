@@ -48,17 +48,20 @@ class LinuxPsList(common.LinProcessFilter):
                                ("GID", "gid", ">6"),
                                ("DTB", "dtb", "[addrpad]"),
                                ("Start Time", "start_time", ">24"),
+                               dict(name="Binary", wrap=False),
                               ])
 
         for task in self.filter_processes():
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
+            path = task.get_path(task.mm.exe_file)
             renderer.table_row(task.obj_offset,
                                task.comm,
                                task.pid,
                                task.parent.pid,
                                task.uid,
                                task.gid,
-                               dtb, task.task_start_time)
+                               dtb, task.task_start_time,
+                               path)
 
 
 class LinMemMap(memmap.MemmapMixIn, common.LinProcessFilter):

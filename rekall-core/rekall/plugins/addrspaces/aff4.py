@@ -289,8 +289,8 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                         "kernel_base", metadata.get("KernBase"),
                         volatile=False)
         except IOError:
-            session.logging.warn(
-                "AFF4 volume does not contain PhysicalMemory metadata.")
+            session.logging.info(
+                "AFF4 volume does not contain %s/information.yaml" % image_urn)
 
     def describe(self, address):
         start, end, run = self.runs.get_containing_range(address)
@@ -304,7 +304,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         # For other mapped streams, just say which ones they are.
         return u"%#x @ %s (Mapped %#x)" % (
-            address - start, address_space, address)
+            address - start, run.address_space, address)
 
 
 

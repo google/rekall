@@ -89,6 +89,7 @@ import ntpath
 import os
 import platform
 import subprocess
+import sys
 import urllib2
 
 from rekall import addrspace
@@ -209,7 +210,8 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                         # installed.
                         subprocess.check_call(
                             ["cabextract", compressed_output_file],
-                            cwd=temp_dir)
+                            cwd=temp_dir,
+                            stdout=sys.stderr)
 
                 except subprocess.CalledProcessError:
                     raise RuntimeError(

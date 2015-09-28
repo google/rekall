@@ -511,6 +511,9 @@ class Linux26VFS(Linux3VFS):
         """A literal copy of the __d_path function from kernel 2.6.26."""
         depth = 0
         dentry = path.dentry
+        if dentry == None:
+            return ""
+
         vfsmnt = path.mnt
 
         result = FileName(start_dentry=dentry)

@@ -20,7 +20,12 @@
 
 
 """A Rekall Memory Forensics scanner which uses yara."""
+import yara
+
 from rekall import scan
+from rekall import testlib
+from rekall import plugin
+from rekall import utils
 
 
 class BaseYaraASScanner(scan.BaseScanner):
@@ -88,3 +93,149 @@ class BaseYaraASScanner(scan.BaseScanner):
 
         next_hit = self.hits[0][1]
         return next_hit - offset
+
+
+class YaraScanMixin(object):
+    """A common implementation of yara scanner.
+
+    This should be mixed with the process filter.
+    """
+
+    name = "yarascan"
+
+    @classmethod
+    def args(cls, parser):
+        super(YaraScanMixin, cls).args(parser)
+
+        parser.add_argument("--hits", default=1E8, type="IntParser",
+                            help="Quit after finding this many hits.")
+
+
+        parser.add_argument("--string", default=None,
+                            help="A verbatim string to search for.")
+
+        parser.add_argument("--binary_string", default=None,
+                            help="A binary string (encoded as hex) to search "
+                            "for. e.g. 000102[1-200]0506")
+
+        parser.add_argument("--yara_file", default=None,
+                            help="The yara signature file to read.")
+
+        parser.add_argument("--yara_expression", default=None,
+                            help="If provided we scan for this yarra "
+                            "expression.")
+
+        parser.add_argument(
+            "--scan_physical", default=False, type="Boolean",
+            help="If specified we scan the physcial address space. Note that "
+            "by default we scan the address space of the specified processes "
+            "(or if no process selectors are specified, the kernel).")
+
+    def __init__(self, string=None, scan_physical=False,
+                 yara_file=None, yara_expression=None, binary_string=None, hits=10,
+                 **kwargs):
+        """Scan using yara signatures."""
+        super(YaraScanMixin, self).__init__(**kwargs)
+        self.hits = hits
+        if yara_expression:
+            self.rules_source = yara_expression
+            self.rules = yara.compile(source=self.rules_source)
+
+        elif binary_string:
+            self.compile_rule(
+                'rule r1 {strings: $a = {%s} condition: $a}' % binary_string
+                )
+        elif string:
+            self.compile_rule(
+                'rule r1 {strings: $a = "%s" condition: $a}' % string
+                )
+
+        elif yara_file:
+            self.compile_rule(open(yara_file).read())
+        else:
+            raise plugin.PluginError("You must specify a yara rule file or "
+                                     "string to match.")
+
+        self.scan_physical = scan_physical
+
+    def compile_rule(self, rule):
+        self.rules_source = rule
+        try:
+            self.rules = yara.compile(source=rule)
+        except Exception as e:
+            raise plugin.PluginError(
+                "Failed to compile yara expression: %s" % e)
+
+    def generate_hits(self, address_space, end=None):
+        count = 0
+        scanner = BaseYaraASScanner(
+            profile=self.profile, session=self.session,
+            address_space=address_space,
+            rules=self.rules)
+
+        for hit in scanner.scan(maxlen=end):
+            yield hit
+
+            count += 1
+            if count >= self.hits:
+                break
+
+    def render_scan_physical(self, renderer):
+        """This method scans the physical memory."""
+        for rule, address, _, _ in self.generate_hits(
+                self.physical_address_space):
+            renderer.format("Rule: {0}\n", rule)
+
+            context = self.physical_address_space.read(address, 0x40)
+            utils.WriteHexdump(renderer, context, base=address)
+
+    def render_kernel_scan(self, renderer):
+        for rule, address, _, _ in self.generate_hits(
+                self.kernel_address_space):
+            renderer.format("Rule: {0}\n", rule)
+            owner = self.session.address_resolver.format_address(address)
+            if not owner:
+                owner = "Unknown"
+
+            renderer.format("Owner: {0}\n", owner)
+
+            context = self.kernel_address_space.read(address, 0x40)
+            utils.WriteHexdump(renderer, context, base=address)
+
+    def render_task_scan(self, renderer, task):
+        """Scan a task's address space."""
+        end = self.session.GetParameter("highest_usermode_address")
+        task_as = task.get_process_address_space()
+
+        for rule, address, _, _ in self.generate_hits(task_as, end=end):
+            renderer.format("Rule: {0}\n", rule)
+
+            renderer.format(
+                "Owner: {0} ({1})\n", task,
+                self.session.address_resolver.format_address(address))
+
+            context = task_as.read(address, 0x40)
+            utils.WriteHexdump(renderer, context, base=address)
+
+    def render(self, renderer):
+        """Render output."""
+        cc = self.session.plugins.cc()
+        with cc:
+            if self.scan_physical:
+                return self.render_scan_physical(renderer)
+
+            elif self.filtering_requested:
+                for task in self.filter_processes():
+                    cc.SwitchProcessContext(task)
+
+                    self.render_task_scan(renderer, task)
+
+            # We are searching the kernel address space
+            else:
+                return self.render_kernel_scan(renderer)
+
+
+class TestYara(testlib.SimpleTestCase):
+    """Test the yarascan module."""
+
+    PARAMETERS = dict(commandline="yarascan --string %(string)s --hits 10")

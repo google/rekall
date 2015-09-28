@@ -34,6 +34,7 @@ from rekall import scan
 from rekall import utils
 
 from rekall.plugins.addrspaces import amd64
+from rekall.plugins.addrspaces import intel
 from rekall.plugins.darwin import common as darwin_common
 from rekall.plugins.linux import common as linux_common
 from rekall.plugins.windows import common as win_common
@@ -164,7 +165,7 @@ class WindowsIndexDetector(DetectionMethod):
     def Offsets(self):
         return [0]
 
-    def VerifyDTB(self, test_as):
+    def VerifyAMD64DTB(self, test_as):
         """Verify this address space.
 
         Checks that the _KUSER_SHARED_DATA makes sense. This structure is always
@@ -174,13 +175,28 @@ class WindowsIndexDetector(DetectionMethod):
             offset=0xFFFFF78000000000, vm=test_as)
 
         # Must be a valid version of windows.
-        if (kuser_shared.NtMajorVersion in [5, 6] and
+        if (kuser_shared.NtMajorVersion in [5, 6, 10] and
+                kuser_shared.NtMinorVersion in [0, 1, 2, 3]):
+            return True
+
+    def VerifyI386DTB(self, test_as):
+        """Verify this address space.
+
+        Checks that the _KUSER_SHARED_DATA makes sense. This structure is always
+        at a known offset since it must be shared with user space apps.
+        """
+        kuser_shared = self.eprocess_index._KUSER_SHARED_DATA(
+            offset=0xffdf0000, vm=test_as)
+
+        # Must be a valid version of windows.
+        if (kuser_shared.NtMajorVersion in [5, 6, 10] and
                 kuser_shared.NtMinorVersion in [0, 1, 2, 3]):
             return True
 
     def DetectWindowsDTB(self, filename_offset, address_space):
         """Checks the possible filename hit for a valid DTB address."""
         for dtb_rel_offset, arch in self.eprocess_index.filename_to_dtb:
+            # We only apply indexes to 64 bit images.
             if arch == "AMD64":
                 possible_dtb = self.eprocess_index.Object(
                     "unsigned long", offset=filename_offset - dtb_rel_offset,
@@ -193,7 +209,23 @@ class WindowsIndexDetector(DetectionMethod):
 
                 test_as = amd64.AMD64PagedMemory(
                     session=self.session, base=address_space, dtb=possible_dtb)
-                if self.VerifyDTB(test_as):
+                if self.VerifyAMD64DTB(test_as):
+                    yield test_as
+
+            elif arch == "I386":
+                possible_dtb = self.eprocess_index.Object(
+                    "unsigned long", offset=filename_offset - dtb_rel_offset,
+                    vm=address_space).v()
+
+                # Discard impossible DTB values immediately. On 32 bit
+                # architectures, the DTB must be aligned to 0x20 (with PAE).
+                if not possible_dtb or possible_dtb & 0x1F:
+                    continue
+
+                # Only support PAE - we dont really see non PAE images any more.
+                test_as = intel.IA32PagedMemoryPae(
+                    session=self.session, base=address_space, dtb=possible_dtb)
+                if self.VerifyI386DTB(test_as):
                     yield test_as
 
     def _match_profile_for_kernel_base(self, kernel_base, test_as):
@@ -219,7 +251,7 @@ class WindowsIndexDetector(DetectionMethod):
                     session=self.session, base=address_space,
                     dtb=self.session.GetParameter("dtb"))
 
-                if self.VerifyDTB(test_as):
+                if self.VerifAMD64yDTB(test_as):
                     return self._match_profile_for_kernel_base(
                         self.session.GetParameter("kernel_base"),
                         test_as)

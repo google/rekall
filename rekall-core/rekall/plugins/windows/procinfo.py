@@ -39,7 +39,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
     @classmethod
     def args(cls, parser):
         super(PEInfo, cls).args(parser)
-        parser.add_argument("--image-base", default=0, type="SymbolAddress",
+        parser.add_argument("--image-base", default=None, type="SymbolAddress",
                             help="The base of the image.")
 
         parser.add_argument("executable", default=None, nargs='?',
@@ -119,12 +119,15 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
 
         renderer.table_header([('Perm', 'perm', '4'),
                                ('Name', 'name', '<8'),
+                               ('Raw Off', 'raw', '[addrpad]'),
                                ('VMA', 'vma', '[addrpad]'),
                                ('Size', 'size', '[addrpad]')])
 
-        for (permission, name,
-             virtual_address, size) in self.pe_helper.Sections():
-            renderer.table_row(permission, name, virtual_address, size)
+        for section in self.pe_helper.nt_header.Sections:
+            renderer.table_row(section.execution_flags, section.Name,
+                               section.PointerToRawData,
+                               section.VirtualAddress,
+                               section.SizeOfRawData)
 
         renderer.format("\nData Directories:\n")
         renderer.table_header([('', 'name', '<40'),

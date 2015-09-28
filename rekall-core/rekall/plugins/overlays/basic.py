@@ -24,9 +24,9 @@
 """ This file defines some basic types which might be useful for many
 OS's
 """
+import arrow
 import datetime
 import distorm3
-import pytz
 import re
 import socket
 import struct
@@ -541,8 +541,28 @@ class _LIST_ENTRY(ListMixIn, obj.Struct):
     """ Adds iterators for _LIST_ENTRY types """
 
 
+
+class ShiftedTimezone(datetime.tzinfo):
+    tz_name = ""
+    tz_dst = datetime.timedelta(0)
+
+    def __init__(self, utcoffset):
+        self.offset = datetime.timedelta(seconds=utcoffset)
+
+    def utcoffset(self, dt):
+        return self.offset
+
+    def dst(self, dt):
+        return self.tz_dst
+
+    def tzname(self, dt):
+        return self.__class__.tz_name
+
+
 class UnixTimeStamp(obj.NativeType):
     """A unix timestamp (seconds since the epoch)."""
+
+    timeformat = "YYYY-MM-DD HH:mm:ss"
 
     def __init__(self, format_string="I", **kwargs):
         super(UnixTimeStamp, self).__init__(
@@ -551,31 +571,6 @@ class UnixTimeStamp(obj.NativeType):
     def __nonzero__(self):
         return self.v() != 0
 
-    def display_datetime(self, dt, custom_tz=None):
-        """Returns a string from a datetime according to the display
-        TZ (or a custom one"""
-        timeformat = "%Y-%m-%d %H:%M:%S%z"
-
-        # Control our behaviour according to the session preferences.
-        session = self.obj_profile.session
-
-        # Default to display in UTC.
-        try:
-            timezone_name = u"UTC"
-            if custom_tz:
-                timezone_name = custom_tz
-            elif session and session.GetParameter("timezone"):
-                timezone_name = session.GetParameter("timezone")
-
-            timezone = pytz.timezone(timezone_name)
-        except pytz.UnknownTimeZoneError:
-            # Cant undestand the timezone - use UTC
-            timezone = pytz.UTC
-
-        local_datetime = timezone.normalize(dt.astimezone(timezone))
-
-        return local_datetime.strftime(timeformat)
-
     def __add__(self, other):
         if isinstance(other, (float, int, long)):
             return UnixTimeStamp(
@@ -583,29 +578,51 @@ class UnixTimeStamp(obj.NativeType):
 
         raise NotImplementedError
 
+    def display(self, custom_tz=None, utc_shift=None):
+        try:
+            arw = self.as_arrow()
+            if custom_tz:
+                try:
+                    arw = arw.to(custom_tz)
+                except RuntimeError:
+                    pass
+            elif utc_shift is not None:
+                arw = arw.to(ShiftedTimezone(int(utc_shift)))
+
+            else:
+                arw = arw.to(self.obj_session.GetParameter("timezone", "UTC"))
+
+            # Mark UTC timezone with a Z
+            formatted_date = arw.format(self.timeformat)
+            formatted_tz = arw.format("Z")
+            if formatted_tz == "-0000":
+                formatted_tz = "Z"
+
+            return formatted_date + formatted_tz
+
+        except ValueError as e:
+            return obj.NoneObject("Error: %s", e)
+
     def __unicode__(self):
-        if not self:
-            return "-"
-
-        dt = self.as_datetime()
-        if dt:
-            return self.display_datetime(dt)
-
-        return "-"
+        return unicode(self.display())
 
     def __repr__(self):
         return "%s (%s)" % (super(UnixTimeStamp, self).__repr__(),
                             str(self))
 
-    def as_datetime(self):
+    def as_arrow(self):
+        value = self.v()
+        if not value:
+            return obj.NoneObject("")
+
         try:
             # Return a data time object in UTC.
-            dt = datetime.datetime.utcfromtimestamp(
-                self.v()).replace(tzinfo=pytz.UTC)
+            return arrow.Arrow.utcfromtimestamp(self.v())
         except (ValueError, TypeError) as e:
             return obj.NoneObject("Datetime conversion failure: " + str(e))
 
-        return dt
+    def as_datetime(self):
+        return self.as_arrow().datetime
 
 
 class timeval(UnixTimeStamp, obj.Struct):
@@ -1020,21 +1037,6 @@ class RelativeOffsetMixin(object):
             return base_constant + self.GetImageBase()
 
         return base_constant
-
-    def add_constants(self, relative_to_image_base=True, **kwargs):
-        """Add new constants to this profile.
-
-        Args:
-
-          - relative_to_image_base: If True, the constants are specified
-            relative to the image base. Otherwise constants are absolute
-            addresses.
-        """
-        for k, v in kwargs.items():
-            if not relative_to_image_base:
-                kwargs[k] = (v) - self.GetImageBase()
-
-        super(RelativeOffsetMixin, self).add_constants(**kwargs)
 
     def get_nearest_constant_by_address(self, address, below=True):
         if address < self.GetImageBase():

@@ -381,3 +381,7 @@ class MftDump(common.WindowsCommandPlugin):
         seen = set()
         for mft_id in self.dir_tree:
             self.render_tree(renderer, mft_id, seen, depth=0)
+
+
+class TestMftDump(testlib.SortedComparison):
+    """The order is someone non-deterministic."""

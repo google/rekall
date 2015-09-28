@@ -184,6 +184,11 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
         if last_run[2] > 0:
             self.add_run(*last_run)
 
+        # Set the DTB from the crash dump header.
+        session.SetCache("dtb", self.header.DirectoryTableBase.v(),
+                         volatile=False)
+
+
     def _generate_bitmap(self):
         """Generate Present/Not Present for each page in the dump."""
         # The bitmap is an array of 32 bit integers. Each bit in each int

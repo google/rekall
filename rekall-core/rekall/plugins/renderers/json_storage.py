@@ -66,15 +66,44 @@ can then be subsequently used to dereference the memory image - we can recover
 the _EPROCESS.ImageFileName attribute and print the process name - even though
 the actual name was never encoded.
 """
-
+from rekall import addrspace
 from rekall import obj
 from rekall import session
 from rekall import utils
 from rekall.ui import json_renderer
 
 
-class FileAddressSpaceObjectRenderer(
-        json_renderer.BaseAddressSpaceObjectRenderer):
+
+
+class BaseAddressSpaceObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    renders_type = "BaseAddressSpace"
+
+    @json_renderer.CacheableState
+    def DecodeFromJsonSafe(self, value, options):
+        value = super(BaseAddressSpaceObjectRenderer,
+                      self).DecodeFromJsonSafe(value, options)
+
+        cls_name = value.pop("cls")
+        cls = addrspace.BaseAddressSpace.classes[cls_name]
+
+        if value["base"] == "PhysicalAS":
+            value["base"] = (self.session.physical_address_space or
+                             self.session.plugins.load_as().GetPhysicalAddressSpace())
+
+        return cls(session=self.session, **value)
+
+    def GetState(self, item, **_):
+        result = dict(cls=unicode(item.__class__.__name__))
+        if item.base is not item:
+            result["base"] = item.base
+
+        if item.base is self.renderer.session.physical_address_space:
+            result["base"] = "PhysicalAS"
+
+        return result
+
+
+class FileAddressSpaceObjectRenderer(BaseAddressSpaceObjectRenderer):
     renders_type = "FileAddressSpace"
 
     def GetState(self, item, **options):
@@ -98,8 +127,7 @@ class AttributeDictObjectRenderer(json_renderer.StateBasedObjectRenderer):
         return utils.AttributeDict(state.get("data", {}))
 
 
-class IA32PagedMemoryObjectRenderer(
-        json_renderer.BaseAddressSpaceObjectRenderer):
+class IA32PagedMemoryObjectRenderer(BaseAddressSpaceObjectRenderer):
     renders_type = "IA32PagedMemory"
 
     def GetState(self, item, **options):

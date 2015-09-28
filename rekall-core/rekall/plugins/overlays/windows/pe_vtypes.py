@@ -271,6 +271,11 @@ pe_overlays = {
                 'IMAGE_SCN_MEM_READ':                  0x40000000,
                 'IMAGE_SCN_MEM_WRITE':                 0x80000000L},
             'target': 'unsigned long'}]],
+
+        'execution_flags': lambda x: "%s%s%s" % (
+                "x" if x.Characteristics.IMAGE_SCN_MEM_EXECUTE else "-",
+                "r" if x.Characteristics.IMAGE_SCN_MEM_READ else "-",
+                "w" if x.Characteristics.IMAGE_SCN_MEM_WRITE else "-")
         }],
 
     "_IMAGE_IMPORT_DESCRIPTOR": [None, {
@@ -953,13 +958,7 @@ class PE(object):
 
     def Sections(self):
         for section in self.nt_header.Sections:
-
-            execution_flags = "%s%s%s" % (
-                "x" if section.Characteristics.IMAGE_SCN_MEM_EXECUTE else "-",
-                "r" if section.Characteristics.IMAGE_SCN_MEM_READ else "-",
-                "w" if section.Characteristics.IMAGE_SCN_MEM_WRITE else "-")
-
-            yield (execution_flags, section.Name, section.VirtualAddress,
+            yield (section.execution_flags, section.Name, section.VirtualAddress,
                    section.SizeOfRawData)
 
 
@@ -1149,7 +1148,8 @@ class BasicPEProfile(basic.RelativeOffsetMixin, basic.BasicClasses):
     def GetImageBase(self):
         return self.image_base
 
-    def add_constants(self, **kwargs):
+    def add_constants(self, constants=None, constants_are_addresses=True,
+                      **kwargs):
         """Add the demangled constants.
 
         This allows us to handle 32 bit vs 64 bit constant names easily since
@@ -1157,10 +1157,16 @@ class BasicPEProfile(basic.RelativeOffsetMixin, basic.BasicClasses):
         """
         demangler = Demangler(self._metadata)
         result = {}
+
+        if constants:
+            kwargs.update(constants)
+
         for k, v in kwargs.iteritems():
             result[demangler.DemangleName(k)] = v
 
-        super(BasicPEProfile, self).add_constants(**result)
+        super(BasicPEProfile, self).add_constants(
+            constants=result,
+            constants_are_addresses=constants_are_addresses)
 
     def copy(self):
         result = super(BasicPEProfile, self).copy()

@@ -189,7 +189,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
     def MakeUserSession(self, config_options=None):
         if config_options is None:
-            config_options = self.config_options
+            config_options = self.config_options or {}
 
         user_session = rekall_session.InteractiveSession()
         with user_session.state as state:

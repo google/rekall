@@ -159,10 +159,12 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
                 # 1 gig page.
                 if pdpte_value & self.page_size_mask:
-                    yield (vaddr,
-                           ((pdpte_value & 0xfffffc0000000) |
-                            (vaddr & 0x3fffffff)),
-                           0x40000000)
+                    yield addrspace.Run(
+                        start=vaddr,
+                        end=vaddr+0x40000000,
+                        file_offset=((pdpte_value & 0xfffffc0000000) |
+                                     (vaddr & 0x3fffffff)),
+                        address_space=self.base)
                     continue
 
                 for x in self._get_available_PDEs(vaddr, pdpte_value, start):

@@ -106,6 +106,15 @@ FILENAMES_TO_TRY = [
     "ntdll.pdb",
     ]
 
+# These are all the pdb files which are expected to have structs. If they do not
+# we must provide clear error that there is something very wrong since Rekall
+# will break if they do not have the relevant structs. It may be possible to
+# kind of "fix" these by strealing structs from other similar systems but we do
+# not do this right now.
+PDB_WITH_STRUCTS = set([
+    "nt"
+])
+
 
 def EnsurePathExists(path):
     try:
@@ -308,10 +317,19 @@ def RebuildInventory():
                 with gzip.GzipFile(filename=path, mode="rb") as fd:
                     data = json.load(fd)
 
-                    inventory[profile_name] = data["$METADATA"]
+                    metadata = inventory[profile_name] = data["$METADATA"]
                     inventory[profile_name][
                         "LastModified"] = file_modified_time
                     modified = True
+
+                    # Check for profile validity.
+                    if (metadata["ProfileClass"].lower() in PDB_WITH_STRUCTS and
+                            "$STRUCTS" not in data):
+                        # Should we force the user to add an exception? or to
+                        # fix the profile in some way?
+                        print("Profile %s is invalid! no $STRUCTS defined." %
+                              path)
+
 
     if modified:
         # Update the last modified time for the inventory itself.

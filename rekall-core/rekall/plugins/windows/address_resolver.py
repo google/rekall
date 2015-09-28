@@ -160,7 +160,7 @@ class PEModule(address_resolver.Module):
                 if not result.get_constant_by_address(func_offset):
                     constants[str(name or "")] = func_offset - self.start
 
-        result.add_constants(constants_are_addresses=True, **constants)
+        result.add_constants(constants_are_addresses=True, constants=constants)
         return result
 
     @property
@@ -308,7 +308,15 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
         if result in ["ntoskrnl.pdb", "ntkrnlpa.pdb", "ntkrnlmp.pdb"]:
             result = "nt"
 
-        return result.lower()
+        return result
+
+    def _ParseAddress(self, name):
+        capture = super(PEAddressResolver, self)._ParseAddress(name)
+        if capture["module"] != "header" and not capture["symbol"]:
+            capture["symbol"] = capture["module"]
+            capture["module"] = "header"
+
+        return capture
 
     def _EnsureInitialized(self):
         if self._initialized:
@@ -331,15 +339,20 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
             # Extract all exported symbols into the profile's symbol table.
             for _, func, name, _ in self.pe_helper.ExportDirectory():
                 func_address = func.v()
-                try:
-                    symbols[utils.SmartUnicode(name)] = func_address
-                except ValueError:
-                    continue
+                name = utils.SmartUnicode(name)
+                symbols[name] = func_address - self.image_base
 
         self.pe_profile.image_base = self.image_base
         self.pe_profile.add_constants(constants_are_addresses=True,
-                                      relative_to_image_base=False,
-                                      **symbols)
+                                      constants=symbols)
+
+        # A section for the header.
+        self.AddModule(
+            PESectionModule(start=self.image_base,
+                            end=self.image_base+0x1000,
+                            name="pe",
+                            profile=self.pe_profile,
+                            session=self.session))
 
         # Insert a psuedo module for each section
         module_end = self.image_base
@@ -356,6 +369,11 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
                                     session=self.session))
 
         self._initialized = True
+
+    def search_symbol(self, pattern):
+        if "!" not in pattern:
+            pattern = "pe!" + pattern
+        return super(PEAddressResolver, self).search_symbol(pattern)
 
     def __str__(self):
         self._EnsureInitialized()

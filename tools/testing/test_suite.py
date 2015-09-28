@@ -522,10 +522,10 @@ exit 0
 
             test_case(result)
 
-            current_run["errors"] = dict(
+            current_run.setdefault("errors", {})[str(test_case)] = dict(
                 (str(x), y) for x, y in result.errors)
 
-            current_run["failures"] = dict(
+            current_run.setdefault("failours", {})[str(test_case)] = dict(
                 (str(x), y) for x, y in result.failures)
 
             # Store the current run someplace for closer inspection.

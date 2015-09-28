@@ -72,10 +72,8 @@ class UnixTimestampObjectRenderer(BaseObjectTextRenderer):
         if details:
             return text.Cell(repr(target))
 
-        if target:
-            dt = target.as_datetime()
-            if dt:
-                return text.Cell(target.display_datetime(dt))
+        if target != None:
+            return text.Cell(unicode(target))
 
         return text.Cell("-")
 

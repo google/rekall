@@ -24,10 +24,11 @@ from rekall.ui import text
 from rekall.ui import json_renderer
 from rekall.plugins import hypervisors
 from rekall.plugins.renderers import data_export
+from rekall.plugins.renderers import json_storage
 
 
 class VTxPagedMemoryObjectRenderer(
-    json_renderer.BaseAddressSpaceObjectRenderer):
+    json_storage.BaseAddressSpaceObjectRenderer):
     renders_type = "VTxPagedMemory"
 
     def GetState(self, item, **options):

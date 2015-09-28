@@ -408,13 +408,22 @@ class WindowsPagedMemoryMixin(object):
         if self.base_as_can_map_files:
             pte = self.session.profile._MMPTE(subsection_pte_address)
             subsection = pte.u.Subsect.Subsection
+            subsection_base = subsection.SubsectionBase.v()
 
             filename = subsection.ControlArea.FilePointer.file_name_with_drive()
-            file_offset = (
-                (pte - subsection.SubsectionBase) * 0x1000 / pte.obj_size +
-                subsection.StartingSector * 512)
-
             if filename:
+                # The offset within the file starts at the beginning sector of
+                # the section object, plus one page for each PTE. A section
+                # object has an array of PTEs - the first one is 0 pages from
+                # the start of the section, and each other PTE is another page
+                # into the file. So we calculate the total number of pages from
+                # the array index of the subsection_pte_address that we were
+                # given.
+                file_offset = (
+                    (subsection_pte_address -
+                     subsection_base) * 0x1000 / pte.obj_size +
+                    subsection.StartingSector * 512)
+
                 return self.base.get_mapped_offset(filename, file_offset)
 
     def _get_pagefile_mapped_address(self, pagefile_number, pagefile_offset):
@@ -505,6 +514,8 @@ class WindowsPagedMemoryMixin(object):
             # Try to map the file into the physical address space.
             file_mapping = self._get_subsection_mapped_address(pte_addr)
             if file_mapping is not None:
+                # Add offset within the page.
+                file_mapping += vaddr & 0xFFF
                 collection.add(intel.PhysicalAddressDescriptor,
                                address=file_mapping)
 

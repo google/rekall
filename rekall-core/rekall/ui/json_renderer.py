@@ -336,27 +336,6 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
                     profile=item.obj_profile)
 
 
-class BaseAddressSpaceObjectRenderer(StateBasedObjectRenderer):
-    renders_type = "BaseAddressSpace"
-
-    @CacheableState
-    def DecodeFromJsonSafe(self, value, options):
-        value = super(BaseAddressSpaceObjectRenderer,
-                      self).DecodeFromJsonSafe(value, options)
-
-        cls_name = value.pop("cls")
-        cls = addrspace.BaseAddressSpace.classes[cls_name]
-
-        return cls(session=self.session, **value)
-
-    def GetState(self, item, **_):
-        result = dict(cls=unicode(item.__class__.__name__))
-        if item.base is not item:
-            result["base"] = item.base
-
-        return result
-
-
 class JSTreeNodeRenderer(StateBasedObjectRenderer):
     renders_type = "TreeNode"
 
@@ -637,3 +616,18 @@ class JsonRenderer(renderer_module.BaseRenderer):
             "time": record.created,
         }
         self.SendMessage(["L", log_message])
+
+    def encode(self, obj):
+        """Convenience method for fast encoding of objects.
+
+        Args:
+           obj: An arbitrary object which should be encoded.
+
+        Returns:
+           a Json serializable data object.
+        """
+        return self.encoder.Encode(obj)
+
+    def decode(self, data):
+        """Decode a json representation into an object."""
+        return self.decoder.Decode(data)

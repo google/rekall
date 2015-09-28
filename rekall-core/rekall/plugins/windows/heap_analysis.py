@@ -139,9 +139,11 @@ class InspectHeap(common.WinProcessFilter):
         resolver = self.session.address_resolver
 
         # Try to load the ntdll profile.
-        ntdll_prof = resolver.LoadProfileForName("ntdll")
-        if not ntdll_prof:
+        ntdll_mod = resolver.GetModuleByName("ntdll")
+        if not ntdll_mod:
             return
+
+        ntdll_prof = ntdll_mod.profile
 
         # Set the ntdll profile on the _PEB member.
         peb = task.m("Peb").cast(

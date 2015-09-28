@@ -45,6 +45,7 @@ def find_data_files_directory(source):
 
 install_requires = [
     "argparse >= 0.9",
+    "arrow == 0.6.0",
     "PyYAML >= 2.10",
     "pytz >= 2012",
     "intervaltree >= 2.0.4",

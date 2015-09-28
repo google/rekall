@@ -433,14 +433,19 @@ class AFF4Ls(plugin.Command):
             help="Include additional information about each stream.")
 
         parser.add_argument(
+            "--regex", default=".",
+            help="Regex of filenames to dump.")
+
+        parser.add_argument(
             "volume", default=None, required=False,
             help="Volume to list.")
 
-    def __init__(self, long=False, volume=None, **kwargs):
+    def __init__(self, long=False, regex=".", volume=None, **kwargs):
         super(AFF4Ls, self).__init__(**kwargs)
         self.long = long
         self.volume_path = volume
         self.resolver = data_store.MemoryDataStore()
+        self.regex = re.compile(regex)
 
     def render_long(self, renderer, volume):
         """Render a detailed description of the contents of an AFF4 volume."""
@@ -450,8 +455,7 @@ class AFF4Ls(plugin.Command):
             dict(name="URN", width=150),
         ])
 
-        for subject in self.resolver.QuerySubject(
-                re.compile(".")):
+        for subject in self.resolver.QuerySubject(self.regex):
             urn = unicode(subject)
             filename = None
             if (self.resolver.Get(subject, lexicon.AFF4_CATEGORY) ==
@@ -504,6 +508,9 @@ class AFF4Ls(plugin.Command):
         ])
 
         for urn, filename in self.interesting_streams(volume).iteritems():
+            if not self.regex.match(urn):
+                continue
+
             size = self.resolver.Get(urn, lexicon.AFF4_STREAM_SIZE)
             if size is None and filename == "Physical Memory":
                 with self.resolver.AFF4FactoryOpen(urn) as fd:

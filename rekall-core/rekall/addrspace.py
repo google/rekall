@@ -54,28 +54,35 @@ class Zeroer(object):
 ZEROER = Zeroer()
 
 
-class TranslationLookasideBuffer(utils.FastStore):
+class TranslationLookasideBuffer(object):
     """An implementation of a TLB.
 
     This can be used by an address space to cache translations.
     """
 
     PAGE_SHIFT = 12
-    PAGE_MASK = ~ 0xFFF
+    PAGE_ALIGNMENT = (1 << PAGE_SHIFT) - 1
+    PAGE_MASK = ~ PAGE_ALIGNMENT
+
+    def __init__(self, max_size=10):
+        self.page_cache = utils.FastStore(max_size)
 
     def Get(self, vaddr):
-        result = super(TranslationLookasideBuffer, self).Get(
-            vaddr >> self.PAGE_SHIFT)
+        """Returns the cached physical address for this virtual address."""
 
+        # The cache only stores page aligned virtual addresses. We add the page
+        # offset to the physical addresses automatically.
+        result = self.page_cache.Get(vaddr & self.PAGE_MASK)
+
+        # None is a valid cached value, it means no mapping exists.
         if result is not None:
-            return result + (vaddr & 0xFFF)
+            return result + (vaddr & self.PAGE_ALIGNMENT)
 
     def Put(self, vaddr, paddr):
-        if paddr is not None:
-            paddr = paddr & self.PAGE_MASK
+        if vaddr & self.PAGE_ALIGNMENT:
+            raise TypeError("TLB must only cache aligned virtual addresses.")
 
-        super(TranslationLookasideBuffer, self).Put(
-            vaddr >> self.PAGE_SHIFT, paddr)
+        self.page_cache.Put(vaddr, paddr)
 
 
 class Run(object):
@@ -108,7 +115,7 @@ class Run(object):
         return self.__class__(**kwargs)
 
     def __str__(self):
-        return "<%#x, %#x> -> %s @ %s" % (
+        return u"<%#x, %#x> -> %#x @ %s" % (
             self.start, self.end, self.file_offset,
             self.address_space)
 
@@ -518,6 +525,7 @@ class PagedReader(BaseAddressSpace):
     This automatically takes care of splitting a large read into smaller reads.
     """
     PAGE_SIZE = 0x1000
+    PAGE_MASK = ~(PAGE_SIZE - 1)
     __abstract = True
 
     def _read_chunk(self, vaddr, length):

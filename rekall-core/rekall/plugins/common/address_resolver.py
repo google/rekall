@@ -227,12 +227,12 @@ class AddressResolverMixin(object):
         if not isinstance(name, basestring):
             raise TypeError("Name should be a string.")
 
+        module = None
         components = self._ParseAddress(name)
         module_name = self.NormalizeModuleName(components["module"])
         address = components["address"]
         if address is not None:
             address = int(address, 0)
-
         # User did not specify an address
         else:
             module = self._modules_by_name.get(module_name)

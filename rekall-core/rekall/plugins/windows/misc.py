@@ -220,11 +220,12 @@ class ImageInfo(common.WindowsCommandPlugin):
             self.profile.get_constant("KI_USER_SHARED_DATA"))
 
         renderer.table_row("Time (UTC)", kuser_shared.SystemTime)
-        bias = kuser_shared.TimeZoneBias.cast("unsigned long long")
-        local_time = self.profile.WinFileTime(
-            value=kuser_shared.SystemTime.as_windows_timestamp() + bias)
 
-        renderer.table_row("Time (Local)", local_time)
+        # The bias is given in windows file time (i.e. in 100ns ticks).
+        bias = kuser_shared.TimeZoneBias.cast("long long") / 1e7
+        renderer.table_row("Time (Local)", kuser_shared.SystemTime.display(
+            utc_shift=-bias))
+
         renderer.table_row("Sec Since Boot", self.GetBootTime(kuser_shared))
         renderer.table_row("NtSystemRoot", kuser_shared.NtSystemRoot)
 

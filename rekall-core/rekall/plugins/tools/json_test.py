@@ -24,6 +24,7 @@ import logging
 
 from rekall import testlib
 from rekall.ui import json_renderer
+from rekall.plugins.renderers import data_export
 
 
 class JsonTest(testlib.RekallBaseUnitTestCase):
@@ -123,36 +124,21 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         self.CheckObjectSerization(dict(a=1, b=dict(a=1)))
 
     def CheckObjectSerization(self, obj):
-        object_renderer_cls = json_renderer.JsonObjectRenderer.ForTarget(
-            obj, "JsonRenderer")
+        json_renderer_obj = json_renderer.JsonRenderer(session=self.session)
+        data_export_renderer_obj = data_export.DataExportRenderer(session=self.session)
 
-        renderer = json_renderer.JsonRenderer(session=self.session)
-
-        object_renderer = object_renderer_cls(
-            session=self.session, renderer=renderer)
-
-        encoded = object_renderer.EncodeToJsonSafe(obj, strict=True)
+        # First test json encodings.
+        encoded = json_renderer_obj.encode(obj)
 
         # Make sure it is json safe.
         json.dumps(encoded)
 
         # Now decode it.
-        decoding_object_renderer_cls = json_renderer.JsonObjectRenderer.FromEncoded(
-            encoded, "JsonRenderer")
-
-        self.assertEqual(decoding_object_renderer_cls, object_renderer_cls)
-        decoded = object_renderer.DecodeFromJsonSafe(encoded, {})
+        decoded = json_renderer_obj.decode(encoded)
         self.assertEqual(decoded, obj)
 
         # Now check the DataExportRenderer.
-        object_renderer_cls = json_renderer.JsonObjectRenderer.ForTarget(
-            obj, "DataExportRenderer")
-
-
-        object_renderer = object_renderer_cls(session=self.session,
-                                              renderer="DataExportRenderer")
-
-        encoded = object_renderer.EncodeToJsonSafe(obj, strict=True)
+        encoded = data_export_renderer_obj.encode(obj)
 
         # Make sure it is json safe.
         json.dumps(encoded)

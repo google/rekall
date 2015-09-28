@@ -1705,9 +1705,14 @@ class Profile(object):
         self.object_classes.update(kwargs)
         self.known_types.update(kwargs)
 
-    def add_constants(self, constants_are_addresses=False, **kwargs):
+    def add_constants(self, constants=None, **kwargs):
         """Add the kwargs as constants for this profile."""
         self.flush_cache()
+
+        constants_are_addresses = kwargs.pop("constants_are_addresses", False)
+        if constants is not None:
+            kwargs = constants
+
         for k, v in kwargs.iteritems():
             self.constants[k] = v
             if constants_are_addresses:

@@ -15,3 +15,9 @@ from rekall.plugins.darwin import pas2kas
 from rekall.plugins.darwin import pslist
 from rekall.plugins.darwin import sigscan
 from rekall.plugins.darwin import zones
+
+# These are optional plugins.
+try:
+    from rekall.plugins.darwin import yarascan
+except (ImportError, OSError):
+    pass

@@ -185,7 +185,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         # Check that the _KUSER_SHARED_DATA makes sense. This structure is always
         # at a known offset since it must be shared with user space apps.
         kuser_shared = self.eprocess_index._KUSER_SHARED_DATA(
-            offset=0xFFFFF78000000000, vm=address_space)
+            offset=self.profile.get_constant("KI_USER_SHARED_DATA"),
+            vm=address_space)
 
         # Must be a valid version of windows.
         if (address_space.vtop(kuser_shared.obj_offset) and

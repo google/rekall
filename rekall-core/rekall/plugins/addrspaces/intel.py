@@ -215,7 +215,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         super(IA32PagedMemory, self).__init__(**kwargs)
 
         # We must be stacked on someone else:
-        if not self.base:
+        if self.base == None:
             raise TypeError("No base Address Space")
 
         # If the underlying address space already knows about the dtb we use it.
@@ -251,11 +251,13 @@ class IA32PagedMemory(addrspace.PagedReader):
         try:
             return self._tlb.Get(vaddr)
         except KeyError:
+            # The TLB accepts only page aligned virtual addresses.
+            aligned_vaddr = vaddr & self.PAGE_MASK
             collection = self.describe_vtop(
-                vaddr, PhysicalAddressDescriptorCollector(self.session))
+                aligned_vaddr, PhysicalAddressDescriptorCollector(self.session))
 
-            self._tlb.Put(vaddr, collection.physical_address)
-            return collection.physical_address
+            self._tlb.Put(aligned_vaddr, collection.physical_address)
+            return self._tlb.Get(vaddr)
 
     def describe_vtop(self, vaddr, collection=None):
         """A generator of descriptive statements about stages in translation.
