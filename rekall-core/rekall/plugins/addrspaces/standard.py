@@ -127,8 +127,8 @@ class FileAddressSpace(FDAddressSpace):
         self.as_assert(path, "Filename must be specified in session (e.g. "
                        "session.SetParameter('filename', 'MyFile.raw').")
 
-        self.name = os.path.abspath(path)
-        self.fname = self.name
+        self.name = os.path.basename(path)
+        self.fname = os.path.abspath(path)
         self.mode = 'rb'
 
         if path.startswith(r"\\\\.\\"):

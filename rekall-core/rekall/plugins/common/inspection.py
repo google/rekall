@@ -63,18 +63,18 @@ class MemoryTranslation(plugin.KernelASMixin,
         address = self.address
 
         # Traverse the address space stack and report each address space.
-        while address_space.base is not None:
-            paddr = address_space.vtop(address)
+        while address_space is not None:
+            run = address_space.vtop_run(address)
 
-            if address_space == address_space.base:
+            if address_space == run.address_space:
                 break
 
             renderer.table_row(
                 self._GetASName(address_space),
                 address,
-                self._GetASName(address_space.base),
-                paddr,
+                self._GetASName(run.address_space),
+                run.file_offset,
             )
 
-            address_space = address_space.base
-            address = paddr
+            address_space = run.address_space
+            address = run.file_offset

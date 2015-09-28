@@ -367,6 +367,13 @@ class BaseAddressSpace(object):
         # For physical address spaces, this is a noop.
         return addr
 
+    def vtop_run(self, addr):
+        """Returns a Run object describing where addr can be read from."""
+        return Run(start=addr,
+                   end=addr,
+                   address_space=self,
+                   file_offset=addr)
+
     @classmethod
     def metadata(cls, name, default=None):
         """Obtain metadata about this address space."""
@@ -656,6 +663,14 @@ class RunBasedAddressSpace(PagedReader):
         file_offset = data.file_offset + addr - start
 
         return data.address_space.read(file_offset, available_length)
+
+    def vtop_run(self, addr):
+        start, end, run = self.runs.get_containing_range(addr)
+        if start is not None:
+            return Run(start=addr,
+                       end=run.end,
+                       address_space=run.address_space,
+                       file_offset=run.file_offset + addr - run.start)
 
     def vtop(self, addr):
         """Returns the physical address for this virtual address.

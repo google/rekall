@@ -259,6 +259,15 @@ class IA32PagedMemory(addrspace.PagedReader):
             self._tlb.Put(aligned_vaddr, collection.physical_address)
             return self._tlb.Get(vaddr)
 
+    def vtop_run(self, addr):
+        phys_addr = self.vtop(addr)
+        if phys_addr is not None:
+            return addrspace.Run(
+                start=addr,
+                end=addr,
+                file_offset=phys_addr,
+                address_space=self.base)
+
     def describe_vtop(self, vaddr, collection=None):
         """A generator of descriptive statements about stages in translation.
 
