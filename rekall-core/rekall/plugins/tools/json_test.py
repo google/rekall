@@ -101,6 +101,7 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
             self.assertEqual(data, json.loads(json.dumps(data)))
 
             decoded_task = self.decoder.Decode(data)
+
             self.assertEqual(task.obj_offset, decoded_task.obj_offset)
             self.assertEqual(task.obj_name, decoded_task.obj_name)
             self.assertEqual(task.obj_vm.name, decoded_task.obj_vm.name)

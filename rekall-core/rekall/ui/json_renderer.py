@@ -23,8 +23,9 @@ A renderer is used by plugins to produce formatted output.
 
 This code is tested in plugins/tools/render_test.py
 """
-
+import copy
 import json
+import pdb
 import sys
 
 from rekall import addrspace
@@ -64,6 +65,7 @@ def CacheableState(func):
     unique id member.
     """
     def DecodeFromJsonSafe(self, value, options):
+        obj_id = None
         try:
             obj_id = value.get("id")
             result = self.renderer.cache.Get(obj_id)
@@ -372,7 +374,9 @@ class JsonEncoder(object):
         # First check the cache.
         cache_key = object_renderer.cache_key_from_object(item)
         try:
-            return self.cache.Get(cache_key)
+            # The contents of this cache are guaranteed to be json safe so we
+            # can copy them.
+            return copy.deepcopy(self.cache.Get(cache_key))
         except KeyError:
             json_safe_item = object_renderer.EncodeToJsonSafe(item, **options)
 
@@ -429,7 +433,11 @@ class JsonDecoder(object):
         except KeyError:
             try:
                 result = object_renderer.DecodeFromJsonSafe(item, options)
-            except Exception:
+            except Exception as e:
+                self.session.logging.error("Failed to decode %r: %s", item, e)
+                if self.session.GetParameter("debug"):
+                    pdb.post_mortem()
+
                 result = None
 
             self.renderer.cache.Put(key, result)
