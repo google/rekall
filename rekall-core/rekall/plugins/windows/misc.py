@@ -354,11 +354,12 @@ class Pools(common.WindowsCommandPlugin):
                 comment = "Fragmented (See virt_map plugin)"
                 paged_pool_start = paged_pool_end = None
             else:
-                # Hard coded on Windows 7.
+                # Hard coded on Windows 7. http://www.codemachine.com/article_x64kvas.html
+                # http://www.reactos.org/wiki/Techwiki:Memory_Layout
                 paged_pool_start = obj.Pointer.integer_to_address(
-                    0xFFFFA80000000000)
+                    0xFFFFF8A000000000)
                 paged_pool_end = obj.Pointer.integer_to_address(
-                    0xFFFFA81FFFFFFFFF)
+                    0xFFFFF8CFFFFFFFFF)
         else:
             paged_pool_end = (
                 paged_pool_start + self.profile.get_constant_object(

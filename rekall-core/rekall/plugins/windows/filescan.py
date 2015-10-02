@@ -60,26 +60,22 @@ class FileScan(common.PoolScannerPlugin):
                                address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            object_obj = pool_obj.GetObject("File")
+            for object_obj in pool_obj.IterObject("File", freed=True):
+                ## If the string is not reachable we skip it
+                file_obj = self.session.profile._FILE_OBJECT(
+                    offset=object_obj.obj_end, vm=self.address_space)
 
-            if object_obj == None:
-                continue
+                if not file_obj.FileName.v(vm=self.kernel_address_space):
+                    continue
 
-            ## If the string is not reachable we skip it
-            file_obj = self.session.profile._FILE_OBJECT(
-                offset=object_obj.obj_end, vm=self.address_space)
+                # Real file objects have valid DeviceObject types.
+                device_obj = file_obj.DeviceObject.deref(
+                    vm=self.session.kernel_address_space)
 
-            if not file_obj.FileName.v(vm=self.kernel_address_space):
-                continue
+                if not device_obj.DeviceType.is_valid():
+                    continue
 
-            # Real file objects have valid DeviceObject types.
-            device_obj = file_obj.DeviceObject.deref(
-                vm=self.session.kernel_address_space)
-
-            if not device_obj.DeviceType.is_valid():
-                continue
-
-            yield (pool_obj, object_obj, file_obj)
+                yield (pool_obj, object_obj, file_obj)
 
     def render(self, renderer):
         """Print the output in a table."""
@@ -144,20 +140,17 @@ class DriverScan(FileScan):
                                  address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            object_obj = pool_obj.GetObject("Driver")
-            if not object_obj:
-                continue
+            for object_obj in pool_obj.IterObject("Driver", freed=True):
+                object_name = object_obj.NameInfo.Name.v(
+                    vm=self.kernel_address_space)
 
-            object_name = object_obj.NameInfo.Name.v(
-                vm=self.kernel_address_space)
+                driver_obj = self.profile._DRIVER_OBJECT(
+                    object_obj.obj_end, vm=self.address_space)
 
-            driver_obj = self.profile._DRIVER_OBJECT(
-                object_obj.obj_end, vm=self.address_space)
+                extension_obj = self.profile._DRIVER_EXTENSION(
+                    driver_obj.obj_end, vm=self.address_space)
 
-            extension_obj = self.profile._DRIVER_EXTENSION(
-                driver_obj.obj_end, vm=self.address_space)
-
-            yield (pool_obj, object_obj, driver_obj, extension_obj, object_name)
+                yield (pool_obj, object_obj, driver_obj, extension_obj, object_name)
 
 
     def render(self, renderer):
@@ -213,17 +206,14 @@ class SymLinkScan(FileScan):
         scanner = PoolScanSymlink(profile=self.profile, session=self.session,
                                   address_space=self.address_space)
         for pool_obj in scanner.scan():
-            object_obj = pool_obj.GetObject("SymbolicLink")
-            if not object_obj:
-                continue
+            for object_obj in pool_obj.IterObject("SymbolicLink", freed=True):
+                object_name = object_obj.NameInfo.Name.v(
+                    vm=self.kernel_address_space)
 
-            object_name = object_obj.NameInfo.Name.v(
-                vm=self.kernel_address_space)
+                link_obj = self.profile._OBJECT_SYMBOLIC_LINK(
+                    object_obj.obj_end, vm=self.address_space)
 
-            link_obj = self.profile._OBJECT_SYMBOLIC_LINK(
-                object_obj.obj_end, vm=self.address_space)
-
-            yield pool_obj, object_obj, link_obj, object_name
+                yield pool_obj, object_obj, link_obj, object_name
 
     def render(self, renderer):
         """ Renders text-based output """
@@ -276,22 +266,19 @@ class MutantScan(plugin.VerbosityMixIn, FileScan):
                                  address_space=self.address_space)
 
         for pool_obj in scanner.scan():
-            object_obj = pool_obj.GetObject("Mutant")
-            if not object_obj:
-                continue
+            for object_obj in pool_obj.IterObject("Mutant", freed=True):
+                object_name = object_obj.NameInfo.Name.v(
+                    vm=self.kernel_address_space)
 
-            object_name = object_obj.NameInfo.Name.v(
-                vm=self.kernel_address_space)
+                # By default we suppress non-named mutants because they are not very
+                # interesting.
+                if self.verbosity < 5 and not object_name:
+                    continue
 
-            # By default we suppress non-named mutants because they are not very
-            # interesting.
-            if self.verbosity < 5 and not object_name:
-                continue
+                mutant = self.profile._KMUTANT(
+                    object_obj.obj_end, vm=self.address_space)
 
-            mutant = self.profile._KMUTANT(
-                object_obj.obj_end, vm=self.address_space)
-
-            yield (pool_obj, object_obj, mutant, object_name)
+                yield (pool_obj, object_obj, mutant, object_name)
 
     def render(self, renderer):
         """Renders the output"""
@@ -365,25 +352,22 @@ class PoolScanProcess(common.PoolScanner):
     def scan(self, **kwargs):
         for pool_obj in super(PoolScanProcess, self).scan(**kwargs):
             # Also fetch freed objects.
-            object_header = pool_obj.GetObject(type="Process", freed=True)
-            if not object_header:
-                continue
+            for object_header in pool_obj.IterObject("Process", freed=True):
+                eprocess = object_header.Body.cast("_EPROCESS")
 
-            eprocess = object_header.Body.cast("_EPROCESS")
+                if eprocess.Pcb.DirectoryTableBase == 0:
+                    continue
 
-            if eprocess.Pcb.DirectoryTableBase == 0:
-                continue
+                if eprocess.Pcb.DirectoryTableBase % self.dtb_alignment != 0:
+                    continue
 
-            if eprocess.Pcb.DirectoryTableBase % self.dtb_alignment != 0:
-                continue
+                # Pointers must point to the kernel part of the address space.
+                list_head = eprocess.ActiveProcessLinks
+                if (list_head.Flink < self.kernel or
+                        list_head.Blink < self.kernel):
+                    continue
 
-            # Pointers must point to the kernel part of the address space.
-            list_head = eprocess.ActiveProcessLinks
-            if (list_head.Flink < self.kernel or
-                    list_head.Blink < self.kernel):
-                continue
-
-            yield pool_obj, eprocess
+                yield pool_obj, eprocess
 
 
 class PSScan(common.PoolScannerPlugin):

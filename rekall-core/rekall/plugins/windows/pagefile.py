@@ -133,10 +133,11 @@ class WindowsValidPTEDescriptor(WindowsPTEDescriptor):
 class WindowsPagefileDescriptor(intel.AddressTranslationDescriptor):
     """A descriptor to mark the final physical address resolution."""
 
-    def __init__(self, address=0, pagefile_number=0, session=None):
+    def __init__(self, address=0, pagefile_number=0, protection=0, session=None):
         super(WindowsPagefileDescriptor, self).__init__(session=session)
         self.address = address
         self.pagefile_number = pagefile_number
+        self.protection = protection
 
     def render(self, renderer):
         renderer.format("Pagefile ({0}) @ {1:addr}\n",
@@ -383,17 +384,22 @@ class WindowsPagedMemoryMixin(object):
             pagefile_address = (soft_pte.PageFileHigh * 0x1000 +
                                 ((vaddr & 0x1ff000) >> 9))
 
-            collection.add(WindowsPagefileDescriptor,
-                           address=pagefile_address,
-                           pagefile_number=pde.u.Soft.PageFileLow.v())
+            protection = soft_pte.Protection.v()
+            if protection == 0:
+                collection.add(intel.InvalidAddress, "Invalid Soft PTE")
+            else:
+                collection.add(WindowsPagefileDescriptor,
+                               address=pagefile_address,
+                               protection=protection,
+                               pagefile_number=pde.u.Soft.PageFileLow.v())
 
-            # Try to make the pagefile into the base address space.
-            pte_addr = self._get_pagefile_mapped_address(
-                soft_pte.PageFileLow.v(), pagefile_address)
+                # Try to make the pagefile into the base address space.
+                pte_addr = self._get_pagefile_mapped_address(
+                    soft_pte.PageFileLow.v(), pagefile_address)
 
-            if pte_addr is not None:
-                pte_value = self.read_pte(pte_addr)
-                self._describe_pte(collection, pte_addr, pte_value, vaddr)
+                if pte_addr is not None:
+                    pte_value = self.read_pte(pte_addr)
+                    self._describe_pte(collection, pte_addr, pte_value, vaddr)
 
         else:
             collection.add(DemandZeroDescriptor)
@@ -527,6 +533,11 @@ class WindowsPagedMemoryMixin(object):
             # This is the address in the pagefle where the PTE resides.
             soft_pte = pte.u.Soft
             pagefile_address = soft_pte.PageFileHigh * 0x1000 + (vaddr & 0xFFF)
+            protection = soft_pte.Protection.v()
+
+            if protection == 0:
+                collection.add(intel.InvalidAddress, "Invalid Soft PTE")
+                return
 
             collection.add(WindowsPTEDescriptor,
                            pte_type="Soft", pte_value=pte_value,
@@ -534,6 +545,7 @@ class WindowsPagedMemoryMixin(object):
 
             collection.add(WindowsPagefileDescriptor,
                            address=pagefile_address,
+                           protection=protection,
                            pagefile_number=pte.u.Soft.PageFileLow.v())
 
             # If we have the pagefile we can just read it now.
@@ -605,6 +617,10 @@ class WindowsPagedMemoryMixin(object):
             # This is the address in the pagefle where the PTE resides.
             soft_pte = pte.u.Soft
             pagefile_address = soft_pte.PageFileHigh * 0x1000 + (vaddr & 0xFFF)
+            protection = soft_pte.Protection.v()
+            if protection == 0:
+                collection.add(intel.InvalidAddress, "Invalid Soft PTE")
+                return
 
             collection.add(WindowsPTEDescriptor,
                            pte_type="Soft", pte_value=pte_value,
@@ -612,6 +628,7 @@ class WindowsPagedMemoryMixin(object):
 
             collection.add(WindowsPagefileDescriptor,
                            address=pagefile_address,
+                           protection=soft_pte.Protection,
                            pagefile_number=pte.u.Soft.PageFileLow.v())
 
             physical_address = self._get_pagefile_mapped_address(

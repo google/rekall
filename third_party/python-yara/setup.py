@@ -50,6 +50,7 @@ setup(script_args=args,
       ext_modules=[Extension(
         name='yara',
         sources=sources,
+        libraries = ['ssl',  'crypt'],
         include_dirs=[
           'yara/yara-python',
           'yara/libyara/include',

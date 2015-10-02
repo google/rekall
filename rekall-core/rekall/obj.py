@@ -1317,6 +1317,8 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         To access a field which has been renamed in different OS versions.
         """
+        # Enable to log struct access.
+        # ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, attr)
         result = self._cache.get(attr)
         if result is not None:
             return result

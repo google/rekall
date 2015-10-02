@@ -377,9 +377,9 @@ class _POOL_HEADER(common._POOL_HEADER):
             if test_object.is_valid():
                 if (type is None or
                         test_object.get_object_type() == type or
-                        # Freed objects point to index 2
+                        # Freed objects point to index 1
                         #(which is also 0xbad0b0b0).
-                        (freed and test_object.TypeIndex == 2)):
+                        (freed and test_object.TypeIndex <= 2)):
                     yield test_object
 
 
