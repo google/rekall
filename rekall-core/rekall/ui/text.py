@@ -402,8 +402,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
     def render_address(self, target, width=None, **options):
         return Cell(
             self.format_address(int(target), **options),
-            width=width
-        )
+            width=width)
 
     render_compact = render_full
     render_value = render_full
@@ -457,7 +456,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
 
         hex_highlights = []
         for x, y, f, b in highlights:
-            hex_highlights.append((3*x, 3*y, f, b))
+            hex_highlights.append((3 * x, 3 * y, f, b))
 
         hexcell = Cell(width=hex_width * 3, highlights=hex_highlights,
                        colorizer=self.renderer.colorizer)
@@ -1049,7 +1048,7 @@ class TextColumn(object):
             object_renderer = self.object_renderer
         else:
             object_renderer = self.table.renderer.get_object_renderer(
-                target, type=merged_opts.get("type"),
+                target=target, type=merged_opts.get("type"),
                 target_renderer="TextRenderer", **options)
 
         result = object_renderer.render_row(target, **merged_opts)

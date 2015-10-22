@@ -148,6 +148,7 @@ class TimedCache(Cache):
 class FileCache(Cache):
     """A cache which syncs to a persistent on disk representation.
     """
+
     def __init__(self, session):
         super(FileCache, self).__init__()
         self._io_manager = None
@@ -227,6 +228,17 @@ class FileCache(Cache):
         super(FileCache, self).Set(item, value, volatile=volatile)
         self.dirty.add(item)
 
+    def Clear(self):
+        super(FileCache, self).Clear()
+
+        # Also delete the files backing this cache.
+        if self._io_manager:
+            self._io_manager.Destroy("sessions/%s" % self.name)
+
+    @property
+    def location(self):
+        return "%s/v1.0/sessions/%s" % (self._io_manager.location, self.name)
+
     def Flush(self):
         """Write out all dirty items at once."""
         if self.fingerprint is None and self.session.HasParameter("profile"):
@@ -263,8 +275,7 @@ class FileCache(Cache):
 
     def __repr__(self):
         if self._io_manager:
-            return "<FileCache @ %s/v1.0/sessions/%s>" % (
-                self._io_manager.location, self.name)
+            return "<FileCache @ %s>" % self.location
         else:
             return "<FileCache (unbacked)>"
 
@@ -282,7 +293,6 @@ class SessionIndex(object):
                 return False
 
         return True
-
 
 
 def Factory(session, cache_type):

@@ -40,6 +40,7 @@ import gzip
 import json
 import time
 import os
+import shutil
 import urllib2
 import urlparse
 import zipfile
@@ -198,6 +199,9 @@ class IOManager(object):
         Args:
           name: The name of the new file.
         """
+
+    def Destroy(self, name):
+        """Destroys the file/directory at name's path."""
 
     def Open(self, name):
         """Opens a container member for reading.
@@ -380,6 +384,10 @@ class DirectoryIOManager(IOManager):
         self.EnsureDirectoryExists(os.path.dirname(path))
         return gzip.open(path + ".gz", "wb")
 
+    def Destroy(self, name):
+        path = self._GetAbsolutePathName(name)
+        return shutil.rmtree(path)
+
     def Open(self, name):
         path = self._GetAbsolutePathName(name)
         try:
@@ -495,6 +503,12 @@ class ZipFileManager(IOManager):
         self._outstanding_writers.add(name)
         return result
 
+    def Destroy(self, name):
+        _ = name
+        raise IOManagerError(
+            "Removing a file from zipfile is not supported. Use a different "
+            "IOManager subclass.")
+
     def Open(self, name):
         if self.mode not in ["r", "a"]:
             raise IOManagerError("Container not opened for reading.")
@@ -538,7 +552,12 @@ class URLManager(IOManager):
             raise IOManagerError("%s supports only http protocol." %
                                  self.__class__.__name__)
 
-    def Create(self, _):
+    def Create(self, name):
+        _ = name
+        raise IOManagerError("Write support to http is not supported.")
+
+    def Destroy(self, name):
+        _ = name
         raise IOManagerError("Write support to http is not supported.")
 
     def _GetURL(self, name):

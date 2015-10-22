@@ -44,7 +44,7 @@ class KModModule(address_resolver.Module):
 
 
 class DarwinAddressResolver(address_resolver.AddressResolverMixin,
-                            common.DarwinPlugin):
+                            common.AbstractDarwinCommand):
     """A Darwin specific address resolver plugin."""
 
     def _EnsureInitialized(self):

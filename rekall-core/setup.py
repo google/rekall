@@ -35,6 +35,7 @@ rekall_description = "Rekall Memory Forensic Framework"
 
 current_directory = os.path.dirname(__file__)
 
+
 def find_data_files_directory(source):
     result = []
     for directory, _, files in os.walk(source):
@@ -55,7 +56,7 @@ install_requires = [
     "acora >= 1.8",
     "sortedcontainers == 0.9.6",
     "PyAFF4 >= 0.17",
-    "efilter == 1438631774",
+    "efilter == 1445495565",
 ]
 
 if platform.system() == "Windows":
@@ -92,5 +93,6 @@ setup(
     rekal = rekall.rekal:main
     rekall = rekall.rekal:main
     """,
+
     install_requires=install_requires,
 )

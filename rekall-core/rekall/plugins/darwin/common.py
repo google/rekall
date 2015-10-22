@@ -20,6 +20,9 @@
 # Case (atcuno@gmail.com).
 __author__ = "Michael Cohen <scudette@google.com>"
 
+# Disabled because pylint is wrong about it pretty much all the time.
+# pylint: disable=abstract-method
+
 import re
 
 from rekall import kb
@@ -88,25 +91,43 @@ def MOUNTAIN_LION_OR_LATER(profile):
     return bool(profile.get_constant("_BootPML4", False))
 
 
-class AbstractDarwinCommandPlugin(plugin.PhysicalASMixin,
-                                  plugin.ProfileCommand):
-    """A base class for all darwin based plugins."""
-    __abstract = True
-
+class DarwinOnlyMixin(object):
+    """Every Darwin-only plugin or hook will have this mixin in their MRO."""
     @classmethod
     def is_active(cls, session):
         """We are only active if the profile is darwin."""
-        return (session.profile.metadata("os") == "darwin" and
-                plugin.Command.is_active(session))
+        return (super(DarwinOnlyMixin, cls).is_active(session) and
+                session.profile.metadata("os") == "darwin")
 
 
-class AbstractDarwinParameterHook(kb.ParameterHook):
+class AbstractDarwinParameterHook(DarwinOnlyMixin, kb.ParameterHook):
+    """Base class for session parameter hooks on Darwin."""
+    __abstract = True
 
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is Darwin."""
-        return (super(AbstractDarwinParameterHook, cls).is_active(session) and
-                session.profile.metadata("os") == 'darwin')
+
+class AbstractDarwinCommand(DarwinOnlyMixin, plugin.KernelASMixin,
+                            plugin.PhysicalASMixin, plugin.ProfileCommand):
+    """Base class for Darwin profile commands."""
+    __abstract = True
+
+
+class AbstractDarwinTypedCommand(DarwinOnlyMixin, plugin.KernelASMixin,
+                                 plugin.PhysicalASMixin,
+                                 plugin.TypedProfileCommand):
+    """Base class for Darwin commands with typed output."""
+    __abstract = True
+
+
+class AbstractDarwinProducer(DarwinOnlyMixin, plugin.KernelASMixin,
+                             plugin.PhysicalASMixin, plugin.Producer):
+    """Base class for Darwin producers using the physical AS."""
+    __abstract = True
+
+
+class AbstractDarwinCachedProducer(AbstractDarwinProducer,
+                                   plugin.CachedProducer):
+    """Base class for Darwin producers backed by a session param hook."""
+    __abstract = True
 
 
 class KernelSlideHook(AbstractDarwinParameterHook):
@@ -166,7 +187,8 @@ class DarwinKASLRMixin(object):
             self.session.SetCache("vm_kernel_slide", vm_kernel_slide)
 
 
-class DarwinFindKASLR(AbstractDarwinCommandPlugin):
+class DarwinFindKASLR(plugin.PhysicalASMixin, DarwinOnlyMixin,
+                      plugin.ProfileCommand):
     """A scanner for KASLR slide values in the Darwin kernel.
 
     The scanner works by looking up a known data structure and comparing
@@ -286,8 +308,7 @@ class DarwinFindKASLR(AbstractDarwinCommandPlugin):
                                self._lookup_version_string(vm_kernel_slide))
 
 
-class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
-                    core.FindDTB):
+class DarwinFindDTB(DarwinKASLRMixin, DarwinOnlyMixin, core.FindDTB):
     """Tries to find the DTB address for the Darwin/XNU kernel.
 
     As the XNU kernel developed over the years, the best way of deriving this
@@ -428,15 +449,144 @@ class DarwinFindDTB(DarwinKASLRMixin, AbstractDarwinCommandPlugin,
                     method.__name__)
 
 
-class DarwinPlugin(DarwinKASLRMixin,
-                   plugin.KernelASMixin,
-                   AbstractDarwinCommandPlugin):
-    """Plugin which requires the kernel Address space to be loaded."""
-    __abstract = True
+class ProcessFilterMixin(object):
+    """Adds methods and arguments that enable easy fitlering by process."""
+
+    @classmethod
+    def args(cls, parser):
+        super(ProcessFilterMixin, cls).args(parser)
+        parser.add_argument("--pid",
+                            type="ArrayIntParser",
+                            help="One or more pids of processes to select.")
+
+        parser.add_argument("--proc_regex", default=None,
+                            help="A regex to select a process by name.")
+
+        parser.add_argument("--phys_proc",
+                            type="ArrayIntParser",
+                            help="Physical addresses of proc structs.")
+
+        parser.add_argument("--proc", type="ArrayIntParser",
+                            help="Kernel addresses of proc structs.")
+
+    @classmethod
+    def methods(cls):
+        """Return the names of available proc enumeration methods."""
+        # Find all the producers that collect procs and inherit from
+        # AbstractDarwinCachedProducer.
+        methods = []
+        for subclass in AbstractDarwinCachedProducer.classes.itervalues():
+            if (issubclass(subclass, AbstractDarwinCachedProducer)
+                    and subclass.type_name == "proc"):
+                methods.append(subclass.name)
+        methods.sort()
+
+        return methods
+
+    def __init__(self, pid=None, proc_regex=None, phys_proc=None, proc=None,
+                 **kwargs):
+        """Filters processes by parameters.
+
+        Args:
+           phys_proc_struct: One or more proc structs or offsets defined in
+              the physical AS.
+
+           pid: A single pid.
+        """
+        super(ProcessFilterMixin, self).__init__(**kwargs)
+
+        if isinstance(phys_proc, (int, long)):
+            phys_proc = [phys_proc]
+        elif phys_proc is None:
+            phys_proc = []
+
+        if isinstance(proc, (int, long)):
+            proc = [proc]
+        elif isinstance(proc, obj.Struct):
+            proc = [proc.obj_offset]
+        elif proc is None:
+            proc = []
+
+        self.phys_proc = phys_proc
+        self.proc = proc
+
+        pids = []
+        if isinstance(pid, list):
+            pids.extend(pid)
+
+        elif isinstance(pid, (int, long)):
+            pids.append(pid)
+
+        if self.session.pid and not pid:
+            pids.append(self.session.pid)
+
+        self.pids = pids
+        self.proc_regex_text = proc_regex
+        if isinstance(proc_regex, basestring):
+            proc_regex = re.compile(proc_regex, re.I)
+
+        self.proc_regex = proc_regex
+
+        # Sometimes its important to know if any filtering is specified at all.
+        self.filtering_requested = (self.pids or self.proc_regex or
+                                    self.phys_proc or self.proc)
+
+    def filter_processes(self):
+        """Filters proc list using phys_proc and pids lists."""
+        # No filtering required:
+        procs = sorted(self.session.plugins.collect("proc"),
+                       key=lambda proc: proc.pid)
+
+        if not self.filtering_requested:
+            for proc in procs:
+                yield proc
+        else:
+            # We need to filter by phys_proc
+            for offset in self.phys_proc:
+                yield self.virtual_process_from_physical_offset(offset)
+
+            for offset in self.proc:
+                yield self.profile.proc(vm=self.kernel_address_space,
+                                        offset=int(offset))
+
+            # We need to filter by pids
+            for proc in procs:
+                if int(proc.p_pid) in self.pids:
+                    yield proc
+
+                elif self.proc_regex and self.proc_regex.match(
+                        utils.SmartUnicode(proc.p_comm)):
+                    yield proc
+
+    def virtual_process_from_physical_offset(self, physical_offset):
+        """Tries to return an proc in virtual space from a physical offset.
+
+        We do this by reflecting off the list elements.
+
+        Args:
+           physical_offset: The physcial offset of the process.
+
+        Returns:
+           A proc object or a NoneObject on failure.
+        """
+        physical_proc = self.profile.proc(offset=int(physical_offset),
+                                          vm=self.kernel_address_space.base)
+
+        # We cast our list entry in the kernel AS by following Flink into the
+        # kernel AS and then the Blink. Note the address space switch upon
+        # dereferencing the pointer.
+        our_list_entry = physical_proc.procs.next.dereference(
+            vm=self.kernel_address_space).prev.dereference()
+
+        # Now we get the proc_struct object from the list entry.
+        return our_list_entry.dereference_as("proc_struct", "procs")
 
 
-class DarwinProcessFilter(DarwinPlugin):
-    """A class for filtering processes."""
+class DarwinProcessFilter(AbstractDarwinCommand):
+    """DEPRECATED: A class for filtering processes.
+
+    This class will be removed soon. Use ProcessFilterMixin.
+    """
 
     __abstract = True
 
@@ -515,7 +665,6 @@ class DarwinProcessFilter(DarwinPlugin):
         self.filtering_requested = (self.pids or self.proc_regex or
                                     self.phys_proc or self.proc)
 
-
     def list_procs(self, sort=True):
         """Uses a few methods to list the procs."""
         seen = set()
@@ -524,8 +673,7 @@ class DarwinProcessFilter(DarwinPlugin):
             if method not in self.methods:
                 continue
 
-            procs = self.session.GetParameter(
-                "darwin_pslist_%s" % method, [])
+            procs = self.session.GetParameter(method, [])
             self.session.logging.debug("Listed %d processes using %s",
                                        len(procs), method)
 
@@ -587,7 +735,7 @@ class DarwinProcessFilter(DarwinPlugin):
 
     METHODS = [
         "allproc",
-        "deadprocs",
+        "dead_procs",
         "tasks",
         "pidhash",
         "pgrphash",
@@ -603,159 +751,3 @@ class KernelAddressCheckerMixIn(object):
         # We use the module plugin to help us local addresses inside kernel
         # modules.
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
-
-
-class PsListAllProcHook(AbstractDarwinParameterHook):
-    """List all processes by following the _allproc list head."""
-
-    name = "darwin_pslist_allproc"
-
-    def calculate(self):
-        first = self.session.profile.get_constant_object(
-        "_allproc", target="proclist").lh_first
-
-        result = set(first.p_list)
-
-        return [x.obj_offset for x in result]
-
-
-class PsListDeadProcHook(AbstractDarwinParameterHook):
-    """List all processes by following the _allproc list head."""
-
-    name = "darwin_pslist_deadprocs"
-
-    def calculate(self):
-        """List deallocated proc structs using the zone allocator."""
-        # Find the proc zone from the allocator.
-        proc_zone = self.session.manager.find_first(
-            "AllocationZone/name is 'proc'")["Struct/base"]
-
-        # Walk over the free list and get all the proc objects.
-        obj_list = proc_zone.free_elements.walk_list("next")
-        result = []
-        for object in obj_list:
-            proc = object.cast("proc")
-
-            # Validate the proc. Real procs have a non zero argc.
-            if proc.p_argc > 0:
-                result.append(proc.obj_offset)
-
-        return result
-
-
-class PsListTasksHook(AbstractDarwinParameterHook):
-    """List all processes by following the _allproc list head."""
-
-    name = "darwin_pslist_tasks"
-
-    def calculate(self):
-        """List processes using the processor tasks queue.
-
-        See
-        /osfmk/kern/processor.c (processor_set_things)
-        """
-        seen = set()
-
-        tasks = self.session.profile.get_constant_object(
-            "_tasks",
-            target="queue_entry",
-            vm=self.session.kernel_address_space)
-
-        for task in tasks.list_of_type("task", "tasks"):
-            proc = task.bsd_info.deref()
-            if proc:
-                seen.add(proc.obj_offset)
-
-        return seen
-
-
-class PsListPgrpHashHook(AbstractDarwinParameterHook):
-    """List all processes by following the _allproc list head."""
-
-    name = "darwin_pslist_pgrphash"
-
-    def calculate(self):
-        """Process groups are organized in a hash chain.
-
-        xnu-1699.26.8/bsd/sys/proc_internal.h
-        """
-        seen = set()
-
-        # Note that _pgrphash is initialized through:
-
-        # xnu-1699.26.8/bsd/kern/kern_proc.c:195
-        # hashinit(int elements, int type, u_long *hashmask)
-
-        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
-        # hashinit(int elements, int type, u_long *hashmask) {
-        #    ...
-        # *hashmask = hashsize - 1;
-
-        # Hence the value in _pgrphash is one less than the size of the hash
-        # table.
-        pgr_hash_table = self.session.profile.get_constant_object(
-            "_pgrphashtbl",
-            target="Pointer",
-            target_args=dict(
-                target="Array",
-                target_args=dict(
-                    target="pgrphashhead",
-                    count=self.session.profile.get_constant_object(
-                        "_pgrphash", "unsigned long") + 1
-                )
-            )
-        )
-
-        for slot in pgr_hash_table.deref():
-            for pgrp in slot.lh_first.walk_list("pg_hash.le_next"):
-                for proc in pgrp.pg_members.lh_first.walk_list(
-                        "p_pglist.le_next"):
-                    seen.add(proc.obj_offset)
-
-        return seen
-
-
-class PsListPidHashHook(AbstractDarwinParameterHook):
-    """List all processes by following the _allproc list head."""
-
-    name = "darwin_pslist_pidhash"
-
-    def calculate(self):
-        """Lists processes using pid hash tables.
-
-        xnu-1699.26.8/bsd/kern/kern_proc.c:834:
-        pfind_locked(pid_t pid)
-        """
-        seen = set()
-
-        # Note that _pidhash is initialized through:
-
-        # xnu-1699.26.8/bsd/kern/kern_proc.c:194
-        # pidhashtbl = hashinit(maxproc / 4, M_PROC, &pidhash);
-
-        # /xnu-1699.26.8/bsd/kern/kern_subr.c: 327
-        # hashinit(int elements, int type, u_long *hashmask) {
-        #    ...
-        # *hashmask = hashsize - 1;
-
-        # Hence the value in pidhash is one less than the size of the hash
-        # table.
-        pid_hash_table = self.session.profile.get_constant_object(
-            "_pidhashtbl",
-            target="Pointer",
-            target_args=dict(
-                target="Array",
-                target_args=dict(
-                    target="pidhashhead",
-                    count=self.session.profile.get_constant_object(
-                        "_pidhash", "unsigned long") + 1
-                )
-            )
-        )
-
-        for plist in pid_hash_table.deref():
-            for proc in plist.lh_first.walk_list("p_hash.le_next"):
-                if proc:
-                    seen.add(proc.obj_offset)
-
-        return seen

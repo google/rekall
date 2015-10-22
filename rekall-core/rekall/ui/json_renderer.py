@@ -64,6 +64,7 @@ def CacheableState(func):
     This applies to StateBasedObjectRenderer state dicts, which must have a
     unique id member.
     """
+
     def DecodeFromJsonSafe(self, value, options):
         obj_id = None
         try:

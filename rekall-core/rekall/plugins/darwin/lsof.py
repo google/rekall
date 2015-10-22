@@ -18,53 +18,51 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+from rekall import plugin
 from rekall.plugins.darwin import common
 
 
-class DarwinLsof(common.DarwinProcessFilter):
-    """Lists open files, grouped by process that has the handle.
+class DarwinHandles(common.ProcessFilterMixin, common.AbstractDarwinProducer):
+    """Walks open files of each proc and collects the fileproc.
 
-    A file is an overloaded term; this plugin will list files, directories,
-    Unix sockets, pipes, shared memory regions and certain other kernel
-    structures.
+    This is the same algorithm as lsof, but aimed at just collecting the
+    fileprocs, without doing anything with them, or sorting.
     """
 
-    __name = "old_lsof"
+    name = "handles"
+    type_name = "fileproc"
 
-    def lsof(self, proc_sort_key=None):
-        """Get all open files (sockets, vnodes, etc.) for all processes.
+    def collect(self):
+        for proc in self.filter_processes():
+            for _, fileproc, _ in proc.get_open_files():
+                yield [fileproc]
 
-        Args:
-          proc_sort_key:
-            A callable that takes proc and returns a key to sort by. If None
-            (default) then no sorting will be done.
 
-        Yields:
-          Dict of proc, fd, flags and fileproc.
-        """
-        procs = self.filter_processes()
-        if proc_sort_key:
-            procs = sorted(procs, key=proc_sort_key)
+class DarwinLsof(common.AbstractDarwinTypedCommand):
+    """Walks open files of each proc in order and prints PID, FD and the handle.
 
-        for proc in procs:
-            for fd, fileproc, flags in proc.get_open_files():
-                yield dict(proc=proc,
-                           fd=fd,
-                           flags=flags,
-                           fileproc=fileproc)
+    Each process has an array of pointers to fileproc structs - the offset into
+    the array is the file descriptor and each fileproc struct represents a
+    handle on some resource. A type field in the fileproc determines the type
+    of the resource pointed to from the fileproc (e.g. vnode, socket, pipe...).
+    """
 
-    def render(self, renderer):
-        renderer.table_header([("Command", "command", "16"),
-                               ("PID", "pid", "8"),
-                               ("UID", "uid", "8"),
-                               ("FD", "fd", "10"),
-                               ("Type", "type", "15"),
-                               ("Name", "name", "40")])
+    name = "lsof"
 
-        for open_file in self.lsof(proc_sort_key=lambda proc: proc.pid):
-            renderer.table_row(open_file["proc"].p_comm,
-                               open_file["proc"].pid,
-                               open_file["proc"].p_uid,
-                               open_file["fd"],
-                               open_file["fileproc"].human_type,
-                               open_file["fileproc"].human_name)
+    table_header = plugin.PluginHeader(
+        dict(name="Process", cname="proc", type="proc",
+             columns=[
+                 dict(name="Command", cname="command", width=16),
+                 dict(name="PID", cname="pid", width=8),
+                 dict(name="UID", cname="p_uid", width=8)
+             ]),
+        dict(name="FD", cname="fd", width=5),
+        dict(name="Handle", cname="fileproc", type="fileproc")
+    )
+
+    def collect(self):
+        procs = self.session.plugins.collect("proc").collect()
+
+        for proc in sorted(procs, key=lambda proc: proc.pid):
+            for fd, fileproc, _ in proc.get_open_files():
+                yield (proc, fd, fileproc)

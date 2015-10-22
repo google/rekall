@@ -18,9 +18,9 @@
 
 """This module implements renderers specific to darwin structures."""
 
-from rekall import utils
-from rekall.ui import text
 from rekall.ui import json_renderer
+
+from rekall.plugins.renderers import base_objects
 from rekall.plugins.renderers import data_export
 
 
@@ -39,9 +39,7 @@ class ProcDataExport(data_export.DataExportBaseObjectRenderer):
                 type=u"ProcessObj:ImageInfoType",
                 Path=task.p_comm,
                 Command_Line=task.p_comm,
-                File_Name=task.p_comm,
-                )
-            )
+                File_Name=task.p_comm))
 
         res = json_renderer.JsonObjectRenderer.EncodeToJsonSafe(self, result)
         return res
@@ -51,40 +49,104 @@ class ProcDataExport(data_export.DataExportBaseObjectRenderer):
                             item.get("Cybox", {}).get("PID", ""))
 
 
-class Proc_TextObjectRenderer(text.TextObjectRenderer):
+class Fileproc_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "fileproc"
+
+    COLUMNS = [
+        dict(name="Type", cname="human_type", width=15),
+        dict(name="Name", cname="human_name", width=40)
+    ]
+
+
+class Vnode_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "vnode"
+
+    COLUMNS = [
+        dict(name="Vnode", cname="obj_offset", style="address"),
+        dict(name="Path", cname="full_path", width=40, nowrap=True)
+    ]
+
+
+class Clist_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "clist"
+
+    COLUMNS = [
+        dict(name="Clist", cname="obj_offset", style="address"),
+        dict(name="Recovered Contents", cname="recovered_contents",
+             width=34, style="hexdump")
+    ]
+
+
+class Tty_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "tty"
+
+    COLUMNS = [
+        dict(name="TTY", style="address", cname="obj_offset"),
+        dict(name="Vnode", type="vnode", cname="vnode"),
+        dict(name="Input Buffer", type="clist", cname="input_buffer",
+             columns=[dict(name="Recovered Input",
+                           cname="recovered_contents",
+                           style="hexdump",
+                           width=34)]),
+        dict(name="Output Buffer", type="clist", cname="output_buffer",
+             columns=[dict(name="Recovered Output",
+                           cname="recovered_contents",
+                           style="hexdump",
+                           width=34)])
+    ]
+
+
+class Session_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "session"
+
+    COLUMNS = [
+        dict(name="Session", cname="obj_offset", style="address"),
+        dict(name="Session ID", cname="s_sid"),
+        dict(name="Leader", cname="s_leader", type="proc",
+             columns=[dict(name="Leader PID", cname="pid"),
+                      dict(name="Leader Command", cname="command",
+                           width=30)]),
+        dict(name="Login", cname="s_login", width=20, nowrap=True)
+    ]
+
+
+class Socket_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "socket"
+
+    COLUMNS = [
+        dict(name="Socket", cname="obj_offset", style="address"),
+        dict(name="Last PID", cname="last_pid", width=10),
+        dict(name="Type", cname="human_type", width=20),
+        dict(name="Description", cname="human_name", width=60)
+    ]
+
+
+class Zone_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "zone"
+    COLUMNS = [
+        dict(name="Name", cname="name", width=20),
+        dict(name="Active Count", cname="count_active", width=12),
+        dict(name="Free Count", cname="count_free", width=12),
+        dict(name="Element Size", cname="elem_size", width=12),
+        dict(name="Tracks Pages", cname="tracks_pages", width=12),
+        dict(name="Allows Foreign", cname="allows_foreign", width=12)
+    ]
+
+
+class Ifnet_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "ifnet"
+    COLUMNS = [
+        dict(name="Interface", cname="name", width=12),
+        dict(name="MAC", cname="l2_addr", width=18),
+        dict(name="IPv4", cname="ipv4_addr", width=16),
+        dict(name="IPv6", cname="ipv6_addr", width=40)
+    ]
+
+
+class Proc_TextObjectRenderer(base_objects.StructTextRenderer):
     renders_type = "proc"
-    renderers = ["TextRenderer", "TestRenderer"]
-
-    def __init__(self, *args, **options):
-        """We make a sub table for rendering the _EPROCESS."""
-        self.name = options.pop("name", "proc")
-        self.style = options.pop("style", "full")
-
-        super(Proc_TextObjectRenderer, self).__init__(*args, **options)
-        self.table = text.TextTable(
-            columns=[
-                dict(name=self.name,
-                     style="address"),
-                dict(name="Name", width=20, align="c"),
-                dict(name="PID", width=5, align="r")],
-            renderer=self.renderer,
-            session=self.session)
-
-    def render_header(self, **options):
-        if self.style == "full":
-            return self.table.render_header()
-        else:
-            result = text.Cell(self.name, width=40)
-            result.append_line("-" * result.width)
-
-            return result
-
-    def render_row(self, target, **options):
-        if self.style == "full":
-            return self.table.get_row(target.obj_offset, target.name,
-                                      target.pid)
-
-        else:
-            return text.Cell("%s %s (%d)" % (
-                self.format_address(target.obj_offset),
-                target.name, target.pid))
+    COLUMNS = [
+        dict(name="Process", style="address", cname="obj_offset"),
+        dict(name="Name", width=20, align="c", cname="command"),
+        dict(name="PID", width=5, align="r", cname="pid")
+    ]

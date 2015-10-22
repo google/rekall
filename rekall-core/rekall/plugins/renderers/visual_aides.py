@@ -24,6 +24,17 @@ from rekall.ui import colors
 from rekall.ui import text
 
 
+class DepthIndicator(int):
+    pass
+
+
+class DepthIndicatorRenderer(text.TextObjectRenderer):
+    renders_type = "DepthIndicator"
+
+    def render_row(self, target, **_):
+        return text.Cell("." * int(target))
+
+
 class MemoryMap(object):
     """Represents a map of memory regions with various highlighting.
 
@@ -72,7 +83,7 @@ class MemoryMap(object):
     caption = "Offset"
     greyscale = False
 
-    def __init__(self, session=None, *args, **kwargs):
+    def __init__(self, session=None, *_, **__):
         self.session = session
 
     @staticmethod

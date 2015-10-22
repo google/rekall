@@ -73,8 +73,6 @@ from rekall import utils
 from rekall.ui import json_renderer
 
 
-
-
 class BaseAddressSpaceObjectRenderer(json_renderer.StateBasedObjectRenderer):
     renders_type = "BaseAddressSpace"
 
@@ -184,7 +182,7 @@ class ProfileObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
 class SetObjectRenderer(json_renderer.StateBasedObjectRenderer):
     """Encode a python set()."""
-    renders_type = "set"
+    renders_type = ("set", "frozenset")
 
     def GetState(self, item, **_):
         return dict(data=list(item))

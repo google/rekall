@@ -27,7 +27,7 @@ from rekall.plugins.darwin import common
 from rekall.plugins.renderers import visual_aides
 
 
-class DarwinDMSG(common.DarwinPlugin):
+class DarwinDMSG(common.AbstractDarwinCommand):
     """Print the kernel debug messages."""
 
     __name = "dmesg"
@@ -57,7 +57,7 @@ class DarwinDMSG(common.DarwinPlugin):
                 renderer.table_row(x)
 
 
-class DarwinMachineInfo(common.DarwinPlugin):
+class DarwinMachineInfo(common.AbstractDarwinCommand):
     """Show information about this machine."""
 
     __name = "machine_info"
@@ -73,7 +73,7 @@ class DarwinMachineInfo(common.DarwinPlugin):
             renderer.table_row(member, info.m(member))
 
 
-class DarwinMount(common.DarwinPlugin):
+class DarwinMount(common.AbstractDarwinCommand):
     """Show mount points."""
 
     __name = "mount"
@@ -93,7 +93,7 @@ class DarwinMount(common.DarwinPlugin):
                                mount.mnt_vfsstat.f_fstypename)
 
 
-class DarwinPhysicalMap(common.DarwinPlugin):
+class DarwinPhysicalMap(common.AbstractDarwinCommand):
     """Prints the EFI boot physical memory map."""
 
     __name = "phys_map"
@@ -181,7 +181,7 @@ class DarwinPhysicalMap(common.DarwinPlugin):
         renderer.table_row(heatmap, legend)
 
 
-class DarwinBootParameters(common.DarwinPlugin):
+class DarwinBootParameters(common.AbstractDarwinCommand):
     """Prints the kernel command line."""
 
     __name = "boot_cmdline"
@@ -232,7 +232,7 @@ class DarwinImageFingerprint(common.AbstractDarwinParameterHook):
         phys_as = self.session.physical_address_space
 
         address_space = self.session.GetParameter("default_address_space")
-        
+
         label = profile.get_constant_object("_osversion", "String")
         result.append((address_space.vtop(label.obj_offset), label.v()))
 

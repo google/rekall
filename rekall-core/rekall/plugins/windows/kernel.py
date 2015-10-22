@@ -69,8 +69,8 @@ class ObjectTreeHook(common.AbstractWindowsParameterHook):
             target="Pointer",
             target_args=dict(
                 target="_OBJECT_DIRECTORY"
-                )
             )
+        )
 
         result = dict(
             type="Directory",

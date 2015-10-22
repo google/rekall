@@ -21,7 +21,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 from rekall.plugins.darwin import common
 
 
-class DarwinNotifiers(common.DarwinPlugin):
+class DarwinNotifiers(common.AbstractDarwinCommand):
     """Detects hooks in I/O Kit IONotify objects."""
 
     __name = "notifiers"
@@ -33,15 +33,15 @@ class DarwinNotifiers(common.DarwinPlugin):
             ("Match Key", "match_key", "20"),
             ("Match Value", "match_value", "30"),
             ("Symbol", "symbol", ""),
-            ])
+        ])
 
         gnotifications = self.profile.get_constant_cpp_object(
             "gNotifications",
             target="Pointer",
             target_args=dict(
                 target="OSDictionary"
-                )
             )
+        )
 
         resolver = self.session.address_resolver
         # The notification dictionary contains sets of _IOServiceNotifier

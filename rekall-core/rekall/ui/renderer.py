@@ -148,6 +148,7 @@ class ObjectRenderer(object):
 
         self.renderer = renderer
         self.session = session
+
         self.options = options
         if self.session:
             self.output_style = self.session.GetParameter("output_style")
@@ -215,7 +216,7 @@ class ObjectRenderer(object):
             for object_renderer_cls in cls.classes.values():
                 for impl_renderer in object_renderer_cls.renderers:
                     render_types = object_renderer_cls.renders_type
-                    if isinstance(render_types, basestring):
+                    if not isinstance(render_types, (list, tuple)):
                         render_types = (render_types,)
 
                     for render_type in render_types:
@@ -247,6 +248,25 @@ class ObjectRenderer(object):
         Returns:
           An ObjectRenderer class which is best suited for rendering the target.
         """
+        return cls.ForType(type(target), renderer)
+
+    @classmethod
+    def ForType(cls, target_type, renderer):
+        """Get the best ObjectRenderer to encode this target type.
+
+        ObjectRenderer instances are chosen based on both the taget and the
+        renderer they implement.
+
+        Args:
+          taget_type: Type of the rendered object. We walk the MRO to select
+            the best renderer.
+
+          renderer: The renderer that will be used. This can be a string
+             (e.g. "TextRenderer") or a renderer instance.
+
+        Returns:
+          An ObjectRenderer class which is best suited for rendering the target.
+        """
         cls._BuildRendererCache()
 
         if not isinstance(renderer, basestring):
@@ -254,7 +274,7 @@ class ObjectRenderer(object):
 
         # Search for a handler which supports both the renderer and the object
         # type.
-        for mro_cls in cls.get_mro(target):
+        for mro_cls in cls.get_mro(target_type):
             handler = cls._RENDERER_CACHE.get((mro_cls, renderer))
             if handler:
                 return handler
@@ -307,6 +327,7 @@ class ObjectRenderer(object):
 
 class BaseTable(object):
     """Renderers contain tables."""
+
     def __init__(self, session=None, renderer=None, columns=None, **options):
         self.session = session
         self.renderer = renderer
@@ -330,7 +351,6 @@ class BaseTable(object):
 
     def flush(self):
         pass
-
 
 
 class BaseRenderer(object):
@@ -504,25 +524,27 @@ class BaseRenderer(object):
         if target_renderer is None:
             target_renderer = self
 
-        if type is not None:
-            result = ObjectRenderer.ByName(type, target_renderer)
+        if isinstance(type, basestring):
+            obj_renderer = ObjectRenderer.ByName(type, target_renderer)
+            if not obj_renderer:
+                # We don't want to blow up because we might still find the
+                # renderer once we actually get the MRO.
+                return None
 
-            if result is None:
-                raise TypeError(
-                    "No renderer found for %s which was explicitly forced." %
-                    type)
+        elif type is not None:
+            obj_renderer = ObjectRenderer.ForType(type, target_renderer)
+        else:
+            obj_renderer = ObjectRenderer.ForTarget(target, target_renderer)
 
-            return result(self, session=self.session, **options)
+        if not obj_renderer:
+            # This should never happen if the renderer installs a handler for
+            # type object.
+            # pylint: disable=protected-access
+            raise RuntimeError("Unable to render object %r for renderer %s" %
+                               (repr(target), target_renderer) +
+                               str(ObjectRenderer._RENDERER_CACHE))
 
-        handler = ObjectRenderer.ForTarget(target, target_renderer)
-        if handler:
-            return handler(renderer=self, session=self.session, **options)
-
-        # This should never happen if the renderer installs a handler for
-        # object().
-        raise RuntimeError("Unable to render object %r for renderer %s" %
-                           (repr(target), target_renderer) +
-                           str(ObjectRenderer._RENDERER_CACHE))
+        return obj_renderer(renderer=self, session=self.session, **options)
 
     def Log(self, record):
         """Logs a log message. Implement if you want to handle logging."""

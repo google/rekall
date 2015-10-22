@@ -265,7 +265,7 @@ class WindowsIndexDetector(DetectionMethod):
             scanner = scan.MultiStringScanner(
                 address_space=test_as, needles=[
                     "This program cannot be run in DOS mode",
-                    ])
+                ])
 
             if self.session.HasParameter("kernel_base"):
                 kernel_base = self.session.GetParameter("kernel_base")
@@ -434,7 +434,7 @@ class LinuxBannerDetector(DetectionMethod):
         return ["Linux version "]
 
     def DetectFromHit(self, hit, offset, address_space):
-        guess = address_space.read(offset-100, 300)
+        guess = address_space.read(offset - 100, 300)
         m = self.LINUX_TEMPLATE.search(guess)
         if m:
             # Try to guess the distribution.
@@ -539,9 +539,8 @@ class ProfileHook(kb.ParameterHook):
                                "Use the --autodetect parameter.")
 
         for method_name in method_names:
-            method = DetectionMethod.classes_by_name[method_name](
-                session=self.session)
-            methods.append(method)
+            for method in DetectionMethod.classes_by_name[method_name]:
+                methods.append(method(session=self.session))
 
         methods.sort(key=lambda x: x.order)
         for method in methods:

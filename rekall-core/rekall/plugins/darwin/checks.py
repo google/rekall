@@ -24,7 +24,7 @@ from rekall import obj
 from rekall.plugins.darwin import common
 
 
-class DarwinCheckSysCalls(common.DarwinPlugin):
+class DarwinCheckSysCalls(common.AbstractDarwinCommand):
     """Checks the syscall table."""
 
     __name = "check_syscalls"
@@ -37,8 +37,8 @@ class DarwinCheckSysCalls(common.DarwinPlugin):
                 count=self.profile.get_constant_object(
                     "_nsysent", "unsigned int"),
                 target="sysent"
-                )
             )
+        )
 
         # Resolve which kernel module or symbol the entry point is to.
         resolver = self.session.address_resolver
@@ -120,7 +120,7 @@ class OIDInfo(object):
         return ".".join(["%s" % x for x in numbers])
 
 
-class DarwinSysctl(common.DarwinPlugin):
+class DarwinSysctl(common.AbstractDarwinCommand):
     """Dumps the sysctl database.
 
     On OSX the kernel is configured through the sysctl mechanism. This is
@@ -199,11 +199,10 @@ class DarwinSysctl(common.DarwinPlugin):
                                value)
 
 
-class CheckTrapTable(common.DarwinPlugin):
+class CheckTrapTable(common.AbstractDarwinCommand):
     """Checks the traps table for hooks."""
 
     __name = "check_trap_table"
-
 
     def __init__(self, **kwargs):
         super(CheckTrapTable, self).__init__(**kwargs)
@@ -232,9 +231,9 @@ class CheckTrapTable(common.DarwinPlugin):
             "mach_trap": [16, {
                 "mach_trap_function": [offset, ["Pointer", dict(
                     target="Function"
-                    )]]
-                }],
-            })
+                )]]
+            }],
+        })
 
     def CheckTrapTables(self):
         # The trap table is simply an array of pointers to functions.
@@ -245,8 +244,8 @@ class CheckTrapTable(common.DarwinPlugin):
                 count=self.profile.get_constant_object(
                     "_mach_trap_count", "unsigned int"),
                 target="mach_trap",
-                )
             )
+        )
 
         resolver = self.session.address_resolver
         for i, entry in enumerate(table):

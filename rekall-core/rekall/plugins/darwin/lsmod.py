@@ -22,7 +22,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 from rekall.plugins.darwin import common
 
 
-class DarwinLsmod(common.DarwinPlugin):
+class DarwinLsmod(common.AbstractDarwinCommand):
     """Lists all kernel modules."""
 
     __name = "lsmod"
@@ -44,7 +44,7 @@ class DarwinLsmod(common.DarwinPlugin):
             target="Pointer",
             target_args=dict(
                 target="kmod_info"
-                ),
+            ),
             vm=self.kernel_address_space)
 
         # walk the modules list

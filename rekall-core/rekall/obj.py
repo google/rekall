@@ -152,7 +152,7 @@ class Curry(object):
 
 
 class NoneObject(object):
-    """ A magical object which is like None but swallows bad
+    """A magical object which is like None but swallows bad
     dereferences, __getattr__, iterators etc to return itself.
 
     Instantiate with the reason for the error.
@@ -176,6 +176,7 @@ class NoneObject(object):
 
     def get(self, key=None, default=None):
         """Make a NoneObject accept a default like a dict."""
+        _ = key
         if default is not None:
             return default
 
@@ -185,13 +186,13 @@ class NoneObject(object):
         return unicode(self).encode('utf-8')
 
     def __unicode__(self):
-        ## If we are strict we blow up here
+        # If we are strict we blow up here
         if self.strict:
             if "%" in self.reason:
                 reason = self.reason % self.args
             else:
                 reason = self.reason.format(*self.args)
-            logging.error("{0}\n{1}".format(reason, self.bt))
+            logging.error("%s\n%s", reason, self.bt)
 
         return "-"
 
@@ -218,7 +219,7 @@ class NoneObject(object):
         """Write procedure only ever returns False"""
         return False
 
-    ## Behave like an empty set
+    # Behave like an empty set
     def __iter__(self):
         return iter([])
 
@@ -251,7 +252,7 @@ class NoneObject(object):
     __le__ = __gt__
     __ge__ = __gt__
 
-    ## Make us subscriptable obj[j]
+    # Make us subscriptable obj[j]
     def __getitem__(self, item):
         return self
 
@@ -306,6 +307,7 @@ class BaseObject(object):
 
     obj_parent = NoneObject("No parent")
     obj_name = NoneObject("No name")
+    obj_producers = None
 
     # BaseObject implementations may take arbitrary **kwargs. The usual
     # programming pattern is to define the keywords each class takes explicitely
@@ -354,6 +356,7 @@ class BaseObject(object):
         self.obj_profile = profile
         self.obj_context = context or {}
         self.obj_session = session
+        self.obj_producers = set()
 
         if profile is None:
             session.logging.critical("Profile must be provided to %s", self)
@@ -519,8 +522,8 @@ def CreateMixIn(mixin):
         def method(self, *args, **kw):
             proxied = self.proxied()
             try:
-                ## Try to coerce the other in case its also a proxied
-                ## class
+                # Try to coerce the other in case its also a proxied
+                # class
                 args = list(args)
                 args[0] = args[0].proxied()
             except (AttributeError, IndexError):
@@ -539,10 +542,11 @@ def CreateMixIn(mixin):
     for name in mixin._specials:  # pylint: disable=protected-access
         setattr(mixin, name, make_method(name))
 
+
 class NumericProxyMixIn(object):
     """ This MixIn implements the numeric protocol """
     _specials = [
-        ## Number protocols
+        # Number protocols
         '__add__', '__sub__', '__mul__',
         '__floordiv__', '__mod__', '__divmod__',
         '__pow__', '__lshift__', '__rshift__',
@@ -556,23 +560,23 @@ class NumericProxyMixIn(object):
         '__abs__', '__invert__', '__int__', '__long__',
         '__float__', '__oct__', '__hex__',
 
-        ## Comparisons
+        # Comparisons
         '__lt__', '__le__', '__eq__', '__ge__', '__gt__', '__index__',
-        ]
+    ]
 
     def __ne__(self, other):
         return not self == other
+
 
 class StringProxyMixIn(object):
     """This MixIn implements proxying for strings."""
     _specials = [
-        ## Comparisons
+        # Comparisons
         '__lt__', '__le__', '__eq__', '__ge__', '__gt__', '__index__',
-        ]
+    ]
 
     def __ne__(self, other):
         return not self == other
-
 
 
 CreateMixIn(NumericProxyMixIn)
@@ -638,6 +642,7 @@ class Bool(NativeType):
 
 class BitField(NativeType):
     """ A class splitting an integer into a bunch of bit. """
+
     def __init__(self, start_bit=0, end_bit=32, target=None,
                  native_type=None, **kwargs):
         super(BitField, self).__init__(**kwargs)
@@ -672,7 +677,6 @@ class BitField(NativeType):
         return " [{0}({1}-{2}):{3}]: 0x{4:08X}".format(
             self.obj_type, self.start_bit, self.end_bit, self.obj_name,
             self.v())
-
 
     def __nonzero__(self):
         return bool(self._proxy.v() & self.mask)
@@ -856,7 +860,7 @@ class Pointer(NativeType):
         return self.dereference().indices
 
     def __getattr__(self, attr):
-        ## We just dereference ourself
+        # We just dereference ourself
         result = self.dereference()
 
         return getattr(result, attr)
@@ -1036,7 +1040,7 @@ class Array(BaseObject):
         return True
 
     def __getitem__(self, pos):
-        ## Check for slice object
+        # Check for slice object
         if isinstance(pos, slice):
             start, stop, step = pos.indices(self.count)
             return [self[i] for i in xrange(start, stop, step)]
@@ -1172,6 +1176,7 @@ class ListArray(Array):
 
 class BaseAddressComparisonMixIn(object):
     """A mixin providing comparison operators for its base offset."""
+
     def __comparator__(self, other, method):
         # 64 bit addresses are always sign extended so we need to clear the top
         # bits.
@@ -1207,6 +1212,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
     Structs have members at various fixed relative offsets from our own base
     offset.
     """
+
     def __init__(self, members=None, struct_size=0, **kwargs):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
@@ -1244,7 +1250,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
             self.obj_offset,
             self.obj_vm.vtop(self.obj_offset),
             self.obj_vm.base,
-            ),)
+        ),)
 
     def __long__(self):
         return self.obj_offset
@@ -1344,11 +1350,11 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
                               self.obj_name, attr)
 
         if callable(offset):
-            ## If offset is specified as a callable its an absolute
-            ## offset
+            # If offset is specified as a callable its an absolute
+            # offset
             offset = int(offset(self))
         else:
-            ## Otherwise its relative to the start of our struct
+            # Otherwise its relative to the start of our struct
             offset = int(offset) + int(self.obj_offset)
 
         try:
@@ -1426,8 +1432,8 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         return self.obj_vm.read(self.obj_offset, self.obj_size)
 
 
-## Profiles are the interface for creating/interpreting
-## objects
+# Profiles are the interface for creating/interpreting
+# objects
 
 class Profile(object):
     """A collection of types relating to a single compilation unit.
@@ -1515,7 +1521,8 @@ class Profile(object):
             result = profile_cls(name=name, session=session,
                                  metadata=metadata)
 
-            result._SetupProfileFromData(data)  # pylint: disable=protected-access
+            # pylint: disable=protected-access
+            result._SetupProfileFromData(data)
             return result
 
     def _SetupProfileFromData(self, data):
@@ -1599,6 +1606,7 @@ class Profile(object):
         class dummy(object):
             profile = self
             name = 'dummy'
+
             def is_valid_address(self, _offset):
                 return True
 
@@ -1751,11 +1759,11 @@ class Profile(object):
         abstract_types = copy.deepcopy(abstract_types)
         self.known_types.update(abstract_types)
 
-        ## we merge the abstract_types with self.vtypes and then recompile
-        ## the whole thing again. This is essential because
-        ## definitions may have changed as a result of this call, and
-        ## we store curried objects (which might keep their previous
-        ## definitions).
+        # we merge the abstract_types with self.vtypes and then recompile
+        # the whole thing again. This is essential because
+        # definitions may have changed as a result of this call, and
+        # we store curried objects (which might keep their previous
+        # definitions).
         for k, v in abstract_types.items():
             if isinstance(v, list):
                 self.vtypes[k] = v
@@ -1829,7 +1837,7 @@ class Profile(object):
                 else:
                     members[k] = (v[0], self.list_to_type(k, v[1]))
 
-            ## Allow the class plugins to override the class constructor here
+            # Allow the class plugins to override the class constructor here
             cls = self.object_classes.get(type_name, Struct)
 
             self.types[type_name] = self._make_struct_callable(
@@ -1922,19 +1930,19 @@ class Profile(object):
            this class.
            e.g. 'Pointer',  {target="_HMAP_TABLE"}
         """
-        ## This is of the form [ '_HMAP_TABLE' ] - First element is the target
-        ## name, with no args.
+        # This is of the form [ '_HMAP_TABLE' ] - First element is the target
+        # name, with no args.
         if len(typeList) == 1:
             target = typeList[0]
             target_args = {}
 
-        ## This is of the form [ 'pointer' , [ 'foobar' ]]
-        ## Target is the first item, args is the second item.
+        # This is of the form [ 'pointer' , [ 'foobar' ]]
+        # Target is the first item, args is the second item.
         elif typeList[0] == 'pointer' or typeList[0] == 'pointer64':
             target = "Pointer"
             target_args = self.legacy_field_descriptor(typeList[1])
 
-        ## This is an array: [ 'array', count, ['foobar'] ]
+        # This is an array: [ 'array', count, ['foobar'] ]
         elif typeList[0] == 'array':
             target = "Array"
             target_args = self.legacy_field_descriptor(typeList[2])
@@ -1964,8 +1972,8 @@ class Profile(object):
         target = target_spec['target']
         target_args = target_spec['target_args']
 
-        ## This is currently the recommended way to specify a type:
-        ## e.g. [ 'Pointer', {target="int"}]
+        # This is currently the recommended way to specify a type:
+        # e.g. [ 'Pointer', {target="int"}]
         if isinstance(target_args, dict):
             return Curry(self.Object, type_name=target, name=name,
                          **target_args)
@@ -1973,13 +1981,13 @@ class Profile(object):
         # This is of the deprecated form ['class_name', ['arg1', 'arg2']].
         # Since the object framework moved to purely keyword args these are
         # meaningless. Issue a deprecation warning.
-        elif type(target_args) == list:
+        elif isinstance(target_args, list):
             self.session.logging.warning(
                 "Deprecated vtype expression %s for member %s, assuming int",
                 typeList, name)
 
         else:
-            ## If we get here we have no idea what this list is
+            # If we get here we have no idea what this list is
             self.session.logging.warning(
                 "Unable to find a type for %s, assuming int", typeList)
 

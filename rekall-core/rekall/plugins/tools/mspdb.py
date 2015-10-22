@@ -213,7 +213,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                             cwd=temp_dir,
                             stdout=sys.stderr)
 
-                except subprocess.CalledProcessError:
+                except (subprocess.CalledProcessError, OSError):
                     raise RuntimeError(
                         "Failed to decompress output file %s. "
                         "Ensure cabextract is installed.\n" % output_file)
@@ -255,7 +255,7 @@ class StreamBasedAddressSpace(addrspace.CachingAddressSpaceMixIn,
             self.add_run(i * page_size, page * page_size, page_size)
 
         # Record the total size of the file.
-        self.size = (i+1) * page_size
+        self.size = (i + 1) * page_size
 
 
 ####################################################################
@@ -283,7 +283,7 @@ LEAF_ENUM_TO_TYPE = dict(
     LF_USHORT="unsigned short int",
     LF_LONG="long",
     LF_ULONG="unsigned long",
-    )
+)
 
 # The SubRecord field is a union which depends on the _LEAF_ENUM_e. The
 # following maps these to the enum fields. There are other members in the union,
@@ -292,12 +292,12 @@ LEAF_ENUM_TO_SUBRECORD = dict(
     LF_MEMBER="Member",
     LF_ENUMERATE="Enumerate",
     LF_NESTTYPE="NestType",
-    )
+)
 
 # A map between the symbol type enum and the actual record type.
 SYM_ENUM_TO_SYM = dict(
     S_PUB32="_PUBSYM32",
-    )
+)
 
 
 mspdb_overlays = {
@@ -305,7 +305,7 @@ mspdb_overlays = {
     "_PDB_HEADER_700": [None, {
         "abSignature": [None, ["Signature", dict(
             value="Microsoft C/C++ MSF 7.00\r\n\x1ADS\0\0\0"
-            )]],
+        )]],
 
         # Total number of pages in the root stream.
         "root_pages": lambda x: Pages(x.dRootBytes, x.dPageBytes),
@@ -317,8 +317,8 @@ mspdb_overlays = {
             # The root page list is stored in the index stream. Each
             # page index is 4 bytes.
             count=lambda x: Pages(4 * x.root_pages, x.dPageBytes),
-            )]],
-        }],
+        )]],
+    }],
 
     # The header of the root stream (This applies once we reconstruct the root
     # stream). It defines the page indexes of all the streams in this file.
@@ -326,8 +326,8 @@ mspdb_overlays = {
         "adStreamBytes": [None, ["Array", dict(
             count=lambda x: x.dStreams,
             target="unsigned int",
-            )]],
-        }],
+        )]],
+    }],
 
     # A modifier adds some flags to its modified_type.
     "_lfModifier": [None, {
@@ -337,10 +337,10 @@ mspdb_overlays = {
                 unaligned=2,
                 volatile=1,
                 const=0
-                ),
+            ),
             target="unsigned short int",
-            )]],
-        }],
+        )]],
+    }],
 
     # The size of the SubRecord itself is the size of the value. (ie. depends on
     # the _LEAF_ENUM_e). We must calculate the exact size because SubRecords (of
@@ -354,17 +354,17 @@ mspdb_overlays = {
         # union based on the leaf value.
         "value": lambda x: x.m(
             LEAF_ENUM_TO_SUBRECORD.get(str(x.leaf), "Unknown")),
-        }],
+    }],
 
     "_lfEnum": [None, {
         # The name of the enum element.
         "Name": [None, ["String"]],
-        }],
+    }],
 
     "_lfNestType": [None, {
         # The name of the enum element.
         "Name": [None, ["String"]],
-        }],
+    }],
 
     # A lfFieldList holds a back to back variable length array of SubRecords.
     "_lfFieldList": [None, {
@@ -374,8 +374,8 @@ mspdb_overlays = {
             # Total length is determined by the size of the
             # container.
             maximum_size=lambda x: x.obj_parent.length - 2,
-            )]],
-        }],
+        )]],
+    }],
 
     # Arg list for a function.
     "_lfArgList": [None, {
@@ -386,13 +386,13 @@ mspdb_overlays = {
             target_args=dict(
                 enum_name="_TYPE_ENUM_e",
                 target="unsigned short int",
-                ),
+            ),
             count=lambda x: x.count
-            )]],
-        }],
+        )]],
+    }],
 
     # A helper type to select the correct implementation.
-    "TypeContainer": [lambda x: x.length+2, {
+    "TypeContainer": [lambda x: x.length + 2, {
         "length": [0, ["unsigned short int"]],
 
         # Depending on the value of this enum, this field must be cast to
@@ -400,13 +400,13 @@ mspdb_overlays = {
         "type_enum": [2, ["Enumeration", dict(
             enum_name="_LEAF_ENUM_e",
             target="unsigned short int"
-            )]],
+        )]],
 
         # Depending on the enumeration above, the type_enum field must be
         # cast into one of these structs.
         "type": lambda x: x.type_enum.cast(
             LEAF_ENUM_TO_TYPE.get(str(x.type_enum), "unsigned int"))
-        }],
+    }],
 
     # This is the TPI stream header. It is followed by a list of TypeContainers
     # for all the types in this stream.
@@ -416,8 +416,8 @@ mspdb_overlays = {
                       target="TypeContainer",
                       count=lambda x: x.tiMac - x.tiMin,
                       maximum_size=lambda x: x.cbGprec,
-                      )]],
-        }],
+                  )]],
+    }],
 
     "_GUID": [16, {
         "Data1": [0, ["unsigned long", {}]],
@@ -426,17 +426,17 @@ mspdb_overlays = {
         "Data4": [8, ["String", dict(length=8, term=None)]],
         "AsString": lambda x: ("%08x%04x%04x%s" % (
             x.Data1, x.Data2, x.Data3, str(x.Data4).encode('hex'))).upper(),
-        }],
+    }],
 
     "Info": [None, {
         "Version": [0, ["unsigned long int"]],
         "TimeDateStamp": [4, ["UnixTimeStamp"]],
         "Age": [8, ["unsigned long int"]],
         "GUID": [12, ["_GUID"]],
-        }],
+    }],
 
     # The record length does not include the tag.
-    "_ALIGNSYM": [lambda x: x.reclen+2, {
+    "_ALIGNSYM": [lambda x: x.reclen + 2, {
         "rectyp": [None, ["Enumeration", dict(
             enum_name="_SYM_ENUM_e",
             target="unsigned short int")]],
@@ -445,30 +445,30 @@ mspdb_overlays = {
         "value": lambda x: x.cast(
             SYM_ENUM_TO_SYM.get(str(x.rectyp), ""))
 
-        }],
+    }],
 
     "_PUBSYM32": [None, {
         "name": [None, ["String"]],
-        }],
+    }],
 
     "DBI": [None, {
         "DBIHdr": [0, ["_NewDBIHdr"]],
         "ExHeaders": [64, ["ListArray", dict(
             maximum_size=lambda x: x.DBIHdr.cbGpModi,
             target="DBIExHeaders")]],
-        }],
+    }],
 
     "DBIExHeaders": [None, {
         "modName": [64, ["String"]],
         "objName": [lambda x: x.modName.obj_offset + x.modName.obj_size,
                     ["String"]],
-        }],
+    }],
 
     "IMAGE_SECTION_HEADER": [None, {
         "Name": [None, ["String"]],
-        }],
+    }],
 
-    }
+}
 
 
 class lfClass(obj.Struct):
@@ -598,7 +598,6 @@ class lfNestType(obj.Struct):
         return tpi.DefinitionByIndex(self.index)
 
 
-
 class lfUnion(lfClass):
     """A Union is basically the same as a struct, except members may overlap."""
 
@@ -662,7 +661,7 @@ class lfPointer(lfClass):
         return ["Pointer", dict(
             target=target,
             target_args=target_args
-            )]
+        )]
 
 
 class lfProc(lfClass):
@@ -677,7 +676,6 @@ class lfProc(lfClass):
                 args.append(definition)
 
         return "Function", dict(args=args)
-
 
 
 class lfArray(lfClass):
@@ -699,11 +697,12 @@ class lfArray(lfClass):
         definition = ["Array", dict(
             target=target, target_args=target_args,
             size=int(self.value_),
-            )]
+        )]
 
         tpi.RegisterFixUp(definition)
 
         return definition
+
 
 class lfMember(lfClass):
     """A member in a struct (or class)."""
@@ -721,8 +720,8 @@ class _PDB_HEADER_700(obj.Struct):
         result = []
         for idx in self.adIndexPages:
             for page_number in self.obj_profile.Array(
-                    offset=idx*self.dPageBytes, vm=self.obj_vm,
-                    target="unsigned int", count=self.dPageBytes/4):
+                    offset=idx * self.dPageBytes, vm=self.obj_vm,
+                    target="unsigned int", count=self.dPageBytes / 4):
                 result.append(int(page_number))
                 if len(result) >= self.root_pages:
                     return result
@@ -765,7 +764,7 @@ class DBIExHeaders(obj.Struct):
     def obj_size(self):
         return (pe_vtypes.RoundUpToWordAlignment(
             self.objName.obj_offset + self.objName.obj_size) -
-                self.obj_offset)
+            self.obj_offset)
 
 
 class DBI(obj.Struct):
@@ -811,7 +810,7 @@ class PDBProfile(basic.Profile32Bits, basic.BasicClasses):
             "_lfBitfield": lfBitfield, "_lfEnumerate": lfEnumerate,
             "_lfNestType": lfNestType, "DBIExHeaders": DBIExHeaders,
             "DBI": DBI
-            })
+        })
 
 
 class PDBParser(object):
@@ -894,8 +893,8 @@ class PDBParser(object):
             vm=root_stream,
             context=dict(
                 page_size=self.header.dPageBytes
-                )
             )
+        )
 
         self.ParsePDB()
         self.ParseDBI()
@@ -909,7 +908,7 @@ class PDBParser(object):
             Version=int(info.Version),
             Timestamp=str(info.TimeDateStamp),
             GUID_AGE="%s%X" % (info.GUID.AsString, info.Age),
-            )
+        )
 
     def ParseDBI(self):
         """Parse the DBI stream.
@@ -1112,7 +1111,6 @@ class PDBParser(object):
         self.address_space.close()
 
 
-
 class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
     """Parse the PDB streams."""
 
@@ -1189,7 +1187,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
         "long": 4,
         "long long": 8,
         "short": 2,
-        }
+    }
 
     def PostProcessVTypes(self, vtypes):
         """Post process the vtypes to optimize some access members."""
@@ -1204,8 +1202,8 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
                 if target_args.get("target") == "UnicodeString":
                     defintion[0] = "UnicodeString"
                     defintion[1] = dict(
-                        length=target_args.get("size")/2
-                        )
+                        length=target_args.get("size") / 2
+                    )
                 elif target_args.has_key("size"):
                     # Work out the array target size.
                     array_target = target_args.get("target")
@@ -1249,7 +1247,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
                 ProfileClass=self.profile_class,
                 Type="Profile",
                 PDBFile=os.path.basename(self.filename),
-                ))
+            ))
 
             self.metadata.update(self.tpi.metadata)
 
@@ -1269,7 +1267,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
                 "$METADATA": self.metadata,
                 "$STRUCTS": vtypes,
                 "$ENUMS": self.tpi.enums,
-                }
+            }
 
             if not self.concise:
                 result["$REVENUMS"] = self.tpi.rev_enums

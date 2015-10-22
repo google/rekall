@@ -15,18 +15,78 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-"""Plugins for inspecting memory allocation zones."""
 
-__author__ = "Michael Cohen <scudette@google.com>"
+"""
+Collectors and plugins that deal with Darwin zone allocator.
+"""
 
-from rekall import utils
+__author__ = "Adam Sindelar <adamsh@google.com>"
+
+from rekall import plugin
+
 from rekall.plugins.darwin import common
 
 
-class DarwinDumpZone(common.DarwinPlugin):
+class DarwinZoneHook(common.AbstractDarwinParameterHook):
+    """Lists all allocation zones."""
+
+    name = "zones"
+
+    def calculate(self):
+        first_zone = self.session.profile.get_constant_object(
+            "_first_zone",
+            target="Pointer",
+            target_args=dict(
+                target="zone"))
+
+        return [x.obj_offset for x in first_zone.walk_list("next_zone")]
+
+
+class DarwinZoneCollector(common.AbstractDarwinCachedProducer):
+    name = "zones"
+    type_name = "zone"
+
+
+class AbstractZoneElementFinder(common.AbstractDarwinParameterHook):
+    """Finds all the valid structs in an allocation zone."""
+
+    __abstract = True
+
+    zone_name = None
+    type_name = None
+
+    def validate_element(self, element):
+        raise NotImplementedError("Subclasses must override.")
+
+    def calculate(self):
+        # Find the zone that contains our data.
+        zone = self.session.plugins.search(
+            "(find zones where zone.name == ?).zone",
+            query_parameters=[self.zone_name]).first_result
+
+        if zone is None:
+            raise ValueError("Zone %r doesn't exist." % self.zone_name)
+
+        results = set()
+        for offset in zone.known_offsets:
+            element = self.session.profile.Object(offset=offset,
+                                                  type_name=self.type_name)
+
+            if self.validate_element(element):
+                results.add(element.obj_offset)
+
+        return results
+
+
+class DarwinDumpZone(common.AbstractDarwinTypedCommand):
     """Dumps an allocation zone's contents."""
 
-    __name = "dump_zone"
+    name = "dump_zone"
+
+    table_header = plugin.PluginHeader(
+        dict(name="Offset", cname="offset", style="address"),
+        dict(name="Data", cname="data", style="hexdump", width=34)
+    )
 
     @classmethod
     def args(cls, parser):
@@ -37,37 +97,105 @@ class DarwinDumpZone(common.DarwinPlugin):
         super(DarwinDumpZone, self).__init__(**kwargs)
         self.zone_name = zone
 
-    def render(self, renderer):
-        for entity in self.session.entities.find(
-                query=("Buffer/purpose is 'zones' and "
-                       "any Buffer/context matches "
-                       " (AllocationZone/name is {zone_name})"),
-                query_params=dict(zone_name=self.zone_name)):
-            utils.WriteHexdump(
-                renderer=renderer,
-                data=entity["Buffer/contents"],
-                base=entity["Buffer/address"][0])
+    def collect(self):
+        zone = self.session.plugins.search(
+            "(find zones where zone.name == {zone_name}).zone",
+            query_parameters=dict(zone_name=self.zone_name),
+            silent=True
+        ).first_result
+
+        if not zone:
+            raise ValueError("No such zone %r." % self.zone_name)
+
+        for offset in zone.known_offsets:
+            yield [offset, zone.obj_vm.read(offset, zone.elem_size)]
 
 
-class DarwinDeadProcesses(common.DarwinPlugin):
-    """Show deallocated processes which still exist in the zone allocator."""
+# All plugins below dump and validate elements from specific zones.
 
-    __name = "dead_procs"
 
-    def render(self, renderer):
-        # Find the proc zone from the allocator.
-        proc_zone = self.session.entities.find_first(
-            "AllocationZone/name is 'proc'")["Struct/base"]
+class DarwinSocketZoneFinder(AbstractZoneElementFinder):
+    name = "dead_sockets"
+    zone_name = "socket"
+    type_name = "socket"
 
-        # Walk over the free list and get all proc objects.
-        procs = []
-        for allocation in proc_zone.free_elements.walk_list("next"):
-            proc = allocation.cast("proc")
-            # Validate the proc.
-            if proc.p_argc > 0:
-                procs.append(proc)
+    def validate_element(self, socket):
+        return socket == socket.so_rcv.sb_so
 
-        if procs:
-            # Just delegate the rendering to the regular pslist plugin.
-            pslist_plugin = self.session.plugins.pslist(proc=procs)
-            pslist_plugin.render(renderer)
+
+class DarwinSocketZoneCollector(common.AbstractDarwinCachedProducer):
+    name = "dead_sockets"
+    type_name = "socket"
+
+
+class DarwinTTYZoneFinder(AbstractZoneElementFinder):
+    name = "dead_ttys"
+    zone_name = "ttys"
+    type_name = "tty"
+
+    def validate_element(self, tty):
+        return tty.t_lock == tty
+
+
+class DarwinTTYZoneCollector(common.AbstractDarwinCachedProducer):
+    name = "dead_ttys"
+    type_name = "tty"
+
+
+class DarwinSessionZoneFinder(AbstractZoneElementFinder):
+    name = "dead_sessions"
+    zone_name = "session"
+    type_name = "session"
+
+    def validate_element(self, session):
+        return session.s_count > 0 and session.s_leader.p_argc > 0
+
+
+class DarwinSessionZoneCollector(common.AbstractDarwinCachedProducer):
+    name = "dead_sessions"
+    type_name = "session"
+
+
+class DarwinZoneVnodeFinder(AbstractZoneElementFinder):
+    zone_name = "vnodes"
+    type_name = "vnode"
+    name = "dead_vnodes"
+
+    def validate_element(self, vnode):
+        # Note for later: HFS-related vnodes can be validated
+        # by the pointer they have back to the vnode from the cnode (v_data).
+        return vnode.v_owner == 0 and vnode.v_mount != 0
+
+
+class DarwinZoneVnodeCollector(common.AbstractDarwinCachedProducer):
+    name = "dead_vnodes"
+    type_name = "vnode"
+
+
+class PsListDeadProcFinder(AbstractZoneElementFinder):
+    name = "dead_procs"
+    zone_name = "proc"
+    type_name = "proc"
+
+    def validate_element(self, element):
+        return element.validate()
+
+
+class DarwinDeadProcessCollector(common.AbstractDarwinCachedProducer):
+    """Lists dead processes using the proc allocation zone."""
+    name = "dead_procs"
+    type_name = "proc"
+
+
+class DarwinZoneFileprocFinder(AbstractZoneElementFinder):
+    name = "dead_fileprocs"
+    type_name = "fileproc"
+    zone_name = "fileproc"
+
+    def validate_element(self, element):
+        return True
+
+
+class DarwinDeadFileprocCollector(common.AbstractDarwinCachedProducer):
+    name = "dead_fileprocs"
+    type_name = "fileproc"

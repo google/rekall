@@ -16,9 +16,12 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
+from rekall import plugin
+
 from rekall.plugins.common import sigscan
 from rekall.plugins.darwin import common
 
 
-class DarwinSigScan(sigscan.SigScanMixIn, common.DarwinProcessFilter):
+class DarwinSigScan(sigscan.SigScanMixIn, common.ProcessFilterMixin,
+                    common.AbstractDarwinCommand):
     """Runs a signature scans against physical, kernel or process memory."""

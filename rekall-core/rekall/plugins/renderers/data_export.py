@@ -122,14 +122,6 @@ class DataExportTimestampObjectRenderer(DataExportObjectRenderer):
                     string_value=item.strftime("%Y-%m-%d %H:%M:%S%z"))
 
 
-class DataExportSetObjectRenderer(DataExportObjectRenderer):
-    renders_type = "frozenset"
-    renderers = ["DataExportRenderer"]
-
-    def GetState(self, item, **_):
-        return dict(values=tuple(item))
-
-
 class DataExportBaseObjectRenderer(DataExportObjectRenderer):
     renders_type = "BaseObject"
 

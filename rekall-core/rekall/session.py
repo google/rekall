@@ -43,7 +43,6 @@ from rekall import plugin
 from rekall import registry
 from rekall import utils
 
-from rekall.entities import manager as entity_manager
 from rekall.ui import renderer
 
 
@@ -201,7 +200,6 @@ class Configuration(utils.AttributeDict):
         # work.
         os.environ["HOME"] = home
         return home
-
 
     def _set_filename(self, filename, parameters):
         """Callback for when a filename is set in the session.
@@ -458,8 +456,6 @@ class Session(object):
         # Cache the profiles we get from LoadProfile() below.
         self.profile_cache = {}
 
-        self.entities = entity_manager.EntityManager(session=self)
-
         # A container for active plugins. This is done so that the interactive
         # console can see which plugins are active by simply command completing
         # on this object.
@@ -619,22 +615,24 @@ class Session(object):
         not exist, we check the cache.
         """
         result = self.state.get(item)
+        if result is not None:
+            return result
 
         # None in the state dict means that the cache is empty. This is
         # different from a NoneObject() returned (which represents a cacheable
         # failure).
-        if result is None and cached:
+        if cached:
             result = self.cache.Get(item)
+            if result is not None:
+                return result
 
-        # The result is not in the cache. Is there a hook that can help?
-        if result is None and cached:
-            result = self._RunParameterHook(item)
+        # We don't have or didn't look in the cache for the result. See if we
+        # can get if from a hook.
+        result = self._RunParameterHook(item)
+        if result is not None:
+            return result
 
-        # Note that the hook may return a NoneObject() which should be cached.
-        if result == None:
-            result = default
-
-        return result
+        return default
 
     def SetCache(self, item, value, volatile=True):
         """Store something in the cache."""
@@ -723,7 +721,7 @@ class Session(object):
                 plugin_obj = self._GetPluginObj(plugin_obj, *args, **kwargs)
                 if not plugin_obj:
                     raise ValueError(
-                        "Invalid Plugin: %s", original_plugin_obj)
+                        "Invalid plugin: %s" % original_plugin_obj)
                 result = plugin_obj.render(ui_renderer) or plugin_obj
                 self.last = plugin_obj
             except (Exception, KeyboardInterrupt) as e:
@@ -844,8 +842,8 @@ class Session(object):
                         manager.GetData(name), self, name=name)
                     if result:
                         self.logging.info(
-                            "Loaded profile %s from %s (in %s sec)", name, manager,
-                            time.time() - now)
+                            "Loaded profile %s from %s (in %s sec)",
+                            name, manager, time.time() - now)
                         break
 
                 except (IOError, KeyError) as e:
@@ -1178,6 +1176,7 @@ Cache (%r):
 
         new_session = self.__class__()
         new_session.locals = self.locals
+        # pylint: disable=protected-access
         new_session._repository_managers = self._repository_managers
         new_session.profile_cache = self.profile_cache
 

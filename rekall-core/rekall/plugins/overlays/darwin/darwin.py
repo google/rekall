@@ -594,8 +594,8 @@ class queue_entry(basic.ListMixIn, obj.Struct):
     Although the queue_entry is defined as:
 
     struct queue_entry {
-	struct queue_entry	*next;		/* next element */
-	struct queue_entry	*prev;		/* previous element */
+        struct queue_entry	*next;		/* next element */
+        struct queue_entry	*prev;		/* previous element */
     };
 
     This is in fact not correct since the next, and prev pointers
@@ -611,7 +611,7 @@ class queue_entry(basic.ListMixIn, obj.Struct):
     def list_of_type(self, type, member):
         seen = set()
         seen.add(self.prev.v())
-        
+
         item = self.next.dereference_as(type)
         while item != None:
             yield item
@@ -619,7 +619,7 @@ class queue_entry(basic.ListMixIn, obj.Struct):
                 return
 
             item = item.m(member).next.dereference_as(type)
-    
+
 
 class sockaddr_dl(obj.Struct):
     def __unicode__(self):
@@ -1071,6 +1071,14 @@ class vm_map_entry(obj.Struct):
 
         return shadow
 
+    @property
+    def start(self):
+        return self.links.start.v()
+
+    @property
+    def end(self):
+        return self.links.end.v()
+
 
 class clist(obj.Struct):
 
@@ -1086,8 +1094,30 @@ class clist(obj.Struct):
         """
         return self.obj_vm.read(self.c_cs, self.c_cn)
 
+    @property
+    def size(self):
+        return int(self.c_cn)
+
+
+class tty(obj.Struct):
+    @property
+    def vnode(self):
+        return self.t_session.s_ttyvp
+
+    @property
+    def input_buffer(self):
+        return self.t_rawq
+
+    @property
+    def output_buffer(self):
+        return self.t_outq
+
 
 class proc(obj.Struct):
+    @property
+    def vads(self):
+        return self.task.map.hdr.walk_list("links.next", include_current=False)
+
     def get_open_files(self):
         """Gets all open files (sockets, pipes...) owned by this proc.
 
@@ -1135,6 +1165,18 @@ class proc(obj.Struct):
 
         return as_class(base=self.obj_vm.base, session=self.obj_vm.session,
                         dtb=cr3, name="Pid %s" % self.p_pid)
+
+    @property
+    def command(self):
+        return utils.SmartUnicode(self.p_comm)
+
+    @property
+    def cr3(self):
+        return self.task.map.pmap.pm_cr3
+
+    @property
+    def is_64bit(self):
+        return proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT"
 
     @property
     def argv(self):
@@ -1210,6 +1252,196 @@ class vnode(obj.Struct):
     def human_name(self):
         return self.full_path
 
+    @property
+    def cnode(self):
+        """If this is an HFS vnode, then v_data is a cnode."""
+        node = self.v_data.dereference_as("cnode")
+        if node.c_rwlock != node:
+            return obj.NoneObject("This vnode has no valid cnode.")
+
+        return node
+
+    @property
+    def uid(self):
+        uid = self.v_cred.cr_posix.cr_ruid
+        if uid:
+            return uid
+
+        return obj.NoneObject("Could not retrieve POSIX creds.")
+
+
+class cnode(obj.Struct):
+    @property
+    def created_at(self):
+        return self.c_cattr.ca_ctime.as_datetime()
+
+    @property
+    def modified_at(self):
+        return self.c_cattr.ca_mtime.as_datetime()
+
+    @property
+    def accessed_at(self):
+        return self.c_cattr.ca_atime.as_datetime()
+
+    @property
+    def backedup_at(self):
+        return self.c_cattr.ca_btime.as_datetime()
+
+
+class zone(obj.Struct):
+    @property
+    def name(self):
+        return utils.SmartUnicode(self.zone_name.deref())
+
+    @property
+    def count_active(self):
+        return int(self.count)
+
+    @property
+    def count_free(self):
+        return int(self.m("sum_count") - self.count)
+
+    @property
+    def tracks_pages(self):
+        return bool(self.m("use_page_list"))
+
+    @property
+    def known_offsets(self):
+        """Find valid offsets in the zone as tuples of (state, offset).
+
+        Allocation zones keep track of potential places where an element of
+        fixed size may be stored. The most basic zones only keep track of free
+        pointers, so as to speed up allocation. Some zones also track already
+        allocated data, using a separate mechanism. We support both.
+
+        Returns a set of tuples of:
+            - State, which can be "freed", "allocated" or "unknown".
+            - Object offset, at which a struct may be located.
+              (You will want to validate the struct itself for sanity.)
+        """
+        # Tracks what offsets we've looked at.
+        seen_offsets = set()
+
+        # Tracks pages we've tried to iterate through for possible offsets.
+        seen_pages = set()
+
+        # Let's walk the freed elements first. It's just a linked list:
+        for element in self.free_elements.walk_list("next"):
+            seen_offsets.add(element.obj_offset)
+
+        # If we found just one known offset in a given page we actually know
+        # that the whole page is dedicated to the zone allocator and other
+        # offsets in it are also likely to be valid elements. Here we try to
+        # discover such elements.
+        for offset in seen_offsets.copy():
+            # We assume pages are 4K. The zone allocator presently doesn't use
+            # 2MB pages, as far as I know.
+            page_start = offset & ~0xfff
+            if page_start in seen_pages:
+                continue
+
+            seen_pages.add(page_start)
+            seen_offsets.update(set(self._generate_page_offsets(page_start)))
+
+        # Lastly, if we happen to track pages after they've been filled up
+        # then we can go look at those pages. The relevant flag is
+        # use_page_list.
+        page_lists = {"all_free", "all_used", "intermediate"}
+
+        if self.use_page_list:
+            for page_list in page_lists:
+                for page_start in self.m(page_list).walk_list("next"):
+                    if page_start in seen_pages:
+                        continue
+
+                    seen_pages.add(page_start)
+                    seen_offsets.update(self._generate_page_offsets(page_start))
+
+        return seen_offsets
+
+    def _generate_page_offsets(self, page_start):
+        limit = page_start + 0x1000 - self.elem_size
+        # Page metadata is always inlined at the end of the page. So that's
+        # space that contain valid elements.
+        limit -= self.obj_profile.get_obj_size("zone_page_metadata")
+
+        return xrange(page_start, limit, self.elem_size)
+
+
+class ifnet(obj.Struct):
+    @property
+    def name(self):
+        return "%s%d" % (self.if_name.deref(), self.if_unit)
+
+    @property
+    def addresses(self):
+        # There should be exactly one link layer address.
+        for tqe in self.if_addrhead.tqh_first.walk_list(
+                "ifa_link.tqe_next"):
+            family = tqe.ifa_addr.sa_family
+
+            # Found the L2 address (MAC)
+            if family == "AF_LINK":
+                l2_addr = utils.SmartUnicode(tqe.ifa_addr.deref())
+                yield ("MAC", l2_addr)
+                continue
+            elif family == "AF_INET":
+                l3_proto = "IPv4"
+            elif family == "AF_INET6":
+                l3_proto = "IPv6"
+            else:
+                l3_proto = utils.SmartUnicode(family).replace("AF_", "")
+
+            l3_addr = utils.SmartUnicode(tqe.ifa_addr.deref())
+            yield (l3_proto, l3_addr)
+
+    @property
+    def l2_addr(self):
+        for proto, addr in self.addresses:
+            if proto == "MAC":
+                return addr
+
+    @property
+    def l3_addrs(self):
+        return [(proto, addr) for proto, addr in self.addresses
+                if proto != "MAC"]
+
+    @property
+    def ipv4_addr(self):
+        result = []
+        for proto, addr in self.addresses:
+            if proto == "IPv4":
+                result.append(addr)
+
+        return ", ".join(result)
+
+    @property
+    def ipv6_addr(self):
+        result = []
+        for proto, addr in self.addresses:
+            if proto == "IPv6":
+                result.append(addr)
+
+        return ", ".join(result)
+
+
+class session(obj.Struct):
+    @property
+    def tty(self):
+        return self.session.s_ttyp
+
+    @property
+    def name(self):
+        return "Session %d (%s)" % (self.s_sid, self.s_leader.command)
+
+    @property
+    def username(self):
+        return utils.SmartUnicode(self.s_login)
+
+    @property
+    def uid(self):
+        return self.tty.vnode.uid
+
 
 class OSDictionary(obj.Struct):
     """The OSDictionary is a general purpose associative array described:
@@ -1264,11 +1496,11 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
             LIST_ENTRY=LIST_ENTRY, queue_entry=queue_entry,
             sockaddr=sockaddr, sockaddr_dl=sockaddr_dl,
             vm_map_entry=vm_map_entry, proc=proc, vnode=vnode,
-            socket=socket, clist=clist,
+            socket=socket, clist=clist, zone=zone, ifnet=ifnet, tty=tty,
             # Support both forms with and without _class suffix.
             OSDictionary=OSDictionary, OSDictionary_class=OSDictionary,
             OSOrderedSet=OSOrderedSet, OSOrderedSet_class=OSOrderedSet,
-            fileproc=fileproc)
+            fileproc=fileproc, session=session, cnode=cnode)
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)
         profile.add_constants(default_text_encoding="utf8")

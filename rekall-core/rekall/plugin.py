@@ -73,6 +73,10 @@ class Command(object):
     # This declares that this plugin only exists in the interactive session.
     interactive = False
 
+    # This declares that the plugin should not be called upon to collect
+    # structs - the default behavior.
+    producer = False
+
     # This will hold the error status from running this plugin.
     error_status = None
 
@@ -135,6 +139,22 @@ class Command(object):
     def __repr__(self):
         return "Plugin: %s" % self.name
 
+    def __iter__(self):
+        """Make plugins that define collect iterable, as convenience.
+
+        Because this:
+            for x in session.plugins.get_some_data():
+                # do stuff
+
+        Is nicer than this:
+            for x in session.plugins.get_some_data().collect():
+                # do stuff
+        """
+        if callable(getattr(self, "collect", None)):
+            return self.collect()
+        else:
+            raise TypeError("%r is not iterable." % self)
+
     def render(self, renderer):
         """Produce results on the renderer given.
 
@@ -167,6 +187,7 @@ class Command(object):
         for command_cls in cls.classes.values():
             if command_cls.is_active(session):
                 yield command_cls
+
 
 class ProfileCommand(Command):
     """A baseclass for all commands which require a profile."""
@@ -231,6 +252,152 @@ class ProfileCommand(Command):
                 raise PluginError(
                     "Profile could not detected. "
                     "Try specifying one explicitly.")
+
+
+class PluginHeader(object):
+    header = None
+    by_cname = None
+
+    def __init__(self, *columns):
+        self.by_cname = {}
+        for column in columns:
+            if not isinstance(column, dict):
+                raise TypeError("Plugins declaring table header ahead of "
+                                "time MUST do so using the new format ("
+                                "using dicts, NOT tuples). Table header %r "
+                                "is invalid." % columns)
+
+            cname = column.get("cname")
+            if not cname:
+                raise ValueError("Plugins declaring table headers ahead of "
+                                 "time MUST specify 'cname' for each column. "
+                                 "Table header %r is invalid." % columns)
+
+            if self.by_cname.get(cname):
+                raise ValueError("Duplicate cname %r! Table header %r is "
+                                 "invalid." % (cname, columns))
+
+            self.by_cname[cname] = column
+
+        self.header = columns
+
+    @property
+    def types_in_output(self):
+        """What types of thing does this plugin output?
+
+        Returns a set of declared types, each type being either a class object
+        or a string name of the class (for profile types, mostly).
+
+        This helps the self-documentation features find plugins based on their
+        declared headers. It's also used by 'collect' to find producers.
+        """
+        for column in self.header:
+            t = column.get("type")
+            if t:
+                yield t
+
+    def __iter__(self):
+        return iter(self.header)
+
+    def __getitem__(self, idx):
+        return self.header[idx]
+
+    def dictify(self, row):
+        result = {}
+        for idx, value in enumerate(row):
+            result[self.header[idx]["cname"]] = value
+
+        return result
+
+
+class TypedProfileCommand(ProfileCommand):
+    """Mixin that provides the plugin with standardized table output."""
+
+    __abstract = True
+
+    # Subclasses must override. Has to be an instance of PluginHeader.
+    table_header = None
+
+    def collect(self):
+        """Collect data that will be passed to renderer.table_row."""
+        raise NotImplementedError()
+
+    def collect_as_dicts(self):
+        for row in self.collect():
+            yield self.table_header.dictify(row)
+
+    def render(self, renderer):
+        renderer.table_header(self.table_header)
+        for row in self.collect():
+            renderer.table_row(*row)
+
+    def reflect(self, member):
+        column = self.table_header.by_cname.get(member)
+        if not column:
+            raise KeyError("Plugin %r has no column %r." % (self, member))
+
+        t = column.get("type")
+
+        if isinstance(t, type):
+            return t
+
+        if not t:
+            return None
+
+        if isinstance(t, basestring):
+            return self.profile.object_classes.get(t)
+
+    def getkeys(self):
+        return self.table_header.keys()
+
+
+class Producer(TypedProfileCommand):
+    """Finds and outputs structs of a particular type.
+
+    Producers are very simple plugins that output only a single column
+    which contains a struct of 'type_name'. A good example of a producer are
+    the individual pslist enumeration methods.
+    """
+
+    __abstract = True
+
+    # The type of the structs that's returned out of collect and render.
+    type_name = None
+
+    # Declare that this plugin may be called upon to collect structs.
+    producer = True
+
+    @registry.classproperty
+    @registry.memoize
+    def table_header(self):
+        return PluginHeader(dict(type=self.type_name, name=self.type_name,
+                                 cname=self.type_name))
+
+    def collect(self):
+        raise NotImplementedError()
+
+    def produce(self):
+        """Like collect, but yields the first column instead of whole row."""
+        for row in self.collect():
+            yield row[0]
+
+
+class CachedProducer(Producer):
+    """A producer backed by a cached session parameter hook."""
+
+    __abstract = True
+
+    @property
+    def hook_name(self):
+        """By convention, the hook name should be the same as our name."""
+        # Override if you really want to.
+        return self.name
+
+    def collect(self):
+        for offset in self.session.GetParameter(self.hook_name):
+            yield [self.session.profile.Object(
+                type_name=self.type_name,
+                offset=offset)]
 
 
 class KernelASMixin(object):
@@ -313,6 +480,7 @@ class PhysicalASMixin(object):
             raise PluginError("Physical address space is not set. "
                               "(Try plugins.load_as)")
 
+
 class PrivilegedMixIn(object):
     def __init__(self, **kwargs):
         super(PrivilegedMixIn, self).__init__(**kwargs)
@@ -339,6 +507,15 @@ class VerbosityMixIn(object):
         self.verbosity = kwargs.pop("verbosity", 1)
         super(VerbosityMixIn, self).__init__(*args, **kwargs)
 
+
+class DataInterfaceMixin(object):
+    """This declares a plugin to present a table-like data interface."""
+
+    COLUMNS = ()
+
+
+class PluginOutput(dict):
+    plugin_cls = DataInterfaceMixin
 
 
 class PluginMetadataDatabase(object):

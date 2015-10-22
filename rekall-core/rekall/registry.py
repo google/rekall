@@ -39,8 +39,24 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 class classproperty(property):
     """A property that can be called on classes."""
+
     def __get__(self, cls, owner):
         return self.fget(owner)
+
+
+def memoize(f):
+    cache = {}
+
+    def helper(*args):
+        cached = cache.get(args)
+        if cached:
+            return cached
+
+        cached = f(*args)
+        cache[args] = cached
+        return cached
+
+    return helper
 
 
 class UniqueObjectIdMetaclass(type):
@@ -100,7 +116,10 @@ class MetaclassRegistry(UniqueObjectIdMetaclass):
             cls.classes[cls.__name__] = cls
             name = getattr(cls, "name", None)
 
-            cls.classes_by_name[name] = cls
+            # We expect that classes by name will collide, which is why each
+            # value is a list of classes with that name.
+            cls.classes_by_name.setdefault(name, []).append(cls)
+
             try:
                 if cls.top_level_class.include_plugins_as_attributes:
                     setattr(cls.top_level_class, cls.__name__, cls)
@@ -120,7 +139,6 @@ class MetaclassRegistry(UniqueObjectIdMetaclass):
                     return impl
 
         cls.ImplementationByName = classmethod(ByName)
-
 
         def ByClass(self, name):
             return self.classes.get(name)

@@ -123,7 +123,7 @@ class XLSTable(text.TextTable):
         for item in row:
             # Get the object renderer for the item.
             object_renderer = self.renderer.get_object_renderer(
-                item, type=merged_opts.get("type"), **merged_opts)
+                target=item, type=merged_opts.get("type"), **merged_opts)
 
             object_renderer.RenderCell(item, current_ws, **options)
 

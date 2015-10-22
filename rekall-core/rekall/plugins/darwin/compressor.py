@@ -26,7 +26,7 @@ from rekall.plugins.darwin import common
 from rekall.plugins.darwin import WKdm
 
 
-class DarwinDumpCompressedPages(core.DirectoryDumperMixin, common.DarwinPlugin):
+class DarwinDumpCompressedPages(core.DirectoryDumperMixin, common.AbstractDarwinCommand):
     """Dumps all compressed pages."""
 
     __name = "dumpcompressedmemory"

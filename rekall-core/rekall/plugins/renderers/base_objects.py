@@ -25,6 +25,16 @@ from rekall import utils
 from rekall.ui import text
 
 
+class PluginObjectTextRenderer(text.TextObjectRenderer):
+    renders_type = "Plugin"
+
+    def render_full(self, target, **_):
+        return text.Cell(repr(target))
+
+    def render_compact(self, target, **_):
+        return text.Cell(target.name)
+
+
 class BaseObjectTextRenderer(text.TextObjectRenderer):
     renders_type = "BaseObject"
 
@@ -92,10 +102,10 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
 
 
 class PythonSetRenderer(text.TextObjectRenderer):
-    renders_type = "frozenset"
+    renders_type = ("set", "frozenset")
 
     def render_full(self, target, **_):
-        return text.Cell(repr(target))
+        return self.render_compact(target)
 
     def render_compact(self, target, **_):
         return text.Cell(
@@ -236,8 +246,23 @@ class FunctionTextRenderer(BaseObjectTextRenderer):
 class StructTextRenderer(text.TextObjectRenderer):
     renders_type = "Struct"
     DEFAULT_STYLE = "compact"
+    renderers = ["TextRenderer", "TestRenderer"]
+    COLUMNS = None
+    table = None
+
+    def __init__(self, *args, **kwargs):
+        self.columns = kwargs.pop("columns", self.COLUMNS)
+
+        super(StructTextRenderer, self).__init__(*args, **kwargs)
+
+        if self.columns:
+            self.table = text.TextTable(
+                columns=self.columns,
+                renderer=self.renderer,
+                session=self.session)
 
     def render_full(self, target, **_):
+        """Full render of a struct outputs every field."""
         result = repr(target) + "\n"
         width_name = 0
 
@@ -261,5 +286,30 @@ class StructTextRenderer(text.TextObjectRenderer):
 
         return text.Cell(result)
 
+    def render_header(self, **kwargs):
+        style = kwargs.get("style", self.DEFAULT_STYLE)
+
+        if style == "compact" and self.table:
+            return self.table.render_header()
+        else:
+            return super(StructTextRenderer, self).render_header(**kwargs)
+
     def render_compact(self, target, **_):
+        """Compact render outputs only a few select columns, or repr."""
+        if not self.table:
+            return self.render_repr(target)
+
+        values = []
+        for column in self.columns:
+            cname = column.get("cname")
+            if not cname:
+                raise ValueError(
+                    "Column spec %r doesn't specify 'cname'." % column)
+
+            values.append(getattr(target, cname))
+
+        return self.table.get_row(*values)
+
+    def render_repr(self, target, **_):
+        """Explicitly just render the repr."""
         return text.Cell(repr(target))

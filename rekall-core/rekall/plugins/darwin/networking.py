@@ -20,10 +20,93 @@ __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adam.sindelar@gmail.com>")
 
+from rekall import plugin
+from rekall import registry
+
 from rekall.plugins.darwin import common
 
 
-class DarwinArp(common.DarwinPlugin):
+class DarwinUnpListCollector(common.AbstractDarwinProducer):
+    """Walks the global list of sockets in uipc_usrreq."""
+
+    name = "unp_sockets"
+    type_name = "socket"
+
+    def collect(self):
+        for head_const in ["_unp_dhead", "_unp_shead"]:
+            lhead = self.session.profile.get_constant_object(
+                head_const,
+                target="unp_head")
+
+            for unp in lhead.lh_first.walk_list("unp_link.le_next"):
+                yield [unp.unp_socket]
+
+
+class DarwinSocketsFromHandles(common.AbstractDarwinProducer):
+    """Looks up handles that point to a socket and collects the socket."""
+
+    name = "open_sockets"
+    type_name = "socket"
+
+    def collect(self):
+        for fileproc in self.session.plugins.collect("fileproc"):
+            if fileproc.fg_type == "DTYPE_SOCKET":
+                yield [fileproc.autocast_fg_data()]
+
+
+class DarwinNetstat(common.AbstractDarwinTypedCommand):
+    """Prints all open sockets we know about, from any source.
+
+    Netstat will display even connections that lsof doesn't know about, because
+    they were either recovered from an allocation zone, or found through a
+    secondary mechanism (like system call handler cache).
+
+    On the other hand, netstat doesn't know the file descriptor or, really, the
+    process that owns the connection (although it does know the PID of the last
+    process to access the socket.)
+
+    Netstat will also tell you, in the style of psxview, if a socket was only
+    found using some of the methods available.
+    """
+
+    name = "netstat"
+
+    @classmethod
+    def methods(cls):
+        """Return the names of available socket enumeration methods."""
+        # Find all the producers that collect procs and inherit from
+        # AbstractDarwinCachedProducer.
+        methods = []
+        for subclass in common.AbstractDarwinProducer.classes.itervalues():
+            if (issubclass(subclass, common.AbstractDarwinProducer)
+                    and subclass.type_name == "socket"):
+                methods.append(subclass.name)
+        methods.sort()
+
+        return methods
+
+    @registry.classproperty
+    @registry.memoize
+    def table_header(cls):
+        header = [dict(name="Socket", cname="socket", type="socket", width=60)]
+        for method in cls.methods():
+            header.append(dict(name=method, cname=method, width=12))
+
+        return plugin.PluginHeader(*header)
+
+    def collect(self):
+        methods = self.methods()
+
+        for socket in sorted(self.session.plugins.collect("socket"),
+                             key=lambda socket: socket.last_pid):
+            row = [socket]
+            for method in methods:
+                row.append(method in socket.obj_producers)
+
+            yield row
+
+
+class DarwinArp(common.AbstractDarwinCommand):
     """Show information about arp tables."""
 
     __name = "arp"
@@ -60,7 +143,7 @@ class DarwinArp(common.DarwinPlugin):
             arp_cache = arp_cache.la_le.le_next
 
 
-class DarwinRoute(common.DarwinPlugin):
+class DarwinRoute(common.AbstractDarwinCommand):
     """Show routing table."""
 
     __name = "route"
@@ -161,7 +244,43 @@ class DarwinRoute(common.DarwinPlugin):
                 rentry.delta)
 
 
-class DarwinIPFilters(common.DarwinPlugin):
+class DarwinIfnetHook(common.AbstractDarwinParameterHook):
+    """Walks the global list of interfaces.
+
+    The head of the list of network interfaces is a kernel global [1].
+    The struct we use [2] is just the public part of the data [3]. Addresses
+    are related to an interface in a N:1 relationship [4]. AF-specific data
+    is a normal sockaddr struct.
+
+    References:
+      1:
+      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/dlil.c#L254
+      2:
+      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L528
+      3:
+      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/dlil.c#L188
+      4:
+      https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L816
+    """
+
+    name = "ifnet"
+
+    def calculate(self):
+        ifnet_head = self.session.profile.get_constant_object(
+            "_dlil_ifnet_head",
+            target="Pointer",
+            target_args=dict(
+                target="ifnet"))
+
+        return [x.obj_offset for x in ifnet_head.walk_list("if_link.tqe_next")]
+
+
+class DarwinIfnetCollector(common.AbstractDarwinCachedProducer):
+    name = "ifconfig"
+    type_name = "ifnet"
+
+
+class DarwinIPFilters(common.AbstractDarwinCommand):
     """Check IP Filters for hooks."""
 
     __name = "ip_filters"
