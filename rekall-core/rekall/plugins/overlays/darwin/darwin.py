@@ -588,6 +588,15 @@ class LIST_ENTRY(obj.Struct):
         return self.list_of_type(self.obj_parent.obj_type, self.obj_name)
 
 
+class llinfo_arp(obj.Struct):
+    @property
+    def isvalid(self):
+        try:
+            return self.la_rt.rt_llinfo.v() == self.obj_offset
+        except AttributeError:
+            return False
+
+
 class queue_entry(basic.ListMixIn, obj.Struct):
     """A queue_entry is an externalized linked list.
 
@@ -758,7 +767,7 @@ class socket(obj.Struct):
         https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/NKEConceptual/control/control.html
         """
         domain = self.so_proto.pr_domain.dom_family
-        type = self.so_proto.pr_type
+        type_name = self.so_proto.pr_type
         protocol = self.so_proto.pr_protocol
 
         si = {"soi_kind": "SOCKINFO_GENERIC"}
@@ -796,7 +805,7 @@ class socket(obj.Struct):
                     inp.inp_dependladdr.inp6_local.m("__u6_addr")
                 )
 
-            if (type == "SOCK_STREAM"
+            if (type_name == "SOCK_STREAM"
                     and (protocol == 0 or protocol == "IPPROTO_TCP")
                     and inp.inp_ppcb != None):
 
@@ -978,7 +987,8 @@ class sockaddr(obj.Struct):
 
         return addr
 
-    def __unicode__(self):
+    @property
+    def address(self):
         result = ""
         addr = self._get_address_obj()
         if addr:
@@ -989,6 +999,9 @@ class sockaddr(obj.Struct):
                 result = addr
 
         return str(result)
+
+    def __unicode__(self):
+        return self.address
 
 
 class vm_map_entry(obj.Struct):
@@ -1500,7 +1513,8 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
             # Support both forms with and without _class suffix.
             OSDictionary=OSDictionary, OSDictionary_class=OSDictionary,
             OSOrderedSet=OSOrderedSet, OSOrderedSet_class=OSOrderedSet,
-            fileproc=fileproc, session=session, cnode=cnode)
+            fileproc=fileproc, session=session, cnode=cnode,
+            llinfo_arp=llinfo_arp)
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)
         profile.add_constants(default_text_encoding="utf8")

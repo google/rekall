@@ -404,8 +404,11 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
             self.format_address(int(target), **options),
             width=width)
 
-    render_compact = render_full
-    render_value = render_full
+    def render_compact(self, *args, **kwargs):
+        return self.render_full(*args, **kwargs)
+
+    def render_value(self, *args, **kwargs):
+        return self.render_full(*args, **kwargs)
 
     def render_row(self, target, style=None, **options):
         """Render the target suitably.

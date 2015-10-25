@@ -74,6 +74,9 @@ int test_rangemap() {
 
 // Test filling the rangemap out of sequence.
 int test_rangemap_nonsequential() {
+    // Disable error logging because we cause them on purpose.
+    PmemLogLevel previous_level = pmem_logging_level;
+    pmem_logging_level = kPmemFatal;
     pmem_rangemap *r = pmem_rangemap_make(0x100);
 
     // Starting the map past zero should work.
@@ -91,5 +94,6 @@ int test_rangemap_nonsequential() {
         return -3;
     }
 
+    pmem_logging_level = previous_level;
     return 0;
 }

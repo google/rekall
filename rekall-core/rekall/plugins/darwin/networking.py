@@ -20,6 +20,7 @@ __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adam.sindelar@gmail.com>")
 
+from rekall import obj
 from rekall import plugin
 from rekall import registry
 
@@ -87,7 +88,7 @@ class DarwinNetstat(common.AbstractDarwinTypedCommand):
 
     @registry.classproperty
     @registry.memoize
-    def table_header(cls):
+    def table_header(cls):  # pylint: disable=no-self-argument
         header = [dict(name="Socket", cname="socket", type="socket", width=60)]
         for method in cls.methods():
             header.append(dict(name=method, cname=method, width=12))
@@ -106,41 +107,123 @@ class DarwinNetstat(common.AbstractDarwinTypedCommand):
             yield row
 
 
-class DarwinArp(common.AbstractDarwinCommand):
+class DarwinGetArpListHead(common.AbstractDarwinParameterHook):
+    """
+
+    One version of arp_init looks like this:
+
+    void
+    arp_init(void)
+    {
+        VERIFY(!arpinit_done);
+
+        LIST_INIT(&llinfo_arp); // <-- This is the global we want.
+
+        llinfo_arp_zone = zinit(sizeof (struct llinfo_arp),
+            LLINFO_ARP_ZONE_MAX * sizeof (struct llinfo_arp), 0,
+            LLINFO_ARP_ZONE_NAME);
+        if (llinfo_arp_zone == NULL)
+            panic("%s: failed allocating llinfo_arp_zone", __func__);
+
+        zone_change(llinfo_arp_zone, Z_EXPAND, TRUE);
+        zone_change(llinfo_arp_zone, Z_CALLERACCT, FALSE);
+
+        arpinit_done = 1;
+    }
+
+    Disassembled, the first few instructions look like this:
+     0x0 55                   PUSH RBP
+     0x1 4889e5               MOV RBP, RSP
+     0x4 803d65e9400001       CMP BYTE [RIP+0x40e965], 0x1
+     0xb 7518                 JNZ 0xff80090a7f95
+     0xd 488d3dee802900       LEA RDI, [RIP+0x2980ee]
+    0x14 488d35f5802900       LEA RSI, [RIP+0x2980f5]
+    0x1b baf3000000           MOV EDX, 0xf3
+
+    # This is a call to kernel!panic (later kernel!assfail):
+    0x20 e80b6c1400           CALL 0xff80091eeba0
+
+    # This is where it starts initializing the linked list:
+    0x25 48c70548e94000000000 MOV QWORD [RIP+0x40e948], 0x0
+         00
+    0x30 488d0d0e812900       LEA RCX, [RIP+0x29810e]
+    """
+    name = "disassembled_llinfo_arp"
+
+    PANIC_FUNCTIONS = (u"__kernel__!_panic", u"__kernel__!_assfail")
+
+    def calculate(self):
+        resolver = self.session.address_resolver
+        arp_init = resolver.get_constant_object("__kernel__!_arp_init",
+                                                target="Function")
+        instructions = iter(arp_init.Decompose(20))
+
+        # Walk down to the CALL mnemonic and use the address resolver to
+        # see if it calls one of the panic functions.
+        for instruction in instructions:
+            # Keep spinning until we get to the first CALL.
+            if instruction.mnemonic != "CALL":
+                continue
+
+            # This is absolute:
+            target = instruction.operands[0].value
+            _, names = resolver.get_nearest_constant_by_address(target)
+            if not names:
+                return obj.NoneObject("Could not find CALL in arp_init.")
+
+            if names[0] not in self.PANIC_FUNCTIONS:
+                return obj.NoneObject(
+                    "CALL was to %r, which is not on the PANIC list."
+                    % names)
+
+            # We verified it's the right CALL. MOV should be right after it,
+            # so let's just grab it.
+            mov_instruction = next(instructions)
+            if mov_instruction.mnemonic != "MOV":
+                return obj.NoneObject("arp_init code changed.")
+
+            offset = (mov_instruction.operands[0].disp
+                      + mov_instruction.address
+                      + mov_instruction.size)
+            address = self.session.profile.Object(type_name="address",
+                                                  offset=offset)
+
+            llinfo_arp = self.session.profile.Object(
+                type_name="llinfo_arp",
+                offset=address.v())
+
+            if llinfo_arp.isvalid:
+                return llinfo_arp.obj_offset
+
+            return obj.NoneObject("llinfo_arp didn't validate.")
+
+
+class DarwinArp(common.AbstractDarwinProducer):
     """Show information about arp tables."""
 
-    __name = "arp"
+    name = "arp"
+    type_name = "rtentry"
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("IP Addr", "ip_addr", "20"),
-             ("MAC Addr", "mac", "18"),
-             ("Interface", "interface", "9"),
-             ("Sent", "sent", "8"),
-             ("Recv", "recv", "8"),
-             ("Time", "timestamp", "24"),
-             ("Expires", "expires", "8"),
-             ("Delta", "delta", "8")])
-
-        arp_cache = self.profile.get_constant_object(
-            "_llinfo_arp",
+    def collect(self):
+        llinfo_arp = self.session.address_resolver.get_constant_object(
+            "__kernel__!_llinfo_arp",
             target="Pointer",
             target_args=dict(target="llinfo_arp"))
 
-        while arp_cache:
-            entry = arp_cache.la_rt
+        if not llinfo_arp:
+            # Must not have it in the profile. Try asking the session hook
+            # for the address.
+            offset = self.session.GetParameter("disassembled_llinfo_arp")
+            if not offset:
+                self.session.logging.error(
+                    "Could not find the address of llinfo_arp.")
+                return
 
-            renderer.table_row(
-                entry.source_ip,
-                entry.dest_ip,
-                entry.name,
-                entry.sent,
-                entry.rx,
-                entry.base_calendartime,
-                entry.rt_expire,
-                entry.delta)
+            llinfo_arp = self.session.profile.Object(
+                type_name="llinfo_arp", offset=offset)
 
-            arp_cache = arp_cache.la_le.le_next
+        for arp_hit in llinfo_arp.walk_list("la_le.le_next"):
+            yield [arp_hit.la_rt]
 
 
 class DarwinRoute(common.AbstractDarwinCommand):
@@ -263,14 +346,24 @@ class DarwinIfnetHook(common.AbstractDarwinParameterHook):
       https://github.com/opensource-apple/xnu/blob/10.9/bsd/net/if_var.h#L816
     """
 
-    name = "ifnet"
+    name = "ifconfig"
+
+    # ifnet_head is the actual extern holding ifnets and seems to be an
+    # improvement over dlil_ifnet_head, which is a static and used only in the
+    # dlil (stands for data link interface, I think?) module.
+    IFNET_HEAD_NAME = ("_ifnet_head", "_dlil_ifnet_head")
 
     def calculate(self):
-        ifnet_head = self.session.profile.get_constant_object(
-            "_dlil_ifnet_head",
-            target="Pointer",
-            target_args=dict(
-                target="ifnet"))
+        ifnet_head = obj.NoneObject("No ifnet global names given.")
+        for name in self.IFNET_HEAD_NAME:
+            ifnet_head = self.session.profile.get_constant_object(
+                name,
+                target="Pointer",
+                target_args=dict(
+                    target="ifnet"))
+
+            if ifnet_head:
+                break
 
         return [x.obj_offset for x in ifnet_head.walk_list("if_link.tqe_next")]
 

@@ -20,6 +20,7 @@
 
 from rekall.ui import json_renderer
 
+from rekall.ui import text
 from rekall.plugins.renderers import base_objects
 from rekall.plugins.renderers import data_export
 
@@ -119,6 +120,30 @@ class Socket_TextObjectRenderer(base_objects.StructTextRenderer):
         dict(name="Type", cname="human_type", width=20),
         dict(name="Description", cname="human_name", width=60)
     ]
+
+
+class Rtentry_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "rtentry"
+
+    COLUMNS = [
+        dict(name="IP Address", cname="source_ip", type="sockaddr",
+             width=18),
+        dict(name="Mac Address", cname="dest_ip", type="sockaddr",
+             width=18),
+        dict(name="Interface", cname="name", align="c"),
+        dict(name="Sent", cname="sent", width=8, align="r"),
+        dict(name="Received", cname="rx", width=8, align="r"),
+        dict(name="Time", cname="base_calendartime", width=30, align="c"),
+        dict(name="Expires", cname="rt_expire", align="r"),
+        dict(name="Delta", cname="delta", align="r")
+    ]
+
+
+class Sockaddr_TextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "sockaddr"
+
+    def render_full(self, target, **_):
+        return text.Cell(target.address)
 
 
 class Zone_TextObjectRenderer(base_objects.StructTextRenderer):
