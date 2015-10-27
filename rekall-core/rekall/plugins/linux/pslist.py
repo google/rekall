@@ -23,12 +23,9 @@
 @organization: Digital Forensics Solutions
 """
 
-from rekall import plugin
 from rekall import testlib
-from rekall.plugins import core
 from rekall.plugins.common import memmap
 from rekall.plugins.linux import common
-from rekall.ui import text
 
 
 class LinuxPsList(common.LinProcessFilter):
@@ -48,8 +45,7 @@ class LinuxPsList(common.LinProcessFilter):
                                ("GID", "gid", ">6"),
                                ("DTB", "dtb", "[addrpad]"),
                                ("Start Time", "start_time", ">24"),
-                               dict(name="Binary", wrap=False),
-                              ])
+                               dict(name="Binary", cname="binary", wrap=False)])
 
         for task in self.filter_processes():
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
@@ -77,11 +73,11 @@ class TestLinMemDump(common.LinuxTestMixin, testlib.HashChecker):
     PARAMETERS = dict(
         commandline="memdump --proc_regex %(proc_name)s --dump_dir %(tempdir)s",
         proc_name="bash",
-        )
+    )
 
 # We only care about PIDTYPE_PID here.
 # http://lxr.free-electrons.com/source/include/linux/pid.h?v=3.8#L6
-#enum pid_type
+# enum pid_type
 # {
 #         PIDTYPE_PID,
 # };
@@ -108,9 +104,10 @@ class PidHashTable(LinuxPsList):
                 target="Array",
                 target_args=dict(
                     count=1 << pidhash_shift,
-                    target="hlist_head")
+                    target="hlist_head"
                 )
             )
+        )
 
         seen = set()
 

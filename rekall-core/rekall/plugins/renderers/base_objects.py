@@ -76,7 +76,6 @@ class NoneTextRenderer(NoneObjectTextRenderer):
 
 class UnixTimestampObjectRenderer(BaseObjectTextRenderer):
     renders_type = "UnixTimeStamp"
-    renderers = ["TextRenderer"]
 
     def render_row(self, target, details=False, **options):
         if details:

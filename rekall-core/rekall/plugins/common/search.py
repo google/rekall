@@ -333,8 +333,9 @@ class Search(EfilterPlugin):
         try:
             columns = [column["cname"] for column in table_header]
         except KeyError:
-            raise ValueError("Table header %r doesn't specify cnames." %
-                             table_header)
+            raise ValueError(
+                "Column spec %r is missing a cname. Full header was: %r." %
+                (column, table_header))
 
         for row in rows:
             renderer.table_row(*[row[key] for key in columns])

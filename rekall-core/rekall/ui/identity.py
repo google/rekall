@@ -45,7 +45,17 @@ class IdentityRenderer(renderer_module.BaseRenderer):
         return self
 
     def table_header(self, columns=None, **_):
-        self.columns = columns
+        self.columns = []
+        for column in columns:
+            if isinstance(column, dict):
+                self.columns.append(column)
+            elif isinstance(column, tuple):
+                self.columns.append(dict(name=column[0],
+                                         cname=column[1],
+                                         formatstring=column[2]))
+            else:
+                raise TypeError("Column spec must be dict or tuple. Got %r."
+                                % column)
 
     def _get_column_name(self, idx):
         column = self.columns[idx]
