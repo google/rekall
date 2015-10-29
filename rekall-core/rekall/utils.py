@@ -22,7 +22,6 @@
 
 """These are various utilities for rekall."""
 import __builtin__
-import bisect
 import cPickle
 import cStringIO
 import importlib
@@ -702,7 +701,7 @@ class RangedCollection(object):
         if isinstance(other, self.__class__):
             return self.collection == other.collection
 
-        raise NotImplemented
+        return NotImplemented
 
     def clear(self):
         self.collection.clear()
@@ -718,7 +717,7 @@ class RangedCollection(object):
     def __reversed__(self):
         for key in reversed(self.collection):
             start, end = key
-            yield start, end, self.collection(key)
+            yield start, end, self.collection[key]
 
     def __str__(self):
         result = []

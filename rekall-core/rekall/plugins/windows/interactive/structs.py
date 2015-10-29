@@ -142,7 +142,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         pool_header = self.SearchForPoolHeader(self.offset, search=self.search)
 
         if pool_header:
-            name = (pool_header.ProcessBilled.name or
+            name = (pool_header.m("ProcessBilled").name or
                     str(pool_header.Tag).encode("string-escape"))
 
             renderer.format(

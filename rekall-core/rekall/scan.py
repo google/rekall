@@ -41,10 +41,12 @@ class ScannerCheck(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, profile=None, address_space=None, **_kwargs):
+    def __init__(self, profile=None, address_space=None, session=None,
+                 **_kwargs):
         """The profile that this scanner check should use."""
         self.profile = profile
         self.address_space = address_space
+        self.session = session
 
     def object_offset(self, offset):
         return offset
@@ -222,7 +224,8 @@ class BaseScanner(object):
         self.constraints = []
         for class_name, args in self.checks:
             check = ScannerCheck.classes[class_name](
-                profile=self.profile, address_space=self.address_space, **args)
+                profile=self.profile, address_space=self.address_space,
+                session=self.session, **args)
             self.constraints.append(check)
 
         self.skippers = [c for c in self.constraints if hasattr(c, "skip")]

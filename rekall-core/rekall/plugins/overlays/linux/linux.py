@@ -1138,4 +1138,7 @@ class Linux32(Linux):
 
 
 class Linux64(Linux):
-    pass
+    @classmethod
+    def Initialize(cls, profile):
+        profile.set_metadata("arch", "AMD64")
+        super(Linux64, cls).Initialize(profile)

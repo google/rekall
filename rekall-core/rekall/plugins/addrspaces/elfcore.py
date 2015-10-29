@@ -185,10 +185,10 @@ class KCoreAddressSpace(Elf64CoreDump):
         # Collect all ranges between ffff880000000000 - ffffc7ffffffffff
         runs = []
 
-        for vaddr, vaddr_end, paddr in self.runs:
-            if 0xffff880000000000 < vaddr < 0xffffc7ffffffffff:
-                runs.append((vaddr - 0xffff880000000000,
-                             paddr, vaddr_end - vaddr))
+        for start, _, run in self.runs:
+            if 0xffff880000000000 < run.start < 0xffffc7ffffffffff:
+                runs.append((start - 0xffff880000000000,
+                             run.file_offset, run.length))
 
         self.as_assert(runs, "No kcore compatible virtual ranges.")
         self.runs.clear()

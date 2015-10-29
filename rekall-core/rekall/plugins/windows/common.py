@@ -182,8 +182,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
             session=self.session, dtb=dtb,
             base=self.session.physical_address_space)
 
-        # Check that the _KUSER_SHARED_DATA makes sense. This structure is always
-        # at a known offset since it must be shared with user space apps.
+        # Check that the _KUSER_SHARED_DATA makes sense. This structure is
+        # always at a known offset since it must be shared with user space apps.
         kuser_shared = self.eprocess_index._KUSER_SHARED_DATA(
             offset=self.profile.get_constant("KI_USER_SHARED_DATA"),
             vm=address_space)
@@ -236,8 +236,9 @@ class PoolTagCheck(scan.StringCheck):
     def __init__(self, tag=None, **kwargs):
         super(PoolTagCheck, self).__init__(needle=tag, **kwargs)
 
-        # The offset from the start of _POOL_HEADER to the tag.
-        self.tag_offset = self.profile.get_obj_offset(
+        # The offset from the start of _POOL_HEADER to the tag. (Note we use the
+        # kernel profile for pool definitions.).
+        self.tag_offset = self.session.profile.get_obj_offset(
             "_POOL_HEADER", "PoolTag")
 
     def skip(self, buffer_as, offset):
@@ -278,12 +279,12 @@ class CheckPoolSize(scan.ScannerCheck):
         if min_size:
             self.condition = lambda x: x >= min_size
 
-        self.pool_align = self.profile.constants['PoolAlignment']
+        self.pool_align = self.session.profile.constants['PoolAlignment']
         if self.condition is None:
             raise RuntimeError("No pool size provided")
 
     def check(self, buffer_as, offset):
-        pool_hdr = self.profile._POOL_HEADER(
+        pool_hdr = self.session.profile._POOL_HEADER(
             vm=buffer_as, offset=offset)
 
         block_size = pool_hdr.BlockSize.v()
@@ -299,7 +300,7 @@ class CheckPoolType(scan.ScannerCheck):
         self.free = free
 
     def check(self, buffer_as, offset):
-        pool_hdr = self.profile._POOL_HEADER(
+        pool_hdr = self.session.profile._POOL_HEADER(
             vm=buffer_as, offset=offset)
 
         return ((self.non_paged and pool_hdr.NonPagedPool) or
@@ -314,7 +315,7 @@ class CheckPoolIndex(scan.ScannerCheck):
         self.value = value
 
     def check(self, buffer_as, offset):
-        pool_hdr = self.profile._POOL_HEADER(
+        pool_hdr = self.session.profile._POOL_HEADER(
             vm=buffer_as, offset=offset)
 
         return pool_hdr.PoolIndex == self.value
@@ -326,9 +327,10 @@ class PoolScanner(scan.BaseScanner):
     def scan(self, offset=0, maxlen=None):
         """Yields instances of _POOL_HEADER which potentially match."""
 
-        maxlen = maxlen or self.profile.get_constant("MaxPointer")
+        maxlen = maxlen or self.session.profile.get_constant("MaxPointer")
         for hit in super(PoolScanner, self).scan(offset=offset, maxlen=maxlen):
-            yield self.profile._POOL_HEADER(vm=self.address_space, offset=hit)
+            yield self.session.profile._POOL_HEADER(
+                vm=self.address_space, offset=hit)
 
 
 class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):

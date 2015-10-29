@@ -185,7 +185,7 @@ class WindowsCrashBMP(addrspace.RunBasedAddressSpace):
             self.add_run(*last_run)
 
         # Set the DTB from the crash dump header.
-        session.SetCache("dtb", self.header.DirectoryTableBase.v(),
+        self.session.SetCache("dtb", self.header.DirectoryTableBase.v(),
                          volatile=False)
 
 

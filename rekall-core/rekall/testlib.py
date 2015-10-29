@@ -277,23 +277,27 @@ class SimpleTestCase(RekallBaseUnitTestCase):
             return delegate_plugin.is_active(session)
 
     def testCase(self):
-        previous = self.baseline['output']
-        current = self.current['output']
-
-        # Compare the entire table
-        self.assertEqual(previous, current)
-
-
-class SortedComparison(SimpleTestCase):
-
-    __abstract = True
-
-    def testCase(self):
         previous = sorted(self.baseline['output'])
         current = sorted(self.current['output'])
 
         # Compare the entire table
         self.assertListEqual(previous, current)
+
+
+class SortedComparison(SimpleTestCase):
+    """All test cases are sorted now."""
+
+
+class UnSortedComparison(SimpleTestCase):
+
+    __abstract = True
+
+    def testCase(self):
+        previous = self.baseline['output']
+        current = self.current['output']
+
+        # Compare the entire table
+        self.assertEqual(previous, current)
 
 
 class DisabledTest(RekallBaseUnitTestCase):
