@@ -27,7 +27,6 @@ acquire more relevant information (e.g. mapped files etc).
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import os
-import posixpath
 import re
 import stat
 import time
@@ -47,6 +46,67 @@ from pyaff4 import lexicon
 from pyaff4 import rdfvalue
 
 from pyaff4 import plugins  # pylint: disable=unused-import
+
+
+class AFF4StreamReader(object):
+    """A class which makes using AFF4 map's stream writing interface easier.
+
+    This reader is suitable to be used with AFF4Map's WriteStream interface.
+    """
+    def __init__(self, session, address_space):
+        self.session = session
+        self.address_space = address_space
+        self.buffsize = 64 * 1024
+        self.generator = self.GenerateData()
+        self.last_total = self.total = 0
+        self.last_tick = 0
+        self.offset = 0
+
+    def ShowProgress(self):
+        now = time.time()
+        read_len = self.total - self.last_total
+
+        if now > self.last_tick:
+            rate = read_len / (now - self.last_tick) / 1e6
+        else:
+            rate = 0
+
+        self.last_tick = now
+        self.last_total = self.total
+        return "%s: Wrote %#x (%d mb total) (%02.2d Mb/s)" % (
+            self.address_space, self.offset, self.total / 1e6, rate)
+
+    def GenerateData(self):
+        # Yield 64k blocks for each run.
+        for run in self.address_space.get_address_ranges():
+            for self.offset in utils.xrange(run.start, run.end, self.buffsize):
+                data = self.address_space.read(self.offset, self.buffsize)
+                self.total += len(data)
+                self.session.report_progress("%s", self.ShowProgress)
+
+                yield self.offset, data
+
+    def __call__(self):
+        """Generate the generator for each call."""
+        try:
+            return self.generator.next()
+        except StopIteration:
+            return None
+
+
+class PaddingAFF4StreamReader(AFF4StreamReader):
+    """A reader which null pads any gaps.
+
+    This reader is suitable to be used with AFF4Image WriteStream interface.
+    """
+    def GenerateData(self):
+        for self.offset in utils.xrange(0, self.address_space.end,
+                                        self.buffsize):
+            data = self.address_space.read(self.offset, self.buffsize)
+            self.total += len(data)
+            self.session.report_progress("%s", self.ShowProgress)
+
+            yield data
 
 
 class AFF4Acquire(plugin.Command):
@@ -74,7 +134,7 @@ class AFF4Acquire(plugin.Command):
             "If not specified we write output.aff4 in current directory.")
 
         parser.add_argument(
-            "--compression", default="snappy", required=False,
+            "--compression", default=None, required=False,
             choices=["snappy", "stored", "zlib"],
             help="The compression to use.")
 
@@ -86,9 +146,17 @@ class AFF4Acquire(plugin.Command):
             "--also_pagefile", default=False, type="Boolean",
             help="Also get the pagefile/swap partition (requires a profile)")
 
-    def __init__(self, destination=None, compression="snappy", also_files=False,
+    def __init__(self, destination=None, compression=None, also_files=False,
                  also_pagefile=False, max_file_size=100*1024*1024, **kwargs):
         super(AFF4Acquire, self).__init__(**kwargs)
+
+        # If compression is not specified we prefer snappy but if that is not
+        # available we use zlib which should always be there.
+        if compression is None:
+            if aff4_image.snappy:
+                compression = "snappy"
+            else:
+                compression = "zlib"
 
         self.destination = destination or "output.aff4"
         if compression == "snappy" and aff4_image.snappy:
@@ -122,7 +190,6 @@ class AFF4Acquire(plugin.Command):
 
         with volume.CreateMember(
                 image_urn.Append("information.yaml")) as metadata_fd:
-
             metadata_fd.Write(
                 yaml_utils.encode(self.create_metadata(source)))
 
@@ -131,40 +198,12 @@ class AFF4Acquire(plugin.Command):
         with aff4_map.AFF4Map.NewAFF4Map(
             resolver, image_urn, volume.urn) as image_stream:
 
-            total = 0
-            last_tick = time.time()
-
-            for run in source.get_address_ranges():
-                length = run.length
-                offset = run.start
-
-                image_stream.seek(offset)
-
-                while length > 0:
-                    to_read = min(length, self.BUFFERSIZE)
-                    data = source.read(offset, to_read)
-
-                    image_stream.write(data)
-                    now = time.time()
-
-                    read_len = len(data)
-                    if now > last_tick:
-                        rate = read_len / (now - last_tick) / 1e6
-                    else:
-                        rate = 0
-
-                    self.session.report_progress(
-                        "%s: Wrote %#x (%d mb total) (%02.2d Mb/s)",
-                        source, offset, total / 1e6, rate)
-
-                    length -= read_len
-                    offset += read_len
-                    total += read_len
-                    last_tick = now
+            reader = AFF4StreamReader(self.session, source)
+            image_stream.WriteWithCallback(reader)
 
         resolver.Close(image_stream)
         renderer.format("Wrote {0} mb of Physical Memory to {1}\n",
-                        total/1024/1024, image_stream.urn)
+                        reader.total/1024/1024, image_stream.urn)
 
     def _copy_address_space(self, renderer, resolver, volume, image_urn,
                             source):
@@ -175,37 +214,12 @@ class AFF4Acquire(plugin.Command):
         with aff4_image.AFF4Image.NewAFF4Image(
             resolver, image_urn, volume.urn) as image_stream:
 
-            total = 0
-            last_tick = time.time()
-
-            for run in source.get_address_ranges():
-                offset = run.start
-                length = run.length
-
-                while length > 0:
-                    to_read = min(length, self.BUFFERSIZE)
-                    data = source.read(offset, to_read)
-
-                    image_stream.write(data)
-                    now = time.time()
-
-                    read_len = len(data)
-                    if now > last_tick:
-                        rate = read_len / (now - last_tick) / 1e6
-                    else:
-                        rate = 0
-
-                    self.session.report_progress(
-                        "%s: Wrote %#x (%d total) (%02.2d Mb/s)",
-                        source, offset, total / 1e6, rate)
-
-                    length -= read_len
-                    offset += read_len
-                    total += read_len
-                    last_tick = now
+            reader = PaddingAFF4StreamReader(self.session, source)
+            image_stream.WriteStream(reader)
 
         resolver.Close(image_stream)
-        renderer.format("Wrote {0} ({1} mb)\n", source.name, total/1024/1024)
+        renderer.format("Wrote {0} ({1} mb)\n", source.name,
+                        reader.total/1024/1024)
 
     def linux_copy_files(self, renderer, resolver, volume):
         """Copy all the mapped or opened files to the volume."""
@@ -250,12 +264,8 @@ class AFF4Acquire(plugin.Command):
                         image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
                         rdfvalue.XSDString(filename))
 
-                    while 1:
-                        data = in_fd.read(self.BUFFERSIZE)
-                        if not data:
-                            break
-
-                        out_fd.write(data)
+                    # Use the AFF4 stream writer interface.
+                    out_fd.WriteStream(in_fd.read)
 
         except IOError:
             try:
@@ -373,7 +383,9 @@ class AFF4Acquire(plugin.Command):
 
         # If no address space is specified we try to operate in live mode.
         if self.session.plugins.load_as().GetPhysicalAddressSpace() == None:
-            renderer.format("Will load physical address space from live plugin.")
+            renderer.format(
+                "Will load physical address space from live plugin.")
+
             live = self.session.plugins.live()
             try:
                 live.live()
@@ -459,10 +471,11 @@ class AFF4Ls(plugin.Command):
             urn = unicode(subject)
             filename = None
             if (self.resolver.Get(subject, lexicon.AFF4_CATEGORY) ==
-                lexicon.AFF4_MEMORY_PHYSICAL):
+                    lexicon.AFF4_MEMORY_PHYSICAL):
                 filename = "Physical Memory"
             else:
-                filename = self.resolver.Get(subject, lexicon.AFF4_STREAM_ORIGINAL_FILENAME)
+                filename = self.resolver.Get(
+                    subject, lexicon.AFF4_STREAM_ORIGINAL_FILENAME)
 
             if not filename:
                 filename = volume.urn.RelativePath(urn)
@@ -494,8 +507,8 @@ class AFF4Ls(plugin.Command):
         # Add metadata files.
         for subject in self.resolver.QuerySubject(
                 re.compile(".+(yaml|turtle)")):
-                urn = unicode(subject)
-                urns[urn] = volume.urn.RelativePath(urn)
+            urn = unicode(subject)
+            urns[urn] = volume.urn.RelativePath(urn)
 
         return urns
 
@@ -598,10 +611,11 @@ class AFF4Export(core.DirectoryDumperMixin, plugin.Command):
     def render(self, renderer):
         volume_urn = rdfvalue.URN().FromFileName(self.volume_path)
         with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
-            for urn, filename in self.aff4ls.interesting_streams(volume).items():
+            for urn, filename in self.aff4ls.interesting_streams(
+                    volume).items():
                 if self.regex.match(filename):
                     # Force the file to be under the dumpdir.
-                    filename=self._sanitize_filename(filename)
+                    filename = self._sanitize_filename(filename)
                     self.session.logging.info("Dumping %s", filename)
 
                     with renderer.open(directory=self.dump_dir,

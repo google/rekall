@@ -34,7 +34,10 @@ import socket
 import sortedcontainers
 import tempfile
 import threading
+import traceback
 import time
+import weakref
+
 
 
 def SmartStr(string, encoding="utf8"):
@@ -185,6 +188,8 @@ class FastStore(object):
     and a linked list for quick deletions / insertions.
     """
 
+    STORES = {}
+
     def __init__(self, max_size=10, kill_cb=None, lock=False):
         """Constructor.
 
@@ -202,6 +207,9 @@ class FastStore(object):
         if lock:
             self.lock = threading.RLock()
         self.hits = self.misses = 0
+        self.creator = GetStack()
+        self.STORES[id(self)] = weakref.proxy(
+            self, lambda _, id=id(self), s=self.STORES: s.pop(id))
 
     def __len__(self):
         return len(self._hash)
@@ -282,7 +290,10 @@ class FastStore(object):
         return item
 
     def __iter__(self):
-        return self._hash.items()
+        return self._hash.iteritems()
+
+    def keys(self):
+        return self._hash.keys()
 
     @Synchronized
     def __contains__(self, key):
@@ -870,3 +881,31 @@ def TimeIt(f):
             print "Took %s sec" % (time.time() - now)
 
     return NewFunction
+
+def GetStack():
+    """Returns the current call stack as a string."""
+    return "".join(traceback.format_stack())
+
+
+def InternObject(obj):
+    """Copies and interns strings in a recursive object."""
+    obj_cls = obj.__class__
+    if obj_cls is str:
+        return intern(obj)
+
+    if obj_cls is unicode:
+        return intern(str(obj))
+
+    if obj_cls is dict:
+        result = {}
+        for k, v in obj.iteritems():
+            k = InternObject(k)
+            v = InternObject(v)
+            result[k] = v
+
+        return result
+
+    if obj_cls is list:
+        return [InternObject(x) for x in obj]
+
+    return obj

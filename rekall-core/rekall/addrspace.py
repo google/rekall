@@ -30,11 +30,8 @@
    Alias for all address spaces
 
 """
-import weakref
-
 from rekall import registry
 from rekall import utils
-
 
 
 class Zeroer(object):
@@ -115,6 +112,9 @@ class Run(object):
         return self.__class__(**kwargs)
 
     def __str__(self):
+        if self.file_offset is None:
+            return u"<%#x, %#x>" % (self.start, self.end)
+
         return u"<%#x, %#x> -> %#x @ %s" % (
             self.start, self.end, self.file_offset,
             self.address_space)
@@ -473,7 +473,7 @@ class CachingAddressSpaceMixIn(object):
     # The size of chunks we cache. This should be large enough to make file
     # reads efficient.
     CHUNK_SIZE = 32 * 1024
-    CACHE_SIZE = 1000
+    CACHE_SIZE = 10
 
     def __init__(self, **kwargs):
         super(CachingAddressSpaceMixIn, self).__init__(**kwargs)

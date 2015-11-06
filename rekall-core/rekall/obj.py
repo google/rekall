@@ -1724,6 +1724,7 @@ class Profile(object):
             kwargs = constants
 
         for k, v in kwargs.iteritems():
+            k = intern(str(k))
             self.constants[k] = v
             if constants_are_addresses:
                 try:
@@ -1736,27 +1737,28 @@ class Profile(object):
                         if k not in existing_value:
                             existing_value.append(k)
                     elif existing_value != k:
-                        self.constant_addresses[address] = [existing_value, k]
+                        self.constant_addresses[address] = [
+                            existing_value, k]
                 except ValueError:
                     pass
 
     def add_reverse_enums(self, **kwargs):
         """Add the kwargs as a reverse enum for this profile."""
         for k, v in kwargs.iteritems():
-            self.reverse_enums[k] = str(v)
+            self.reverse_enums[intern(str(k))] = intern(str(v))
 
     def add_enums(self, **kwargs):
         """Add the kwargs as an enum for this profile."""
         # Alas JSON converts integer keys to strings.
         for k, v in kwargs.iteritems():
-            self.enums[k] = enum_definition = {}
+            self.enums[intern(str(k))] = enum_definition = {}
             for enum, name in v.items():
-                enum_definition[str(enum)] = name
+                enum_definition[intern(str(enum))] = name
 
     def add_types(self, abstract_types):
         self.flush_cache()
 
-        abstract_types = copy.deepcopy(abstract_types)
+        abstract_types = utils.InternObject(abstract_types)
         self.known_types.update(abstract_types)
 
         # we merge the abstract_types with self.vtypes and then recompile
@@ -1820,14 +1822,14 @@ class Profile(object):
                 # callable_members dict, and revert back to the vtype
                 # definition.
                 if callable(v):
-                    callable_members[k] = v
+                    callable_members[intern(k)] = v
 
                     # If the callable is masking an existing field, revert back
                     # to it.
                     original_v = original_type_descriptor[1].get(k)
                     if original_v:
-                        members[k] = (original_v[0],
-                                      self.list_to_type(k, original_v[1]))
+                        members[intern(k)] = (
+                            original_v[0], self.list_to_type(k, original_v[1]))
 
                 elif v[0] == None:
                     self.session.logging.warning(
@@ -1835,12 +1837,13 @@ class Profile(object):
                         "has a concrete definition for it.",
                         k, type_name)
                 else:
-                    members[k] = (v[0], self.list_to_type(k, v[1]))
+                    members[intern(str(k))] = (
+                        v[0], self.list_to_type(k, v[1]))
 
             # Allow the class plugins to override the class constructor here
             cls = self.object_classes.get(type_name, Struct)
 
-            self.types[type_name] = self._make_struct_callable(
+            self.types[intern(str(type_name))] = self._make_struct_callable(
                 cls, type_name, members, size, callable_members)
 
     def _make_struct_callable(self, cls, type_name, members, size,
@@ -2134,12 +2137,12 @@ class Profile(object):
             raise RuntimeError("VType error: Invalid field type descriptor %s" %
                                field_member)
 
-        offset, field_descrition = field_member
+        offset, field_description = field_member
         if field_overlay[0] is None:
             field_overlay[0] = offset
 
         if field_overlay[1] is None:
-            field_overlay[1] = field_descrition
+            field_overlay[1] = field_description
 
         return field_overlay
 

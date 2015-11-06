@@ -55,7 +55,7 @@ install_requires = [
     "distorm3 >= 0",
     "acora >= 1.8",
     "sortedcontainers == 0.9.6",
-    "PyAFF4 >= 0.17",
+    "PyAFF4 >= 0.18",
     "efilter == 1445943458",
 ]
 
