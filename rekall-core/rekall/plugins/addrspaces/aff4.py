@@ -33,7 +33,6 @@ pip install pyaff4
 import logging
 import re
 import os
-import weakref
 
 from rekall import addrspace
 from rekall import yaml_utils
@@ -41,6 +40,7 @@ from rekall import utils
 from rekall.plugins.addrspaces import standard
 
 from pyaff4 import data_store
+from pyaff4 import aff4_directory
 from pyaff4 import zip
 from pyaff4 import lexicon
 from pyaff4 import rdfvalue
@@ -99,6 +99,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
     def __init__(self, filename=None, **kwargs):
         super(AFF4AddressSpace, self).__init__(**kwargs)
+
         self.as_assert(self.base == None,
                        "Must stack on another address space")
 
@@ -111,7 +112,6 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         # A map between the filename and the offset it is mapped into the
         # address space.
         self.mapped_files = {}
-
         try:
             volume_path, stream_path = self._LocateAFF4Volume(path)
         except IOError:
@@ -130,32 +130,39 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         # you can still load the pagefile manually using the --pagefile
         # parameter.
         with zip.ZipFile.NewZipFile(self.resolver, volume_path) as volume:
-            self.volumes.add(volume.urn)
             self._LoadMemoryImage(volume.urn.Append(stream_path))
 
     def _LocateAFF4Volume(self, filename):
         stream_name = []
-        volume_path = filename
-        while volume_path:
+        path_components = list(filename.split(os.sep))
+        while path_components:
             try:
+                volume_path = os.sep.join(path_components)
                 volume_urn = rdfvalue.URN.FromFileName(volume_path)
-                with self.resolver.AFF4FactoryOpen(volume_urn) as aff4_stream:
-                    if stream_name:
-                        return aff4_stream.urn, os.path.join(*stream_name)
 
-                    return aff4_stream.urn, None
+                if os.path.isfile(volume_path):
+                    with zip.ZipFile.NewZipFile(
+                            self.resolver, volume_path) as volume:
+                        if stream_name:
+                            return volume.urn, os.sep.join(stream_name)
+
+                        return volume.urn, None
+
+                elif os.path.isdir(volume_path):
+                    with aff4_directory.AFF4Directory.NewAFF4Directory(
+                            self.resolver, volume_urn) as volume:
+                        if stream_name:
+                            return volume.urn, os.sep.join(stream_name)
+
+                        return volume.urn, None
 
             except IOError:
-                volume_path, stream_component = os.path.split(volume_path)
-                if not stream_component:
-                    break
-
-                stream_name.insert(0, stream_component)
+                stream_name.insert(0, path_components.pop(-1))
 
         raise IOError("Not found")
 
     def _AutoLoadAFF4Volume(self, path):
-        with zip.ZipFile.NewZipFile(self.resolver, path) as volume:
+        with self.resolver.AFF4FactoryOpen(path) as volume:
             self.volume_urn = volume.urn
 
             # We are searching for images with the physical memory category.
@@ -293,7 +300,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                 "AFF4 volume does not contain %s/information.yaml" % image_urn)
 
     def describe(self, address):
-        start, end, run = self.runs.get_containing_range(address)
+        start, _, run = self.runs.get_containing_range(address)
         if start is None:
             # For unmapped streams just say we have no idea.
             return u"%#x (Unmapped)" % address

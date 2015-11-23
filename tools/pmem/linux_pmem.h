@@ -13,19 +13,11 @@ CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations under the License.
 */
 
-#ifndef _LINUX_PMEM_H
-#define _LINUX_PMEM_H
+#ifndef TOOLS_PMEM_LINUX_PMEM_H_
+#define TOOLS_PMEM_LINUX_PMEM_H_
 
 #include "pmem.h"
 #include <stdint.h>
-
-struct KCoreRange {
-  uint64_t kcore_offset;
-  uint64_t phys_offset;
-  uint64_t file_offset;
-  uint64_t length;
-};
-
 
 class LinuxPmemImager: public PmemImager {
  protected:
@@ -34,33 +26,13 @@ class LinuxPmemImager: public PmemImager {
   }
 
   /**
-   * Parse memory ranges from the /proc/kcore device.
-   *
-   * @param ranges: This vector will be filled with memory ranges.
-   *
-   * @return STATUS_OK if some ranges were found.
-   */
-  AFF4Status ParseKcore(vector<KCoreRange> &ranges);
-
-  /**
    * Actually create the image of physical memory.
    *
    *
    * @return STATUS_OK if successful.
    */
   virtual AFF4Status ImagePhysicalMemory();
-
-  /**
-   * First obtain the /proc/kcore memory map and then image it into the output
-   * volume.
-   *
-   * @param ranges: This vector will be filled with memory ranges.
-   *
-   * @return STATUS_OK if successful.
-   */
-  AFF4Status ImageKcoreToMap(vector<KCoreRange> &ranges);
-
-  virtual AFF4Status ImagePhysicalMemoryToElf();
+  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
 };
 
-#endif
+#endif  // TOOLS_PMEM_LINUX_PMEM_H_

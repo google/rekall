@@ -16,7 +16,6 @@ specific language governing permissions and limitations under the License.
 #undef ERROR
 
 #include "win_pmem.h"
-#include "elf.h"
 
 #include <functional>
 #include <string>
@@ -130,8 +129,10 @@ AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
   AFF4ScopedPtr<FileBackedObject> device_stream = resolver.AFF4FactoryOpen
       <FileBackedObject>(device_urn);
 
-  if (!device_stream)
+  if (!device_stream) {
+    LOG(ERROR) << "Can not open device " << device_urn.SerializeToString();
     return IO_ERROR;
+  }
 
   // Get the memory ranges.
   if (!DeviceIoControl(device_stream->fd, PMEM_INFO_IOCTRL, NULL, 0,
@@ -256,15 +257,13 @@ AFF4Status WinPmemImager::ImagePageFile() {
     std::cout << "Output will go to " <<
         pagefile_urn.SerializeToString() << "\n";
 
-    AFF4ScopedPtr<AFF4Image> output_stream = AFF4Image::NewAFF4Image(
-        &resolver, pagefile_urn, volume_urn);
+    AFF4ScopedPtr<AFF4Stream> output_stream = GetWritableStream_(
+        pagefile_urn, volume_urn);
 
     if (!output_stream)
       return IO_ERROR;
 
-    resolver.Set(pagefile_urn, AFF4_CATEGORY,
-                 new URN(AFF4_MEMORY_PAGEFILE));
-
+    resolver.Set(pagefile_urn, AFF4_CATEGORY, new URN(AFF4_MEMORY_PAGEFILE));
     resolver.Set(pagefile_urn, AFF4_MEMORY_PAGEFILE_NUM,
                  new XSDInteger(pagefile_number));
 
@@ -294,107 +293,22 @@ AFF4Status WinPmemImager::ImagePageFile() {
   return CONTINUE;
 }
 
-AFF4Status WinPmemImager::ImagePhysicalMemoryToElf() {
-  std::cout << "Imaging memory to an Elf file.\n";
-
-  AFF4Status res;
-
-  // First ensure that the driver is loaded.
-  res = InstallDriver();
-  if (res != CONTINUE)
-    return res;
-
+AFF4Status WinPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
   PmemMemoryInfo info;
-  res = GetMemoryInfo(&info);
+  AFF4Status res = GetMemoryInfo(&info);
   if (res != STATUS_OK)
     return res;
-
-  AFF4ScopedPtr<FileBackedObject> device_stream = resolver.AFF4FactoryOpen
-      <FileBackedObject>(device_urn);
-
-  if (!device_stream)
-    return IO_ERROR;
-
-  string output_path = GetArg<TCLAP::ValueArg<string>>("output")->getValue();
-  URN output_urn(URN::NewURNFromFilename(output_path));
-
-  // Always truncate output to 0 when writing an elf file (these do not support
-  // appending).
-  resolver.Set(output_urn, AFF4_STREAM_WRITE_MODE, new XSDString("truncate"));
-
-  AFF4ScopedPtr<AFF4Stream> output_stream = resolver.AFF4FactoryOpen
-      <AFF4Stream>(output_urn);
-
-  if (!output_stream) {
-    LOG(ERROR) << "Failed to create output file: " <<
-        output_urn.SerializeToString();
-
-    return IO_ERROR;
-  }
-
-  Elf64_Ehdr header = {
-    .ident = {ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3, ELFCLASS64,
-              ELFDATA2LSB, EV_CURRENT},
-    .type = ET_CORE,
-    .machine = EM_X86_64,
-    .version = EV_CURRENT,
-  };
-
-  header.phoff    = sizeof(Elf64_Ehdr);
-  header.phentsize = sizeof(Elf64_Phdr);
-  header.ehsize = sizeof(Elf64_Ehdr);
-  header.phentsize = sizeof(Elf64_Phdr);
-
-  header.phnum = info.NumberOfRuns;
-  header.shentsize = sizeof(Elf64_Shdr);
-  header.shnum = 0;
-
-  output_stream->Write(reinterpret_cast<char *>(&header), sizeof(header));
-
-  // Where we start writing data: End of ELF header plus one physical header per
-  // range.
-  uint64 file_offset = (sizeof(Elf64_Ehdr) +
-                        info.NumberOfRuns * sizeof(Elf64_Phdr));
-
-  for (unsigned int i = 0; i < info.NumberOfRuns; i++) {
-    PHYSICAL_MEMORY_RANGE range = info.Runs[i];
-    Elf64_Phdr pheader = {};
-
-    pheader.type = PT_LOAD;
-    pheader.paddr = range.start;
-    pheader.memsz = range.length;
-    pheader.align = 1;
-    pheader.flags = PF_R;
-    pheader.off = file_offset;
-    pheader.filesz = range.length;
-
-    // Move the file offset by the size of this run.
-    file_offset += range.length;
-
-    if (output_stream->Write(reinterpret_cast<char *>(&pheader),
-                             sizeof(pheader)) < 0) {
-      return IO_ERROR;
-    }
-  }
 
   // Copy the memory to the output.
   for (unsigned int i = 0; i < info.NumberOfRuns; i++) {
     PHYSICAL_MEMORY_RANGE range = info.Runs[i];
 
     std::cout << "Dumping Range " << i << " (Starts at " << std::hex <<
-        range.start << ")\n";
+        range.start << ", length " << range.length << ")\n";
 
-    device_stream->Seek(range.start, SEEK_SET);
-    res = device_stream->CopyToStream(
-        *output_stream, range.length,
-        std::bind(&WinPmemImager::progress_renderer, this,
-                  std::placeholders::_1, std::placeholders::_2));
-
-    if (res != STATUS_OK)
-      return res;
+    map->AddRange(range.start, range.start, range.length, device_urn);
+    *length += range.length;
   }
-
-  actions_run.insert("memory");
 
   return STATUS_OK;
 }
@@ -411,65 +325,48 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
     return res;
 
   URN output_urn;
-  res = GetOutputVolumeURN(output_urn);
+  res = GetOutputVolumeURN(output_volume_urn);
   if (res != STATUS_OK)
     return res;
 
-  URN map_urn = output_urn.Append("PhysicalMemory");
-  URN map_data_urn = map_urn.Append("data");
+  // We image memory into this map stream.
+  URN map_urn = output_volume_urn.Append("PhysicalMemory");
 
-  // Set the user's preferred compression method.
-  resolver.Set(map_data_urn, AFF4_IMAGE_COMPRESSION, new URN(
-      CompressionMethodToURN(compression)));
+  AFF4ScopedPtr<AFF4Volume> volume = resolver.AFF4FactoryOpen<AFF4Volume>(
+      output_volume_urn);
 
   // This is a physical memory image.
   resolver.Set(map_urn, AFF4_CATEGORY, new URN(AFF4_MEMORY_PHYSICAL));
 
-  // Create the map object.
-  AFF4ScopedPtr<AFF4Map> map_stream = AFF4Map::NewAFF4Map(
-      &resolver, map_urn, output_urn);
+  // Write the information into the image.
+  AFF4ScopedPtr<AFF4Stream> information_stream = volume->CreateMember(
+      map_urn.Append("information.yaml"));
 
-  if (!map_stream)
+  if (!information_stream) {
+    LOG(ERROR) << "Unable to create memory information yaml.";
     return IO_ERROR;
+  }
 
   PmemMemoryInfo info;
   res = GetMemoryInfo(&info);
   if (res != STATUS_OK)
     return res;
 
-  // Write the information into the image.
-  AFF4ScopedPtr<ZipFileSegment> information_stream = ZipFileSegment::
-      NewZipFileSegment(&resolver, map_urn.Append("information.yaml"),
-                        output_urn);
-
-  if (!information_stream)
-    return IO_ERROR;
-
   if (information_stream->Write(DumpMemoryInfoToYaml(info)) < 0)
     return IO_ERROR;
 
-  AFF4ScopedPtr<FileBackedObject> device_stream = resolver.AFF4FactoryOpen
-      <FileBackedObject>(device_urn);
+  string format = GetArg<TCLAP::ValueArg<string>>("format")->getValue();
 
-  if (!device_stream)
-    return IO_ERROR;
+  if (format == "map") {
+    res = WriteMapObject_(map_urn, output_volume_urn);
+  } else if (format == "raw") {
+    res = WriteRawFormat_(map_urn, output_volume_urn);
+  } else if (format == "elf") {
+    res = WriteElfFormat_(map_urn, output_volume_urn);
+  }
 
-  // Copy the memory to the output.
-  for (unsigned int i = 0; i < info.NumberOfRuns; i++) {
-    PHYSICAL_MEMORY_RANGE range = info.Runs[i];
-
-    std::cout << "Dumping Range " << i << " (Starts at " << std::hex <<
-        range.start << ")\n";
-
-    device_stream->Seek(range.start, SEEK_SET);
-    map_stream->Seek(range.start, SEEK_SET);
-    res = device_stream->CopyToStream(
-        *map_stream, range.length,
-        std::bind(&WinPmemImager::progress_renderer, this,
-                  std::placeholders::_1, std::placeholders::_2));
-
-    if (res != STATUS_OK)
-      return res;
+  if (res != STATUS_OK) {
+    return res;
   }
 
   actions_run.insert("memory");
@@ -489,6 +386,7 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
   return res;
 }
 
+// Extract the driver file from our own volume.
 AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
   // We extract our own files from the private resolver.
   AFF4ScopedPtr<AFF4Stream> input_file_stream = private_resolver.AFF4FactoryOpen
@@ -514,7 +412,7 @@ AFF4Status WinPmemImager::ExtractFile_(URN input_file, URN output_file) {
 
   // These files should be small so dont worry about progress.
   AFF4Status res = input_file_stream->CopyToStream(
-      *outfile, input_file_stream->Size(), empty_progress);
+      *outfile, input_file_stream->Size(), &empty_progress);
 
   if (res == STATUS_OK)
     // We must make sure to close the file or we will not be able to load it
@@ -686,7 +584,8 @@ AFF4Status WinPmemImager::ParseArgs() {
   AFF4Status result = PmemImager::ParseArgs();
 
   // Sanity checks.
-  if (Get("load-driver")->isSet() && Get("unload-driver")->isSet()) {
+  if (result == CONTINUE && Get("load-driver")->isSet() &&
+      Get("unload-driver")->isSet()) {
     LOG(ERROR) << "You can not specify both the -l and -u options together.\n";
     return INVALID_INPUT;
   }

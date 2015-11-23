@@ -16,10 +16,14 @@ specific language governing permissions and limitations under the License.
 #include "linux_pmem.h"
 #include "elf.h"
 
-AFF4Status LinuxPmemImager::ParseKcore(vector<KCoreRange> &ranges) {
+AFF4Status LinuxPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
   LOG(INFO) << "Will parse /proc/kcore";
+
+  *length = 0;
+  URN kcore_urn = URN::NewURNFromFilename("/proc/kcore");
+
   AFF4ScopedPtr<AFF4Stream> stream = resolver.AFF4FactoryOpen<AFF4Stream>(
-      "/proc/kcore");
+      kcore_urn);
 
   if (!stream) {
     LOG(ERROR) << "Unable to open /proc/kcore - Are you root?";
@@ -67,17 +71,15 @@ AFF4Status LinuxPmemImager::ParseKcore(vector<KCoreRange> &ranges) {
        pheader.vaddr <= 0xffffc7ffffffffffULL) {
       LOG(INFO) << "Found range " << std::hex << pheader.vaddr << " " <<
           std::hex << pheader.memsz << " At offset " << std::hex << pheader.off;
-      KCoreRange range;
-      range.kcore_offset = pheader.vaddr;
-      range.file_offset = pheader.off;
-      range.phys_offset = pheader.vaddr - 0xffff880000000000ULL;
-      range.length = pheader.memsz;
-
-      ranges.push_back(range);
+      map->AddRange(pheader.vaddr - 0xffff880000000000ULL,
+                    pheader.off,
+                    pheader.memsz,
+                    kcore_urn);
+      *length += pheader.memsz;
     }
   }
 
-  if (ranges.size() == 0) {
+  if (map->Size() == 0) {
     LOG(INFO) << "No ranges found in /proc/kcore";
     return NOT_FOUND;
   }
@@ -86,106 +88,38 @@ AFF4Status LinuxPmemImager::ParseKcore(vector<KCoreRange> &ranges) {
 }
 
 
-AFF4Status LinuxPmemImager::ImagePhysicalMemoryToElf() {
-  std::cout << "Imaging memory to an Elf file.\n";
-
-  vector<KCoreRange> ranges;
-  AFF4Status res = ParseKcore(ranges);
-  if (res != STATUS_OK)
-    return res;
-
-  string output_path = GetArg<TCLAP::ValueArg<string>>("output")->getValue();
-  URN output_urn(URN::NewURNFromFilename(output_path));
-
-  // Always truncate output to 0 when writing an elf file (these do not support
-  // appending).
-  resolver.Set(output_urn, AFF4_STREAM_WRITE_MODE, new XSDString("truncate"));
-
-  AFF4ScopedPtr<AFF4Stream> output_stream = resolver.AFF4FactoryOpen
-      <AFF4Stream>(output_urn);
-
-  if (!output_stream) {
-    LOG(ERROR) << "Failed to create output file: " <<
-        output_urn.SerializeToString();
-
-    return IO_ERROR;
-  }
-
-  Elf64_Ehdr header = {
-    .ident = {ELFMAG0, ELFMAG1, ELFMAG2, ELFMAG3, ELFCLASS64,
-              ELFDATA2LSB, EV_CURRENT},
-    .type = ET_CORE,
-    .machine = EM_X86_64,
-    .version = EV_CURRENT,
-  };
-
-  header.phoff    = sizeof(Elf64_Ehdr);
-  header.phentsize = sizeof(Elf64_Phdr);
-  header.ehsize = sizeof(Elf64_Ehdr);
-  header.phentsize = sizeof(Elf64_Phdr);
-
-  header.phnum = ranges.size();
-  header.shentsize = sizeof(Elf64_Shdr);
-  header.shnum = 0;
-
-  output_stream->Write(reinterpret_cast<char *>(&header), sizeof(header));
-
-  // Where we start writing data: End of ELF header plus one physical header per
-  // range.
-  uint64 file_offset = sizeof(Elf64_Ehdr) + ranges.size() * sizeof(Elf64_Phdr);
-
-  for (auto range : ranges) {
-    Elf64_Phdr pheader = {};
-
-    pheader.type = PT_LOAD;
-    pheader.paddr = range.phys_offset;
-    pheader.memsz = range.length;
-    pheader.align = 1;
-    pheader.flags = PF_R;
-    pheader.off = file_offset;
-    pheader.filesz = range.length;
-
-    // Move the file offset by the size of this run.
-    file_offset += range.length;
-
-    if (output_stream->Write(reinterpret_cast<char *>(&pheader),
-                             sizeof(pheader)) < 0) {
-      return IO_ERROR;
-    }
-  }
-
-  AFF4ScopedPtr<AFF4Stream> kcore_stream = resolver.AFF4FactoryOpen<AFF4Stream>(
-      "/proc/kcore");
-  if (!kcore_stream)
-    return IO_ERROR;
-
-  for (auto range : ranges) {
-    kcore_stream->Seek(range.file_offset, SEEK_SET);
-    res = kcore_stream->CopyToStream(
-        *output_stream, range.length,
-        std::bind(&LinuxPmemImager::progress_renderer, this,
-                  std::placeholders::_1, std::placeholders::_2));
-
-    if (res != STATUS_OK)
-      return res;
-  }
-
-  return STATUS_OK;
-}
-
-
 AFF4Status LinuxPmemImager::ImagePhysicalMemory() {
   std::cout << "Imaging memory\n";
-  vector<KCoreRange> ranges;
-  AFF4Status res = ParseKcore(ranges);
 
+  URN output_urn;
+  AFF4Status res = GetOutputVolumeURN(output_volume_urn);
   if (res != STATUS_OK)
     return res;
 
-  LOG(INFO) << "Parsed " << ranges.size() << " ranges";
-  res = ImageKcoreToMap(ranges);
-  if (res != STATUS_OK)
+  // We image memory into this map stream.
+  URN map_urn = output_volume_urn.Append("proc/kcore");
+
+  AFF4ScopedPtr<AFF4Volume> volume = resolver.AFF4FactoryOpen<AFF4Volume>(
+      output_volume_urn);
+
+  // This is a physical memory image.
+  resolver.Set(map_urn, AFF4_CATEGORY, new URN(AFF4_MEMORY_PHYSICAL));
+
+  string format = GetArg<TCLAP::ValueArg<string>>("format")->getValue();
+
+  if (format == "map") {
+    res = WriteMapObject_(map_urn, output_volume_urn);
+  } else if (format == "raw") {
+    res = WriteRawFormat_(map_urn, output_volume_urn);
+  } else if (format == "elf") {
+    res = WriteElfFormat_(map_urn, output_volume_urn);
+  }
+
+  if (res != STATUS_OK) {
     return res;
+  }
+
+  actions_run.insert("memory");
 
   // Also capture these files by default.
   if (inputs.size() == 0) {
@@ -195,46 +129,4 @@ AFF4Status LinuxPmemImager::ImagePhysicalMemory() {
 
   res = process_input();
   return res;
-}
-
-
-AFF4Status LinuxPmemImager::ImageKcoreToMap(vector<KCoreRange> &ranges) {
-  URN output_urn;
-  AFF4Status res = GetOutputVolumeURN(output_urn);
-  if (res != STATUS_OK)
-    return res;
-
-  URN map_urn = output_urn.Append("/proc/kcore");
-  URN map_data_urn = map_urn.Append("data");
-
-  // Set the user's peferred compression method.
-  resolver.Set(map_data_urn, AFF4_IMAGE_COMPRESSION, new URN(
-      CompressionMethodToURN(compression)));
-
-  // This is a physical memory image.
-  resolver.Set(map_urn, AFF4_CATEGORY, new URN(AFF4_MEMORY_PHYSICAL));
-
-  AFF4ScopedPtr<AFF4Map> map_stream = AFF4Map::NewAFF4Map(
-      &resolver, map_urn, output_urn);
-  if (!map_stream)
-    return IO_ERROR;
-
-  AFF4ScopedPtr<AFF4Stream> kcore_stream = resolver.AFF4FactoryOpen<AFF4Stream>(
-      "/proc/kcore");
-  if (!kcore_stream)
-    return IO_ERROR;
-
-  for (auto range : ranges) {
-    kcore_stream->Seek(range.file_offset, SEEK_SET);
-    map_stream->Seek(range.phys_offset, SEEK_SET);
-    res = kcore_stream->CopyToStream(
-        *map_stream, range.length,
-        std::bind(&LinuxPmemImager::progress_renderer, this,
-                  std::placeholders::_1, std::placeholders::_2));
-
-    if (res != STATUS_OK)
-      return res;
-  }
-
-  return STATUS_OK;
 }

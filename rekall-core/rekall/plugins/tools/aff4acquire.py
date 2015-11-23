@@ -29,7 +29,6 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import os
 import re
 import stat
-import time
 
 from rekall import constants
 from rekall import plugin
@@ -38,6 +37,7 @@ from rekall import utils
 from rekall import yaml_utils
 from rekall.plugins import core
 
+from pyaff4 import aff4
 from pyaff4 import data_store
 from pyaff4 import aff4_image
 from pyaff4 import aff4_map
@@ -48,65 +48,15 @@ from pyaff4 import rdfvalue
 from pyaff4 import plugins  # pylint: disable=unused-import
 
 
-class AFF4StreamReader(object):
-    """A class which makes using AFF4 map's stream writing interface easier.
+class AddressSpaceWrapper(aff4.AFF4Stream):
+    """A wrapper around an address space."""
+    def __init__(self, *args, **kwargs):
+        self.address_space = kwargs.pop("address_space")
+        super(AddressSpaceWrapper, self).__init__(*args, **kwargs)
 
-    This reader is suitable to be used with AFF4Map's WriteStream interface.
-    """
-    def __init__(self, session, address_space):
-        self.session = session
-        self.address_space = address_space
-        self.buffsize = 64 * 1024
-        self.generator = self.GenerateData()
-        self.last_total = self.total = 0
-        self.last_tick = 0
-        self.offset = 0
-
-    def ShowProgress(self):
-        now = time.time()
-        read_len = self.total - self.last_total
-
-        if now > self.last_tick:
-            rate = read_len / (now - self.last_tick) / 1e6
-        else:
-            rate = 0
-
-        self.last_tick = now
-        self.last_total = self.total
-        return "%s: Wrote %#x (%d mb total) (%02.2d Mb/s)" % (
-            self.address_space, self.offset, self.total / 1e6, rate)
-
-    def GenerateData(self):
-        # Yield 64k blocks for each run.
-        for run in self.address_space.get_address_ranges():
-            for self.offset in utils.xrange(run.start, run.end, self.buffsize):
-                data = self.address_space.read(self.offset, self.buffsize)
-                self.total += len(data)
-                self.session.report_progress("%s", self.ShowProgress)
-
-                yield self.offset, data
-
-    def __call__(self):
-        """Generate the generator for each call."""
-        try:
-            return self.generator.next()
-        except StopIteration:
-            return None
-
-
-class PaddingAFF4StreamReader(AFF4StreamReader):
-    """A reader which null pads any gaps.
-
-    This reader is suitable to be used with AFF4Image WriteStream interface.
-    """
-    def GenerateData(self):
-        for self.offset in utils.xrange(0, self.address_space.end,
-                                        self.buffsize):
-            data = self.address_space.read(self.offset, self.buffsize)
-            self.total += len(data)
-            self.session.report_progress("%s", self.ShowProgress)
-
-            yield data
+    def Read(self, length):
+        res = self.address_space.read(self.readptr, length)
+        return res
 
 
 class AFF4Acquire(plugin.Command):
@@ -175,7 +125,10 @@ class AFF4Acquire(plugin.Command):
         self.max_file_size = max_file_size
 
     def copy_physical_address_space(self, renderer, resolver, volume):
-        """Copies the physical address space to the output volume."""
+        """Copies the physical address space to the output volume.
+
+        The result is a map object.
+        """
         image_urn = volume.urn.Append("PhysicalMemory")
         source = self.session.physical_address_space
 
@@ -194,32 +147,47 @@ class AFF4Acquire(plugin.Command):
                 yaml_utils.encode(self.create_metadata(source)))
 
         renderer.format("Imaging Physical Memory:\n")
+        total_length, helper_map = self._GetHelperMap(resolver, source)
 
+        progress = aff4.ProgressContext(length=total_length)
         with aff4_map.AFF4Map.NewAFF4Map(
-            resolver, image_urn, volume.urn) as image_stream:
+                resolver, image_urn, volume.urn) as image_stream:
+            image_stream.WriteStream(helper_map, progress=progress)
 
-            reader = AFF4StreamReader(self.session, source)
-            image_stream.WriteWithCallback(reader)
-
-        resolver.Close(image_stream)
         renderer.format("Wrote {0} mb of Physical Memory to {1}\n",
-                        reader.total/1024/1024, image_stream.urn)
+                        total_length/1024/1024, image_stream.urn)
 
-    def _copy_address_space(self, renderer, resolver, volume, image_urn,
-                            source):
+    def _GetHelperMap(self, resolver, source):
+        # Prepare a temporary map to control physical memory acquisition.
+        helper_map = aff4_map.AFF4Map(resolver)
+        source_aff4 = resolver.CachePut(
+            AddressSpaceWrapper(resolver=resolver, address_space=source))
+
+        total_length = 0
+        for run in source.get_address_ranges():
+            total_length += run.length
+            helper_map.AddRange(
+                run.start, run.start, run.length,
+                source_aff4.urn)
+
+        return total_length, helper_map
+
+    def _copy_address_space_to_image(self, renderer, resolver, volume,
+                                     image_urn, source):
+        """Copy address space into a linear image, padding if needed."""
         if self.compression:
             resolver.Set(image_urn, lexicon.AFF4_IMAGE_COMPRESSION,
                          rdfvalue.URN(self.compression))
 
+        total_length, helper_map = self._GetHelperMap(resolver, source)
+        progress = aff4.ProgressContext(length=total_length)
+
         with aff4_image.AFF4Image.NewAFF4Image(
-            resolver, image_urn, volume.urn) as image_stream:
+                resolver, image_urn, volume.urn) as image_stream:
+            image_stream.WriteStream(helper_map, progress=progress)
 
-            reader = PaddingAFF4StreamReader(self.session, source)
-            image_stream.WriteStream(reader)
-
-        resolver.Close(image_stream)
         renderer.format("Wrote {0} ({1} mb)\n", source.name,
-                        reader.total/1024/1024)
+                        total_length/1024/1024)
 
     def linux_copy_files(self, renderer, resolver, volume):
         """Copy all the mapped or opened files to the volume."""
@@ -301,7 +269,8 @@ class AFF4Acquire(plugin.Command):
         mft_entry = ntfs.MFTEntryByName(base_filename)
         data_as = mft_entry.open_file()
 
-        self._copy_address_space(renderer, resolver, volume, image_urn, data_as)
+        self._copy_address_space_to_image(renderer, resolver, volume, image_urn,
+                                          data_as)
 
         resolver.Set(image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
                      rdfvalue.XSDString(filename))
@@ -419,6 +388,10 @@ class TestAFF4Acquire(testlib.SimpleTestCase):
     def filter(self, output):
         result = []
         for line in output:
+            # Remove progress lines.
+            if "Reading" in line:
+                continue
+
             result.append(re.sub("aff4:/+[^/]+/", "aff4:/XXXX/", line))
         return result
 

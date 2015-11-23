@@ -239,7 +239,9 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
 
             yield addrspace.Run(start=vaddr,
                                 end=vaddr + 0x1000,
-                                file_offset=(pte_value & 0xffffffffff000) | (vaddr & 0xfff),
+                                file_offset=(
+                                    pte_value & 0xffffffffff000) | (
+                                        vaddr & 0xfff),
                                 address_space=self.base)
 
     def end(self):
@@ -353,16 +355,16 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
           # We have to instantiate xen_features manually from the physical
           # address space since we are building a virtual one when xen_feature
           # is called.
-          xen_features_p = self.session.profile.get_constant("xen_features")
-          xen_features_phys = (xen_features_p -
-                               self.session.profile.GetPageOffset())
-          self._xen_features = obj.Array(
-              vm=self.session.physical_address_space,
-              target="unsigned char",
-              offset=xen_features_phys,
-              session=self.session,
-              profile=self.session.profile,
-              count=32)
+            xen_features_p = self.session.profile.get_constant("xen_features")
+            xen_features_phys = (xen_features_p -
+                                 self.session.profile.GetPageOffset())
+            self._xen_features = obj.Array(
+                vm=self.session.physical_address_space,
+                target="unsigned char",
+                offset=xen_features_phys,
+                session=self.session,
+                profile=self.session.profile,
+                count=32)
 
         return self._xen_features[flag]
 
@@ -403,7 +405,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         """
 
         if self.session.GetParameter("m2p_mapping"):
-          return
+            return
 
         if self.rebuilding_map:
             raise RuntimeError("RebuildM2PMapping recursed... aborting.")
@@ -508,8 +510,8 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                         p2m_idx, mfn = p2m
                         pfn = (p2m_top_idx * self.P2M_MID_PER_PAGE
                                * self.P2M_PER_PAGE
-                                 + p2m_mid_idx * self.P2M_PER_PAGE
-                                 + p2m_idx)
+                               + p2m_mid_idx * self.P2M_PER_PAGE
+                               + p2m_idx)
 
                         if p2m_mid_entry == p2m_identity:
                             self.session.logging.debug(
@@ -550,7 +552,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         """
         m2p_mapping = self.session.GetParameter("m2p_mapping", cached=True)
         if not m2p_mapping:
-          self._RebuildM2PMapping()
+            self._RebuildM2PMapping()
         machine_address = obj.Pointer.integer_to_address(machine_address)
         mfn = machine_address / 0x1000
         pfn = m2p_mapping.get(mfn)
@@ -562,11 +564,11 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         mfn = super(XenParaVirtAMD64PagedMemory, self).read_pte(vaddr)
         pfn = self.m2p(mfn)
         if collection != None:
-          collection.add(
-              intel.CommentDescriptor,
-              ("\n(XEN resolves MFN 0x%x to PFN 0x%x)\n"
-               % (mfn, pfn)))
-        return pfn
+            collection.add(
+                intel.CommentDescriptor,
+                ("\n(XEN resolves MFN 0x%x to PFN 0x%x)\n"
+                 % (mfn, pfn)))
+            return pfn
 
     def vtop(self, vaddr):
         vaddr = obj.Pointer.integer_to_address(vaddr)
@@ -656,5 +658,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
             yield addrspace.Run(start=vaddr,
                                 end=vaddr + 0x1000,
-                                file_offset=(pte_value & 0xffffffffff000) | (vaddr & 0xfff),
+                                file_offset=(
+                                    pte_value & 0xffffffffff000) | (
+                                        vaddr & 0xfff),
                                 address_space=self.base)

@@ -12,8 +12,8 @@ under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations under the License.
 */
-#ifndef _WIN_PMEM_H
-#define _WIN_PMEM_H
+#ifndef TOOLS_PMEM_WIN_PMEM_H_
+#define TOOLS_PMEM_WIN_PMEM_H_
 
 #define PMEM_DEVICE_NAME "pmem"
 #define PMEM_SERVICE_NAME "pmem"
@@ -88,6 +88,8 @@ class WinPmemImager: public PmemImager {
    * other images.
    */
   MemoryDataStore private_resolver;
+
+  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);
 
   virtual string GetName() {
     return "The WinPmem memory imager.  Copyright 2014 Google Inc.";
@@ -169,8 +171,6 @@ class WinPmemImager: public PmemImager {
 
  public:
   virtual ~WinPmemImager();
-
-  virtual AFF4Status ImagePhysicalMemoryToElf();
 };
 
-#endif  // _WIN_PMEM_H
+#endif  // TOOLS_PMEM_WIN_PMEM_H_

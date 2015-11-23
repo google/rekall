@@ -37,6 +37,7 @@ class PmemImager: public BasicImager {
   }
 
   virtual AFF4Status handle_pagefiles();
+  virtual AFF4Status handle_compression();
 
   /**
    * Actually create the image of physical memory.
@@ -46,10 +47,23 @@ class PmemImager: public BasicImager {
    */
   virtual AFF4Status ImagePhysicalMemory() = 0;
 
-  virtual AFF4Status ImagePhysicalMemoryToElf();
-
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
+
+  // Override this to produce a suitable map object for imaging.
+  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length) = 0;
+
+  virtual AFF4Status WriteMapObject_(
+      const URN &map_urn, const URN &output_urn);
+
+  virtual AFF4Status WriteRawFormat_(
+      const URN &stream_urn, const URN &output_urn);
+
+  virtual AFF4Status WriteElfFormat_(
+      const URN &stream_urn, const URN &output_urn);
+
+  virtual AFF4ScopedPtr<AFF4Stream> GetWritableStream_(
+      const URN &output_urn, const URN &volume_urn);
 
  public:
   PmemImager(): BasicImager() {}
@@ -57,17 +71,14 @@ class PmemImager: public BasicImager {
   virtual AFF4Status Initialize();
 
   virtual AFF4Status RegisterArgs() {
-    AddArg(new TCLAP::SwitchArg(
-        "", "elf", "Normally pmem will produce an AFF4 volume but this "
-        "option will force an ELF Core image file to be produced during "
-        "acquisition. Note that this option is not compatible with the "
-        "--input or --pagefile options because we can not write multiple "
-        "streams into an ELF file.\n"
-        "This option is mostly useful for compatibility with legacy memory "
-        "analysis tools which do not understand AFF4 images.\n"
-
-        "If this option is used together with the --export option we will "
-        "export an ELF file from a stream within the AFF4 image.", false));
+    AddArg(new TCLAP::ValueArg<string>(
+        "", "format", "Specify the output format of memory streams:\n"
+        "  map: An AFF4Map object (Supports compression and sparse).\n"
+        "  elf: An ELF stream. (Supports sparse image).\n"
+        "  raw: A raw padded stream. (No compression or padding).\n"
+        "If this option is used together with the --export option it "
+        "specifies the output format of the exported stream.",
+        false, "map", "map, elf, raw"));
 
     AddArg(new TCLAP::SwitchArg(
         "m", "acquire-memory", "Normally pmem will only acquire memory if "
