@@ -147,30 +147,32 @@ class AFF4Acquire(plugin.Command):
                 yaml_utils.encode(self.create_metadata(source)))
 
         renderer.format("Imaging Physical Memory:\n")
-        total_length, helper_map = self._GetHelperMap(resolver, source)
-
-        progress = aff4.ProgressContext(length=total_length)
         with aff4_map.AFF4Map.NewAFF4Map(
                 resolver, image_urn, volume.urn) as image_stream:
-            image_stream.WriteStream(helper_map, progress=progress)
+            total_length = self._WriteToTarget(resolver, source, image_stream)
 
         renderer.format("Wrote {0} mb of Physical Memory to {1}\n",
                         total_length/1024/1024, image_stream.urn)
 
-    def _GetHelperMap(self, resolver, source):
+    def _WriteToTarget(self, resolver, source_as, image_stream):
         # Prepare a temporary map to control physical memory acquisition.
         helper_map = aff4_map.AFF4Map(resolver)
-        source_aff4 = resolver.CachePut(
-            AddressSpaceWrapper(resolver=resolver, address_space=source))
 
-        total_length = 0
-        for run in source.get_address_ranges():
-            total_length += run.length
-            helper_map.AddRange(
-                run.start, run.start, run.length,
-                source_aff4.urn)
+        with resolver.CachePut(
+                AddressSpaceWrapper(
+                    resolver=resolver, address_space=source_as)) as source_aff4:
 
-        return total_length, helper_map
+            total_length = 0
+            for run in source_as.get_address_ranges():
+                total_length += run.length
+                helper_map.AddRange(
+                    run.start, run.start, run.length,
+                    source_aff4.urn)
+
+            progress = aff4.ProgressContext(length=total_length)
+            image_stream.WriteStream(helper_map, progress=progress)
+
+        return total_length
 
     def _copy_address_space_to_image(self, renderer, resolver, volume,
                                      image_urn, source):
@@ -179,12 +181,9 @@ class AFF4Acquire(plugin.Command):
             resolver.Set(image_urn, lexicon.AFF4_IMAGE_COMPRESSION,
                          rdfvalue.URN(self.compression))
 
-        total_length, helper_map = self._GetHelperMap(resolver, source)
-        progress = aff4.ProgressContext(length=total_length)
-
         with aff4_image.AFF4Image.NewAFF4Image(
                 resolver, image_urn, volume.urn) as image_stream:
-            image_stream.WriteStream(helper_map, progress=progress)
+            total_length = self._WriteToTarget(resolver, source, image_stream)
 
         renderer.format("Wrote {0} ({1} mb)\n", source.name,
                         total_length/1024/1024)

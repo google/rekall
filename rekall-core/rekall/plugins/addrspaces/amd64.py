@@ -568,7 +568,8 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                 intel.CommentDescriptor,
                 ("\n(XEN resolves MFN 0x%x to PFN 0x%x)\n"
                  % (mfn, pfn)))
-            return pfn
+
+        return pfn
 
     def vtop(self, vaddr):
         vaddr = obj.Pointer.integer_to_address(vaddr)
