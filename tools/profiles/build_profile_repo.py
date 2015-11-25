@@ -21,9 +21,9 @@
 
 This script parses a file of GUIDs, one per line with the pdb filename. e.g.:
 
-4033A4DE6936470BAB02F14DCE270B772 ntkrnlmp.pdb
-AED9ED72BEE246CAAC9A587B970A8E0C1 ntkrnlpa.pdb
-C77DDDA381D246EDBE11A332456F9FBE1 ntkrpamp.pdb
+ntkrnlmp.pdb 4033A4DE6936470BAB02F14DCE270B772
+ntkrnlpa.pdb AED9ED72BEE246CAAC9A587B970A8E0C1
+ntkrpamp.pdb C77DDDA381D246EDBE11A332456F9FBE1
 ...
 
 We then check if we have the pdb file in the repository's src/pdb/ directory. If
@@ -43,6 +43,7 @@ import json
 import gzip
 import pdb
 import os
+import re
 import time
 import traceback
 import multiprocessing
@@ -59,6 +60,9 @@ PARSER = argparse.ArgumentParser(
 
 PARSER.add_argument('path_to_guids',
                     help='Path to the GUIDs file.')
+
+PARSER.add_argument('--add_guid',
+                    help='Add GUID to repository.')
 
 PARSER.add_argument('--rebuild', default=False, action='store_true',
                     help='Rebuild all profiles.')
@@ -146,27 +150,40 @@ def BuildProfile(pdb_filename, profile_path, metadata):
         os.unlink(profile_path)
 
 
-def BuildAllProfiles(guidfile_path, rebuild=False, reindex=None):
+def BuildAllProfiles(guidfile_path, rebuild=False, reindex=None, add_guid=None):
     changed_files = set()
     new_filenames = {}
     unsuccessful = set()
 
     pool = multiprocessing.Pool(NUMBER_OF_CORES)
-    for line in open(guidfile_path):
+    all_lines = list(open(guidfile_path))
+    if add_guid:
+        guid = add_guid.upper()
+        if not re.match("^[0-9A-F]{33}$", guid):
+            print "Invalid GUID: %s" % guid
+            raise ValueError("Invalid GUID: %s" % guid)
+        all_lines.append(guid)
+
+    for line in all_lines:
 
         line = line.strip()
         if line.startswith("#") or line == "":
             continue
 
+        pos = line.find("#")
+        if pos != -1:
+            line = line[:pos]
+            line = line.strip()
+
         try:
-            guid, pdb_filename = line.split(" ", 2)
+            pdb_filename, guid = line.split(" ", 2)
 
             # We dont care about this pdb.
             if pdb_filename not in PDB_TO_SYS:
                 continue
 
         except ValueError:
-            guid, pdb_filename = line, None
+            pdb_filename, guid = None, line
 
         # Fetch the pdb from the MS symbol server.
         pdb_path = os.path.join("src", "pdb")
@@ -182,7 +199,6 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=None):
                     os.rename(os.path.join(pdb_path, candidate_filename),
                               pdb_out_filename)
                 except Exception:
-                    unsuccessful.add(guid)
                     continue
 
                 pdb_filename = candidate_filename
@@ -233,12 +249,42 @@ def BuildAllProfiles(guidfile_path, rebuild=False, reindex=None):
     if new_filenames:
         print("Found %d new file names:" % len(new_filenames))
         for guid, filename in sorted(new_filenames.items()):
-            print("%s %s" % (guid, filename))
+            print("%s %s" % (filename, guid))
 
     if unsuccessful:
         print("Unable to download pdbs for:")
         for guid in sorted(unsuccessful):
             print(guid)
+
+    if new_filenames or unsuccessful:
+        print "Rewriting GUID file."
+        new_lines = []
+        for guid in unsuccessful:
+            new_lines.append("Unknown %s\n" % guid)
+            # Filter all obsolete guids.
+            all_lines = [line for line in all_lines
+                         if guid not in line]
+
+        for guid, filename in new_filenames.items():
+            # Filter all obsolete guids.
+            all_lines = [line for line in all_lines
+                         if guid not in line]
+            new_lines.append("%s %s\n" % (filename, guid))
+
+        new_lines.extend(all_lines)
+        new_lines = list(set(new_lines))
+        new_lines.sort(key=lambda line: line.replace("#", "").replace(" ", ""))
+
+        with open(guidfile_path, "wb") as fd:
+            category = None
+            for line in new_lines:
+                if not line.replace(" ", "").strip():
+                    continue
+                next_category = line.lstrip("# ").split(" ", 1)[0]
+                if next_category != category:
+                    fd.write("\n")
+                    category = next_category
+                fd.write(line)
 
     return changed_files
 
@@ -349,7 +395,7 @@ def main():
         return
 
     changes = BuildAllProfiles(FLAGS.path_to_guids, rebuild=FLAGS.rebuild,
-                               reindex=FLAGS.index)
+                               reindex=FLAGS.index, add_guid=FLAGS.add_guid)
 
     # If the files have changed, rebuild the indexes.
     for change in changes:
