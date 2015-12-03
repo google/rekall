@@ -96,7 +96,7 @@ class DarwinPsTree(common.AbstractDarwinTypedCommand):
     def collect(self):
         # Get the first process from pslist.
         first_proc = self.session.plugins.search(
-            "(find pslist where proc.pid == 0).proc").first_result
+            "(select * from pslist where proc.pid == 0).proc").first_result
         for proc, depth in self.recurse_proc(first_proc, 0):
             yield [depth, proc.pid, proc.p_ppid, proc.p_uid, proc.command]
 

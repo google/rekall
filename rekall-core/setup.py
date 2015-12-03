@@ -56,7 +56,7 @@ install_requires = [
     "argparse >= 1.3.0",
     "arrow >= 0.7.0",
     "distorm3 == 3.3.0",
-    "efilter == 1449128552",
+    "efilter == 1449139184",
     "intervaltree >= 2.1.0",
     "pycrypto >= 2.6.1",
     "pyelftools >= 0.23",

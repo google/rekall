@@ -61,7 +61,7 @@ class TestExplain(testlib.SimpleTestCase):
     PLUGIN = "explain"
     PARAMETERS = dict(
         commandline="explain %(query)r",
-        query="find pslist where (proc.pid == 1)"
+        query="select * from pslist where (proc.pid == 1)"
     )
 
 
@@ -69,7 +69,7 @@ class TestSearch(testlib.SimpleTestCase):
     PLUGIN = "search"
     PARAMETERS = dict(
         commandline="search %(query)r",
-        query="find pslist where (proc.pid == 1)"
+        query="select * from pslist where (proc.pid == 1)"
     )
 
 
@@ -275,26 +275,23 @@ class Search(EfilterPlugin):
     ==================================
 
     # Find the process with pid 1:
-    search("find pslist where proc.pid == 1")
+    search("select * pslist where proc.pid == 1")
 
     # Sort lsof output by file descriptor:
-    search("sort lsof where fd")
+    search("sort(lsof, fd)") # or:
+    search("select * from lsof order by fd)")
 
     # Filter and sort through lsof in one step:
-    search("sort (find lsof where proc.pid == 1) where fd)
+    search("select * from lsof where proc.pid == 1 order by fd)
 
     # Is there any proc with PID 1, that has a TCPv6 connection and isn't a
     # dead process?
     search("(any lsof where (proc.pid == 1 and fileproc.human_type == 'TCPv6'))
              and not (any dead_procs where (proc.pid == 1))")
 
-    Future work:
-    ============
-    - The language will support the SQL-like SELECT - FROM - WHERE syntax.
-    - Output formatting will be preserved where it makes sense.
-    - Access to globals will be enabled through a special plugin.
-    - Self-documenting features will be added to examine structure of plugin
-      output and structs.
+    # Note: "ANY" is just a short hand for "SELECT ANY FROM" which does what
+    # it sounds like, and returns True or False depending on whether the
+    # query has any results.
     """
 
     name = "search"
@@ -353,7 +350,7 @@ class Search(EfilterPlugin):
         # Can we infer the type?
         try:
             t = infer_type.infer_type(self.query, self)
-        except:
+        except Exception:
             t = None
 
         rows = self.collect() or []
