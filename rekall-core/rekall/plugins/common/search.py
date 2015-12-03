@@ -365,10 +365,12 @@ class Search(EfilterPlugin):
                                               *rows)
 
         # Maybe we cached the header when we ran the plugin?
-        header = self._cached_plugin_renderers.get(t.name)
-        if header:
-            renderer.table_header(header.columns)
-            return self._render_plugin_output(renderer, header.columns, *rows)
+        if isinstance(t, plugin.Command):
+            header = self._cached_plugin_renderers.get(t.name)
+            if header:
+                renderer.table_header(header.columns)
+                return self._render_plugin_output(renderer,
+                                                  header.columns, *rows)
 
         # Try to guess the header based on structure of the first row.
         if not rows:
