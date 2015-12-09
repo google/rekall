@@ -129,34 +129,39 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         # If the user asked for a specific stream just load that one. Note that
         # you can still load the pagefile manually using the --pagefile
         # parameter.
-        with zip.ZipFile.NewZipFile(self.resolver, volume_path) as volume:
-            self._LoadMemoryImage(volume.urn.Append(stream_path))
+        try:
+            image_urn = volume_path.Append(stream_path)
+            self._LoadMemoryImage(image_urn)
+        except IOError:
+            raise addrspace.ASAssertionError(
+                "Unable to open AFF4 stream %s" % image_urn)
 
     def _LocateAFF4Volume(self, filename):
         stream_name = []
         path_components = list(filename.split(os.sep))
         while path_components:
-            try:
-                volume_path = os.sep.join(path_components)
-                volume_urn = rdfvalue.URN.FromFileName(volume_path)
+            volume_path = os.sep.join(path_components)
+            volume_urn = rdfvalue.URN.FromFileName(volume_path)
 
-                if os.path.isfile(volume_path):
-                    with zip.ZipFile.NewZipFile(
-                            self.resolver, volume_path) as volume:
-                        if stream_name:
-                            return volume.urn, os.sep.join(stream_name)
+            if os.path.isfile(volume_path):
+                with zip.ZipFile.NewZipFile(
+                        self.resolver, volume_path) as volume:
+                    if stream_name:
+                        return volume.urn, os.sep.join(stream_name)
 
-                        return volume.urn, None
+                    return volume.urn, None
 
-                elif os.path.isdir(volume_path):
-                    with aff4_directory.AFF4Directory.NewAFF4Directory(
-                            self.resolver, volume_urn) as volume:
-                        if stream_name:
-                            return volume.urn, os.sep.join(stream_name)
+            elif os.path.isdir(volume_path):
+                with aff4_directory.AFF4Directory.NewAFF4Directory(
+                        self.resolver, volume_urn) as volume:
+                    if stream_name:
+                        return volume.urn, os.sep.join(stream_name)
 
-                        return volume.urn, None
+                    return volume.urn, None
 
-            except IOError:
+            # File does not exist - maybe the path stem points at a stream in
+            # the image.
+            else:
                 stream_name.insert(0, path_components.pop(-1))
 
         raise IOError("Not found")
