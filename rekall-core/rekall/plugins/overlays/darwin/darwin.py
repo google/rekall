@@ -53,9 +53,7 @@ darwin_overlay = {
 
         "dest_ip": lambda x: x.rt_gateway.deref(),
 
-        "name": lambda x: "%s%s" % (
-            x.rt_ifp.if_name.dereference_as("String"),
-            x.rt_ifp.if_unit),
+        "name": lambda x: x.rt_ifp.name,
 
         "sent": lambda x: x.m("rt_stats").nstat_txpackets,
 

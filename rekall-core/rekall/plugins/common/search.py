@@ -33,6 +33,7 @@ from efilter import errors
 from efilter import protocol
 from efilter import query as q
 
+from efilter.transforms import asdottysql
 from efilter.transforms import solve
 from efilter.transforms import infer_type
 
@@ -173,7 +174,12 @@ class EfilterPlugin(plugin.ProfileCommand):
     """
     __abstract = True
 
-    query = None
+    query = None  # The Query instance we're working with.
+    query_source = None  # The source of the query, passed by the user.
+    query_error = None  # An exception, if any, caused when parsing the query.
+
+    # We cache identity renderers here, keyed on plugin class. Each renderer
+    # is populated with rows and the table header for future reference.
     _cached_plugin_renderers = {}
 
     # Plugin lifecycle:
@@ -194,7 +200,14 @@ class EfilterPlugin(plugin.ProfileCommand):
 
     def __init__(self, query, query_parameters=None, **kwargs):
         super(EfilterPlugin, self).__init__(**kwargs)
-        self.query = q.Query(query, params=query_parameters)
+        self.query_source = query
+
+        try:
+            self.query = q.Query(query, params=query_parameters)
+        except errors.EfilterError as error:
+            self.query_error = error
+            self.query = None
+
         self.query_parameters = query_parameters
 
     # EFILTER protocol implementations:
@@ -256,6 +269,35 @@ class EfilterPlugin(plugin.ProfileCommand):
         return plugin_curry()
 
     # Plugin methods:
+
+    def render_error(self, renderer):
+        """Render the query parsing error in a user-friendly manner."""
+        renderer.section("Query Error")
+
+        try:
+            start = self.query_error.adjusted_start
+            end = self.query_error.adjusted_end
+            source = self.query_error.source
+            text = self.query_error.text
+        except AttributeError:
+            # Maybe query_error isn't a subclass of EfilterError. Let's be
+            # careful.
+            start = None
+            end = None
+            source = self.query_source
+            text = str(self.query_error)
+
+        if start and end:
+            renderer.format(
+                "EFILTER error ({}) {} at position {}-{} in query:\n{}\n\n",
+                type(self.query_error).__name__, repr(text), start, end,
+                utils.AttributedString(
+                    source,
+                    [dict(start=start, end=end, fg="RED", bold=True)]))
+        else:
+            renderer.format(
+                type(self.query_error).__name__,
+                "EFILTER error ({}) {} in query:\n{}\n", repr(text), source)
 
     def render(self, renderer):
         raise NotImplementedError()
@@ -346,6 +388,10 @@ class Search(EfilterPlugin):
             renderer.table_row(row)
 
     def render(self, renderer):
+        # Do we have a query?
+        if not self.query:
+            return self.render_error(renderer)
+
         # Figure out what the header should look like.
         # Can we infer the type?
         try:
@@ -353,7 +399,11 @@ class Search(EfilterPlugin):
         except Exception:
             t = None
 
-        rows = self.collect() or []
+        try:
+            rows = self.collect() or []
+        except errors.EfilterError as error:
+            self.query_error = error
+            return self.render_error(renderer)
 
         # If we know the header, great!
         if isinstance(t, plugin.TypedProfileCommand):
@@ -378,7 +428,8 @@ class Search(EfilterPlugin):
         first_row = next(rows)
         if isinstance(first_row, dict):
             renderer.table_header(
-                [dict(name=k, cname=k) for k in first_row.iterkeys()])
+                [dict(name=unicode(k), cname=unicode(k))
+                 for k in first_row.iterkeys()])
 
             return self._render_dicts(renderer, first_row, *rows)
 
@@ -406,7 +457,7 @@ class Explain(EfilterPlugin):
             for expr_, depth in self.recurse_expr(child, depth + 1):
                 yield expr_, depth
 
-    def _render_node(self, node, renderer, depth=1):
+    def _render_node(self, query, node, renderer, depth=1):
         t = infer_type.infer_type(node, self)
 
         try:
@@ -417,7 +468,7 @@ class Explain(EfilterPlugin):
         renderer.table_row(
             name,
             utils.AttributedString(
-                str(self.query),
+                str(query),
                 [dict(start=node.start, end=node.end, fg="RED", bold=True)]
             ),
             depth=depth
@@ -425,7 +476,7 @@ class Explain(EfilterPlugin):
 
         for child in node.children:
             if isinstance(child, ast.Expression):
-                self._render_node(node=child, renderer=renderer,
+                self._render_node(node=child, renderer=renderer, query=query,
                                   depth=depth + 1)
             else:
                 renderer.table_row(
@@ -435,21 +486,23 @@ class Explain(EfilterPlugin):
                 )
 
     def render(self, renderer):
-        self.render_query(renderer)
-        self.render_output(renderer)
+        # Do we have a query?
+        if not self.query:
+            return self.render_error(renderer)
 
-    def render_output(self, renderer):
-        renderer.section("Expected Output", width=140)
+        renderer.section("Query Analysis (As supplied)", width=140)
+        self.render_query(renderer, self.query)
+        renderer.section("Query Analysis (Using canonical syntax)", width=140)
+        self.render_query(renderer, q.Query(asdottysql.asdottysql(self.query)))
 
-    def render_query(self, renderer):
-        renderer.section("Query Analysis", width=140)
+    def render_query(self, renderer, query):
         renderer.table_header([
-            dict(name="Expression", cname="expression", type="TreeNode",
-                 max_depth=15, width=40),
+            dict(name="(Return Type) Expression", cname="expression",
+                 type="TreeNode", max_depth=15, width=40),
             dict(name="Subquery", cname="query", width=100, nowrap=True),
         ])
 
-        self._render_node(self.query.root, renderer)
+        self._render_node(query, query.root, renderer)
 
 
 # Implement the repeated field interface for IdentityRenderer, so we can just
@@ -467,10 +520,30 @@ repeated.IRepeated.implement(
 
 # Implement IAssociative for Structs because why not.
 associative.IAssociative.implement(
-    for_types=(obj.Struct, obj.Pointer),
+    for_type=obj.Struct,
     implementations={
         associative.select: getattr,
         associative.resolve: getattr
+    }
+)
+
+
+associative.IAssociative.implement(
+    for_type=obj.Array,
+    implementations={
+        associative.select: lambda obj, key: obj[key],
+        associative.resolve: getattr
+    }
+)
+
+
+associative.IAssociative.implement(
+    for_type=obj.Pointer,
+    implementations={
+        associative.select:
+            lambda ptr, key: associative.select(ptr.deref(), key),
+        associative.resolve:
+            lambda ptr, key: associative.resolve(ptr.deref(), key)
     }
 )
 
@@ -504,7 +577,7 @@ reflective.IReflective.implement(
 reflective.IReflective.implicit_dynamic(plugin.TypedProfileCommand)
 
 
-# Tell EFILTER that the search plugin implements the INameDelegate protocol
+# Tell EFILTER that the search plugin implements the various protocols
 # and can be queried for type information of plugins.
 reflective.IReflective.implicit_static(EfilterPlugin)
 associative.IAssociative.implicit_static(EfilterPlugin)

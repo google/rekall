@@ -61,7 +61,7 @@ class AbstractZoneElementFinder(common.AbstractDarwinParameterHook):
     def calculate(self):
         # Find the zone that contains our data.
         zone = self.session.plugins.search(
-            "(find zones where zone.name == ?).zone",
+            "(select zone from zones where zone.name == ?)['zone']",
             query_parameters=[self.zone_name]).first_result
 
         if zone is None:
@@ -99,7 +99,7 @@ class DarwinDumpZone(common.AbstractDarwinTypedCommand):
 
     def collect(self):
         zone = self.session.plugins.search(
-            "(find zones where zone.name == {zone_name}).zone",
+            "(select zone from zones where zone.name == {zone_name})['zone']",
             query_parameters=dict(zone_name=self.zone_name),
             silent=True
         ).first_result

@@ -37,6 +37,7 @@ import pdb
 import operator
 import os
 import struct
+import StringIO
 import copy
 
 from rekall import addrspace
@@ -169,10 +170,6 @@ class NoneObject(object):
         self.args = args
         if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
-
-    def get_text_renderer(self):
-        return renderer.ObjectRenderer.ForTarget(self, "TextRenderer")(
-            renderer="TextRenderer", session=self.obj_session)
 
     def get(self, key=None, default=None):
         """Make a NoneObject accept a default like a dict."""
@@ -355,7 +352,12 @@ class BaseObject(object):
         self.obj_name = name
         self.obj_profile = profile
         self.obj_context = context or {}
+
+        if not session:
+            raise ValueError("Session must be provided.")
+
         self.obj_session = session
+
         self.obj_producers = set()
 
         if profile is None:
@@ -483,18 +485,17 @@ class BaseObject(object):
         _ = vm
         return NoneObject("No value for {0}", self.obj_name)
 
-    def get_text_renderer(self):
-        return renderer.ObjectRenderer.ForTarget(self, "TextRenderer")(
-            renderer="TextRenderer", session=self.obj_session)
-
     def __str__(self):
         return utils.SmartStr(unicode(self))
 
     def __unicode__(self):
-        try:
-            return "\n".join(self.get_text_renderer().render_row(self).lines)
-        except Exception as e:
-            return "%s (string conversion raised %s)" % (repr(self), e)
+        fd = StringIO.StringIO()
+        ui_renderer = renderer.BaseRenderer.classes["TextRenderer"](
+            session=self.obj_session, fd=fd)
+        with ui_renderer.start():
+            ui_renderer.format("{}", self)
+
+        return utils.SmartUnicode(fd.getvalue())
 
     def __repr__(self):
         return "[{0} {1}] @ 0x{2:08X}".format(
@@ -765,7 +766,7 @@ class Pointer(NativeType):
 
         if offset:
             kwargs = copy.deepcopy(self.target_args)
-            kwargs.update(dict(offset=offset,
+            kwargs.update(dict(offset=offset, session=self.obj_session,
                                vm=vm, profile=self.obj_profile,
                                parent=self.obj_parent, name=self.obj_name))
 
@@ -826,7 +827,7 @@ class Pointer(NativeType):
         return self.__class__(
             target=self.target, target_args=self.target_args,
             offset=offset, vm=self.obj_vm,
-            parent=self.obj_parent,
+            parent=self.obj_parent, session=self.obj_session,
             context=self.obj_context, profile=self.obj_profile)
 
     def __sub__(self, other):
@@ -2285,6 +2286,7 @@ class Profile(object):
                 vm = self.session.GetParameter("default_address_space")
 
         kwargs['profile'] = self
+        kwargs.setdefault("session", self.session)
 
         # Compile the type on demand.
         self.compile_type(type_name)
@@ -2295,7 +2297,7 @@ class Profile(object):
         if cls is not None:
             result = cls(offset=offset, vm=vm, name=name,
                          parent=parent, context=context,
-                         session=self.session, **kwargs)
+                         **kwargs)
 
             return result
 
@@ -2307,7 +2309,6 @@ class Profile(object):
                 name=name,
                 parent=parent,
                 context=context,
-                session=self.session,
                 **kwargs)
 
             if isinstance(result, Struct):

@@ -97,12 +97,12 @@ class Handles(common.WinProcessFilter):
 
     def render(self, renderer):
         renderer.table_header([("_OBJECT_HEADER", "offset_v", "[addrpad]"),
-                               dict(name="_EPROCESS", type="_EPROCESS"),
+                               dict(name="_EPROCESS", type="_EPROCESS",
+                                    cname="_EPROCESS"),
                                ("Handle", "handle", "[addr]"),
                                ("Access", "access", "[addr]"),
                                ("Type", "obj_type", "16"),
-                               ("Details", "details", "")
-                              ])
+                               ("Details", "details", "")])
 
         for task in self.filter_processes():
             for count, (handle, object_type, name) in enumerate(

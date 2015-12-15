@@ -143,8 +143,9 @@ class ObjectRenderer(object):
     _RENDERER_CACHE = None
 
     def __init__(self, renderer=None, session=None, **options):
-        if renderer is None:
-            raise RuntimeError("Renderer must be provided.")
+        if not isinstance(renderer, BaseRenderer):
+            raise RuntimeError("Renderer object must be provided. Got %r."
+                               % renderer)
 
         self.renderer = renderer
         self.session = session
@@ -333,6 +334,10 @@ class BaseTable(object):
         self.renderer = renderer
         self.options = options
         self.column_specs = []
+
+        if not isinstance(renderer, BaseRenderer):
+            raise TypeError("Renderer object must be supplied. Got %r."
+                            % renderer)
 
         # For now support the legacy column specification and normalized to a
         # column_spec dict.

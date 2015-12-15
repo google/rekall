@@ -22,6 +22,7 @@
 
 from rekall import utils
 
+from rekall.ui import renderer as renderer_module
 from rekall.ui import text
 
 
@@ -183,7 +184,11 @@ class PointerTextRenderer(NativeTypeTextRenderer):
 
     def render_full(self, target, **_):
         target_obj = target.deref()
-        renderer = target_obj.get_text_renderer()
+        if target_obj == None:
+            return text.Cell("-")
+
+        renderer = renderer_module.ObjectRenderer.ForTarget(
+            target_obj, renderer=self.renderer)
         return renderer.render_full(target_obj)
 
     def render_compact(self, target, **options):
@@ -205,7 +210,8 @@ class ListRenderer(text.TextObjectRenderer):
             object_renderer = self.ForTarget(item, self.renderer)(
                 session=self.session, renderer=self.renderer)
 
-            cell = object_renderer.render_row(item, wrap=False, **options)
+            options["wrap"] = False
+            cell = object_renderer.render_row(item, **options)
             result.append("\\n".join(cell.lines))
 
         return text.Cell(", ".join(result), width=width)
