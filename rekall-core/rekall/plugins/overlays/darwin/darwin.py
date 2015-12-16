@@ -1125,6 +1125,8 @@ class tty(obj.Struct):
 
 
 class proc(obj.Struct):
+    """Represents a Darwin process."""
+
     @property
     def vads(self):
         return self.task.map.hdr.walk_list("links.next", include_current=False)

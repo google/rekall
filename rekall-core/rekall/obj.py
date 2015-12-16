@@ -442,6 +442,14 @@ class BaseObject(object):
         """
         return (self.v(),)
 
+    @classmethod
+    def getproperties(cls):
+        """Return all members that are intended to represent some data."""
+        for name in dir(cls):
+            candidate = getattr(cls, name)
+            if isinstance(candidate, property):
+                yield name, candidate
+
     def m(self, memname):
         return NoneObject("No member {0}", memname)
 
@@ -498,6 +506,10 @@ class BaseObject(object):
         return utils.SmartUnicode(fd.getvalue())
 
     def __repr__(self):
+        # Is this a prototype? (See profile.GetPrototype for explanation.)
+        if self.obj_offset == 0 and self.obj_name == "Prototype":
+            return "%s Prototype" % self.__class__.__name__
+
         return "[{0} {1}] @ 0x{2:08X}".format(
             self.__class__.__name__, self.obj_name,
             self.obj_offset)
@@ -1284,6 +1296,9 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         return self.struct_size
 
     def __repr__(self):
+        if self.obj_offset == 0 and self.obj_name == "Prototype":
+            return "%s Prototype" % self.__class__.__name__
+
         return "[{0} {1}] @ 0x{2:08X}".format(
             self.obj_type, self.obj_name or '', self.obj_offset)
 
@@ -1997,13 +2012,15 @@ class Profile(object):
 
         return Curry(self.Object, type_name='int', name=name)
 
-    def _get_dummy_obj(self, name):
-        """Make a dummy object on top of the dummy address space."""
-        self.compile_type(name)
+    def GetPrototype(self, type_name):
+        """Return a prototype of objects of type 'type_name'.
 
-        # Make the object on the dummy AS.
-        tmp = self.Object(type_name=name, offset=0, vm=self._dummy)
-        return tmp
+        A prototype is a dummy object that looks like a type, but uses data
+        from the profile to provide a list of members and type information.
+        """
+        self.compile_type(type_name)
+        return self.Object(type_name=type_name, name="Prototype",
+                           vm=self._dummy)
 
     def get_obj_offset(self, name, member):
         """ Returns a member's offset within the struct.
@@ -2012,19 +2029,19 @@ class Profile(object):
         """
         ACCESS_LOG.LogFieldAccess(self.name, name, member)
 
-        tmp = self._get_dummy_obj(name)
+        tmp = self.GetPrototype(name)
         return tmp.members.get(member, NoneObject("No member"))[0]
 
     def get_obj_size(self, name):
         """Returns the size of a struct"""
-        tmp = self._get_dummy_obj(name)
+        tmp = self.GetPrototype(name)
         return tmp.obj_size
 
     def obj_has_member(self, name, member):
         """Returns whether an object has a certain member"""
         ACCESS_LOG.LogFieldAccess(self.name, name, member)
 
-        tmp = self._get_dummy_obj(name)
+        tmp = self.GetPrototype(name)
         return hasattr(tmp, member)
 
     def add_overlay(self, overlay):

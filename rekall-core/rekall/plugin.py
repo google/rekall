@@ -257,9 +257,12 @@ class ProfileCommand(Command):
 class PluginHeader(object):
     header = None
     by_cname = None
+    by_name = None
 
     def __init__(self, *columns):
         self.by_cname = {}
+        self.by_name = {}
+
         for column in columns:
             if not isinstance(column, dict):
                 raise TypeError("Plugins declaring table header ahead of "
@@ -278,6 +281,10 @@ class PluginHeader(object):
                                  "invalid." % (cname, columns))
 
             self.by_cname[cname] = column
+
+            name = column.get("name")
+            if name:
+                self.by_name[name] = column
 
         self.header = columns
 
@@ -308,6 +315,14 @@ class PluginHeader(object):
             result[self.header[idx]["cname"]] = value
 
         return result
+
+    @property
+    def all_names(self):
+        return set(self.by_cname.iterkeys()) | set(self.by_name.iterkeys())
+
+    def find_column(self, name):
+        """Get the column spec in 'name' by either cname or some heuristic."""
+        return self.by_cname.get(name, self.by_name.get(name))
 
 
 class TypedProfileCommand(ProfileCommand):
@@ -349,6 +364,21 @@ class TypedProfileCommand(ProfileCommand):
 
     def getkeys(self):
         return self.table_header.keys()
+
+    def get_column(self, name):
+        for row in self.collect_as_dicts():
+            yield row[name]
+
+    def get_column_type(self, name):
+        column = self.table_header.find_column(name)
+        if not column:
+            return
+
+        type_name = column.get("type")
+
+        # If we don't have a type then we have to actually get the instance from
+        # the profile, which will cause a type to be generated at runtime.
+        return self.session.profile.GetPrototype(type_name)
 
 
 class Producer(TypedProfileCommand):

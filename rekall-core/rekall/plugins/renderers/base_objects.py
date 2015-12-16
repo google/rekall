@@ -187,9 +187,11 @@ class PointerTextRenderer(NativeTypeTextRenderer):
         if target_obj == None:
             return text.Cell("-")
 
-        renderer = renderer_module.ObjectRenderer.ForTarget(
+        delegate_cls = renderer_module.ObjectRenderer.ForTarget(
             target_obj, renderer=self.renderer)
-        return renderer.render_full(target_obj)
+
+        return delegate_cls(session=self.session,
+                            renderer=self.renderer).render_full(target_obj)
 
     def render_compact(self, target, **options):
         return text.Cell(
