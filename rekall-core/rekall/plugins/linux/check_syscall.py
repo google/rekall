@@ -126,7 +126,7 @@ class CheckSyscall(common.LinuxPlugin):
                 yield table_name, result["$value"] + 1
 
         # Fallback. Note this underestimates the size quite a bit.
-        if func is None:
+        if func == None:
             table_size = len([x for x in self.profile.constants
                               if x.startswith("__syscall_meta__")]) or 0x300
             yield "ia32_sys_call_table", table_size
