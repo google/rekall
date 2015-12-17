@@ -215,7 +215,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
 
                 else:
                     self.session.logging.debug(
-                      "Unhandled field %#x %s" % (o, info))
+                        "Unhandled field %#x %s" % (o, info))
                     continue
 
             # Add the derived overlay to the profile so we can walk the list

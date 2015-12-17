@@ -239,8 +239,9 @@ class FunctionTextRenderer(BaseObjectTextRenderer):
             format_string = "%0#10x  %s"
 
         result = []
-        for offset, _, instruction in target.Disassemble():
-            result.append(format_string % (offset, instruction))
+        for instruction in target.disassemble():
+            result.append(format_string % (instruction.address,
+                                           instruction.text))
 
         return text.Cell("\n".join(result))
 

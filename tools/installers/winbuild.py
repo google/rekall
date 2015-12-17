@@ -7,7 +7,6 @@ import os
 import platform
 import shutil
 import subprocess
-import sys
 import tempfile
 
 
@@ -69,7 +68,7 @@ OutputBaseFilename=Rekall_{#REKALL_VERSION}_{#REKALL_CODENAME}_x64
 OutputBaseFilename=Rekall_{#REKALL_VERSION}_{#REKALL_CODENAME}_x86
 """
 
-    template += '''
+    template += r'''
 [_ISTool]
 UseAbsolutePaths=true
 
@@ -90,7 +89,7 @@ Root: HKCR; Subkey: "RekallForensicFile\shell\open\command"; ValueType: string; 
 
         try:
             # Call inno setup to build this.
-            subprocess.call(["c:\Program Files (x86)\Inno Setup 5\ISCC.exe",
+            subprocess.call([r"c:\Program Files (x86)\Inno Setup 5\ISCC.exe",
                              fd.name])
         finally:
             rm(fd.name)
@@ -115,10 +114,12 @@ def rm(fileglob):
 
 def main():
     if os.environ.get("VIRTUAL_ENV") is None:
-        raise RuntimeError("You must run this script from within a virtual env.")
+        raise RuntimeError("You must run this script from within a "
+                           "virtual env.")
 
     if not os.path.isdir("tools/installers"):
-        raise RuntimeError("You must run this script from the top level rekall source tree.")
+        raise RuntimeError("You must run this script from the top "
+                           "level rekall source tree.")
 
     # Clean the build and dist directories.
     print "Cleaning build directories."

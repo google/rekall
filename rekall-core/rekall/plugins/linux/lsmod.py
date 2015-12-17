@@ -22,12 +22,11 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-import bisect
 import re
 
-from rekall import obj
-from rekall.plugins.linux import address_resolver
 from rekall.plugins.linux import common
+
+
 
 class Lsmod(common.LinuxPlugin):
     '''Gathers loaded kernel modules.'''
@@ -90,15 +89,15 @@ class Lsmod(common.LinuxPlugin):
                     target=type, target_args=args)
 
             elif getter_function == self.profile.get_constant_object(
-                "param_get_string", target="Function",
-                vm=self.kernel_address_space):
+                    "param_get_string", target="Function",
+                    vm=self.kernel_address_space):
 
                 value = kernel_param.u1.str.deref()
 
             #It is an array of values.
             elif getter_function == self.profile.get_constant_object(
-                "param_array_get", target="Function",
-                vm=self.kernel_address_space):
+                    "param_array_get", target="Function",
+                    vm=self.kernel_address_space):
 
                 array = kernel_param.u1.arr
 

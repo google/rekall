@@ -37,22 +37,19 @@ class LinuxPsList(common.LinProcessFilter):
     __name = "pslist"
 
     def render(self, renderer):
-        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
-                               ("Name", "file_name", "20s"),
-                               ("PID", "pid", ">6"),
-                               ("PPID", "ppid", ">6"),
-                               ("UID", "uid", ">6"),
-                               ("GID", "gid", ">6"),
-                               ("DTB", "dtb", "[addrpad]"),
-                               ("Start Time", "start_time", ">24"),
-                               dict(name="Binary", cname="binary", wrap=False)])
+        renderer.table_header([
+            dict(name="Task", cname="proc", width=40, type="task_struct"),
+            ("PPID", "ppid", ">6"),
+            ("UID", "uid", ">6"),
+            ("GID", "gid", ">6"),
+            ("DTB", "dtb", "[addrpad]"),
+            ("Start Time", "start_time", ">24"),
+            dict(name="Binary", cname="binary", wrap=False)])
 
         for task in self.filter_processes():
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
             path = task.get_path(task.mm.exe_file)
-            renderer.table_row(task.obj_offset,
-                               task.comm,
-                               task.pid,
+            renderer.table_row(task,
                                task.parent.pid,
                                task.uid,
                                task.gid,

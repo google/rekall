@@ -171,7 +171,7 @@ class Ifnet_TextObjectRenderer(base_objects.StructTextRenderer):
 class Proc_TextObjectRenderer(base_objects.StructTextRenderer):
     renders_type = "proc"
     COLUMNS = [
-        dict(name="Process", style="address", cname="obj_offset"),
-        dict(name="Name", width=20, align="c", cname="command"),
+        dict(name="proc", style="address", cname="obj_offset"),
+        dict(name="Name", width=20, align="l", cname="name"),
         dict(name="PID", width=5, align="r", cname="pid")
     ]

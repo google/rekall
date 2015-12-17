@@ -126,7 +126,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
                 if proc.Peb:
                     address_info.append("ProcessBilled:%s" % proc.name)
 
-                address_info.append("@%#x" % member.v())
+                address_info.append("@%#x (%#x)" % (member.v(), pool.size))
 
             else:
                 # Look for pointers to global symbols.
@@ -146,8 +146,9 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
                     str(pool_header.Tag).encode("string-escape"))
 
             renderer.format(
-                "{0:#x} is inside pool allocation with tag '{1}' ({2:#x})\n",
-                self.offset, name, pool_header)
+                "{0:#x} is inside pool allocation with tag '{1}' ({2:#x}) "
+                " and size {3:#x}\n",
+                self.offset, name, pool_header, pool_header.size)
 
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Content", "content", "")])

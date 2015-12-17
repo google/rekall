@@ -27,6 +27,7 @@
 """
 
 from rekall.plugins.linux import common
+from rekall.plugins.tools import dynamic_profiles
 
 
 class CheckSyscall(common.LinuxPlugin):
@@ -34,7 +35,7 @@ class CheckSyscall(common.LinuxPlugin):
 
     __name = "check_syscall"
 
-    def Find_sys_call_table_size(self):
+    def Find_sys_call_tables(self):
         """Calculates the size of the syscall table.
 
         Here we need the symbol __NR_syscall_max. We derive it from
@@ -77,64 +78,72 @@ class CheckSyscall(common.LinuxPlugin):
            0xc12c8352        0x5 0f8397baffff         JAE 0xc12c3def  linux!syscall_badsys
 
         """
-        for func_name, rewind in [("system_call_fastpath", 0),
-                                  ("ret_from_sys_call", 40),
-                                  ("sysenter_do_call", 0)]:
+        rules = [
+            # Look for a comparison of the register (EAX) with a fixed value.
+            {'mnemonic': 'CMP', 'operands': [
+                {'type': 'REG'}, {'type': 'IMM', 'target': "$value"}]},
+
+            # Immediately followed by a branch to linux!badsys,
+            # linux!ia32_badsys etc.
+            {'comment': '~.+badsys'}
+        ]
+        func = None
+        tables = set()
+        for func_name, table_name in [
+                # http://lxr.free-electrons.com/source/arch/x86_64/kernel/entry.S?v=2.4.37
+                ("system_call", "sys_call_table"),
+                # http://lxr.free-electrons.com/source/arch/x86/kernel/entry_64.S?v=3.16
+                ("system_call_fastpath", "sys_call_table"),
+
+
+                # http://lxr.free-electrons.com/source/arch/x86/ia32/ia32entry.S?v=3.14
+                ("ia32_sysenter_target", "ia32_sys_call_table"),
+                ("sysenter_auditsys", "ia32_sys_call_table"),
+
+                # http://lxr.free-electrons.com/source/arch/x86/kernel/entry_32.S?v=3.3
+                ("sysenter_do_call", "sys_call_table")]:
+
+            if table_name in tables:
+                continue
+
+            # This table does not exist in this profile dont bother looking for
+            # its size.
+            if self.profile.get_constant(table_name) == None:
+                continue
+
             func = self.profile.get_constant_object(
-                func_name, target="Function").Rewind(rewind)
+                func_name, target="Function")
+            if func == None:
+                continue
 
-            # Only look in the first 2 instructions for something like
-            # CMP EAX, $123.
-            for instruction in func.Decompose(10):
-                if instruction.mnemonic == "CMP":
-                    return 1 + (instruction.operands[1].value & 0xffffffff)
+            matcher = dynamic_profiles.DisassembleMatcher(
+                name="sys_call_table_size",
+                mode=func.mode, rules=rules, session=self.session)
 
-        # Fallback. Note this underestimates the size quite a bit.
-        return len([x for x in self.profile.constants
-                    if x.startswith("__syscall_meta__")]) or 0x300
-
-    def Find_ia32_sys_call_table_size(self):
-        """Calculates the size of the ia32 syscall table.
-
-        Here we are after the symbol IA32_NR_syscalls. We use the exported
-        sysenter_do_call and rewind back a few instruction to locate the
-        comparison.
-
-        http://lxr.linux.no/linux+v2.6.24/arch/x86/ia32/ia32entry.S#L131
-        jnz  sysenter_tracesys
-                cmpq    $(IA32_NR_syscalls-1),%rax
-                ja      ia32_badsys
-        sysenter_do_call:
-                cmpl    $(IA32_NR_syscalls-1),%eax
-                ja      ia32_badsys
-        """
-        # Rewind approximately 20 bytes (a few instructions back).
-        func = self.profile.get_constant_object(
-            "sysenter_do_call", target="Function").Rewind(20)
-
-        for instruction in func.Decompose(10):
-            if instruction.mnemonic == "CMP":
-                return (instruction.operands[1].value & 0xffffffff) + 1
+            result = matcher.MatchFunction(func)
+            if result:
+                tables.add(table_name)
+                yield table_name, result["$value"] + 1
 
         # Fallback. Note this underestimates the size quite a bit.
-        return len([x for x in self.profile.constants
-                    if x.startswith("__syscall_meta__")]) or 0x300
+        if func is None:
+            table_size = len([x for x in self.profile.constants
+                              if x.startswith("__syscall_meta__")]) or 0x300
+            yield "ia32_sys_call_table", table_size
+            yield "sys_call_table", table_size
 
     def CheckSyscallTables(self):
         """
         This works by walking the system call table
         and verifies that each is a symbol in the kernel
         """
-        for table_name, size_finder in [
-                ("ia32_sys_call_table", self.Find_ia32_sys_call_table_size),
-                ("sys_call_table", self.Find_sys_call_table_size)]:
-
+        for table_name, table_size in  self.Find_sys_call_tables():
             # The syscall table is simply an array of pointers to functions.
             table = self.profile.get_constant_object(
                 table_name,
                 target="Array",
                 target_args=dict(
-                    count=size_finder(),
+                    count=table_size,
                     target="Pointer",
                     target_args=dict(
                         target="Function"

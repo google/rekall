@@ -53,9 +53,9 @@ install_requires = [
     "PyAFF4 >= 0.20",
     "PyYAML >= 3.11",
     "acora >= 1.9",
-    "argparse >= 1.3.0",
+    "argparse >= 1.2.1",
     "arrow >= 0.7.0",
-    "distorm3 == 3.3.0",
+    "capstone >= 3.0.3",
     "efilter == 1450268920",
     "intervaltree >= 2.1.0",
     "pycrypto >= 2.6.1",
@@ -66,6 +66,7 @@ install_requires = [
 
 if platform.system() == "Windows":
     install_requires.append("pypiwin32 == 219")
+    install_requires.append("capstone-windows >= 3.3.0")
 
 
 class PIPUpgrade(Command):

@@ -1,5 +1,4 @@
 from rekall import addrspace
-from rekall import obj
 from rekall import testlib
 from rekall import session
 
@@ -21,11 +20,11 @@ class RunBasedTest(testlib.RekallBaseUnitTestCase):
         self.test_as = CustomRunsAddressSpace(
             session=self.session,
             #        Voff, Poff, length
-            runs = [(1000, 0, 10),    # This contains data.
-                    (1020, 40, 10),
-                    (1030, 50, 10),   # Contiguous runs.
-                    (1050, 0, 2),
-                    (1052, 5, 2)],
+            runs=[(1000, 0, 10),    # This contains data.
+                  (1020, 40, 10),
+                  (1030, 50, 10),   # Contiguous runs.
+                  (1050, 0, 2),
+                  (1052, 5, 2)],
             data="0123456789")
 
     def testRunsRead(self):
@@ -81,7 +80,8 @@ class RunBasedTest(testlib.RekallBaseUnitTestCase):
             self.assertTrue(run.address_space is None)
             runs.append([run.start, run.end])
 
-        # get_address_ranges is supposed to merge contiguous runs in the virtual AS.
+        # get_address_ranges is supposed to merge contiguous runs in the virtual
+        # AS.
         self.assertEqual(runs,
                          [[1000, 1010],
                           [1020, 1040],

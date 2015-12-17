@@ -691,11 +691,15 @@ class DT(plugin.ProfileCommand):
         parser.add_argument("-a", "--address-space", default=None,
                             help="The address space to use.")
 
+        parser.add_argument("--member_offset", default=None, type="IntParser",
+                            help="If specified we only show the member at this "
+                            "offset.")
+
     def __init__(self, target=None, offset=0, address_space=None,
-                 **kwargs):
+                 member_offset=None, **kwargs):
         """Prints an object to the screen."""
         super(DT, self).__init__(**kwargs)
-
+        self.member_offset = member_offset
         self.offset = offset
         self.target = target
         if target is None:
@@ -732,14 +736,19 @@ class DT(plugin.ProfileCommand):
             member = getattr(struct, k)
             base_member = struct.m(k)
 
-            offset = base_member.obj_offset - struct.obj_offset
+            offset = base_member.obj_offset
             if offset == None:  # NoneObjects screw up sorting order here.
                 offset = -1
 
             fields.append((offset, k, member))
 
         for offset, k, v in sorted(fields):
-            renderer.table_row(offset, k, v, depth=depth)
+            if self.member_offset is not None:
+                if offset == self.member_offset:
+                    renderer.table_row(offset, k, v, depth=depth)
+            else:
+                renderer.table_row(offset, k, v, depth=depth)
+
             if isinstance(v, obj.Struct):
                 self._render_Struct(renderer, v, depth=depth + 1)
 

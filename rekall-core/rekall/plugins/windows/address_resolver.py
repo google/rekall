@@ -30,7 +30,6 @@ from rekall import utils
 from rekall.plugins.common import address_resolver
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
-from rekall.plugins.overlays.windows import windows
 
 
 config.DeclareOption(
@@ -193,6 +192,7 @@ class PEModule(address_resolver.Module):
 
 class VadModule(PEModule):
     """A Module corresponding to a VAD entry."""
+    filename = None
 
     def __init__(self, vad=None, session=None):
         name = "vad_%#x" % vad.Start

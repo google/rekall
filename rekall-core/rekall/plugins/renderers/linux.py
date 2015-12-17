@@ -20,6 +20,7 @@
 from rekall.ui import json_renderer
 from rekall.ui import text
 from rekall.plugins.addrspaces import amd64
+from rekall.plugins.renderers import base_objects
 
 
 class kuid_t_TextObjectRenderer(text.TextObjectRenderer):
@@ -53,3 +54,12 @@ class XenM2PMapperObjectRenderer(json_renderer.JsonObjectRenderer):
 
     def DecodeFromJsonSafe(self, value, _):
         return amd64.XenM2PMapper(value["m2p_map"])
+
+
+class TaskStruct_TextObjectRenderer(base_objects.StructTextRenderer):
+    renders_type = "task_struct"
+    COLUMNS = [
+        dict(name="task_struct", style="address", cname="obj_offset"),
+        dict(name="Name", width=20, align="l", cname="name"),
+        dict(name="PID", width=6, align="r", cname="pid")
+    ]

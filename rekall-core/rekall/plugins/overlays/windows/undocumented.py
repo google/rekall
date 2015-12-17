@@ -46,10 +46,10 @@ AMD64 = {
     #     PSESSION_GLOBAL_SUBSECTION_INFO GlobalSubs;
     # } IMAGE_ENTRY_IN_SESSION, * PIMAGE_ENTRY_IN_SESSION;
     '_IMAGE_ENTRY_IN_SESSION': [None, {
-            'Link': [0, ['_LIST_ENTRY']],
-            'Address': [0x10, ['Pointer']],
-            'LastAddress': [0x18, ['Pointer']],
-            }],
+        'Link': [0, ['_LIST_ENTRY']],
+        'Address': [0x10, ['Pointer']],
+        'LastAddress': [0x18, ['Pointer']],
+    }],
 
     # Reversed from tcpip.sys!TcpStartPartitionModule
     "PARTITION_TABLE": [None, {
@@ -69,7 +69,7 @@ AMD64 = {
             )]],
         }],
 
-    # ntoskrnl.exe!RtlCreateHashTable
+    # ntoskrnl.exe!RtlCreateHashTable (PoolTag:HTab)
     "FIRST_LEVEL_DIR": [0x24, {
         "SizeOfSecondLevel": [0x8, ["unsigned int"]],
 
@@ -78,6 +78,7 @@ AMD64 = {
         # Reversed from ntoskrnl.exe!RtlpAllocateSecondLevelDir
         "SecondLevel": [0x20, ["Pointer", dict(
             target="Array",
+            # Actual hash table (PoolTag:HTab)
             target_args=dict(
                 count=lambda x: x.SizeOfSecondLevel,
                 target="_LIST_ENTRY"
@@ -121,10 +122,10 @@ AMD64 = {
 
 I386 = {
     '_IMAGE_ENTRY_IN_SESSION': [None, {
-            'Link': [0x00, ['_LIST_ENTRY']],
-            'Address': [0x08, ['pointer', ['address']]],
-            'LastAddress': [0x0b, ['pointer', ['address']]],
-            }],
+        'Link': [0x00, ['_LIST_ENTRY']],
+        'Address': [0x08, ['pointer', ['address']]],
+        'LastAddress': [0x0b, ['pointer', ['address']]],
+    }],
 
     # Reversed from tcpip.sys!TcpStartPartitionModule
     "PARTITION_TABLE": [None, {
@@ -192,32 +193,32 @@ I386 = {
 # TODO: Move to their own profile.
 # These come from the reactos ndk project.
 ENUMS = {
-  "_KOBJECTS": {
-   "0": "EventNotificationObject",
-   "1": "EventSynchronizationObject",
-   "2": "MutantObject",
-   "3": "ProcessObject",
-   "4": "QueueObject",
-   "5": "SemaphoreObject",
-   "6": "ThreadObject",
-   "7": "GateObject",
-   "8": "TimerNotificationObject",
-   "9": "TimerSynchronizationObject",
-   "10": "Spare2Object",
-   "11": "Spare3Object",
-   "12": "Spare4Object",
-   "13": "Spare5Object",
-   "14": "Spare6Object",
-   "15": "Spare7Object",
-   "16": "Spare8Object",
-   "17": "Spare9Object",
-   "18": "ApcObject",
-   "19": "DpcObject",
-   "20": "DeviceQueueObject",
-   "21": "EventPairObject",
-   "22": "InterruptObject",
-   "23": "ProfileObject",
-   "24": "ThreadedDpcObject",
-   "25": "MaximumKernelObject"
-   },
+    "_KOBJECTS": {
+        "0": "EventNotificationObject",
+        "1": "EventSynchronizationObject",
+        "2": "MutantObject",
+        "3": "ProcessObject",
+        "4": "QueueObject",
+        "5": "SemaphoreObject",
+        "6": "ThreadObject",
+        "7": "GateObject",
+        "8": "TimerNotificationObject",
+        "9": "TimerSynchronizationObject",
+        "10": "Spare2Object",
+        "11": "Spare3Object",
+        "12": "Spare4Object",
+        "13": "Spare5Object",
+        "14": "Spare6Object",
+        "15": "Spare7Object",
+        "16": "Spare8Object",
+        "17": "Spare9Object",
+        "18": "ApcObject",
+        "19": "DpcObject",
+        "20": "DeviceQueueObject",
+        "21": "EventPairObject",
+        "22": "InterruptObject",
+        "23": "ProfileObject",
+        "24": "ThreadedDpcObject",
+        "25": "MaximumKernelObject"
+    },
 }

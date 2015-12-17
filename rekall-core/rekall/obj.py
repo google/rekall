@@ -342,6 +342,12 @@ class BaseObject(object):
             session.logging.error("Unknown keyword args %s for %s",
                                   kwargs, self.__class__.__name__)
 
+        if session is None:
+            raise RuntimeError("Session must be provided")
+
+        if profile is None:
+            profile = session.profile
+
         self.obj_type = type_name
 
         # 64 bit addresses are always sign extended, so we need to clear the top
@@ -359,10 +365,6 @@ class BaseObject(object):
         self.obj_session = session
 
         self.obj_producers = set()
-
-        if profile is None:
-            session.logging.critical("Profile must be provided to %s", self)
-            raise RuntimeError("Profile must be provided")
 
     @property
     def obj_size(self):
@@ -1565,6 +1567,19 @@ class Profile(object):
         if types:
             self.add_types(types)
 
+    # The common classes that are provided by the object framework.  Plugins can
+    # extend the framework by registering additional classes here - these
+    # classes will be available everywhere profiles are used.
+    COMMON_CLASSES = {'BitField': BitField,
+                      'Pointer': Pointer,
+                      'Void': Void,
+                      'void': Void,
+                      'Array': Array,
+                      'PointerArray': PointerArray,
+                      'ListArray': ListArray,
+                      'NativeType': NativeType,
+                      'Struct': Struct}
+
     @classmethod
     def Initialize(cls, profile):
         """Install required types, classes and constants.
@@ -1574,15 +1589,7 @@ class Profile(object):
         components into their own profiles.
         """
         # Basic types used in all profiles.
-        profile.add_classes({'BitField': BitField,
-                             'Pointer': Pointer,
-                             'Void': Void,
-                             'void': Void,
-                             'Array': Array,
-                             'PointerArray': PointerArray,
-                             'ListArray': ListArray,
-                             'NativeType': NativeType,
-                             'Struct': Struct})
+        profile.add_classes(cls.COMMON_CLASSES)
 
         profile._initialized = True  # pylint: disable=protected-access
 

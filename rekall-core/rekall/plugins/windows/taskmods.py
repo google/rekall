@@ -27,8 +27,6 @@ from rekall import testlib
 
 from rekall.plugins.common import memmap
 from rekall.plugins.windows import common
-from rekall import plugin
-from rekall.ui import text
 
 
 class WinPsList(common.WinProcessFilter):

@@ -131,10 +131,11 @@ class Collect(plugin.ProfileCommand):
     """Collect instances of struct of type 'type_name'.
 
     This plugin will find all other plugins that produce 'type_name' and merge
-    all their output. For example, running collect 'proc' will give you a 
+    all their output. For example, running collect 'proc' will give you a
     rudimentary psxview.
 
     This plugin is mostly used by other plugins, like netstat and psxview.
+
     """
 
     name = "collect"
@@ -258,7 +259,7 @@ class CommandWrapper(object):
 
     def resolve(self, name):
         """Pretend the plugin is an IStructured instead of a function.
-        
+
         This lets us pretend that the plugin is a structured datatype (like an
         object) making it possible for the user to get data without calling
         it as a function. The first time the plugin is asked for any data
@@ -352,7 +353,7 @@ class EfilterPlugin(plugin.ProfileCommand):
 
     def reflect_runtime_member(self, name):
         """Find the type* of 'name', which is a plugin.
-        
+
         * This returns the plugin instance, not its class, because the entire
         reflection API requires information only available to Rekall at runtime.
         """
@@ -455,7 +456,7 @@ class Search(EfilterPlugin):
     @property
     def first_result(self):
         """Get only the first search result.
-        
+
         This is useful when we need to find a concrete structure for some other
         purpose, such as finding a concrete allocator zone when writing a
         'dump_zone' plugin.
@@ -547,17 +548,17 @@ class Explain(EfilterPlugin):
     Explains how a query was parsed and how it will be interpreted. It also
     runs a full type inferencer, to attempt to determine the output of the
     query once it's executed.
-    
+
     The Explain plugin can analyse a strict superset of expressions that
     are valid in the Search plugin. It supports:
-    
+
      - Any search query that can be passed to Search.
      - Expressions asking about types and members of profile types
        (like structs).
     """
 
     name = "explain"
-    
+
     # As long as this is True, the input is a valid search query and will be
     # analysed in the output. This may become False if we realize the input
     # is not a valid search query, but instead asking about something like the

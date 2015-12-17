@@ -66,7 +66,7 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
             for first_level in partition:
                 for second_level in first_level.SecondLevel:
                     for endpoint in second_level.list_of_type(
-                        "_TCP_ENDPOINT", "ListEntry"):
+                            "_TCP_ENDPOINT", "ListEntry"):
 
                         lendpoint = "{0}:{1}".format(
                             endpoint.LocalAddress(),

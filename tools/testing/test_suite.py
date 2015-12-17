@@ -537,7 +537,11 @@ exit 0
                 fd.write(self.BASELINE_TEMPLATE % dict(
                     src=fd.name, dest=baseline_filename,
                     command=current_run["options"].get(
-                        "executed_command", "echo hello")))
+                        "executed_command",
+                        # If command does not exists we launch the unittest.
+                        "python -m unittest %s.%s" % (
+                            plugin_cls.__module__,
+                            plugin_cls.__name__))))
 
                 fd.write(json.dumps(current_run, indent=4))
 

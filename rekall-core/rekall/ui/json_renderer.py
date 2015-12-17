@@ -28,7 +28,6 @@ import json
 import pdb
 import sys
 
-from rekall import addrspace
 from rekall import constants
 from rekall import utils
 from rekall.ui import renderer as renderer_module

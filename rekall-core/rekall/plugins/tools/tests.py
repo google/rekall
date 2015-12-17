@@ -18,4 +18,5 @@
 
 # pylint: disable=unused-import
 
+from rekall.plugins.tools import dynamic_profiles_test
 from rekall.plugins.tools import json_test

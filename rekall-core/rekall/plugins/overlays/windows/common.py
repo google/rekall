@@ -630,6 +630,14 @@ class _SID(obj.Struct):
 class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
 
+    @property
+    def address_mode(self):
+        # If this is a Wow64 process, address_mode is 32 bit.
+        if self.IsWow64:
+            return "I386"
+
+        return self.obj_session.profile.metadata("arch")
+
     def is_valid(self):
         """Validate the _EPROCESS."""
         pid = self.pid
@@ -804,6 +812,11 @@ class _POOL_HEADER(obj.Struct):
             size_of_obj += pool_align - extra
 
         return size_of_obj
+
+    @property
+    def size(self):
+        pool_align = self.obj_profile.get_constant("PoolAlignment")
+        return self.BlockSize * pool_align
 
     def end(self):
         return self.obj_offset + self.obj_size

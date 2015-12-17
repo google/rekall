@@ -125,7 +125,7 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             # For TcpL, the state is always listening and the remote port is
             # zero
             for ver, laddr, raddr in tcpentry.dual_stack_sockets(
-                vm=self.kernel_address_space):
+                    vm=self.kernel_address_space):
                 yield (tcpentry, "TCP" + ver, laddr,
                        tcpentry.Port, raddr, 0, "LISTENING")
 
@@ -180,7 +180,7 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             # For UdpA, the state is always blank and the remote end is
             # asterisks
             for ver, laddr, _ in udpentry.dual_stack_sockets(
-                vm=self.kernel_address_space):
+                    vm=self.kernel_address_space):
                 yield (udpentry, "UDP" + ver, laddr, udpentry.Port,
                        "*", "*", "")
 

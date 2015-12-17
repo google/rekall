@@ -227,7 +227,7 @@ class Disassembler(DynamicParser):
                 # Necessarily implies that $var1 and $var2 must be different
                 # registers.
                 if (v in rule_capture_vars_values and
-                    rule_capture_vars_values[v] != var_name):
+                        rule_capture_vars_values[v] != var_name):
                     return
 
                 result[var_name] = v
