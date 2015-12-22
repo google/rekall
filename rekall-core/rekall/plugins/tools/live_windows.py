@@ -34,13 +34,10 @@ supported operating systems.
 import os
 import platform
 import re
-import win32api
 import win32service
 
 import rekall
 from rekall import plugin
-from rekall import session
-
 from rekall.plugins.addrspaces import win32
 
 
@@ -71,7 +68,7 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
         # Did we start the service? If so we need to clean up.
         self.we_started_service = False
 
-    exception_format_regex = re.compile(": \((\d+),")
+    exception_format_regex = re.compile(r": \((\d+),")
     def parse_exception(self, e):
         """Yes! seriously there is no way to get at the real error code."""
         # We often see code like if "Access Denied" in str(e):... but
@@ -87,10 +84,12 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
         """Load the driver if possible."""
         # Check the driver is somewhere accessible.
         if self.driver is None:
+            # Valid values
+            # http://superuser.com/questions/305901/possible-values-of-processor-architecture
             machine = platform.machine()
             if machine == "AMD64":
                 driver = "winpmem_x64.sys"
-            elif machine == "I386":
+            elif machine == "x86":
                 driver = "winpmem_x86.sys"
             else:
                 raise plugin.PluginError("Unsupported architecture")
@@ -102,7 +101,8 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
         self.session.logging.debug("Loading driver from %s", driver)
 
         if not os.access(driver, os.R_OK):
-            raise plugin.PluginError("Driver file %s is not accessible." % driver)
+            raise plugin.PluginError(
+                "Driver file %s is not accessible." % driver)
 
         # Must have absolute path here.
         self.hScm = win32service.OpenSCManager(
