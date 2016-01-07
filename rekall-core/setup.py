@@ -66,7 +66,7 @@ install_requires = [
 
 if platform.system() == "Windows":
     install_requires.append("pypiwin32 == 219")
-    install_requires.append("capstone-windows >= 3.3.0")
+    install_requires.append("capstone-windows >= 3.0.3")
 
 
 class PIPUpgrade(Command):
