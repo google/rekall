@@ -343,6 +343,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         Note this always succeeds - reads outside mapped addresses in the image
         will simply return 0.
         """
+        _ = collection
         string = self.base.read(addr, 4)
         return struct.unpack('<I', string)[0]
 
@@ -370,10 +371,11 @@ class IA32PagedMemory(addrspace.PagedReader):
 
             # PDE is for a large page.
             if pde_value & self.page_size_mask:
-                yield addrspace.Run(start=vaddr,
-                                    end=vaddr + 0x400000,
-                                    file_offset=(pde_value & 0xffc00000) | (vaddr & 0x3fffff),
-                                    address_space=self.base)
+                yield addrspace.Run(
+                    start=vaddr,
+                    end=vaddr + 0x400000,
+                    file_offset=(pde_value & 0xffc00000) | (vaddr & 0x3fffff),
+                    address_space=self.base)
                 continue
 
             # This reads the entire PTE table at once - On
@@ -395,10 +397,11 @@ class IA32PagedMemory(addrspace.PagedReader):
                     continue
 
                 if pte_value & self.valid_mask:
-                    yield addrspace.Run(start=vaddr,
-                                        end=vaddr + 0x1000,
-                                        file_offset=(pte_value & 0xfffff000) | (vaddr & 0xfff),
-                                        address_space=self.base)
+                    yield addrspace.Run(
+                        start=vaddr,
+                        end=vaddr + 0x1000,
+                        file_offset=(pte_value & 0xfffff000) | (vaddr & 0xfff),
+                        address_space=self.base)
 
     def __str__(self):
         return "%s@0x%08X (%s)" % (self.__class__.__name__, self.dtb, self.name)
@@ -552,10 +555,12 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                     continue
 
                 if pde_value & self.page_size_mask:
-                    yield addrspace.Run(start=vaddr,
-                                        end=vaddr+0x200000,
-                                        file_offset=(pde_value & 0xfffffffe00000) | (vaddr & 0x1fffff),
-                                        address_space=self.base)
+                    yield addrspace.Run(
+                        start=vaddr,
+                        end=vaddr+0x200000,
+                        file_offset=(pde_value & 0xfffffffe00000) | (
+                            vaddr & 0x1fffff),
+                        address_space=self.base)
                     continue
 
                 # This reads the entire PTE table at once - On
@@ -576,8 +581,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                         if start >= next_vaddr:
                             continue
 
-                        yield addrspace.Run(start=vaddr,
-                                            end=vaddr+0x1000,
-                                            file_offset=((pte_value & 0xffffffffff000) |
-                                                         (vaddr & 0xfff)),
-                                            address_space=self.base)
+                        yield addrspace.Run(
+                            start=vaddr,
+                            end=vaddr+0x1000,
+                            file_offset=((pte_value & 0xffffffffff000) |
+                                         (vaddr & 0xfff)),
+                            address_space=self.base)

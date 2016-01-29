@@ -30,10 +30,11 @@ from rekall.plugins.tools import caching_url_manager
 from rekall.plugins.tools import disassembler
 from rekall.plugins.tools import dynamic_profiles
 from rekall.plugins.tools import ewf
-from rekall.plugins.tools import json_tools
-from rekall.plugins.tools import profile_tool
 from rekall.plugins.tools import ipython
+from rekall.plugins.tools import json_tools
 from rekall.plugins.tools import mspdb
+from rekall.plugins.tools import profile_tool
+from rekall.plugins.tools import repository_manager
 
 try:
     from rekall.plugins.tools import webconsole_plugin

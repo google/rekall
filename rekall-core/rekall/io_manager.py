@@ -122,7 +122,7 @@ class IOManager(object):
     @property
     def inventory(self):
         if self._inventory is None:
-            self._inventory = self.GetData("inventory")
+            self._inventory = self.GetData("inventory", default={})
 
         return self._inventory
 
@@ -171,6 +171,12 @@ class IOManager(object):
         """Returns metadata about a path."""
         inventory = self.inventory.get("$INVENTORY", {})
         return inventory.get(path, {})
+
+    def SetMetadata(self, name, options):
+        existing_options = self.Metadata(name)
+        existing_options.update(options)
+        self.inventory.setdefault("$INVENTORY", {})[name] = existing_options
+        self.FlushInventory()
 
     def FlushInventory(self):
         """Write the inventory to the storage."""
@@ -322,6 +328,29 @@ class DirectoryIOManager(IOManager):
         self.check_dump_dir(self.dump_dir)
         self.canonical_name = os.path.basename(self.dump_dir)
 
+    @property
+    def inventory(self):
+        # In DirectoryIOManager the inventory reflects the directory structure.
+        if self._inventory is None:
+            self._inventory = self.GetData("inventory", default={})
+            if not self._inventory:
+                self._inventory = self.RebuildInventory()
+
+        return self._inventory
+
+    def RebuildInventory(self):
+        """Rebuild the inventory file."""
+        result = {
+            "$METADATA": dict(
+                Type="Inventory",
+                ProfileClass="Inventory"),
+            "$INVENTORY": {},
+        }
+        for member in self.ListFiles():
+            result["$INVENTORY"][member] = self.Metadata(member)
+
+        return result
+
     def CheckInventory(self, path):
         """Checks the validity of the inventory and if the path exists in it.
 
@@ -330,16 +359,19 @@ class DirectoryIOManager(IOManager):
         if a profile exists in this repository.
         """
         if self.ValidateInventory():
-            path = self._GetAbsolutePathName(path)
+            path = self.GetAbsolutePathName(path)
             return os.access(path, os.R_OK) or os.access(path + ".gz", os.R_OK)
         return False
 
     def Metadata(self, path):
-        path = self._GetAbsolutePathName(path)
+        path = self.GetAbsolutePathName(path)
         try:
             try:
                 st = os.stat(path + ".gz")
             except OSError:
+                if os.path.isdir(path):
+                    return {}
+
                 st = os.stat(path)
 
             return dict(LastModified=st.st_mtime)
@@ -356,7 +388,7 @@ class DirectoryIOManager(IOManager):
         if not os.path.isdir(dump_dir):
             raise IOManagerError("%s is not a directory" % self.dump_dir)
 
-    def _GetAbsolutePathName(self, name):
+    def GetAbsolutePathName(self, name):
         path = os.path.normpath(
             os.path.join(self.dump_dir, self.version, name))
 
@@ -372,24 +404,28 @@ class DirectoryIOManager(IOManager):
             pass
 
     def ListFiles(self):
-        for root, _, files in os.walk(self.dump_dir):
+        top_level = os.path.join(self.dump_dir, self.version)
+        for root, _, files in os.walk(top_level):
             for f in files:
                 path = os.path.normpath(os.path.join(root, f))
 
+                if path.endswith(".gz"):
+                    path = path[:-3]
+
                 # Return paths relative to the dump dir.
-                yield path[len(self.dump_dir) + 1:]
+                yield path[len(top_level) + 1:]
 
     def Create(self, name):
-        path = self._GetAbsolutePathName(name)
+        path = self.GetAbsolutePathName(name)
         self.EnsureDirectoryExists(os.path.dirname(path))
         return gzip.open(path + ".gz", "wb")
 
     def Destroy(self, name):
-        path = self._GetAbsolutePathName(name)
+        path = self.GetAbsolutePathName(name)
         return shutil.rmtree(path)
 
     def Open(self, name):
-        path = self._GetAbsolutePathName(name)
+        path = self.GetAbsolutePathName(name)
         try:
             result = open(path, "rb")
         except IOError:

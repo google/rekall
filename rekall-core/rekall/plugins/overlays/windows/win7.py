@@ -96,7 +96,18 @@ win7_overlays = {
             target="unsigned char",
             )]],
         }],
-    }
+
+    '_MM_SESSION_SPACE': [None, {
+        # Specialized iterator to produce all the _IMAGE_ENTRY_IN_SESSION
+        # records.
+        'ImageIterator': lambda x: x.ImageList.list_of_type(
+            "_IMAGE_ENTRY_IN_SESSION", "Link")
+    }],
+
+    '_IMAGE_ENTRY_IN_SESSION': [None, {
+        'ImageBase': lambda x: x.Address.v() & ~7
+    }],
+}
 
 
 class _OBJECT_HEADER(common._OBJECT_HEADER):

@@ -632,9 +632,9 @@ class Tcpip(pe_vtypes.BasicPEProfile):
                 profile.add_overlay(tcpip_vtypes_7)
 
         # Pool tags
-        profile.add_constants(UDP_END_POINT_POOLTAG="UdpA",
-                              TCP_LISTENER_POOLTAG="TcpL",
-                              TCP_END_POINT_POOLTAG="TcpE")
+        profile.add_constants(dict(UDP_END_POINT_POOLTAG="UdpA",
+                                   TCP_LISTENER_POOLTAG="TcpL",
+                                   TCP_END_POINT_POOLTAG="TcpE"))
 
 
         profile.add_overlay(overlays)

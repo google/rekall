@@ -706,8 +706,8 @@ class ProfileMIPS32Bits(obj.Profile):
     def Initialize(cls, profile):
         super(ProfileMIPS32Bits, cls).Initialize(profile)
         profile.add_classes(native_types.BE32)
-        profile.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
-                              MaxPointer=2 ** 32 - 1)
+        profile.add_constants(dict(PoolAlignment=8, MAX_FAST_REF=7,
+                                   MaxPointer=2 ** 32 - 1))
 
 
 class Profile32Bits(obj.Profile):
@@ -721,8 +721,8 @@ class Profile32Bits(obj.Profile):
     def Initialize(cls, profile):
         super(Profile32Bits, cls).Initialize(profile)
         profile.add_classes(native_types.ILP32)
-        profile.add_constants(PoolAlignment=8, MAX_FAST_REF=7,
-                              MaxPointer=2 ** 32 - 1)
+        profile.add_constants(dict(PoolAlignment=8, MAX_FAST_REF=7,
+                                   MaxPointer=2 ** 32 - 1))
 
 
 class ProfileLLP64(obj.Profile):
@@ -736,8 +736,8 @@ class ProfileLLP64(obj.Profile):
     def Initialize(cls, profile):
         super(ProfileLLP64, cls).Initialize(profile)
         profile.add_classes(native_types.LLP64)
-        profile.add_constants(PoolAlignment=16, MAX_FAST_REF=15,
-                              MaxPointer=2 ** 48 - 1)
+        profile.add_constants(dict(PoolAlignment=16, MAX_FAST_REF=15,
+                                   MaxPointer=2 ** 48 - 1))
 
 
 class ProfileLP64(obj.Profile):
@@ -789,16 +789,32 @@ class BasicClasses(obj.Profile):
             'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
             "IndexedArray": IndexedArray,
         })
-        profile.add_constants(default_text_encoding="utf-16-le")
+        profile.add_constants(dict(default_text_encoding="utf-16-le"))
         profile.add_overlay(common_overlay)
 
 
 class RelativeOffsetMixin(object):
     """A mixin which shifts all constant addresses by a constant."""
 
+    def __init__(self, **kwargs):
+        super(RelativeOffsetMixin, self).__init__(**kwargs)
+
+        # Some constants are specified as a absolute values - i.e. we do not
+        # shift them by the image base. This is especially the case for
+        # dynamically calculated constants which are derived from the image -
+        # i.e. after all addresses are shifted.
+        self.absolute_constants = {}
+
     # This should be adjusted to the correct image base.
     def GetImageBase(self):
         return 0
+
+    def add_constants(self, constants=None, constants_are_absolute=False,
+                      **opts):
+        if constants_are_absolute:
+            self.absolute_constants.update(constants)
+        else:
+            super(RelativeOffsetMixin, self).add_constants(constants, **opts)
 
     def get_constant(self, name, is_address=False):
         """Gets the constant from the profile.
@@ -808,6 +824,15 @@ class RelativeOffsetMixin(object):
         base_constant = super(RelativeOffsetMixin, self).get_constant(name)
         if is_address and isinstance(base_constant, (int, long)):
             return base_constant + self.GetImageBase()
+
+        # Handle absolute constants specifically.
+        if base_constant == None:
+            absolute_constant = self.absolute_constants.get(name)
+            if absolute_constant:
+                # Support callable absolute constants.
+                if callable(absolute_constant):
+                    absolute_constant = absolute_constant()
+                return absolute_constant
 
         return base_constant
 

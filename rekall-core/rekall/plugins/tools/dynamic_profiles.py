@@ -105,7 +105,8 @@ class DisassembleMatcher(object):
     def _FindRuleIndex(self, instruction):
         """Generate all rules that match the current instruction."""
         for i, rule in enumerate(self.rules):
-            context = dict(instruction=instruction.text)
+            context = dict(
+                instruction=instruction.text, offset=instruction.address)
             if instruction.match_rule(rule, context):
                 yield i, context
 
@@ -139,7 +140,7 @@ class DisassembleMatcher(object):
 
         return [], {}
 
-    def MatchFunction(self, func, length=100):
+    def MatchFunction(self, func, length=1000):
         return self.Match(
             func.obj_offset, func.obj_vm.read(func.obj_offset, length))
 
@@ -166,15 +167,175 @@ class DisassembleMatcher(object):
         vector, context = self._GetMatch(hits, contexts)
 
         if len(vector) < len(self.rules):
-            self.session.logging.error("Failed to find match for %s.",
-                                       self.name)
+            self.session.logging.error(
+                "Failed to find match for %s - Only matched %s/%s rules.",
+                self.name, len(vector), len(self.rules))
             return obj.NoneObject()
 
         self.session.logging.debug("Found match for %s", self.name)
 
         result = {}
         for i, hit in enumerate(vector):
-            result.update(contexts[i][hit])
-            self.session.logging.debug(contexts[i][hit]["instruction"])
+            hit_data = contexts[i][hit]
+            result.update(hit_data)
+            self.session.logging.debug(
+                "%#x %s", hit_data["offset"], hit_data["instruction"])
 
         return result
+
+
+class DisassembleConstantMatcher(object):
+    """Search for the value of global constants using disassembly."""
+
+    def __init__(self, session, profile, name, args):
+        self.session = session
+        self.profile = profile
+        self.args = args
+        self.name = name
+        # Start address to disassemble - can be an exported function name.
+        self.start_address = args["start"]
+
+        # Disassemble capture rules.
+        self.rules = args["rules"]
+
+    def __call__(self):
+        resolver = self.session.address_resolver
+        func = self.session.profile.Function(resolver.get_address_by_name(
+            self.start_address))
+
+        matcher = DisassembleMatcher(
+            mode=func.mode, rules=self.rules, name=self.name,
+            session=self.session)
+
+        result = matcher.MatchFunction(func)
+        if result and "$out" in result:
+            return result["$out"]
+
+
+class FirstOf(object):
+    """Try a list of callables until one works."""
+    def __init__(self, list_of_callables, **kwargs):
+        self.list_of_callables = list_of_callables
+        self.kwargs = kwargs
+
+    def __call__(self, *args):
+        for func in self.list_of_callables:
+            result = func(*args, **self.kwargs)
+            if result != None:
+                return result
+
+
+class DynamicConstantProfileLoader(obj.ProfileSectionLoader):
+    """Produce a callable for a constant."""
+    name = "$DYNAMIC_CONSTANTS"
+
+    def LoadIntoProfile(self, session, profile, constants):
+        """Parse the constants detectors and make callables."""
+        for constant_name, rules in constants.items():
+            detectors = []
+
+            # Each constant can have several different detectors.
+            for rule in rules:
+                detector_name = rule["type"]
+                detector_arg = rule["args"]
+
+                # We only support one type of detector right now.
+                if detector_name != "DisassembleConstantMatcher":
+                    session.logging.error(
+                        "Unimplemented detector %s", detector_name)
+                    continue
+
+                detectors.append(
+                    DisassembleConstantMatcher(
+                        session, profile, constant_name, detector_arg))
+
+            profile.add_constants({constant_name: FirstOf(detectors)},
+                                  constants_are_absolute=True)
+
+        return profile
+
+
+class DisassembleStructMatcher(DisassembleConstantMatcher):
+    """Match a struct based on rules."""
+
+    def __call__(self, struct, member=None):
+        resolver = struct.obj_session.address_resolver
+        func = struct.obj_profile.Function(resolver.get_address_by_name(
+            self.start_address))
+
+        matcher = DisassembleMatcher(
+            mode=func.mode, rules=self.rules, name=self.name,
+            max_separation=self.args.get("max_separation", 10),
+            session=struct.obj_session)
+
+        struct.obj_session.logging.info(
+            "DisassembleStructMatcher: %s %s", self.name,
+            self.args.get("comment", ""))
+        result = matcher.MatchFunction(func)
+        if result:
+            # Match succeeded - create a new overlay for the Struct.
+            overlay = {self.name: [None, {}]}
+            fields = overlay[self.name][1]
+            for field, field_args in self.args["fields"].iteritems():
+                fields[field] = [result["$" + field], field_args]
+
+            # This should never happen?
+            if member not in fields:
+                return
+
+            # We calculated the types, now we add them to the profile so the
+            # next time a struct is instantiated it will be properly
+            # initialized.
+            struct.obj_profile.add_types(overlay)
+
+            # Now take care of the current struct which has already been
+            # initialized.
+            struct.members.update(struct.obj_profile.Object(self.name).members)
+
+            # Return the member from the current struct.
+            return struct.m(member)
+
+
+class DynamicStructProfileLoader(obj.ProfileSectionLoader):
+    """Produce a callable for a constant."""
+    name = "$DYNAMIC_STRUCTS"
+
+    def LoadIntoProfile(self, session, profile, data):
+        """Parse the constants detectors and make callables."""
+        overlay = {}
+        for struct_name, signatures in data.items():
+            detectors = {}
+
+            # Each field can have several different detectors.
+            for rule in signatures:
+                detector_name = rule["type"]
+                detector_arg = rule["args"]
+
+                # We only support one type of detector right now.
+                if detector_name != "DisassembleStructMatcher":
+                    session.logging.error(
+                        "Unimplemented detector %s", detector_name)
+                    continue
+
+                detector = DisassembleStructMatcher(
+                    None, None, struct_name, detector_arg)
+
+                # Add the detector to each field. The initial detector is a
+                # pass-through which returns the normal member if one is defined
+                # in the conventional way. If None is defined, we launch our
+                # dynamic detector - which will store the conventional member
+                # definitions as a cache.
+                def PassThrough(struct, member=None):
+                    return struct.m(member)
+
+                for field in detector_arg["fields"]:
+                    detectors.setdefault(field, [PassThrough]).append(detector)
+
+            # Install an overlay with the chain of detectors.
+            overlay[struct_name] = [None, {}]
+            for field in detectors:
+                overlay[struct_name][1][field] = FirstOf(
+                    detectors[field], member=field)
+
+        profile.add_overlay(overlay)
+        return profile

@@ -1148,8 +1148,7 @@ class BasicPEProfile(basic.RelativeOffsetMixin, basic.BasicClasses):
     def GetImageBase(self):
         return self.image_base
 
-    def add_constants(self, constants=None, constants_are_addresses=True,
-                      **kwargs):
+    def add_constants(self, constants=None, **opts):
         """Add the demangled constants.
 
         This allows us to handle 32 bit vs 64 bit constant names easily since
@@ -1158,15 +1157,11 @@ class BasicPEProfile(basic.RelativeOffsetMixin, basic.BasicClasses):
         demangler = Demangler(self._metadata)
         result = {}
 
-        if constants:
-            kwargs.update(constants)
-
-        for k, v in kwargs.iteritems():
+        for k, v in constants.iteritems():
             result[demangler.DemangleName(k)] = v
 
         super(BasicPEProfile, self).add_constants(
-            constants=result,
-            constants_are_addresses=constants_are_addresses)
+            constants=result, **opts)
 
     def copy(self):
         result = super(BasicPEProfile, self).copy()

@@ -1198,6 +1198,9 @@ class _EX_FAST_REF(obj.Struct):
 
         return True
 
+    def v(self):
+        return self.m("Object").obj_offset & self.mask
+
     @property
     def Object(self):
         if self._object is None:
@@ -1260,11 +1263,16 @@ class VadTraverser(obj.Struct):
     left = "LeftChild"
     right = "RightChild"
 
-    def traverse(self, visited=None, depth=0):
-        """ Traverse the VAD tree by generating all the left items,
-        then the right items.
+    def traverse(self, visited=None, depth=0, type=None):
+        """Traverse the VAD tree.
+
+        Generate all the left items, then the right items.
 
         We try to be tolerant of cycles by storing all offsets visited.
+
+        If type is specified we always return that type instead of check the
+        pool tag from the tag_map.
+
         """
         if depth > 100:
             self.obj_session.logging.error(
@@ -1281,18 +1289,23 @@ class VadTraverser(obj.Struct):
         self.obj_context['depth'] = depth
 
         # Find out which Vad type we need to be:
-        if self.Tag in self.tag_map:
+        if type is not None:
+            yield self.cast(type)
+
+        elif self.Tag in self.tag_map:
             yield self.cast(self.tag_map[self.Tag])
 
         # This tag is valid for the Root.
         elif depth and self.Tag.v() != "\x00":
             return
 
-        for c in self.m(self.left).traverse(visited=visited, depth=depth+1):
+        for c in self.m(self.left).traverse(visited=visited, depth=depth+1,
+                                            type=type):
             visited.add(self.obj_offset)
             yield c
 
-        for c in self.m(self.right).traverse(visited=visited, depth=depth+1):
+        for c in self.m(self.right).traverse(visited=visited, depth=depth+1,
+                                             type=type):
             visited.add(self.obj_offset)
             yield c
 
@@ -1385,7 +1398,7 @@ def InitializeWindowsProfile(profile):
     profile.add_overlay(windows_overlay)
 
     # Pooltags for common objects (These are different in Win8).
-    profile.add_constants(
+    profile.add_constants(dict(
         DRIVER_POOLTAG="Dri\xf6",
         EPROCESS_POOLTAG="Pro\xe3",
         FILE_POOLTAG="Fil\xe5",
@@ -1393,13 +1406,13 @@ def InitializeWindowsProfile(profile):
         MODULE_POOLTAG="MmLd",
         MUTANT_POOLTAG="Mut\xe1",
         THREAD_POOLTAG='\x54\x68\x72\xe5',
-        )
+        ))
 
     # These constants are always the same in all versions of Windows.
     if profile.metadata("arch") == "AMD64":
         # Ref:
         # reactos/include/xdk/amd64/ke.h:17
-        profile.add_constants(KI_USER_SHARED_DATA=0xFFFFF78000000000)
+        profile.add_constants(dict(KI_USER_SHARED_DATA=0xFFFFF78000000000))
     else:
         # reactos/include/xdk/x86/ke.h:19
-        profile.add_constants(KI_USER_SHARED_DATA=0xffdf0000)
+        profile.add_constants(dict(KI_USER_SHARED_DATA=0xffdf0000))

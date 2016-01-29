@@ -106,13 +106,12 @@ class Sessions(common.WinProcessFilter):
 
             # Follow the undocumented _IMAGE_ENTRY_IN_SESSION list to find the
             # kernel modules loaded in this session.
-            for image in session.ImageList.list_of_type(
-                    "_IMAGE_ENTRY_IN_SESSION", "Link"):
+            for image in session.ImageIterator:
                 symbol = self.session.address_resolver.format_address(
-                    image.Address)
+                    image.ImageBase)
 
                 renderer.format(
                     " Image: {0:addrpad}, Address {1:addrpad}, Name: {2}\n",
                     image.obj_offset,
-                    image.Address,
+                    image.ImageBase,
                     symbol)

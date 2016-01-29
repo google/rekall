@@ -68,7 +68,7 @@ class VADInfo(common.WinProcessFilter):
                 try:
                     self.write_vad_ext(renderer, vad)
                 except AttributeError:
-                   pass
+                    pass
 
                 renderer.format("\n")
 

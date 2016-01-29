@@ -22,8 +22,7 @@
 @license:      GNU General Public License 2.0 or later
 @contact:      bradley@schatzforensic.com.au
 
-This file provides support for windows XP SP3. We provide a profile
-for SP3.
+This file provides support for windows Vista.
 """
 
 # pylint: disable=protected-access
@@ -33,45 +32,55 @@ from rekall.plugins.overlays.windows import common
 
 vista_overlays = {
     '_EPROCESS': [None, {
-            # A symbolic link to the real vad root.
-            'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
-            }],
+        # A symbolic link to the real vad root.
+        'RealVadRoot': lambda x: x.VadRoot.BalancedRoot
+    }],
 
     '_MMADDRESS_NODE': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+    }],
 
     '_MMVAD_SHORT': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+    }],
 
     '_MMVAD': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+        'ControlArea': lambda x: x.Subsection.ControlArea,
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+    }],
 
     '_MMVAD_LONG': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            'ControlArea': lambda x: x.Subsection.ControlArea,
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+        'ControlArea': lambda x: x.Subsection.ControlArea,
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+    }],
 
     "_CONTROL_AREA": [None, {
-            'FilePointer': [None, ['_EX_FAST_REF', dict(
-                        target="_FILE_OBJECT")]],
-            }],
-    }
+        'FilePointer': [None, ['_EX_FAST_REF', dict(
+            target="_FILE_OBJECT")]],
+    }],
+    '_MM_SESSION_SPACE': [None, {
+        # Specialized iterator to produce all the _IMAGE_ENTRY_IN_SESSION
+        # records.
+        'ImageIterator': lambda x: x.ImageList.list_of_type(
+            "_IMAGE_ENTRY_IN_SESSION", "Link")
+    }],
+
+    '_IMAGE_ENTRY_IN_SESSION': [None, {
+        'ImageBase': lambda x: x.Address.v() & ~7
+    }]
+}
 
 
 class _MMADDRESS_NODE(common.VadTraverser):
@@ -103,9 +112,9 @@ class _ETHREAD(common._ETHREAD):
 
 def InitializeVistaProfile(profile):
     if profile.metadata("arch") == "AMD64":
-        profile.add_constants(PoolAlignment=16)
+        profile.add_constants(dict(PoolAlignment=16))
     else:
-        profile.add_constants(PoolAlignment=8)
+        profile.add_constants(dict(PoolAlignment=8))
     profile.add_overlay(vista_overlays)
     profile.add_classes(dict(
         _ETHREAD=_ETHREAD,

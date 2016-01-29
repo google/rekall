@@ -130,6 +130,7 @@ class Curry(object):
         self._args = args
         self._default_arguments = kwargs.pop("default_arguments", [])
         self.__doc__ = self._target.__doc__
+        self.__wrapped__ = self._target
 
     def __call__(self, *args, **kwargs):
         # Merge the kwargs with the new kwargs
@@ -363,7 +364,6 @@ class BaseObject(object):
             raise ValueError("Session must be provided.")
 
         self.obj_session = session
-
         self.obj_producers = set()
 
     @property
@@ -1244,11 +1244,6 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, None)
 
         if not members:
-            # Warn rather than raise an error, since some types (_HARDWARE_PTE,
-            # for example) are generated without members
-            self.obj_session.logging.debug(
-                "No members specified for Struct %s named %s",
-                self.obj_type, self.obj_name)
             members = {}
 
         self.members = members
@@ -1453,6 +1448,119 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 # Profiles are the interface for creating/interpreting
 # objects
 
+class ProfileSectionLoader(object):
+    """A loader for a section in the profile JSON file.
+
+    The profile json serialization contains a number of sections, each has a
+    well known name (e.g. $CONSTANTS, $FUNCTIONS, $STRUCT). When a profile class
+    is initialized, it uses a variety of loaders to handle each section in the
+    profile. This allows more complex sections to be introduced and extended.
+    """
+    __metaclass__ = registry.MetaclassRegistry
+    __abstract = True
+    order = 100
+
+    def LoadIntoProfile(self, session, profile, data):
+        """Loads the data into the profile."""
+        _ = session, data
+        return profile
+
+
+# Some standard profile Loaders.
+class MetadataProfileSectionLoader(ProfileSectionLoader):
+    name = "$METADATA"
+    order = 1
+
+    def LoadIntoProfile(self, session, profile, metadata):
+        if profile is not None:
+            return profile
+
+        profile_type = metadata.get("Type", "Profile")
+
+        # Support a symlink profile - this is a profile which is a short,
+        # human meaningful name for another profile.
+        if profile_type == "Symlink":
+            return session.LoadProfile(metadata.get("Target"))
+
+        possible_implementations = [metadata.get("ProfileClass", profile_type)]
+
+        # For windows profile we can use a generic PE profile
+        # implementation.
+        if "GUID_AGE" in metadata:
+            possible_implementations.append("BasicPEProfile")
+
+        if "PDBFile" in metadata:
+            possible_class_name = metadata["PDBFile"].capitalize().split(".")[0]
+            possible_implementations.insert(0, possible_class_name)
+
+        for impl in possible_implementations:
+            profile_cls = Profile.ImplementationByClass(impl)
+            if profile_cls:
+                break
+
+        if profile_cls is None:
+            session.logging.warn("No profile implementation class %s" %
+                                 metadata["ProfileClass"])
+
+            raise ProfileError(
+                "No profile implementation class %s" %
+                metadata["ProfileClass"])
+
+        result = profile_cls(session=session, metadata=metadata)
+
+        return result
+
+
+class ConstantProfileSectionLoader(ProfileSectionLoader):
+    name = "$CONSTANTS"
+
+    def LoadIntoProfile(self, session, profile, constants):
+        profile.add_constants(constants_are_addresses=True, constants=constants)
+        return profile
+
+
+class FunctionsProfileSectionLoader(ConstantProfileSectionLoader):
+    name = "$FUNCTIONS"
+
+
+class EnumProfileSectionLoader(ProfileSectionLoader):
+    name = "$ENUMS"
+
+    def LoadIntoProfile(self, session, profile, enums):
+        profile.add_enums(**enums)
+        return profile
+
+
+class ReverseEnumProfileSectionLoader(ProfileSectionLoader):
+    name = "$REVENUMS"
+
+    def LoadIntoProfile(self, session, profile, reverse_enums):
+        profile.add_reverse_enums(**reverse_enums)
+        return profile
+
+
+class StructProfileLoader(ProfileSectionLoader):
+    name = "$STRUCTS"
+
+    def LoadIntoProfile(self, session, profile, types):
+        profile.add_types(types)
+        return profile
+
+
+class MergeProfileLoader(ProfileSectionLoader):
+    """This section specifies a list of profiles to be merged into this one."""
+    name = "$MERGE"
+
+    def LoadIntoProfile(self, session, profile, merge_list):
+        for merge_target in merge_list:
+            merge_profile = session.LoadProfile(merge_target)
+            if merge_profile.data:
+                profile.LoadProfileFromData(
+                    merge_profile.data, session=session, profile=profile)
+
+        return profile
+
+
 class Profile(object):
     """A collection of types relating to a single compilation unit.
 
@@ -1494,78 +1602,53 @@ class Profile(object):
     _metadata = None
 
     @classmethod
-    def LoadProfileFromData(cls, data, session=None, name=None):
+    def LoadProfileFromData(cls, data, session=None, name=None, profile=None):
         """Creates a profile directly from a JSON object.
 
         Args:
           data: A data structure of an encoded profile. Described:
           http://www.rekall-forensic.com/docs/development.html#_profile_serializations
+          session: A Session object.
+          name: The name of the profile.
+          profile: An optional initial profile to apply the new sections to. If
+            None we create a new profile instance according to the $METADATA
+            section.
 
         Returns:
           a Profile() instance.
 
         Raises:
           IOError if we can not load the profile.
+
         """
-        metadata = data.get("$METADATA")
-        if metadata:
-            profile_type = metadata.get("Type", "Profile")
+        if "$METADATA" not in data:
+            data["$METADATA"] = {}
 
-            # Support a symlink profile - this is a profile which is a short,
-            # human meaningful name for another profile.
-            if profile_type == "Symlink":
-                return session.LoadProfile(metadata.get("Target"))
+        # Data is a dict with sections as keys.
+        handlers = []
+        for section in data:
+            try:
+                handlers.append(
+                    ProfileSectionLoader.classes_by_name[section][0])
+            except KeyError:
+                # This is not fatal in order to allow new sections to be safely
+                # introduced to older binaries.
+                session.logging.warn(
+                    "Unable to parse profile section %s", section)
 
-            possible_implementations = [metadata["ProfileClass"]]
+        # Sort the handlers in order:
+        handlers.sort(key=lambda x: x.order)
 
-            # For windows profile we can use a generic PE profile
-            # implementation.
-            if "GUID_AGE" in metadata:
-                possible_implementations.append("BasicPEProfile")
+        # Delegate profile creation to the loaders.
+        for handler in handlers:
+            profile = handler().LoadIntoProfile(
+                session, profile, data[handler.name])
 
-            for impl in possible_implementations:
-                profile_cls = cls.ImplementationByClass(impl)
-                if profile_cls:
-                    break
+        if profile and name:
+            profile.name = name
+            profile.data = data
 
-            if profile_cls is None:
-                session.logging.warn("No profile implementation class %s" %
-                                     metadata["ProfileClass"])
-
-                raise ProfileError(
-                    "No profile implementation class %s" %
-                    metadata["ProfileClass"])
-
-            result = profile_cls(name=name, session=session,
-                                 metadata=metadata)
-
-            # pylint: disable=protected-access
-            result._SetupProfileFromData(data)
-            return result
-
-    def _SetupProfileFromData(self, data):
-        """Sets up the current profile."""
-        # The constants are stored both in the $CONSTANTS section and the
-        # $FUNCTIONS section. We treat them the same here.
-        for section in ["$CONSTANTS", "$FUNCTIONS"]:
-            constants = data.get(section)
-            if constants:
-                self.add_constants(
-                    constants_are_addresses=True, **constants)
-
-        # The enums
-        enums = data.get("$ENUMS")
-        if enums:
-            self.add_enums(**enums)
-
-        # The reverse enums
-        reverse_enums = data.get("$REVENUMS")
-        if reverse_enums:
-            self.add_reverse_enums(**reverse_enums)
-
-        types = data.get("$STRUCTS")
-        if types:
-            self.add_types(types)
+        return profile
 
     # The common classes that are provided by the object framework.  Plugins can
     # extend the framework by registering additional classes here - these
@@ -1619,6 +1702,9 @@ class Profile(object):
         self.reverse_enums = {}
         self.applied_modifications = set()
         self.object_classes = {}
+
+        # The original JSON data this profile is loaded from.
+        self.data = None
 
         # Keep track of all the known types so we can command line complete.
         self.known_types = set()
@@ -1738,15 +1824,11 @@ class Profile(object):
         self.object_classes.update(kwargs)
         self.known_types.update(kwargs)
 
-    def add_constants(self, constants=None, **kwargs):
+    def add_constants(self, constants=None, constants_are_addresses=False, **_):
         """Add the kwargs as constants for this profile."""
         self.flush_cache()
 
-        constants_are_addresses = kwargs.pop("constants_are_addresses", False)
-        if constants is not None:
-            kwargs = constants
-
-        for k, v in kwargs.iteritems():
+        for k, v in constants.iteritems():
             k = intern(str(k))
             self.constants[k] = v
             if constants_are_addresses:
@@ -1841,6 +1923,8 @@ class Profile(object):
             size, field_description = type_descriptor
 
             for k, v in field_description.items():
+                k = str(k)
+
                 # If the overlay specifies a callable, we place it in the
                 # callable_members dict, and revert back to the vtype
                 # definition.
@@ -2179,11 +2263,13 @@ class Profile(object):
 
            is_address: If true the constant is converted to an address.
         """
-        self.compile_type(constant)
-
         ACCESS_LOG.LogConstant(self.name, constant)
+        self.EnsureInitialized()
 
         result = self.constants.get(constant)
+        if callable(result):
+            result = result()
+
         if result is None:
             result = NoneObject(
                 "Constant %s does not exist in profile." % constant)
@@ -2196,7 +2282,8 @@ class Profile(object):
     def get_constant_object(self, constant, target=None, target_args=None,
                             vm=None, **kwargs):
         """A help function for retrieving pointers from the symbol table."""
-        self.compile_type(constant)
+        self.EnsureInitialized()
+
         if vm is None:
             vm = self.session.GetParameter("default_address_space")
 
@@ -2210,6 +2297,8 @@ class Profile(object):
         return result
 
     def get_constant_by_address(self, address):
+        self.EnsureInitialized()
+
         address = Pointer.integer_to_address(address)
 
         lowest_eq, name = self.get_nearest_constant_by_address(address)
@@ -2220,6 +2309,8 @@ class Profile(object):
 
     def get_nearest_constant_by_address(self, address, below=True):
         """Returns the closest constant below or equal to the address."""
+        self.EnsureInitialized()
+
         address = Pointer.integer_to_address(address)
 
         if below:

@@ -127,14 +127,13 @@ class EProcessIndex(basic.ProfileLLP64):
                 }]
             })
 
-    def _SetupProfileFromData(self, data):
-        super(EProcessIndex, self)._SetupProfileFromData(data)
-        self.index = data.get("$INDEX", {})
+    def LoadIndex(self, index):
+        self.index = index
 
         # Consolidate all the relative offsets from the ImageFileName to the
         # DirectoryTableBase.
         self.filename_to_dtb = set()
-        for metadata in self.index.values():
+        for metadata in index.values():
             offsets = metadata["offsets"]
             relative_offset = offsets["_EPROCESS.ImageFileName"] - (
                 offsets["_EPROCESS.Pcb"] +

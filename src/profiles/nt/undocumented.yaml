@@ -1,0 +1,75 @@
+# This file contains matcher patterns to retrieve reversed undocumented features
+# of the NT kernel.
+
+$DYNAMIC_STRUCTS:
+  _IMAGE_ENTRY_IN_SESSION:
+    - type: DisassembleStructMatcher
+      args:
+        comment:  Windows 10 (nt/GUID/AA1C6DFE1C9F4E858ACC76B54F42BEE61)
+        start: nt!MiSessionInsertImage
+        fields:
+          ImageCountInThisSession:
+            - unsigned int
+          Address:
+            - Pointer
+          SessionId:
+            - unsigned int
+        max_separation: 100
+        rules: [
+        # mov r15, qword ptr [r8 + 0x400]
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$R15', 'size': 8}, {'disp': 0x400, 'scale': 1, 'base': '$R8', 'type': 'MEM', 'size': 8}]},
+        {'mnemonic': 'CALL', 'comment': 'nt!memset'},
+        {'mnemonic': 'OR', 'operands': [{'type': 'REG', 'reg': '$RAX'}, {'address': 3, 'type': 'IMM'}]},
+
+        # mov dword ptr [rbp + 0x3c], 1
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$ImageCountInThisSession", 'scale': 1, 'base': '$RBP', 'type': 'MEM'}, {'address': 1, 'type': 'IMM'}]},
+
+        # mov qword ptr [rbp + 0x28], rax
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$Address", 'scale': 1, 'base': '$RBP', 'type': 'MEM'}, {'type': 'REG', 'reg': '$RAX'}]},
+
+        # mov eax, dword ptr [r15 + 8]
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$EAX'}, {'disp': 8, 'scale': 1, 'base': '$R15', 'type': 'MEM'}]},
+
+        # mov dword ptr [rbp + 0x38], eax
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$SessionId", 'scale': 1, 'base': '$RBP', 'type': 'MEM'}, {'type': 'REG', 'reg': '$EAX'}]},
+        ]
+
+    - type: DisassembleStructMatcher
+      args:
+        comment:  Windows 7 (nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942)
+        start: nt!MiSessionInsertImage
+        fields:
+          ImageCountInThisSession:
+            - unsigned int
+          Address:
+            - Pointer
+        max_separation: 10
+        rules: [
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$R14'}, {'type': 'REG', 'reg': 'RCX'}]},
+        {'mnemonic': 'CALL', 'comment': 'nt!ExAllocatePoolWithTag'},
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$R12'}, {'type': 'REG', 'reg': 'RAX'}]},
+        {'mnemonic': 'CALL', 'comment': 'nt!memset'},
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$Address", 'scale': 1, 'base': '$R12', 'type': 'MEM'}, {'type': 'REG', 'reg': '$R14'}]},
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$ESI'}, {'address': 1, 'type': 'IMM'}]},
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$ImageCountInThisSession", 'scale': 1, 'base': '$R12', 'type': 'MEM'}, {'type': 'REG', 'reg': '$ESI'}]},
+        ]
+
+    - type: DisassembleStructMatcher
+      args:
+        comment:  Windows 8 (nt/GUID/E2A28FBB5A694B22910DBF6F2F0CA7522)
+        start: nt!MiSessionInsertImage
+        fields:
+          ImageCountInThisSession:
+            - unsigned int
+          Address:
+            - Pointer
+        max_separation: 10
+        rules: [
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$RDI'}, {'type': 'REG', 'reg': 'RCX'}]},
+        {'mnemonic': 'CALL', 'comment': 'nt!ExAllocatePoolWithTag'},
+        {'mnemonic': 'MOV', 'operands': [{'type': 'REG', 'reg': '$RBX'}, {'type': 'REG', 'reg': 'RAX'}]},
+        {'mnemonic': 'CALL', 'comment': 'nt!memset'},
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$ImageCountInThisSession", 'scale': 1, 'base': '$RBX', 'type': 'MEM'}, {'type': 'IMM', 'address': 1}]},
+        {'mnemonic': 'OR', 'operands': [{'type': 'REG', 'reg': '$RDI'}, {'address': 3, 'type': 'IMM'}]},
+        {'mnemonic': 'MOV', 'operands': [{'disp': "$Address", 'scale': 1, 'base': '$RBX', 'type': 'MEM'}, {'type': 'REG', 'reg': '$RDI'}]},
+        ]

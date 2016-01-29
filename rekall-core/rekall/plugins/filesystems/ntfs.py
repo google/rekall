@@ -918,7 +918,7 @@ class NTFSProfile(basic.ProfileLLP64, basic.BasicClasses):
 
         # We start off with a constant mapping of attribute types. This may
         # later be updated when parsing the $AttrDef file.
-        self.add_constants(ATTRIBUTE_NAMES={
+        self.add_constants(dict(ATTRIBUTE_NAMES={
             16: "$STANDARD_INFORMATION",
             32: "$ATTRIBUTE_LIST",
             48: "$FILE_NAME",
@@ -932,7 +932,7 @@ class NTFSProfile(basic.ProfileLLP64, basic.BasicClasses):
             176: "$BITMAP",
             192: "$REPARSE_POINT",
             256: "$LOGGED_UTILITY_STREAM",
-        })
+        }))
 
 
 class NTFS(object):

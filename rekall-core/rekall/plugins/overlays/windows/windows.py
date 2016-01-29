@@ -31,6 +31,7 @@ from rekall.plugins.overlays.windows import xp
 from rekall.plugins.overlays.windows import vista
 from rekall.plugins.overlays.windows import win7
 from rekall.plugins.overlays.windows import win8
+from rekall.plugins.overlays.windows import win10
 from rekall.plugins.overlays.windows import crashdump
 from rekall.plugins.overlays.windows import undocumented
 
@@ -95,7 +96,6 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
     def Initialize(cls, profile):
         super(Ntoskrnl, cls).Initialize(profile)
 
-        # Add undocumented types.
         profile.add_enums(**undocumented.ENUMS)
         if profile.metadata("arch") == "AMD64":
             profile.add_overlay(undocumented.AMD64)
@@ -115,7 +115,10 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
 
         # Get the windows version of this profile.
         version = cls.GuessVersion(profile)
-        if 6.2 <= version <= 10:
+        if 10 <= version:
+            win10.InitializeWindows10Profile(profile)
+
+        elif 6.2 <= version < 10:
             win8.InitializeWindows8Profile(profile)
 
         elif version == 6.1:

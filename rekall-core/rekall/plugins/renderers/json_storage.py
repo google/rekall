@@ -177,7 +177,11 @@ class ProfileObjectRenderer(json_renderer.StateBasedObjectRenderer):
         state = super(ProfileObjectRenderer, self).DecodeFromJsonSafe(
             state, options)
 
-        return self.session.LoadProfile(state["name"])
+        result = self.session.LoadProfile(state["name"])
+        if result == None:
+            return None
+
+        return result
 
 
 class SetObjectRenderer(json_renderer.StateBasedObjectRenderer):

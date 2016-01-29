@@ -949,7 +949,7 @@ class Linux(basic.BasicClasses):
             timespec=timespec, inet_sock=inet_sock,
             ))
         profile.add_overlay(linux_overlay)
-        profile.add_constants(default_text_encoding="utf8")
+        profile.add_constants(dict(default_text_encoding="utf8"))
 
         # Autoguessing for old profiles that don't provide an arch.
         if not profile.metadata("arch"):

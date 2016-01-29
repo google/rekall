@@ -18,7 +18,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Support IPython 1.0."""
+"""Support IPython 3.0."""
 
 # pylint: disable=protected-access
 
@@ -28,6 +28,9 @@ import re
 import readline
 
 from rekall import constants
+from rekall import config
+from rekall import session
+from IPython.core import oinspect
 from IPython.terminal import embed
 try:
     from traitlets.config.loader import Config
@@ -65,11 +68,12 @@ def RekallCompleter(self, text):
         if (global_matches and len(global_matches) == 1 and
                 len(command_parts) > 1):
 
-            # Get the object and ask it about the list of default args.
+            # Get the object and ask it about the list of args that it supports.
             obj = self.namespace.get(global_matches.pop())
             if obj:
                 try:
-                    matches = ["%s=" % x for x in obj.get_default_arguments()]
+                    matches = [
+                        "%s=" % x["name"] for x in obj.Metadata()["arguments"]]
                     return [x for x in matches if x.startswith(text)]
                 except Exception:
                     pass
@@ -82,11 +86,74 @@ def RekallCompleter(self, text):
         logging.debug(e)
 
 
+class RekallObjectInspector(oinspect.Inspector):
+    """Rekall specific object inspector.
+
+    Rekall populates the environment with "plugin runners" which are proxies of
+    the actual plugin that will be invoked. The exact plugin will be invoked
+    depending on the profile availability.
+
+    In order to make ipython's ? and ?? operators work, we need to implement
+    specialized inspection to present the doc strings and arg list of the actual
+    plugin.
+    """
+
+    pinfo_fields1 = oinspect.Inspector.pinfo_fields1 + [
+        ("Link", "link"),
+        ("Parameters", "parameters")]
+
+    def format_parameters(self, plugin_class):
+        displayfields = []
+        command_metadata = config.CommandMetadata(plugin_class).Metadata()
+        for arg in command_metadata["arguments"]:
+            desc = arg["help"]
+            try:
+                desc += " (type: %s)" % arg["type"]
+            except KeyError:
+                pass
+
+            displayfields.append(("  " + arg["name"], desc))
+
+        return self._format_fields(displayfields)
+
+    def plugin_info(self, runner, **kwargs):
+        """Generate info dict for a plugin from a plugin runner."""
+        plugin_class = getattr(
+            runner.session.plugins, runner.plugin_name)._target
+
+        result = oinspect.Inspector.info(self, plugin_class, **kwargs)
+        result["file"] = oinspect.find_file(plugin_class)
+        result["type_name"] = "Rekall Plugin (%s)" % plugin_class.__name__
+        result["parameters"] = self.format_parameters(plugin_class)
+        result["docstring"] = oinspect.getdoc(plugin_class)
+        result["link"] = (
+            "http://www.rekall-forensic.com/epydocs/%s.%s-class.html" % (
+                plugin_class.__module__, plugin_class.__name__))
+
+        # Hide these two fields.
+        result["init_definition"] = None
+        result["string_form"] = None
+
+        return result
+
+    def info(self, obj, **kwargs):
+        if isinstance(obj, session.PluginRunner):
+            # Delegate info generation for PluginRunners.
+            return self.plugin_info(obj, **kwargs)
+
+        result = oinspect.Inspector.info(self, obj, **kwargs)
+        result["link"] = result["parameters"] = None
+        return result
+
+
 class RekallShell(embed.InteractiveShellEmbed):
     display_banner = constants.BANNER
 
     def atexit_operations(self):
         self.user_global_ns.session.Flush()
+
+    def init_inspector(self):
+        self.inspector = RekallObjectInspector()
 
 
 def Shell(user_session):

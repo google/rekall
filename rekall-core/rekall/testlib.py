@@ -53,7 +53,9 @@ import logging
 import subprocess
 import pdb
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 
 from rekall import config
@@ -80,6 +82,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
     disabled = False
 
+    temp_directory = None
+
     @classmethod
     def is_active(cls, _):
         return True
@@ -95,13 +99,26 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
     def __init__(self, method_name="__init__", baseline=None, current=None,
                  debug=False, temp_directory=None, config_options=None):
-
+        super(RekallBaseUnitTestCase, self).__init__(method_name)
         self.baseline = baseline
         self.config_options = config_options
         self.current = current
         self.debug = debug
-        self.temp_directory = temp_directory
+        if temp_directory:
+            self.temp_directory = temp_directory
         super(RekallBaseUnitTestCase, self).__init__(method_name)
+
+    @classmethod
+    def setUpClass(cls):
+        super(RekallBaseUnitTestCase, cls).setUpClass()
+        if cls.temp_directory is None:
+            cls.temp_directory = tempfile.mkdtemp()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(RekallBaseUnitTestCase, cls).tearDownClass()
+        if cls.temp_directory:
+            shutil.rmtree(cls.temp_directory, True)
 
     def LaunchExecutable(self, config_options):
         """Launches the rekall executable with the config specified.
@@ -115,6 +132,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         error_filename = tmp_filename + ".stderr"
 
         baseline_commandline = config_options.get("commandline")
+        config_options["tempdir"] = self.temp_directory
 
         # Nothing to do here.
         if not baseline_commandline:
@@ -282,6 +300,13 @@ class SimpleTestCase(RekallBaseUnitTestCase):
 
         # Compare the entire table
         self.assertListEqual(previous, current)
+
+
+class InlineTest(SimpleTestCase):
+
+    def LaunchExecutable(self, config_options):
+        config_options["script"] = self.script
+        return super(InlineTest, self).LaunchExecutable(config_options)
 
 
 class SortedComparison(SimpleTestCase):

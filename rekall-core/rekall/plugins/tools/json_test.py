@@ -116,9 +116,10 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
             obj = self.session.profile.Object(vtype)
             self.CheckObjectSerization(obj)
 
-        self.CheckObjectSerization(self.session.profile)
-        self.CheckObjectSerization(self.session.kernel_address_space)
-        self.CheckObjectSerization(self.session.physical_address_space)
+        if self.session.profile != None:
+            self.CheckObjectSerization(self.session.profile)
+            self.CheckObjectSerization(self.session.kernel_address_space)
+            self.CheckObjectSerization(self.session.physical_address_space)
 
         # Some native types.
         self.CheckObjectSerization(set([1, 2, 3]))
@@ -126,7 +127,8 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
 
     def CheckObjectSerization(self, obj):
         json_renderer_obj = json_renderer.JsonRenderer(session=self.session)
-        data_export_renderer_obj = data_export.DataExportRenderer(session=self.session)
+        data_export_renderer_obj = data_export.DataExportRenderer(
+            session=self.session)
 
         # First test json encodings.
         encoded = json_renderer_obj.encode(obj)
@@ -136,6 +138,10 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
 
         # Now decode it.
         decoded = json_renderer_obj.decode(encoded)
+        if decoded is None:
+            import pdb; pdb.set_trace()
+            json_renderer_obj.decode(encoded)
+
         self.assertEqual(decoded, obj)
 
         # Now check the DataExportRenderer.

@@ -133,7 +133,8 @@ class WindowsValidPTEDescriptor(WindowsPTEDescriptor):
 class WindowsPagefileDescriptor(intel.AddressTranslationDescriptor):
     """A descriptor to mark the final physical address resolution."""
 
-    def __init__(self, address=0, pagefile_number=0, protection=0, session=None):
+    def __init__(self, address=0, pagefile_number=0, protection=0,
+                 session=None):
         super(WindowsPagefileDescriptor, self).__init__(session=session)
         self.address = address
         self.pagefile_number = pagefile_number
@@ -318,7 +319,7 @@ class WindowsPagedMemoryMixin(object):
             # mapping at this virtual address, so we can just skip this PTE in
             # the iteration.
             if self.vad:
-                start, end, run = self.vad.get_containing_range(vaddr)
+                start, _, _ = self.vad.get_containing_range(vaddr)
                 if pte_value == 0 and start is None:
                     continue
 
@@ -467,8 +468,7 @@ class WindowsPagedMemoryMixin(object):
     def _describe_vad_pte(self, collection, pte_addr, pte_value, vaddr):
         if self.vad:
             collection.add(intel.CommentDescriptor, "Consulting Vad: ")
-
-            start, end, mmvad = self.vad.get_containing_range(vaddr)
+            start, _, mmvad = self.vad.get_containing_range(vaddr)
             if start is not None:
                 # If the MMVAD has PTEs resolve those..
                 if "FirstPrototypePte" in mmvad.members:
@@ -552,7 +552,7 @@ class WindowsPagedMemoryMixin(object):
             physical_address = self._get_pagefile_mapped_address(
                 soft_pte.PageFileLow.v(), pagefile_address)
 
-            if pagefile_address is not None:
+            if physical_address is not None:
                 collection.add(
                     intel.PhysicalAddressDescriptor, address=physical_address)
 

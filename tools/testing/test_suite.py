@@ -345,9 +345,10 @@ exit 0
             with open(script_file, "w") as fd:
                 fd.write(v)
 
+            config["DEFAULT"]["script"] = v
             result.append(type(
-                k, (testlib.SimpleTestCase,),
-                dict(PARAMETERS=dict(
+                k, (testlib.InlineTest,),
+                dict(script=v, PARAMETERS=dict(
                     commandline="run --run %s" % script_file))))
 
         return result
@@ -491,6 +492,13 @@ exit 0
             return data.get(attribute)
 
     def RunTestCase(self, config_options, plugin_cls, baseline_data):
+        try:
+            plugin_cls.setUpClass()
+            return self._RunTestCase(config_options, plugin_cls, baseline_data)
+        finally:
+            plugin_cls.tearDownClass()
+
+    def _RunTestCase(self, config_options, plugin_cls, baseline_data):
         # If the control file tells us to stop we dont do anything.
         if self.CheckControlFile("action") == "stop":
             logging.info("Skipping test %s since control file is aborted.",

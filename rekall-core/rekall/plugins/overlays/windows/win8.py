@@ -130,18 +130,29 @@ win8_overlays = {
 
         'GrantedAccess': lambda x: x.obj_parent.GrantedAccessBits
         }],
-    }
+
+    '_MM_SESSION_SPACE': [None, {
+        # Specialized iterator to produce all the _IMAGE_ENTRY_IN_SESSION
+        # records.
+        'ImageIterator': lambda x: x.ImageList.list_of_type(
+            "_IMAGE_ENTRY_IN_SESSION", "Link")
+    }],
+
+    '_IMAGE_ENTRY_IN_SESSION': [None, {
+        'ImageBase': lambda x: x.Address.v() & ~7
+    }],
+}
 
 win8_1_overlays = {
     '_EPROCESS': [None, {
         # A symbolic link to the real vad root.
         'RealVadRoot': lambda x: x.VadRoot.Root
-        }],
+    }],
 
     '_HANDLE_TABLE': [None, {
         'HandleCount': lambda x: obj.NoneObject("Unknown")
-        }],
-    }
+    }],
+}
 
 win8_undocumented_amd64 = {
     # win8.1.raw 18:05:45> dis "nt!MiSessionInsertImage"
@@ -149,15 +160,17 @@ win8_undocumented_amd64 = {
     # ...
     # 0xf802d314345a   5E 48897b20             MOV [RBX+0x20], RDI
     '_IMAGE_ENTRY_IN_SESSION': [None, {
+        'Link': [0, ['_LIST_ENTRY']],
         'Address': [0x20, ["Pointer"]],
-        }],
-    }
+    }],
+}
 
 win8_undocumented_i386 = {
     '_IMAGE_ENTRY_IN_SESSION': [None, {
+        'Link': [0, ['_LIST_ENTRY']],
         'Address': [0x10, ["Pointer"]],
-        }],
-    }
+    }],
+}
 
 
 class ObpInfoMaskToOffsetHook(kb.ParameterHook):
@@ -243,7 +256,7 @@ def InitializeWindows8Profile(profile):
 
     # Windows 8 changes many of the pool tags. These come from windbg's
     # pooltag.txt.
-    profile.add_constants(
+    profile.add_constants(dict(
         DRIVER_POOLTAG="Driv",
         EPROCESS_POOLTAG="Proc",
         FILE_POOLTAG="File",
@@ -251,4 +264,4 @@ def InitializeWindows8Profile(profile):
         MODULE_POOLTAG="MmLd",
         MUTANT_POOLTAG="Muta",
         THREAD_POOLTAG='Thre',
-        )
+        ))

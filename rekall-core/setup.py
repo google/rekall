@@ -62,6 +62,7 @@ install_requires = [
     "pyelftools >= 0.23",
     "pytz >= 2015.7",
     "sortedcontainers >= 1.4.2",
+    "mock == 1.3.0",
 ]
 
 if platform.system() == "Windows":

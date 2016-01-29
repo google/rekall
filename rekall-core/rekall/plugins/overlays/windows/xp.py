@@ -33,33 +33,33 @@ from rekall.plugins.overlays.windows import common
 # Windows XP specific overlays.
 win_xp_overlays = {
     '_EPROCESS' : [None, {
-            'VadRoot': [None, ['pointer', ['_MMVAD']]],
-            'RealVadRoot': lambda x: x.VadRoot.dereference(),
-            }],
+        'VadRoot': [None, ['pointer', ['_MMVAD']]],
+        'RealVadRoot': lambda x: x.VadRoot.dereference(),
+    }],
 
     '_MMVAD_SHORT': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+    }],
 
     '_MMVAD': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+    }],
 
     '_MMVAD_LONG': [None, {
-            'Tag': [-4, ['String', dict(length=4)]],
-            'Start': lambda x: x.StartingVpn << 12,
-            'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
-            'Length': lambda x: x.End - x.Start + 1,
-            'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
-            }],
+        'Tag': [-4, ['String', dict(length=4)]],
+        'Start': lambda x: x.StartingVpn << 12,
+        'End': lambda x: ((x.EndingVpn + 1) << 12) - 1,
+        'Length': lambda x: x.End - x.Start + 1,
+        'CommitCharge': lambda x: x.u.VadFlags.CommitCharge,
+    }],
 
     # This is not documented in Windows XP but is in Windows 7.
     "_OBJECT_HEADER_HANDLE_INFO": [16, {
@@ -67,7 +67,7 @@ win_xp_overlays = {
             "target": "_OBJECT_HANDLE_COUNT_DATABASE"
             }]],
         "SingleEntry": [0, ["_OBJECT_HANDLE_COUNT_ENTRY", {}]]
-       }],
+    }],
 
     "_OBJECT_HANDLE_COUNT_ENTRY": [16, {
         "HandleCount": [8, ["BitField", {
@@ -83,6 +83,17 @@ win_xp_overlays = {
             "target": "_EPROCESS"
             }]]
         }],
+
+    '_MM_SESSION_SPACE': [None, {
+        # Specialized iterator to produce all the _IMAGE_ENTRY_IN_SESSION
+        # records.
+        'ImageIterator': lambda x: x.ImageList.list_of_type(
+            "_IMAGE_ENTRY_IN_SESSION", "Link")
+    }],
+
+    '_IMAGE_ENTRY_IN_SESSION': [None, {
+        'ImageBase': lambda x: x.Address.v()
+    }],
     }
 
 
@@ -95,8 +106,8 @@ class _MMVAD(common.VadTraverser):
 
 def InitializeXPProfile(profile):
     if profile.metadata("arch") == "AMD64":
-        profile.add_constants(PoolAlignment=16)
+        profile.add_constants(dict(PoolAlignment=16))
     else:
-        profile.add_constants(PoolAlignment=8)
+        profile.add_constants(dict(PoolAlignment=8))
     profile.add_overlay(win_xp_overlays)
     profile.add_classes(dict(_MMVAD=_MMVAD))

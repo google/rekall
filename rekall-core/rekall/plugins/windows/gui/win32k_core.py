@@ -808,8 +808,8 @@ class Win32k(pe_vtypes.BasicPEProfile):
 
         # Some constants - These will probably change in win8 which does not
         # allow non ascii tags.
-        profile.add_constants(PoolTag_WindowStation="Win\xe4",
-                              PoolTag_Atom="AtmT")
+        profile.add_constants(dict(PoolTag_WindowStation="Win\xe4",
+                                   PoolTag_Atom="AtmT"))
 
         profile.add_classes({
             'tagWINDOWSTATION': tagWINDOWSTATION,
@@ -943,9 +943,9 @@ class Win32k(pe_vtypes.BasicPEProfile):
 class Win32kHook(kb.ParameterHook):
     """Guess the version of win32k.sys from the index.
 
-    NOTE: Win32k needs special attention because it is often not easily detected. This
+    NOTE: Win32k needs special attention because it is often not easily
+    detected.
     """
-
     name = "win32k_profile"
 
     def calculate(self):

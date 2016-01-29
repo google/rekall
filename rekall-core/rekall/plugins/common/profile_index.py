@@ -34,6 +34,14 @@ __author__ = (
 from rekall import obj
 
 
+class IndexProfileLoader(obj.ProfileSectionLoader):
+    name = "$INDEX"
+
+    def LoadIntoProfile(self, session, profile, index):
+        profile.LoadIndex(index)
+        return profile
+
+
 class Index(obj.Profile):
     """A profile which contains an index to locate other profiles."""
     index = None
@@ -42,9 +50,8 @@ class Index(obj.Profile):
     PERFECT_MATCH = 1.0
     GOOD_MATCH = 0.75
 
-    def _SetupProfileFromData(self, data):
-        super(Index, self)._SetupProfileFromData(data)
-        self.index = data.get("$INDEX")
+    def LoadIndex(self, index):
+        self.index = index
 
     def copy(self):
         result = super(Index, self).copy()

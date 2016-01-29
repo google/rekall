@@ -48,7 +48,7 @@ class LinuxPsList(common.LinProcessFilter):
 
         for task in self.filter_processes():
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
-            path = task.get_path(task.mm.exe_file)
+            path = task.get_path(task.mm.m("exe_file"))
             renderer.table_row(task,
                                task.parent.pid,
                                task.uid,

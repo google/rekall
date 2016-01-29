@@ -157,7 +157,8 @@ class CapstoneInstruction(Instruction):
     def GetCanonical(self):
         """Returns the canonical model of the instruction."""
         result = dict(mnemonic=self.INSTRUCTIONS[self.insn.id],
-                      str=self.text, operands=self.operands)
+                      str="%s %s" % (self.insn.mnemonic, self.insn.op_str),
+                      operands=self.operands)
 
         result["comment"] = self._comment
         return result
@@ -167,8 +168,15 @@ class CapstoneInstruction(Instruction):
         return self.GetCanonical()["comment"]
 
     @property
+    def op_str(self):
+        return self.GetCanonical()["str"]
+
+    @property
     def text(self):
-        return "%s %s" % (self.insn.mnemonic, self.insn.op_str)
+        canonical = self.GetCanonical()
+        if canonical["comment"]:
+            return "%s (%s)" % (canonical["str"], canonical["comment"])
+        return canonical["str"]
 
     @property
     def hexbytes(self):
@@ -264,6 +272,7 @@ class Capstone(Disassembler):
         elif self.mode == "MIPS":
             self.cs = capstone.Cs(capstone.CS_ARCH_MIPS, capstone.CS_MODE_32 +
                                   capstone.CS_MODE_BIG_ENDIAN)
+        # This is not really supported yet.
         elif self.mode == "ARM":
             self.cs = capstone.Cs(capstone.CS_ARCH_ARM, capstone.CS_MODE_ARM)
         else:
@@ -333,8 +342,9 @@ class Disassemble(plugin.Command):
         self.canonical = canonical
 
         resolver = self.session.address_resolver
-        if resolver:
-            offset = resolver.get_address_by_name(offset)
+        offset = resolver.get_address_by_name(offset)
+        if end:
+            end = resolver.get_address_by_name(end)
 
         # Normalize the offset to an address.
         offset = obj.Pointer.integer_to_address(offset)
@@ -342,6 +352,14 @@ class Disassemble(plugin.Command):
         self.offset = offset
         self.length = length
         self.end = end
+
+        # If length is not specified only disassemble one pager of output.
+        if self.length is None:
+            self.length = self.session.GetParameter("paging_limit", 50)
+
+        # If end is specified, keep going until we hit the end.
+        if self.end is not None:
+            self.length = 2**62
 
         # All the visited addresses (for branch analysis).
         self._visited = set()
@@ -366,15 +384,26 @@ class Disassemble(plugin.Command):
         func = Function(offset=offset, vm=self.address_space,
                         session=self.session, mode=self.mode)
 
-        for instruction in func.disassemble(1000):
+        for instruction in func.disassemble(self.length):
             offset = instruction.address
 
             if offset in self._visited:
                 return
 
+            self._visited_count += 1
+
+            # Exit condition can be specified by length.
+            if (self.length is not None and
+                    self._visited_count > self.length):
+                return
+
+            # Exit condition can be specified by end address.
+            if self.end and offset > self.end:
+                return
+
+            # Yield this data.
             yield depth, instruction
 
-            self._visited_count += 1
             if self.follow_branches:
                 self._visited.add(offset)
 
@@ -399,15 +428,6 @@ class Disassemble(plugin.Command):
                     # unwinds past the JMP.
                     if instruction.mnemonic.startswith("jmp"):
                         return
-
-            # Exit condition can be specified by length.
-            if (self.length is not None and
-                    self._visited_count > self.length):
-                return
-
-            # Exit condition can be specified by end address.
-            if self.end and offset > self.end:
-                return
 
     def render_canonical(self, renderer):
         """Renders a canonical description of each instruction.
@@ -440,10 +460,6 @@ class Disassemble(plugin.Command):
         """
         if self.canonical:
             return self.render_canonical(renderer)
-
-        # If length nor end are specified only disassemble one pager output.
-        if self.end is None and self.length is None:
-            self.length = self.session.GetParameter("paging_limit") - 5
 
         # If we are doing branch analysis we can not suspend this plugin. We
         # must do everything all the time.
@@ -485,7 +501,7 @@ class Disassemble(plugin.Command):
 
             renderer.table_row(
                 instruction.address, relative, instruction.hexbytes,
-                instruction.text, instruction.comment, depth=depth)
+                instruction.op_str, instruction.comment, depth=depth)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.

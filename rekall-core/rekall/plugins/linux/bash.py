@@ -156,7 +156,7 @@ class BashHistory(common.LinProcessFilter):
         renderer.table_header([("Pid", "pid", ">6"),
                                ("Name", "name", "<20"),
                                ("Timestamp", "time", "<24"),
-                               ("Command", "command", "<20"),
+                               ("Command", "command", ""),
                               ])
 
         for task in self.filter_processes():
@@ -177,7 +177,7 @@ class BashHistory(common.LinProcessFilter):
                 continue
 
             if self.scan_entire_address_space:
-                scanner = HistoryScanner(
+                scanner = LinHistoryScanner(
                     profile=self.bash_profile, session=self.session,
                     address_space=process_as, pointers=timestamps)
             else:

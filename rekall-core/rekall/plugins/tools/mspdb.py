@@ -132,7 +132,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
 
     def render(self, renderer):
         # The filename is an executable
-        if self.guid is None:
+        if self.guid is None and self.filename:
             self.pe = pe_vtypes.PE(filename=self.filename,
                                    session=self.session)
             data_directory = self.pe.nt_header.OptionalHeader.DataDirectory[
@@ -764,7 +764,7 @@ class DBIExHeaders(obj.Struct):
     def obj_size(self):
         return (pe_vtypes.RoundUpToWordAlignment(
             self.objName.obj_offset + self.objName.obj_size) -
-            self.obj_offset)
+                self.obj_offset)
 
 
 class DBI(obj.Struct):

@@ -1171,16 +1171,3 @@ class VtoPMixin(object):
             renderer.format(
                 "Physical Address {0}\n",
                 self.physical_address_space.describe(physical_address))
-
-
-class PluginHelp(obj.Profile):
-    """A profile containing all plugin help."""
-
-    def _SetupProfileFromData(self, data):
-        self.add_constants(**data["$HELP"])
-
-    def DocsForPlugin(self, name):
-        return self.get_constant(name)[1]
-
-    def ParametersForPlugin(self, name):
-        return self.get_constant(name)[0]

@@ -74,6 +74,25 @@ config.DeclareOption(
     help="An alternative home directory path. If not set we use $HOME.")
 
 
+class RecursiveHookException(RuntimeError):
+    """Raised when a hook is invoked recursively."""
+
+
+class PluginRunner(obj.Curry):
+    """A runner for a specific plugin."""
+
+    def __init__(self, session, plugin_name):
+        super(PluginRunner, self).__init__(session.RunPlugin, plugin_name)
+        self.plugin_name = plugin_name
+        self.session = session
+
+    def Metadata(self):
+        """Return metadata about this plugin."""
+        plugin_class = getattr(   # pylint: disable=protected-access
+            self.session.plugins, self.plugin_name)._target
+        return config.CommandMetadata(plugin_class).Metadata()
+
+
 class PluginContainer(object):
     """A container for plugins.
 
@@ -628,9 +647,12 @@ class Session(object):
 
         # We don't have or didn't look in the cache for the result. See if we
         # can get if from a hook.
-        result = self._RunParameterHook(item)
-        if result is not None:
-            return result
+        try:
+            result = self._RunParameterHook(item)
+            if result is not None:
+                return result
+        except RecursiveHookException:
+            pass
 
         return default
 
@@ -655,7 +677,7 @@ class Session(object):
                 if name in self._hook_locks:
                     # This should never happen! If it does then this will block
                     # in a loop so we fail hard.
-                    raise RuntimeError(
+                    raise RecursiveHookException(
                         "Trying to invoke hook %s recursively!" % name)
 
                 try:
@@ -812,7 +834,6 @@ class Session(object):
             pass
 
         result = None
-
         try:
             # If the name is a path we try to open it directly:
             container = io_manager.DirectoryIOManager(os.path.dirname(name),
@@ -839,7 +860,7 @@ class Session(object):
 
                     now = time.time()
                     result = obj.Profile.LoadProfileFromData(
-                        manager.GetData(name), self, name=name)
+                        manager.GetData(name), session=self, name=name)
                     if result:
                         self.logging.info(
                             "Loaded profile %s from %s (in %s sec)",
@@ -1000,25 +1021,8 @@ class DynamicNameSpace(dict):
 
     def _prepare_runner(self, name):
         """Prepare a runner to run the given plugin."""
-        if self.help_profile is None:
-            self.help_profile = self.session.LoadProfile("help_doc")
-
-        doc = ""
-        plugin_cls = self.session.plugins.GetPluginClass(name)
-        default_args = ""
-        if plugin_cls:
-            default_args, doc = "", ""
-            default_args = self.help_profile.ParametersForPlugin(
-                plugin_cls.__name__)
-            doc = self.help_profile.DocsForPlugin(plugin_cls.__name__)
-
-        # Create a runner for this plugin and set its documentation.
-        runner = obj.Curry(
-            self["session"].RunPlugin, name, default_arguments=default_args)
-
-        runner.__doc__ = doc
-
-        return runner
+        # Create a runner for this plugin.
+        return PluginRunner(self["session"], name)
 
 
 class InteractiveSession(Session):

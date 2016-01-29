@@ -1517,7 +1517,7 @@ class Darwin32(basic.Profile32Bits, basic.BasicClasses):
             llinfo_arp=llinfo_arp)
         profile.add_enums(**darwin_enums)
         profile.add_overlay(darwin_overlay)
-        profile.add_constants(default_text_encoding="utf8")
+        profile.add_constants(dict(default_text_encoding="utf8"))
 
     def get_constant_cpp_object(self, constant, **kwargs):
         """A variant of get_constant_object which accounts for name mangling."""
