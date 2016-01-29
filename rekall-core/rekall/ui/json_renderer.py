@@ -434,7 +434,10 @@ class JsonDecoder(object):
             try:
                 result = object_renderer.DecodeFromJsonSafe(item, options)
             except Exception as e:
-                self.session.logging.error("Failed to decode %r: %s", item, e)
+                pdb.post_mortem()
+
+                self.session.logging.error(
+                    "Failed to decode %s: %s", repr(item)[:1000], e)
                 if self.session.GetParameter("debug"):
                     pdb.post_mortem()
 
@@ -516,7 +519,7 @@ class JsonRenderer(renderer_module.BaseRenderer):
             fd = sys.stdout
 
         self.fd = fd
-        self.encoder = JsonEncoder(renderer=self)
+        self.encoder = JsonEncoder(session=self.session, renderer=self)
         self.decoder = JsonDecoder(session=self.session, renderer=self)
 
         # A general purpose cache for encoders and decoders.

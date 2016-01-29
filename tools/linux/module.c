@@ -1,6 +1,9 @@
 /*
   This module does absolutely nothing at all. We just build it with debugging
   symbols and then read the DWARF symbols from it.  */
+
+#include <linux/kconfig.h>
+
 #include <linux/module.h>
 #include <linux/version.h>
 

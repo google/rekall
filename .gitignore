@@ -11,9 +11,12 @@
 /py27
 build/
 dist/
+<<<<<<< HEAD
+=======
 rekall.egg-info
 rekall_gui.egg-info
 rekall_core.egg-info
+>>>>>>> 1e13d957b47dc747da2be28366bdde9ff6393e26
 *.egg-info
 
 # Xcode & OS X-related stuff

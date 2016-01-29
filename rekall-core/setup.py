@@ -50,24 +50,32 @@ def find_data_files_directory(source):
 # approach ensures that any Rekall version will always work as tested - even
 # when external packages are upgraded in an incompatible way.
 install_requires = [
-    "PyAFF4 >= 0.20",
-    "PyYAML >= 3.11",
-    "acora >= 1.9",
-    "argparse >= 1.2.1",
-    "arrow >= 0.7.0",
-    "capstone >= 3.0.3",
+    "PyAFF4 == 0.20",
+    "PyYAML == 3.11",
+    "acora == 1.9",
+    "argparse == 1.2.1",
+    "arrow == 0.7.0",
+    "capstone == 3.0.3",
     "efilter == 1450268920",
-    "intervaltree >= 2.1.0",
-    "pycrypto >= 2.6.1",
-    "pyelftools >= 0.23",
-    "pytz >= 2015.7",
-    "sortedcontainers >= 1.4.2",
+    "intervaltree == 2.1.0",
+    "pycrypto == 2.6.1",
+    "pyelftools == 0.23",
+    "pytz == 2015.7",
+    "sortedcontainers == 1.4.2",
     "mock == 1.3.0",
 ]
 
 if platform.system() == "Windows":
     install_requires.append("pypiwin32 == 219")
     install_requires.append("capstone-windows >= 3.0.3")
+
+
+if "VIRTUAL_ENV" not in os.environ:
+    print "*****************************************************"
+    print "  WARNING: You are not installing Rekall in a virtual"
+    print "  environment. This configuration is not supported!!!"
+    print "  Expect breakage."
+    print "*****************************************************"
 
 
 class PIPUpgrade(Command):
