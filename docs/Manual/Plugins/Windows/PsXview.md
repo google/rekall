@@ -17,7 +17,7 @@ args:
 Rekall implements a number of methods for discovering processes. Malware
 attempts to hide processes by making them harder to detect. In order to easily
 see which method reveals which process, the **psxview** plugin lists all
-processes and the methods that reveals them.
+processes and the methods that reveal them.
 
 ### Notes
 

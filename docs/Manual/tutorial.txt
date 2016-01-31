@@ -18,67 +18,131 @@ interface for automation and performing more complex operations.
 Installation
 ------------
 
-Rekall is distributed both in source form and as a stand alone windows
-executable. The executable is already packed with all the dependencies and
-libraries and so does not require any external software to run.
+Rekall is available as a python package installable via the pip package
+manager. We support running Rekall under a virtualenv environment (This
+guarantees that the exact versions of all dependencies are met).
 
-To install onto a new system you must first have the following dependencies:
+Simply type (for example on Linux):
 
-- Python 2.7 from http://www.python.org/
+-----------------------------------------------------------------------------
+$ virtualenv  /tmp/MyEnv
+New python executable in /tmp/MyEnv/bin/python
+Installing setuptools, pip...done.
+$ source /tmp/MyEnv/bin/activate
+$ pip install rekall
+-----------------------------------------------------------------------------
 
-- Install easy install or pip from one of the file releases at
-  http://pypi.python.org/pypi/setuptools/[setuptools].  On windows this will
-  make the easy_install.exe script available on
-  'c:\python27\scripts\easy_install.exe'.
+To have all the dependencies installed. You still need to have python and pip
+installed first.
 
-- Now install ipython:
+To be able to run the Rekall GUI, you will need to install the `rekall-gui`
+package:
 
-  easy_install ipython
+-----------------------------------------------------------------------------
+$ pip install rekall-gui
+-----------------------------------------------------------------------------
 
-- Install pydistorm3:
+For windows, Rekall is also available as a self contained installer
+package. Please check the download page for the most appropriate installer to
+use.
 
- wget https://distorm.googlecode.com/files/distorm3.3-package.zip
- unzip distorm3.3-package.zip
- cd distorm3
- python setup.py build
- sudo python setup.py install
+A Rekall walkthrough
+--------------------
 
-
-A short Rekall demo
--------------------
-
-This section is a quick tour of the Rekall user interface. The program can still
+This section is a quick tour of the Rekall user interface. The program can
 accept command line options - which we can learn more about by using the --help
-option:
+option (Abbreviates to show only the important options):
 
 -----------------------------------------------------------------------------
 $ rekal -h
-usage: rekal [-h] [--pager PAGER]
-              [--logging {debug,info,warning,critical,error}] [--debug]
-              [-p PROFILE] [-f FILENAME] [--renderer RENDERER]
-              [--plugin PLUGIN [PLUGIN ...]] [--output OUTPUT] [--overwrite]
-              Plugin ...
+usage: rekal [-p PROFILE] [-v] [-q] [--debug] [--output_style {concise,full}]
+             [--logging_level {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+...
+             [--version] [-]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --pager PAGER         The pager to use when output is larger than a screen
-                        full.
-  --logging {debug,info,warning,critical,error}
-                        Logging level to show messages.
-  --debug               If set we break into the debugger on error conditions.
-  -p PROFILE, --profile PROFILE
-                        Name of the profile to load.
+Output control:
+  -v, --verbose         Set logging to debug level.
+  --output_style {concise,full}
+                        How much information to show. Default is 'concise'.
+  --plugin [PLUGIN [PLUGIN ...]]
+                        Load user provided plugin bundle.
+  -h, --help            Show help about global paramters.
+  --cache {file,memory,timed}
+                        Type of cache to use.
+  --repository_path [REPOSITORY_PATH [REPOSITORY_PATH ...]]
+                        Path to search for profiles. This can take any form
+                        supported by the IO Manager (e.g. zip files,
+                        directories, URLs etc)
   -f FILENAME, --filename FILENAME
                         The raw image to load.
-  --renderer RENDERER   The renderer to use. e.g. (TextRenderer,
-                        JsonRenderer).
-  --plugin PLUGIN [PLUGIN ...]
-                        Load user provided plugin bundle.
-  --output OUTPUT       Write to this output file.
-  --overwrite           Allow overwriting of output files.
+  --live                Enable live memory analysis.
+  --version             Prints the Rekall version and exits.
+
+Interface:
+  --pager PAGER         The pager to use when output is larger than a screen
+                        full.
+  -F {text,json,wide,xls,test,data}, --format {text,json,wide,xls,test,data}
+                        The output format to use. Default (text)
+  --timezone TIMEZONE   Timezone to output all times (e.g. Australia/Sydney).
+
+Plugin shell options:
+  -p PROFILE, --profile PROFILE
+                        Name of the profile to load. This is the filename of
+                        the profile found in the profiles directory. Profiles
+                        are searched in the profile path order.
 -----------------------------------------------------------------------------
 
 Some of the most frequently used flags are described below:
+
+--verbose::
+The is a shorthand to setting the logging level to DEBUG. Rekall will produce
+debug messages of its operation. You should use this if you want to know more of
+what Rekall is doing and also to attach output for bug reports.
+
+--plugin::
+If provided, Rekall loads this python file at start time. The file may define
+any plugins, everlays etc which might add additional functionality to Rekall.
+
+--cache::
+Rekall has a caching mechanism to be able to remember important information
+about images in between executions. When Rekall starts up it looks in the cache
+to see if this particular image has been previously analyzed. The allows Rekall
+to load previously derived data from cache instead of recalculating it. There
+are 3 cache modes: `file` is the usual persistant cache (by default in
+~/.rekall-cache). `memory` cache is only present in memory for the life of this
+process. `timed` cache is used for live images which keep changing (it is
+essentially a memory cache which is flushed periodically).
+
+--repository_path::
+Rekall normally loads the required profiles from a profile repository. By
+default, Rekall will use the rekall public repository. If you do not have
+internet access or want to host the repository locally, you can use `git clone`
+to copy the entire repository somewhere and then specify --repository_path to
+indicate where profiles should be loaded.
+
+--filename::
+The '--filename' option is the name of the image to analyse. If you are using
+the raw device as provided by the winpmem driver, this will be '\\.\pmem'
+(windows) for example or '/dev/pmem' (linux). You almost always want to specify
+a filename to operate on. A notable exception is when using the '--live' option
+which will set the appropriate filename automatically.
+
+--live::
+The options enables live memory analysis. Note that you would usually need to be
+running as `root` to do this. When running on Windows, Rekall will insert the
+winpmem driver. On OSX, Rekall will insert the macpmem driver. On Linux, Rekall
+will attempt to use the `/proc/kcore` memory device. When specifying this option
+you do not need to specify the --filename option because Rekall will
+automatically open the right device. When Rekall exits, the driver will be
+unloaded.
+
+--profile::
+The '--profile' flag specifies the profile to use. The profile is a JSON file
+with operating system specific data used to parse the data structures in the
+image. The profile used must exactly match the operating system version in the
+image. This parameter is usually only needed if you are generating your own
+profile (e.g. when analyzing an unusual Linux system). Profiles are normally
+autodetected in Rekall and are not usually specified by the user.
 
 --pager::
 The pager can be specified as the program that will be used to inspect the
@@ -88,29 +152,32 @@ file, and launch this program to view it. For example, on windows it is useful
 to use notepad to examine the output from each plugin (e.g. '--pager notepad'). On
 linux use '--pager less' for example, or even '--pager "gvim -f"'.
 
---profile::
-The '--profile' flag specifies the profile to use. The profile is an operating
-system specific collection of struct definitions which are used to parse the
-kernel data structures (which vary from version to version). The profile used
-must match the operating system version of the image. This parameter is usually
-only needed if you are generating your own profile. Profiles are normally
-autodetected in Rekall.
+--format::
+Rekall output is produced in a number of formats. The default format is 'text'
+which consists of tabulated human readable output. The `wide` format produces
+expanded rows (useful for very wide tables with many columns). Often it is
+useful to further process the output by machine. In that case the 'data' format
+can used to produce machine parsable JSON data. Rekall can also produce an
+Excell compatible spreadsheet (if you have the `openpyxl` package installed).
 
---filename::
-The '--filename' option is the name of the image to analyse. If you are using
-the raw device as provided by the winpmem driver, this will be '\\.\pmem'
-(windows) for example or '/dev/pmem' (linux). You almost always want to specify
-a filename to operate on.
+--timezone::
+Internally Rekall always works with times in UTC (i.e. without a timezone)
+however it is often convenient to output data in a particular timezone. Use this
+option to cause output to be produced in that timezone. Note that Rekall always
+fully specifies all times so it does not really matter what timezone you use for
+output. For example specify `--timezone Australia/Sydney` will cause timestamps
+to be written as '2012-10-02 07:39:51+1000' instead of '2012-10-01 21:39:51Z'
 
---renderer::
-The '--renderer' option allows the user to specify the output format for the
-plugin. Currently supported formats are textual output (default), and json output.
+The Rekall architecture is built around 'plugins'. A plugin is an extension with
+a name (e.g. pslist) which produces some analysis tasks and generates some
+output. There are many Rekall plugins for many operating systems and
+configurations. Not all plugins are applicable for all images. For example, a
+plugin which is designed to work on Windows 7 will not be active on a Windows XP
+image.
 
---plugin::
-The '--plugin' option allows the user to specify one or more python modules or zip
-files which contain third party rekall extension plugins. Each python file
-in these plugins will be imported and any plugins defined there will become
-available to the tool.
+Similarly we try to keep the names of plugins consistent across operating
+systems. For example, the pslist plugin is named the same for all operating
+systems, even though it is actually implemented by different code for each OSX.
 
 The interactive shell::
 If the command is followed by a plugin name, the tool will not use the
@@ -134,7 +201,7 @@ read plugin specific help by specifying the '--help' option after the name of th
 plugin:
 
 -----------------------------------------------------------------------------
-$ rekal -f xp-laptop-2005-06-25.img --profile WinXPSP2x86 pslist --help
+$ rekal -f xp-laptop-2005-06-25.img pslist --help
 usage: rekal pslist [-h] [--kdbg KDBG] [--eprocess EPROCESS [EPROCESS ...]]
                      [--phys_eprocess PHYS_EPROCESS [PHYS_EPROCESS ...]]
                      [--pid PID [PID ...]] [--proc_regex PROC_REGEX]
@@ -152,11 +219,23 @@ optional arguments:
                         A regex to select a profile by name.
 -----------------------------------------------------------------------------
 
+[NOTE]
+================================================================================
+Because Rekall does not know which specific plugin will handle a particular
+plugin name until it inspects the image, it is essential that the image be
+specified with the --filename arg. If this is not specified, Rekall must assume
+there is no such plugin (so above `rekal pslist -h` will not work because Rekall
+does not know which version of pslist we are searching for).
+
+For this reason we recommend that users use the interactive mode as much as
+possible (see below).
+================================================================================
+
 For example to list all the *svchost* processes, we can apply a regex to process
 names:
 
 -----------------------------------------------------------------------------
-$ rekal -f xp-laptop-2005-06-25.img --proc_regex svc
+$ rekal -f xp-laptop-2005-06-25.img pslist --proc_regex svc
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
@@ -170,24 +249,26 @@ Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Star
 In order to use the interactive shell, do not specify any plugin to run:
 
 -----------------------------------------------------------------------------
-$ rekal -f xp-laptop-2005-06-25.img
-The Rekall Memory Forensic framework 1.0RC11.
+$ rekal -f ~/images/win7.elf
+ ---------------------------------------------------------------------------
+ The Rekall Memory Forensic framework 1.5.0 (Furka).
 
-"We can remember it for you wholesale!"
+ "We can remember it for you wholesale!"
 
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License.
+ This program is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License.
 
-In [1]:
+ See http://www.rekall-forensic.com/docs/Manual/tutorial.html to get started.
+ ----------------------------------------------------------------------------
+ [1] win7.elf 13:54:24>
 -----------------------------------------------------------------------------
 
-The interactive shell marks input lines with an "In [line number]:" format and
-output lines are marked as "Out [line number]:". In order to run a plugin simply
-type its name and press enter:
+The interactive shell marks input lines with the name of the image and a time of
+day. In order to run a plugin simply type its name and press enter:
 
 -----------------------------------------------------------------------------
-In [1]: pslist   <1>
-------> pslist() <2>
+[1] win7.elf 13:54:24> pslist   <1>
+---------------------> pslist() <2>
 Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
 ---------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
 0x823c87c0 System                    4      0     61     1140 ------  False -                    -
@@ -217,48 +298,81 @@ plugins.consoles     plugins.impscan      plugins.pedump       plugins.symlinksc
 -----------------------------------------------------------------------------
 
 To learn more about each of these plugins we can follow the name of the plugin
-with a single ?:
-
+with a single question mark:
 -----------------------------------------------------------------------------
-In [3]: plugins.pslist?
-pslist: List processes for windows.
-Lists the processes by following the _EPROCESS.PsActiveList.
+[1] win7.elf 13:56:55> plugins.pslist?
+file:       /home/scudette/rekall/rekall-core/rekall/plugins/windows/taskmods.py
+Plugin:     WinPsList (pslist)
+Parameters:
+  profile:       Name of the profile to load. This is the filename of the profile found in the profiles directory. Profiles are searched in the profile path order.
+  dtb:           The DTB physical address. (type: IntParser)
+  eprocess:      Kernel addresses of eprocess structs. (type: ArrayIntParser)
+  phys_eprocess: Physical addresses of eprocess structs. (type: ArrayIntParser)
+  pid:           One or more pids of processes to select. (type: ArrayIntParser)
+  proc_regex:    A regex to select a process by name. (type: RegEx)
+  method:        Method to list processes (Default uses all methods). (type: ChoiceArray)
+Docstring:  List processes for windows.
+Link:       http://www.rekall-forensic.com/epydocs/rekall.plugins.windows.taskmods.WinPsList-class.html
+-----------------------------------------------------------------------------
 
-In the windows operating system, processes are linked together through a
-doubly linked list. This plugin follows the list around, printing
-information about each process.
+Following the name of the plugin with two question marks lists the source of the
+plugin as well:
+-----------------------------------------------------------------------------
+[1] win7.elf 13:58:57> plugins.pslist??
+file:       /home/scudette/rekall/rekall-core/rekall/plugins/windows/taskmods.py
+Plugin:     WinPsList (pslist)
+Parameters:
+  profile:       Name of the profile to load. This is the filename of the profile found in the profiles directory. Profiles are searched in the profile path order.
+  dtb:           The DTB physical address. (type: IntParser)
+  eprocess:      Kernel addresses of eprocess structs. (type: ArrayIntParser)
+  phys_eprocess: Physical addresses of eprocess structs. (type: ArrayIntParser)
+  pid:           One or more pids of processes to select. (type: ArrayIntParser)
+  proc_regex:    A regex to select a process by name. (type: RegEx)
+  method:        Method to list processes (Default uses all methods). (type: ChoiceArray)
+Docstring:  List processes for windows.
+Link:       http://www.rekall-forensic.com/epydocs/rekall.plugins.windows.taskmods.WinPsList-class.html
+source:
+class WinPsList(common.WinProcessFilter):
+    """List processes for windows."""
 
-To begin, we need to find any element on the list. This can be done by:
+    __name = "pslist"
 
-1) Obtaining the _KDDEBUGGER_DATA64.PsActiveProcessHead - debug
-   information.
+    eprocess = None
 
-2) Finding any _EPROCESS in memory (e.g. through psscan) and following
-   its list.
+    @classmethod
+    def args(cls, metadata):
+        super(WinPsList, cls).args(metadata)
+        metadata.set_description("""
+        Lists the processes by following the _EPROCESS.PsActiveList.
 
-This plugin supports both approaches.
+        In the windows operating system, processes are linked together through a
+        doubly linked list. This plugin follows the list around, printing
+        information about each process.
 
-Parameter                       Documentation
------------------------------- ----------------------------------------------------------------------
-physical_eprocess               One or more EPROCESS structs or offsets defined in the physical AS.
-pid                             A single pid.
-proc_regex                      A regular expression for filtering process name (using
-                                _EPROCESS.ImageFileName).
-kdbg                            The location of the kernel debugger block (In the physical AS).
-kernel_address_space            The kernel address space to use. If not specified, we use the session.
-physical_address_space          The physical address space to use. If not specified we use the
-                                following options:
-                                   1) session.physical_address_space,
-                                   2) Guess using the load_as() plugin,
-                                   3) Use session.kernel_address_space.base.
-profile                         The kernel profile to use for this command.
-session                         The session we will use. Many options are taken from the session by
-                                default, if not provided. This allows users to omit specifying many
-                                options.
-output                          Save output to this file.
-overwrite                       Must be set to overwrite an output file. You can also set this in the
-                                session as a global setting.
-renderer                        Use this renderer for the output.
+        To begin, we need to find any element on the list. This can be done by:
+
+        1) Obtaining the _KDDEBUGGER_DATA64.PsActiveProcessHead - debug
+           information.
+
+        2) Finding any _EPROCESS in memory (e.g. through psscan) and following
+           its list.
+
+        This plugin supports both approaches.
+        """)
+...
+-----------------------------------------------------------------------------
+
+This is useful in order to verify how a particular plugin works. Note that
+commandline completion can be used to speed up plugin selection and arguments
+for plugins:
+-----------------------------------------------------------------------------
+[1] win7.elf 14:01:37> plugins.ps[tab][tab]
+plugins.pslist   plugins.psscan   plugins.pstree   plugins.psxview
+[1] win7.elf 14:01:37> plugins.pslist [tab][tab]
+dtb=            eprocess=       method=         phys_eprocess=  pid=            proc_regex=     profile=
+[1] win7.elf 14:01:37> plugins.pslist pr[tab][tab]
+proc_regex=  profile=
+[1] win7.elf 14:01:37> plugins.pslist proc_regex="svc"
 -----------------------------------------------------------------------------
 
 We can now specify the parameters to be passed to the plugin (This is the same
@@ -266,102 +380,97 @@ as the command line example above):
 
 .Example: Specifying plugin options in the interactive shell.
 -----------------------------------------------------------------------------
-In [5]: pslist proc_regex="svc"
-------> pslist(proc_regex="svc")
-Offset (V) Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
----------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- --------------------
-0x81fa5aa0 svchost.exe             740    580     17      198      0  False 2005-06-25 16:47:32  -
-0x81fa8650 svchost.exe             800    580     10      302      0  False 2005-06-25 16:47:33  -
-0x81faba78 svchost.exe             840    580     83     1589      0  False 2005-06-25 16:47:33  -
-0x81f8dda0 svchost.exe             984    580      6       90      0  False 2005-06-25 16:47:35  -
-...
+[1] win7.elf 14:15:55> pslist proc_regex="svc"
+---------------------> pslist(proc_regex="svc")
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xfa80024f85d0 svchost.exe            236    480     19      455      0 False  2012-10-01 14:40:01Z     -
+0xfa80023f6770 svchost.exe            608    480     12      352      0 False  2012-10-01 21:39:59Z     -
+0xfa8002522b30 svchost.exe            624    480     16      372      0 False  2012-10-01 14:40:01Z     -
+0xfa800242a350 svchost.exe            716    480      7      260      0 False  2012-10-01 14:40:00Z     -
+0xfa80024589e0 svchost.exe            768    480     23      535      0 False  2012-10-01 14:40:00Z     -
 -----------------------------------------------------------------------------
-
-[NOTE]
-================================================================================
-Since important information is already stored in the interactive session between
-plugin invocations (e.g. dtb location etc), it is much faster to run plugins
-from the interactive session than to run each plugin in turn from the command
-line. It is possible to easily write a script for automating the running of
-multiple plugins.
-================================================================================
 
 The interactive shell is the most powerful and flexible interface and so the
 remainder of this tutorial will focus on it.
 
 At the heart of the interactive interface is the session object. The session is
-an object which contains information about the current image analysis. Plugins
-and the user can store information in the session which will be later used by
-other plugins. For example, when running the pslist() plugin, the load_as()
-plugin is run to determine the address spaces that should be used. This in turn
-calls the find_dtb() plugin which searches for a kernel DTB (used to construct
-the kernel address space).
+an object which contains information about the current image analysis.
 
 It follows that after running the pslist() plugin for the first time, a number
 of new objects are stored in the session, and they can be reused the second time
-a pslist() is run. At any time we can view the current session (Note "p" is the
-shortcut command for "print"):
+a pslist() is run. At any time we can view the current session by simply
+printing it:
 
 -----------------------------------------------------------------------------
-In [8]: p session
-------> p(session)
-Rekall session Started on Wed Aug  8 16:45:07 2012.
+[1] win7.elf 14:09:09> print session
+Rekall Memory Forensics session Started on Sun Jan 31 13:56:55 2016.
 
 Config:
- default_address_space:  <IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000>
- dtb:  233472
- filename:  'xp-laptop-2005-06-25.img'
- kdbg:  [_KDDEBUGGER_DATA64 _KDDEBUGGER_DATA64] @ 0x8054C060
- kernel_address_space:  <IA32PagedMemory @ 0x24892d0 Kernel AS@0x39000>
- last:  <rekall.plugins.windows.filescan.PSScan object at 0x24853d0>
- logging:  'INFO'
- overwrite:  False
- pager:  'less'
- physical_address_space:  <MmapFileAddressSpace @ 0x262a650 xp-laptop-2005-06-25.img>
- profile:  <rekall.plugins.overlays.windows.xp.WinXPSP2x86 object at 0x1d11090>
- renderer:  'TextRenderer'
+{
+  __dummy = False
+  autodetect = ['nt_index', 'osx', 'pe', 'windows_kernel_file', 'rsds', 'ntfs', 'linux']
+  autodetect_build_local = basic
+  autodetect_build_local_tracked = set(['win32k', 'ntdll', 'nt', 'tcpip'])
+  autodetect_scan_length = 1000000000
+...
+  timezone = UTC
+  verbose = False
+  version = False
+}
+
+Cache (<FileCache @ /home/scudette/.rekall_cache/sessions/v1.0/sessions/de814bea95020499e782df54aa4b0d5ce4544823>):
+{
+  default_address_space = WindowsAMD64PagedMemory@0x00187000 (Kernel AS@0x187000)
+  dtb = 1601536
+  profile = nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942
+  profile_obj = <AMD64 profile nt/GUID/F8E2A8B5C9B74BF4A6E4A48F180099942 (Nt)>
+  pslist_CSRSS = set([275427705947968, 275427703135024, 275427707404384, 275427696227600, 275427701196688, 2754276960 ...
+  pslist_Handles = set([275427705361984, 275427703135024, 275427688164144, 275427696227600, 275427701196688, 2754277015 ...
+  pslist_PsActiveProcessHead = set([275427705947968, 275427703135024, 275427701697328, 275427707404384, 275427706255504, 2754277015 ...
+  pslist_PspCidTable = set([275427706779456, 275427703135024, 275427688164144, 275427696227600, 275427701196688, 2754277015 ...
+  pslist_Sessions = set([275427700679504, 275427705361984, 275427705947968, 275427688984672, 275427701697328, 2754276962 ...
+}
 -----------------------------------------------------------------------------
 
-physical_address_space::
-We can see the physical_address_space is an MmapFileAddressSpace instance over
-the image file, while the kernel_address_space is an IA32PagedMemory address
-space instantiated over the dtb at 0x39000. We can see the last Rekall
-plugin run (psscan) here too.
+We can see that the session contains two parts - a configuration part and a
+cache. The cache will store files in the specified directory. The session shows
+us the content of the cache.
 
 default_address_space::
 The default_address_space is the address space that will be used to instantiate
 new objects from the interactive shell by default. When reading memory we must
 always use an address space. For example, we can use the physical address space
 (i.e. the raw image) or a virtual address space (for example, the kernel or any
-process's address space). Commonly we spend some time analysing a particular
-address space so its useful to set the default_address_space to avoid typing.
+process's address space). Many plugins rely on the correct default address space
+to be used. This is typically known as the 'Process Context' and can be changed
+using the `cc` plugin. By default the default_address_space is set to the
+kernel's address space.
 
-For example, suppose we want to examine the _EPROCESS object reported by the
-pslist module above for pid 740. We read the virtual offset of the process as
-0x81fa5aa0 in the kernel address space. We first create an instance of the
+For example, suppose we want to examine the process listing from earlier in more
+details. The process list has a column with a name `_EPROCESS` indicating this
+is the address of the kernel's _EPROCESS struct. Rekall typically lists the
+names and addresses of critical kernel data structures in its tabular output.
+
+Suppose we now wish to examine the _EPROCESS object reported by the pslist
+module above for pid 768. We read the virtual offset of the process as
+0xfa80024589e0 in the default address space. We first create an instance of the
 _EPROCESS at the reported offset, and assign it to a variable. We then can
 examine all the fields of this struct by using command line completion (double
 tab):
 
 -----------------------------------------------------------------------------
-In [10]: task = session.profile._EPROCESS(0x81fa5aa0)
-
-In [11]: task.[tab][tab]
-Display all 138 possibilities? (y or n)
-task.ActiveProcessLinks            task.ReadTransferCount
-task.ActiveThreads                 task.RealVadRoot
-task.AddressCreationLock           task.RundownProtect
-task.AddressSpaceInitialized       task.SeAuditProcessCreationInfo
-task.AweInfo                       task.SectionBaseAddress
-task.BreakOnTermination            task.SectionObject
-task.CloneRoot                     task.SecurityPort
-....
-
-In [11]: task.UniqueProcessId
-Out[11]:  [unsigned int:UniqueProcessId]: 0x000002E4
-
-In [12]: task.ImageFileName
-Out[12]:  [String:ImageFileName]: 'svchost.exe\x00'
+[1] win7.elf 14:15:58> task = session.profile._EPROCESS(0xfa80024589e0)
+[1] win7.elf 14:19:57> task.
+Display all 180 possibilities? (y or n)
+task.AccountingFolded              task.Flags                         task.OtherOperationCount           task.SectionBaseAddress            task.cast
+...
+[1] win7.elf 14:19:57> task.UniqueProcessId
+               Out<19 >  [unsigned int:UniqueProcessId]: 0x00000300
+[1] win7.elf 14:20:08> task.Ima
+task.ImageFileName    task.ImageNotifyDone  task.ImagePathHash
+[1] win7.elf 14:20:08> task.ImageFileName
+               Out<20 >  [String:ImageFileName]: 'svchost.exe\x00'
 -----------------------------------------------------------------------------
 
 When examining a member in a struct (such as '_EPROCESS.ImageFileName') we
@@ -381,95 +490,111 @@ To view the entire object we can print it (you can use the shortcut 'p' as a
 shortcut for 'print' - either will work).
 
 -----------------------------------------------------------------------------
-In [14]: p task
--------> p(task)
-[_EPROCESS _EPROCESS] @ 0x81FA5AA0
-  0x00 Pcb                          [_KPROCESS Pcb] @ 0x81FA5AA0
-  0x6C ProcessLock                  [_EX_PUSH_LOCK ProcessLock] @ 0x81FA5B0C
-  0x70 CreateTime                    [WinTimeStamp:CreateTime]: 0x42BD8AA4 (2005-06-25 16:47:32 )
-  0x78 ExitTime                      [WinTimeStamp:ExitTime]: 0x00000000 (-)
-  0x80 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0x81FA5B20
-  0x84 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x000002E4
-  0x88 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0x81FA5B28
-  0x90 QuotaUsage                   <Array 3 x unsigned long @ 0x81FA5B30>
-  0x9C QuotaPeak                    <Array 3 x unsigned long @ 0x81FA5B3C>
-  0xA8 CommitCharge                  [unsigned long:CommitCharge]: 0x000002E7
-  0xAC PeakVirtualSize               [unsigned long:PeakVirtualSize]: 0x0402C000
-  0xB0 VirtualSize                   [unsigned long:VirtualSize]: 0x03EC9000
-  0xB4 SessionProcessLinks          [_LIST_ENTRY SessionProcessLinks] @ 0x81FA5B54
-  0xBC DebugPort                    <NoneObject Pointer to [0x00000000] (DebugPort)>
-  0xC0 ExceptionPort                <Void Pointer to [0xE175BCA8] (ExceptionPort)>
+[1] win7.elf 14:20:14> p task
+---------------------> p(task)
+[_EPROCESS _EPROCESS] @ 0xFA80024589E0 (pid=768)
+  0x00 Pcb                          [_KPROCESS Pcb] @ 0xFA80024589E0
+  0x160 ProcessLock                  [_EX_PUSH_LOCK ProcessLock] @ 0xFA8002458B40
+  0x168 CreateTime                    [WinFileTime:CreateTime]: 0x5069AB40 (2012-10-01 14:40:00Z)
+  0x170 ExitTime                      [WinFileTime:ExitTime]: 0x00000000 (-)
+  0x178 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0xFA8002458B58
+  0x180 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x00000300
+  0x188 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0xFA8002458B68
+  0x198 ProcessQuotaUsage            <Array 2 x unsigned long long @ 0xFA8002458B78>
+  0x1A8 ProcessQuotaPeak             <Array 2 x unsigned long long @ 0xFA8002458B88>
+  0x1B8 CommitCharge                  [unsigned long long:CommitCharge]: 0x00000D7F
 ...
 -----------------------------------------------------------------------------
 
 This view shows the layour of the _EPROCESS struct which is overlayed on the
-offset 0x81FA5B54. The first column is the relative offset of each member,
+offset 0xFA80024589E0. The first column is the relative offset of each member,
 followed by the name of each member and a representation of each member. This
 representation consists of a type (e.g. _KPROCESS), a name (e.g. Pcb) and a
 human readable representation.
 
 Interactive plugins
 -------------------
-Many plugins are designed to work in the interactive environment since they are
-by nature interactive. For example the dump plugin performs a hex dump of a
-region of memory:
+
+Rekall is more than just a framework for running plugins. It is a complete
+interactive environment for memory analysis. Many of the more interesting
+features Rekall provides exist as part of the interactive environment.
+
+The Address Resolver.
+~~~~~~~~~~~~~~~~~~~~~
+
+A large part of Memory analysis is about emulating the execution environment of
+running code. When code is executed it can access and branch into different
+addresses in the Virtual Address Space. It is Rekall's job to learn what exists
+at different addresses. The address space is divided into parts and Rekall can
+keep track of what different addresses mean.
+
+The Address Resolver is a special component which keeps track of the memroy
+layout in the virtual address space. This service can answer:
+
+1. What is found in a specific address?
+2. What is the address of a given symbol?
+
+In order to efficiently represent memory addresses Rekall uses a specific
+notation:
+
+* First a module name is specified. This can be the name of a kernel module, or dll.
+* Then the ! character is used to separate the module name from the symbol name.
+* A symbol name is specified in the module.
+* Possible offset from the symbol name.
+
+The following are all valid examples:
+-----------------------------------------------------------------------------
+[1] win7.elf 16:47:32> dis "nt!MmLoadSystemImage"      <1>
+---------------------> dis("nt!MmLoadSystemImage")
+Address      Rel             Op Codes                     Instruction                Comment
+------- -------------- -------------------- ---------------------------------------- -------
+------ nt!MmLoadSystemImage ------: 0xf80002a75060
+  0xf80002a75060            0x0 488bc4               mov rax, rsp
+  0xf80002a75063            0x3 48895818             mov qword ptr [rax + 0x18], rbx
+
+[1] win7.elf 17:00:20> dis "_ssl!init_ssl"            <2>
+---------------------> dis("_ssl!init_ssl")
+Address      Rel             Op Codes                     Instruction                Comment
+------- -------------- -------------------- ---------------------------------------- -------
+------ _ssl!init_ssl ------: 0x10001000
+      0x10001000            0x0 a1e4310710           mov eax, dword ptr [0x100731e4]  <3>     0x1e1ec4c0 _ssl!init_ssl+0x721e4 -> python27!PyType_Type
+      0x10001005            0x5 68f5030000           push 0x3f5
+      0x1000100a            0xa 6a00                 push 0
+      0x1000100c            0xc 68508d0a10           push 0x100a8d50                          _ssl!+0x10d25
+      0x10001011           0x11 68f08c0a10           push 0x100a8cf0                          _ssl!+0x10cc5
+      0x10001016           0x16 68fc700910           push 0x100970fc                          _ssl!init_ssl+0x960fc
+      0x1000101b           0x1b a3dc890a10           mov dword ptr [0x100a89dc], eax          0x1e1ec4c0 _ssl!+0x109b1 -> python27!PyType_Type
+      0x10001020           0x20 ff15c0310710         call dword ptr [0x100731c0]              0x1e007152 _ssl!init_ssl+0x721c0 -> python27!Py_InitModule4
+      0x10001026           0x26 83c414               add esp, 0x14
+      0x10001029           0x29 85c0                 test eax, eax
+-----------------------------------------------------------------------------
+
+<1> Disassembly of a kernel function. The "nt" symbol always refers to the kernel.
+<2> Disassembly of a python extension (a dll). (The cc plugin was run to set the
+    process context).
+<3> The Address Resolver is also used inside plugins to resolve addresses where
+    needed. For example here, We see a move instruction from the constant
+    'python27!PyType_Type' (i.e. the python Type type). This makes it very easy
+    to see how assembly code interacts with the rest of the address space.
+
+Similarly the 'dump' plugin dumps a hexdump of some memory, but it is able to
+annotate information about what resides in each address:
 
 -----------------------------------------------------------------------------
-In [18]: dump?
 
-dump: Hexdump an object or memory location.
-Hexdump an object or memory location.
-
-You can use this plugin repeateadely to keep dumping more data using the
-"v" (rerun last operation) plugin:
-
-In [2]: dump session.kernel_address_space, 0x814b13b0
-------> dump(session.kernel_address_space, 0x814b13b0)
-Offset                         Hex                              Data
----------- ------------------------------------------------ ----------------
-0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b 81  ..........K...K.
-
-In [3]: v
-------> v()
-Offset                         Hex                              Data
----------- ------------------------------------------------ ----------------
-0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
-0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
-0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
-
-Parameter                       Documentation
------------------------------- ----------------------------------------------------------------------
-target                          The object to dump or an address space.
-offset                          The offset to start dumping from.
+[1] win7.elf 17:08:46> dump "nt!SeTcbPrivilege"
+---------------------> dump("nt!SeTcbPrivilege")
+    Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+0xf80002b590b8 07 00 00 00 00 00 00 00 44 02 01 00 80 f9 ff ff  ........D....... nt!SeTcbPrivilege, nt!NlsOemToUnicodeData
+0xf80002b590c8 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00  ................ nt!VfRandomVerifiedDrivers, nt!TunnelMaxEntries, nt!ExpBootLicensingData
+0xf80002b590d8 bc 00 00 00 00 10 00 00 00 00 ff 07 80 f8 ff ff  ................ nt!ExpLicensingDescriptorsCount, nt!CmpStashBufferSize, nt!ExpLicensingView
+0xf80002b590e8 e8 f5 00 00 a0 f8 ff ff e8 45 7a 05 a0 f8 ff ff  .........Ez..... nt!CmpHiveListHead
+0xf80002b590f8 1c 00 00 00 80 f9 ff ff 16 00 00 00 00 00 00 00  ................ nt!NlsAnsiToUnicodeData, nt!SeSystemEnvironmentPrivilege
+0xf80002b59108 3f 00 00 00 a4 01 00 00 00 a0 06 00 a0 f8 ff ff  ?............... nt!OemDefaultChar, nt!CmBootAcceptFirstTime, nt!CmpDiskFullWorkerPopupDisplayed, nt!ExpLastTimeZoneBia
 -----------------------------------------------------------------------------
 
-Lets try to dump the hex content of the task object (Note that if no address
-space is specified, the default address space from the session is used - in this
-case the kernel_address_space):
-
------------------------------------------------------------------------------
-In [19]: dump 0x81FA5AA0
--------> dump(0x81FA5AA0)
-  Offset                         Hex                              Data
----------- ------------------------------------------------ ----------------
-0x81fa5aa0 03 00 1b 00 00 00 00 00 10 3c 21 82 10 3c 21 82  .........<!..<!.
-0x81fa5ab0 b0 5a fa 81 b0 5a fa 81 00 50 57 0e 00 e0 56 0e  .Z...Z...PW...V.
-0x81fa5ac0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-0x81fa5ad0 ac 20 00 00 00 00 00 00 1d 00 00 00 0b 00 00 00  ................
------------------------------------------------------------------------------
-
-This will produce one pagefull of hex dump. To produce another page, simply
-rerun the last plugin using the 'v' plugin:
------------------------------------------------------------------------------
-In [20]: v
--------> v()
-  Offset                         Hex                              Data
----------- ------------------------------------------------ ----------------
-0x81fa5c70 a6 92 08 00 00 00 00 00 2c 03 00 00 00 00 00 00  ........,.......
-0x81fa5c80 e0 7c 00 00 00 00 00 00 00 00 00 00 aa 16 00 00  .|..............
-0x81fa5c90 00 00 00 00 b0 1e 0f 82 30 fe 1f 95 a5 79 c5 01  ........0....y..
-0x81fa5ca0 00 00 01 00 31 05 00 00 c3 04 00 00 b6 04 00 00  ....1...........
------------------------------------------------------------------------------
+Note the names of symbols residing in nearby memory addresses.
 
 The Rekall Session
 ------------------
@@ -550,7 +675,8 @@ If Rekall is analysing a volatile image - such as a memory device, the cache
 will not be persistent - instead it will be time based, to allow items to expire
 promptly from the cache as the live system evolves. For normal images, the cache
 may persist so that even if the user quits and restarts Rekall on the same
-image, the cache is considered valid.
+image, the cache is considered valid. This significatly speeds up operations in
+future on the same image.
 
 If you suspect something unusual with the cache (e.g. the cache is out of sync
 or was created by an earlier version) it should be quite safe to remove all
