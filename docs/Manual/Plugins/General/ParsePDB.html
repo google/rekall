@@ -194,11 +194,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        <li>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
           </a>
@@ -214,38 +209,13 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
           <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
           <a href='#l' class="category-link">
             l
-          </a>
-        </li>
-        <li>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
           </a>
         </li>
         <li>
@@ -261,11 +231,6 @@ ript>
         <li>
           <a href='#sdel' class="category-link">
             sdel
-          </a>
-        </li>
-        <li>
-          <a href='#shell' class="category-link">
-            shell
           </a>
         </li>
         <li>
@@ -352,7 +317,37 @@ ript>
 </div>
 
 
+<p>Rekall uses debugging symbols to analyze memory. Each time Microsoft compilers
+generate a binary (executable or DLL) they also emit debugging information in a
+separate PDB file. Rekall needs a profile for each binary of interest (A
+profile is a JSON file containing important debugging information about the
+binary).</p>
+<p>Use the <code>fetch_pdb</code> plugin to fetch the PDB file and the <code>parse_pdb</code> plugin to
+parse it and produce a JSON file for Rekall to use.</p>
+<p>Note that normally this plugin is called by other plugins such as
+<code>build_local_profile</code> or automatically by Rekall. So users do not need to call
+this plugin directly in most cases.</p>
+<div class="highlight"><pre>[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
+  extracting termdd.pdb
 
+All done, no errors.
+[1] win7.elf 23:55:07&gt; parse_pdb pdb_filename=&quot;termdd.pdb&quot;, output_filename=&quot;termdd.json&quot;
+               Out&lt;59&gt; Plugin: parse_pdb
+[1] win7.elf 23:55:37&gt; !head termdd.json
+{
+ &quot;$CONSTANTS&quot;: {
+  &quot;ExEventObjectType&quot;: 41408,
+  &quot;Globals&quot;: 46144,
+  &quot;HotPatchBuffer&quot;: 45056,
+  &quot;IcaChannelDispatchTable&quot;: 45856,
+  &quot;IcaChargeForPostCompressionUsage&quot;: 46106,
+  &quot;IcaConnectionDispatchTable&quot;: 45632,
+  &quot;IcaDeviceObject&quot;: 46848,
+  &quot;IcaDisableFlowControl&quot;: 46105,
+</pre></div>
 
 <p>
 

@@ -304,7 +304,18 @@ h3 {
     padding: 10px;
     background-color: rgba(207, 207, 207, 0.08);
     color: black;
-    display: flex;
+    word-wrap: normal;
+}
+
+pre .text {
+    padding: 10px;
+    color: black;
+    word-wrap: normal;
+    white-space: pre;
+}
+
+pre {
+    overflow-y: hidden;
 }
 
 .epydoc_link {

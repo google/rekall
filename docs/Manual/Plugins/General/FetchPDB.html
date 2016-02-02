@@ -194,11 +194,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        <li>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
           </a>
@@ -214,38 +209,13 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
           <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
           <a href='#l' class="category-link">
             l
-          </a>
-        </li>
-        <li>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
           </a>
         </li>
         <li>
@@ -261,11 +231,6 @@ ript>
         <li>
           <a href='#sdel' class="category-link">
             sdel
-          </a>
-        </li>
-        <li>
-          <a href='#shell' class="category-link">
-            shell
           </a>
         </li>
         <li>
@@ -349,7 +314,41 @@ ript>
 </div>
 
 
+<p>The Microsoft Visual Studio compiler stores debugging information for each
+binary built in a PDB file. Each binary contains a unique GUID which can be used
+to fetch the correct PDB file from the public Microsoft symbol server.</p>
+<p>The <code>fetch_pdb</code> plugin is used to fetch the correct PDB file from the symbol
+server. You will need to provide the name of the PDB file and the GUID - both of
+these are found from the PE headers of the binary.</p>
+<p>Note that this plugin is mainly used by the <code>build_local_profile</code> plugin and by
+the <code>manage_repo</code> plugins, but might also be useful on its own. Usually you need
+to <code>parse_pdb</code> after fetching it so a profile can be generated for Rekall to
+use.</p>
+<p>In the example below we find the GUID and pdb file name of an executable from
+the image, then use the <code>fetch_pdb</code> plugin to fetch it. Note that PDB files are compressed using CAB on the symbol server so we need <code>cabextract</code> installed locally.</p>
+<div class="highlight"><pre>[1] win7.elf 23:08:40&gt; peinfo &quot;termdd&quot;
+          Attribute                                       Value
+------------------------------ ------------------------------------------------------------
+Machine                        IMAGE_FILE_MACHINE_AMD64
+TimeDateStamp                  2009-07-14 00:16:36Z
+Characteristics                IMAGE_FILE_DLL, IMAGE_FILE_EXECUTABLE_IMAGE,
+                               IMAGE_FILE_LARGE_ADDRESS_AWARE
+GUID/Age                       2A530717E88549BB92DBB72C224EC2B11
+PDB                            termdd.pdb
+MajorOperatingSystemVersion    6
+MinorOperatingSystemVersion    1
+MajorImageVersion              6
 
+....
+
+[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
+  extracting termdd.pdb
+
+All done, no errors.
+</pre></div>
 
 <p>
 

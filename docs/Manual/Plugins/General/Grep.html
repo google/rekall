@@ -194,11 +194,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        <li>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
           </a>
@@ -214,38 +209,13 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
           <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
           <a href='#l' class="category-link">
             l
-          </a>
-        </li>
-        <li>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
           </a>
         </li>
         <li>
@@ -261,11 +231,6 @@ ript>
         <li>
           <a href='#sdel' class="category-link">
             sdel
-          </a>
-        </li>
-        <li>
-          <a href='#shell' class="category-link">
-            shell
           </a>
         </li>
         <li>
@@ -318,8 +283,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/GuessGUID.html">
-          guess_guid
+       <a href="/docs/Manual/Plugins/General/ImageCopy.html">
+          imagecopy
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -358,7 +323,71 @@ ript>
 </div>
 
 
+<p>Sometimes we want to search for some data in the address space. Although we can
+use <code>yarascan</code> to do this, it is typically slower than just running the <code>grep</code>
+plugin. Note that the plugin can scan the entire address space efficiently
+(i.e. it will automatically skip over sparse memory regions).</p>
+<p>One of the more interesting uses of the <code>grep</code> plugin is looking for
+references. For example, suppose we wanted to see who has a reference to a
+particular _EPROCESS structure.</p>
+<p>In the below example, we pick an _EPROCESS from the output of <code>pslist</code> and
+search for pointers to it somewhere in kernel memory (There are many pointers!
+We just picked one for this example.). We then use the <code>analyze_struct</code> plugin
+to discover that the pointer resides in an allocation with the pool tag
+&lsquo;ObHd&rsquo;. We can search the kernel disassembly to realize this is an Object
+Handle. Note how we use grep to search for the little endian representation of
+the _EPROCESS address.</p>
+<div class="highlight"><pre>[1] win7.elf 23:14:38&gt; pslist
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+....
+0xfa8002ad0190 cmd.exe               2644   2616      2       66      1 True   2012-10-01 14:40:20Z     -
 
+[1] win7.elf 23:14:55&gt; grep keyword=&quot;\x90\x01\xad\x02\x80\xfa&quot;
+....
+    Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+0xf8a0013d8ad8 60 40 a9 02 80 fa ff ff 01 00 00 00 00 00 00 00  `@..............
+0xf8a0013d8ae8 90 01 ad 02 80 fa ff ff 01 00 00 00 00 00 00 00  ................
+0xf8a0013d8af8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+...
+[1] win7.elf 23:17:20&gt; analyze_struct 0xf8a0013d8ae8
+
+0xf8a0013d8ae8 is inside pool allocation with tag &#39;ObHd&#39; (0xf8a0013d8a30)  and size 0x100
+    Offset     Content
+-------------- -------
+           0x0 Data:0xfa8002ad0190 Tag:Pro\xe3 @0xfa8002ad0190 (0x530)
+           0x8 Data:0x1
+          0x10 Data:0x0
+          0x18 Data:0x0
+          0x20 Data:0x0
+          0x28 Data:0x0
+          0x30 Data:0xfa80017f9060 Tag:Pro\xe3 @0xfa80017f9060 (0x530)
+          0x38 Data:0x1
+          0x40 Data:0x730061006c
+          0x48 Data:0x744e034d0110
+          0x50 Data:0x490053004c
+          0x58 Data:0xa4801280702
+          0x60 Data:0x981e
+          0x68 Data:0x100000000
+          0x70 Data:0x0
+[1] win7.elf 23:22:25&gt; hex(struct.unpack(&quot;&lt;I&quot;, &#39;ObHd&#39;)[0])
+               Out&lt;24&gt; &#39;0x6448624f&#39;
+[1] win7.elf 23:22:33&gt; dis &quot;nt!ObpInsertHandleCount&quot;
+---------------------&gt; dis(&quot;nt!ObpInsertHandleCount&quot;)
+Address      Rel             Op Codes                     Instruction                Comment
+------- -------------- -------------------- ---------------------------------------- -------
+------ nt!ObpInsertHandleCount ------: 0xf80002976010
+  0xf80002976010            0x0 48895c2408           mov qword ptr [rsp + 8], rbx
+  0xf80002976015            0x5 48896c2410           mov qword ptr [rsp + 0x10], rbp
+....
+
+  0xf80002976089           0x79 41b84f624864         mov r8d, 0x6448624f
+  0xf8000297608f           0x7f e83cd3e4ff           call 0xf800027c33d0                      nt!ExAllocatePoolWithTag
+  0xf80002976094           0x84 4885c0               test rax, rax
+  0xf80002976097           0x87 0f84dacd0400         je 0xf800029c2e77                        nt!ExpProfileCreate+0x9d57
+  0xf8000297609d           0x8d 458bc5               mov r8d, r13d
+</pre></div>
 
 <p>
 
@@ -376,8 +405,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/GuessGUID.html">
-          guess_guid
+       <a href="/docs/Manual/Plugins/General/ImageCopy.html">
+          imagecopy
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

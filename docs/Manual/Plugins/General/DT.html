@@ -194,11 +194,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        <li>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
           </a>
@@ -214,38 +209,13 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
           <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
           <a href='#l' class="category-link">
             l
-          </a>
-        </li>
-        <li>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
           </a>
         </li>
         <li>
@@ -261,11 +231,6 @@ ript>
         <li>
           <a href='#sdel' class="category-link">
             sdel
-          </a>
-        </li>
-        <li>
-          <a href='#shell' class="category-link">
-            shell
           </a>
         </li>
         <li>
@@ -354,7 +319,61 @@ all its members.</p>
 </div>
 
 
-
+<p>The <code>dt</code> plugin prints all the fields within a data structure and optionally,
+their contents.</p>
+<p>In the example below, we create an <code>_EPROCESS</code> instance over a specific virtual
+address (this was taken from the output of the <code>pslist</code> plugin). The <code>dt</code> plugin
+displays all the fields in the struct. If there is a nested struct, the <code>dt</code>
+plugin shows a tree view of the nested struct as well.</p>
+<p>Note that if an address is not specified, the <code>_EPROCESS</code> object will simply be
+instantiated over address 0 and all offsets will be relative to the begining of
+the struct. This is very useful when deciphering assembly code which
+dereferences members of the struct.</p>
+<p>Rekall also uses &ldquo;virtual members&rdquo; on structs, mostly placed there for
+convenience or to support multiple versions of the same struct. We can see in
+this case that the fields &ldquo;name&rdquo; and &ldquo;pid&rdquo; are virtual members since their
+offset is -1. These represent the name and the pid of the process in all
+operating systems.</p>
+<div class="highlight"><pre>[1] win7.elf 19:34:27&gt; dt session.profile._EPROCESS(0xfa8002a94060)
+---------------------&gt; dt(session.profile._EPROCESS(0xfa8002a94060))
+[_EPROCESS _EPROCESS] @ 0xfa8002a94060
+Offset             Field              Content
+------ ------------------------------ -------
+            0x-1    RealVadRoot                    [_MMADDRESS_NODE BalancedRoot] @ 0xFA8002A944A8
+. 0xfa8002a9449c    Tag                             [String:Tag]: &#39;\x14\xd0\x02\x00&#39;
+. 0xfa8002a944a8    u1                             [&lt;unnamed-5580&gt; u1] @ 0xFA8002A944A8
+.. 0xfa8002a944a8    Balance                         [BitField(0-2):Balance]: 0x00000000
+.. 0xfa8002a944a8    Parent                         &lt;_MMADDRESS_NODE Pointer to [0xFA8002A944A8] (Parent)&gt;
+. 0xfa8002a944b0    LeftChild                      &lt;_MMADDRESS_NODE Pointer to [0x00000000] (LeftChild)&gt;
+. 0xfa8002a944b8    RightChild                     &lt;_MMADDRESS_NODE Pointer to [0xFA8002A92710] (RightChild)&gt;
+. 0xfa8002a944c0    StartingVpn                     [unsigned long long:StartingVpn]: 0x00000000
+. 0xfa8002a944c8    EndingVpn                       [unsigned long long:EndingVpn]: 0x00000000
+            0x-1    dtb                            112128000
+            0x-1    name                            [String:ImageFileName]: &#39;Console.exe\x00&#39;
+            0x-1    pid                             [unsigned int:UniqueProcessId]: 0x00000A38
+  0xfa8002a94060    Pcb                            [_KPROCESS Pcb] @ 0xFA8002A94060
+. 0xfa8002a94060    Header                         [_DISPATCHER_HEADER Header] @ 0xFA8002A94060
+.. 0xfa8002a94060    Lock                            [long:Lock]: 0x00580003
+.. 0xfa8002a94060    Type                            [Enumeration:Type]: 0x00000003 (ProcessObject)
+.. 0xfa8002a94061    Abandoned                       [unsigned char:Abandoned]: 0x00000000
+.. 0xfa8002a94061    Absolute                        [BitField(0-1):Absolute]: 0x00000000
+.. 0xfa8002a94061    Coalescable                     [BitField(1-2):Coalescable]: 0x00000000
+.. 0xfa8002a94061    EncodedTolerableDelay           [BitField(3-8):EncodedTolerableDelay]: 0x00000000
+.. 0xfa8002a94061    KeepShifting                    [BitField(2-3):KeepShifting]: 0x00000000
+.. 0xfa8002a94061    Signalling                      [unsigned char:Signalling]: 0x00000000
+.. 0xfa8002a94061    TimerControlFlags               [unsigned char:TimerControlFlags]: 0x00000000
+.. 0xfa8002a94062    CounterProfiling                [BitField(2-3):CounterProfiling]: 0x00000000
+.. 0xfa8002a94062    CpuThrottled                    [BitField(0-1):CpuThrottled]: 0x00000000
+.. 0xfa8002a94062    CycleProfiling                  [BitField(1-2):CycleProfiling]: 0x00000000
+.. 0xfa8002a94062    Hand                            [unsigned char:Hand]: 0x00000058
+.. 0xfa8002a94062    Reserved                        [BitField(3-8):Reserved]: 0x0000000B
+.. 0xfa8002a94062    Size                            [unsigned char:Size]: 0x00000058
+.. 0xfa8002a94062    ThreadControlFlags              [unsigned char:ThreadControlFlags]: 0x00000058
+.. 0xfa8002a94063    ActiveDR7                       [BitField(0-1):ActiveDR7]: 0x00000000
+.. 0xfa8002a94063    DebugActive                     [unsigned char:DebugActive]: 0x00000000
+.. 0xfa8002a94063    DpcActive                       [unsigned char:DpcActive]: 0x00000000
+.. 0xfa8002a94063    Expired                         [BitField(7-8):Expired]: 0x00000000
+</pre></div>
 
 <p>
 

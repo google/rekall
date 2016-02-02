@@ -193,11 +193,6 @@ ript>
             dump
           </a>
         </li>
-        <li>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
         <li class='active'>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
@@ -214,38 +209,13 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
           <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
           <a href='#l' class="category-link">
             l
-          </a>
-        </li>
-        <li>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
           </a>
         </li>
         <li>
@@ -261,11 +231,6 @@ ript>
         <li>
           <a href='#sdel' class="category-link">
             sdel
-          </a>
-        </li>
-        <li>
-          <a href='#shell' class="category-link">
-            shell
           </a>
         </li>
         <li>
@@ -308,9 +273,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/DwarfParser.html">
+       <a href="/docs/Manual/Plugins/General/Dump.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         dwarfparser
+         dump
        </a>
     </li>
   </ul>
@@ -349,7 +314,19 @@ ript>
 </div>
 
 
-
+<p>Rekall supports many different image formats. One of the popular formats is the
+EWF or E01 formats. It is a compressible format for forensic images.</p>
+<p>The <code>ewfacquire</code> plugin will copy the physical address space into an EWF
+file. This can be used to acquire memory (e.g. when Rekall is used in live mode)
+or to convert a memory image from another format to EWF format.</p>
+<p>Note that the EWF format is not an open format. The variant written by Rekall is
+not necessarily interchangeable with other implementations. We usually recommend
+using <code>aff4acquire</code> over <code>ewfacquire</code> because the AFF4 format can contain
+multiple streams and can also keep important metadata.</p>
+<div class="highlight"><pre>[1] win7.elf 23:02:22&gt; ewfacquire destination=&quot;/tmp/test.E01&quot;
+---------------------&gt; ewfacquire(destination=&quot;/tmp/test.E01&quot;)
+ Writing 352Mb
+</pre></div>
 
 <p>
 
@@ -357,9 +334,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/DwarfParser.html">
+       <a href="/docs/Manual/Plugins/General/Dump.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         dwarfparser
+         dump
        </a>
     </li>
   </ul>

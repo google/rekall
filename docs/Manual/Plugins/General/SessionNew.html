@@ -194,11 +194,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        <li>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
           </a>
@@ -214,38 +209,13 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
           <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
           <a href='#l' class="category-link">
             l
-          </a>
-        </li>
-        <li>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
           </a>
         </li>
         <li>
@@ -261,11 +231,6 @@ ript>
         <li>
           <a href='#sdel' class="category-link">
             sdel
-          </a>
-        </li>
-        <li>
-          <a href='#shell' class="category-link">
-            shell
           </a>
         </li>
         <li>
@@ -349,7 +314,46 @@ ript>
 </div>
 
 
-
+<p>The Rekall interactive console may be used to analyze several images at the same
+time. We do this by switching sessions. Each image has a unique session, but
+since none of the sessions are global, we can switch from one session to the
+next.</p>
+<p>Rekall&rsquo;s session management commands can be used to switch between sessions.</p>
+<p>The example below shows us loading a second session with a new image. We switch
+to the new session and list processes in it. We then switch back and delete the
+new session. Note how the prompt changes as we switch from one session to the
+other.</p>
+<div class="highlight"><pre>[1] win7.elf 23:55:46&gt; snew filename=&quot;/home/scudette/images/win10.aff4&quot;
+Created session [2] /home/scudette/images/win10.aff4 (2)
+               Out&lt;61&gt; Plugin: snew
+[2] /home/scudette/images/win10.aff4 (2) 23:57:03&gt; pslist
+-------------------------------------------------&gt; pslist()
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xe0003486d680 System                   4      0     82        -      - False  2015-06-03 06:56:02Z     -
+0xe00035e54040 smss.exe               260      4      2        -      - False  2015-06-03 06:56:02Z     -
+0xe00035b84080 csrss.exe              332    324      9        -      0 False  2015-06-03 06:56:03Z     -
+0xe0003489b280 wininit.exe            400    324      1        -      0 False  2015-06-03 06:56:03Z     -
+[2] /home/scudette/images/win10.aff4 (2) 23:57:09&gt; sswitch 1
+                                           Out&lt;63&gt; Plugin: sswitch
+[1] win7.elf 23:57:12&gt; pslist
+---------------------&gt; pslist()
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xfa80008959e0 System                   4      0     84      511      - False  2012-10-01 21:39:51Z     -
+0xfa80024f85d0 svchost.exe            236    480     19      455      0 False  2012-10-01 14:40:01Z     -
+0xfa8001994310 smss.exe               272      4      2       29      - False  2012-10-01 21:39:51Z     -
+0xfa8002259060 csrss.exe              348    340      9      436      0 False  2012-10-01 21:39:57Z     -
+[2] /home/scudette/images/win10.aff4 (2) 23:57:25&gt; slist
+  [1] win7.elf
+* [2] /home/scudette/images/win10.aff4 (2)
+                                           Out&lt;68&gt; Plugin: slist
+[1] win7.elf 23:57:33&gt; sdel 2
+               Out&lt;70&gt; Plugin: sdel
+[1] win7.elf 00:01:49&gt; slist
+* [1] win7.elf
+               Out&lt;73&gt; Plugin: slist
+</pre></div>
 
 <p>
 
