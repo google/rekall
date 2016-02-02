@@ -1,18 +1,34 @@
 ---
+abstract: Disassemble the given offset.
+args: {address_space: The address space to use., branch: 'If set we follow all branches
+    to cover all code. (type: Boolean)
+
+
+
+    * Default: False', canonical: 'If set emit canonical instructions. These can be
+    used to develop signatures. (type: Boolean)
+
+
+
+    * Default: False', end: 'The end address to disassemble up to. (type: IntParser)
+
+    ', length: 'The number of instructions (lines) to disassemble. (type: IntParser)
+
+    ', mode: "Disassemble Mode (AMD64 or I386). Defaults to 'auto'. (type: Choices)\n\
+    \n\n* Valid Choices:\n    - auto\n    - I386\n    - AMD64\n    - MIPS\n\n\n* Default:\
+    \ auto", offset: 'An offset to disassemble. This can also be the name of a symbol
+    with an optional offset. For example: tcpip!TcpCovetNetBufferList. (type: SymbolAddress)
+
+    ', suppress_headers: 'If set we do not write table headers. (type: Boolean)
+
+
+
+    * Default: False'}
+class_name: Disassemble
+epydoc: rekall.plugins.tools.disassembler.Disassemble-class.html
 layout: plugin
+module: rekall.plugins.tools.disassembler
 title: dis
-abstract: |
-  Disassemble the given address space.
-
-epydoc: rekall.plugins.windows.disassembler.Disassemble-class.html
-args:
-  offset: 'An offset to disassemble. This can also be the name of a symbol with an optional offset. For example: tcpip!TcpCovetNetBufferList.'
-  address_space: 'The address space to use.'
-  length: 'The number of instructions (lines) to disassemble.'
-  end: 'The end address to disassemble up to.'
-  mode: 'Disassemble Mode (AMD64 or I386). Defaults to profile arch.'
-  suppress_headers: 'If set we do not write table headers.'
-
 ---
 
 This plugin is used to disassemble memory regions. The offset to disassemble may be given as:

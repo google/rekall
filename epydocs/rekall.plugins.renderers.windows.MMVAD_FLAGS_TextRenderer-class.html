@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -333,11 +330,11 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="render_value"></a><span class="summary-sig-name">render_value</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">target</span>,
-        <span class="summary-sig-arg">**options</span>)</span>
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span>
       <em>(Inherited from <a href="rekall.ui.text.TextObjectRenderer-class.html">rekall.ui.text.TextObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_full">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextObjectRenderer.render_value">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -405,6 +402,26 @@
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.ForTarget">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#ForType" class="summary-sig-name">ForType</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">target_type</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Get the best ObjectRenderer to encode this target type.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.ForType">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -553,8 +570,8 @@ ArrayObjectRenderer'&gt;,
 storage.AttributeDictObjectRenderer'&gt;,
  'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
 nderer'&gt;,
- 'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
-eAddressSpaceObjectRenderer'&gt;,
+ 'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.plugins.renderers.js\
+on_storage.BaseAddressSpaceObjectRenderer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -563,8 +580,15 @@ eAddressSpaceObjectRenderer'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.webconsole.runplugin.WebConsoleObj\
-ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.ui.renderer.ObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.JsonObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.StateBasedObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.StringRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.BaseObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.JSTreeNodeRenderer'&gt;,
+        &lt;class 'rekall.ui.text.TextObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.text.AttributedStringRenderer'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.ui.renderer.ObjectRen<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
   </tr>
@@ -629,7 +653,7 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
   
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.ui.text.TextObjectRenderer-class.html#render_full">ui.text.TextObjectRenderer.render_full</a>
+        <a href="rekall.ui.text.TextObjectRenderer-class.html#render_compact">ui.text.TextObjectRenderer.render_compact</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -715,9 +739,6 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -742,7 +763,7 @@ ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variabl
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:45 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:08 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

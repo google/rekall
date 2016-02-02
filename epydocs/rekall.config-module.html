@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -101,7 +98,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="GetHomeDir"></a><span class="summary-sig-name">GetHomeDir</span>()</span></td>
+          <td><span class="summary-sig"><a name="GetHomeDir"></a><span class="summary-sig-name">GetHomeDir</span>(<span class="summary-sig-arg">session</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.config-pysrc.html#GetHomeDir">source&nbsp;code</a></span>
             
@@ -117,7 +114,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.config-module.html#GetConfigFile" class="summary-sig-name">GetConfigFile</a>()</span><br />
+          <td><span class="summary-sig"><a href="rekall.config-module.html#GetConfigFile" class="summary-sig-name">GetConfigFile</a>(<span class="summary-sig-arg">session</span>)</span><br />
       Gets the configuration stored in the config file.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.config-pysrc.html#GetConfigFile">source&nbsp;code</a></span>
@@ -134,7 +131,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="CreateDefaultConfigFile"></a><span class="summary-sig-name">CreateDefaultConfigFile</span>()</span><br />
+          <td><span class="summary-sig"><a name="CreateDefaultConfigFile"></a><span class="summary-sig-name">CreateDefaultConfigFile</span>(<span class="summary-sig-arg">session</span>)</span><br />
       Creates a default config file.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.config-pysrc.html#CreateDefaultConfigFile">source&nbsp;code</a></span>
@@ -151,7 +148,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="MergeConfigOptions"></a><span class="summary-sig-name">MergeConfigOptions</span>(<span class="summary-sig-arg">state</span>)</span><br />
+          <td><span class="summary-sig"><a name="MergeConfigOptions"></a><span class="summary-sig-name">MergeConfigOptions</span>(<span class="summary-sig-arg">state</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
       Read the config file and apply the config options to the session.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.config-pysrc.html#MergeConfigOptions">source&nbsp;code</a></span>
@@ -211,10 +209,9 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.config-module.html#DEFAULT_CONFIGURATION" class="summary-name">DEFAULT_CONFIGURATION</a> = <code title="{'cache_dir': '.rekall_cache',
- 'notebook_dir': '/home/scudette',
  'repository_path': ['https://raw.githubusercontent.com/google/rekall-\
 profiles/master',
-                     'http://profiles.rekall-forensic.com']}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cache_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">.rekall_cache</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">notebo</code><code class="variable-ellipsis">...</code></code>
+                     'http://profiles.rekall-forensic.com']}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cache_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">.rekall_cache</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">reposi</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -248,7 +245,7 @@ profiles/master',
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetConfigFile</span>()</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetConfigFile</span>(<span class="sig-arg">session</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.config-pysrc.html#GetConfigFile">source&nbsp;code</a></span>&nbsp;
@@ -292,7 +289,6 @@ Return:
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cache_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">.rekall_cache</code><code class="variable-quote">'</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">notebook_dir</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">/home/scudette</code><code class="variable-quote">'</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">repository_path</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">https://raw.githubusercontent.com/google/rekall-</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-string">profiles/master</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                      <code class="variable-quote">'</code><code class="variable-string">http://profiles.rekall-forensic.com</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">}</code>
@@ -306,9 +302,6 @@ Return:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -333,7 +326,7 @@ Return:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:19 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

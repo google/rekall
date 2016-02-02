@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.overlays.windows.tokens</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.overlays-module.html">Package&nbsp;overlays</a> ::
+        <a href="rekall.plugins.overlays.windows-module.html">Package&nbsp;windows</a> ::
+        Module&nbsp;tokens
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.overlays.windows.tokens-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.overlays.windows.tokens-module.html">Module rekall.plugins.overlays.windows.tokens</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2016 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-docstring">"""Classes around handling tokens, privileges etc."""</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt id="link-0" class="py-name" targets="Variable rekall.plugins.tools.live_darwin.__author__=rekall.plugins.tools.live_darwin-module.html#__author__,Variable rekall.plugins.tools.live_linux.__author__=rekall.plugins.tools.live_linux-module.html#__author__,Variable rekall.plugins.tools.live_windows.__author__=rekall.plugins.tools.live_windows-module.html#__author__"><a title="rekall.plugins.tools.live_darwin.__author__
+rekall.plugins.tools.live_linux.__author__
+rekall.plugins.tools.live_windows.__author__" class="py-name" href="#" onclick="return doclink('link-0', '__author__', 'link-0');">__author__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Michael Cohen &lt;scudette@gmail.com&gt;"</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-1', 'rekall', 'link-1');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-2', 'obj', 'link-2');">obj</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-comment"># In XP the privileges are simple arrays in the _TOKEN object.</tt> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt id="link-3" class="py-name" targets="Variable rekall.plugins.overlays.windows.tokens.xp_style_overlays=rekall.plugins.overlays.windows.tokens-module.html#xp_style_overlays"><a title="rekall.plugins.overlays.windows.tokens.xp_style_overlays" class="py-name" href="#" onclick="return doclink('link-3', 'xp_style_overlays', 'link-3');">xp_style_overlays</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">    <tt class="py-string">"_TOKEN"</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">        <tt class="py-string">'Privileges'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-string">'Pointer'</tt><tt class="py-op">,</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">            <tt id="link-4" class="py-name" targets="Variable rekall.plugins.tools.disassembler.CapstoneInstruction.target=rekall.plugins.tools.disassembler.CapstoneInstruction-class.html#target,Method rekall.plugins.tools.disassembler.Disassembler.target()=rekall.plugins.tools.disassembler.Disassembler-class.html#target"><a title="rekall.plugins.tools.disassembler.CapstoneInstruction.target
+rekall.plugins.tools.disassembler.Disassembler.target" class="py-name" href="#" onclick="return doclink('link-4', 'target', 'link-4');">target</a></tt><tt class="py-op">=</tt><tt class="py-string">'Array'</tt><tt class="py-op">,</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">            <tt class="py-name">target_args</tt><tt class="py-op">=</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">                <tt id="link-5" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_array_type.count=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_array_type-class.html#count"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_array_type.count" class="py-name" href="#" onclick="return doclink('link-5', 'count', 'link-5');">count</a></tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt id="link-6" class="py-name" targets="Variable rekall.plugins.core.AddressMap.x=rekall.plugins.core.AddressMap-class.html#x,Variable rekall.plugins.filesystems.lznt1.x=rekall.plugins.filesystems.lznt1-module.html#x,Variable rekall.ui.text.Colorizer.x=rekall.ui.text.Colorizer-class.html#x"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-6', 'x', 'link-6');">x</a></tt><tt class="py-op">:</tt> <tt id="link-7" class="py-name"><a title="rekall.plugins.core.AddressMap.x
+rekall.plugins.filesystems.lznt1.x
+rekall.ui.text.Colorizer.x" class="py-name" href="#" onclick="return doclink('link-7', 'x', 'link-6');">x</a></tt><tt class="py-op">.</tt><tt class="py-name">PrivilegeCount</tt><tt class="py-op">,</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">                <tt id="link-8" class="py-name"><a title="rekall.plugins.tools.disassembler.CapstoneInstruction.target
+rekall.plugins.tools.disassembler.Disassembler.target" class="py-name" href="#" onclick="return doclink('link-8', 'target', 'link-4');">target</a></tt><tt class="py-op">=</tt><tt class="py-string">'_LUID_AND_ATTRIBUTES'</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">            <tt class="py-op">)</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">        <tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">    <tt class="py-op">}</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"><tt class="py-op">}</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line"> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"> </tt>
+<a name="XP_TOKEN"></a><div id="XP_TOKEN-def"><a name="L40"></a><tt class="py-lineno">40</tt> <a class="py-toggle" href="#" id="XP_TOKEN-toggle" onclick="return toggle('XP_TOKEN');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.overlays.windows.tokens.XP_TOKEN-class.html">XP_TOKEN</a><tt class="py-op">(</tt><tt class="py-base-class">obj</tt><tt class="py-op">.</tt><tt class="py-base-class">Struct</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="XP_TOKEN-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="XP_TOKEN-expanded"><a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">    <tt class="py-docstring">"""XP Style privileges are just an array."""</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line"> </tt>
+<a name="XP_TOKEN.GetPrivileges"></a><div id="XP_TOKEN.GetPrivileges-def"><a name="L43"></a><tt class="py-lineno">43</tt> <a class="py-toggle" href="#" id="XP_TOKEN.GetPrivileges-toggle" onclick="return toggle('XP_TOKEN.GetPrivileges');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.overlays.windows.tokens.XP_TOKEN-class.html#GetPrivileges">GetPrivileges</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="XP_TOKEN.GetPrivileges-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="XP_TOKEN.GetPrivileges-expanded"><a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">        <tt class="py-docstring">"""Enumerates all privileges in this token.</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line"><tt class="py-docstring">        Yields:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line"><tt class="py-docstring">          value, flags</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">privilege</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Class rekall.plugins.windows.privileges.Privileges=rekall.plugins.windows.privileges.Privileges-class.html"><a title="rekall.plugins.windows.privileges.Privileges" class="py-name" href="#" onclick="return doclink('link-9', 'Privileges', 'link-9');">Privileges</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">            <tt class="py-name">flags</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-string">"Present"</tt><tt class="py-op">]</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">privilege</tt><tt class="py-op">.</tt><tt class="py-name">Attributes</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">2</tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">                <tt class="py-name">flags</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"Enabled"</tt><tt class="py-op">)</tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line"> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">privilege</tt><tt class="py-op">.</tt><tt class="py-name">Attributes</tt> <tt class="py-op">&amp;</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">                <tt class="py-name">flags</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"Default"</tt><tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line"> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt class="py-name">privilege</tt><tt class="py-op">.</tt><tt class="py-name">Luid</tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method rekall.obj.BaseObject.v()=rekall.obj.BaseObject-class.html#v,Method rekall.obj.BitField.v()=rekall.obj.BitField-class.html#v,Method rekall.obj.NativeType.v()=rekall.obj.NativeType-class.html#v,Method rekall.obj.Pointer.v()=rekall.obj.Pointer-class.html#v,Method rekall.obj.Struct.v()=rekall.obj.Struct-class.html#v,Method rekall.obj.Void.v()=rekall.obj.Void-class.html#v,Method rekall.plugins.overlays.basic.Enumeration.v()=rekall.plugins.overlays.basic.Enumeration-class.html#v,Method rekall.plugins.overlays.basic.Flags.v()=rekall.plugins.overlays.basic.Flags-class.html#v,Method rekall.plugins.overlays.basic.Ipv4Address.v()=rekall.plugins.overlays.basic.Ipv4Address-class.html#v,Method rekall.plugins.overlays.basic.Ipv6Address.v()=rekall.plugins.overlays.basic.Ipv6Address-class.html#v,Method rekall.plugins.overlays.basic.MacAddress.v()=rekall.plugins.overlays.basic.MacAddress-class.html#v,Method rekall.plugins.overlays.basic.String.v()=rekall.plugins.overlays.basic.String-class.html#v,Method rekall.plugins.overlays.basic.UnicodeString.v()=rekall.plugins.overlays.basic.UnicodeString-class.html#v,Method rekall.plugins.overlays.basic.WinFileTime.v()=rekall.plugins.overlays.basic.WinFileTime-class.html#v,Method rekall.plugins.overlays.basic.timeval.v()=rekall.plugins.overlays.basic.timeval-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#v,Method rekall.plugins.windows.pfn.ValueEnumeration.v()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#v,Method rekall.session.InteractiveSession.v()=rekall.session.InteractiveSession-class.html#v"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-10', 'v', 'link-10');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">flags</tt> </tt>
+</div></div><a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line"> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line"> </tt>
+<a name="VISTA_TOKEN"></a><div id="VISTA_TOKEN-def"><a name="L60"></a><tt class="py-lineno">60</tt> <a class="py-toggle" href="#" id="VISTA_TOKEN-toggle" onclick="return toggle('VISTA_TOKEN');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.overlays.windows.tokens.VISTA_TOKEN-class.html">VISTA_TOKEN</a><tt class="py-op">(</tt><tt class="py-base-class">obj</tt><tt class="py-op">.</tt><tt class="py-base-class">Struct</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VISTA_TOKEN-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="VISTA_TOKEN-expanded"><a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">    <tt class="py-docstring">"""A Vista Style _TOKEN object."""</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"> </tt>
+<a name="VISTA_TOKEN.GetPrivileges"></a><div id="VISTA_TOKEN.GetPrivileges-def"><a name="L63"></a><tt class="py-lineno">63</tt> <a class="py-toggle" href="#" id="VISTA_TOKEN.GetPrivileges-toggle" onclick="return toggle('VISTA_TOKEN.GetPrivileges');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.overlays.windows.tokens.VISTA_TOKEN-class.html#GetPrivileges">GetPrivileges</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="VISTA_TOKEN.GetPrivileges-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="VISTA_TOKEN.GetPrivileges-expanded"><a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line">        <tt class="py-docstring">"""Enumerates all privileges in this token."""</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line"> </tt>
+<a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line">        <tt class="py-name">privilege_table</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">obj_session</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-11', 'GetParameter', 'link-11');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"privilege_table"</tt><tt class="py-op">)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line">        <tt class="py-name">present</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="rekall.plugins.windows.privileges.Privileges" class="py-name" href="#" onclick="return doclink('link-12', 'Privileges', 'link-9');">Privileges</a></tt><tt class="py-op">.</tt><tt class="py-name">Present</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-13', 'v', 'link-10');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L68"></a><tt class="py-lineno">68</tt>  <tt class="py-line">        <tt class="py-name">enabled</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.windows.privileges.Privileges" class="py-name" href="#" onclick="return doclink('link-14', 'Privileges', 'link-9');">Privileges</a></tt><tt class="py-op">.</tt><tt class="py-name">Enabled</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-15', 'v', 'link-10');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L69"></a><tt class="py-lineno">69</tt>  <tt class="py-line">        <tt id="link-16" class="py-name" targets="Method rekall.obj.ProfileLog.JSONEncoder.default()=rekall.obj.ProfileLog.JSONEncoder-class.html#default,Method rekall.ui.json_renderer.RobustEncoder.default()=rekall.ui.json_renderer.RobustEncoder-class.html#default"><a title="rekall.obj.ProfileLog.JSONEncoder.default
+rekall.ui.json_renderer.RobustEncoder.default" class="py-name" href="#" onclick="return doclink('link-16', 'default', 'link-16');">default</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins.windows.privileges.Privileges" class="py-name" href="#" onclick="return doclink('link-17', 'Privileges', 'link-9');">Privileges</a></tt><tt class="py-op">.</tt><tt class="py-name">EnabledByDefault</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-18', 'v', 'link-10');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L70"></a><tt class="py-lineno">70</tt>  <tt class="py-line"> </tt>
+<a name="L71"></a><tt class="py-lineno">71</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-19" class="py-name" targets="Variable rekall.plugins.darwin.WKdm.i=rekall.plugins.darwin.WKdm-module.html#i,Variable rekall.plugins.filesystems.lznt1.i=rekall.plugins.filesystems.lznt1-module.html#i,Variable rekall.ui.text.Colorizer.i=rekall.ui.text.Colorizer-class.html#i"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-19', 'i', 'link-19');">i</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">range</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> <tt class="py-number">64</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L72"></a><tt class="py-lineno">72</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-20" class="py-name"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-20', 'i', 'link-19');">i</a></tt> <tt class="py-keyword">not</tt> <tt class="py-keyword">in</tt> <tt class="py-name">privilege_table</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno">73</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L74"></a><tt class="py-lineno">74</tt>  <tt class="py-line"> </tt>
+<a name="L75"></a><tt class="py-lineno">75</tt>  <tt class="py-line">            <tt class="py-name">mask</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt> <tt class="py-op">&lt;&lt;</tt> <tt id="link-21" class="py-name"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-21', 'i', 'link-19');">i</a></tt> </tt>
+<a name="L76"></a><tt class="py-lineno">76</tt>  <tt class="py-line"> </tt>
+<a name="L77"></a><tt class="py-lineno">77</tt>  <tt class="py-line">            <tt class="py-name">flags</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L78"></a><tt class="py-lineno">78</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">mask</tt> <tt class="py-op">&amp;</tt> <tt class="py-name">present</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno">79</tt>  <tt class="py-line">                <tt class="py-name">flags</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"Present"</tt><tt class="py-op">)</tt> </tt>
+<a name="L80"></a><tt class="py-lineno">80</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">mask</tt> <tt class="py-op">&amp;</tt> <tt class="py-name">enabled</tt><tt class="py-op">:</tt> </tt>
+<a name="L81"></a><tt class="py-lineno">81</tt>  <tt class="py-line">                <tt class="py-name">flags</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"Enabled"</tt><tt class="py-op">)</tt> </tt>
+<a name="L82"></a><tt class="py-lineno">82</tt>  <tt class="py-line"> </tt>
+<a name="L83"></a><tt class="py-lineno">83</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">mask</tt> <tt class="py-op">&amp;</tt> <tt id="link-22" class="py-name"><a title="rekall.obj.ProfileLog.JSONEncoder.default
+rekall.ui.json_renderer.RobustEncoder.default" class="py-name" href="#" onclick="return doclink('link-22', 'default', 'link-16');">default</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L84"></a><tt class="py-lineno">84</tt>  <tt class="py-line">                <tt class="py-name">flags</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">"Default"</tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno">85</tt>  <tt class="py-line"> </tt>
+<a name="L86"></a><tt class="py-lineno">86</tt>  <tt class="py-line">            <tt class="py-keyword">yield</tt> <tt id="link-23" class="py-name"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-23', 'i', 'link-19');">i</a></tt><tt class="py-op">,</tt> <tt class="py-name">flags</tt> </tt>
+</div></div><a name="L87"></a><tt class="py-lineno">87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno">88</tt>  <tt class="py-line"> </tt>
+<a name="InitializeTokenProfiles"></a><div id="InitializeTokenProfiles-def"><a name="L89"></a><tt class="py-lineno">89</tt> <a class="py-toggle" href="#" id="InitializeTokenProfiles-toggle" onclick="return toggle('InitializeTokenProfiles');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.overlays.windows.tokens-module.html#InitializeTokenProfiles">InitializeTokenProfiles</a><tt class="py-op">(</tt><tt class="py-param">profile</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="InitializeTokenProfiles-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="InitializeTokenProfiles-expanded"><a name="L90"></a><tt class="py-lineno">90</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-24" class="py-name" targets="Variable rekall.plugins.windows.address_resolver.PEModule.profile=rekall.plugins.windows.address_resolver.PEModule-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-24', 'profile', 'link-24');">profile</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name" targets="Method rekall.obj.Profile.get_obj_offset()=rekall.obj.Profile-class.html#get_obj_offset"><a title="rekall.obj.Profile.get_obj_offset" class="py-name" href="#" onclick="return doclink('link-25', 'get_obj_offset', 'link-25');">get_obj_offset</a></tt><tt class="py-op">(</tt><tt class="py-string">"_TOKEN"</tt><tt class="py-op">,</tt> <tt class="py-string">"PrivilegeCount"</tt><tt class="py-op">)</tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno">91</tt>  <tt class="py-line">        <tt class="py-comment"># Uses XP Style Privilege array.</tt> </tt>
+<a name="L92"></a><tt class="py-lineno">92</tt>  <tt class="py-line">        <tt id="link-26" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-26', 'profile', 'link-24');">profile</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method rekall.obj.Profile.add_overlay()=rekall.obj.Profile-class.html#add_overlay"><a title="rekall.obj.Profile.add_overlay" class="py-name" href="#" onclick="return doclink('link-27', 'add_overlay', 'link-27');">add_overlay</a></tt><tt class="py-op">(</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.overlays.windows.tokens.xp_style_overlays" class="py-name" href="#" onclick="return doclink('link-28', 'xp_style_overlays', 'link-3');">xp_style_overlays</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno">93</tt>  <tt class="py-line">        <tt id="link-29" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-29', 'profile', 'link-24');">profile</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Method rekall.obj.Profile.add_classes()=rekall.obj.Profile-class.html#add_classes"><a title="rekall.obj.Profile.add_classes" class="py-name" href="#" onclick="return doclink('link-30', 'add_classes', 'link-30');">add_classes</a></tt><tt class="py-op">(</tt><tt class="py-name">_TOKEN</tt><tt class="py-op">=</tt><tt id="link-31" class="py-name" targets="Class rekall.plugins.overlays.windows.tokens.XP_TOKEN=rekall.plugins.overlays.windows.tokens.XP_TOKEN-class.html"><a title="rekall.plugins.overlays.windows.tokens.XP_TOKEN" class="py-name" href="#" onclick="return doclink('link-31', 'XP_TOKEN', 'link-31');">XP_TOKEN</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno">94</tt>  <tt class="py-line"> </tt>
+<a name="L95"></a><tt class="py-lineno">95</tt>  <tt class="py-line">    <tt class="py-keyword">elif</tt> <tt id="link-32" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-32', 'profile', 'link-24');">profile</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.obj.Profile.get_obj_offset" class="py-name" href="#" onclick="return doclink('link-33', 'get_obj_offset', 'link-25');">get_obj_offset</a></tt><tt class="py-op">(</tt><tt class="py-string">"_SEP_TOKEN_PRIVILEGES"</tt><tt class="py-op">,</tt> <tt class="py-string">"Present"</tt><tt class="py-op">)</tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L96"></a><tt class="py-lineno">96</tt>  <tt class="py-line">        <tt class="py-comment"># Uses Vista style Present, Enabled, Default bitfields.</tt> </tt>
+<a name="L97"></a><tt class="py-lineno">97</tt>  <tt class="py-line">        <tt id="link-34" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-34', 'profile', 'link-24');">profile</a></tt><tt class="py-op">.</tt><tt id="link-35" class="py-name"><a title="rekall.obj.Profile.add_classes" class="py-name" href="#" onclick="return doclink('link-35', 'add_classes', 'link-30');">add_classes</a></tt><tt class="py-op">(</tt><tt class="py-name">_TOKEN</tt><tt class="py-op">=</tt><tt id="link-36" class="py-name" targets="Class rekall.plugins.overlays.windows.tokens.VISTA_TOKEN=rekall.plugins.overlays.windows.tokens.VISTA_TOKEN-class.html"><a title="rekall.plugins.overlays.windows.tokens.VISTA_TOKEN" class="py-name" href="#" onclick="return doclink('link-36', 'VISTA_TOKEN', 'link-36');">VISTA_TOKEN</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L98"></a><tt class="py-lineno">98</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:37 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

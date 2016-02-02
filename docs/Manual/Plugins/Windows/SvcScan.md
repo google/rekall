@@ -1,13 +1,11 @@
 ---
-layout: plugin
-title: svcscan
-abstract: |
-  Scan for Windows services
-
+abstract: Scan for Windows services
+args: {}
+class_name: SvcScan
 epydoc: rekall.plugins.windows.malware.svcscan.SvcScan-class.html
-args:
-  scan_in_kernel_address_space: ''
-
+layout: plugin
+module: rekall.plugins.windows.malware.svcscan
+title: svcscan
 ---
 
 Windows uses services for long running processes. Serivces are managed by the

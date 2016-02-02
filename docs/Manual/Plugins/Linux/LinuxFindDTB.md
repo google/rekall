@@ -1,21 +1,11 @@
-
 ---
-layout: plugin
-title: find_dtb
-abstract: |
-    A scanner for DTB values.
-
-    For linux, the dtb values are taken directly from the symbol file. Linux has
-    a direct mapping between the kernel virtual address space and the physical
-    memory.  This is the difference between the virtual and physical addresses
-    (aka PAGE_OFFSET). This is defined by the __va macro:
-
-    ```
-    #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
-    ```
-
-    This one plugin handles both 32 and 64 bits.
-    
-
+abstract: "A scanner for DTB values. Handles both 32 and 64 bits.\n\n    The plugin\
+  \ also autodetects when the guest is running as a XEN\n    ParaVirtualized guest\
+  \ and returns a compatible address space.\n    "
+args: {}
+class_name: LinuxFindDTB
 epydoc: rekall.plugins.linux.common.LinuxFindDTB-class.html
+layout: plugin
+module: rekall.plugins.linux.common
+title: find_dtb
 ---

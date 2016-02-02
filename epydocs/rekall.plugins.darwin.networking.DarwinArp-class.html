@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -64,14 +61,15 @@
 <h1 class="epydoc">Class DarwinArp</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinArp">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_darwinarp" name="class_hierarchy_for_darwinarp">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
-<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="283,113,405,135"/>
-<area shape="rect" id="node7" href="rekall.plugins.darwin.common.DarwinPlugin-class.html" title="common.DarwinPlugin" alt="" coords="279,166,408,189"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html" title="common.AbstractDarwinCommandPlugin" alt="" coords="40,113,259,135"/>
-<area shape="rect" id="node6" href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html" title="common.DarwinKASLRMixin" alt="" coords="430,113,588,135"/>
-<area shape="rect" id="node8" href="rekall.plugins.darwin.networking.DarwinArp-class.html" title="DarwinArp" alt="" coords="307,219,380,242"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="35,6,137,29"/>
+<area shape="rect" id="node5" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="20,59,153,82"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="160,166,283,189"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.common.AbstractDarwinProducer-class.html" title="common.AbstractDarwinProducer" alt="" coords="205,219,387,242"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="307,166,436,189"/>
+<area shape="rect" id="node4" href="rekall.plugin.Producer-class.html" title="plugin.Producer" alt="" coords="38,166,135,189"/>
+<area shape="rect" id="node6" href="rekall.plugin.TypedProfileCommand-class.html" title="plugin.TypedProfileCommand" alt="" coords="5,113,168,135"/>
+<area shape="rect" id="node9" href="rekall.plugins.darwin.networking.DarwinArp-class.html" title="DarwinArp" alt="" coords="259,273,332,295"/>
+<area shape="rect" id="node8" href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html" title="common.DarwinOnlyMixin" alt="" coords="461,166,605,189"/>
 </map>
   <img src="class_hierarchy_for_darwinarp.gif" alt='' usemap="#class_hierarchy_for_darwinarp" ismap="ismap" class="graph-without-title" />
 </center>
@@ -120,11 +118,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.networking.DarwinArp-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.darwin.networking.DarwinArp-class.html#collect" class="summary-sig-name">collect</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Collect data that will be passed to renderer.table_row.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinArp.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinArp.collect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -138,13 +135,31 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">vm_kernel_slide</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a href="rekall.plugin.KernelASMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dtb</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      A mixin for Darwin plugins that require a valid KASLR slide.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a>)</em></td>
+      A mixin for plugins which require a valid kernel address space.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -194,6 +209,59 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="collect_as_dicts"></a><span class="summary-sig-name">collect_as_dicts</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.collect_as_dicts">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column"></a><span class="summary-sig-name">get_column</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column_type"></a><span class="summary-sig-name">get_column_type</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#get_plugin" class="summary-sig-name">get_plugin</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
@@ -201,6 +269,78 @@
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.get_plugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getkeys"></a><span class="summary-sig-name">getkeys</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.getkeys">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="produce"></a><span class="summary-sig-name">produce</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Like collect, but yields the first column instead of whole row.
+      <em>(Inherited from <a href="rekall.plugin.Producer-class.html">rekall.plugin.Producer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Producer.produce">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reflect"></a><span class="summary-sig-name">reflect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">member</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.reflect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.TypedProfileCommand-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Produce results on the renderer given.
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -293,10 +433,11 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a>)</em></td>
+        <span class="summary-sig-arg">parser</span>)</span><br />
+      Declare the command line args we need.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -310,12 +451,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a name="is_active"></a><span class="summary-sig-name">is_active</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
       We are only active if the profile is darwin.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html">rekall.plugins.darwin.common.AbstractDarwinCommandPlugin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html">rekall.plugins.darwin.common.DarwinOnlyMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#AbstractDarwinCommandPlugin.is_active">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinOnlyMixin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -336,6 +477,21 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'arp'"><code class="variable-quote">'</code><code class="variable-string">arp</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="type_name"></a><span class="summary-name">type_name</span> = <code title="'rtentry'"><code class="variable-quote">'</code><code class="variable-string">rtentry</code><code class="variable-quote">'</code></code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="PHYSICAL_AS_REQUIRED"></a><span class="summary-name">PHYSICAL_AS_REQUIRED</span> = <code title="True">True</code>
       <em>(Inherited from <a href="rekall.plugin.PhysicalASMixin-class.html">rekall.plugin.PhysicalASMixin</a>)</em>
     </td>
@@ -352,15 +508,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -368,15 +524,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -405,6 +561,14 @@ AnalyzeStruct'&gt;,
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.Producer-class.html">rekall.plugin.Producer</a>)</em>
+    </td>
+  </tr>
 </table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
@@ -418,8 +582,9 @@ AnalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#name" class="summary-name">name</a>
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+        <a href="rekall.plugin.Producer-class.html#table_header" class="summary-name">table_header</a><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.plugin.Producer-class.html">rekall.plugin.Producer</a>)</em>
     </td>
   </tr>
   <tr>
@@ -439,37 +604,24 @@ AnalyzeStruct'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="render"></a>
+<a name="collect"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">collect</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinArp.render">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinArp.collect">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Produce results on the renderer given.
-
-Each plugin should implement this method to produce output on the
-renderer. The framework will initialize the plugin and provide it with
-some kind of renderer to write output on. The plugin should not assume
-that the renderer is actually TextRenderer, only that the methods
-defined in the BaseRenderer exist.
-
-Args:
-  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
-
-</pre>
+  <p>Collect data that will be passed to renderer.table_row.</p>
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
+        <a href="rekall.plugin.TypedProfileCommand-class.html#collect">plugin.TypedProfileCommand.collect</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -528,9 +680,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -555,7 +704,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:33 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:55 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

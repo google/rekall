@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -61,39 +58,22 @@
 <pre class="py-src">
 <a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Fix bugs in dependent libraries.</tt> </tt>
 <a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"> </tt>
-<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
-<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line">    <tt class="py-keyword">from</tt> <tt class="py-name">ctypes</tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
-<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line">    <tt class="py-keyword">from</tt> <tt class="py-name">distorm3</tt> <tt class="py-keyword">import</tt> <tt class="py-name">_Value</tt><tt class="py-op">,</tt> <tt class="py-name">_OffsetType</tt><tt class="py-op">,</tt> <tt class="py-name">_Operand</tt> </tt>
-<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line">    <tt class="py-keyword">import</tt> <tt class="py-name">distorm3</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Fix bug in pyelftools.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">elftools</tt><tt class="py-op">.</tt><tt id="link-0" class="py-name" targets="Module rekall.plugins.overlays.linux.elf=rekall.plugins.overlays.linux.elf-module.html"><a title="rekall.plugins.overlays.linux.elf" class="py-name" href="#" onclick="return doclink('link-0', 'elf', 'link-0');">elf</a></tt> <tt class="py-keyword">import</tt> <tt class="py-name">elffile</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># pyelftools does not officially support ARM but this seems to work anyway.</tt> </tt>
 <a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"> </tt>
-<a name="_DInst"></a><div id="_DInst-def"><a name="L8"></a><tt class="py-lineno"> 8</tt> <a class="py-toggle" href="#" id="_DInst-toggle" onclick="return toggle('_DInst');">-</a><tt class="py-line">    <tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.compatibility._DInst-class.html">_DInst</a> <tt class="py-op">(</tt><tt class="py-base-class">Structure</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="_DInst-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="_DInst-expanded"><a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line">        <tt class="py-name">_fields_</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> </tt>
-<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'imm'</tt><tt class="py-op">,</tt> <tt class="py-name">_Value</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'disp'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint64</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>    <tt class="py-comment"># displacement. size is according to dispSize</tt> </tt>
-<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'addr'</tt><tt class="py-op">,</tt>  <tt class="py-name">_OffsetType</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'flags'</tt><tt class="py-op">,</tt>  <tt class="py-name">c_uint16</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># -1 if invalid. See C headers for more info</tt> </tt>
-<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'unusedPrefixesMask'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint16</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'usedRegistersMask'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint32</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># used registers mask.</tt> </tt>
-<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'opcode'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint16</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>  <tt class="py-comment"># look up in opcode table</tt> </tt>
-<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'ops'</tt><tt class="py-op">,</tt> <tt class="py-name">_Operand</tt><tt class="py-op">*</tt><tt class="py-number">4</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'size'</tt><tt class="py-op">,</tt> <tt class="py-name">c_ubyte</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'segment'</tt><tt class="py-op">,</tt> <tt class="py-name">c_ubyte</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># -1 if unused. See C headers for more info</tt> </tt>
-<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'base'</tt><tt class="py-op">,</tt> <tt class="py-name">c_ubyte</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>    <tt class="py-comment"># base register for indirections</tt> </tt>
-<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'scale'</tt><tt class="py-op">,</tt> <tt class="py-name">c_ubyte</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>   <tt class="py-comment"># ignore for values 0, 1 (other valid values - 2,4,8)</tt> </tt>
-<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'dispSize'</tt><tt class="py-op">,</tt> <tt class="py-name">c_ubyte</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'meta'</tt><tt class="py-op">,</tt> <tt class="py-name">c_ubyte</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># meta flags - instruction set class, etc. See C headers again...</tt> </tt>
-<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'modifiedFlagsMask'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint16</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># CPU modified (output) flags by instruction.</tt> </tt>
-<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'testedFlagsMask'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint16</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># CPU tested (input) flags by instruction.</tt> </tt>
-<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'undefinedFlagsMask'</tt><tt class="py-op">,</tt> <tt class="py-name">c_uint16</tt><tt class="py-op">)</tt> <tt class="py-comment"># CPU undefined flags by instruction.</tt> </tt>
-<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">            <tt class="py-op">]</tt> </tt>
-</div><a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"> </tt>
-<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line">    <tt id="link-0" class="py-name" targets="Variable rekall.compatibility.usedRegistersMask=rekall.compatibility-module.html#usedRegistersMask"><a title="rekall.compatibility.usedRegistersMask" class="py-name" href="#" onclick="return doclink('link-0', 'usedRegistersMask', 'link-0');">usedRegistersMask</a></tt> <tt class="py-op">=</tt> <tt class="py-name">distorm3</tt><tt class="py-op">.</tt><tt class="py-name">_DInst</tt><tt class="py-op">.</tt><tt class="py-name">_fields_</tt><tt class="py-op">[</tt><tt class="py-number">5</tt><tt class="py-op">]</tt> </tt>
-<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">    <tt class="py-keyword">if</tt> <tt id="link-1" class="py-name"><a title="rekall.compatibility.usedRegistersMask" class="py-name" href="#" onclick="return doclink('link-1', 'usedRegistersMask', 'link-0');">usedRegistersMask</a></tt> <tt class="py-op">==</tt> <tt class="py-op">(</tt><tt class="py-string">"usedRegistersMask"</tt><tt class="py-op">,</tt> <tt class="py-name">distorm3</tt><tt class="py-op">.</tt><tt class="py-name">c_uint16</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">        <tt class="py-name">distorm3</tt><tt class="py-op">.</tt><tt class="py-name">_DInst</tt> <tt class="py-op">=</tt> <tt class="py-name">_DInst</tt> </tt>
-<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"> </tt>
-<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-keyword">except</tt> <tt class="py-name">ImportError</tt><tt class="py-op">:</tt> </tt>
-<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">    <tt class="py-keyword">pass</tt> </tt>
-<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"> </tt>
+<a name="ELFFile"></a><div id="ELFFile-def"><a name="L9"></a><tt class="py-lineno"> 9</tt> <a class="py-toggle" href="#" id="ELFFile-toggle" onclick="return toggle('ELFFile');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.compatibility.ELFFile-class.html">ELFFile</a><tt class="py-op">(</tt><tt class="py-base-class">elffile</tt><tt class="py-op">.</tt><tt class="py-base-class">ELFFile</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ELFFile-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="ELFFile-expanded"><a name="ELFFile.get_machine_arch"></a><div id="ELFFile.get_machine_arch-def"><a name="L10"></a><tt class="py-lineno">10</tt> <a class="py-toggle" href="#" id="ELFFile.get_machine_arch-toggle" onclick="return toggle('ELFFile.get_machine_arch');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.compatibility.ELFFile-class.html#get_machine_arch">get_machine_arch</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="ELFFile.get_machine_arch-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="ELFFile.get_machine_arch-expanded"><a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-name">super</tt><tt class="py-op">(</tt><tt id="link-1" class="py-name" targets="Class rekall.compatibility.ELFFile=rekall.compatibility.ELFFile-class.html"><a title="rekall.compatibility.ELFFile" class="py-name" href="#" onclick="return doclink('link-1', 'ELFFile', 'link-1');">ELFFile</a></tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Method rekall.compatibility.ELFFile.get_machine_arch()=rekall.compatibility.ELFFile-class.html#get_machine_arch"><a title="rekall.compatibility.ELFFile.get_machine_arch" class="py-name" href="#" onclick="return doclink('link-2', 'get_machine_arch', 'link-2');">get_machine_arch</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">result</tt> <tt class="py-op">==</tt> <tt class="py-string">"ARM"</tt><tt class="py-op">:</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line">            <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-string">"MIPS"</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
+</div></div><a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-name">elffile</tt><tt class="py-op">.</tt><tt id="link-3" class="py-name"><a title="rekall.compatibility.ELFFile" class="py-name" href="#" onclick="return doclink('link-3', 'ELFFile', 'link-1');">ELFFile</a></tt> <tt class="py-op">=</tt> <tt id="link-4" class="py-name"><a title="rekall.compatibility.ELFFile" class="py-name" href="#" onclick="return doclink('link-4', 'ELFFile', 'link-1');">ELFFile</a></tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -104,9 +84,6 @@ expandto(location.href);
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -131,7 +108,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:03 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:36 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

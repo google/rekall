@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -140,8 +137,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#LaunchExecutable" class="summary-sig-name">LaunchExecutable</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">config_options</span>,
-        <span class="summary-sig-arg">retries</span>=<span class="summary-sig-default">2</span>)</span><br />
+        <span class="summary-sig-arg">config_options</span>)</span><br />
       Launches the rekall executable with the config specified.
       <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
           <td align="right" valign="top">
@@ -423,12 +419,42 @@
       
     </td>
   </tr>
-  <tr>
-    <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>unittest.case.TestCase</code></b>:
-      <code>setUpClass</code>,
-      <code>tearDownClass</code>
-      </p>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#setUpClass" class="summary-sig-name">setUpClass</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Hook method for setting up class fixture before running tests in the 
+      class.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.setUpClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#tearDownClass" class="summary-sig-name">tearDownClass</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Hook method for deconstructing the class fixture after running all 
+      tests in the class.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.tearDownClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
     </td>
   </tr>
 </table>
@@ -461,15 +487,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzerTest': &lt;class 'rekall.entities.query.analyzer_test.AnalyzerT\
-est'&gt;,
- 'CellTest': &lt;class 'rekall.ui.text_test.CellTest'&gt;,
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes" class="summary-name">classes</a> = <code title="{'CellTest': &lt;class 'rekall.ui.text_test.CellTest'&gt;,
  'DisabledTest': &lt;class 'rekall.testlib.DisabledTest'&gt;,
- 'EntityTest': &lt;class 'rekall.entities.entity_test.EntityTest'&gt;,
  'HashChecker': &lt;class 'rekall.testlib.HashChecker'&gt;,
- 'IdentityTest': &lt;class 'rekall.entities.identity_test.IdentityTest'&gt;,
- 'IndexSetTest': &lt;class 'rekall.entities.ext.indexset_test.IndexSetTes\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzerTest</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.entities.query.analy<code class="variable-ellipsis">...</code></code>
+ 'IOManagerTest': &lt;class 'rekall.io_manager_test.IOManagerTest'&gt;,
+ 'InlineTest': &lt;class 'rekall.testlib.InlineTest'&gt;,
+ 'JsonTest': &lt;class 'rekall.plugins.tools.json_test.JsonTest'&gt;,
+ 'MemoryMapTest': &lt;class 'rekall.plugins.renderers.visual_aides_test.M\
+emoryMapTest'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CellTest</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text_test.CellTest'&gt;<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
     </td>
   </tr>
@@ -477,7 +503,15 @@ est'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="classes_by_name"></a><span class="summary-name">classes_by_name</span> = <code title="{None: &lt;class 'rekall.ui.text_test.CellTest'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.ui.text_test.CellTest'&gt;<code class="variable-group">}</code></code>
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.testlib.InlineTest'&gt;,
+        &lt;class 'rekall.testlib.SortedComparison'&gt;,
+        &lt;class 'rekall.testlib.DisabledTest'&gt;,
+        &lt;class 'rekall.testlib.HashChecker'&gt;,
+        &lt;class 'rekall.plugins.core.TestInfo'&gt;,
+        &lt;class 'rekall.plugins.tools.aff4acquire.TestAFF4Acquire'&gt;,
+        &lt;class 'rekall.plugins.tools.disassembler.TestDisassemble'&gt;,
+        &lt;class 'rekall.plugins.tools.ewf.TestEWFAcquire'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.testlib.InlineTest'&gt;<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
     </td>
   </tr>
@@ -494,6 +528,15 @@ est'&gt;,
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'RekallBaseUnitTestCase'"><code class="variable-quote">'</code><code class="variable-string">RekallBaseUnitTestCase</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="temp_directory"></a><span class="summary-name">temp_directory</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
     </td>
   </tr>
@@ -613,9 +656,6 @@ est'&gt;,
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -640,7 +680,7 @@ est'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:38 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:01 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

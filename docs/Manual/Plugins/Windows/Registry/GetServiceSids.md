@@ -1,14 +1,14 @@
 ---
-layout: plugin
-title: getservicesids
-abstract: |
-  Get the names of services in the Registry and return Calculated SID
+abstract: Get the names of services in the Registry and return Calculated SID
+args: {hive-offsets: 'A list of hive offsets as found by hivelist. If not provided
+    we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)
 
+    ', hive_regex: A regex to filter hive names.If not provided we use all hives.}
+class_name: GetServiceSids
 epydoc: rekall.plugins.windows.registry.getservicesids.GetServiceSids-class.html
-args:
-  hive_offsets: 'A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.'
-  hive_regex: 'A regex to filter hive names.If not provided we use all hives.'
-
+layout: plugin
+module: rekall.plugins.windows.registry.getservicesids
+title: getservicesids
 ---
 
 

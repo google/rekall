@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -64,19 +61,21 @@
 <h1 class="epydoc">Class ListMixIn</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn">source&nbsp;code</a></span></p>
 <center>
   <div class="private"><center>  <map id="class_hierarchy_for_listmixin" name="class_hierarchy_for_listmixin">
-<area shape="rect" id="node1" href="rekall.plugins.overlays.basic.ListMixIn-class.html" title="ListMixIn" alt="" coords="85,6,147,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.overlays.basic.ListMixIn-class.html" title="ListMixIn" alt="" coords="169,6,231,29"/>
 <area shape="rect" id="node2" href="javascript:void(0);" title="_LIST_ENTRY" alt="" coords="5,59,99,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.linux.linux.list_head-class.html" title="linux.linux.list_head" alt="" coords="124,59,235,82"/>
-<area shape="rect" id="node3" href="rekall.plugins.overlays.linux.linux.hlist_head-class.html" title="linux.linux.hlist_head" alt="" coords="50,113,168,135"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.hlist_node-class.html" title="linux.linux.hlist_node" alt="" coords="193,113,311,135"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html" title="darwin.darwin.queue_entry" alt="" coords="124,59,276,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.linux.linux.list_head-class.html" title="linux.linux.list_head" alt="" coords="300,59,411,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.hlist_head-class.html" title="linux.linux.hlist_head" alt="" coords="225,113,343,135"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.linux.linux.hlist_node-class.html" title="linux.linux.hlist_node" alt="" coords="367,113,485,135"/>
 </map>
   <img src="class_hierarchy_for_listmixin.gif" alt='' usemap="#class_hierarchy_for_listmixin" ismap="ismap" class="graph-without-title" />
 </center></div>
   <div class="public" style="display:none"><center>  <map id="class_hierarchy_for_listmixin_2" name="class_hierarchy_for_listmixin_2">
-<area shape="rect" id="node1" href="rekall.plugins.overlays.basic.ListMixIn-class.html" title="ListMixIn" alt="" coords="103,6,165,29"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.list_head-class.html" title="linux.linux.list_head" alt="" coords="79,59,189,82"/>
-<area shape="rect" id="node2" href="rekall.plugins.overlays.linux.linux.hlist_head-class.html" title="linux.linux.hlist_head" alt="" coords="5,113,123,135"/>
-<area shape="rect" id="node3" href="rekall.plugins.overlays.linux.linux.hlist_node-class.html" title="linux.linux.hlist_node" alt="" coords="147,113,265,135"/>
+<area shape="rect" id="node1" href="rekall.plugins.overlays.basic.ListMixIn-class.html" title="ListMixIn" alt="" coords="127,6,189,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html" title="darwin.darwin.queue_entry" alt="" coords="5,59,157,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.linux.linux.list_head-class.html" title="linux.linux.list_head" alt="" coords="181,59,292,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.linux.linux.hlist_head-class.html" title="linux.linux.hlist_head" alt="" coords="106,113,224,135"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.hlist_node-class.html" title="linux.linux.hlist_node" alt="" coords="249,113,367,135"/>
 </map>
   <img src="class_hierarchy_for_listmixin_2.gif" alt='' usemap="#class_hierarchy_for_listmixin_2" ismap="ismap" class="graph-without-title" />
 </center></div>
@@ -118,9 +117,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.ListMixIn-class.html#find_all_lists" class="summary-sig-name">find_all_lists</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">seen</span>)</span><br />
-      Follows all the list entries starting from lst.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.ListMixIn-class.html#find_all_lists" class="summary-sig-name">find_all_lists</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Follows all the list entries starting from self.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.find_all_lists">source&nbsp;code</a></span>
             
@@ -156,7 +154,8 @@
         <tr>
           <td><span class="summary-sig"><a name="list_of_type_fast"></a><span class="summary-sig-name">list_of_type_fast</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">type</span>,
-        <span class="summary-sig-arg">member</span>)</span></td>
+        <span class="summary-sig-arg">member</span>,
+        <span class="summary-sig-arg">include_current</span>=<span class="summary-sig-default">True</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.list_of_type_fast">source&nbsp;code</a></span>
             
@@ -315,15 +314,14 @@ Args:
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_all_lists</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">seen</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_all_lists</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.find_all_lists">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Follows all the list entries starting from lst.</p>
+  <p>Follows all the list entries starting from self.</p>
   <p>We basically convert the list to a tree and recursively search it for 
   new nodes. From each node we follow the Flink and then the Blink. When we
   see a node we already have, we backtrack. This allows us to find nodes 
@@ -369,9 +367,6 @@ Returns:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -396,7 +391,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:39 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:01 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

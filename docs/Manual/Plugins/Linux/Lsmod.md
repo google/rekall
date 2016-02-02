@@ -1,11 +1,19 @@
-
 ---
-layout: plugin
-title: lsmod
-abstract: |
-    Gathers loaded kernel modules.
+abstract: Gathers loaded kernel modules.
+args: {parameters: 'Display module parameters. (type: Boolean)
 
+
+
+    * Default: False', sections: 'Display section addresses. (type: Boolean)
+
+
+
+    * Default: False'}
+class_name: Lsmod
 epydoc: rekall.plugins.linux.lsmod.Lsmod-class.html
+layout: plugin
+module: rekall.plugins.linux.lsmod
+title: lsmod
 ---
 
 Rekall walks the list at kernel symbol `modules` to provide the list of modules.

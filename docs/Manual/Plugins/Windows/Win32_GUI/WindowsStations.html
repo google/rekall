@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Windows
  </a>
@@ -172,54 +173,52 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#atoms' class="category-link">
             atoms
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="category-link">
+          <a href='#atomscan' class="category-link">
             atomscan
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="category-link">
+          <a href='#desktops' class="category-link">
             desktops
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="category-link">
+          <a href='#eventhooks' class="category-link">
             eventhooks
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="category-link">
+          <a href='#gahti' class="category-link">
             gahti
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="category-link">
+          <a href='#messagehooks' class="category-link">
             messagehooks
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="category-link">
+          <a href='#sessions' class="category-link">
             sessions
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="category-link">
+          <a href='#userhandles' class="category-link">
             userhandles
           </a>
         </li>
         <li class='active'>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="category-link">
+          <a href='#windows_stations' class="category-link">
             windows_stations
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
@@ -240,16 +239,25 @@ ript>
 </nav>
 
 
-<h1>windows_stations</h1>
+<h1 id="#windows_stations" class="anchor" >windows_stations</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.windowstations.WindowsStations-class.html">View Source</a>
+
 
 <div class="abstract">
-<p>Displays all the windows stations by following lists.</p>
+<h2>Displays all the windows stations by following lists.</h2>
 </div>
 
 
-
-
-<a href="/epydocs/rekall.plugins.windows.gui.windowstations.WindowsStations-class.html">View Source</a>
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -287,6 +295,10 @@ ript>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

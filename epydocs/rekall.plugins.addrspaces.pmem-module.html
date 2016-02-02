@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -79,16 +76,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.addrspaces.pmem.EFIProfile-class.html" class="summary-name">EFIProfile</a><br />
-      Profile for EFI types.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugins.addrspaces.pmem.PmemAddressSpace-class.html" class="summary-name">PmemAddressSpace</a><br />
-      Address space specific to the pmem device.
+        <a href="rekall.plugins.addrspaces.pmem.MacPmemAddressSpace-class.html" class="summary-name">MacPmemAddressSpace</a><br />
+      Implements an address space to overlay the new MacPmem device.
     </td>
   </tr>
 </table>
@@ -100,154 +89,6 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Functions</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="IOCPARM_LEN"></a><span class="summary-sig-name">IOCPARM_LEN</span>(<span class="summary-sig-arg">x</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#IOCPARM_LEN">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="IOCBASECMD"></a><span class="summary-sig-name">IOCBASECMD</span>(<span class="summary-sig-arg">x</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#IOCBASECMD">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="IOCGROUP"></a><span class="summary-sig-name">IOCGROUP</span>(<span class="summary-sig-arg">x</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#IOCGROUP">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="pmem_get_mmap_size"></a><span class="summary-sig-name">pmem_get_mmap_size</span>(<span class="summary-sig-arg">fd</span>)</span><br />
-      Ask the Pmem driver for mmap size (number of entries).</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_get_mmap_size">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.pmem-module.html#pmem_get_mmap_desc_size" class="summary-sig-name">pmem_get_mmap_desc_size</a>(<span class="summary-sig-arg">fd</span>)</span><br />
-      Ask the Pmem driver for size of an efi descriptor.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_get_mmap_desc_size">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.pmem-module.html#pmem_get_mmap" class="summary-sig-name">pmem_get_mmap</a>(<span class="summary-sig-arg">fd</span>)</span><br />
-      Ask the Pmem driver for the physical address map.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_get_mmap">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="pmem_get_profile"></a><span class="summary-sig-name">pmem_get_profile</span>(<span class="summary-sig-arg">fd</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_get_profile">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.pmem-module.html#pmem_parse_mmap" class="summary-sig-name">pmem_parse_mmap</a>(<span class="summary-sig-arg">fd</span>)</span><br />
-      Retrieve and parse the physical memory map from the Pmem driver.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_parse_mmap">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="efi_type_writable"></a><span class="summary-sig-name">efi_type_writable</span>(<span class="summary-sig-arg">efi_type</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#efi_type_writable">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -277,167 +118,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="IOCPARM_MASK"></a><span class="summary-name">IOCPARM_MASK</span> = <code title="8191">8191</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="IOCPARM_MAX"></a><span class="summary-name">IOCPARM_MAX</span> = <code title="8192">8192</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="IOC_VOID"></a><span class="summary-name">IOC_VOID</span> = <code title="536870912">536870912</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="IOC_OUT"></a><span class="summary-name">IOC_OUT</span> = <code title="1073741824">1073741824</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="IOC_IN"></a><span class="summary-name">IOC_IN</span> = <code title="2147483648">2147483648</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="IOC_INOUT"></a><span class="summary-name">IOC_INOUT</span> = <code title="3221225472">3221225472</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="IOC_DIRMASK"></a><span class="summary-name">IOC_DIRMASK</span> = <code title="3758096384">3758096384</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_GET_MMAP"></a><span class="summary-name">PMEM_GET_MMAP</span> = <code title="0">0</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_GET_MMAP_SIZE"></a><span class="summary-name">PMEM_GET_MMAP_SIZE</span> = <code title="1">1</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_GET_MMAP_DESC_SIZE"></a><span class="summary-name">PMEM_GET_MMAP_DESC_SIZE</span> = <code title="2">2</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_GET_DTB"></a><span class="summary-name">PMEM_GET_DTB</span> = <code title="3">3</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_SET_MMAP_METHOD"></a><span class="summary-name">PMEM_SET_MMAP_METHOD</span> = <code title="4">4</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_IOCTL_BASE"></a><span class="summary-name">PMEM_IOCTL_BASE</span> = <code title="112">112</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_MMAP_TYPE"></a><span class="summary-name">PMEM_MMAP_TYPE</span> = <code title="8">8</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_MMAP_SIZE_TYPE"></a><span class="summary-name">PMEM_MMAP_SIZE_TYPE</span> = <code title="4">4</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_MMAP_DESC_SIZE_TYPE"></a><span class="summary-name">PMEM_MMAP_DESC_SIZE_TYPE</span> = <code title="4">4</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_DTB_TYPE"></a><span class="summary-name">PMEM_DTB_TYPE</span> = <code title="8">8</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_MMAP_METHOD_TYPE"></a><span class="summary-name">PMEM_MMAP_METHOD_TYPE</span> = <code title="4">4</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_IOCTL_GET_MMAP"></a><span class="summary-name">PMEM_IOCTL_GET_MMAP</span> = <code title="2148036608">2148036608</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_IOCTL_GET_MMAP_SIZE"></a><span class="summary-name">PMEM_IOCTL_GET_MMAP_SIZE</span> = <code title="1074032641">1074032641</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_IOCTL_GET_MMAP_DESC_SIZE"></a><span class="summary-name">PMEM_IOCTL_GET_MMAP_DESC_SIZE</span> = <code title="1074032642">1074032642</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_IOCTL_GET_DTB"></a><span class="summary-name">PMEM_IOCTL_GET_DTB</span> = <code title="1074294787">1074294787</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a name="PMEM_IOCTL_SET_MMAP_METHOD"></a><span class="summary-name">PMEM_IOCTL_SET_MMAP_METHOD</span> = <code title="2147774468">2147774468</code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.plugins.addrspaces.pmem-module.html#EFI_SEGMENTS_SAFETY" class="summary-name">EFI_SEGMENTS_SAFETY</a> = <code title="{'EfiACPIMemoryNVS': 'r',
  'EfiACPIReclaimMemory': 'rw',
  'EfiBootServicesCode': 'rw',
@@ -453,114 +133,10 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.addrspaces.pmem-module.html#EFI_VTYPES" class="summary-name">EFI_VTYPES</a> = <code title="{'EFI_MEMORY_DESCRIPTOR': [48,
-                           {'Attribute': [32, ['unsigned long']],
-                            'NumberOfPages': [24, ['unsigned long']],
-                            'PhysicalStart': [8, ['unsigned long']],
-                            'Type': [0,
-                                     ['Enumeration',
-                                      {'choices': {0: 'EfiReservedMemo\
-ryType',
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">EFI_MEMORY_DESCRIPTOR</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Attribute</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a name="__package__"></a><span class="summary-name">__package__</span> = <code title="'rekall.plugins.addrspaces'"><code class="variable-quote">'</code><code class="variable-string">rekall.plugins.addrspaces</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 </table>
-<!-- ==================== FUNCTION DETAILS ==================== -->
-<a name="section-FunctionDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Function Details</span></td>
-</tr>
-</table>
-<a name="pmem_get_mmap_desc_size"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">pmem_get_mmap_desc_size</span>(<span class="sig-arg">fd</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_get_mmap_desc_size">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Ask the Pmem driver for size of an efi descriptor.</p>
-  <p>Note that this must absolutely ALWAYS return 0x30, otherwise we're 
-  dealing with some future version fo EFI we know nothing about.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="pmem_get_mmap"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">pmem_get_mmap</span>(<span class="sig-arg">fd</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_get_mmap">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Ask the Pmem driver for the physical address map.
-
-Returns:
-========
-
-Tuple of (mmap, no_entries, entry_size).
-
-Each multiple of entry_size in the mmap_buffer is a valid
-EFI_MEMORY_DESCRIPTOR (defined below).
-
-Raises:
-=======
-
-IOError: If ioctl fails for whatever reason.
-AssertionError: If you're using this code to hack an alien mothership
-                and their EFI uses a different descriptor size than 0x30
-                this will blow up.
-
-</pre>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="pmem_parse_mmap"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">pmem_parse_mmap</span>(<span class="sig-arg">fd</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.addrspaces.pmem-pysrc.html#pmem_parse_mmap">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Retrieve and parse the physical memory map from the Pmem driver.</p>
-  <p>Yields: tuples of (start, number of pages, type)</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<br />
 <!-- ==================== VARIABLES DETAILS ==================== -->
 <a name="section-VariablesDetails"></a>
 <table class="details" border="1" cellpadding="3"
@@ -596,40 +172,11 @@ AssertionError: If you're using this code to hack an alien mothership
   </dl>
 </td></tr></table>
 </div>
-<a name="EFI_VTYPES"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">EFI_VTYPES</h3>
-  
-  <dl class="fields">
-  </dl>
-  <dl class="fields">
-    <dt>Value:</dt>
-      <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">EFI_MEMORY_DESCRIPTOR</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>48<code class="variable-op">,</code>
-                           <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Attribute</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                            <code class="variable-quote">'</code><code class="variable-string">NumberOfPages</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>24<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                            <code class="variable-quote">'</code><code class="variable-string">PhysicalStart</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">unsigned long</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                            <code class="variable-quote">'</code><code class="variable-string">Type</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">,</code>
-                                     <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Enumeration</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                                      <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">choices</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code>0<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">EfiReservedMemo</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-<code class="variable-string">ryType</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-<code class="variable-ellipsis">...</code>
-</pre></td></tr></table>
-</dd>
-  </dl>
-</td></tr></table>
-</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -654,7 +201,7 @@ AssertionError: If you're using this code to hack an alien mothership
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

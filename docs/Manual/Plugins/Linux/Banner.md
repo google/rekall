@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: banner
-abstract: |
-    Prints the Linux banner information.
-
+abstract: Prints the Linux banner information.
+args: {}
+class_name: Banner
 epydoc: rekall.plugins.linux.cpuinfo.Banner-class.html
+layout: plugin
+module: rekall.plugins.linux.cpuinfo
+title: banner
 ---
 
 `banner` output provides the same information as running `uname -a` on the host.

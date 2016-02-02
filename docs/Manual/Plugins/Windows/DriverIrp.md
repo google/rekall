@@ -1,16 +1,21 @@
 ---
-layout: plugin
-title: driverirp
-abstract: |
-  Driver IRP hook detection
+abstract: Driver IRP hook detection
+args: {regex: Analyze drivers matching REGEX, scan_in_kernel: 'Scan in the kernel
+    address space (type: Boolean)
 
+
+
+    * Default: False', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
+class_name: DriverIrp
 epydoc: rekall.plugins.windows.malware.devicetree.DriverIrp-class.html
-args:
-  regex: 'Analyze drivers matching REGEX'
-  verbosity: 'Add more output.'
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.malware.devicetree
+title: driverirp
 ---
 
 

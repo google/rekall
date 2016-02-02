@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -63,13 +60,16 @@
 <center>
 <center>  <map id="class_hierarchy_for_rekallshel" name="class_hierarchy_for_rekallshel">
 <area shape="rect" id="node1" href="javascript:void(0);" title="??._NewBase" alt="" coords="105,6,193,29"/>
-<area shape="rect" id="node7" href="javascript:void(0);" title="IPython.utils.traitlets.HasTraits" alt="" coords="67,59,231,82"/>
-<area shape="rect" id="node2" href="javascript:void(0);" title="IPython.config.configurable.Configurable" alt="" coords="42,113,256,135"/>
-<area shape="rect" id="node3" href="javascript:void(0);" title="IPython.config.configurable.SingletonConfigurable" alt="" coords="20,166,277,189"/>
-<area shape="rect" id="node4" href="javascript:void(0);" title="IPython.core.interactiveshell.InteractiveShell" alt="" coords="35,219,264,242"/>
-<area shape="rect" id="node6" href="javascript:void(0);" title="IPython.terminal.interactiveshell.TerminalInteractiveShell" alt="" coords="5,273,293,295"/>
-<area shape="rect" id="node5" href="javascript:void(0);" title="IPython.terminal.embed.InteractiveShellEmbed" alt="" coords="27,326,271,349"/>
-<area shape="rect" id="node8" href="rekall.ipython_support.RekallShell-class.html" title="RekallShell" alt="" coords="112,379,185,402"/>
+<area shape="rect" id="node10" href="javascript:void(0);" title="traitlets.traitlets.HasDescriptors" alt="" coords="65,59,233,82"/>
+<area shape="rect" id="node2" href="javascript:void(0);" title="??._NewBase&#45;2" alt="" coords="100,113,199,135"/>
+<area shape="rect" id="node11" href="javascript:void(0);" title="traitlets.traitlets.HasTraits" alt="" coords="78,166,220,189"/>
+<area shape="rect" id="node3" href="javascript:void(0);" title="IPython.core.interactiveshell.InteractiveShell" alt="" coords="35,379,264,402"/>
+<area shape="rect" id="node5" href="javascript:void(0);" title="IPython.terminal.interactiveshell.TerminalInteractiveShell" alt="" coords="5,433,293,455"/>
+<area shape="rect" id="node4" href="javascript:void(0);" title="IPython.terminal.embed.InteractiveShellEmbed" alt="" coords="27,486,271,509"/>
+<area shape="rect" id="node6" href="rekall.ipython_support.RekallShell-class.html" title="RekallShell" alt="" coords="112,539,185,562"/>
+<area shape="rect" id="node7" href="javascript:void(0);" title="traitlets.config.configurable.Configurable" alt="" coords="43,219,255,242"/>
+<area shape="rect" id="node8" href="javascript:void(0);" title="traitlets.config.configurable.LoggingConfigurable" alt="" coords="24,273,275,295"/>
+<area shape="rect" id="node9" href="javascript:void(0);" title="traitlets.config.configurable.SingletonConfigurable" alt="" coords="21,326,277,349"/>
 </map>
   <img src="class_hierarchy_for_rekallshel.gif" alt='' usemap="#class_hierarchy_for_rekallshel" ismap="ismap" class="graph-without-title" />
 </center>
@@ -83,6 +83,39 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Instance Methods</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ipython_support.RekallShell-class.html#atexit_operations" class="summary-sig-name">atexit_operations</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      This will be executed at the time of exit.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ipython_support-pysrc.html#RekallShell.atexit_operations">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ipython_support.RekallShell-class.html#init_inspector" class="summary-sig-name">init_inspector</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ipython_support-pysrc.html#RekallShell.init_inspector">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.embed.InteractiveShellEmbed</code></b>:
@@ -106,7 +139,6 @@
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.core.interactiveshell.InteractiveShell</code></b>:
       <code>ask_yes_no</code>,
-      <code>atexit_operations</code>,
       <code>auto_rewrite_input</code>,
       <code>cleanup</code>,
       <code>clear_main_mod_cache</code>,
@@ -132,6 +164,7 @@
       <code>init_completer</code>,
       <code>init_create_namespaces</code>,
       <code>init_data_pub</code>,
+      <code>init_deprecation_warnings</code>,
       <code>init_display_pub</code>,
       <code>init_displayhook</code>,
       <code>init_encoding</code>,
@@ -140,7 +173,6 @@
       <code>init_extension_manager</code>,
       <code>init_history</code>,
       <code>init_hooks</code>,
-      <code>init_inspector</code>,
       <code>init_instance_attrs</code>,
       <code>init_io</code>,
       <code>init_ipython_dir</code>,
@@ -201,14 +233,25 @@
       <code>write</code>,
       <code>write_err</code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.Configurable</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.config.configurable.Configurable</code></b>:
       <code>update_config</code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.utils.traitlets.HasTraits</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.traitlets.HasTraits</code></b>:
+      <code>__getstate__</code>,
+      <code>__setstate__</code>,
+      <code>add_traits</code>,
+      <code>has_trait</code>,
+      <code>hold_trait_notifications</code>,
+      <code>notify_change</code>,
+      <code>observe</code>,
       <code>on_trait_change</code>,
+      <code>set_trait</code>,
+      <code>setup_instance</code>,
       <code>trait_metadata</code>,
       <code>trait_names</code>,
-      <code>traits</code>
+      <code>traits</code>,
+      <code>unobserve</code>,
+      <code>unobserve_all</code>
       </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
@@ -236,19 +279,21 @@
 </tr>
   <tr>
     <td colspan="2" class="summary">
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.SingletonConfigurable</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.config.configurable.SingletonConfigurable</code></b>:
       <code>clear_instance</code>,
       <code>initialized</code>,
       <code>instance</code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.Configurable</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.config.configurable.Configurable</code></b>:
+      <code>class_config_rst_doc</code>,
       <code>class_config_section</code>,
       <code>class_get_help</code>,
       <code>class_get_trait_help</code>,
       <code>class_print_help</code>,
       <code>section_names</code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.utils.traitlets.HasTraits</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.traitlets.HasTraits</code></b>:
+      <code>class_own_traits</code>,
       <code>class_trait_names</code>,
       <code>class_traits</code>
       </p>
@@ -268,7 +313,7 @@
     <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.terminal.interactiveshell.TerminalInteractiveShell</code></b>:
       <code>enable_gui</code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.utils.traitlets.HasTraits</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.traitlets.HasDescriptors</code></b>:
       <code>__new__</code>
       </p>
     </td>
@@ -289,7 +334,7 @@
         <a href="rekall.ipython_support.RekallShell-class.html#display_banner" class="summary-name">display_banner</a> = <code title="'''
 ----------------------------------------------------------------------\
 ------
-The Rekall Memory Forensic framework 1.3.1 (Dammastock).
+The Rekall Memory Forensic framework 1.4.1.post.dev76 (Furka).
 
 &quot;We can remember it for you wholesale!&quot;
 
@@ -345,6 +390,7 @@ This program is free software; you can redistribute it and/or modify i\
       <code>extension_manager</code>,
       <code>filename</code>,
       <code>history_length</code>,
+      <code>history_load_length</code>,
       <code>history_manager</code>,
       <code>input_splitter</code>,
       <code>input_transformer_manager</code>,
@@ -376,7 +422,10 @@ This program is free software; you can redistribute it and/or modify i\
       <code>wildcards_case_sensitive</code>,
       <code>xmode</code>
       </p>
-    <p class="indent-wrapped-lines"><b>Inherited from <code>IPython.config.configurable.Configurable</code></b>:
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.config.configurable.LoggingConfigurable</code></b>:
+      <code>log</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>traitlets.config.configurable.Configurable</code></b>:
       <code>config</code>,
       <code>parent</code>
       </p>
@@ -409,6 +458,67 @@ This program is free software; you can redistribute it and/or modify i\
     </td>
   </tr>
 </table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="atexit_operations"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">atexit_operations</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ipython_support-pysrc.html#RekallShell.atexit_operations">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>This will be executed at the time of exit.</p>
+  <p>Cleanup operations and saving of persistent data that is done 
+  unconditionally by IPython should be performed here.</p>
+  <p>For things that may depend on startup flags or platform specifics 
+  (such as having readline or not), register a separate atexit function in 
+  the code that has the appropriate information, rather than trying to 
+  clutter</p>
+  <dl class="fields">
+    <dt>Overrides:
+        IPython.core.interactiveshell.InteractiveShell.atexit_operations
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="init_inspector"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">init_inspector</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ipython_support-pysrc.html#RekallShell.init_inspector">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        IPython.core.interactiveshell.InteractiveShell.init_inspector
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== CLASS VARIABLE DETAILS ==================== -->
 <a name="section-ClassVariableDetails"></a>
 <table class="details" border="1" cellpadding="3"
@@ -433,7 +543,7 @@ This program is free software; you can redistribute it and/or modify i\
 <code class="variable-quote">'''</code><code class="variable-string"></code>
 <code class="variable-string">----------------------------------------------------------------------</code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-string">------</code>
-<code class="variable-string">The Rekall Memory Forensic framework 1.3.1 (Dammastock).</code>
+<code class="variable-string">The Rekall Memory Forensic framework 1.4.1.post.dev76 (Furka).</code>
 <code class="variable-string"></code>
 <code class="variable-string">&quot;We can remember it for you wholesale!&quot;</code>
 <code class="variable-string"></code>
@@ -449,9 +559,6 @@ This program is free software; you can redistribute it and/or modify i\
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -476,7 +583,7 @@ This program is free software; you can redistribute it and/or modify i\
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:24 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:47 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

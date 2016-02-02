@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -219,6 +216,25 @@
       <em>(Inherited from <a href="rekall.ui.text.TextRenderer-class.html">rekall.ui.text.TextRenderer</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.text-pysrc.html#TextRenderer.ClearProgress">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#Log" class="summary-sig-name">Log</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      Logs a log message.
+      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.Log">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -508,11 +524,11 @@
         <a href="rekall.ui.renderer.BaseRenderer-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseRenderer': &lt;class 'rekall.ui.renderer.BaseRenderer'&gt;,
  'DataExportRenderer': &lt;class 'rekall.plugins.renderers.data_export.Da\
 taExportRenderer'&gt;,
+ 'IdentityRenderer': &lt;class 'rekall.ui.identity.IdentityRenderer'&gt;,
  'JsonRenderer': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
  'TestRenderer': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
  'TextRenderer': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'WebConsoleRenderer': &lt;class 'rekall.plugins.tools.webconsole.runplug\
-in.WebConsoleRenderer'&gt;,
+ 'WideTextRenderer': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRend<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
@@ -521,14 +537,15 @@ in.WebConsoleRenderer'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.renderer.BaseRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.webconsole.runplugin.WebConsoleRen\
-derer'&gt;,
- 'data': &lt;class 'rekall.plugins.renderers.data_export.DataExportRender\
-er'&gt;,
- 'json': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
- 'test': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
- 'text': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.ui.renderer.BaseRenderer'&gt;,
+        &lt;class 'rekall.ui.identity.IdentityRenderer'&gt;],
+ 'data': [&lt;class 'rekall.plugins.renderers.data_export.DataExportRende\
+rer'&gt;],
+ 'json': [&lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;],
+ 'test': [&lt;class 'rekall.ui.text.TestRenderer'&gt;],
+ 'text': [&lt;class 'rekall.ui.text.TextRenderer'&gt;],
+ 'wide': [&lt;class 'rekall.ui.text.WideTextRenderer'&gt;],
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.ui.renderer.BaseRende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
   </tr>
@@ -843,9 +860,6 @@ Text tables support these additional kwargs:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -870,7 +884,7 @@ Text tables support these additional kwargs:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:01 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:24 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

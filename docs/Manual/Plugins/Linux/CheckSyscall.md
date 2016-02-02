@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: check_syscall
-abstract: |
-    Checks if the system call table has been altered.
-
+abstract: Checks if the system call table has been altered.
+args: {}
+class_name: CheckSyscall
 epydoc: rekall.plugins.linux.check_syscall.CheckSyscall-class.html
+layout: plugin
+module: rekall.plugins.linux.check_syscall
+title: check_syscall
 ---
 
 `check_syscall` checks if every syscall handler points to a known symbol in the

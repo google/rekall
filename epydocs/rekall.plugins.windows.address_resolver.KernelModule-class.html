@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -64,12 +61,16 @@
 <h1 class="epydoc">Class KernelModule</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#KernelModule">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_kernelmodu_2" name="class_hierarchy_for_kernelmodu_2">
-<area shape="rect" id="node1" href="rekall.plugins.windows.address_resolver.KernelModule-class.html" title="KernelModule" alt="" coords="5,6,93,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.common.address_resolver.Module-class.html" title="common.address_resolver.Module" alt="" coords="5,6,192,29"/>
+<area shape="rect" id="node3" href="rekall.plugins.windows.address_resolver.PEModule-class.html" title="PEModule" alt="" coords="63,59,133,82"/>
+<area shape="rect" id="node2" href="rekall.plugins.windows.address_resolver.KernelModule-class.html" title="KernelModule" alt="" coords="55,113,143,135"/>
 </map>
   <img src="class_hierarchy_for_kernelmodu_2.gif" alt='' usemap="#class_hierarchy_for_kernelmodu_2" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
+<p>A Windows kernel module.</p>
+
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -85,10 +86,155 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.address_resolver.KernelModule-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">session</span>)</span><br />
+        <span class="summary-sig-arg">ldr_module</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#KernelModule.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.Module-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      str(x)
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.Module-class.html">rekall.plugins.common.address_resolver.Module</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#Module.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="build_local_profile"></a><span class="summary-sig-name">build_local_profile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">profile_name</span>,
+        <span class="summary-sig-arg">force</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Fetch and build a local profile from the symbol server.
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.build_local_profile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="build_profile_from_exports"></a><span class="summary-sig-name">build_profile_from_exports</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Create a dummy profile from PE exports.
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.build_profile_from_exports">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="detect_guid_from_mapped_file"></a><span class="summary-sig-name">detect_guid_from_mapped_file</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Guess the guid for the PE file.
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.detect_guid_from_mapped_file">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="detect_guid_pe_header"></a><span class="summary-sig-name">detect_guid_pe_header</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.detect_guid_pe_header">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="detect_profile_from_index"></a><span class="summary-sig-name">detect_profile_from_index</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.detect_profile_from_index">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.address_resolver.PEModule-class.html#detect_profile_from_session" class="summary-sig-name">detect_profile_from_session</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get the module guid from the session cache.
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.detect_profile_from_session">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.address_resolver.PEModule-class.html#detect_profile_name" class="summary-sig-name">detect_profile_name</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Try to figure out the profile name for this module.
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.address_resolver-pysrc.html#PEModule.detect_profile_name">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -109,7 +255,6 @@
       <code>__repr__</code>,
       <code>__setattr__</code>,
       <code>__sizeof__</code>,
-      <code>__str__</code>,
       <code>__subclasshook__</code>
       </p>
     </td>
@@ -123,6 +268,14 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.address_resolver.PEModule-class.html#profile" class="summary-name">profile</a>
+      <em>(Inherited from <a href="rekall.plugins.windows.address_resolver.PEModule-class.html">rekall.plugins.windows.address_resolver.PEModule</a>)</em>
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -148,7 +301,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">session</span>)</span>
+        <span class="sig-arg">ldr_module</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -170,9 +324,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -197,7 +348,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:48 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:11 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -63,9 +60,8 @@
 <center>
 <center>  <map id="class_hierarchy_for_configurat" name="class_hierarchy_for_configurat">
 <area shape="rect" id="node1" href="javascript:void(0);" title="dict" alt="" coords="37,6,75,29"/>
-<area shape="rect" id="node4" href="rekall.utils.AttributeDict-class.html" title="utils.AttributeDict" alt="" coords="5,59,107,82"/>
-<area shape="rect" id="node2" href="rekall.session.Cache-class.html" title="Cache" alt="" coords="29,113,83,135"/>
-<area shape="rect" id="node3" href="rekall.session.Configuration-class.html" title="Configuration" alt="" coords="13,166,99,189"/>
+<area shape="rect" id="node3" href="rekall.utils.AttributeDict-class.html" title="utils.AttributeDict" alt="" coords="5,59,107,82"/>
+<area shape="rect" id="node2" href="rekall.session.Configuration-class.html" title="Configuration" alt="" coords="13,113,99,135"/>
 </map>
   <img src="class_hierarchy_for_configurat.gif" alt='' usemap="#class_hierarchy_for_configurat" ismap="ismap" class="graph-without-title" />
 </center>
@@ -236,12 +232,29 @@ new empty dictionary
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.session.Cache-class.html#Get" class="summary-sig-name">Get</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.session.Configuration-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Print the contents somewhat concisely.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Configuration.__str__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="Get"></a><span class="summary-sig-name">Get</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
         <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>)</span>
-      <em>(Inherited from <a href="rekall.session.Cache-class.html">rekall.session.Cache</a>)</em></td>
+      <em>(Inherited from <a href="rekall.utils.AttributeDict-class.html">rekall.utils.AttributeDict</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Cache.Get">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.utils-pysrc.html#AttributeDict.Get">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -272,11 +285,11 @@ new empty dictionary
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.session.Cache-class.html#__getattr__" class="summary-sig-name">__getattr__</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="__getattr__"></a><span class="summary-sig-name">__getattr__</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">attr</span>)</span>
-      <em>(Inherited from <a href="rekall.session.Cache-class.html">rekall.session.Cache</a>)</em></td>
+      <em>(Inherited from <a href="rekall.utils.AttributeDict-class.html">rekall.utils.AttributeDict</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Cache.__getattr__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.utils-pysrc.html#AttributeDict.__getattr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -297,24 +310,6 @@ new empty dictionary
       <em>(Inherited from <a href="rekall.utils.AttributeDict-class.html">rekall.utils.AttributeDict</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.utils-pysrc.html#AttributeDict.__setattr__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.session.Cache-class.html#__str__" class="summary-sig-name">__str__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Print the contents somewhat concisely.
-      <em>(Inherited from <a href="rekall.session.Cache-class.html">rekall.session.Cache</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.session-pysrc.html#Cache.__str__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -529,14 +524,34 @@ new empty dictionary
   </dl>
 </td></tr></table>
 </div>
+<a name="__str__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__str__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Informal representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.session-pysrc.html#Configuration.__str__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Print the contents somewhat concisely.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__str__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -561,7 +576,7 @@ new empty dictionary
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:58 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:22 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.darwin.common.ProcessFilterMixin</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.darwin-module.html">Package&nbsp;darwin</a> ::
+        <a href="rekall.plugins.darwin.common-module.html">Module&nbsp;common</a> ::
+        Class&nbsp;ProcessFilterMixin
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class ProcessFilterMixin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_processfil" name="class_hierarchy_for_processfil">
+<area shape="rect" id="node1" href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html" title="ProcessFilterMixin" alt="" coords="679,6,787,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.darwin.lsof.DarwinHandles-class.html" title="lsof.DarwinHandles" alt="" coords="5,59,120,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.darwin.processes.DarwinMaps-class.html" title="processes.DarwinMaps" alt="" coords="144,59,277,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.darwin.processes.DarwinMemDump-class.html" title="processes.DarwinMemDump" alt="" coords="301,59,460,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.darwin.processes.DarwinMemMap-class.html" title="processes.DarwinMemMap" alt="" coords="485,59,637,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.darwin.processes.DarwinPSAUX-class.html" title="processes.DarwinPSAUX" alt="" coords="662,59,804,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.processes.DarwinPslist-class.html" title="processes.DarwinPslist" alt="" coords="828,59,957,82"/>
+<area shape="rect" id="node8" href="rekall.plugins.darwin.processes.DarwinPsxView-class.html" title="processes.DarwinPsxView" alt="" coords="983,59,1129,82"/>
+<area shape="rect" id="node9" href="rekall.plugins.darwin.processes.DarwinVadDump-class.html" title="processes.DarwinVadDump" alt="" coords="1153,59,1307,82"/>
+<area shape="rect" id="node10" href="rekall.plugins.darwin.sigscan.DarwinSigScan-class.html" title="sigscan.DarwinSigScan" alt="" coords="1332,59,1465,82"/>
+</map>
+  <img src="class_hierarchy_for_processfil.gif" alt='' usemap="#class_hierarchy_for_processfil" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Adds methods and arguments that enable easy fitlering by process.</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pid</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">proc_regex</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">phys_proc</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">proc</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Filters processes by parameters.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="filter_processes"></a><span class="summary-sig-name">filter_processes</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Filters proc list using phys_proc and pids lists.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.filter_processes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html#virtual_process_from_physical_offset" class="summary-sig-name">virtual_process_from_physical_offset</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">physical_offset</span>)</span><br />
+      Tries to return an proc in virtual space from a physical offset.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.virtual_process_from_physical_offset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.args">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="methods"></a><span class="summary-sig-name">methods</span>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Return the names of available proc enumeration methods.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.methods">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">pid</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">proc_regex</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">phys_proc</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">proc</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Filters processes by parameters.
+
+Args:
+   phys_proc_struct: One or more proc structs or offsets defined in
+      the physical AS.
+
+   pid: A single pid.
+
+</pre>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="virtual_process_from_physical_offset"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">virtual_process_from_physical_offset</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">physical_offset</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.virtual_process_from_physical_offset">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Tries to return an proc in virtual space from a physical offset.
+
+We do this by reflecting off the list elements.
+
+Args:
+   physical_offset: The physcial offset of the process.
+
+Returns:
+   A proc object or a NoneObject on failure.
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:54 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

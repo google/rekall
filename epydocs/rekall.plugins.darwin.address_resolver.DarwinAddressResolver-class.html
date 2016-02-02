@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -66,13 +63,12 @@
 <center>  <map id="class_hierarchy_for_darwinaddr" name="class_hierarchy_for_darwinaddr">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="283,113,405,135"/>
-<area shape="rect" id="node9" href="rekall.plugins.darwin.common.DarwinPlugin-class.html" title="common.DarwinPlugin" alt="" coords="279,166,408,189"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
-<area shape="rect" id="node7" href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html" title="common.AbstractDarwinCommandPlugin" alt="" coords="40,113,259,135"/>
-<area shape="rect" id="node5" href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html" title="common.address_resolver.AddressResolverMixin" alt="" coords="433,166,689,189"/>
-<area shape="rect" id="node6" href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html" title="DarwinAddressResolver" alt="" coords="383,219,520,242"/>
-<area shape="rect" id="node8" href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html" title="common.DarwinKASLRMixin" alt="" coords="430,113,588,135"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="163,59,285,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.common.AbstractDarwinCommand-class.html" title="common.AbstractDarwinCommand" alt="" coords="204,113,393,135"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="310,59,439,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html" title="common.address_resolver.AddressResolverMixin" alt="" coords="417,113,673,135"/>
+<area shape="rect" id="node6" href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html" title="DarwinAddressResolver" alt="" coords="353,166,489,189"/>
+<area shape="rect" id="node8" href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html" title="common.DarwinOnlyMixin" alt="" coords="463,59,608,82"/>
 </map>
   <img src="class_hierarchy_for_darwinaddr.gif" alt='' usemap="#class_hierarchy_for_darwinaddr" ismap="ismap" class="graph-without-title" />
 </center>
@@ -121,11 +117,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+          <td><span class="summary-sig"><a name="AddModule"></a><span class="summary-sig-name">AddModule</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">module</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.AddModule">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -139,11 +135,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html#FindContainingModule" class="summary-sig-name">FindContainingModule</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#GetContainingModule" class="summary-sig-name">GetContainingModule</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">address</span>)</span><br />
-      Finds the name of the module containing the specified address.</td>
+      Finds the module containing the specified address.
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.FindContainingModule">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.GetContainingModule">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -157,65 +154,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="LoadProfileForName"></a><span class="summary-sig-name">LoadProfileForName</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">module</span>)</span></td>
+          <td><span class="summary-sig"><a name="GetModuleByName"></a><span class="summary-sig-name">GetModuleByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.LoadProfileForName">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html#get_nearest_constant_by_address" class="summary-sig-name">get_nearest_constant_by_address</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">address</span>)</span><br />
-      Searches for a known symbol at an address lower than this.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.get_nearest_constant_by_address">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html#format_address" class="summary-sig-name">format_address</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">address</span>,
-        <span class="summary-sig-arg">max_distance</span>=<span class="summary-sig-default">4096</span>)</span><br />
-      Format the address as a symbol name.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.format_address">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.address_resolver.DarwinAddressResolver-class.html#search_symbol" class="summary-sig-name">search_symbol</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pattern</span>)</span><br />
-      Searches symbols for the pattern.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.search_symbol">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.GetModuleByName">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -230,10 +173,47 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="NormalizeModuleName"></a><span class="summary-sig-name">NormalizeModuleName</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">module</span>)</span>
+        <span class="summary-sig-arg">module_name</span>)</span>
       <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.NormalizeModuleName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -283,8 +263,29 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#format_address" class="summary-sig-name">format_address</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">max_distance</span>=<span class="summary-sig-default">16777216</span>)</span><br />
+      Format the address as a symbol name.
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.format_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="get_address_by_name"></a><span class="summary-sig-name">get_address_by_name</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span>
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Convert the symbol annotated by name to an address.
       <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_address_by_name">source&nbsp;code</a></span>
@@ -301,7 +302,7 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_constant_object"></a><span class="summary-sig-name">get_constant_object</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_constant_object" class="summary-sig-name">get_constant_object</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">target</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
@@ -309,6 +310,26 @@
       <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_constant_object">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_nearest_constant_by_address" class="summary-sig-name">get_nearest_constant_by_address</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">max_distance</span>=<span class="summary-sig-default">16777216</span>)</span><br />
+      Searches for a known symbol at an address lower than this.
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_nearest_constant_by_address">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -342,12 +363,48 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="modules"></a><span class="summary-sig-name">modules</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.modules">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">renderer</span>)</span><br />
       Produce results on the renderer given.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#search_symbol" class="summary-sig-name">search_symbol</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pattern</span>)</span><br />
+      Searches symbols for the pattern.
+      <em>(Inherited from <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html">rekall.plugins.common.address_resolver.AddressResolverMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.search_symbol">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -440,10 +497,11 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a>)</em></td>
+        <span class="summary-sig-arg">parser</span>)</span><br />
+      Declare the command line args we need.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -457,12 +515,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a name="is_active"></a><span class="summary-sig-name">is_active</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
       We are only active if the profile is darwin.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html">rekall.plugins.darwin.common.AbstractDarwinCommandPlugin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html">rekall.plugins.darwin.common.DarwinOnlyMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#AbstractDarwinCommandPlugin.is_active">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinOnlyMixin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -509,15 +567,15 @@ Za-z_0-9\.\\]+)!?(?P&lt;symbol&gt;[^ \+-]+)?)(?P&lt;op&gt; *[\+-] *)?(?P&lt;offs
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -525,15 +583,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -571,6 +629,14 @@ AnalyzeStruct'&gt;,
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
 </table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
@@ -597,145 +663,6 @@ AnalyzeStruct'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="__init__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
-    <br /><em class="fname">(Constructor)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.__init__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__init__
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="FindContainingModule"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">FindContainingModule</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">address</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.FindContainingModule">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Finds the name of the module containing the specified address.
-
-In linux we currect only support kernel modules.
-
-Returns:
-  A tuple of start address, end address, module name
-  
-
-</pre>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#FindContainingModule">common.address_resolver.AddressResolverMixin.FindContainingModule</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="get_nearest_constant_by_address"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_nearest_constant_by_address</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">address</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.get_nearest_constant_by_address">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Searches for a known symbol at an address lower than this.</p>
-  <p>Returns a tuple (nearest_offset, full_name of symbol).</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_nearest_constant_by_address">common.address_resolver.AddressResolverMixin.get_nearest_constant_by_address</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="format_address"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">format_address</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">address</span>,
-        <span class="sig-arg">max_distance</span>=<span class="sig-default">4096</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.format_address">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Format the address as a symbol name.</p>
-  <p>This means to try and find the containing module, the symbol within 
-  the module or possibly an offset from a known symbol. e.g.</p>
-  <p>nt!PspCidTable nt!PspCidTable + 0x10 nt + 0x234</p>
-  <p>Returns an empty string if the address is not in a containing module, 
-  or if the nearest known symbol is farther than max_distance away.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#format_address">common.address_resolver.AddressResolverMixin.format_address</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="search_symbol"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">search_symbol</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">pattern</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.address_resolver-pysrc.html#DarwinAddressResolver.search_symbol">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Searches symbols for the pattern.</p>
-  <p>pattern may contain wild cards (*). Note that currently a module name 
-  is required. Example pattern:</p>
-  <p>nt!Ps*</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#search_symbol">common.address_resolver.AddressResolverMixin.search_symbol</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="ImplementationByClass"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -789,9 +716,6 @@ Returns:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -816,7 +740,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:32 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

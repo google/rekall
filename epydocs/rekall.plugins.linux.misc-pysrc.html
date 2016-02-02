@@ -1,0 +1,1449 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.linux.misc</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.linux-module.html">Package&nbsp;linux</a> ::
+        Module&nbsp;misc
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.linux.misc-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.linux.misc-module.html">Module rekall.plugins.linux.misc</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2015 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring">"""Miscelaneous information gathering plugins."""</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt id="link-0" class="py-name" targets="Variable rekall.plugins.tools.live_darwin.__author__=rekall.plugins.tools.live_darwin-module.html#__author__,Variable rekall.plugins.tools.live_linux.__author__=rekall.plugins.tools.live_linux-module.html#__author__,Variable rekall.plugins.tools.live_windows.__author__=rekall.plugins.tools.live_windows-module.html#__author__"><a title="rekall.plugins.tools.live_darwin.__author__
+rekall.plugins.tools.live_linux.__author__
+rekall.plugins.tools.live_windows.__author__" class="py-name" href="#" onclick="return doclink('link-0', '__author__', 'link-0');">__author__</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"Michael Cohen &lt;scudette@google.com&gt;"</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">hashlib</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-1', 'rekall', 'link-1');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-2', 'plugins', 'link-2');">plugins</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.plugins.core=rekall.plugins.core-module.html"><a title="rekall.plugins.core" class="py-name" href="#" onclick="return doclink('link-3', 'core', 'link-3');">core</a></tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-4', 'rekall', 'link-1');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-5', 'plugins', 'link-2');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Package rekall.plugins.linux=rekall.plugins.linux-module.html,Package rekall.plugins.overlays.linux=rekall.plugins.overlays.linux-module.html,Module rekall.plugins.overlays.linux.linux=rekall.plugins.overlays.linux.linux-module.html,Module rekall.plugins.renderers.linux=rekall.plugins.renderers.linux-module.html"><a title="rekall.plugins.linux
+rekall.plugins.overlays.linux
+rekall.plugins.overlays.linux.linux
+rekall.plugins.renderers.linux" class="py-name" href="#" onclick="return doclink('link-6', 'linux', 'link-6');">linux</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-7', 'common', 'link-7');">common</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"> </tt>
+<a name="LinuxSetProcessContext"></a><div id="LinuxSetProcessContext-def"><a name="L27"></a><tt class="py-lineno"> 27</tt> <a class="py-toggle" href="#" id="LinuxSetProcessContext-toggle" onclick="return toggle('LinuxSetProcessContext');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.linux.misc.LinuxSetProcessContext-class.html">LinuxSetProcessContext</a><tt class="py-op">(</tt><tt class="py-base-class">core</tt><tt class="py-op">.</tt><tt class="py-base-class">SetProcessContextMixin</tt><tt class="py-op">,</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">                             <tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">LinProcessFilter</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LinuxSetProcessContext-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="LinuxSetProcessContext-expanded"><a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">    <tt class="py-docstring">"""A cc plugin for windows."""</tt> </tt>
+</div><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"> </tt>
+<a name="LinVtoP"></a><div id="LinVtoP-def"><a name="L32"></a><tt class="py-lineno"> 32</tt> <a class="py-toggle" href="#" id="LinVtoP-toggle" onclick="return toggle('LinVtoP');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.linux.misc.LinVtoP-class.html">LinVtoP</a><tt class="py-op">(</tt><tt class="py-base-class">core</tt><tt class="py-op">.</tt><tt class="py-base-class">VtoPMixin</tt><tt class="py-op">,</tt> <tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">LinProcessFilter</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LinVtoP-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="LinVtoP-expanded"><a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">    <tt class="py-docstring">"""Describe virtual to physical translation on Linux platforms."""</tt> </tt>
+</div><a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"> </tt>
+<a name="LinuxHighestUserAddress"></a><div id="LinuxHighestUserAddress-def"><a name="L36"></a><tt class="py-lineno"> 36</tt> <a class="py-toggle" href="#" id="LinuxHighestUserAddress-toggle" onclick="return toggle('LinuxHighestUserAddress');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.linux.misc.LinuxHighestUserAddress-class.html">LinuxHighestUserAddress</a><tt class="py-op">(</tt><tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">AbstractLinuxParameterHook</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LinuxHighestUserAddress-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="LinuxHighestUserAddress-expanded"><a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">    <tt class="py-docstring">"""The highest address for user mode/kernel mode division."""</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt id="link-8" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.obj.ConstantProfileSectionLoader.name=rekall.obj.ConstantProfileSectionLoader-class.html#name,Variable rekall.obj.EnumProfileSectionLoader.name=rekall.obj.EnumProfileSectionLoader-class.html#name,Variable rekall.obj.FunctionsProfileSectionLoader.name=rekall.obj.FunctionsProfileSectionLoader-class.html#name,Variable rekall.obj.MergeProfileLoader.name=rekall.obj.MergeProfileLoader-class.html#name,Variable rekall.obj.MetadataProfileSectionLoader.name=rekall.obj.MetadataProfileSectionLoader-class.html#name,Variable rekall.obj.ReverseEnumProfileSectionLoader.name=rekall.obj.ReverseEnumProfileSectionLoader-class.html#name,Variable rekall.obj.StructProfileLoader.name=rekall.obj.StructProfileLoader-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.lime.LimeAddressSpace.name=rekall.plugins.addrspaces.lime.LimeAddressSpace-class.html#name,Variable rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name=rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace-class.html#name,Variable rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name=rekall.plugins.addrspaces.pmem.MacPmemAddressSpace-class.html#name,Variable rekall.plugins.common.address_resolver.AddressResolverMixin.name=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#name,Variable rekall.plugins.common.inspection.MemoryTranslation.name=rekall.plugins.common.inspection.MemoryTranslation-class.html#name,Variable rekall.plugins.common.memmap.MemDumpMixin.name=rekall.plugins.common.memmap.MemDumpMixin-class.html#name,Variable rekall.plugins.common.pas2kas.Pas2VasMixin.name=rekall.plugins.common.pas2kas.Pas2VasMixin-class.html#name,Variable rekall.plugins.common.pfn.VADMapMixin.name=rekall.plugins.common.pfn.VADMapMixin-class.html#name,Variable rekall.plugins.common.profile_index.IndexProfileLoader.name=rekall.plugins.common.profile_index.IndexProfileLoader-class.html#name,Variable rekall.plugins.common.search.Collect.name=rekall.plugins.common.search.Collect-class.html#name,Variable rekall.plugins.common.search.Explain.name=rekall.plugins.common.search.Explain-class.html#name,Variable rekall.plugins.common.search.FindPlugins.name=rekall.plugins.common.search.FindPlugins-class.html#name,Variable rekall.plugins.common.search.Search.name=rekall.plugins.common.search.Search-class.html#name,Variable rekall.plugins.common.sigscan.SigScanMixIn.name=rekall.plugins.common.sigscan.SigScanMixIn-class.html#name,Variable rekall.plugins.core.SetProcessContextMixin.name=rekall.plugins.core.SetProcessContextMixin-class.html#name,Variable rekall.plugins.core.VtoPMixin.name=rekall.plugins.core.VtoPMixin-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.darwin.lsof.DarwinHandles.name=rekall.plugins.darwin.lsof.DarwinHandles-class.html#name,Variable rekall.plugins.darwin.lsof.DarwinLsof.name=rekall.plugins.darwin.lsof.DarwinLsof-class.html#name,Variable rekall.plugins.darwin.misc.DarwinHighestUserAddress.name=rekall.plugins.darwin.misc.DarwinHighestUserAddress-class.html#name,Variable rekall.plugins.darwin.misc.DarwinImageFingerprint.name=rekall.plugins.darwin.misc.DarwinImageFingerprint-class.html#name,Variable rekall.plugins.darwin.networking.DarwinArp.name=rekall.plugins.darwin.networking.DarwinArp-class.html#name,Variable rekall.plugins.darwin.networking.DarwinGetArpListHead.name=rekall.plugins.darwin.networking.DarwinGetArpListHead-class.html#name,Variable rekall.plugins.darwin.networking.DarwinIfnetCollector.name=rekall.plugins.darwin.networking.DarwinIfnetCollector-class.html#name,Variable rekall.plugins.darwin.networking.DarwinIfnetHook.name=rekall.plugins.darwin.networking.DarwinIfnetHook-class.html#name,Variable rekall.plugins.darwin.networking.DarwinNetstat.name=rekall.plugins.darwin.networking.DarwinNetstat-class.html#name,Variable rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name=rekall.plugins.darwin.networking.DarwinSocketsFromHandles-class.html#name,Variable rekall.plugins.darwin.networking.DarwinUnpListCollector.name=rekall.plugins.darwin.networking.DarwinUnpListCollector-class.html#name,Variable rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name=rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook-class.html#name,Variable rekall.plugins.darwin.processes.DarwinAllProcCollector.name=rekall.plugins.darwin.processes.DarwinAllProcCollector-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name=rekall.plugins.darwin.processes.DarwinPgrpHashCollector-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name=rekall.plugins.darwin.processes.DarwinPidHashProcessCollector-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPsTree.name=rekall.plugins.darwin.processes.DarwinPsTree-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPslist.name=rekall.plugins.darwin.processes.DarwinPslist-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPsxView.name=rekall.plugins.darwin.processes.DarwinPsxView-class.html#name,Variable rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name=rekall.plugins.darwin.processes.DarwinTaskProcessCollector-class.html#name,Variable rekall.plugins.darwin.processes.PsListAllProcHook.name=rekall.plugins.darwin.processes.PsListAllProcHook-class.html#name,Variable rekall.plugins.darwin.processes.PsListPgrpHashHook.name=rekall.plugins.darwin.processes.PsListPgrpHashHook-class.html#name,Variable rekall.plugins.darwin.processes.PsListPidHashHook.name=rekall.plugins.darwin.processes.PsListPidHashHook-class.html#name,Variable rekall.plugins.darwin.processes.PsListTasksHook.name=rekall.plugins.darwin.processes.PsListTasksHook-class.html#name,Variable rekall.plugins.darwin.sessions.DarwinSessions.name=rekall.plugins.darwin.sessions.DarwinSessions-class.html#name,Variable rekall.plugins.darwin.sessions.DarwinTerminals.name=rekall.plugins.darwin.sessions.DarwinTerminals-class.html#name,Variable rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name=rekall.plugins.darwin.zones.DarwinDeadFileprocCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name=rekall.plugins.darwin.zones.DarwinDeadProcessCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinDumpZone.name=rekall.plugins.darwin.zones.DarwinDumpZone-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name=rekall.plugins.darwin.zones.DarwinSessionZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name=rekall.plugins.darwin.zones.DarwinSessionZoneFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name=rekall.plugins.darwin.zones.DarwinSocketZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name=rekall.plugins.darwin.zones.DarwinSocketZoneFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name=rekall.plugins.darwin.zones.DarwinTTYZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name=rekall.plugins.darwin.zones.DarwinTTYZoneFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneCollector.name=rekall.plugins.darwin.zones.DarwinZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name=rekall.plugins.darwin.zones.DarwinZoneFileprocFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneHook.name=rekall.plugins.darwin.zones.DarwinZoneHook-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name=rekall.plugins.darwin.zones.DarwinZoneVnodeCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name=rekall.plugins.darwin.zones.DarwinZoneVnodeFinder-class.html#name,Variable rekall.plugins.darwin.zones.PsListDeadProcFinder.name=rekall.plugins.darwin.zones.PsListDeadProcFinder-class.html#name,Variable rekall.plugins.filesystems.ntfs.FLS.name=rekall.plugins.filesystems.ntfs.FLS-class.html#name,Variable rekall.plugins.filesystems.ntfs.FStat.name=rekall.plugins.filesystems.ntfs.FStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.IDump.name=rekall.plugins.filesystems.ntfs.IDump-class.html#name,Variable rekall.plugins.filesystems.ntfs.IExport.name=rekall.plugins.filesystems.ntfs.IExport-class.html#name,Variable rekall.plugins.filesystems.ntfs.ILS.name=rekall.plugins.filesystems.ntfs.ILS-class.html#name,Variable rekall.plugins.filesystems.ntfs.IStat.name=rekall.plugins.filesystems.ntfs.IStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.NTFSDetector.name=rekall.plugins.filesystems.ntfs.NTFSDetector-class.html#name,Variable rekall.plugins.guess_profile.DarwinIndexDetector.name=rekall.plugins.guess_profile.DarwinIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.DetectionMethod.name=rekall.plugins.guess_profile.DetectionMethod-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.LinuxBannerDetector.name=rekall.plugins.guess_profile.LinuxBannerDetector-class.html#name,Variable rekall.plugins.guess_profile.PEImageFileDetector.name=rekall.plugins.guess_profile.PEImageFileDetector-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.guess_profile.WindowsIndexDetector.name=rekall.plugins.guess_profile.WindowsIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsKernelImageDetector.name=rekall.plugins.guess_profile.WindowsKernelImageDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsRSDSDetector.name=rekall.plugins.guess_profile.WindowsRSDSDetector-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKernelSlide.name=rekall.plugins.linux.common.LinuxFindKernelSlide-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name=rekall.plugins.linux.common.LinuxKernelPageOffsetHook-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelSlideHook.name=rekall.plugins.linux.common.LinuxKernelSlideHook-class.html#name,Variable rekall.plugins.linux.misc.LinImageFingerprint.name=rekall.plugins.linux.misc.LinImageFingerprint-class.html#name,Variable rekall.plugins.linux.misc.LinuxHighestUserAddress.name=rekall.plugins.linux.misc.LinuxHighestUserAddress-class.html#name,Variable rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name=rekall.plugins.linux.pas2kas.LinPas2VasResolverHook-class.html#name,Variable rekall.plugins.overlays.darwin.darwin.ifnet.name=rekall.plugins.overlays.darwin.darwin.ifnet-class.html#name,Variable rekall.plugins.overlays.darwin.darwin.session.name=rekall.plugins.overlays.darwin.darwin.session-class.html#name,Variable rekall.plugins.overlays.darwin.darwin.zone.name=rekall.plugins.overlays.darwin.darwin.zone-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.renderers.data_export.DataExportRenderer.name=rekall.plugins.renderers.data_export.DataExportRenderer-class.html#name,Variable rekall.plugins.renderers.xls.XLSRenderer.name=rekall.plugins.renderers.xls.XLSRenderer-class.html#name,Variable rekall.plugins.tools.aff4acquire.AFF4Acquire.name=rekall.plugins.tools.aff4acquire.AFF4Acquire-class.html#name,Variable rekall.plugins.tools.aff4acquire.AFF4Export.name=rekall.plugins.tools.aff4acquire.AFF4Export-class.html#name,Variable rekall.plugins.tools.aff4acquire.AFF4Ls.name=rekall.plugins.tools.aff4acquire.AFF4Ls-class.html#name,Variable rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name=rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader-class.html#name,Variable rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name=rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader-class.html#name,Variable rekall.plugins.tools.ewf.EWFAcquire.name=rekall.plugins.tools.ewf.EWFAcquire-class.html#name,Variable rekall.plugins.tools.ipython.InteractiveShell.name=rekall.plugins.tools.ipython.InteractiveShell-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.tools.live_darwin.Live.name=rekall.plugins.tools.live_darwin.Live-class.html#name,Variable rekall.plugins.tools.live_linux.Live.name=rekall.plugins.tools.live_linux.Live-class.html#name,Variable rekall.plugins.tools.live_windows.Live.name=rekall.plugins.tools.live_windows.Live-class.html#name,Variable rekall.plugins.tools.profile_tool.BuildProfileLocally.name=rekall.plugins.tools.profile_tool.BuildProfileLocally-class.html#name,Variable rekall.plugins.tools.repository_manager.ManageRepository.name=rekall.plugins.tools.repository_manager.ManageRepository-class.html#name,Variable rekall.plugins.windows.cache.DumpFiles.name=rekall.plugins.windows.cache.DumpFiles-class.html#name,Variable rekall.plugins.windows.cache.EnumerateVacbs.name=rekall.plugins.windows.cache.EnumerateVacbs-class.html#name,Variable rekall.plugins.windows.cache.MftDump.name=rekall.plugins.windows.cache.MftDump-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsListCSRSSHook.name=rekall.plugins.windows.common.PsListCSRSSHook-class.html#name,Variable rekall.plugins.windows.common.PsListHandlesHook.name=rekall.plugins.windows.common.PsListHandlesHook-class.html#name,Variable rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsListPsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsListPspCidTableHook.name=rekall.plugins.windows.common.PsListPspCidTableHook-class.html#name,Variable rekall.plugins.windows.common.PsListSessionsHook.name=rekall.plugins.windows.common.PsListSessionsHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.dns.WinDNSCache.name=rekall.plugins.windows.dns.WinDNSCache-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name=rekall.plugins.windows.heap_analysis.FindReferenceAlloc-class.html#name,Variable rekall.plugins.windows.heap_analysis.InspectHeap.name=rekall.plugins.windows.heap_analysis.InspectHeap-class.html#name,Variable rekall.plugins.windows.heap_analysis.ShowAllocation.name=rekall.plugins.windows.heap_analysis.ShowAllocation-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name=rekall.plugins.windows.interactive.profiles.LoadWindowsProfile-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.DTB2TaskMap.name=rekall.plugins.windows.kernel.DTB2TaskMap-class.html#name,Variable rekall.plugins.windows.kernel.DriveLetterDeviceHook.name=rekall.plugins.windows.kernel.DriveLetterDeviceHook-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.kernel.ObjectTreeHook.name=rekall.plugins.windows.kernel.ObjectTreeHook-class.html#name,Variable rekall.plugins.windows.kernel.WindowsHighestUserAddress.name=rekall.plugins.windows.kernel.WindowsHighestUserAddress-class.html#name,Variable rekall.plugins.windows.malware.apihooks.CheckPEHooks.name=rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.EATHooks.name=rekall.plugins.windows.malware.apihooks.EATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.IATHooks.name=rekall.plugins.windows.malware.apihooks.IATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.InlineHooks.name=rekall.plugins.windows.malware.apihooks.InlineHooks-class.html#name,Variable rekall.plugins.windows.malware.callbacks.Callbacks.name=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#name,Variable rekall.plugins.windows.malware.cmdhistory.Consoles.name=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#name,Variable rekall.plugins.windows.malware.psxview.PsListPSScanHook.name=rekall.plugins.windows.malware.psxview.PsListPSScanHook-class.html#name,Variable rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name=rekall.plugins.windows.malware.psxview.PsListThrdprocHook-class.html#name,Variable rekall.plugins.windows.mimikatz.Mimikatz.name=rekall.plugins.windows.mimikatz.Mimikatz-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.misc.WinImageFingerprint.name=rekall.plugins.windows.misc.WinImageFingerprint-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pagefile.PagefileHook.name=rekall.plugins.windows.pagefile.PagefileHook-class.html#name,Variable rekall.plugins.windows.pagefile.Pagefiles.name=rekall.plugins.windows.pagefile.Pagefiles-class.html#name,Variable rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name=rekall.plugins.windows.pas2kas.WinPas2VasResolverHook-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.privileges.Privileges.name=rekall.plugins.windows.privileges.Privileges-class.html#name,Variable rekall.plugins.windows.privileges.PrivilegesHook.name=rekall.plugins.windows.privileges.PrivilegesHook-class.html#name,Variable rekall.plugins.windows.registry.printkey.Services.name=rekall.plugins.windows.registry.printkey.Services-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name,Variable rekall.plugins.yarascanner.YaraScanMixin.name=rekall.plugins.yarascanner.YaraScanMixin-class.html#name,Variable rekall.rekal.Run.name=rekall.rekal.Run-class.html#name,Variable rekall.ui.json_renderer.JsonRenderer.name=rekall.ui.json_renderer.JsonRenderer-class.html#name,Variable rekall.ui.renderer.BaseRenderer.name=rekall.ui.renderer.BaseRenderer-class.html#name,Variable rekall.ui.text.TestRenderer.name=rekall.ui.text.TestRenderer-class.html#name,Variable rekall.ui.text.TextColumn.name=rekall.ui.text.TextColumn-class.html#name,Variable rekall.ui.text.TextRenderer.name=rekall.ui.text.TextRenderer-class.html#name,Variable rekall.ui.text.WideTextRenderer.name=rekall.ui.text.WideTextRenderer-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-8', 'name', 'link-8');">name</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"highest_usermode_address"</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="LinuxHighestUserAddress.calculate"></a><div id="LinuxHighestUserAddress.calculate-def"><a name="L41"></a><tt class="py-lineno"> 41</tt> <a class="py-toggle" href="#" id="LinuxHighestUserAddress.calculate-toggle" onclick="return toggle('LinuxHighestUserAddress.calculate');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.linux.misc.LinuxHighestUserAddress-class.html#calculate">calculate</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LinuxHighestUserAddress.calculate-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LinuxHighestUserAddress.calculate-expanded"><a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">        <tt class="py-docstring">"""Returns TASK_SIZE_MAX."""</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">        <tt class="py-name">arch</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Variable rekall.plugins.common.search.CommandWrapper.session=rekall.plugins.common.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-9', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Variable rekall.plugins.windows.address_resolver.PEModule.profile=rekall.plugins.windows.address_resolver.PEModule-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-10', 'profile', 'link-10');">profile</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Class Method rekall.addrspace.BaseAddressSpace.metadata()=rekall.addrspace.BaseAddressSpace-class.html#metadata,Method rekall.addrspace.BufferAddressSpace.metadata()=rekall.addrspace.BufferAddressSpace-class.html#metadata,Method rekall.obj.Profile.metadata()=rekall.obj.Profile-class.html#metadata,Method rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata()=rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor-class.html#metadata"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-11', 'metadata', 'link-11');">metadata</a></tt><tt class="py-op">(</tt><tt class="py-string">"arch"</tt><tt class="py-op">)</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">arch</tt> <tt class="py-op">==</tt> <tt class="py-string">"I386"</tt> <tt class="py-keyword">or</tt> <tt class="py-name">arch</tt> <tt class="py-op">==</tt> <tt class="py-string">"ARM"</tt><tt class="py-op">:</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-12', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-13', 'GetParameter', 'link-13');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"linux_page_offset"</tt><tt class="py-op">)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">        <tt class="py-keyword">elif</tt> <tt class="py-name">arch</tt> <tt class="py-op">==</tt> <tt class="py-string">"AMD64"</tt><tt class="py-op">:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-comment"># #define TASK_SIZE_MAX   ((1UL &lt;&lt; 47) - PAGE_SIZE)</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-op">(</tt><tt class="py-number">1</tt> <tt class="py-op">&lt;&lt;</tt> <tt class="py-number">47</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-number">0x1000</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-14', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Variable rekall.session.Session.logging=rekall.session.Session-class.html#logging"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-15', 'logging', 'link-15');">logging</a></tt><tt class="py-op">.</tt><tt class="py-name">warn</tt><tt class="py-op">(</tt><tt class="py-string">"Set TASK_SIZE_MAX for arch %s"</tt><tt class="py-op">,</tt> <tt class="py-name">arch</tt><tt class="py-op">)</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-number">2</tt><tt class="py-op">**</tt><tt class="py-number">64</tt> </tt>
+</div></div><a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"> </tt>
+<a name="LinImageFingerprint"></a><div id="LinImageFingerprint-def"><a name="L54"></a><tt class="py-lineno"> 54</tt> <a class="py-toggle" href="#" id="LinImageFingerprint-toggle" onclick="return toggle('LinImageFingerprint');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.linux.misc.LinImageFingerprint-class.html">LinImageFingerprint</a><tt class="py-op">(</tt><tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">AbstractLinuxParameterHook</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LinImageFingerprint-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="LinImageFingerprint-expanded"><a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">    <tt class="py-docstring">"""Fingerprint the current image.</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"><tt class="py-docstring">    This parameter tries to get something unique about the image quickly. The</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line"><tt class="py-docstring">    idea is that two different images (even of the same system at different</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line"><tt class="py-docstring">    points in time) will have very different fingerprints. The fingerprint is</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-docstring">    used as a key to cache persistent information about the system.</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"><tt class="py-docstring">    Live systems can not have a stable fingerprint and so return a NoneObject()</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring">    here.</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">    We return a list of tuples:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">       (physical_offset, expected_data)</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">    The list uniquely identifies the image. If one were to read all physical</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">    offsets and find the expected_data at these locations, then we have a very</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-docstring">    high level of confidence that the image is unique and matches the</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"><tt class="py-docstring">    fingerprint.</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">    <tt id="link-16" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-16', 'name', 'link-8');">name</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"image_fingerprint"</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="LinImageFingerprint.calculate"></a><div id="LinImageFingerprint.calculate-def"><a name="L75"></a><tt class="py-lineno"> 75</tt> <a class="py-toggle" href="#" id="LinImageFingerprint.calculate-toggle" onclick="return toggle('LinImageFingerprint.calculate');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.linux.misc.LinImageFingerprint-class.html#calculate">calculate</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="LinImageFingerprint.calculate-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="LinImageFingerprint.calculate-expanded"><a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-17', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.physical_address_space=rekall.plugins.hypervisors.VirtualMachine-class.html#physical_address_space,Variable rekall.session.Session.physical_address_space=rekall.session.Session-class.html#physical_address_space"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-18', 'physical_address_space', 'link-18');">physical_address_space</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt class="py-name">None</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-19', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-20', 'physical_address_space', 'link-18');">physical_address_space</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.volatile=rekall.addrspace.BaseAddressSpace-class.html#volatile,Variable rekall.kb.ParameterHook.volatile=rekall.kb.ParameterHook-class.html#volatile,Variable rekall.plugins.addrspaces.elfcore.KCoreAddressSpace.volatile=rekall.plugins.addrspaces.elfcore.KCoreAddressSpace-class.html#volatile,Variable rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.volatile=rekall.plugins.addrspaces.pmem.MacPmemAddressSpace-class.html#volatile,Variable rekall.plugins.addrspaces.win32.WinPmemAddressSpace.volatile=rekall.plugins.addrspaces.win32.WinPmemAddressSpace-class.html#volatile,Variable rekall.plugins.guess_profile.KernelASHook.volatile=rekall.plugins.guess_profile.KernelASHook-class.html#volatile,Variable rekall.plugins.guess_profile.ProfileHook.volatile=rekall.plugins.guess_profile.ProfileHook-class.html#volatile,Variable rekall.session.Session.volatile=rekall.session.Session-class.html#volatile"><a title="rekall.addrspace.BaseAddressSpace.volatile
+rekall.kb.ParameterHook.volatile
+rekall.plugins.addrspaces.elfcore.KCoreAddressSpace.volatile
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.volatile
+rekall.plugins.addrspaces.win32.WinPmemAddressSpace.volatile
+rekall.plugins.guess_profile.KernelASHook.volatile
+rekall.plugins.guess_profile.ProfileHook.volatile
+rekall.session.Session.volatile" class="py-name" href="#" onclick="return doclink('link-21', 'volatile', 'link-21');">volatile</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">            <tt class="py-keyword">return</tt> <tt id="link-22" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-22', 'obj', 'link-22');">obj</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Class rekall.obj.NoneObject=rekall.obj.NoneObject-class.html"><a title="rekall.obj.NoneObject" class="py-name" href="#" onclick="return doclink('link-23', 'NoneObject', 'link-23');">NoneObject</a></tt><tt class="py-op">(</tt><tt class="py-string">"No fingerprint for volatile image."</tt><tt class="py-op">)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">        <tt id="link-24" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-24', 'profile', 'link-10');">profile</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-25', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-26', 'profile', 'link-10');">profile</a></tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-name">phys_as</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-27', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-28', 'physical_address_space', 'link-18');">physical_address_space</a></tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt id="link-29" class="py-name" targets="Variable rekall.addrspace.Run.address_space=rekall.addrspace.Run-class.html#address_space"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-29', 'address_space', 'link-29');">address_space</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-30', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-31', 'GetParameter', 'link-13');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"default_address_space"</tt><tt class="py-op">)</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-name">banner</tt> <tt class="py-op">=</tt> <tt id="link-32" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-32', 'profile', 'link-10');">profile</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name" targets="Method rekall.obj.Profile.get_constant_object()=rekall.obj.Profile-class.html#get_constant_object,Method rekall.plugins.common.address_resolver.AddressResolverMixin.get_constant_object()=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_constant_object"><a title="rekall.obj.Profile.get_constant_object
+rekall.plugins.common.address_resolver.AddressResolverMixin.get_constant_object" class="py-name" href="#" onclick="return doclink('link-33', 'get_constant_object', 'link-33');">get_constant_object</a></tt><tt class="py-op">(</tt><tt class="py-string">"linux_banner"</tt><tt class="py-op">,</tt> <tt class="py-string">"String"</tt><tt class="py-op">)</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-name">result</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt id="link-34" class="py-name"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-34', 'address_space', 'link-29');">address_space</a></tt><tt class="py-op">.</tt><tt id="link-35" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.vtop()=rekall.addrspace.BaseAddressSpace-class.html#vtop,Method rekall.addrspace.RunBasedAddressSpace.vtop()=rekall.addrspace.RunBasedAddressSpace-class.html#vtop,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.vtop()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#vtop,Method rekall.plugins.addrspaces.amd64.XenParaVirtAMD64PagedMemory.vtop()=rekall.plugins.addrspaces.amd64.XenParaVirtAMD64PagedMemory-class.html#vtop,Method rekall.plugins.addrspaces.arm.ArmPagedMemory.vtop()=rekall.plugins.addrspaces.arm.ArmPagedMemory-class.html#vtop,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.vtop()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#vtop,Method rekall.plugins.addrspaces.lime.LimeAddressSpace.vtop()=rekall.plugins.addrspaces.lime.LimeAddressSpace-class.html#vtop,Method rekall.plugins.addrspaces.mips.MIPS32PagedMemory.vtop()=rekall.plugins.addrspaces.mips.MIPS32PagedMemory-class.html#vtop,Method rekall.plugins.windows.registry.registry.HiveAddressSpace.vtop()=rekall.plugins.windows.registry.registry.HiveAddressSpace-class.html#vtop,Method rekall.plugins.windows.registry.registry.HiveFileAddressSpace.vtop()=rekall.plugins.windows.registry.registry.HiveFileAddressSpace-class.html#vtop"><a title="rekall.addrspace.BaseAddressSpace.vtop
+rekall.addrspace.RunBasedAddressSpace.vtop
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.vtop
+rekall.plugins.addrspaces.amd64.XenParaVirtAMD64PagedMemory.vtop
+rekall.plugins.addrspaces.arm.ArmPagedMemory.vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemory.vtop
+rekall.plugins.addrspaces.lime.LimeAddressSpace.vtop
+rekall.plugins.addrspaces.mips.MIPS32PagedMemory.vtop
+rekall.plugins.windows.registry.registry.HiveAddressSpace.vtop
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.vtop" class="py-name" href="#" onclick="return doclink('link-35', 'vtop', 'link-35');">vtop</a></tt><tt class="py-op">(</tt><tt class="py-name">banner</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">banner</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name" targets="Method rekall.obj.BaseObject.v()=rekall.obj.BaseObject-class.html#v,Method rekall.obj.BitField.v()=rekall.obj.BitField-class.html#v,Method rekall.obj.NativeType.v()=rekall.obj.NativeType-class.html#v,Method rekall.obj.Pointer.v()=rekall.obj.Pointer-class.html#v,Method rekall.obj.Struct.v()=rekall.obj.Struct-class.html#v,Method rekall.obj.Void.v()=rekall.obj.Void-class.html#v,Method rekall.plugins.overlays.basic.Enumeration.v()=rekall.plugins.overlays.basic.Enumeration-class.html#v,Method rekall.plugins.overlays.basic.Flags.v()=rekall.plugins.overlays.basic.Flags-class.html#v,Method rekall.plugins.overlays.basic.Ipv4Address.v()=rekall.plugins.overlays.basic.Ipv4Address-class.html#v,Method rekall.plugins.overlays.basic.Ipv6Address.v()=rekall.plugins.overlays.basic.Ipv6Address-class.html#v,Method rekall.plugins.overlays.basic.MacAddress.v()=rekall.plugins.overlays.basic.MacAddress-class.html#v,Method rekall.plugins.overlays.basic.String.v()=rekall.plugins.overlays.basic.String-class.html#v,Method rekall.plugins.overlays.basic.UnicodeString.v()=rekall.plugins.overlays.basic.UnicodeString-class.html#v,Method rekall.plugins.overlays.basic.WinFileTime.v()=rekall.plugins.overlays.basic.WinFileTime-class.html#v,Method rekall.plugins.overlays.basic.timeval.v()=rekall.plugins.overlays.basic.timeval-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#v,Method rekall.plugins.windows.pfn.ValueEnumeration.v()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#v,Method rekall.session.InteractiveSession.v()=rekall.session.InteractiveSession-class.html#v"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-36', 'v', 'link-36');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">        <tt class="py-comment"># Current system tick count.</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-name">jiffies</tt> <tt class="py-op">=</tt> <tt id="link-37" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-37', 'profile', 'link-10');">profile</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.obj.Profile.get_constant_object
+rekall.plugins.common.address_resolver.AddressResolverMixin.get_constant_object" class="py-name" href="#" onclick="return doclink('link-38', 'get_constant_object', 'link-33');">get_constant_object</a></tt><tt class="py-op">(</tt><tt class="py-string">"jiffies"</tt><tt class="py-op">,</tt> <tt class="py-string">"String"</tt><tt class="py-op">,</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                                              <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt id="link-39" class="py-name" targets="Variable rekall.addrspace.Run.length=rekall.addrspace.Run-class.html#length"><a title="rekall.addrspace.Run.length" class="py-name" href="#" onclick="return doclink('link-39', 'length', 'link-39');">length</a></tt><tt class="py-op">=</tt><tt class="py-number">8</tt><tt class="py-op">,</tt> <tt class="py-name">term</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt class="py-name">result</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-40', 'address_space', 'link-29');">address_space</a></tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.vtop
+rekall.addrspace.RunBasedAddressSpace.vtop
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.vtop
+rekall.plugins.addrspaces.amd64.XenParaVirtAMD64PagedMemory.vtop
+rekall.plugins.addrspaces.arm.ArmPagedMemory.vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemory.vtop
+rekall.plugins.addrspaces.lime.LimeAddressSpace.vtop
+rekall.plugins.addrspaces.mips.MIPS32PagedMemory.vtop
+rekall.plugins.windows.registry.registry.HiveAddressSpace.vtop
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.vtop" class="py-name" href="#" onclick="return doclink('link-41', 'vtop', 'link-35');">vtop</a></tt><tt class="py-op">(</tt><tt class="py-name">jiffies</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">jiffies</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-42', 'v', 'link-36');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-comment"># List of processes should also be pretty unique.</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">task</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-43', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-44', 'plugins', 'link-2');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Module rekall.plugins.linux.pslist=rekall.plugins.linux.pslist-module.html"><a title="rekall.plugins.linux.pslist" class="py-name" href="#" onclick="return doclink('link-45', 'pslist', 'link-45');">pslist</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Method rekall.plugins.darwin.common.DarwinProcessFilter.filter_processes()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#filter_processes,Method rekall.plugins.darwin.common.ProcessFilterMixin.filter_processes()=rekall.plugins.darwin.common.ProcessFilterMixin-class.html#filter_processes,Method rekall.plugins.linux.common.LinProcessFilter.filter_processes()=rekall.plugins.linux.common.LinProcessFilter-class.html#filter_processes,Method rekall.plugins.windows.common.WinProcessFilter.filter_processes()=rekall.plugins.windows.common.WinProcessFilter-class.html#filter_processes"><a title="rekall.plugins.darwin.common.DarwinProcessFilter.filter_processes
+rekall.plugins.darwin.common.ProcessFilterMixin.filter_processes
+rekall.plugins.linux.common.LinProcessFilter.filter_processes
+rekall.plugins.windows.common.WinProcessFilter.filter_processes" class="py-name" href="#" onclick="return doclink('link-46', 'filter_processes', 'link-46');">filter_processes</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt id="link-47" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-47', 'name', 'link-8');">name</a></tt> <tt class="py-op">=</tt> <tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-48" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-48', 'name', 'link-8');">name</a></tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Method rekall.obj.BaseObject.cast()=rekall.obj.BaseObject-class.html#cast"><a title="rekall.obj.BaseObject.cast" class="py-name" href="#" onclick="return doclink('link-49', 'cast', 'link-49');">cast</a></tt><tt class="py-op">(</tt><tt class="py-string">"String"</tt><tt class="py-op">,</tt> <tt id="link-50" class="py-name"><a title="rekall.addrspace.Run.length" class="py-name" href="#" onclick="return doclink('link-50', 'length', 'link-39');">length</a></tt><tt class="py-op">=</tt><tt class="py-number">30</tt><tt class="py-op">)</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt class="py-name">task_name_offset</tt> <tt class="py-op">=</tt> <tt id="link-51" class="py-name"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-51', 'address_space', 'link-29');">address_space</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.vtop
+rekall.addrspace.RunBasedAddressSpace.vtop
+rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.vtop
+rekall.plugins.addrspaces.amd64.XenParaVirtAMD64PagedMemory.vtop
+rekall.plugins.addrspaces.arm.ArmPagedMemory.vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemory.vtop
+rekall.plugins.addrspaces.lime.LimeAddressSpace.vtop
+rekall.plugins.addrspaces.mips.MIPS32PagedMemory.vtop
+rekall.plugins.windows.registry.registry.HiveAddressSpace.vtop
+rekall.plugins.windows.registry.registry.HiveFileAddressSpace.vtop" class="py-name" href="#" onclick="return doclink('link-52', 'vtop', 'link-35');">vtop</a></tt><tt class="py-op">(</tt><tt id="link-53" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-53', 'name', 'link-8');">name</a></tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-comment"># Read the raw data for the task name. Usually the task name is</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt class="py-comment"># encoded in utf8 but then we might not be able to compare it</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">            <tt class="py-comment"># exactly - we really want bytes here.</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">            <tt class="py-name">result</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-op">(</tt><tt class="py-name">task_name_offset</tt><tt class="py-op">,</tt> <tt id="link-54" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
+rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
+rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
+rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
+rekall.plugins.common.address_resolver.AddressResolverMixin.name
+rekall.plugins.common.inspection.MemoryTranslation.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
+rekall.plugins.darwin.checks.OIDInfo.name
+rekall.plugins.darwin.common.CatfishOffsetHook.name
+rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
+rekall.plugins.filesystems.ntfs.FLS.name
+rekall.plugins.filesystems.ntfs.FStat.name
+rekall.plugins.filesystems.ntfs.IDump.name
+rekall.plugins.filesystems.ntfs.IExport.name
+rekall.plugins.filesystems.ntfs.ILS.name
+rekall.plugins.filesystems.ntfs.IStat.name
+rekall.plugins.filesystems.ntfs.NTFSDetector.name
+rekall.plugins.guess_profile.DarwinIndexDetector.name
+rekall.plugins.guess_profile.DetectionMethod.name
+rekall.plugins.guess_profile.KernelASHook.name
+rekall.plugins.guess_profile.LinuxBannerDetector.name
+rekall.plugins.guess_profile.PEImageFileDetector.name
+rekall.plugins.guess_profile.ProfileHook.name
+rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
+rekall.plugins.guess_profile.WindowsRSDSDetector.name
+rekall.plugins.linux.common.LinuxFindKernelSlide.name
+rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
+rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
+rekall.plugins.overlays.linux.dwarfparser.DIETag.name
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
+rekall.plugins.overlays.linux.vfs.File.name
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name
+rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
+rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
+rekall.plugins.renderers.data_export.DataExportRenderer.name
+rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
+rekall.plugins.tools.ewf.EWFAcquire.name
+rekall.plugins.tools.ipython.InteractiveShell.name
+rekall.plugins.tools.ipython.PagingLimitHook.name
+rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
+rekall.plugins.tools.profile_tool.BuildProfileLocally.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
+rekall.plugins.windows.cache.DumpFiles.name
+rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
+rekall.plugins.windows.common.KDBGHook.name
+rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
+rekall.plugins.windows.common.PsLoadedModuleList.name
+rekall.plugins.windows.dns.WinDNSCache.name
+rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
+rekall.plugins.windows.gui.userhandles.Gahti.name
+rekall.plugins.windows.gui.userhandles.UserHandles.name
+rekall.plugins.windows.gui.userhandles.WinEventHooks.name
+rekall.plugins.windows.gui.userhandles.WinMessageHooks.name
+rekall.plugins.windows.gui.win32k_core.Win32kHook.name
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
+rekall.plugins.windows.heap_analysis.InspectHeap.name
+rekall.plugins.windows.heap_analysis.ShowAllocation.name
+rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
+rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
+rekall.plugins.windows.malware.apihooks.EATHooks.name
+rekall.plugins.windows.malware.apihooks.IATHooks.name
+rekall.plugins.windows.malware.apihooks.InlineHooks.name
+rekall.plugins.windows.malware.callbacks.Callbacks.name
+rekall.plugins.windows.malware.cmdhistory.Consoles.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
+rekall.plugins.windows.misc.ImageInfo.name
+rekall.plugins.windows.misc.ObjectTree.name
+rekall.plugins.windows.misc.Objects.name
+rekall.plugins.windows.misc.PoolTracker.name
+rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
+rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
+rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
+rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
+rekall.plugins.windows.registry.printkey.Services.name
+rekall.plugins.windows.registry.printkey.Users.name
+rekall.plugins.windows.registry.registry.Hives.name
+rekall.plugins.windows.ssdt.WinSSDT.name
+rekall.plugins.windows.taskmods.Threads.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
+rekall.ui.json_renderer.JsonRenderer.name
+rekall.ui.renderer.BaseRenderer.name
+rekall.ui.text.TestRenderer.name
+rekall.ui.text.TextColumn.name
+rekall.ui.text.TextRenderer.name
+rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-54', 'name', 'link-8');">name</a></tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-55', 'v', 'link-36');">v</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-name">hash</tt><tt class="py-op">=</tt><tt class="py-name">hashlib</tt><tt class="py-op">.</tt><tt class="py-name">sha1</tt><tt class="py-op">(</tt><tt class="py-name">unicode</tt><tt class="py-op">(</tt><tt class="py-name">result</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.encode()=rekall.ui.json_renderer.JsonRenderer-class.html#encode,Function rekall.yaml_utils.encode()=rekall.yaml_utils-module.html#encode"><a title="rekall.ui.json_renderer.JsonRenderer.encode
+rekall.yaml_utils.encode" class="py-name" href="#" onclick="return doclink('link-56', 'encode', 'link-56');">encode</a></tt><tt class="py-op">(</tt><tt class="py-string">"utf8"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">hexdigest</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">            <tt id="link-57" class="py-name" targets="Module rekall.plugins.common.tests=rekall.plugins.common.tests-module.html,Module rekall.plugins.linux.tests=rekall.plugins.linux.tests-module.html,Module rekall.plugins.renderers.tests=rekall.plugins.renderers.tests-module.html,Module rekall.plugins.tests=rekall.plugins.tests-module.html,Module rekall.plugins.tools.tests=rekall.plugins.tools.tests-module.html,Module rekall.plugins.windows.gui.tests=rekall.plugins.windows.gui.tests-module.html,Module rekall.plugins.windows.registry.tests=rekall.plugins.windows.registry.tests-module.html,Module rekall.plugins.windows.tests=rekall.plugins.windows.tests-module.html,Module rekall.tests=rekall.tests-module.html"><a title="rekall.plugins.common.tests
+rekall.plugins.linux.tests
+rekall.plugins.renderers.tests
+rekall.plugins.tests
+rekall.plugins.tools.tests
+rekall.plugins.windows.gui.tests
+rekall.plugins.windows.registry.tests
+rekall.plugins.windows.tests
+rekall.tests" class="py-name" href="#" onclick="return doclink('link-57', 'tests', 'link-57');">tests</a></tt><tt class="py-op">=</tt><tt class="py-name">result</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:37 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -1103,6 +1100,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="as_arrow"></a><span class="summary-sig-name">as_arrow</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.UnixTimeStamp-class.html">rekall.plugins.overlays.basic.UnixTimeStamp</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnixTimeStamp.as_arrow">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="as_datetime"></a><span class="summary-sig-name">as_datetime</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.plugins.overlays.basic.UnixTimeStamp-class.html">rekall.plugins.overlays.basic.UnixTimeStamp</a>)</em></td>
           <td align="right" valign="top">
@@ -1194,31 +1208,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="display_datetime"></a><span class="summary-sig-name">display_datetime</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">dt</span>,
-        <span class="summary-sig-arg">custom_tz</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Returns a string from a datetime according to the display TZ (or a 
-      custom one
+          <td><span class="summary-sig"><a name="display"></a><span class="summary-sig-name">display</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">custom_tz</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">utc_shift</span>=<span class="summary-sig-default">None</span>)</span>
       <em>(Inherited from <a href="rekall.plugins.overlays.basic.UnixTimeStamp-class.html">rekall.plugins.overlays.basic.UnixTimeStamp</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnixTimeStamp.display_datetime">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="get_text_renderer"></a><span class="summary-sig-name">get_text_renderer</span>(<span class="summary-sig-arg">self</span>)</span>
-      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.get_text_renderer">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#UnixTimeStamp.display">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1349,6 +1344,33 @@
     </td>
   </tr>
 </table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getproperties"></a><span class="summary-sig-name">getproperties</span>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Return all members that are intended to represent some data.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.getproperties">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
 <!-- ==================== CLASS VARIABLES ==================== -->
 <a name="section-ClassVariables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -1371,6 +1393,23 @@
     </td><td class="summary">
         <a name="obj_parent"></a><span class="summary-name">obj_parent</span> = <code title="&lt;No parent&gt;">&lt;No parent&gt;</code>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="obj_producers"></a><span class="summary-name">obj_producers</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="timeformat"></a><span class="summary-name">timeformat</span> = <code title="'YYYY-MM-DD HH:mm:ss'"><code class="variable-quote">'</code><code class="variable-string">YYYY-MM-DD HH:mm:ss</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.UnixTimeStamp-class.html">rekall.plugins.overlays.basic.UnixTimeStamp</a>)</em>
     </td>
   </tr>
 </table>
@@ -1460,9 +1499,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -1487,7 +1523,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:39 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:02 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

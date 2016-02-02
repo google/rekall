@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.darwin.yarascan</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.darwin-module.html">Package&nbsp;darwin</a> ::
+        Module&nbsp;yarascan
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.darwin.yarascan-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.darwin.yarascan-module.html">Module rekall.plugins.darwin.yarascan</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">1</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Module rekall.plugins.yarascanner=rekall.plugins.yarascanner-module.html"><a title="rekall.plugins.yarascanner" class="py-name" href="#" onclick="return doclink('link-2', 'yarascanner', 'link-2');">yarascanner</a></tt> </tt>
+<a name="L2"></a><tt class="py-lineno">2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-3" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-3', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-4', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name" targets="Package rekall.plugins.darwin=rekall.plugins.darwin-module.html,Package rekall.plugins.overlays.darwin=rekall.plugins.overlays.darwin-module.html,Module rekall.plugins.overlays.darwin.darwin=rekall.plugins.overlays.darwin.darwin-module.html,Module rekall.plugins.renderers.darwin=rekall.plugins.renderers.darwin-module.html"><a title="rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin
+rekall.plugins.renderers.darwin" class="py-name" href="#" onclick="return doclink('link-5', 'darwin', 'link-5');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-6" class="py-name" targets="Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-6', 'common', 'link-6');">common</a></tt> </tt>
+<a name="L3"></a><tt class="py-lineno">3</tt>  <tt class="py-line"> </tt>
+<a name="L4"></a><tt class="py-lineno">4</tt>  <tt class="py-line"> </tt>
+<a name="DarwinYaraScan"></a><div id="DarwinYaraScan-def"><a name="L5"></a><tt class="py-lineno">5</tt> <a class="py-toggle" href="#" id="DarwinYaraScan-toggle" onclick="return toggle('DarwinYaraScan');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.darwin.yarascan.DarwinYaraScan-class.html">DarwinYaraScan</a><tt class="py-op">(</tt><tt class="py-base-class">yarascanner</tt><tt class="py-op">.</tt><tt class="py-base-class">YaraScanMixin</tt><tt class="py-op">,</tt> <tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">DarwinProcessFilter</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinYaraScan-collapsed" style="display:none;" pad="+" indent="++++"></div><div id="DarwinYaraScan-expanded"><a name="L6"></a><tt class="py-lineno">6</tt>  <tt class="py-line">    <tt class="py-docstring">"""Scan using yara signatures."""</tt> </tt>
+</div><a name="L7"></a><tt class="py-lineno">7</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:36 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

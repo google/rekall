@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -67,11 +64,12 @@
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
 <area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="279,113,401,135"/>
-<area shape="rect" id="node7" href="rekall.plugins.linux.common.LinuxPlugin-class.html" title="common.LinuxPlugin" alt="" coords="184,166,304,189"/>
+<area shape="rect" id="node8" href="rekall.plugins.linux.common.LinuxPlugin-class.html" title="common.LinuxPlugin" alt="" coords="184,166,304,189"/>
 <area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html" title="common.AbstractLinuxCommandPlugin" alt="" coords="45,113,253,135"/>
-<area shape="rect" id="node6" href="rekall.plugins.linux.common.LinProcessFilter-class.html" title="common.LinProcessFilter" alt="" coords="173,219,315,242"/>
-<area shape="rect" id="node8" href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html" title="LinPas2Vas" alt="" coords="205,273,283,295"/>
+<area shape="rect" id="node6" href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html" title="common.AbstractLinuxCommandPlugin" alt="" coords="45,113,253,135"/>
+<area shape="rect" id="node5" href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html" title="common.pas2kas.Pas2VasMixin" alt="" coords="339,219,513,242"/>
+<area shape="rect" id="node9" href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html" title="LinPas2Vas" alt="" coords="295,273,373,295"/>
+<area shape="rect" id="node7" href="rekall.plugins.linux.common.LinProcessFilter-class.html" title="common.LinProcessFilter" alt="" coords="173,219,315,242"/>
 </map>
   <img src="class_hierarchy_for_linpas2vas.gif" alt='' usemap="#class_hierarchy_for_linpas2vas" ismap="ismap" class="graph-without-title" />
 </center>
@@ -120,12 +118,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">offsets</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Resolves a physical address to a vertial address.</td>
+      Resolves a physical address to a vertial address.
+      <em>(Inherited from <a href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html">rekall.plugins.common.pas2kas.Pas2VasMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.common.pas2kas-pysrc.html#Pas2VasMixin.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -139,48 +138,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="build_address_map"></a><span class="summary-sig-name">build_address_map</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">virtual_address_space</span>,
-        <span class="summary-sig-arg">pid</span>,
-        <span class="summary-sig-arg">task</span>)</span><br />
-      Given the virtual_address_space, build the address map.</td>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.build_address_map">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="get_virtual_address"></a><span class="summary-sig-name">get_virtual_address</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">physical_address</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.get_virtual_address">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -268,6 +230,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="get_virtual_address"></a><span class="summary-sig-name">get_virtual_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">physical_address</span>,
+        <span class="summary-sig-arg">tasks</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html">rekall.plugins.common.pas2kas.Pas2VasMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.pas2kas-pysrc.html#Pas2VasMixin.get_virtual_address">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="list_from_init_task"></a><span class="summary-sig-name">list_from_init_task</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span>
       <em>(Inherited from <a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a>)</em></td>
@@ -307,6 +288,24 @@
       <em>(Inherited from <a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.linux.common-pysrc.html#LinProcessFilter.list_tasks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render"></a><span class="summary-sig-name">render</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html">rekall.plugins.common.pas2kas.Pas2VasMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.pas2kas-pysrc.html#Pas2VasMixin.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -364,24 +363,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.pas2kas.LinPas2Vas-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args we need.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.args">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
       Return only the active commands based on config.
@@ -422,6 +403,24 @@
         <span class="summary-sig-arg">name</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html">rekall.plugins.common.pas2kas.Pas2VasMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.pas2kas-pysrc.html#Pas2VasMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -485,15 +484,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -501,15 +500,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -534,7 +533,23 @@ AnalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'pas2vas'"><code class="variable-quote">'</code><code class="variable-string">pas2vas</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugins.common.pas2kas.Pas2VasMixin-class.html">rekall.plugins.common.pas2kas.Pas2VasMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -547,14 +562,6 @@ AnalyzeStruct'&gt;,
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#name" class="summary-name">name</a>
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -572,102 +579,6 @@ AnalyzeStruct'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="args"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">args</span>(<span class="sig-arg">cls</span>,
-        <span class="sig-arg">parser</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.args">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Declare the command line args we need.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#args">plugin.Command.args</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="__init__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">offsets</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
-    <br /><em class="fname">(Constructor)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.__init__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Resolves a physical address to a vertial address.</p>
-  <p>Often a user might want to see which process maps a particular 
-  physical offset. In reality the same physical memory can be mapped into 
-  multiple processes (and the kernel) at the same time. Usually since the 
-  kernel memory is mapped into each process's address space, a single 
-  physical offset which is mapped into the kernel will also be mapped into 
-  each process.</p>
-  <p>The only way to tell if a physical page is mapped into a process is to
-  enumerate all process maps and then search them for the physical offset. 
-  This takes a fair bit of memory and effort to build so by default we 
-  store the maps in the session for quick reuse.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__init__
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="render"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.pas2kas-pysrc.html#LinPas2Vas.render">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Produce results on the renderer given.
-
-Each plugin should implement this method to produce output on the
-renderer. The framework will initialize the plugin and provide it with
-some kind of renderer to write output on. The plugin should not assume
-that the renderer is actually TextRenderer, only that the methods
-defined in the BaseRenderer exist.
-
-Args:
-  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
-
-</pre>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="ImplementationByClass"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -721,9 +632,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -748,7 +656,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:38 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:00 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

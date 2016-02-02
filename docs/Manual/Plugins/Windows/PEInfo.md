@@ -1,16 +1,19 @@
 ---
-layout: plugin
-title: peinfo
-abstract: |
-  Print information about a PE binary.
+abstract: Print information about a PE binary.
+args: {address-space: The address space to use., executable: If provided we create
+    an address space from this file., image-base: 'The base of the image. (type: SymbolAddress)
 
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
+class_name: PEInfo
 epydoc: rekall.plugins.windows.procinfo.PEInfo-class.html
-args:
-  image_base: 'The base of the image.'
-  executable: 'If provided we create an address space from this file.'
-  address_space: 'The address space to use.'
-  verbosity: 'Add more output.'
-
+layout: plugin
+module: rekall.plugins.windows.procinfo
+title: peinfo
 ---
 
 The **peinfo** plugin examines a PE file mapped into memory and displays a rich

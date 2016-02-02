@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -63,8 +60,8 @@
 <h1 class="epydoc">Class BaseYaraASScanner</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#BaseYaraASScanner">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_baseyaraas" name="class_hierarchy_for_baseyaraas">
-<area shape="rect" id="node1" href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html" title="BaseYaraASScanner" alt="" coords="5,59,128,82"/>
-<area shape="rect" id="node2" href="rekall.scan.BaseScanner-class.html" title="scan.BaseScanner" alt="" coords="11,6,121,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html" title="BaseYaraASScanner" alt="" coords="5,6,128,29"/>
+<area shape="rect" id="node2" href="rekall.scan.BaseScanner-class.html" title="scan.BaseScanner" alt="" coords="153,6,263,29"/>
 </map>
   <img src="class_hierarchy_for_baseyaraas.gif" alt='' usemap="#class_hierarchy_for_baseyaraas" ismap="ismap" class="graph-without-title" />
 </center>
@@ -94,7 +91,7 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.scan.BaseScanner-class.html" class="summary-name">top_level_class</a><br />
-      A more thorough scanner which checks every byte
+      A more thorough scanner which checks every byte.
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
   </tr>
@@ -135,8 +132,7 @@
           <td><span class="summary-sig"><a href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html#check_addr" class="summary-sig-name">check_addr</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">scan_offset</span>,
         <span class="summary-sig-arg">buffer_as</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Calls our constraints on the offset and returns if any contraints did
-not match.</td>
+      Check an address.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#BaseYaraASScanner.check_addr">source&nbsp;code</a></span>
             
@@ -235,10 +231,11 @@ not match.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+          <td><span class="summary-sig"><a name="ImplementationByClass"></a><span class="summary-sig-name">ImplementationByClass</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#BaseYaraASScanner.ImplementationByClass">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.ImplementationByClass">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -252,10 +249,11 @@ not match.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.yarascanner.BaseYaraASScanner-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+          <td><span class="summary-sig"><a name="ImplementationByName"></a><span class="summary-sig-name">ImplementationByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#BaseYaraASScanner.ImplementationByName">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.scan-pysrc.html#BaseScanner.ImplementationByName">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -292,13 +290,13 @@ not match.</td>
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.scan.BaseScanner-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseScanner': &lt;class 'rekall.scan.BaseScanner'&gt;,
- 'BaseYaraASScanner': &lt;class 'rekall.plugins.yarascanner.BaseYaraASSca\
-nner'&gt;,
  'CatfishScanner': &lt;class 'rekall.plugins.darwin.common.CatfishScanner\
 '&gt;,
  'CertScanner': &lt;class 'rekall.plugins.windows.dumpcerts.CertScanner'&gt;\
 ,
- 'ConfiguredPoolScanner': &lt;class 'rekall.plugins.collectors.windows.po\
+ 'ConsoleScanner': &lt;class 'rekall.plugins.windows.malware.cmdhistory.C\
+onsoleScanner'&gt;,
+ 'DiscontigScannerGroup': &lt;class 'rekall.scan.DiscontigScannerGroup'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseScanner</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
@@ -307,7 +305,15 @@ nner'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.yarascanner.BaseYaraASScanner'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.yarascanner.Ba<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.scan.BaseScanner-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.scan.BaseScanner'&gt;,
+        &lt;class 'rekall.scan.MultiStringScanner'&gt;,
+        &lt;class 'rekall.scan.PointerScanner'&gt;,
+        &lt;class 'rekall.scan.ScannerGroup'&gt;,
+        &lt;class 'rekall.scan.DiscontigScannerGroup'&gt;,
+        &lt;class 'rekall.plugins.hypervisors.VMCSScanner'&gt;,
+        &lt;class 'rekall.plugins.common.sigscan.SignatureScanner'&gt;,
+        &lt;class 'rekall.plugins.windows.common.WinDTBScanner'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.scan.BaseScanner'&gt;<code class="variable-op">, </code>&lt;<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.scan.BaseScanner-class.html">rekall.scan.BaseScanner</a>)</em>
     </td>
   </tr>
@@ -404,8 +410,10 @@ Args:
   </tr></table>
   
   <pre class="literalblock">
-Calls our constraints on the offset and returns if any contraints did
-not match.
+Check an address.
+
+This calls our constraints on the offset and returns if any contraints
+did not match.
 
 Args:
    offset: The offset to test (in self.address_space).
@@ -453,62 +461,11 @@ Returns:
   </dl>
 </td></tr></table>
 </div>
-<a name="ImplementationByClass"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">name</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#BaseYaraASScanner.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.scan.BaseScanner-class.html#ImplementationByClass">scan.BaseScanner.ImplementationByClass</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="ImplementationByName"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">name</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#BaseYaraASScanner.ImplementationByName">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.scan.BaseScanner-class.html#ImplementationByName">scan.BaseScanner.ImplementationByName</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -533,7 +490,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:58 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:21 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

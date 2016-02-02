@@ -1,14 +1,15 @@
 ---
-layout: plugin
-title: modscan
-abstract: |
-  Scan Physical memory for **_LDR_DATA_TABLE_ENTRY** objects.
+abstract: Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects.
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: ModScan
 epydoc: rekall.plugins.windows.modscan.ModScan-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.modscan
+title: modscan
 ---
 
 The modscan command finds LDR_DATA_TABLE_ENTRY structures by scanning physical

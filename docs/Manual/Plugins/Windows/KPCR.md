@@ -1,12 +1,11 @@
 ---
-layout: plugin
-title: kpcr
-abstract: |
-  A plugin to print all KPCR blocks.
-
+abstract: A plugin to print all KPCR blocks.
+args: {}
+class_name: KPCR
 epydoc: rekall.plugins.windows.kpcr.KPCR-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.kpcr
+title: kpcr
 ---
 
 Windows maintains per-processor information for each physical CPU in the

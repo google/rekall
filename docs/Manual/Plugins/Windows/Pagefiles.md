@@ -1,12 +1,10 @@
 ---
-layout: plugin
-title: pagefiles
-abstract: |
-  Report all the active pagefiles.
-
+abstract: Report all the active pagefiles.
+args: {}
+class_name: Pagefiles
 epydoc: rekall.plugins.windows.pagefile.Pagefiles-class.html
-args:
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.windows.pagefile
+title: pagefiles
 ---
 

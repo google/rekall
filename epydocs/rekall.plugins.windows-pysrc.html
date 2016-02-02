@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -63,8 +60,7 @@
 <a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># pylint: disable=unused-import</tt> </tt>
 <a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"> </tt>
 <a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.collectors.windows=rekall.plugins.collectors.windows-module.html,Package rekall.plugins.overlays.windows=rekall.plugins.overlays.windows-module.html,Module rekall.plugins.overlays.windows.windows=rekall.plugins.overlays.windows.windows-module.html,Module rekall.plugins.renderers.windows=rekall.plugins.renderers.windows-module.html,Package rekall.plugins.windows=rekall.plugins.windows-module.html,Method rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows()=rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html#windows"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.overlays.windows=rekall.plugins.overlays.windows-module.html,Module rekall.plugins.overlays.windows.windows=rekall.plugins.overlays.windows.windows-module.html,Module rekall.plugins.renderers.windows=rekall.plugins.renderers.windows-module.html,Package rekall.plugins.windows=rekall.plugins.windows-module.html,Method rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows()=rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html#windows"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
@@ -74,266 +70,242 @@ rekall.plugins.linux.address_resolver
 rekall.plugins.windows.address_resolver
 rekall.session.Session.address_resolver" class="py-name" href="#" onclick="return doclink('link-3', 'address_resolver', 'link-3');">address_resolver</a></tt> </tt>
 <a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-4', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-5', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-5', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-6', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Module rekall.plugins.windows.cache=rekall.plugins.windows.cache-module.html"><a title="rekall.plugins.windows.cache" class="py-name" href="#" onclick="return doclink('link-7', 'cache', 'link-7');">cache</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-6', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name" targets="Module rekall.cache=rekall.cache-module.html,Module rekall.plugins.windows.cache=rekall.plugins.windows.cache-module.html"><a title="rekall.cache
+rekall.plugins.windows.cache" class="py-name" href="#" onclick="return doclink('link-7', 'cache', 'link-7');">cache</a></tt> </tt>
 <a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-8" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-8', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-9" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-9', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-9', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-10', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-11" class="py-name" targets="Module rekall.plugins.collectors.darwin.common=rekall.plugins.collectors.darwin.common-module.html,Module rekall.plugins.collectors.windows.common=rekall.plugins.collectors.windows.common-module.html,Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.collectors.darwin.common
-rekall.plugins.collectors.windows.common
-rekall.plugins.common
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-10', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-11" class="py-name" targets="Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.common
 rekall.plugins.darwin.common
 rekall.plugins.linux.common
 rekall.plugins.overlays.windows.common
 rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-11', 'common', 'link-11');">common</a></tt> </tt>
 <a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-12" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-12', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-13', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-13', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-14', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-15" class="py-name" targets="Module rekall.plugins.windows.connections=rekall.plugins.windows.connections-module.html"><a title="rekall.plugins.windows.connections" class="py-name" href="#" onclick="return doclink('link-15', 'connections', 'link-15');">connections</a></tt> </tt>
 <a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-16" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-16', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-17', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-17', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-18', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-19" class="py-name" targets="Module rekall.plugins.windows.connscan=rekall.plugins.windows.connscan-module.html"><a title="rekall.plugins.windows.connscan" class="py-name" href="#" onclick="return doclink('link-19', 'connscan', 'link-19');">connscan</a></tt> </tt>
 <a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-20" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-20', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-21', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-21', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-22', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-23" class="py-name" targets="Module rekall.plugins.windows.crashinfo=rekall.plugins.windows.crashinfo-module.html"><a title="rekall.plugins.windows.crashinfo" class="py-name" href="#" onclick="return doclink('link-23', 'crashinfo', 'link-23');">crashinfo</a></tt> </tt>
 <a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-24" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-24', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-25', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-25', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-26', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-27" class="py-name" targets="Module rekall.plugins.windows.disassembler=rekall.plugins.windows.disassembler-module.html"><a title="rekall.plugins.windows.disassembler" class="py-name" href="#" onclick="return doclink('link-27', 'disassembler', 'link-27');">disassembler</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-26', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-27" class="py-name" targets="Module rekall.plugins.windows.dns=rekall.plugins.windows.dns-module.html"><a title="rekall.plugins.windows.dns" class="py-name" href="#" onclick="return doclink('link-27', 'dns', 'link-27');">dns</a></tt> </tt>
 <a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-28" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-28', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-29', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-29', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-30', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-31" class="py-name" targets="Module rekall.plugins.windows.dns=rekall.plugins.windows.dns-module.html"><a title="rekall.plugins.windows.dns" class="py-name" href="#" onclick="return doclink('link-31', 'dns', 'link-31');">dns</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-30', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-31" class="py-name" targets="Module rekall.plugins.windows.dumpcerts=rekall.plugins.windows.dumpcerts-module.html"><a title="rekall.plugins.windows.dumpcerts" class="py-name" href="#" onclick="return doclink('link-31', 'dumpcerts', 'link-31');">dumpcerts</a></tt> </tt>
 <a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-32" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-32', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-33', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-33', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-34', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-35" class="py-name" targets="Module rekall.plugins.windows.dumpcerts=rekall.plugins.windows.dumpcerts-module.html"><a title="rekall.plugins.windows.dumpcerts" class="py-name" href="#" onclick="return doclink('link-35', 'dumpcerts', 'link-35');">dumpcerts</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-34', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-35" class="py-name" targets="Module rekall.plugins.windows.filescan=rekall.plugins.windows.filescan-module.html"><a title="rekall.plugins.windows.filescan" class="py-name" href="#" onclick="return doclink('link-35', 'filescan', 'link-35');">filescan</a></tt> </tt>
 <a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-36" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-36', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-37', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-37', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-38', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-39" class="py-name" targets="Module rekall.plugins.windows.filescan=rekall.plugins.windows.filescan-module.html"><a title="rekall.plugins.windows.filescan" class="py-name" href="#" onclick="return doclink('link-39', 'filescan', 'link-39');">filescan</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-38', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-39" class="py-name" targets="Variable rekall.plugins.windows.filescan.PoolScanProcess.kernel=rekall.plugins.windows.filescan.PoolScanProcess-class.html#kernel,Module rekall.plugins.windows.kernel=rekall.plugins.windows.kernel-module.html"><a title="rekall.plugins.windows.filescan.PoolScanProcess.kernel
+rekall.plugins.windows.kernel" class="py-name" href="#" onclick="return doclink('link-39', 'kernel', 'link-39');">kernel</a></tt> </tt>
 <a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-40" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-40', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-41', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-41', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-42', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-43" class="py-name" targets="Variable rekall.plugins.windows.filescan.PoolScanProcess.kernel=rekall.plugins.windows.filescan.PoolScanProcess-class.html#kernel,Module rekall.plugins.windows.kernel=rekall.plugins.windows.kernel-module.html"><a title="rekall.plugins.windows.filescan.PoolScanProcess.kernel
-rekall.plugins.windows.kernel" class="py-name" href="#" onclick="return doclink('link-43', 'kernel', 'link-43');">kernel</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-42', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-43" class="py-name" targets="Package rekall.plugins.windows.gui=rekall.plugins.windows.gui-module.html"><a title="rekall.plugins.windows.gui" class="py-name" href="#" onclick="return doclink('link-43', 'gui', 'link-43');">gui</a></tt> </tt>
 <a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-44" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-44', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-45', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-45', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-46', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-47" class="py-name" targets="Package rekall.plugins.windows.gui=rekall.plugins.windows.gui-module.html"><a title="rekall.plugins.windows.gui" class="py-name" href="#" onclick="return doclink('link-47', 'gui', 'link-47');">gui</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-46', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-47" class="py-name" targets="Method rekall.plugins.windows.gui.userhandles.UserHandles.handles()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#handles,Module rekall.plugins.windows.handles=rekall.plugins.windows.handles-module.html"><a title="rekall.plugins.windows.gui.userhandles.UserHandles.handles
+rekall.plugins.windows.handles" class="py-name" href="#" onclick="return doclink('link-47', 'handles', 'link-47');">handles</a></tt> </tt>
 <a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-48" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-48', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-49" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-49', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-49', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-50', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-51" class="py-name" targets="Module rekall.plugins.collectors.darwin.handles=rekall.plugins.collectors.darwin.handles-module.html,Module rekall.plugins.collectors.windows.handles=rekall.plugins.collectors.windows.handles-module.html,Method rekall.plugins.windows.gui.userhandles.UserHandles.handles()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#handles,Module rekall.plugins.windows.handles=rekall.plugins.windows.handles-module.html"><a title="rekall.plugins.collectors.darwin.handles
-rekall.plugins.collectors.windows.handles
-rekall.plugins.windows.gui.userhandles.UserHandles.handles
-rekall.plugins.windows.handles" class="py-name" href="#" onclick="return doclink('link-51', 'handles', 'link-51');">handles</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-50', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-51" class="py-name" targets="Module rekall.plugins.windows.heap_analysis=rekall.plugins.windows.heap_analysis-module.html"><a title="rekall.plugins.windows.heap_analysis" class="py-name" href="#" onclick="return doclink('link-51', 'heap_analysis', 'link-51');">heap_analysis</a></tt> </tt>
 <a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-52" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-52', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-53', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-53', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-54', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-55" class="py-name" targets="Module rekall.plugins.windows.heap_analysis=rekall.plugins.windows.heap_analysis-module.html"><a title="rekall.plugins.windows.heap_analysis" class="py-name" href="#" onclick="return doclink('link-55', 'heap_analysis', 'link-55');">heap_analysis</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-54', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-55" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.index=rekall.plugins.common.profile_index.Index-class.html#index,Module rekall.plugins.windows.index=rekall.plugins.windows.index-module.html"><a title="rekall.plugins.common.profile_index.Index.index
+rekall.plugins.windows.index" class="py-name" href="#" onclick="return doclink('link-55', 'index', 'link-55');">index</a></tt> </tt>
 <a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-56" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-56', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-57', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-57', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-58', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-59" class="py-name" targets="Variable rekall.plugins.common.profile_index.Index.index=rekall.plugins.common.profile_index.Index-class.html#index,Module rekall.plugins.windows.index=rekall.plugins.windows.index-module.html,Method rekall.utils.SortedCollection.index()=rekall.utils.SortedCollection-class.html#index"><a title="rekall.plugins.common.profile_index.Index.index
-rekall.plugins.windows.index
-rekall.utils.SortedCollection.index" class="py-name" href="#" onclick="return doclink('link-59', 'index', 'link-59');">index</a></tt> </tt>
-<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-60" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-60', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-61', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
-rekall.plugins.overlays.windows.windows
-rekall.plugins.renderers.windows
-rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-62', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-63" class="py-name" targets="Module rekall.interactive=rekall.interactive-module.html,Variable rekall.plugin.Command.interactive=rekall.plugin.Command-class.html#interactive,Variable rekall.plugins.core.Lister.interactive=rekall.plugins.core.Lister-class.html#interactive,Variable rekall.plugins.core.LoadPlugins.interactive=rekall.plugins.core.LoadPlugins-class.html#interactive,Variable rekall.plugins.core.Printer.interactive=rekall.plugins.core.Printer-class.html#interactive,Variable rekall.plugins.tools.ipython.BaseSessionCommand.interactive=rekall.plugins.tools.ipython.BaseSessionCommand-class.html#interactive,Variable rekall.plugins.tools.ipython.SessionMod.interactive=rekall.plugins.tools.ipython.SessionMod-class.html#interactive,Package rekall.plugins.windows.interactive=rekall.plugins.windows.interactive-module.html,Variable rekall.plugins.windows.misc.SetProcessContext.interactive=rekall.plugins.windows.misc.SetProcessContext-class.html#interactive"><a title="rekall.interactive
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-58', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-59" class="py-name" targets="Module rekall.interactive=rekall.interactive-module.html,Variable rekall.plugin.Command.interactive=rekall.plugin.Command-class.html#interactive,Variable rekall.plugins.core.Lister.interactive=rekall.plugins.core.Lister-class.html#interactive,Variable rekall.plugins.core.LoadPlugins.interactive=rekall.plugins.core.LoadPlugins-class.html#interactive,Variable rekall.plugins.core.Printer.interactive=rekall.plugins.core.Printer-class.html#interactive,Variable rekall.plugins.core.SetProcessContextMixin.interactive=rekall.plugins.core.SetProcessContextMixin-class.html#interactive,Variable rekall.plugins.tools.ipython.BaseSessionCommand.interactive=rekall.plugins.tools.ipython.BaseSessionCommand-class.html#interactive,Variable rekall.plugins.tools.ipython.SessionMod.interactive=rekall.plugins.tools.ipython.SessionMod-class.html#interactive,Package rekall.plugins.windows.interactive=rekall.plugins.windows.interactive-module.html,Variable rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.interactive=rekall.plugins.windows.interactive.profiles.LoadWindowsProfile-class.html#interactive"><a title="rekall.interactive
 rekall.plugin.Command.interactive
 rekall.plugins.core.Lister.interactive
 rekall.plugins.core.LoadPlugins.interactive
 rekall.plugins.core.Printer.interactive
+rekall.plugins.core.SetProcessContextMixin.interactive
 rekall.plugins.tools.ipython.BaseSessionCommand.interactive
 rekall.plugins.tools.ipython.SessionMod.interactive
 rekall.plugins.windows.interactive
-rekall.plugins.windows.misc.SetProcessContext.interactive" class="py-name" href="#" onclick="return doclink('link-63', 'interactive', 'link-63');">interactive</a></tt> </tt>
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.interactive" class="py-name" href="#" onclick="return doclink('link-59', 'interactive', 'link-59');">interactive</a></tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-60" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-60', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-61', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="rekall.plugins.overlays.windows
+rekall.plugins.overlays.windows.windows
+rekall.plugins.renderers.windows
+rekall.plugins.windows
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-62', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-63" class="py-name" targets="Module rekall.plugins.windows.kdbgscan=rekall.plugins.windows.kdbgscan-module.html"><a title="rekall.plugins.windows.kdbgscan" class="py-name" href="#" onclick="return doclink('link-63', 'kdbgscan', 'link-63');">kdbgscan</a></tt> </tt>
 <a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-64" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-64', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-65" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-65', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-65', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-66', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-67" class="py-name" targets="Module rekall.plugins.windows.kdbgscan=rekall.plugins.windows.kdbgscan-module.html"><a title="rekall.plugins.windows.kdbgscan" class="py-name" href="#" onclick="return doclink('link-67', 'kdbgscan', 'link-67');">kdbgscan</a></tt> </tt>
-<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-68" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-68', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-69', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-66', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-67" class="py-name" targets="Module rekall.plugins.windows.kpcr=rekall.plugins.windows.kpcr-module.html,Method rekall.plugins.windows.kpcr.KPCR.kpcr()=rekall.plugins.windows.kpcr.KPCR-class.html#kpcr"><a title="rekall.plugins.windows.kpcr
+rekall.plugins.windows.kpcr.KPCR.kpcr" class="py-name" href="#" onclick="return doclink('link-67', 'kpcr', 'link-67');">kpcr</a></tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-68" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-68', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-69', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-70', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-71" class="py-name" targets="Module rekall.plugins.windows.kpcr=rekall.plugins.windows.kpcr-module.html,Method rekall.plugins.windows.kpcr.KPCR.kpcr()=rekall.plugins.windows.kpcr.KPCR-class.html#kpcr"><a title="rekall.plugins.windows.kpcr
-rekall.plugins.windows.kpcr.KPCR.kpcr" class="py-name" href="#" onclick="return doclink('link-71', 'kpcr', 'link-71');">kpcr</a></tt> </tt>
-<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-70', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-71" class="py-name" targets="Package rekall.plugins.windows.malware=rekall.plugins.windows.malware-module.html"><a title="rekall.plugins.windows.malware" class="py-name" href="#" onclick="return doclink('link-71', 'malware', 'link-71');">malware</a></tt> </tt>
 <a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-72" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-72', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-73" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-73', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-73', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-74', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-75" class="py-name" targets="Package rekall.plugins.windows.malware=rekall.plugins.windows.malware-module.html"><a title="rekall.plugins.windows.malware" class="py-name" href="#" onclick="return doclink('link-75', 'malware', 'link-75');">malware</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-74', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-75" class="py-name" targets="Module rekall.plugins.windows.mimikatz=rekall.plugins.windows.mimikatz-module.html"><a title="rekall.plugins.windows.mimikatz" class="py-name" href="#" onclick="return doclink('link-75', 'mimikatz', 'link-75');">mimikatz</a></tt> </tt>
 <a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-76" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-76', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-77" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-77', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-77', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-78', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-79" class="py-name" targets="Module rekall.plugins.darwin.misc=rekall.plugins.darwin.misc-module.html,Module rekall.plugins.windows.misc=rekall.plugins.windows.misc-module.html"><a title="rekall.plugins.darwin.misc
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-78', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-79" class="py-name" targets="Module rekall.plugins.darwin.misc=rekall.plugins.darwin.misc-module.html,Module rekall.plugins.linux.misc=rekall.plugins.linux.misc-module.html,Module rekall.plugins.windows.misc=rekall.plugins.windows.misc-module.html"><a title="rekall.plugins.darwin.misc
+rekall.plugins.linux.misc
 rekall.plugins.windows.misc" class="py-name" href="#" onclick="return doclink('link-79', 'misc', 'link-79');">misc</a></tt> </tt>
 <a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-80" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-80', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-81', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-81', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-82', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-83" class="py-name" targets="Module rekall.plugins.windows.modscan=rekall.plugins.windows.modscan-module.html"><a title="rekall.plugins.windows.modscan" class="py-name" href="#" onclick="return doclink('link-83', 'modscan', 'link-83');">modscan</a></tt> </tt>
 <a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-84" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-84', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-85" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-85', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-86" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-85', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-86" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-86', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-87" class="py-name" targets="Module rekall.plugins.windows.modules=rekall.plugins.windows.modules-module.html"><a title="rekall.plugins.windows.modules" class="py-name" href="#" onclick="return doclink('link-87', 'modules', 'link-87');">modules</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-86', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-87" class="py-name" targets="Method rekall.plugins.common.address_resolver.AddressResolverMixin.modules()=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#modules,Module rekall.plugins.windows.modules=rekall.plugins.windows.modules-module.html"><a title="rekall.plugins.common.address_resolver.AddressResolverMixin.modules
+rekall.plugins.windows.modules" class="py-name" href="#" onclick="return doclink('link-87', 'modules', 'link-87');">modules</a></tt> </tt>
 <a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-88" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-88', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-89" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-89', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-90" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-89', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-90" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-90', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-91" class="py-name" targets="Module rekall.plugins.windows.netscan=rekall.plugins.windows.netscan-module.html"><a title="rekall.plugins.windows.netscan" class="py-name" href="#" onclick="return doclink('link-91', 'netscan', 'link-91');">netscan</a></tt> </tt>
 <a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-92" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-92', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-93" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-93', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-93', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-94" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-94', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-95" class="py-name" targets="Module rekall.plugins.windows.network=rekall.plugins.windows.network-module.html"><a title="rekall.plugins.windows.network" class="py-name" href="#" onclick="return doclink('link-95', 'network', 'link-95');">network</a></tt> </tt>
 <a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-96" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-96', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-97" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-97', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-97', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
 rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-98', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-99" class="py-name" targets="Module rekall.plugins.addrspaces.pagefile=rekall.plugins.addrspaces.pagefile-module.html,Module rekall.plugins.windows.pagefile=rekall.plugins.windows.pagefile-module.html"><a title="rekall.plugins.addrspaces.pagefile
 rekall.plugins.windows.pagefile" class="py-name" href="#" onclick="return doclink('link-99', 'pagefile', 'link-99');">pagefile</a></tt> </tt>
 <a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-100" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-100', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-101" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-101', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-102" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-101', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-102" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-102', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-103" class="py-name" targets="Module rekall.plugins.linux.pas2kas=rekall.plugins.linux.pas2kas-module.html,Module rekall.plugins.windows.pas2kas=rekall.plugins.windows.pas2kas-module.html"><a title="rekall.plugins.linux.pas2kas
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-102', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-103" class="py-name" targets="Module rekall.plugins.common.pas2kas=rekall.plugins.common.pas2kas-module.html,Module rekall.plugins.darwin.pas2kas=rekall.plugins.darwin.pas2kas-module.html,Module rekall.plugins.linux.pas2kas=rekall.plugins.linux.pas2kas-module.html,Module rekall.plugins.windows.pas2kas=rekall.plugins.windows.pas2kas-module.html"><a title="rekall.plugins.common.pas2kas
+rekall.plugins.darwin.pas2kas
+rekall.plugins.linux.pas2kas
 rekall.plugins.windows.pas2kas" class="py-name" href="#" onclick="return doclink('link-103', 'pas2kas', 'link-103');">pas2kas</a></tt> </tt>
 <a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-104" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-104', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-105" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-105', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-106" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-105', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-106" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-106', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-107" class="py-name" targets="Module rekall.plugins.windows.pfn=rekall.plugins.windows.pfn-module.html"><a title="rekall.plugins.windows.pfn" class="py-name" href="#" onclick="return doclink('link-107', 'pfn', 'link-107');">pfn</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-106', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-107" class="py-name" targets="Module rekall.plugins.common.pfn=rekall.plugins.common.pfn-module.html,Module rekall.plugins.darwin.pfn=rekall.plugins.darwin.pfn-module.html,Module rekall.plugins.windows.pfn=rekall.plugins.windows.pfn-module.html"><a title="rekall.plugins.common.pfn
+rekall.plugins.darwin.pfn
+rekall.plugins.windows.pfn" class="py-name" href="#" onclick="return doclink('link-107', 'pfn', 'link-107');">pfn</a></tt> </tt>
 <a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-108" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-108', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-109" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-109', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-109', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-110" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-110', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-111" class="py-name" targets="Module rekall.plugins.windows.procdump=rekall.plugins.windows.procdump-module.html"><a title="rekall.plugins.windows.procdump" class="py-name" href="#" onclick="return doclink('link-111', 'procdump', 'link-111');">procdump</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-110', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-111" class="py-name" targets="Module rekall.plugins.windows.privileges=rekall.plugins.windows.privileges-module.html"><a title="rekall.plugins.windows.privileges" class="py-name" href="#" onclick="return doclink('link-111', 'privileges', 'link-111');">privileges</a></tt> </tt>
 <a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-112" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-112', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-113" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-113', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-114" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-113', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-114" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-114', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-115" class="py-name" targets="Module rekall.plugins.windows.procinfo=rekall.plugins.windows.procinfo-module.html"><a title="rekall.plugins.windows.procinfo" class="py-name" href="#" onclick="return doclink('link-115', 'procinfo', 'link-115');">procinfo</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-114', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-115" class="py-name" targets="Module rekall.plugins.windows.procdump=rekall.plugins.windows.procdump-module.html"><a title="rekall.plugins.windows.procdump" class="py-name" href="#" onclick="return doclink('link-115', 'procdump', 'link-115');">procdump</a></tt> </tt>
 <a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-116" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-116', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-117" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-117', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-118" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-117', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-118" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-118', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-119" class="py-name" targets="Module rekall.plugins.linux.pstree=rekall.plugins.linux.pstree-module.html,Module rekall.plugins.windows.pstree=rekall.plugins.windows.pstree-module.html"><a title="rekall.plugins.linux.pstree
-rekall.plugins.windows.pstree" class="py-name" href="#" onclick="return doclink('link-119', 'pstree', 'link-119');">pstree</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-118', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-119" class="py-name" targets="Module rekall.plugins.windows.procinfo=rekall.plugins.windows.procinfo-module.html"><a title="rekall.plugins.windows.procinfo" class="py-name" href="#" onclick="return doclink('link-119', 'procinfo', 'link-119');">procinfo</a></tt> </tt>
 <a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-120" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-120', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-121" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-121', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-122" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-121', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-122" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-122', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-123" class="py-name" targets="Package rekall.plugins.windows.registry=rekall.plugins.windows.registry-module.html,Module rekall.plugins.windows.registry.registry=rekall.plugins.windows.registry.registry-module.html,Module rekall.registry=rekall.registry-module.html"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-122', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-123" class="py-name" targets="Module rekall.plugins.linux.pstree=rekall.plugins.linux.pstree-module.html,Module rekall.plugins.windows.pstree=rekall.plugins.windows.pstree-module.html"><a title="rekall.plugins.linux.pstree
+rekall.plugins.windows.pstree" class="py-name" href="#" onclick="return doclink('link-123', 'pstree', 'link-123');">pstree</a></tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-124" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-124', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-125" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-125', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-126" class="py-name"><a title="rekall.plugins.overlays.windows
+rekall.plugins.overlays.windows.windows
+rekall.plugins.renderers.windows
+rekall.plugins.windows
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-126', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-127" class="py-name" targets="Package rekall.plugins.windows.registry=rekall.plugins.windows.registry-module.html,Module rekall.plugins.windows.registry.registry=rekall.plugins.windows.registry.registry-module.html,Module rekall.registry=rekall.registry-module.html"><a title="rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
-rekall.registry" class="py-name" href="#" onclick="return doclink('link-123', 'registry', 'link-123');">registry</a></tt> </tt>
-<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line"><tt class="py-comment">#from rekall.plugins.windows import sockscan</tt> </tt>
-<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-124" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-124', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-125" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-125', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-126" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
-rekall.plugins.overlays.windows.windows
-rekall.plugins.renderers.windows
-rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-126', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-127" class="py-name" targets="Module rekall.plugins.windows.ssdt=rekall.plugins.windows.ssdt-module.html"><a title="rekall.plugins.windows.ssdt" class="py-name" href="#" onclick="return doclink('link-127', 'ssdt', 'link-127');">ssdt</a></tt> </tt>
+rekall.registry" class="py-name" href="#" onclick="return doclink('link-127', 'registry', 'link-127');">registry</a></tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"><tt class="py-comment">#from rekall.plugins.windows import sockscan</tt> </tt>
 <a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-128" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-128', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-129" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-129', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-130" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-129', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-130" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-130', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-131" class="py-name" targets="Module rekall.plugins.windows.taskmods=rekall.plugins.windows.taskmods-module.html"><a title="rekall.plugins.windows.taskmods" class="py-name" href="#" onclick="return doclink('link-131', 'taskmods', 'link-131');">taskmods</a></tt> </tt>
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-130', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-131" class="py-name" targets="Module rekall.plugins.windows.ssdt=rekall.plugins.windows.ssdt-module.html"><a title="rekall.plugins.windows.ssdt" class="py-name" href="#" onclick="return doclink('link-131', 'ssdt', 'link-131');">ssdt</a></tt> </tt>
 <a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-132" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-132', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-133" class="py-name"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-133', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-134" class="py-name"><a title="rekall.plugins.collectors.windows
-rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-133', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-134" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-134', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-135" class="py-name" targets="Module rekall.plugins.windows.vadinfo=rekall.plugins.windows.vadinfo-module.html"><a title="rekall.plugins.windows.vadinfo" class="py-name" href="#" onclick="return doclink('link-135', 'vadinfo', 'link-135');">vadinfo</a></tt> </tt>
-<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-134', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-135" class="py-name" targets="Module rekall.plugins.windows.taskmods=rekall.plugins.windows.taskmods-module.html"><a title="rekall.plugins.windows.taskmods" class="py-name" href="#" onclick="return doclink('link-135', 'taskmods', 'link-135');">taskmods</a></tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-136" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-136', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-137" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-137', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-138" class="py-name"><a title="rekall.plugins.overlays.windows
+rekall.plugins.overlays.windows.windows
+rekall.plugins.renderers.windows
+rekall.plugins.windows
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-138', 'windows', 'link-2');">windows</a></tt> <tt class="py-keyword">import</tt> <tt id="link-139" class="py-name" targets="Module rekall.plugins.windows.vadinfo=rekall.plugins.windows.vadinfo-module.html"><a title="rekall.plugins.windows.vadinfo" class="py-name" href="#" onclick="return doclink('link-139', 'vadinfo', 'link-139');">vadinfo</a></tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -344,9 +316,6 @@ expandto(location.href);
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -371,7 +340,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:01 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:32 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -342,6 +339,26 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.renderer.ObjectRenderer-class.html#ForType" class="summary-sig-name">ForType</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">target_type</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Get the best ObjectRenderer to encode this target type.
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.ForType">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="FromEncoded"></a><span class="summary-sig-name">FromEncoded</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">item</span>,
         <span class="summary-sig-arg">renderer</span>)</span><br />
@@ -418,10 +435,29 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#cache_key" class="summary-sig-name">cache_key</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">item</span>)</span><br />
-      Return a suitable cache key.
+      Get the decoding cache key from the json safe encoding.
       <em>(Inherited from <a href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html">rekall.ui.json_renderer.StateBasedObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#StateBasedObjectRenderer.cache_key">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="cache_key_from_object"></a><span class="summary-sig-name">cache_key_from_object</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      Get the cache key from the object.
+      <em>(Inherited from <a href="rekall.ui.json_renderer.JsonObjectRenderer-class.html">rekall.ui.json_renderer.JsonObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#JsonObjectRenderer.cache_key_from_object">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -438,6 +474,25 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Static Methods</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GetImplementationFromMRO"></a><span class="summary-sig-name">GetImplementationFromMRO</span>(<span class="summary-sig-arg">base_class</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Get the class referred to by the head of the value's MRO.
+      <em>(Inherited from <a href="rekall.ui.json_renderer.JsonObjectRenderer-class.html">rekall.ui.json_renderer.JsonObjectRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#JsonObjectRenderer.GetImplementationFromMRO">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -482,8 +537,8 @@ ArrayObjectRenderer'&gt;,
 storage.AttributeDictObjectRenderer'&gt;,
  'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
 nderer'&gt;,
- 'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.ui.json_renderer.Bas\
-eAddressSpaceObjectRenderer'&gt;,
+ 'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.plugins.renderers.js\
+on_storage.BaseAddressSpaceObjectRenderer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -492,8 +547,15 @@ eAddressSpaceObjectRenderer'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.webconsole.runplugin.WebConsoleObj\
-ectRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.ui.renderer.ObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.JsonObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.StateBasedObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.StringRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.BaseObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.json_renderer.JSTreeNodeRenderer'&gt;,
+        &lt;class 'rekall.ui.text.TextObjectRenderer'&gt;,
+        &lt;class 'rekall.ui.text.AttributedStringRenderer'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.ui.renderer.ObjectRen<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
   </tr>
@@ -633,9 +695,6 @@ Returns:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -660,7 +719,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:45 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:08 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

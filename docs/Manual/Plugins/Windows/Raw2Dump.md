@@ -1,14 +1,39 @@
 ---
-layout: plugin
-title: raw2dmp
-abstract: |
-  Convert the physical address space to a crash dump.
+abstract: "Convert the physical address space to a crash dump.\n\n    The Windows\
+  \ debugger (Windbg) works only with memory dumps stored\n    in the proprietary\
+  \ 'crashdump' file format. This file format\n    contains the following features:\n\
+  \n    1) Physical memory ranges are stored in a sparse way - there is a\n      \
+  \ 'Runs' table which specifies the mapping between the physical\n       offset and\
+  \ the file offset of each page. This allows the format\n       to omit unmapped\
+  \ regions (unlike raw format which must pad them\n       with zero to maintain alignment).\n\
+  \n    2) The crash dump header contains metadata about the\n       image. Specifically,\
+  \ the header contain a copy of the Kernel\n       Debugger Data Block (AKA the KDBG).\
+  \ This data is used to\n       bootstrap the windows debugger by providing critical\
+  \ initial\n       hints to the debugger.\n\n    Since the KDBG block is created\
+  \ at system boot and never used\n    (until the crash dump is written) it is trivial\
+  \ for malware to\n    overwrite it - making it really hard for responders since\
+  \ windbg\n    will not be able to read the file. In later versions of windows,\n\
+  \    the kdbg is also obfuscated (See the function \"nt!KdCopyDataBlock\"\n    which\
+  \ decrypts it.).\n\n    Rekall itself does not use the KDBG block any more, although\
+  \ older\n    memory forensic tools still do use it. Rekall instead relies on\n \
+  \   accurate debugging symbols to locate critical kernel data\n    structures, reducing\
+  \ the level of trust we place on the image\n    itself (so Rekall is more resilient\
+  \ to manipulation).\n\n    In order to ensure that the windows debugger is able\
+  \ to read the\n    produced crash dump, we recreate the kernel debugger block from\n\
+  \    the symbol information we already have.\n\n    NOTE: The crashdump file format\
+  \ can be deduced by:\n\n    dis 'nt!IoFillDumpHeader'\n\n    This is the reference\
+  \ for this plugin.\n    "
+args: {destination: The destination path to write the crash dump., rebuild: 'Rebuild
+    the KDBG data block. (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: Raw2Dump
 epydoc: rekall.plugins.windows.crashinfo.Raw2Dump-class.html
-args:
-  destination: 'The destination path to write the crash dump.'
-  rebuild: 'Rebuild the KDBG data block.'
-
+layout: plugin
+module: rekall.plugins.windows.crashinfo
+title: raw2dmp
 ---
 
 The Windows debugger (Windbg) works only with memory dumps stored

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -67,23 +64,20 @@
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
 <area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="279,113,401,135"/>
-<area shape="rect" id="node9" href="rekall.plugins.linux.common.LinuxPlugin-class.html" title="common.LinuxPlugin" alt="" coords="184,166,304,189"/>
+<area shape="rect" id="node10" href="rekall.plugins.linux.common.LinuxPlugin-class.html" title="common.LinuxPlugin" alt="" coords="184,166,304,189"/>
 <area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
-<area shape="rect" id="node7" href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html" title="common.AbstractLinuxCommandPlugin" alt="" coords="45,113,253,135"/>
-<area shape="rect" id="node5" href="rekall.plugins.core.DirectoryDumperMixin-class.html" title="core.DirectoryDumperMixin" alt="" coords="385,273,537,295"/>
-<area shape="rect" id="node10" href="rekall.plugins.linux.pslist.LinMemDump-class.html" title="LinMemDump" alt="" coords="346,326,435,349"/>
-<area shape="rect" id="node6" href="rekall.plugins.core.MemmapMixIn-class.html" title="core.MemmapMixIn" alt="" coords="339,219,455,242"/>
-<area shape="rect" id="node11" href="rekall.plugins.linux.pslist.LinMemMap-class.html" title="LinMemMap" alt="" coords="279,273,360,295"/>
-<area shape="rect" id="node8" href="rekall.plugins.linux.common.LinProcessFilter-class.html" title="common.LinProcessFilter" alt="" coords="173,219,315,242"/>
+<area shape="rect" id="node8" href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html" title="common.AbstractLinuxCommandPlugin" alt="" coords="45,113,253,135"/>
+<area shape="rect" id="node5" href="rekall.plugins.common.memmap.MemDumpMixin-class.html" title="common.memmap.MemDumpMixin" alt="" coords="339,219,529,242"/>
+<area shape="rect" id="node11" href="rekall.plugins.linux.pslist.LinMemDump-class.html" title="LinMemDump" alt="" coords="294,273,383,295"/>
+<area shape="rect" id="node6" href="rekall.plugins.common.memmap.MemmapMixIn-class.html" title="common.memmap.MemmapMixIn" alt="" coords="335,166,519,189"/>
+<area shape="rect" id="node7" href="rekall.plugins.core.DirectoryDumperMixin-class.html" title="core.DirectoryDumperMixin" alt="" coords="543,166,695,189"/>
+<area shape="rect" id="node9" href="rekall.plugins.linux.common.LinProcessFilter-class.html" title="common.LinProcessFilter" alt="" coords="173,219,315,242"/>
 </map>
   <img src="class_hierarchy_for_linmemdump.gif" alt='' usemap="#class_hierarchy_for_linmemdump" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
 <p>Dump the addressable memory for a process.</p>
-  <p>This plugin traverses the page tables and dumps all accessible memory 
-  for the task. Note that this excludes kernel memory even though it is 
-  mapped into the task.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -126,60 +120,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="dump_process"></a><span class="summary-sig-name">dump_process</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">task</span>,
-        <span class="summary-sig-arg">fd</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pslist-pysrc.html#LinMemDump.dump_process">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="write_index"></a><span class="summary-sig-name">write_index</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>,
-        <span class="summary-sig-arg">maps</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pslist-pysrc.html#LinMemDump.write_index">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.pslist.LinMemDump-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.pslist-pysrc.html#LinMemDump.render">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.core.DirectoryDumperMixin-class.html#CopyToFile" class="summary-sig-name">CopyToFile</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">address_space</span>,
         <span class="summary-sig-arg">start</span>,
@@ -202,11 +142,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.core.MemmapMixIn-class.html#HighestAddress" class="summary-sig-name">HighestAddress</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Returns the highest process address to display.
-      <em>(Inherited from <a href="rekall.plugins.core.MemmapMixIn-class.html">rekall.plugins.core.MemmapMixIn</a>)</em></td>
+          <td><span class="summary-sig"><a href="rekall.plugins.core.DirectoryDumperMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args_</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Dump to a directory.
+      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#MemmapMixIn.HighestAddress">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -220,13 +162,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.core.DirectoryDumperMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args_</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Dump to a directory.
-      <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -281,6 +221,26 @@
       <em>(Inherited from <a href="rekall.plugins.core.DirectoryDumperMixin-class.html">rekall.plugins.core.DirectoryDumperMixin</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.core-pysrc.html#DirectoryDumperMixin.check_dump_dir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="dump_process"></a><span class="summary-sig-name">dump_process</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">eprocess</span>,
+        <span class="summary-sig-arg">fd</span>,
+        <span class="summary-sig-arg">index_fd</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.memmap.MemDumpMixin-class.html">rekall.plugins.common.memmap.MemDumpMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.memmap-pysrc.html#MemDumpMixin.dump_process">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -371,6 +331,24 @@
       <em>(Inherited from <a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.linux.common-pysrc.html#LinProcessFilter.list_tasks">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.memmap.MemDumpMixin-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.common.memmap.MemDumpMixin-class.html">rekall.plugins.common.memmap.MemDumpMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.memmap-pysrc.html#MemDumpMixin.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -550,15 +528,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -566,15 +544,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -615,7 +593,23 @@ AnalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'memdump'"><code class="variable-quote">'</code><code class="variable-string">memdump</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugins.common.memmap.MemDumpMixin-class.html">rekall.plugins.common.memmap.MemDumpMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -628,14 +622,6 @@ AnalyzeStruct'&gt;,
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#name" class="summary-name">name</a>
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -653,42 +639,6 @@ AnalyzeStruct'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="render"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.pslist-pysrc.html#LinMemDump.render">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Produce results on the renderer given.
-
-Each plugin should implement this method to produce output on the
-renderer. The framework will initialize the plugin and provide it with
-some kind of renderer to write output on. The plugin should not assume
-that the renderer is actually TextRenderer, only that the methods
-defined in the BaseRenderer exist.
-
-Args:
-  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
-
-</pre>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="ImplementationByClass"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -742,9 +692,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -769,7 +716,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:38 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:01 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

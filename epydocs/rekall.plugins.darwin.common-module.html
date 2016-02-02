@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -77,6 +74,54 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html" class="summary-name">DarwinOnlyMixin</a><br />
+      Every Darwin-only plugin or hook will have this mixin in their MRO.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.AbstractDarwinParameterHook-class.html" class="summary-name">AbstractDarwinParameterHook</a><br />
+      Base class for session parameter hooks on Darwin.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.AbstractDarwinCommand-class.html" class="summary-name">AbstractDarwinCommand</a><br />
+      Base class for Darwin profile commands.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.AbstractDarwinTypedCommand-class.html" class="summary-name">AbstractDarwinTypedCommand</a><br />
+      Base class for Darwin commands with typed output.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.AbstractDarwinProducer-class.html" class="summary-name">AbstractDarwinProducer</a><br />
+      Base class for Darwin producers using the physical AS.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.AbstractDarwinCachedProducer-class.html" class="summary-name">AbstractDarwinCachedProducer</a><br />
+      Base class for Darwin producers backed by a session param hook.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.plugins.darwin.common.KernelSlideHook-class.html" class="summary-name">KernelSlideHook</a><br />
       Find the kernel slide if needed.
     </td>
@@ -108,14 +153,6 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html" class="summary-name">AbstractDarwinCommandPlugin</a><br />
-      A base class for all darwin based plugins.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
         <a href="rekall.plugins.darwin.common.DarwinFindKASLR-class.html" class="summary-name">DarwinFindKASLR</a><br />
       A scanner for KASLR slide values in the Darwin kernel.
     </td>
@@ -132,8 +169,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.darwin.common.DarwinPlugin-class.html" class="summary-name">DarwinPlugin</a><br />
-      Plugin which requires the kernel Address space to be loaded.
+        <a href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html" class="summary-name">ProcessFilterMixin</a><br />
+      Adds methods and arguments that enable easy fitlering by process.
     </td>
   </tr>
 <tr>
@@ -141,7 +178,7 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html" class="summary-name">DarwinProcessFilter</a><br />
-      A class for filtering processes.
+      DEPRECATED: A class for filtering processes.
     </td>
   </tr>
 <tr>
@@ -235,9 +272,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -262,7 +296,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

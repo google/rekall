@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -68,13 +65,32 @@
 <area shape="rect" id="node1" href="rekall.obj.BaseAddressComparisonMixIn-class.html" title="obj.BaseAddressComparisonMixIn" alt="" coords="5,6,189,29"/>
 <area shape="rect" id="node3" href="rekall.obj.Struct-class.html" title="obj.Struct" alt="" coords="145,59,212,82"/>
 <area shape="rect" id="node2" href="rekall.obj.BaseObject-class.html" title="obj.BaseObject" alt="" coords="215,6,308,29"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html" title="LIST_ENTRY" alt="" coords="135,113,223,135"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html" title="queue_entry" alt="" coords="137,166,219,189"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html" title="queue_entry" alt="" coords="188,113,269,135"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.basic.ListMixIn-class.html" title="basic.ListMixIn" alt="" coords="236,59,327,82"/>
 </map>
   <img src="class_hierarchy_for_queue_entr.gif" alt='' usemap="#class_hierarchy_for_queue_entr" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
+<pre class="literalblock">
+A queue_entry is an externalized linked list.
+
+Although the queue_entry is defined as:
+
+struct queue_entry {
+    struct queue_entry      *next;          /* next element */
+    struct queue_entry      *prev;          /* previous element */
+};
+
+This is in fact not correct since the next, and prev pointers
+point to the start of the next struct. A queue_entry has a queue
+head which is also a queue entry and this can eb iterated over
+using the list_of_type method.
+
+NOTE: list_of_type should only be called on the head queue_entry.
+
+</pre>
+
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -101,6 +117,24 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Instance Methods</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.darwin.darwin.queue_entry-class.html#list_of_type" class="summary-sig-name">list_of_type</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type</span>,
+        <span class="summary-sig-arg">member</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#queue_entry.list_of_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -331,9 +365,9 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="__iter__"></a><span class="summary-sig-name">__iter__</span>(<span class="summary-sig-arg">self</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.__iter__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -352,6 +386,23 @@
       <em>(Inherited from <a href="rekall.obj.BaseAddressComparisonMixIn-class.html">rekall.obj.BaseAddressComparisonMixIn</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#BaseAddressComparisonMixIn.__le__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__long__"></a><span class="summary-sig-name">__long__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.__long__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -401,11 +452,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html#__nonzero__" class="summary-sig-name">__nonzero__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      This method is called when we test the truth value of an Object.
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
+          <td><span class="summary-sig"><a name="__nonzero__"></a><span class="summary-sig-name">__nonzero__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.__nonzero__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.__nonzero__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -529,14 +579,14 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html#dereference_as" class="summary-sig-name">dereference_as</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.ListMixIn-class.html#dereference_as" class="summary-sig-name">dereference_as</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">type</span>,
         <span class="summary-sig-arg">member</span>,
         <span class="summary-sig-arg">vm</span>=<span class="summary-sig-default">None</span>)</span><br />
       Recasts the list entry as a member in a type, and return the type.
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.dereference_as">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.dereference_as">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -550,14 +600,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html#find_all_lists" class="summary-sig-name">find_all_lists</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">type</span>,
-        <span class="summary-sig-arg">member</span>,
-        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Follows all the list entries starting from lst.
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
+          <td><span class="summary-sig"><a name="empty"></a><span class="summary-sig-name">empty</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.find_all_lists">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.empty">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -571,10 +617,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_text_renderer"></a><span class="summary-sig-name">get_text_renderer</span>(<span class="summary-sig-arg">self</span>)</span>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.ListMixIn-class.html#find_all_lists" class="summary-sig-name">find_all_lists</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Follows all the list entries starting from self.
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.find_all_lists">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="is_valid"></a><span class="summary-sig-name">is_valid</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.get_text_renderer">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.is_valid">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -588,31 +652,13 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html#is_valid" class="summary-sig-name">is_valid</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Must have both valid next and prev pointers.
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.is_valid">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="list_of_type"></a><span class="summary-sig-name">list_of_type</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="list_of_type_fast"></a><span class="summary-sig-name">list_of_type_fast</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">type</span>,
-        <span class="summary-sig-arg">member</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">member</span>,
         <span class="summary-sig-arg">include_current</span>=<span class="summary-sig-default">True</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.list_of_type">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.list_of_type_fast">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -632,6 +678,25 @@
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.m">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#multi_m" class="summary-sig-name">multi_m</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Retrieve a set of fields in order.
+      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.multi_m">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -698,12 +763,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html#reflect" class="summary-sig-name">reflect</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.ListMixIn-class.html#reflect" class="summary-sig-name">reflect</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">vm</span>=<span class="summary-sig-default">None</span>)</span><br />
       Reflect this list element by following its Flink and Blink.
-      <em>(Inherited from <a href="rekall.plugins.overlays.darwin.darwin.LIST_ENTRY-class.html">rekall.plugins.overlays.darwin.darwin.LIST_ENTRY</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.ListMixIn-class.html">rekall.plugins.overlays.basic.ListMixIn</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#LIST_ENTRY.reflect">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ListMixIn.reflect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -738,7 +803,8 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#walk_list" class="summary-sig-name">walk_list</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">list_member</span>,
-        <span class="summary-sig-arg">include_current</span>=<span class="summary-sig-default">True</span>)</span><br />
+        <span class="summary-sig-arg">include_current</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">deref_as</span>=<span class="summary-sig-default">None</span>)</span><br />
       Walk a single linked list in this struct.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
@@ -784,6 +850,33 @@
     </td>
   </tr>
 </table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getproperties"></a><span class="summary-sig-name">getproperties</span>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Return all members that are intended to represent some data.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.getproperties">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
 <!-- ==================== CLASS VARIABLES ==================== -->
 <a name="section-ClassVariables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -805,6 +898,15 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="obj_parent"></a><span class="summary-name">obj_parent</span> = <code title="&lt;No parent&gt;">&lt;No parent&gt;</code>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="obj_producers"></a><span class="summary-name">obj_producers</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
     </td>
   </tr>
@@ -859,13 +961,44 @@
     </td>
   </tr>
 </table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="list_of_type"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">list_of_type</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">type</span>,
+        <span class="sig-arg">member</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.overlays.darwin.darwin-pysrc.html#queue_entry.list_of_type">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugins.overlays.basic.ListMixIn-class.html#list_of_type">basic.ListMixIn.list_of_type</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -890,7 +1023,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:39 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:02 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: ifconfig
-abstract: |
-    Gathers active interfaces.
-
+abstract: Gathers active interfaces.
+args: {}
+class_name: Ifconfig
 epydoc: rekall.plugins.linux.ifconfig.Ifconfig-class.html
+layout: plugin
+module: rekall.plugins.linux.ifconfig
+title: ifconfig
 ---
 
 

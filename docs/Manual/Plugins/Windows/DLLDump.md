@@ -1,20 +1,27 @@
 ---
-layout: plugin
-title: dlldump
-abstract: |
-  Dump DLLs from a process address space
+abstract: Dump DLLs from a process address space
+args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directory)',
+  eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
+    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
+    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
+    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", out_fd: A file like object to write the output., phys_eprocess: 'Physical
+    addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    ', regex: 'A Regular expression for selecting the dlls to dump.
+
+
+    * Default: .+'}
+class_name: DLLDump
 epydoc: rekall.plugins.windows.procdump.DLLDump-class.html
-args:
-  regex: 'A Regular expression for selecting the dlls to dump.'
-  out_fd: 'A file like object to write the output.'
-  dump_dir: 'Path suitable for dumping files. (Optional)'
-  pid: 'One or more pids of processes to select.'
-  eprocess: 'Kernel addresses of eprocess structs.'
-  phys_eprocess: 'Physical addresses of eprocess structs.'
-  proc_regex: 'A regex to select a process by name.'
-  method: 'Method to list processes (Default uses all methods).'
-
+layout: plugin
+module: rekall.plugins.windows.procdump
+title: dlldump
 ---
 
 To extract a DLL from a process's memory space and dump it to disk for analysis,

@@ -1,21 +1,29 @@
 ---
-layout: plugin
-title: impscan
-abstract: |
-  Scan for calls to imported functions.
+abstract: Scan for calls to imported functions.
+args: {base: 'Base address in process memory if --pid is supplied, otherwise an address
+    in kernel space (type: IntParser)
 
+    ', eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', kernel: 'Scan in kernel space. (type: Boolean)
+
+    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
+    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
+    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    ', size: 'Size of memory to scan (type: IntParser)
+
+    '}
+class_name: ImpScan
 epydoc: rekall.plugins.windows.malware.impscan.ImpScan-class.html
-args:
-  base: 'Base address in process memory if --pid is supplied, otherwise an address in kernel space'
-  size: 'Size of memory to scan'
-  kernel: 'Scan in kernel space.'
-  idc: 'Generate IDC files.'
-  pid: 'One or more pids of processes to select.'
-  eprocess: 'Kernel addresses of eprocess structs.'
-  phys_eprocess: 'Physical addresses of eprocess structs.'
-  proc_regex: 'A regex to select a process by name.'
-  method: 'Method to list processes (Default uses all methods).'
-
+layout: plugin
+module: rekall.plugins.windows.malware.impscan
+title: impscan
 ---
 
 

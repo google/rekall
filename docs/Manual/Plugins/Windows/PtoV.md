@@ -1,18 +1,24 @@
 ---
-layout: plugin
-title: ptov
-abstract: |
-  Converts a physical address to a virtual address.
+abstract: Converts a physical address to a virtual address.
+args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
+    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
+    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
+    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', physical_address: 'The Virtual Address to examine. (type: IntParser)
+
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    '}
+class_name: PtoV
 epydoc: rekall.plugins.windows.pfn.PtoV-class.html
-args:
-  physical_address: ''
-  pid: 'One or more pids of processes to select.'
-  eprocess: 'Kernel addresses of eprocess structs.'
-  phys_eprocess: 'Physical addresses of eprocess structs.'
-  proc_regex: 'A regex to select a process by name.'
-  method: 'Method to list processes (Default uses all methods).'
-
+layout: plugin
+module: rekall.plugins.windows.pfn
+title: ptov
 ---
 
 This plugin uses the **PFN Database** to convert a physical page to its virtual

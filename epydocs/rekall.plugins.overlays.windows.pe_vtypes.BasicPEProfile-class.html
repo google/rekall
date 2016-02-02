@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -65,15 +62,18 @@
 <h1 class="epydoc">Class BasicPEProfile</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.windows.pe_vtypes-pysrc.html#BasicPEProfile">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_basicpepro" name="class_hierarchy_for_basicpepro">
-<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="184,6,253,29"/>
-<area shape="rect" id="node2" href="rekall.plugins.overlays.basic.BasicClasses-class.html" title="basic.BasicClasses" alt="" coords="163,59,273,82"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.windows.pe_vtypes.BasicPEProfile-class.html" title="BasicPEProfile" alt="" coords="241,113,332,135"/>
-<area shape="rect" id="node3" href="rekall.plugins.overlays.windows.heap.Ntdll-class.html" title="heap.Ntdll" alt="" coords="5,166,75,189"/>
+<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="453,6,523,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.overlays.basic.BasicClasses-class.html" title="basic.BasicClasses" alt="" coords="433,59,543,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.windows.pe_vtypes.BasicPEProfile-class.html" title="BasicPEProfile" alt="" coords="517,113,608,135"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html" title="basic.RelativeOffsetMixin" alt="" coords="568,59,707,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.windows.heap.Ntdll-class.html" title="heap.Ntdll" alt="" coords="5,166,75,189"/>
 <area shape="rect" id="node6" href="rekall.plugins.overlays.windows.tcpip_vtypes.Tcpip-class.html" title="tcpip_vtypes.Tcpip" alt="" coords="100,166,209,189"/>
 <area shape="rect" id="node11" href="rekall.plugins.overlays.windows.windows.Ntoskrnl-class.html" title="windows.Ntoskrnl" alt="" coords="234,166,339,189"/>
 <area shape="rect" id="node12" href="rekall.plugins.windows.gui.win32k_core.Win32k-class.html" title="windows.gui.win32k_core.Win32k" alt="" coords="364,166,545,189"/>
 <area shape="rect" id="node13" href="rekall.plugins.windows.malware.cmdhistory.Conhost-class.html" title="windows.malware.cmdhistory.Conhost" alt="" coords="570,166,773,189"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin-class.html" title="RelativeOffsetMixin" alt="" coords="299,59,409,82"/>
+<area shape="rect" id="node14" href="rekall.plugins.windows.mimikatz.Livessp-class.html" title="windows.mimikatz.Livessp" alt="" coords="798,166,943,189"/>
+<area shape="rect" id="node15" href="rekall.plugins.windows.mimikatz.Lsasrv-class.html" title="windows.mimikatz.Lsasrv" alt="" coords="968,166,1108,189"/>
+<area shape="rect" id="node16" href="rekall.plugins.windows.mimikatz.Wdigest-class.html" title="windows.mimikatz.Wdigest" alt="" coords="1133,166,1280,189"/>
 <area shape="rect" id="node7" href="rekall.plugins.overlays.windows.windows.Nt-class.html" title="windows.Nt" alt="" coords="65,219,141,242"/>
 <area shape="rect" id="node8" href="rekall.plugins.overlays.windows.windows.Ntkrnlmp-class.html" title="windows.Ntkrnlmp" alt="" coords="167,219,276,242"/>
 <area shape="rect" id="node9" href="rekall.plugins.overlays.windows.windows.Ntkrnlpa-class.html" title="windows.Ntkrnlpa" alt="" coords="300,219,407,242"/>
@@ -145,7 +145,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.overlays.windows.pe_vtypes.BasicPEProfile-class.html#add_constants" class="summary-sig-name">add_constants</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+        <span class="summary-sig-arg">constants</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**opts</span>)</span><br />
       Add the demangled constants.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.windows.pe_vtypes-pysrc.html#BasicPEProfile.add_constants">source&nbsp;code</a></span>
@@ -183,6 +184,25 @@
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.EnsureInitialized">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_name</span>)</span><br />
+      Return a prototype of objects of type 'type_name'.
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.GetPrototype">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -260,15 +280,12 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">metadata</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -448,13 +465,13 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">is_address</span>=<span class="summary-sig-default">False</span>)</span><br />
       Gets the constant from the profile.
-      <em>(Inherited from <a href="rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin-class.html">rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.windows.pe_vtypes-pysrc.html#RelativeOffsetMixin.get_constant">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.get_constant">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -531,9 +548,9 @@ kwargs.
           <td><span class="summary-sig"><a name="get_nearest_constant_by_address"></a><span class="summary-sig-name">get_nearest_constant_by_address</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">address</span>,
         <span class="summary-sig-arg">below</span>=<span class="summary-sig-default">True</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin-class.html">rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.windows.pe_vtypes-pysrc.html#RelativeOffsetMixin.get_nearest_constant_by_address">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.get_nearest_constant_by_address">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -686,6 +703,25 @@ kwargs.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.merge">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="merge_symbols"></a><span class="summary-sig-name">merge_symbols</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>,
+        <span class="summary-sig-arg">*args</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.merge_symbols">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -858,7 +894,8 @@ kwargs.
           <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#LoadProfileFromData" class="summary-sig-name">LoadProfileFromData</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>)</span><br />
       Creates a profile directly from a JSON object.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
@@ -891,6 +928,22 @@ kwargs.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="METADATA"></a><span class="summary-name">METADATA</span> = <code title="{'os': 'windows'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">os</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">windows</code><code class="variable-quote">'</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Profile-class.html#COMMON_CLASSES" class="summary-name">COMMON_CLASSES</a> = <code title="{'Array': &lt;class 'rekall.obj.Array'&gt;,
+ 'BitField': &lt;class 'rekall.obj.BitField'&gt;,
+ 'Function': &lt;class 'rekall.plugins.tools.disassembler.Function'&gt;,
+ 'ListArray': &lt;class 'rekall.obj.ListArray'&gt;,
+ 'NativeType': &lt;class 'rekall.obj.NativeType'&gt;,
+ 'Pointer': &lt;class 'rekall.obj.Pointer'&gt;,
+ 'PointerArray': &lt;class 'rekall.obj.PointerArray'&gt;,
+ 'Struct': &lt;class 'rekall.obj.Struct'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.obj.Array'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">BitFie</code><code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
 <tr>
@@ -930,7 +983,15 @@ t86'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.filesystems.ntfs.NTFSProfile'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.filesystems.nt<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.obj.Profile'&gt;,
+        &lt;class 'rekall.obj.TestProfile'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileMIPS32Bits'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.Profile32Bits'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileLLP64'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileLP64'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
+        &lt;class 'rekall.plugins.overlays.linux.elf.ELFProfile'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.obj.Profile'&gt;<code class="variable-op">, </code>&lt;class<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
@@ -1021,7 +1082,7 @@ t86'&gt;,
   
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.plugins.overlays.windows.pe_vtypes.RelativeOffsetMixin-class.html#GetImageBase">RelativeOffsetMixin.GetImageBase</a>
+        <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html#GetImageBase">basic.RelativeOffsetMixin.GetImageBase</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -1034,7 +1095,8 @@ t86'&gt;,
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">add_constants</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
+        <span class="sig-arg">constants</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">**opts</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.overlays.windows.pe_vtypes-pysrc.html#BasicPEProfile.add_constants">source&nbsp;code</a></span>&nbsp;
@@ -1155,9 +1217,6 @@ t86'&gt;,
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -1182,7 +1241,7 @@ t86'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:42 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:04 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

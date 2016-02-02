@@ -1,14 +1,15 @@
 ---
-layout: plugin
-title: symlinkscan
-abstract: |
-  Scan for symbolic link objects
+abstract: 'Scan for symbolic link objects '
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: SymLinkScan
 epydoc: rekall.plugins.windows.filescan.SymLinkScan-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.filescan
+title: symlinkscan
 ---
 
 A symbolic link is a kernel object which maps a device from one name in the

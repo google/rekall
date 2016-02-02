@@ -1,15 +1,15 @@
 ---
-layout: plugin
-title: object_tree
-abstract: |
-  Visualize the kernel object tree.
+abstract: "Visualize the kernel object tree.\n\n    Ref:\n    http://msdn.microsoft.com/en-us/library/windows/hardware/ff557762(v=vs.85).aspx\n\
+  \    "
+args: {type_regex: 'Filter the type of objects shown.
 
-  Ref:
-  http://msdn.microsoft.com/en-us/library/windows/hardware/ff557762(v=vs.85).aspx
 
+    * Default: .'}
+class_name: ObjectTree
 epydoc: rekall.plugins.windows.misc.ObjectTree-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.misc
+title: object_tree
 ---
 
 The windows kernel has the notion of a **Kernel Object**. Objects are managed by

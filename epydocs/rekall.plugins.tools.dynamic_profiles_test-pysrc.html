@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.tools.dynamic_profiles_test</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.tools-module.html">Package&nbsp;tools</a> ::
+        Module&nbsp;dynamic_profiles_test
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.tools.dynamic_profiles_test-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.tools.dynamic_profiles_test-module.html">Module rekall.plugins.tools.dynamic_profiles_test</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">mock</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.testlib=rekall.testlib-module.html"><a title="rekall.testlib" class="py-name" href="#" onclick="return doclink('link-1', 'testlib', 'link-1');">testlib</a></tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-3', 'plugins', 'link-3');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package rekall.plugins.tools=rekall.plugins.tools-module.html"><a title="rekall.plugins.tools" class="py-name" href="#" onclick="return doclink('link-4', 'tools', 'link-4');">tools</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.plugins.tools.dynamic_profiles=rekall.plugins.tools.dynamic_profiles-module.html"><a title="rekall.plugins.tools.dynamic_profiles" class="py-name" href="#" onclick="return doclink('link-5', 'dynamic_profiles', 'link-5');">dynamic_profiles</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"> </tt>
+<a name="MockAddressResolver"></a><div id="MockAddressResolver-def"><a name="L6"></a><tt class="py-lineno">  6</tt> <a class="py-toggle" href="#" id="MockAddressResolver-toggle" onclick="return toggle('MockAddressResolver');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.tools.dynamic_profiles_test.MockAddressResolver-class.html">MockAddressResolver</a><tt class="py-op">(</tt><tt class="py-base-class">object</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MockAddressResolver-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="MockAddressResolver-expanded"><a name="MockAddressResolver.__init__"></a><div id="MockAddressResolver.__init__-def"><a name="L7"></a><tt class="py-lineno">  7</tt> <a class="py-toggle" href="#" id="MockAddressResolver.__init__-toggle" onclick="return toggle('MockAddressResolver.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.dynamic_profiles_test.MockAddressResolver-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">name_map</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MockAddressResolver.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MockAddressResolver.__init__-expanded"><a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">name_map</tt> <tt class="py-op">=</tt> <tt class="py-name">name_map</tt> </tt>
+</div><a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"> </tt>
+<a name="MockAddressResolver.format_address"></a><div id="MockAddressResolver.format_address-def"><a name="L10"></a><tt class="py-lineno"> 10</tt> <a class="py-toggle" href="#" id="MockAddressResolver.format_address-toggle" onclick="return toggle('MockAddressResolver.format_address');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.dynamic_profiles_test.MockAddressResolver-class.html#format_address">format_address</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">address</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="MockAddressResolver.format_address-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="MockAddressResolver.format_address-expanded"><a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">name_map</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Method rekall.obj.NoneObject.get()=rekall.obj.NoneObject-class.html#get,Method rekall.session.DynamicNameSpace.get()=rekall.session.DynamicNameSpace-class.html#get"><a title="rekall.obj.NoneObject.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-6', 'get', 'link-6');">get</a></tt><tt class="py-op">(</tt><tt id="link-7" class="py-name" targets="Variable rekall.plugins.overlays.darwin.darwin.sockaddr.address=rekall.plugins.overlays.darwin.darwin.sockaddr-class.html#address"><a title="rekall.plugins.overlays.darwin.darwin.sockaddr.address" class="py-name" href="#" onclick="return doclink('link-7', 'address', 'link-7');">address</a></tt><tt class="py-op">,</tt> <tt class="py-string">""</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"> </tt>
+<a name="TestDynamicProfile"></a><div id="TestDynamicProfile-def"><a name="L14"></a><tt class="py-lineno"> 14</tt> <a class="py-toggle" href="#" id="TestDynamicProfile-toggle" onclick="return toggle('TestDynamicProfile');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.tools.dynamic_profiles_test.TestDynamicProfile-class.html">TestDynamicProfile</a><tt class="py-op">(</tt><tt class="py-base-class">testlib</tt><tt class="py-op">.</tt><tt class="py-base-class">RekallBaseUnitTestCase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TestDynamicProfile-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="TestDynamicProfile-expanded"><a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line">    <tt class="py-docstring">"""Tests the dynamic profile mechanism."""</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line">    <tt id="link-8" class="py-name" targets="Variable rekall.plugins.tools.dynamic_profiles_test.TestDynamicProfile.TEST_CASES=rekall.plugins.tools.dynamic_profiles_test.TestDynamicProfile-class.html#TEST_CASES"><a title="rekall.plugins.tools.dynamic_profiles_test.TestDynamicProfile.TEST_CASES" class="py-name" href="#" onclick="return doclink('link-8', 'TEST_CASES', 'link-8');">TEST_CASES</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line">        <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line">            <tt class="py-name">expected</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-string">"$out"</tt><tt class="py-op">:</tt> <tt class="py-number">0x20</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line">            <tt id="link-9" class="py-name" targets="Variable rekall.ui.text.BaseCell.mode=rekall.ui.text.BaseCell-class.html#mode"><a title="rekall.ui.text.BaseCell.mode" class="py-name" href="#" onclick="return doclink('link-9', 'mode', 'link-9');">mode</a></tt><tt class="py-op">=</tt><tt class="py-string">"AMD64"</tt><tt class="py-op">,</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line">            <tt class="py-comment"># Taken from Windows 7 x64</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line">            <tt id="link-10" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#offset"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-10', 'offset', 'link-10');">offset</a></tt><tt class="py-op">=</tt><tt class="py-number">0xf800029eb5d0</tt><tt class="py-op">,</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">            <tt id="link-11" class="py-name" targets="Variable rekall.addrspace.Run.data=rekall.addrspace.Run-class.html#data,Variable rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data=rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE-class.html#data,Variable rekall.ui.json_renderer.JsonRenderer.data=rekall.ui.json_renderer.JsonRenderer-class.html#data,Variable rekall.utils.Node.data=rekall.utils.Node-class.html#data"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-11', 'data', 'link-11');">data</a></tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-string">'48895c240848896c24104889742418574883ec2033ff418bf08bea488bd'</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">                  <tt class="py-string">'948393975218d572833c941b848546162e80d4602004889034885c07504'</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">                  <tt class="py-string">'32c0eb49bf01000000488b1b33d2448d4228488bcbe86b27efff83630c0'</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">                  <tt class="py-string">'00bfe893bc7430880000000c743107f000000896b04e80583e9ff4885c0'</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">                  <tt class="py-string">'750a488bcbe8f0feffffebb948894320b001488b5c2430'</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">            <tt class="py-name">example</tt><tt class="py-op">=</tt><tt class="py-string">"""</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb63e           0x6e e80583e9ff           call 0xf80002883948                      nt!RtlpAllocateSecondLevelDir</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb643           0x73 4885c0               test rax, rax</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb646           0x76 750a                 jne 0xf800029eb652                       nt!RtlCreateHashTable+0x82</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb648           0x78 488bcb               mov rcx, rbx</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb64b           0x7b e8f0feffff           call 0xf800029eb540                      nt!RtlDeleteHashTable</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb650           0x80 ebb9                 jmp 0xf800029eb60b                       nt!RtlCreateHashTable+0x3b</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-string">0xf800029eb652           0x82 48894320             mov qword ptr [rbx + 0x20], rax</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-string">"""</tt><tt class="py-op">,</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">            <tt class="py-name">rules</tt><tt class="py-op">=</tt><tt class="py-op">[</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'CALL'</tt><tt class="py-op">,</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">                 <tt class="py-string">'comment'</tt><tt class="py-op">:</tt> <tt class="py-string">'nt!RtlpAllocateSecondLevelDir'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'MOV'</tt><tt class="py-op">,</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                 <tt class="py-string">'operands'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-op">{</tt><tt class="py-string">'disp'</tt><tt class="py-op">:</tt> <tt class="py-string">"$out"</tt><tt class="py-op">,</tt> <tt class="py-string">'base'</tt><tt class="py-op">:</tt> <tt class="py-string">'$rbx'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">                              <tt class="py-op">{</tt><tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'REG'</tt><tt class="py-op">,</tt> <tt class="py-string">'reg'</tt><tt class="py-op">:</tt> <tt class="py-string">'RAX'</tt><tt class="py-op">}</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">            <tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-comment"># Used to pre-seed the address resolver with symbol names for</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">            <tt class="py-comment"># testing.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-name">name_map</tt><tt class="py-op">=</tt><tt class="py-op">{</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">                <tt class="py-number">0xf80002883948</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-string">"nt!RtlpAllocateSecondLevelDir"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">        <tt class="py-comment"># Example from MiSessionInsertImage()</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">        <tt class="py-comment"># http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/mm/sessload.c</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">        <tt class="py-name">dict</tt><tt class="py-op">(</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-comment"># Taken from Windows 8 x64 dis "nt!MiSessionInsertImage"</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">            <tt id="link-12" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-12', 'offset', 'link-10');">offset</a></tt><tt class="py-op">=</tt><tt class="py-number">0xf801ea55f680</tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">            <tt id="link-13" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-13', 'data', 'link-11');">data</a></tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-string">'48895c240848896c2410488974241857415641574883ec20498bf0488bea'</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">                  <tt class="py-string">'488bf941be5000000041b84d6d4869b900020000418bd6e856091200488b'</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">                  <tt class="py-string">'d84885c00f84fee60900458bc633d2488bc8e89d03f3ffc7433001000000'</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">                  <tt class="py-string">'4883cf0348897b20654c8b342588010000498b86b8000000488b88f00300'</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">                  <tt class="py-string">'008b41084c8db9f80b0000488d7968498bd7498bce48896b38894334e8ef'</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">                  <tt class="py-string">'16f7ff4c8b1f4c3bdf'</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">            <tt class="py-name">rules</tt><tt class="py-op">=</tt><tt class="py-op">[</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'MOV'</tt><tt class="py-op">,</tt> <tt class="py-string">'operands'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'REG'</tt><tt class="py-op">,</tt> <tt class="py-string">'reg'</tt><tt class="py-op">:</tt> <tt class="py-string">'$RDI'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'REG'</tt><tt class="py-op">,</tt> <tt class="py-string">'reg'</tt><tt class="py-op">:</tt> <tt class="py-string">'RCX'</tt><tt class="py-op">}</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'CALL'</tt><tt class="py-op">,</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                 <tt class="py-string">'comment'</tt><tt class="py-op">:</tt> <tt class="py-string">'nt!ExAllocatePoolWithTag'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'MOV'</tt><tt class="py-op">,</tt> <tt class="py-string">'operands'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'REG'</tt><tt class="py-op">,</tt> <tt class="py-string">'reg'</tt><tt class="py-op">:</tt> <tt class="py-string">'$RBX'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'REG'</tt><tt class="py-op">,</tt> <tt class="py-string">'reg'</tt><tt class="py-op">:</tt> <tt class="py-string">'RAX'</tt><tt class="py-op">}</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">                <tt class="py-comment"># RtlZeroMemory (NewImage, sizeof(IMAGE_ENTRY_IN_SESSION));</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'CALL'</tt><tt class="py-op">,</tt> <tt class="py-string">'comment'</tt><tt class="py-op">:</tt> <tt class="py-string">'nt!memset'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">                <tt class="py-comment"># NewImage-&gt;ImageCountInThisSession = 1;</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'MOV'</tt><tt class="py-op">,</tt> <tt class="py-string">'operands'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'disp'</tt><tt class="py-op">:</tt> <tt class="py-string">"$ImageCountInThisSession"</tt><tt class="py-op">,</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                     <tt class="py-string">'base'</tt><tt class="py-op">:</tt> <tt class="py-string">'$RBX'</tt><tt class="py-op">,</tt> <tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'MEM'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'address'</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'IMM'</tt><tt class="py-op">}</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">                <tt class="py-comment"># NewImage-&gt;Address = BaseAddress;</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                <tt class="py-op">{</tt><tt class="py-string">'mnemonic'</tt><tt class="py-op">:</tt> <tt class="py-string">'MOV'</tt><tt class="py-op">,</tt> <tt class="py-string">'operands'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'disp'</tt><tt class="py-op">:</tt> <tt class="py-string">"$Address"</tt><tt class="py-op">,</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">                     <tt class="py-string">'base'</tt><tt class="py-op">:</tt> <tt class="py-string">'$RBX'</tt><tt class="py-op">,</tt> <tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'MEM'</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">                    <tt class="py-op">{</tt><tt class="py-string">'type'</tt><tt class="py-op">:</tt> <tt class="py-string">'REG'</tt><tt class="py-op">,</tt> <tt class="py-string">'reg'</tt><tt class="py-op">:</tt> <tt class="py-string">'$RDI'</tt><tt class="py-op">}</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">            <tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">            <tt class="py-name">name_map</tt><tt class="py-op">=</tt><tt class="py-op">{</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">                <tt class="py-number">0xf801ea680010</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-string">"nt!ExAllocatePoolWithTag"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                <tt class="py-number">0xf801ea48fa70</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-string">"nt!memset"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">            <tt class="py-name">expected</tt><tt class="py-op">=</tt><tt class="py-op">{</tt><tt class="py-string">"$Address"</tt><tt class="py-op">:</tt> <tt class="py-number">0x20</tt><tt class="py-op">,</tt> <tt class="py-string">"$ImageCountInThisSession"</tt><tt class="py-op">:</tt> <tt class="py-number">0x30</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">    <tt class="py-op">]</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
+<a name="TestDynamicProfile.testDynamicProfile"></a><div id="TestDynamicProfile.testDynamicProfile-def"><a name="L100"></a><tt class="py-lineno">100</tt> <a class="py-toggle" href="#" id="TestDynamicProfile.testDynamicProfile-toggle" onclick="return toggle('TestDynamicProfile.testDynamicProfile');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.dynamic_profiles_test.TestDynamicProfile-class.html#testDynamicProfile">testDynamicProfile</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="TestDynamicProfile.testDynamicProfile-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="TestDynamicProfile.testDynamicProfile-expanded"><a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">case</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.tools.dynamic_profiles_test.TestDynamicProfile.TEST_CASES" class="py-name" href="#" onclick="return doclink('link-14', 'TEST_CASES', 'link-8');">TEST_CASES</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Variable rekall.plugins.common.search.CommandWrapper.session=rekall.plugins.common.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-15', 'session', 'link-15');">session</a></tt> <tt class="py-op">=</tt> <tt class="py-name">mock</tt><tt class="py-op">.</tt><tt class="py-name">Mock</tt><tt class="py-op">(</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">                <tt class="py-name">wraps</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.testlib.RekallBaseUnitTestCase.MakeUserSession()=rekall.testlib.RekallBaseUnitTestCase-class.html#MakeUserSession"><a title="rekall.testlib.RekallBaseUnitTestCase.MakeUserSession" class="py-name" href="#" onclick="return doclink('link-16', 'MakeUserSession', 'link-16');">MakeUserSession</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">                <tt id="link-17" class="py-name" targets="Module rekall.plugins.common.address_resolver=rekall.plugins.common.address_resolver-module.html,Module rekall.plugins.darwin.address_resolver=rekall.plugins.darwin.address_resolver-module.html,Module rekall.plugins.linux.address_resolver=rekall.plugins.linux.address_resolver-module.html,Module rekall.plugins.windows.address_resolver=rekall.plugins.windows.address_resolver-module.html,Variable rekall.session.Session.address_resolver=rekall.session.Session-class.html#address_resolver"><a title="rekall.plugins.common.address_resolver
+rekall.plugins.darwin.address_resolver
+rekall.plugins.linux.address_resolver
+rekall.plugins.windows.address_resolver
+rekall.session.Session.address_resolver" class="py-name" href="#" onclick="return doclink('link-17', 'address_resolver', 'link-17');">address_resolver</a></tt><tt class="py-op">=</tt><tt id="link-18" class="py-name" targets="Class rekall.plugins.tools.dynamic_profiles_test.MockAddressResolver=rekall.plugins.tools.dynamic_profiles_test.MockAddressResolver-class.html"><a title="rekall.plugins.tools.dynamic_profiles_test.MockAddressResolver" class="py-name" href="#" onclick="return doclink('link-18', 'MockAddressResolver', 'link-18');">MockAddressResolver</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">                    <tt class="py-name">case</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.obj.NoneObject.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-19', 'get', 'link-6');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"name_map"</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-op">)</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">            <tt class="py-name">matcher</tt> <tt class="py-op">=</tt> <tt id="link-20" class="py-name"><a title="rekall.plugins.tools.dynamic_profiles" class="py-name" href="#" onclick="return doclink('link-20', 'dynamic_profiles', 'link-5');">dynamic_profiles</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name" targets="Class rekall.plugins.tools.dynamic_profiles.DisassembleMatcher=rekall.plugins.tools.dynamic_profiles.DisassembleMatcher-class.html"><a title="rekall.plugins.tools.dynamic_profiles.DisassembleMatcher" class="py-name" href="#" onclick="return doclink('link-21', 'DisassembleMatcher', 'link-21');">DisassembleMatcher</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">                <tt id="link-22" class="py-name"><a title="rekall.ui.text.BaseCell.mode" class="py-name" href="#" onclick="return doclink('link-22', 'mode', 'link-9');">mode</a></tt><tt class="py-op">=</tt><tt class="py-name">case</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.obj.NoneObject.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-23', 'get', 'link-6');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"mode"</tt><tt class="py-op">,</tt> <tt class="py-string">"AMD64"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">                <tt class="py-name">rules</tt><tt class="py-op">=</tt><tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-string">"rules"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">                <tt id="link-24" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-24', 'session', 'link-15');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-25', 'session', 'link-15');">session</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-name">match</tt> <tt class="py-op">=</tt> <tt class="py-name">matcher</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method rekall.plugins.tools.dynamic_profiles.DisassembleMatcher.Match()=rekall.plugins.tools.dynamic_profiles.DisassembleMatcher-class.html#Match"><a title="rekall.plugins.tools.dynamic_profiles.DisassembleMatcher.Match" class="py-name" href="#" onclick="return doclink('link-26', 'Match', 'link-26');">Match</a></tt><tt class="py-op">(</tt><tt id="link-27" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-27', 'offset', 'link-10');">offset</a></tt><tt class="py-op">=</tt><tt class="py-name">case</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.obj.NoneObject.get
+rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-28', 'get', 'link-6');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"offset"</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">                                  <tt id="link-29" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-29', 'data', 'link-11');">data</a></tt><tt class="py-op">=</tt><tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-string">"data"</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.decode()=rekall.ui.json_renderer.JsonRenderer-class.html#decode,Function rekall.yaml_utils.decode()=rekall.yaml_utils-module.html#decode"><a title="rekall.ui.json_renderer.JsonRenderer.decode
+rekall.yaml_utils.decode" class="py-name" href="#" onclick="return doclink('link-30', 'decode', 'link-30');">decode</a></tt><tt class="py-op">(</tt><tt class="py-string">"hex"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">k</tt><tt class="py-op">,</tt> <tt id="link-31" class="py-name" targets="Method rekall.obj.BaseObject.v()=rekall.obj.BaseObject-class.html#v,Method rekall.obj.BitField.v()=rekall.obj.BitField-class.html#v,Method rekall.obj.NativeType.v()=rekall.obj.NativeType-class.html#v,Method rekall.obj.Pointer.v()=rekall.obj.Pointer-class.html#v,Method rekall.obj.Struct.v()=rekall.obj.Struct-class.html#v,Method rekall.obj.Void.v()=rekall.obj.Void-class.html#v,Method rekall.plugins.overlays.basic.Enumeration.v()=rekall.plugins.overlays.basic.Enumeration-class.html#v,Method rekall.plugins.overlays.basic.Flags.v()=rekall.plugins.overlays.basic.Flags-class.html#v,Method rekall.plugins.overlays.basic.Ipv4Address.v()=rekall.plugins.overlays.basic.Ipv4Address-class.html#v,Method rekall.plugins.overlays.basic.Ipv6Address.v()=rekall.plugins.overlays.basic.Ipv6Address-class.html#v,Method rekall.plugins.overlays.basic.MacAddress.v()=rekall.plugins.overlays.basic.MacAddress-class.html#v,Method rekall.plugins.overlays.basic.String.v()=rekall.plugins.overlays.basic.String-class.html#v,Method rekall.plugins.overlays.basic.UnicodeString.v()=rekall.plugins.overlays.basic.UnicodeString-class.html#v,Method rekall.plugins.overlays.basic.WinFileTime.v()=rekall.plugins.overlays.basic.WinFileTime-class.html#v,Method rekall.plugins.overlays.basic.timeval.v()=rekall.plugins.overlays.basic.timeval-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v()=rekall.plugins.overlays.windows.pe_vtypes.RVAPointer-class.html#v,Method rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v()=rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer-class.html#v,Method rekall.plugins.windows.pfn.ValueEnumeration.v()=rekall.plugins.windows.pfn.ValueEnumeration-class.html#v,Method rekall.session.InteractiveSession.v()=rekall.session.InteractiveSession-class.html#v"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-31', 'v', 'link-31');">v</a></tt> <tt class="py-keyword">in</tt> <tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-string">"expected"</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">match</tt><tt class="py-op">[</tt><tt class="py-name">k</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt id="link-32" class="py-name"><a title="rekall.obj.BaseObject.v
+rekall.obj.BitField.v
+rekall.obj.NativeType.v
+rekall.obj.Pointer.v
+rekall.obj.Struct.v
+rekall.obj.Void.v
+rekall.plugins.overlays.basic.Enumeration.v
+rekall.plugins.overlays.basic.Flags.v
+rekall.plugins.overlays.basic.Ipv4Address.v
+rekall.plugins.overlays.basic.Ipv6Address.v
+rekall.plugins.overlays.basic.MacAddress.v
+rekall.plugins.overlays.basic.String.v
+rekall.plugins.overlays.basic.UnicodeString.v
+rekall.plugins.overlays.basic.WinFileTime.v
+rekall.plugins.overlays.basic.timeval.v
+rekall.plugins.overlays.windows.pe_vtypes.RVAPointer.v
+rekall.plugins.overlays.windows.pe_vtypes.ResourcePointer.v
+rekall.plugins.windows.pfn.ValueEnumeration.v
+rekall.session.InteractiveSession.v" class="py-name" href="#" onclick="return doclink('link-32', 'v', 'link-31');">v</a></tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:37 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

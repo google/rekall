@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -62,13 +59,14 @@
 <h1 class="epydoc">Class IOManager</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_iomanager" name="class_hierarchy_for_iomanager">
-<area shape="rect" id="node1" href="rekall.io_manager.DirectoryIOManager-class.html" title="DirectoryIOManager" alt="" coords="89,59,207,82"/>
-<area shape="rect" id="node7" href="rekall.plugins.tools.webconsole_plugin.WebConsoleDocument-class.html" title="plugins.tools.webconsole_plugin.WebConsoleDocument" alt="" coords="5,113,291,135"/>
-<area shape="rect" id="node2" href="rekall.io_manager.IOManager-class.html" title="IOManager" alt="" coords="294,6,369,29"/>
-<area shape="rect" id="node3" href="rekall.io_manager.URLManager-class.html" title="URLManager" alt="" coords="231,59,317,82"/>
-<area shape="rect" id="node4" href="rekall.io_manager.ZipFileManager-class.html" title="ZipFileManager" alt="" coords="342,59,439,82"/>
-<area shape="rect" id="node6" href="rekall.plugins.tools.caching_url_manager.CachingManager-class.html" title="plugins.tools.caching_url_manager.CachingManager" alt="" coords="463,59,733,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.tools.caching_url_manager.CacheDirectoryManager-class.html" title="plugins.tools.caching_url_manager.CacheDirectoryManager" alt="" coords="445,113,751,135"/>
+<area shape="rect" id="node1" href="rekall.cache.PicklingDirectoryIOManager-class.html" title="cache.PicklingDirectoryIOManager" alt="" coords="5,113,189,135"/>
+<area shape="rect" id="node2" href="rekall.io_manager.DirectoryIOManager-class.html" title="DirectoryIOManager" alt="" coords="225,59,343,82"/>
+<area shape="rect" id="node8" href="rekall.plugins.tools.repository_manager.RepositoryManager-class.html" title="plugins.tools.repository_manager.RepositoryManager" alt="" coords="214,113,489,135"/>
+<area shape="rect" id="node3" href="rekall.io_manager.IOManager-class.html" title="IOManager" alt="" coords="430,6,505,29"/>
+<area shape="rect" id="node4" href="rekall.io_manager.URLManager-class.html" title="URLManager" alt="" coords="367,59,453,82"/>
+<area shape="rect" id="node5" href="rekall.io_manager.ZipFileManager-class.html" title="ZipFileManager" alt="" coords="478,59,575,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.tools.caching_url_manager.CachingManager-class.html" title="plugins.tools.caching_url_manager.CachingManager" alt="" coords="599,59,869,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.tools.caching_url_manager.CacheDirectoryManager-class.html" title="plugins.tools.caching_url_manager.CacheDirectoryManager" alt="" coords="581,113,887,135"/>
 </map>
   <img src="class_hierarchy_for_iomanager.gif" alt='' usemap="#class_hierarchy_for_iomanager" ismap="ismap" class="graph-without-title" />
 </center>
@@ -177,6 +175,42 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="Metadata"></a><span class="summary-sig-name">Metadata</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">path</span>)</span><br />
+      Returns metadata about a path.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.Metadata">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="SetMetadata"></a><span class="summary-sig-name">SetMetadata</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">options</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.SetMetadata">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="FlushInventory"></a><span class="summary-sig-name">FlushInventory</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Write the inventory to the storage.</td>
           <td align="right" valign="top">
@@ -216,6 +250,24 @@
       Creates a new file in the container.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.Create">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="Destroy"></a><span class="summary-sig-name">Destroy</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Destroys the file/directory at name's path.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.Destroy">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -284,7 +336,8 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.io_manager.IOManager-class.html#GetData" class="summary-sig-name">GetData</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">raw</span>=<span class="summary-sig-default">False</span>)</span><br />
+        <span class="summary-sig-arg">raw</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>)</span><br />
       Get the data object stored at container member.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.GetData">source&nbsp;code</a></span>
@@ -437,16 +490,25 @@ ager.CacheDirectoryManager'&gt;,
  'CachingManager': &lt;class 'rekall.plugins.tools.caching_url_manager.Ca\
 chingManager'&gt;,
  'DirectoryIOManager': &lt;class 'rekall.io_manager.DirectoryIOManager'&gt;,
- 'URLManager': &lt;class 'rekall.io_manager.URLManager'&gt;,
- 'ZipFileManager': &lt;class 'rekall.io_manager.ZipFileManager'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CacheDirectoryManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.too<code class="variable-ellipsis">...</code></code>
+ 'PicklingDirectoryIOManager': &lt;class 'rekall.cache.PicklingDirectoryI\
+OManager'&gt;,
+ 'RepositoryManager': &lt;class 'rekall.plugins.tools.repository_manager.\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CacheDirectoryManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.too<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.io_manager.IOManager-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.caching_url_manager.CacheDirectory\
-Manager'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.caching_<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.io_manager.IOManager-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.io_manager.DirectoryIOManager'&gt;,
+        &lt;class 'rekall.io_manager.ZipFileManager'&gt;,
+        &lt;class 'rekall.io_manager.URLManager'&gt;,
+        &lt;class 'rekall.cache.PicklingDirectoryIOManager'&gt;,
+        &lt;class 'rekall.plugins.tools.caching_url_manager.CachingManage\
+r'&gt;,
+        &lt;class 'rekall.plugins.tools.caching_url_manager.CacheDirector\
+yManager'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.io_manager.DirectoryI<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -633,7 +695,8 @@ Raises:
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">GetData</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">name</span>,
-        <span class="sig-arg">raw</span>=<span class="sig-default">False</span>)</span>
+        <span class="sig-arg">raw</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">default</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.GetData">source&nbsp;code</a></span>&nbsp;
@@ -723,8 +786,10 @@ ager.CacheDirectoryManager'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">CachingManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.caching_url_manager.Ca<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 chingManager'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">DirectoryIOManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.io_manager.DirectoryIOManager'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">URLManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.io_manager.URLManager'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">ZipFileManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.io_manager.ZipFileManager'&gt;<code class="variable-group">}</code>
+ <code class="variable-quote">'</code><code class="variable-string">PicklingDirectoryIOManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.cache.PicklingDirectoryI<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+OManager'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">RepositoryManager</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -742,8 +807,15 @@ chingManager'&gt;<code class="variable-op">,</code>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.caching_url_manager.CacheDirectory<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-Manager'&gt;<code class="variable-group">}</code>
+<code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.io_manager.DirectoryIOManager'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.io_manager.ZipFileManager'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.io_manager.URLManager'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.cache.PicklingDirectoryIOManager'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.tools.caching_url_manager.CachingManage<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+r'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.tools.caching_url_manager.CacheDirector<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+yManager'&gt;<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -778,9 +850,6 @@ Manager'&gt;<code class="variable-group">}</code>
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -805,7 +874,7 @@ Manager'&gt;<code class="variable-group">}</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:24 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

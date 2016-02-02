@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: check_afinfo
-abstract: |
-    Verifies the operation function pointers of network protocols.
-
+abstract: Verifies the operation function pointers of network protocols.
+args: {}
+class_name: CheckAFInfo
 epydoc: rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html
+layout: plugin
+module: rekall.plugins.linux.check_afinfo
+title: check_afinfo
 ---
 
 The plugin identifies the location of each function pointer of different

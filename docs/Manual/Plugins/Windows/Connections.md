@@ -1,24 +1,17 @@
 ---
-layout: plugin
-title: connections
-abstract: |
-  Print list of open connections [Windows XP Only]
-  ---------------------------------------------
-
-  This module enumerates the active connections from tcpip.sys.
-
-  Note that if you are using a hibernated image this might not work
-  because Windows closes all sockets before hibernating. You might
-  find it more effective to do conscan instead.
-
-  Active TCP connections are found in a hash table. The Hash table is given by
-  the _TCBTable symbol. The size of the hash table is found in the
-  _MaxHashTableSize variable.
-
+abstract: "\n    Print list of open connections [Windows XP Only]\n    ---------------------------------------------\n\
+  \n    This module enumerates the active connections from tcpip.sys.\n\n    Note\
+  \ that if you are using a hibernated image this might not work\n    because Windows\
+  \ closes all sockets before hibernating. You might\n    find it more effective to\
+  \ do conscan instead.\n\n    Active TCP connections are found in a hash table. The\
+  \ Hash table is given by\n    the _TCBTable symbol. The size of the hash table is\
+  \ found in the\n    _MaxHashTableSize variable.\n    "
+args: {tcpip_guid: Force this profile to be used for tcpip.}
+class_name: Connections
 epydoc: rekall.plugins.windows.connections.Connections-class.html
-args:
-  tcpip_guid: 'Force this profile to be used for tcpip.'
-
+layout: plugin
+module: rekall.plugins.windows.connections
+title: connections
 ---
 
 Prior to Windows 7, the windows TCP/IP stack uses objects of type _TCP_OBJECT to

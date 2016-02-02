@@ -1,17 +1,22 @@
 ---
-layout: plugin
-title: pslist
-abstract: |
-  List processes for windows.
+abstract: List processes for windows.
+args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
+    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
+    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
+    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    '}
+class_name: WinPsList
 epydoc: rekall.plugins.windows.taskmods.WinPsList-class.html
-args:
-  pid: 'One or more pids of processes to select.'
-  eprocess: 'Kernel addresses of eprocess structs.'
-  phys_eprocess: 'Physical addresses of eprocess structs.'
-  proc_regex: 'A regex to select a process by name.'
-  method: 'Method to list processes (Default uses all methods).'
-
+layout: plugin
+module: rekall.plugins.windows.taskmods
+title: pslist
 ---
 
 The **pslist** plugin list all the processes on windows using a variety of

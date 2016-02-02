@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.darwin.maps</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.darwin-module.html">Package&nbsp;darwin</a> ::
+        Module&nbsp;maps
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.darwin.maps-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.darwin.maps-module.html">Module rekall.plugins.darwin.maps</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># Authors:</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Michael Cohen &lt;scudette@gmail.com&gt;</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-comment"># pylint: disable=protected-access</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.utils=rekall.utils-module.html"><a title="rekall.utils" class="py-name" href="#" onclick="return doclink('link-1', 'utils', 'link-1');">utils</a></tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-3', 'plugins', 'link-3');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package rekall.plugins.addrspaces=rekall.plugins.addrspaces-module.html"><a title="rekall.plugins.addrspaces" class="py-name" href="#" onclick="return doclink('link-4', 'addrspaces', 'link-4');">addrspaces</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.plugins.addrspaces.intel=rekall.plugins.addrspaces.intel-module.html"><a title="rekall.plugins.addrspaces.intel" class="py-name" href="#" onclick="return doclink('link-5', 'intel', 'link-5');">intel</a></tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-6" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-6', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-7', 'plugins', 'link-3');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-8', 'common', 'link-8');">common</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name" targets="Module rekall.plugins.common.pfn=rekall.plugins.common.pfn-module.html,Module rekall.plugins.darwin.pfn=rekall.plugins.darwin.pfn-module.html,Module rekall.plugins.windows.pfn=rekall.plugins.windows.pfn-module.html"><a title="rekall.plugins.common.pfn
+rekall.plugins.darwin.pfn
+rekall.plugins.windows.pfn" class="py-name" href="#" onclick="return doclink('link-9', 'pfn', 'link-9');">pfn</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-10" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-10', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-11', 'plugins', 'link-3');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Package rekall.plugins.darwin=rekall.plugins.darwin-module.html,Package rekall.plugins.overlays.darwin=rekall.plugins.overlays.darwin-module.html,Module rekall.plugins.overlays.darwin.darwin=rekall.plugins.overlays.darwin.darwin-module.html,Module rekall.plugins.renderers.darwin=rekall.plugins.renderers.darwin-module.html"><a title="rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin
+rekall.plugins.renderers.darwin" class="py-name" href="#" onclick="return doclink('link-12', 'darwin', 'link-12');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-13" class="py-name"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-13', 'common', 'link-8');">common</a></tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt>
+<a name="DarwinVADMap"></a><div id="DarwinVADMap-def"><a name="L27"></a><tt class="py-lineno">27</tt> <a class="py-toggle" href="#" id="DarwinVADMap-toggle" onclick="return toggle('DarwinVADMap');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.darwin.maps.DarwinVADMap-class.html">DarwinVADMap</a><tt class="py-op">(</tt><tt class="py-base-class">pfn</tt><tt class="py-op">.</tt><tt class="py-base-class">VADMapMixin</tt><tt class="py-op">,</tt> <tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">DarwinProcessFilter</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinVADMap-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="DarwinVADMap-expanded"><a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">    <tt class="py-docstring">"""Inspect each page in the VAD and report its status.</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line"><tt class="py-docstring">    This allows us to see the address translation status of each page in the</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line"><tt class="py-docstring">    VAD.</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"><tt class="py-docstring">    """</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line"> </tt>
+<a name="DarwinVADMap._CreateMetadata"></a><div id="DarwinVADMap._CreateMetadata-def"><a name="L34"></a><tt class="py-lineno">34</tt> <a class="py-toggle" href="#" id="DarwinVADMap._CreateMetadata-toggle" onclick="return toggle('DarwinVADMap._CreateMetadata');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.darwin.maps.DarwinVADMap-class.html#_CreateMetadata">_CreateMetadata</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">collection</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinVADMap._CreateMetadata-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="DarwinVADMap._CreateMetadata-expanded"><a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">        <tt id="link-14" class="py-name" targets="Class Method rekall.addrspace.BaseAddressSpace.metadata()=rekall.addrspace.BaseAddressSpace-class.html#metadata,Method rekall.addrspace.BufferAddressSpace.metadata()=rekall.addrspace.BufferAddressSpace-class.html#metadata,Method rekall.obj.Profile.metadata()=rekall.obj.Profile-class.html#metadata,Method rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata()=rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor-class.html#metadata"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-14', 'metadata', 'link-14');">metadata</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">descriptor_cls</tt><tt class="py-op">,</tt> <tt id="link-15" class="py-name" targets="Module rekall.args=rekall.args-module.html,Class Method rekall.plugin.Command.args()=rekall.plugin.Command-class.html#args,Class Method rekall.plugin.KernelASMixin.args()=rekall.plugin.KernelASMixin-class.html#args,Class Method rekall.plugin.PhysicalASMixin.args()=rekall.plugin.PhysicalASMixin-class.html#args,Class Method rekall.plugin.ProfileCommand.args()=rekall.plugin.ProfileCommand-class.html#args,Class Method rekall.plugin.VerbosityMixIn.args()=rekall.plugin.VerbosityMixIn-class.html#args,Class Method rekall.plugins.common.inspection.MemoryTranslation.args()=rekall.plugins.common.inspection.MemoryTranslation-class.html#args,Class Method rekall.plugins.common.memmap.MemmapMixIn.args()=rekall.plugins.common.memmap.MemmapMixIn-class.html#args,Class Method rekall.plugins.common.pas2kas.Pas2VasMixin.args()=rekall.plugins.common.pas2kas.Pas2VasMixin-class.html#args,Class Method rekall.plugins.common.pfn.VADMapMixin.args()=rekall.plugins.common.pfn.VADMapMixin-class.html#args,Class Method rekall.plugins.common.search.Collect.args()=rekall.plugins.common.search.Collect-class.html#args,Class Method rekall.plugins.common.search.EfilterPlugin.args()=rekall.plugins.common.search.EfilterPlugin-class.html#args,Class Method rekall.plugins.common.search.FindPlugins.args()=rekall.plugins.common.search.FindPlugins-class.html#args,Class Method rekall.plugins.common.search.Search.args()=rekall.plugins.common.search.Search-class.html#args,Class Method rekall.plugins.common.sigscan.SigScanMixIn.args()=rekall.plugins.common.sigscan.SigScanMixIn-class.html#args,Class Method rekall.plugins.core.DT.args()=rekall.plugins.core.DT-class.html#args,Class Method rekall.plugins.core.DirectoryDumperMixin.args()=rekall.plugins.core.DirectoryDumperMixin-class.html#args,Class Method rekall.plugins.core.Dump.args()=rekall.plugins.core.Dump-class.html#args,Class Method rekall.plugins.core.Grep.args()=rekall.plugins.core.Grep-class.html#args,Class Method rekall.plugins.core.OutputFileMixin.args()=rekall.plugins.core.OutputFileMixin-class.html#args,Class Method rekall.plugins.core.VtoPMixin.args()=rekall.plugins.core.VtoPMixin-class.html#args,Class Method rekall.plugins.darwin.common.DarwinKASLRMixin.args()=rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#args,Class Method rekall.plugins.darwin.common.DarwinProcessFilter.args()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#args,Class Method rekall.plugins.darwin.common.ProcessFilterMixin.args()=rekall.plugins.darwin.common.ProcessFilterMixin-class.html#args,Class Method rekall.plugins.darwin.zones.DarwinDumpZone.args()=rekall.plugins.darwin.zones.DarwinDumpZone-class.html#args,Class Method rekall.plugins.filesystems.ntfs.FileBaseCommandMixin.args()=rekall.plugins.filesystems.ntfs.FileBaseCommandMixin-class.html#args,Class Method rekall.plugins.filesystems.ntfs.IDump.args()=rekall.plugins.filesystems.ntfs.IDump-class.html#args,Class Method rekall.plugins.filesystems.ntfs.MFTPluginsMixin.args()=rekall.plugins.filesystems.ntfs.MFTPluginsMixin-class.html#args,Class Method rekall.plugins.hypervisors.VmScan.args()=rekall.plugins.hypervisors.VmScan-class.html#args,Class Method rekall.plugins.imagecopy.ImageCopy.args()=rekall.plugins.imagecopy.ImageCopy-class.html#args,Class Method rekall.plugins.linux.bash.BashHistory.args()=rekall.plugins.linux.bash.BashHistory-class.html#args,Class Method rekall.plugins.linux.check_fops.CheckProcFops.args()=rekall.plugins.linux.check_fops.CheckProcFops-class.html#args,Class Method rekall.plugins.linux.common.LinProcessFilter.args()=rekall.plugins.linux.common.LinProcessFilter-class.html#args,Class Method rekall.plugins.linux.fs.Mfind.args()=rekall.plugins.linux.fs.Mfind-class.html#args,Class Method rekall.plugins.linux.fs.Mls.args()=rekall.plugins.linux.fs.Mls-class.html#args,Class Method rekall.plugins.linux.lsmod.Lsmod.args()=rekall.plugins.linux.lsmod.Lsmod-class.html#args,Class Method rekall.plugins.linux.lsmod.Moddump.args()=rekall.plugins.linux.lsmod.Moddump-class.html#args,Class Method rekall.plugins.linux.netstat.PacketQueues.args()=rekall.plugins.linux.netstat.PacketQueues-class.html#args,Class Method rekall.plugins.overlays.linux.dwarfparser.DwarfParser.args()=rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html#args,Class Method rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.args()=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin-class.html#args,Class Method rekall.plugins.tools.aff4acquire.AFF4Acquire.args()=rekall.plugins.tools.aff4acquire.AFF4Acquire-class.html#args,Class Method rekall.plugins.tools.aff4acquire.AFF4Export.args()=rekall.plugins.tools.aff4acquire.AFF4Export-class.html#args,Class Method rekall.plugins.tools.aff4acquire.AFF4Ls.args()=rekall.plugins.tools.aff4acquire.AFF4Ls-class.html#args,Class Method rekall.plugins.tools.disassembler.Disassemble.args()=rekall.plugins.tools.disassembler.Disassemble-class.html#args,Class Method rekall.plugins.tools.ewf.EWFAcquire.args()=rekall.plugins.tools.ewf.EWFAcquire-class.html#args,Class Method rekall.plugins.tools.ipython.BaseSessionCommand.args()=rekall.plugins.tools.ipython.BaseSessionCommand-class.html#args,Class Method rekall.plugins.tools.ipython.SessionMod.args()=rekall.plugins.tools.ipython.SessionMod-class.html#args,Class Method rekall.plugins.tools.json_tools.JSONParser.args()=rekall.plugins.tools.json_tools.JSONParser-class.html#args,Class Method rekall.plugins.tools.live_darwin.Live.args()=rekall.plugins.tools.live_darwin.Live-class.html#args,Class Method rekall.plugins.tools.live_windows.Live.args()=rekall.plugins.tools.live_windows.Live-class.html#args,Class Method rekall.plugins.tools.mspdb.FetchPDB.args()=rekall.plugins.tools.mspdb.FetchPDB-class.html#args,Class Method rekall.plugins.tools.mspdb.ParsePDB.args()=rekall.plugins.tools.mspdb.ParsePDB-class.html#args,Class Method rekall.plugins.tools.profile_tool.BuildIndex.args()=rekall.plugins.tools.profile_tool.BuildIndex-class.html#args,Class Method rekall.plugins.tools.profile_tool.BuildProfileLocally.args()=rekall.plugins.tools.profile_tool.BuildProfileLocally-class.html#args,Class Method rekall.plugins.tools.profile_tool.ConvertProfile.args()=rekall.plugins.tools.profile_tool.ConvertProfile-class.html#args,Class Method rekall.plugins.tools.repository_manager.ManageRepository.args()=rekall.plugins.tools.repository_manager.ManageRepository-class.html#args,Class Method rekall.plugins.windows.cache.DumpFiles.args()=rekall.plugins.windows.cache.DumpFiles-class.html#args,Class Method rekall.plugins.windows.common.PoolScannerPlugin.args()=rekall.plugins.windows.common.PoolScannerPlugin-class.html#args,Class Method rekall.plugins.windows.common.WinFindDTB.args()=rekall.plugins.windows.common.WinFindDTB-class.html#args,Class Method rekall.plugins.windows.common.WinProcessFilter.args()=rekall.plugins.windows.common.WinProcessFilter-class.html#args,Class Method rekall.plugins.windows.crashinfo.Raw2Dump.args()=rekall.plugins.windows.crashinfo.Raw2Dump-class.html#args,Class Method rekall.plugins.windows.dns.WinDNSCache.args()=rekall.plugins.windows.dns.WinDNSCache-class.html#args,Class Method rekall.plugins.windows.gui.atoms.AtomScan.args()=rekall.plugins.windows.gui.atoms.AtomScan-class.html#args,Class Method rekall.plugins.windows.gui.clipboard.Clipboard.args()=rekall.plugins.windows.gui.clipboard.Clipboard-class.html#args,Class Method rekall.plugins.windows.gui.userhandles.UserHandles.args()=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#args,Class Method rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.args()=rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin-class.html#args,Class Method rekall.plugins.windows.handles.Handles.args()=rekall.plugins.windows.handles.Handles-class.html#args,Class Method rekall.plugins.windows.heap_analysis.FindReferenceAlloc.args()=rekall.plugins.windows.heap_analysis.FindReferenceAlloc-class.html#args,Class Method rekall.plugins.windows.heap_analysis.InspectHeap.args()=rekall.plugins.windows.heap_analysis.InspectHeap-class.html#args,Class Method rekall.plugins.windows.heap_analysis.ShowAllocation.args()=rekall.plugins.windows.heap_analysis.ShowAllocation-class.html#args,Class Method rekall.plugins.windows.index.GuessGUID.args()=rekall.plugins.windows.index.GuessGUID-class.html#args,Class Method rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.args()=rekall.plugins.windows.interactive.profiles.LoadWindowsProfile-class.html#args,Class Method rekall.plugins.windows.interactive.structs.AnalyzeStruct.args()=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#args,Class Method rekall.plugins.windows.kdbgscan.KDBGScan.args()=rekall.plugins.windows.kdbgscan.KDBGScan-class.html#args,Class Method rekall.plugins.windows.malware.apihooks.CheckPEHooks.args()=rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html#args,Class Method rekall.plugins.windows.malware.cmdhistory.CmdScan.args()=rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html#args,Class Method rekall.plugins.windows.malware.cmdhistory.ConsoleScan.args()=rekall.plugins.windows.malware.cmdhistory.ConsoleScan-class.html#args,Class Method rekall.plugins.windows.malware.devicetree.DriverIrp.args()=rekall.plugins.windows.malware.devicetree.DriverIrp-class.html#args,Class Method rekall.plugins.windows.malware.impscan.ImpScan.args()=rekall.plugins.windows.malware.impscan.ImpScan-class.html#args,Class Method rekall.plugins.windows.misc.ObjectTree.args()=rekall.plugins.windows.misc.ObjectTree-class.html#args,Class Method rekall.plugins.windows.modules.Modules.args()=rekall.plugins.windows.modules.Modules-class.html#args,Class Method rekall.plugins.windows.modules.VersionScan.args()=rekall.plugins.windows.modules.VersionScan-class.html#args,Class Method rekall.plugins.windows.pfn.DTBScan.args()=rekall.plugins.windows.pfn.DTBScan-class.html#args,Class Method rekall.plugins.windows.pfn.PFNInfo.args()=rekall.plugins.windows.pfn.PFNInfo-class.html#args,Class Method rekall.plugins.windows.pfn.PtoV.args()=rekall.plugins.windows.pfn.PtoV-class.html#args,Class Method rekall.plugins.windows.procdump.DLLDump.args()=rekall.plugins.windows.procdump.DLLDump-class.html#args,Class Method rekall.plugins.windows.procdump.PEDump.args()=rekall.plugins.windows.procdump.PEDump-class.html#args,Class Method rekall.plugins.windows.procdump.ProcExeDump.args()=rekall.plugins.windows.procdump.ProcExeDump-class.html#args,Class Method rekall.plugins.windows.procinfo.PEInfo.args()=rekall.plugins.windows.procinfo.PEInfo-class.html#args,Class Method rekall.plugins.windows.registry.printkey.PrintKey.args()=rekall.plugins.windows.registry.printkey.PrintKey-class.html#args,Class Method rekall.plugins.windows.registry.registry.RegistryPlugin.args()=rekall.plugins.windows.registry.registry.RegistryPlugin-class.html#args,Class Method rekall.plugins.windows.taskmods.WinPsList.args()=rekall.plugins.windows.taskmods.WinPsList-class.html#args,Class Method rekall.plugins.windows.vadinfo.VAD.args()=rekall.plugins.windows.vadinfo.VAD-class.html#args,Class Method rekall.plugins.windows.vadinfo.VADDump.args()=rekall.plugins.windows.vadinfo.VADDump-class.html#args,Class Method rekall.plugins.yarascanner.YaraScanMixin.args()=rekall.plugins.yarascanner.YaraScanMixin-class.html#args,Class Method rekall.rekal.Run.args()=rekall.rekal.Run-class.html#args"><a title="rekall.args
+rekall.plugin.Command.args
+rekall.plugin.KernelASMixin.args
+rekall.plugin.PhysicalASMixin.args
+rekall.plugin.ProfileCommand.args
+rekall.plugin.VerbosityMixIn.args
+rekall.plugins.common.inspection.MemoryTranslation.args
+rekall.plugins.common.memmap.MemmapMixIn.args
+rekall.plugins.common.pas2kas.Pas2VasMixin.args
+rekall.plugins.common.pfn.VADMapMixin.args
+rekall.plugins.common.search.Collect.args
+rekall.plugins.common.search.EfilterPlugin.args
+rekall.plugins.common.search.FindPlugins.args
+rekall.plugins.common.search.Search.args
+rekall.plugins.common.sigscan.SigScanMixIn.args
+rekall.plugins.core.DT.args
+rekall.plugins.core.DirectoryDumperMixin.args
+rekall.plugins.core.Dump.args
+rekall.plugins.core.Grep.args
+rekall.plugins.core.OutputFileMixin.args
+rekall.plugins.core.VtoPMixin.args
+rekall.plugins.darwin.common.DarwinKASLRMixin.args
+rekall.plugins.darwin.common.DarwinProcessFilter.args
+rekall.plugins.darwin.common.ProcessFilterMixin.args
+rekall.plugins.darwin.zones.DarwinDumpZone.args
+rekall.plugins.filesystems.ntfs.FileBaseCommandMixin.args
+rekall.plugins.filesystems.ntfs.IDump.args
+rekall.plugins.filesystems.ntfs.MFTPluginsMixin.args
+rekall.plugins.hypervisors.VmScan.args
+rekall.plugins.imagecopy.ImageCopy.args
+rekall.plugins.linux.bash.BashHistory.args
+rekall.plugins.linux.check_fops.CheckProcFops.args
+rekall.plugins.linux.common.LinProcessFilter.args
+rekall.plugins.linux.fs.Mfind.args
+rekall.plugins.linux.fs.Mls.args
+rekall.plugins.linux.lsmod.Lsmod.args
+rekall.plugins.linux.lsmod.Moddump.args
+rekall.plugins.linux.netstat.PacketQueues.args
+rekall.plugins.overlays.linux.dwarfparser.DwarfParser.args
+rekall.plugins.overlays.windows.tcpip_vtypes.TcpipPluginMixin.args
+rekall.plugins.tools.aff4acquire.AFF4Acquire.args
+rekall.plugins.tools.aff4acquire.AFF4Export.args
+rekall.plugins.tools.aff4acquire.AFF4Ls.args
+rekall.plugins.tools.disassembler.Disassemble.args
+rekall.plugins.tools.ewf.EWFAcquire.args
+rekall.plugins.tools.ipython.BaseSessionCommand.args
+rekall.plugins.tools.ipython.SessionMod.args
+rekall.plugins.tools.json_tools.JSONParser.args
+rekall.plugins.tools.live_darwin.Live.args
+rekall.plugins.tools.live_windows.Live.args
+rekall.plugins.tools.mspdb.FetchPDB.args
+rekall.plugins.tools.mspdb.ParsePDB.args
+rekall.plugins.tools.profile_tool.BuildIndex.args
+rekall.plugins.tools.profile_tool.BuildProfileLocally.args
+rekall.plugins.tools.profile_tool.ConvertProfile.args
+rekall.plugins.tools.repository_manager.ManageRepository.args
+rekall.plugins.windows.cache.DumpFiles.args
+rekall.plugins.windows.common.PoolScannerPlugin.args
+rekall.plugins.windows.common.WinFindDTB.args
+rekall.plugins.windows.common.WinProcessFilter.args
+rekall.plugins.windows.crashinfo.Raw2Dump.args
+rekall.plugins.windows.dns.WinDNSCache.args
+rekall.plugins.windows.gui.atoms.AtomScan.args
+rekall.plugins.windows.gui.clipboard.Clipboard.args
+rekall.plugins.windows.gui.userhandles.UserHandles.args
+rekall.plugins.windows.gui.win32k_core.Win32kPluginMixin.args
+rekall.plugins.windows.handles.Handles.args
+rekall.plugins.windows.heap_analysis.FindReferenceAlloc.args
+rekall.plugins.windows.heap_analysis.InspectHeap.args
+rekall.plugins.windows.heap_analysis.ShowAllocation.args
+rekall.plugins.windows.index.GuessGUID.args
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.args
+rekall.plugins.windows.interactive.structs.AnalyzeStruct.args
+rekall.plugins.windows.kdbgscan.KDBGScan.args
+rekall.plugins.windows.malware.apihooks.CheckPEHooks.args
+rekall.plugins.windows.malware.cmdhistory.CmdScan.args
+rekall.plugins.windows.malware.cmdhistory.ConsoleScan.args
+rekall.plugins.windows.malware.devicetree.DriverIrp.args
+rekall.plugins.windows.malware.impscan.ImpScan.args
+rekall.plugins.windows.misc.ObjectTree.args
+rekall.plugins.windows.modules.Modules.args
+rekall.plugins.windows.modules.VersionScan.args
+rekall.plugins.windows.pfn.DTBScan.args
+rekall.plugins.windows.pfn.PFNInfo.args
+rekall.plugins.windows.pfn.PtoV.args
+rekall.plugins.windows.procdump.DLLDump.args
+rekall.plugins.windows.procdump.PEDump.args
+rekall.plugins.windows.procdump.ProcExeDump.args
+rekall.plugins.windows.procinfo.PEInfo.args
+rekall.plugins.windows.registry.printkey.PrintKey.args
+rekall.plugins.windows.registry.registry.RegistryPlugin.args
+rekall.plugins.windows.taskmods.WinPsList.args
+rekall.plugins.windows.vadinfo.VAD.args
+rekall.plugins.windows.vadinfo.VADDump.args
+rekall.plugins.yarascanner.YaraScanMixin.args
+rekall.rekal.Run.args" class="py-name" href="#" onclick="return doclink('link-15', 'args', 'link-15');">args</a></tt><tt class="py-op">,</tt> <tt class="py-name">kwargs</tt> <tt class="py-keyword">in</tt> <tt class="py-name">reversed</tt><tt class="py-op">(</tt><tt class="py-name">collection</tt><tt class="py-op">.</tt><tt class="py-name">descriptors</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-16" class="py-name" targets="Function rekall.utils.issubclass()=rekall.utils-module.html#issubclass"><a title="rekall.utils.issubclass" class="py-name" href="#" onclick="return doclink('link-16', 'issubclass', 'link-16');">issubclass</a></tt><tt class="py-op">(</tt><tt class="py-name">descriptor_cls</tt><tt class="py-op">,</tt> <tt id="link-17" class="py-name"><a title="rekall.plugins.addrspaces.intel" class="py-name" href="#" onclick="return doclink('link-17', 'intel', 'link-5');">intel</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Class rekall.plugins.addrspaces.intel.PhysicalAddressDescriptor=rekall.plugins.addrspaces.intel.PhysicalAddressDescriptor-class.html"><a title="rekall.plugins.addrspaces.intel.PhysicalAddressDescriptor" class="py-name" href="#" onclick="return doclink('link-18', 'PhysicalAddressDescriptor', 'link-18');">PhysicalAddressDescriptor</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">                <tt id="link-19" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-19', 'metadata', 'link-14');">metadata</a></tt><tt class="py-op">[</tt><tt class="py-string">"offset"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">kwargs</tt><tt class="py-op">[</tt><tt class="py-string">"address"</tt><tt class="py-op">]</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">                <tt id="link-20" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-20', 'metadata', 'link-14');">metadata</a></tt><tt class="py-op">.</tt><tt class="py-name">setdefault</tt><tt class="py-op">(</tt><tt class="py-string">"type"</tt><tt class="py-op">,</tt> <tt class="py-string">"Valid"</tt><tt class="py-op">)</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line"> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line">            <tt class="py-keyword">elif</tt> <tt id="link-21" class="py-name"><a title="rekall.utils.issubclass" class="py-name" href="#" onclick="return doclink('link-21', 'issubclass', 'link-16');">issubclass</a></tt><tt class="py-op">(</tt><tt class="py-name">descriptor_cls</tt><tt class="py-op">,</tt> <tt id="link-22" class="py-name"><a title="rekall.plugins.addrspaces.intel" class="py-name" href="#" onclick="return doclink('link-22', 'intel', 'link-5');">intel</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Class rekall.plugins.addrspaces.intel.InvalidAddress=rekall.plugins.addrspaces.intel.InvalidAddress-class.html"><a title="rekall.plugins.addrspaces.intel.InvalidAddress" class="py-name" href="#" onclick="return doclink('link-23', 'InvalidAddress', 'link-23');">InvalidAddress</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">                <tt id="link-24" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-24', 'metadata', 'link-14');">metadata</a></tt><tt class="py-op">[</tt><tt class="py-string">"type"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"Invalid"</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt id="link-25" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-25', 'metadata', 'link-14');">metadata</a></tt> </tt>
+</div><a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"> </tt>
+<a name="DarwinVADMap.GeneratePageMetatadata"></a><div id="DarwinVADMap.GeneratePageMetatadata-def"><a name="L46"></a><tt class="py-lineno">46</tt> <a class="py-toggle" href="#" id="DarwinVADMap.GeneratePageMetatadata-toggle" onclick="return toggle('DarwinVADMap.GeneratePageMetatadata');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.darwin.maps.DarwinVADMap-class.html#GeneratePageMetatadata">GeneratePageMetatadata</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">proc</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinVADMap.GeneratePageMetatadata-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="DarwinVADMap.GeneratePageMetatadata-expanded"><a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">        <tt id="link-26" class="py-name" targets="Variable rekall.addrspace.Run.address_space=rekall.addrspace.Run-class.html#address_space"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-26', 'address_space', 'link-26');">address_space</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Variable rekall.plugins.common.search.CommandWrapper.session=rekall.plugins.common.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-27', 'session', 'link-27');">session</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-28', 'GetParameter', 'link-28');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"default_address_space"</tt><tt class="py-op">)</tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">map</tt> <tt class="py-keyword">in</tt> <tt id="link-29" class="py-name" targets="Class rekall.plugins.overlays.darwin.darwin.proc=rekall.plugins.overlays.darwin.darwin.proc-class.html"><a title="rekall.plugins.overlays.darwin.darwin.proc" class="py-name" href="#" onclick="return doclink('link-29', 'proc', 'link-29');">proc</a></tt><tt class="py-op">.</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">hdr</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Method rekall.obj.Struct.walk_list()=rekall.obj.Struct-class.html#walk_list"><a title="rekall.obj.Struct.walk_list" class="py-name" href="#" onclick="return doclink('link-30', 'walk_list', 'link-30');">walk_list</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">            <tt class="py-string">"links.next"</tt><tt class="py-op">,</tt> <tt class="py-name">include_current</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line"> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line">            <tt id="link-31" class="py-name" targets="Variable rekall.addrspace.Run.start=rekall.addrspace.Run-class.html#start,Variable rekall.plugins.overlays.darwin.darwin.vm_map_entry.start=rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html#start,Method rekall.plugins.renderers.xls.XLSRenderer.start()=rekall.plugins.renderers.xls.XLSRenderer-class.html#start,Method rekall.ui.identity.IdentityRenderer.start()=rekall.ui.identity.IdentityRenderer-class.html#start,Method rekall.ui.json_renderer.JsonRenderer.start()=rekall.ui.json_renderer.JsonRenderer-class.html#start,Method rekall.ui.renderer.BaseRenderer.start()=rekall.ui.renderer.BaseRenderer-class.html#start"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-31', 'start', 'link-31');">start</a></tt> <tt class="py-op">=</tt> <tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">links</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-32', 'start', 'link-31');">start</a></tt> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">            <tt id="link-33" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.end()=rekall.addrspace.BaseAddressSpace-class.html#end,Method rekall.addrspace.BufferAddressSpace.end()=rekall.addrspace.BufferAddressSpace-class.html#end,Variable rekall.addrspace.Run.end=rekall.addrspace.Run-class.html#end,Method rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end()=rekall.plugins.addrspaces.aff4.AFF4StreamWrapper-class.html#end,Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#end,Method rekall.plugins.addrspaces.arm.ArmPagedMemory.end()=rekall.plugins.addrspaces.arm.ArmPagedMemory-class.html#end,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.end()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#end,Method rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end()=rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn-class.html#end,Method rekall.plugins.addrspaces.win32.Win32FileWrapper.end()=rekall.plugins.addrspaces.win32.Win32FileWrapper-class.html#end,Method rekall.plugins.filesystems.ntfs.RunListAddressSpace.end()=rekall.plugins.filesystems.ntfs.RunListAddressSpace-class.html#end,Variable rekall.plugins.overlays.darwin.darwin.vm_map_entry.end=rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html#end,Method rekall.ui.json_renderer.JsonRenderer.end()=rekall.ui.json_renderer.JsonRenderer-class.html#end,Method rekall.ui.renderer.BaseRenderer.end()=rekall.ui.renderer.BaseRenderer-class.html#end"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-33', 'end', 'link-33');">end</a></tt> <tt class="py-op">=</tt> <tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">links</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-34', 'end', 'link-33');">end</a></tt> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">            <tt class="py-comment"># Skip the entire region.</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-35" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-35', 'end', 'link-33');">end</a></tt> <tt class="py-op">&lt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-36', 'start', 'link-31');">start</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line">                <tt class="py-keyword">continue</tt> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line"> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line">            <tt class="py-comment"># Done.</tt> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-37" class="py-name"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-37', 'start', 'link-31');">start</a></tt> <tt class="py-op">&gt;</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-38', 'end', 'link-33');">end</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">                <tt class="py-keyword">break</tt> </tt>
+<a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"> </tt>
+<a name="L63"></a><tt class="py-lineno">63</tt>  <tt class="py-line">            <tt class="py-keyword">for</tt> <tt class="py-name">vaddr</tt> <tt class="py-keyword">in</tt> <tt id="link-39" class="py-name"><a title="rekall.utils" class="py-name" href="#" onclick="return doclink('link-39', 'utils', 'link-1');">utils</a></tt><tt class="py-op">.</tt><tt id="link-40" class="py-name" targets="Function rekall.utils.xrange()=rekall.utils-module.html#xrange"><a title="rekall.utils.xrange" class="py-name" href="#" onclick="return doclink('link-40', 'xrange', 'link-40');">xrange</a></tt><tt class="py-op">(</tt><tt id="link-41" class="py-name"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-41', 'start', 'link-31');">start</a></tt><tt class="py-op">,</tt> <tt id="link-42" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-42', 'end', 'link-33');">end</a></tt><tt class="py-op">,</tt> <tt class="py-number">0x1000</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L64"></a><tt class="py-lineno">64</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-43', 'start', 'link-31');">start</a></tt> <tt class="py-op">&lt;=</tt> <tt class="py-name">vaddr</tt> <tt class="py-op">&lt;=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-44', 'end', 'link-33');">end</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L65"></a><tt class="py-lineno">65</tt>  <tt class="py-line">                    <tt class="py-keyword">yield</tt> <tt class="py-name">vaddr</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_CreateMetadata</tt><tt class="py-op">(</tt> </tt>
+<a name="L66"></a><tt class="py-lineno">66</tt>  <tt class="py-line">                        <tt id="link-45" class="py-name"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-45', 'address_space', 'link-26');">address_space</a></tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.describe_vtop()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#describe_vtop,Method rekall.plugins.addrspaces.arm.ArmPagedMemory.describe_vtop()=rekall.plugins.addrspaces.arm.ArmPagedMemory-class.html#describe_vtop,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.describe_vtop()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#describe_vtop,Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.describe_vtop()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#describe_vtop"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.describe_vtop
+rekall.plugins.addrspaces.arm.ArmPagedMemory.describe_vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemory.describe_vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.describe_vtop" class="py-name" href="#" onclick="return doclink('link-46', 'describe_vtop', 'link-46');">describe_vtop</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L67"></a><tt class="py-lineno">67</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:38 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

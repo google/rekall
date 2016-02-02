@@ -1,14 +1,24 @@
 ---
-layout: plugin
-title: vtop
-abstract: |
-  Prints information about the virtual to physical translation.
+abstract: Prints information about the virtual to physical translation.
+args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
+    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
+    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
+    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    ', virtual_address: 'The Virtual Address to examine. (type: SymbolAddress)
+
+    '}
+class_name: VtoP
 epydoc: rekall.plugins.windows.pfn.VtoP-class.html
-args:
-  virtual_address: 'Specify to see all the fops, even if they are known.'
-  address_space: 'The address space to use.'
-
+layout: plugin
+module: rekall.plugins.windows.pfn
+title: vtop
 ---
 
 This plugin displays all the page translation steps needed to resolve a virtual

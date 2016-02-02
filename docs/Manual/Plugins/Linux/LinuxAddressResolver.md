@@ -1,12 +1,10 @@
 ---
-layout: plugin
-title: address_resolver
-abstract: |
-  A Linux specific address resolver plugin.
-
+abstract: A Linux specific address resolver plugin.
+args: {}
+class_name: LinuxAddressResolver
 epydoc: rekall.plugins.linux.address_resolver.LinuxAddressResolver-class.html
-args:
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.linux.address_resolver
+title: address_resolver
 ---
 

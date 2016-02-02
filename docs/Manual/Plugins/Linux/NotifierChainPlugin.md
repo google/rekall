@@ -1,13 +1,11 @@
 ---
-layout: plugin
-title: notifier_chains
-abstract: |
-  Outputs and verifies kernel notifier chains.
-
+abstract: Outputs and verifies kernel notifier chains.
+args: {}
+class_name: NotifierChainPlugin
 epydoc: rekall.plugins.linux.notifier_chains.NotifierChainPlugin-class.html
-args:
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.linux.notifier_chains
+title: notifier_chains
 ---
 
 The Linux kernel can notify modules on certain events. This is done by subscribing to a notifier chain.

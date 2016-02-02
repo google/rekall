@@ -1,12 +1,11 @@
 ---
-layout: plugin
-title: pool_tracker
-abstract: |
-  Enumerate pool tag usage statistics.
-
+abstract: Enumerate pool tag usage statistics.
+args: {}
+class_name: PoolTracker
 epydoc: rekall.plugins.windows.misc.PoolTracker-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.misc
+title: pool_tracker
 ---
 
 The Windows kernel allocates memory from a shared pool. In order to track memory

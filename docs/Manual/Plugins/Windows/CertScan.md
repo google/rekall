@@ -1,13 +1,11 @@
 ---
-layout: plugin
-title: certscan
-abstract: |
-  Dump RSA private and public SSL keys from the physical address space.
-
+abstract: Dump RSA private and public SSL keys from the physical address space.
+args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directory)'}
+class_name: CertScan
 epydoc: rekall.plugins.windows.dumpcerts.CertScan-class.html
-args:
-  dump_dir: 'Path suitable for dumping files. (Optional)'
-
+layout: plugin
+module: rekall.plugins.windows.dumpcerts
+title: certscan
 ---
 
 This plugin is similar to the [cert_vad_scan](CertVadScan.html) plugin. It

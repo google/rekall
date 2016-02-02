@@ -1,31 +1,22 @@
 ---
-layout: plugin
-title: kdbgscan
-abstract: |
-  Scan for possible _KDDEBUGGER_DATA64 structures.
+abstract: "Scan for possible _KDDEBUGGER_DATA64 structures.\n\n    The scanner is\
+  \ detailed here:\n    http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html\n\
+  \n    The relevant structures are detailed here:\n    http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html\n\
+  \n    We can see that _KDDEBUGGER_DATA64.Header is:\n\n    typedef struct _DBGKD_DEBUG_DATA_HEADER64\
+  \ {\n        LIST_ENTRY64    List;\n        ULONG           OwnerTag;\n        ULONG\
+  \           Size;\n    }\n\n    We essentially search for an owner tag of \"KDBG\"\
+  , then overlay the\n    _KDDEBUGGER_DATA64 struct on it. We test for validity by\
+  \ reflecting\n    through the Header.List member.\n    "
+args: {full_scan: 'Scan the full address space. (type: Boolean)
 
-  The scanner is detailed here:
-  <http://moyix.blogspot.com/2008/04/finding-kernel-global-variables-in.html>
 
-  The relevant structures are detailed here:
-  <http://doxygen.reactos.org/d3/ddf/include_2psdk_2wdbgexts_8h_source.html>
 
-  We can see that _KDDEBUGGER_DATA64.Header is:
-
-  typedef struct _DBGKD_DEBUG_DATA_HEADER64 {
-      LIST_ENTRY64    List;
-      ULONG           OwnerTag;
-      ULONG           Size;
-  }
-
-  We essentially search for an owner tag of "KDBG", then overlay the
-  _KDDEBUGGER_DATA64 struct on it. We test for validity by reflecting
-  through the Header.List member.
-
+    * Default: False'}
+class_name: KDBGScan
 epydoc: rekall.plugins.windows.kdbgscan.KDBGScan-class.html
-args:
-  full_scan: 'Scan the full address space.'
-
+layout: plugin
+module: rekall.plugins.windows.kdbgscan
+title: kdbgscan
 ---
 
 Windows keeps a store of some useful global variables in a structure called

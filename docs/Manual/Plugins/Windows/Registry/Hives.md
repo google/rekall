@@ -1,13 +1,13 @@
 ---
-layout: plugin
-title: hives
-abstract: |
-  List all the registry hives on the system.
+abstract: List all the registry hives on the system.
+args: {hive-offsets: 'A list of hive offsets as found by hivelist. If not provided
+    we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)
 
+    ', hive_regex: A regex to filter hive names.If not provided we use all hives.}
+class_name: Hives
 epydoc: rekall.plugins.windows.registry.registry.Hives-class.html
-args:
-  hive_offsets: 'A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.'
-  hive_regex: 'A regex to filter hive names.If not provided we use all hives.'
-
+layout: plugin
+module: rekall.plugins.windows.registry.registry
+title: hives
 ---
 

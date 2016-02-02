@@ -1,17 +1,23 @@
 ---
-layout: plugin
-title: mls
-abstract: |
-  Lists the files in a mounted filesystem.
+abstract: Lists the files in a mounted filesystem.
+args: {device: Name of the device to match., path: 'Path to the file.
 
+
+    * Default: /', recursive: 'Recursive listing (type: Boolean)
+
+
+
+    * Default: False', unallocated: 'Show files that have no inode information. (type:
+    Boolean)
+
+
+
+    * Default: False'}
+class_name: Mls
 epydoc: rekall.plugins.linux.fs.Mls-class.html
-args:
-  recursive: 'Recursive listing'
-  unallocated: 'Show files that have no inode information.'
-  path: 'Path to the file.'
-  device: 'Name of the device to match.'
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.linux.fs
+title: mls
 ---
 
 ### Sample output

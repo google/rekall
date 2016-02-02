@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -61,12 +58,11 @@
 <!-- ==================== CLASS DESCRIPTION ==================== -->
 <h1 class="epydoc">Class Session</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.session-pysrc.html#Session">source&nbsp;code</a></span></p>
 <center>
-<center>  <map id="class_hierarchy_for_session" name="class_hierarchy_for_session">
-<area shape="rect" id="node1" href="rekall.session.InteractiveSession-class.html" title="InteractiveSession" alt="" coords="18,113,125,135"/>
-<area shape="rect" id="node2" href="rekall.session.JsonSerializableSession-class.html" title="JsonSerializableSession" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node3" href="rekall.session.Session-class.html" title="Session" alt="" coords="43,6,100,29"/>
+<center>  <map id="class_hierarchy_for_session_2" name="class_hierarchy_for_session_2">
+<area shape="rect" id="node1" href="rekall.session.InteractiveSession-class.html" title="InteractiveSession" alt="" coords="5,59,112,82"/>
+<area shape="rect" id="node2" href="rekall.session.Session-class.html" title="Session" alt="" coords="29,6,87,29"/>
 </map>
-  <img src="class_hierarchy_for_session.gif" alt='' usemap="#class_hierarchy_for_session" ismap="ismap" class="graph-without-title" />
+  <img src="class_hierarchy_for_session_2.gif" alt='' usemap="#class_hierarchy_for_session_2" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
@@ -219,7 +215,8 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.session.Session-class.html#GetParameter" class="summary-sig-name">GetParameter</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
-        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">&lt;None Object&gt;</span>)</span><br />
+        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">&lt;None Object&gt;</span>,
+        <span class="summary-sig-arg">cached</span>=<span class="summary-sig-default">True</span>)</span><br />
       Retrieves a stored parameter.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.GetParameter">source&nbsp;code</a></span>
@@ -238,7 +235,8 @@
         <tr>
           <td><span class="summary-sig"><a name="SetCache"></a><span class="summary-sig-name">SetCache</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">item</span>,
-        <span class="summary-sig-arg">value</span>)</span><br />
+        <span class="summary-sig-arg">value</span>,
+        <span class="summary-sig-arg">volatile</span>=<span class="summary-sig-default">True</span>)</span><br />
       Store something in the cache.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.SetCache">source&nbsp;code</a></span>
@@ -276,7 +274,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.session.Session-class.html#RunPlugin" class="summary-sig-name">RunPlugin</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">plugin_obj</span>,
-        <span class="summary-sig-arg">*pos_args</span>,
+        <span class="summary-sig-arg">*args</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Launch a plugin and its render() method automatically.</td>
           <td align="right" valign="top">
@@ -349,10 +347,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#GetRenderer" class="summary-sig-name">GetRenderer</a>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#GetRenderer" class="summary-sig-name">GetRenderer</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">output</span>=<span class="summary-sig-default">None</span>)</span><br />
       Get a renderer for this session.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.session-pysrc.html#Session.GetRenderer">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.session.Session-class.html#Flush" class="summary-sig-name">Flush</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Destroy this session.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.session-pysrc.html#Session.Flush">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -451,9 +467,33 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.session.Session-class.html#SERIALIZABLE_STATE_PARAMETERS" class="summary-name">SERIALIZABLE_STATE_PARAMETERS</a> = <code title="[('ept', u'IntParser'),
+ ('profile', u'FileName'),
+ ('filename', u'FileName'),
+ ('pagefile', u'FileName'),
+ ('session_name', u'String'),
+ ('timezone', u'TimeZone')]"><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">ept</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">IntParser</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">prof</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="session_id"></a><span class="summary-name">session_id</span> = <code title="0">0</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="privileged"></a><span class="summary-name">privileged</span> = <code title="False">False</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.session.Session-class.html#classes" class="summary-name">classes</a> = <code title="{'InteractiveSession': &lt;class 'rekall.session.InteractiveSession'&gt;,
- 'JsonSerializableSession': &lt;class 'rekall.session.JsonSerializableSes\
-sion'&gt;,
  'Session': &lt;class 'rekall.session.Session'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">InteractiveSession</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.Intera<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -461,7 +501,8 @@ sion'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.session.Session-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.session.InteractiveSession'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.session.InteractiveSes<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.session.Session-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.session.Session'&gt;,
+        &lt;class 'rekall.session.InteractiveSession'&gt;]}"><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.session.Session'&gt;<code class="variable-op">, </code>&lt;c<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -484,6 +525,20 @@ sion'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.session.Session-class.html#logging" class="summary-name">logging</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#volatile" class="summary-name">volatile</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.session.Session-class.html#repository_managers" class="summary-name">repository_managers</a><br />
       The IO managers that are used to fetch profiles from the profile 
       repository.
@@ -502,6 +557,13 @@ sion'&gt;,
     </td><td class="summary">
         <a href="rekall.session.Session-class.html#address_resolver" class="summary-name">address_resolver</a><br />
       A convenience accessor for the address resolver implementation.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.session.Session-class.html#physical_address_space" class="summary-name">physical_address_space</a>
     </td>
   </tr>
 <tr>
@@ -583,7 +645,8 @@ sion'&gt;,
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">GetParameter</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">item</span>,
-        <span class="sig-arg">default</span>=<span class="sig-default">&lt;None Object&gt;</span>)</span>
+        <span class="sig-arg">default</span>=<span class="sig-default">&lt;None Object&gt;</span>,
+        <span class="sig-arg">cached</span>=<span class="sig-default">True</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.session-pysrc.html#Session.GetParameter">source&nbsp;code</a></span>&nbsp;
@@ -639,7 +702,7 @@ sion'&gt;,
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">RunPlugin</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">plugin_obj</span>,
-        <span class="sig-arg">*pos_args</span>,
+        <span class="sig-arg">*args</span>,
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -702,7 +765,8 @@ Returns:
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetRenderer</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetRenderer</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">output</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.session-pysrc.html#Session.GetRenderer">source&nbsp;code</a></span>&nbsp;
@@ -711,7 +775,27 @@ Returns:
   
   <p>Get a renderer for this session.</p>
   <p>We instantiate the renderer specified in 
-  self.GetParameter(&quot;renderer&quot;).</p>
+  self.GetParameter(&quot;format&quot;).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="Flush"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">Flush</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.session-pysrc.html#Session.Flush">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Destroy this session.</p>
+  <p>This should be called when the session is destroyed.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -726,6 +810,29 @@ Returns:
     <span class="table-header">Class Variable Details</span></td>
 </tr>
 </table>
+<a name="SERIALIZABLE_STATE_PARAMETERS"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">SERIALIZABLE_STATE_PARAMETERS</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">ept</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">IntParser</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">profile</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">FileName</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">filename</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">FileName</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">pagefile</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">FileName</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">session_name</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">String</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">timezone</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">TimeZone</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-group">]</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="classes"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -739,8 +846,6 @@ Returns:
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">InteractiveSession</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.InteractiveSession'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">JsonSerializableSession</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.JsonSerializableSes<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-sion'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">Session</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.session.Session'&gt;<code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
@@ -759,7 +864,8 @@ sion'&gt;<code class="variable-op">,</code>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.session.InteractiveSession'&gt;<code class="variable-group">}</code>
+<code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.session.Session'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.session.InteractiveSession'&gt;<code class="variable-group">]</code><code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -775,6 +881,34 @@ sion'&gt;<code class="variable-op">,</code>
     <span class="table-header">Property Details</span></td>
 </tr>
 </table>
+<a name="logging"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">logging</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.logging(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="volatile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">volatile</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.volatile(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="repository_managers"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -824,6 +958,24 @@ repository.
   </dl>
 </td></tr></table>
 </div>
+<a name="physical_address_space"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">physical_address_space</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.physical_address_space(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+    <dt>Set Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.physical_address_space(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="profile"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -847,9 +999,6 @@ repository.
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -874,7 +1023,7 @@ repository.
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:59 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:22 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

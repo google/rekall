@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -63,7 +60,7 @@
 <!-- ==================== CLASS DESCRIPTION ==================== -->
 <h1 class="epydoc">Class ObjectTree</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree">source&nbsp;code</a></span></p>
 <center>
-<center>  <map id="class_hierarchy_for_objecttree" name="class_hierarchy_for_objecttree">
+<center>  <map id="class_hierarchy_for_objecttree_2" name="class_hierarchy_for_objecttree_2">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
 <area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="287,113,409,135"/>
@@ -72,7 +69,7 @@
 <area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="36,113,263,135"/>
 <area shape="rect" id="node7" href="rekall.plugins.windows.misc.ObjectTree-class.html" title="ObjectTree" alt="" coords="211,219,284,242"/>
 </map>
-  <img src="class_hierarchy_for_objecttree.gif" alt='' usemap="#class_hierarchy_for_objecttree" ismap="ismap" class="graph-without-title" />
+  <img src="class_hierarchy_for_objecttree_2.gif" alt='' usemap="#class_hierarchy_for_objecttree_2" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
@@ -122,11 +119,64 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.misc.ObjectTree-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">type_regex</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">.</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">type_regex</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       A mixin for plugins which require a valid kernel address space.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GetObjectByName"></a><span class="summary-sig-name">GetObjectByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">path</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree.GetObjectByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="FileNameWithDrive"></a><span class="summary-sig-name">FileNameWithDrive</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">path</span>)</span><br />
+      Tries to resolve the path back to something with a drive letter.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree.FileNameWithDrive">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.misc.ObjectTree-class.html#ResolveSymlinks" class="summary-sig-name">ResolveSymlinks</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">path</span>)</span><br />
+      Takes a path and resolves any intermediate symlinks in it.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree.ResolveSymlinks">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -145,6 +195,24 @@
       Produce results on the renderer given.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -336,7 +404,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="name"></a><span class="summary-name">name</span> = <code title="'object_tree'"><code class="variable-quote">'</code><code class="variable-string">object_tree</code><code class="variable-quote">'</code></code>
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'object_tree'"><code class="variable-quote">'</code><code class="variable-string">object_tree</code><code class="variable-quote">'</code></code><br />
+      hash(x)
     </td>
   </tr>
 <tr>
@@ -359,15 +428,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -375,15 +444,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -409,6 +478,14 @@ AnalyzeStruct'&gt;,
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -470,7 +547,7 @@ AnalyzeStruct'&gt;,
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">type_regex</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">.</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">type_regex</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -491,6 +568,32 @@ Args:
         object.__init__
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ResolveSymlinks"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ResolveSymlinks</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">path</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.misc-pysrc.html#ObjectTree.ResolveSymlinks">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Takes a path and resolves any intermediate symlinks in it.
+
+Returns:
+  A direct path to the object.
+
+</pre>
+  <dl class="fields">
   </dl>
 </td></tr></table>
 </div>
@@ -583,9 +686,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -610,7 +710,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:53 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:17 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

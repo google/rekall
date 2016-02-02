@@ -1,14 +1,13 @@
 ---
-layout: plugin
-title: dump_zone
-abstract: |
-  Dumps an allocation zone's contents.
+abstract: Dumps an allocation zone's contents.
+args: {zone: '
 
+
+    * Default: buf.512'}
+class_name: DarwinDumpZone
 epydoc: rekall.plugins.darwin.zones.DarwinDumpZone-class.html
-args:
-  zone: ''
-  vm_kernel_slide: 'OS X 10.8 and later: kernel ASLR slide.'
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.darwin.zones
+title: dump_zone
 ---
 

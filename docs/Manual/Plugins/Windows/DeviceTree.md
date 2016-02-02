@@ -1,14 +1,15 @@
 ---
-layout: plugin
-title: devicetree
-abstract: |
-  Show device tree.
+abstract: Show device tree.
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: DeviceTree
 epydoc: rekall.plugins.windows.malware.devicetree.DeviceTree-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.malware.devicetree
+title: devicetree
 ---
 
 

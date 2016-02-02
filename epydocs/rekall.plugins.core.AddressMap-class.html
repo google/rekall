@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -105,7 +102,8 @@
           <td><span class="summary-sig"><a name="AddRange"></a><span class="summary-sig-name">AddRange</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">start</span>,
         <span class="summary-sig-arg">end</span>,
-        <span class="summary-sig-arg">label</span>)</span></td>
+        <span class="summary-sig-arg">label</span>,
+        <span class="summary-sig-arg">color_index</span>=<span class="summary-sig-default">None</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.core-pysrc.html#AddressMap.AddRange">source&nbsp;code</a></span>
             
@@ -194,6 +192,16 @@
  (u'BLACK', u'WHITE'),
  (u'RED', u'BLACK'),
 ..."><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">RED</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">u'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-group">(</code><code class="variable-quote">u'</code><code class="variable-string">BLACK</code><code class="variable-quote">'</code><code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.core.AddressMap-class.html#UNREADABLE" class="summary-name">UNREADABLE</a> = <code title="[('CYAN', 'GREEN'),
+ ('GREEN', 'CYAN'),
+ ('MAGENTA', 'YELLOW'),
+ ('YELLOW', 'MAGENTA')]"><code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">, </code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">MAGENTA</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -320,14 +328,32 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="UNREADABLE"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">UNREADABLE</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code><code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">GREEN</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">CYAN</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">MAGENTA</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">YELLOW</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-op">,</code>
+ <code class="variable-group">(</code><code class="variable-quote">'</code><code class="variable-string">YELLOW</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">MAGENTA</code><code class="variable-quote">'</code><code class="variable-group">)</code><code class="variable-group">]</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -352,7 +378,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:31 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:53 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

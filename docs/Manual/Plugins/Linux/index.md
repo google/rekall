@@ -1,5 +1,5 @@
 ---
-layout: plugin
+layout: plugin_index
 title: Linux Plugins
 ---
 

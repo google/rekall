@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -64,10 +61,9 @@
 <h1 class="epydoc">Class DataExportRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_dataexport_5" name="class_hierarchy_for_dataexport_5">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportRenderer-class.html" title="DataExportRenderer" alt="" coords="73,113,196,135"/>
-<area shape="rect" id="node2" href="rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer-class.html" title="tools.webconsole.runplugin.WebConsoleRenderer" alt="" coords="5,166,264,189"/>
-<area shape="rect" id="node3" href="rekall.ui.json_renderer.JsonRenderer-class.html" title="ui.json_renderer.JsonRenderer" alt="" coords="49,59,220,82"/>
-<area shape="rect" id="node4" href="rekall.ui.renderer.BaseRenderer-class.html" title="ui.renderer.BaseRenderer" alt="" coords="61,6,208,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.data_export.DataExportRenderer-class.html" title="DataExportRenderer" alt="" coords="29,113,152,135"/>
+<area shape="rect" id="node2" href="rekall.ui.json_renderer.JsonRenderer-class.html" title="ui.json_renderer.JsonRenderer" alt="" coords="5,59,176,82"/>
+<area shape="rect" id="node3" href="rekall.ui.renderer.BaseRenderer-class.html" title="ui.renderer.BaseRenderer" alt="" coords="17,6,164,29"/>
 </map>
   <img src="class_hierarchy_for_dataexport_5.gif" alt='' usemap="#class_hierarchy_for_dataexport_5" ismap="ismap" class="graph-without-title" />
 </center>
@@ -131,6 +127,25 @@
       Outputs a single row of a table.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.renderers.data_export-pysrc.html#DataExportRenderer.table_row">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.json_renderer.JsonRenderer-class.html#Log" class="summary-sig-name">Log</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">record</span>)</span><br />
+      Logs a log message.
+      <em>(Inherited from <a href="rekall.ui.json_renderer.JsonRenderer-class.html">rekall.ui.json_renderer.JsonRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#JsonRenderer.Log">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -228,6 +243,44 @@
       <em>(Inherited from <a href="rekall.ui.json_renderer.JsonRenderer-class.html">rekall.ui.json_renderer.JsonRenderer</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#JsonRenderer.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="decode"></a><span class="summary-sig-name">decode</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Decode a json representation into an object.
+      <em>(Inherited from <a href="rekall.ui.json_renderer.JsonRenderer-class.html">rekall.ui.json_renderer.JsonRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#JsonRenderer.decode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.json_renderer.JsonRenderer-class.html#encode" class="summary-sig-name">encode</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">obj</span>)</span><br />
+      Convenience method for fast encoding of objects.
+      <em>(Inherited from <a href="rekall.ui.json_renderer.JsonRenderer-class.html">rekall.ui.json_renderer.JsonRenderer</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.json_renderer-pysrc.html#JsonRenderer.encode">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -533,11 +586,11 @@
         <a href="rekall.ui.renderer.BaseRenderer-class.html#classes" class="summary-name">classes</a> = <code title="{'BaseRenderer': &lt;class 'rekall.ui.renderer.BaseRenderer'&gt;,
  'DataExportRenderer': &lt;class 'rekall.plugins.renderers.data_export.Da\
 taExportRenderer'&gt;,
+ 'IdentityRenderer': &lt;class 'rekall.ui.identity.IdentityRenderer'&gt;,
  'JsonRenderer': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
  'TestRenderer': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
  'TextRenderer': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'WebConsoleRenderer': &lt;class 'rekall.plugins.tools.webconsole.runplug\
-in.WebConsoleRenderer'&gt;,
+ 'WideTextRenderer': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRend<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
@@ -546,14 +599,15 @@ in.WebConsoleRenderer'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.ui.renderer.BaseRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.webconsole.runplugin.WebConsoleRen\
-derer'&gt;,
- 'data': &lt;class 'rekall.plugins.renderers.data_export.DataExportRender\
-er'&gt;,
- 'json': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
- 'test': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
- 'text': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'wide': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.webconso<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.ui.renderer.BaseRenderer'&gt;,
+        &lt;class 'rekall.ui.identity.IdentityRenderer'&gt;],
+ 'data': [&lt;class 'rekall.plugins.renderers.data_export.DataExportRende\
+rer'&gt;],
+ 'json': [&lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;],
+ 'test': [&lt;class 'rekall.ui.text.TestRenderer'&gt;],
+ 'text': [&lt;class 'rekall.ui.text.TextRenderer'&gt;],
+ 'wide': [&lt;class 'rekall.ui.text.WideTextRenderer'&gt;],
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.ui.renderer.BaseRende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
   </tr>
@@ -727,9 +781,6 @@ er'&gt;,
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -754,7 +805,7 @@ er'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:43 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:06 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

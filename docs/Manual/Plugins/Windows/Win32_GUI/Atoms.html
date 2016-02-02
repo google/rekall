@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Windows
  </a>
@@ -172,54 +173,52 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li class='active'>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li class='active'>
+          <a href='#atoms' class="category-link">
             atoms
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="category-link">
+          <a href='#atomscan' class="category-link">
             atomscan
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="category-link">
+          <a href='#desktops' class="category-link">
             desktops
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="category-link">
+          <a href='#eventhooks' class="category-link">
             eventhooks
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="category-link">
+          <a href='#gahti' class="category-link">
             gahti
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="category-link">
+          <a href='#messagehooks' class="category-link">
             messagehooks
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="category-link">
+          <a href='#sessions' class="category-link">
             sessions
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="category-link">
+          <a href='#userhandles' class="category-link">
             userhandles
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="category-link">
+          <a href='#windows_stations' class="category-link">
             windows_stations
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
@@ -240,25 +239,37 @@ ript>
 </nav>
 
 
-<h1>atoms</h1>
+<h1 id="#atoms" class="anchor" >atoms</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.atoms.Atoms-class.html">View Source</a>
+
 
 <div class="abstract">
-<p>Print session and window station atom tables.</p>
-<p>An atom table is a system-defined table that stores strings and corresponding
-identifiers <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx">(MSDN)</a>. An application places a string in an atom table and
-receives a 16-bit integer, called an atom, that can be used to access the
-string. A string that has been placed in an atom table is called an atom name.</p>
+<h2>Print session and window station atom tables.</h2>
+<p>From:
+http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx</p>
+<p>An atom table is a system-defined table that stores strings and
+corresponding identifiers. An application places a string in an atom table
+and receives a 16-bit integer, called an atom, that can be used to access
+the string. A string that has been placed in an atom table is called an atom
+name.</p>
 <p>The global atom table is available to all applications. When an application
-places a string in the global atom table, the system generates an atom that is
-unique throughout the system. Any application that has the atom can obtain the
-string it identifies by querying the global atom table.</p>
+places a string in the global atom table, the system generates an atom that
+is unique throughout the system. Any application that has the atom can
+obtain the string it identifies by querying the global atom table.</p>
 <p>(The global atom tables are only global within each session).</p>
 </div>
 
 
-
-
-<a href="/epydocs/rekall.plugins.windows.taskmods.WinPsList-class.html">View Source</a>
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
 
 
 <p>Using this plugin you can find registered window messages, rogue injected DLL
@@ -322,6 +333,10 @@ paths, window class names, etc.</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

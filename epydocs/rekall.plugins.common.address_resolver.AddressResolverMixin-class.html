@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -74,8 +71,39 @@
 </center>
 </center>
 <hr />
-<p>The basic building block for constructing an address resolver 
-  plugin.</p>
+<pre class="literalblock">
+The basic building block for constructing an address resolver plugin.
+
+An address resolver maintains a collection of Modules and abstracts access
+to specific symbol names within the modules.
+
+Rekall uses a symbolic notation to refer to specific addresses within the
+address space. The address resolver is responsible for parsing this notation
+and resolving it to an actual address.
+
+Rules of symbol syntax
+======================
+
+The address space is divided into &quot;modules&quot;. A module has a name, a start
+address and an end address. Modules can also contain a profile which knows
+about symbols related to that module.
+
+1. Module reference: The start address of a module can be refered to by its
+   name. e.g:  &quot;nt&quot;, &quot;ntdll&quot;, &quot;tcpip&quot;.
+
+2. If a module contains a valid profile, the profile may also know about
+   symbols within the module. We can refer to these
+   symbols. e.g. &quot;nt!MmGetIoSessionState&quot;
+
+3. If an exact symbol is not found, it can be referred to with an offset
+   from another symbol name. e.g. &quot;nt!MmGetIoSessionState+5FE&quot; (Note
+   integers are given in hex).
+
+4. If the symbol is preceeded with a &quot;*&quot; - it means that the symbol is a
+   pointer. The address will be read as a pointer and the symbol name will
+   resolve to the address of the pointer's target.
+
+</pre>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -110,7 +138,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="NormalizeModuleName"></a><span class="summary-sig-name">NormalizeModuleName</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">module</span>)</span></td>
+        <span class="summary-sig-arg">module_name</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.NormalizeModuleName">source&nbsp;code</a></span>
             
@@ -126,11 +154,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#FindContainingModule" class="summary-sig-name">FindContainingModule</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">address</span>)</span><br />
-      Finds the name of the module containing the specified address.</td>
+          <td><span class="summary-sig"><a name="AddModule"></a><span class="summary-sig-name">AddModule</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">module</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.FindContainingModule">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.AddModule">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -144,7 +171,58 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_constant_object"></a><span class="summary-sig-name">get_constant_object</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a name="modules"></a><span class="summary-sig-name">modules</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.modules">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#GetContainingModule" class="summary-sig-name">GetContainingModule</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address</span>)</span><br />
+      Finds the module containing the specified address.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.GetContainingModule">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="GetModuleByName"></a><span class="summary-sig-name">GetModuleByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.GetModuleByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_constant_object" class="summary-sig-name">get_constant_object</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">target</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
@@ -165,7 +243,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="get_address_by_name"></a><span class="summary-sig-name">get_address_by_name</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+        <span class="summary-sig-arg">name</span>)</span><br />
+      Convert the symbol annotated by name to an address.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_address_by_name">source&nbsp;code</a></span>
             
@@ -183,7 +262,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#format_address" class="summary-sig-name">format_address</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">address</span>,
-        <span class="summary-sig-arg">max_distance</span>=<span class="summary-sig-default">4096</span>)</span><br />
+        <span class="summary-sig-arg">max_distance</span>=<span class="summary-sig-default">16777216</span>)</span><br />
       Format the address as a symbol name.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.format_address">source&nbsp;code</a></span>
@@ -201,7 +280,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_nearest_constant_by_address" class="summary-sig-name">get_nearest_constant_by_address</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">address</span>)</span><br />
+        <span class="summary-sig-arg">address</span>,
+        <span class="summary-sig-arg">max_distance</span>=<span class="summary-sig-default">16777216</span>)</span><br />
       Searches for a known symbol at an address lower than this.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_nearest_constant_by_address">source&nbsp;code</a></span>
@@ -325,28 +405,53 @@ Za-z_0-9\.\\]+)!?(?P&lt;symbol&gt;[^ \+-]+)?)(?P&lt;op&gt; *[\+-] *)?(?P&lt;offs
   </dl>
 </td></tr></table>
 </div>
-<a name="FindContainingModule"></a>
+<a name="GetContainingModule"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">FindContainingModule</span>(<span class="sig-arg">self</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetContainingModule</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">address</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.FindContainingModule">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.GetContainingModule">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
   <pre class="literalblock">
-Finds the name of the module containing the specified address.
+Finds the module containing the specified address.
 
 Returns:
-  A tuple of start address, end address, module name
+  A Module() instance.
 
 </pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_constant_object"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_constant_object</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>,
+        <span class="sig-arg">target</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_constant_object">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Instantiate the named constant with these args.</p>
+  <p>This method is the main entry point for instantiating constants. It is
+  preferred than calling the profile's method of the same name directly 
+  since it will be responsible with loading the right profile.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -360,7 +465,7 @@ Returns:
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">format_address</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">address</span>,
-        <span class="sig-arg">max_distance</span>=<span class="sig-default">4096</span>)</span>
+        <span class="sig-arg">max_distance</span>=<span class="sig-default">16777216</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.format_address">source&nbsp;code</a></span>&nbsp;
@@ -371,8 +476,9 @@ Returns:
   <p>This means to try and find the containing module, the symbol within 
   the module or possibly an offset from a known symbol. e.g.</p>
   <p>nt!PspCidTable nt!PspCidTable + 0x10 nt + 0x234</p>
-  <p>Returns an empty string if the address is not in a containing module, 
-  or if the nearest known symbol is farther than max_distance away.</p>
+  <p>Returns a list of symbol names for the address. The list is empty if 
+  the address is not in a containing module if the nearest known symbol is 
+  farther than max_distance away.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -385,7 +491,8 @@ Returns:
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_nearest_constant_by_address</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">address</span>)</span>
+        <span class="sig-arg">address</span>,
+        <span class="sig-arg">max_distance</span>=<span class="sig-default">16777216</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.get_nearest_constant_by_address">source&nbsp;code</a></span>&nbsp;
@@ -393,7 +500,7 @@ Returns:
   </tr></table>
   
   <p>Searches for a known symbol at an address lower than this.</p>
-  <p>Returns a tuple (nearest_offset, full_name of symbol).</p>
+  <p>Returns a tuple (nearest_offset, list of symbol names).</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -456,9 +563,6 @@ Za<code class="re-op">-</code>z_0<code class="re-op">-</code>9\.\\<code class="r
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -483,7 +587,7 @@ Za<code class="re-op">-</code>z_0<code class="re-op">-</code>9\.\\<code class="r
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:30 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:52 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -88,7 +85,7 @@
 </center>
 <hr />
 <p>The windows Vad tree is basically the same in all versions of windows,
-  but the exact name of the stucts vary with version. This is the base 
+  but the exact name of the structs vary with version. This is the base 
   class for all Vad traversor.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
@@ -125,9 +122,9 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.overlays.windows.common.VadTraverser-class.html#traverse" class="summary-sig-name">traverse</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">visited</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">depth</span>=<span class="summary-sig-default">0</span>)</span><br />
-      Traverse the VAD tree by generating all the left items, then the 
-      right items.</td>
+        <span class="summary-sig-arg">depth</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">type</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Traverse the VAD tree.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.windows.common-pysrc.html#VadTraverser.traverse">source&nbsp;code</a></span>
             
@@ -384,6 +381,23 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="__long__"></a><span class="summary-sig-name">__long__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.__long__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="__lt__"></a><span class="summary-sig-name">__lt__</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">other</span>)</span>
       <em>(Inherited from <a href="rekall.obj.BaseAddressComparisonMixIn-class.html">rekall.obj.BaseAddressComparisonMixIn</a>)</em></td>
@@ -548,23 +562,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="get_text_renderer"></a><span class="summary-sig-name">get_text_renderer</span>(<span class="summary-sig-arg">self</span>)</span>
-      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.get_text_renderer">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="is_valid"></a><span class="summary-sig-name">is_valid</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
@@ -588,6 +585,25 @@
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.m">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#multi_m" class="summary-sig-name">multi_m</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Retrieve a set of fields in order.
+      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.multi_m">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -675,7 +691,8 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#walk_list" class="summary-sig-name">walk_list</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">list_member</span>,
-        <span class="summary-sig-arg">include_current</span>=<span class="summary-sig-default">True</span>)</span><br />
+        <span class="summary-sig-arg">include_current</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">deref_as</span>=<span class="summary-sig-default">None</span>)</span><br />
       Walk a single linked list in this struct.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
@@ -718,6 +735,33 @@
       <code>__sizeof__</code>,
       <code>__subclasshook__</code>
       </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getproperties"></a><span class="summary-sig-name">getproperties</span>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Return all members that are intended to represent some data.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.getproperties">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
     </td>
   </tr>
 </table>
@@ -767,6 +811,15 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="obj_parent"></a><span class="summary-name">obj_parent</span> = <code title="&lt;No parent&gt;">&lt;No parent&gt;</code>
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="obj_producers"></a><span class="summary-name">obj_producers</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em>
     </td>
   </tr>
@@ -839,16 +892,19 @@
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">traverse</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">visited</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">depth</span>=<span class="sig-default">0</span>)</span>
+        <span class="sig-arg">depth</span>=<span class="sig-default">0</span>,
+        <span class="sig-arg">type</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.overlays.windows.common-pysrc.html#VadTraverser.traverse">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Traverse the VAD tree by generating all the left items, then the right
-  items.</p>
+  <p>Traverse the VAD tree.</p>
+  <p>Generate all the left items, then the right items.</p>
   <p>We try to be tolerant of cycles by storing all offsets visited.</p>
+  <p>If type is specified we always return that type instead of check the 
+  pool tag from the tag_map.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -890,9 +946,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -917,7 +970,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:41 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:04 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

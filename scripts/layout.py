@@ -221,35 +221,42 @@ def _render_categories(path, location=None):
     directories, files = _list_subpages(path)
     result = ""
 
+    nav_result = ""
     # Now render the files.
     for page in sorted(files, key=lambda x: x.title):
         if location == page.url:
-            result += u"<li class='active'>"
+            nav_result += u"<li class='active'>"
         else:
-            result += u"<li>"
+            nav_result += u"<li>"
 
-        result += u"""
+        nav_result += u"""
           <a href='{page.url}' class="category-link">
             {title}
           </a>
         </li>
         """.format(page=page, title=page.title)
 
-    if result:
-        result = u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
+    if nav_result:
+        result += (u"<ul class='nav nav-pills nav-stacked'>%s</ul>" %
+                   nav_result)
 
+    nav_result = ""
     # First render the files.
     for page in sorted(directories, key=lambda x: x.title):
-        result += u"""
+        if page.hidden:
+            continue
+
+        nav_result += u"""
         <li>
-          <a href='{page.url}' class="category-link">
+          <a href='{page.url}' class="category-directory-link">
             {title}
           </a>
         </li>
         """.format(page=page, title=os.path.basename(page.url))
 
-    if result:
-        result = u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % result
+    if nav_result:
+        result += (u"<ul class='nav nav-pills nav-stacked'>%s</ul>" %
+                   nav_result)
 
     return result
 
@@ -334,13 +341,12 @@ def embedded(page=None):
 def _MakeNavigatorForPlugin(plugin_path, location=None):
     args = dict(prev_url=os.path.dirname(plugin_path),
                 plugin_name=os.path.basename(plugin_path),
-                plugin_url=plugin_path,
-                categories=_render_categories(
-                    plugin_path, location=location))
+                plugin_url=plugin_path)
 
     args["prev"] = os.path.basename(args["prev_url"])
 
-    return u"""
+    result = u"""
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="{prev_url}/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> {prev}
  </a>
@@ -350,9 +356,43 @@ def _MakeNavigatorForPlugin(plugin_path, location=None):
  </a>
  <p>
 
- {categories}
-
 """.format(**args)
+
+    directories, files = _list_subpages(plugin_path)
+    nav_result = ""
+    # First render the files.
+    for page in sorted(directories, key=lambda x: x.title):
+        if page.hidden:
+            continue
+
+        nav_result += u"""
+        <li>
+          <a href='{page.url}' class="category-directory-link">
+            {title}
+          </a>
+        </li>
+        """.format(page=page, title=os.path.basename(page.url))
+
+    # Now render the directories.
+    for page in sorted(files, key=lambda x: x.title):
+        if location == page.url:
+            nav_result += u"<li class='active'>"
+        else:
+            nav_result += u"<li>"
+
+        nav_result += u"""
+          <a href='#{page.title}' class="category-link">
+            {title}
+          </a>
+        </li>
+        """.format(page=page, title=page.title)
+
+    if nav_result:
+        result += u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % nav_result
+
+    result += "</ul>"
+
+    return result
 
 
 def _plugin_navbar(page):
@@ -405,12 +445,15 @@ def _plugin_navbar(page):
         return ""
 
 
-def plugin(page=None):
-    page.html_abstract = utils.ConvertFromMD(page.abstract)
+def _render_plugin_desc(page):
+    abstract = "## " + utils.trim(page.abstract or "")
+
+    page.html_abstract = utils.ConvertFromMD(abstract)
 
     if page.epydoc:
         page.epydoc_link = u"""
-<a href="/epydocs/{page.epydoc}">View Source</a>
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/{page.epydoc}">View Source</a>
 """.format(page=page)
 
     # Render the args in a table.
@@ -418,44 +461,88 @@ def plugin(page=None):
     if page.args:
         table = u"""
 <h3>Plugin Arguments</h3>
-<table class='table table-striped table-bordered table-hover'>
+<div class="plugins_args">
+<table class='table table-condensed'>
 <tbody>
 """
-
         for arg, arg_doc in page.args.items():
             table += "<tr><td>{arg}</td><td>{arg_doc}</td></tr>".format(
-                arg=arg, arg_doc=arg_doc)
+                arg=utils.ConvertFromMD(arg),
+                arg_doc=utils.ConvertFromMD(arg_doc))
         table += u"""
 </tbody>
 </table>
+</div>
 """
-
-    plugin_path = os.path.dirname(page.url)
+    page.args_table = table
     page.plugin_navbar = _plugin_navbar(page)
-
+    page.original_content = page.content
     page.content = u"""
 {page.plugin_navbar}
 
-<h1>{page.title}</h1>
+<h1 id="#{page.title}" class="anchor" >{page.title}</h1>
+{page.epydoc_link}
 
 <div class="abstract">
 {page.html_abstract}
 </div>
 
-{table}
-
-{page.epydoc_link}
+{page.args_table}
 
 {page.content}
 
 <p>
 {page.plugin_navbar}
-""".format(page=page, table=table)
+""".format(page=page)
+
+    return page
+
+def plugin(page=None):
+    page = _render_plugin_desc(page)
+    plugin_path = os.path.dirname(page.url)
 
     page.navigator = _MakeNavigatorForPlugin(
         plugin_path, location=page.url)
 
     return default(page)
+
+
+def plugin_index(page):
+    """Generate all the plugins in this directory in one page."""
+    plugin_path = os.path.dirname(page.url)
+    _, files = _list_subpages(plugin_path)
+    plugins = [_render_plugin_desc(x) for x in files]
+
+    page.plugin_navbar = _plugin_navbar(page)
+
+    page.content = u"""
+<div class="plugin_doc">
+<h1 id="{page.title}" class="anchor" >{page.title}</h1>
+
+{page.content}
+""".format(page=page)
+    for desc in plugins:
+        page.content += """
+<h1 id="{page.title}" class="anchor">{page.title}</h1>
+{page.epydoc_link}
+
+<div class="plugin_description">
+<div class="abstract">
+{page.html_abstract}
+</div>
+
+{page.args_table}
+
+{page.original_content}
+</div>
+""".format(page=desc)
+
+    page.navigator = _MakeNavigatorForPlugin(
+        plugin_path, location=page.url)
+
+    return default(page)
+
+
 
 
 def _MakeDownloadPageContentTable(page, release=None):

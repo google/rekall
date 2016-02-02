@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -62,17 +59,18 @@
 <h1 class="epydoc">Class ScannerCheck</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.scan-pysrc.html#ScannerCheck">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_scannerche" name="class_hierarchy_for_scannerche">
-<area shape="rect" id="node1" href="rekall.plugins.hypervisors.VMCSCheck-class.html" title="plugins.hypervisors.VMCSCheck" alt="" coords="5,59,181,82"/>
-<area shape="rect" id="node2" href="rekall.plugins.windows.common.CheckPoolIndex-class.html" title="plugins.windows.common.CheckPoolIndex" alt="" coords="206,59,428,82"/>
-<area shape="rect" id="node3" href="rekall.plugins.windows.common.CheckPoolSize-class.html" title="plugins.windows.common.CheckPoolSize" alt="" coords="453,59,669,82"/>
-<area shape="rect" id="node4" href="rekall.plugins.windows.common.CheckPoolType-class.html" title="plugins.windows.common.CheckPoolType" alt="" coords="695,59,916,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.common.MultiPoolTagCheck-class.html" title="plugins.windows.common.MultiPoolTagCheck" alt="" coords="1003,113,1241,135"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.common.PoolTagCheck-class.html" title="plugins.windows.common.PoolTagCheck" alt="" coords="1267,113,1483,135"/>
-<area shape="rect" id="node7" href="rekall.scan.DebugChecker-class.html" title="DebugChecker" alt="" coords="941,59,1035,82"/>
-<area shape="rect" id="node8" href="rekall.scan.MultiStringFinderCheck-class.html" title="MultiStringFinderCheck" alt="" coords="1060,59,1193,82"/>
-<area shape="rect" id="node9" href="rekall.scan.RegexCheck-class.html" title="RegexCheck" alt="" coords="1217,59,1299,82"/>
-<area shape="rect" id="node10" href="rekall.scan.ScannerCheck-class.html" title="ScannerCheck" alt="" coords="850,6,941,29"/>
-<area shape="rect" id="node11" href="rekall.scan.StringCheck-class.html" title="StringCheck" alt="" coords="1331,59,1409,82"/>
+<area shape="rect" id="node1" href="rekall.plugins.common.sigscan.SignatureScannerCheck-class.html" title="plugins.common.sigscan.SignatureScannerCheck" alt="" coords="5,59,261,82"/>
+<area shape="rect" id="node2" href="rekall.plugins.hypervisors.VMCSCheck-class.html" title="plugins.hypervisors.VMCSCheck" alt="" coords="285,59,461,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.windows.common.CheckPoolIndex-class.html" title="plugins.windows.common.CheckPoolIndex" alt="" coords="486,59,708,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.windows.common.CheckPoolSize-class.html" title="plugins.windows.common.CheckPoolSize" alt="" coords="733,59,949,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.common.CheckPoolType-class.html" title="plugins.windows.common.CheckPoolType" alt="" coords="975,59,1196,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.MultiPoolTagCheck-class.html" title="plugins.windows.common.MultiPoolTagCheck" alt="" coords="1283,113,1521,135"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.PoolTagCheck-class.html" title="plugins.windows.common.PoolTagCheck" alt="" coords="1547,113,1763,135"/>
+<area shape="rect" id="node8" href="rekall.scan.DebugChecker-class.html" title="DebugChecker" alt="" coords="1221,59,1315,82"/>
+<area shape="rect" id="node9" href="rekall.scan.MultiStringFinderCheck-class.html" title="MultiStringFinderCheck" alt="" coords="1340,59,1473,82"/>
+<area shape="rect" id="node10" href="rekall.scan.RegexCheck-class.html" title="RegexCheck" alt="" coords="1497,59,1579,82"/>
+<area shape="rect" id="node11" href="rekall.scan.ScannerCheck-class.html" title="ScannerCheck" alt="" coords="1039,6,1131,29"/>
+<area shape="rect" id="node12" href="rekall.scan.StringCheck-class.html" title="StringCheck" alt="" coords="1611,59,1689,82"/>
 </map>
   <img src="class_hierarchy_for_scannerche.gif" alt='' usemap="#class_hierarchy_for_scannerche" ismap="ismap" class="graph-without-title" />
 </center>
@@ -127,6 +125,7 @@
           <td><span class="summary-sig"><a href="rekall.scan.ScannerCheck-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">address_space</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**_kwargs</span>)</span><br />
       The profile that this scanner check should use.</td>
           <td align="right" valign="top">
@@ -281,7 +280,15 @@ x'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.scan.ScannerCheck-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.windows.common.CheckPoolIndex'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.common<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.scan.ScannerCheck-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.scan.MultiStringFinderCheck'&gt;,
+        &lt;class 'rekall.scan.StringCheck'&gt;,
+        &lt;class 'rekall.scan.RegexCheck'&gt;,
+        &lt;class 'rekall.scan.DebugChecker'&gt;,
+        &lt;class 'rekall.plugins.hypervisors.VMCSCheck'&gt;,
+        &lt;class 'rekall.plugins.common.sigscan.SignatureScannerCheck'&gt;,
+        &lt;class 'rekall.plugins.windows.common.PoolTagCheck'&gt;,
+        &lt;class 'rekall.plugins.windows.common.MultiPoolTagCheck'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.scan.MultiStringFinde<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -327,6 +334,7 @@ x'&gt;,
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">profile</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">address_space</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">session</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**_kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -430,7 +438,15 @@ x'&gt;<code class="variable-op">,</code>
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.common.CheckPoolIndex'&gt;<code class="variable-group">}</code>
+<code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.scan.MultiStringFinderCheck'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.scan.StringCheck'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.scan.RegexCheck'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.scan.DebugChecker'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.hypervisors.VMCSCheck'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.common.sigscan.SignatureScannerCheck'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.windows.common.PoolTagCheck'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.windows.common.MultiPoolTagCheck'&gt;<code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -441,9 +457,6 @@ x'&gt;<code class="variable-op">,</code>
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -468,7 +481,7 @@ x'&gt;<code class="variable-op">,</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:58 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:22 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

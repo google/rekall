@@ -1,14 +1,15 @@
 ---
-layout: plugin
-title: filescan
-abstract: |
-  Scan Physical memory for _FILE_OBJECT pool allocations
+abstract: " Scan Physical memory for _FILE_OBJECT pool allocations\n    "
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: FileScan
 epydoc: rekall.plugins.windows.filescan.FileScan-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.filescan
+title: filescan
 ---
 
 

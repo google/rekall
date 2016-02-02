@@ -1,12 +1,11 @@
-
 ---
-layout: plugin
-title: iomem
-abstract: |
-    Mimics /proc/iomem. Returns the list of memory ranges and what they map to.
-    Rekall walks the tree located in the symbol `iomem_resource`.
-
+abstract: mimics /proc/iomem.
+args: {}
+class_name: IOmem
 epydoc: rekall.plugins.linux.iomem.IOmem-class.html
+layout: plugin
+module: rekall.plugins.linux.iomem
+title: iomem
 ---
 
 ### Sample output

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -61,7 +58,58 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module intel</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.addrspaces.intel-pysrc.html">source&nbsp;code</a></span></p>
-<p>This is Jesse Kornblum's patch to clean up the standard AS's.</p>
+<pre class="literalblock">
+Implement the base translating address spaces.
+
+This is a complete rewrite of the previous translating address spaces
+implemented in Rekall. The goals are:
+
+1) To make a system that is provable and traceable - i.e. It should be possible
+   to trace the address translation process step by step as it is performed by
+   Rekall so we can verify how it is implemented.
+
+2) The system must be very fast at the same time. Address translation can be an
+   expensive operation so we need to ensure we are very quick.
+
+3) The system must be extensible and modifiable. Address translation is a
+   complex algorithm and varies a lot between operating systems and
+   architectures. Therefore this implementation is generic and tries to
+   encapsulate all the nuances of address translation in the OS specific
+   implementation itself.
+
+How does it work?
+-----------------
+
+There are a few main entry points into the translating Address Spaces:
+
+1) vtop(): (Virtual to Physical) This method accepts a virtual address and
+   translates it to the physical address in the base address space. This is the
+   workhorse method. It is designed to be very fast but does not give too much
+   information about how the translation was performed.
+
+2) describe_vtop(): This is the describing sister method of vtop(). It returns a
+   list of AddressTranslationDescriptor() objects. Each of these describes a
+   specific step in the translation process. If one was to render each step,
+   this outlines exactly what happened in each step and how the address is
+   derived. If the address space translation process succeeds the last
+   descriptor will be a PhysicalAddressDescriptor() instance which describes the
+   final physical address. Note that the translation process may request files
+   to be mapped into the physical address space, so the
+   PhysicalAddressDescriptor() will point at mapped files (i.e. it may not
+   actually refer to the physical memory image).
+
+3) get_mappings(): This method generates Run instances which encapsulate each
+   region available in the virtual address space.
+
+The vtop() method and the describe_vtop() method are very similar since they
+implement the same algorithms. However, we do not want to implement the same
+thing twice because that leads to maintenance problems and subtle
+bugs. Therefore vtop() is simply a wrapper around describe_vtop(). To achieve
+the required performance vtop() simply looks for the PhysicalAddressDescriptor()
+and returns it. This is essentially a noop for any of the other descriptors and
+therefore maintains the same speed benefits.
+
+</pre>
 
 <!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -75,8 +123,47 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.addrspaces.intel.TranslationLookasideBuffer-class.html" class="summary-name">TranslationLookasideBuffer</a><br />
-      An implementation of a TLB.
+        <a href="rekall.plugins.addrspaces.intel.AddressTranslationDescriptor-class.html" class="summary-name">AddressTranslationDescriptor</a><br />
+      A descriptor of a step in the translation process.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.addrspaces.intel.CommentDescriptor-class.html" class="summary-name">CommentDescriptor</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.addrspaces.intel.InvalidAddress-class.html" class="summary-name">InvalidAddress</a><br />
+      Mark an invalid address.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.addrspaces.intel.DescriptorCollection-class.html" class="summary-name">DescriptorCollection</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.addrspaces.intel.PhysicalAddressDescriptorCollector-class.html" class="summary-name">PhysicalAddressDescriptorCollector</a><br />
+      A descriptor collector which only cares about 
+        PhysicalAddressDescriptor.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.addrspaces.intel.PhysicalAddressDescriptor-class.html" class="summary-name">PhysicalAddressDescriptor</a><br />
+      A descriptor to mark the final physical address resolution.
     </td>
   </tr>
 <tr>
@@ -130,9 +217,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -157,7 +241,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:19 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,12 +1,11 @@
 ---
-layout: plugin
-title: ssdt
-abstract: |
-  Enumerate the SSDT.
-
+abstract: Enumerate the SSDT.
+args: {}
+class_name: WinSSDT
 epydoc: rekall.plugins.windows.ssdt.WinSSDT-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.ssdt
+title: ssdt
 ---
 
 The System Service Descritor Table is the main interface to the kernel from user

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -62,73 +59,14 @@
 <h1 class="epydoc">Class SortedCollection</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_sortedcoll" name="class_hierarchy_for_sortedcoll">
-<area shape="rect" id="node1" href="rekall.utils.SortedCollection-class.html" title="SortedCollection" alt="" coords="5,6,104,29"/>
+<area shape="rect" id="node1" href="javascript:void(0);" title="dict" alt="" coords="87,6,125,29"/>
+<area shape="rect" id="node3" href="javascript:void(0);" title="sortedcontainers.sorteddict.SortedDict" alt="" coords="5,59,208,82"/>
+<area shape="rect" id="node2" href="rekall.utils.SortedCollection-class.html" title="SortedCollection" alt="" coords="57,113,156,135"/>
 </map>
   <img src="class_hierarchy_for_sortedcoll.gif" alt='' usemap="#class_hierarchy_for_sortedcoll" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
-<p>Sequence sorted by a key function.</p>
-  <p>SortedCollection() is much easier to work with than using bisect() 
-  directly. It supports key functions like those use in sorted(), min(), 
-  and max(). The result of the key function call is saved so that keys can 
-  be searched efficiently.</p>
-  <p>Instead of returning an insertion-point which can be hard to 
-  interpret, the five find-methods return a specific item in the sequence. 
-  They can scan for exact matches, the last item less-than-or-equal to a 
-  key, or the first item greater-than-or-equal to a key.</p>
-  <p>Once found, an item's ordinal position can be located with the index()
-  method.</p>
-  <p>New items can be added with the insert() and insert_right() methods. 
-  Old items can be deleted with the remove() method.</p>
-  <p>The usual sequence methods are provided to support indexing, slicing, 
-  length lookup, clearing, copying, forward and reverse iteration, contains
-  checking, item counts, item removal, and a nice looking repr.</p>
-  <p>Finding and indexing are O(log n) operations while iteration and 
-  insertion are O(n).  The initial sort is O(n log n).</p>
-  <p>The key function is stored in the 'key' attibute for easy 
-  introspection or so that you can assign a new key function (triggering an
-  automatic re-sort).</p>
-  <p>In short, the class was designed to handle all of the common use cases
-  for bisect but with a simpler API and support for key functions.</p>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">from</span> pprint <span class="py-keyword">import</span> pprint
-<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">from</span> operator <span class="py-keyword">import</span> itemgetter</pre>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>s = SortedCollection(key=itemgetter(2))
-<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">for</span> record <span class="py-keyword">in</span> [
-<span class="py-more">... </span>        (<span class="py-string">'roger'</span>, <span class="py-string">'young'</span>, 30),
-<span class="py-more">... </span>        (<span class="py-string">'angela'</span>, <span class="py-string">'jones'</span>, 28),
-<span class="py-more">... </span>        (<span class="py-string">'bill'</span>, <span class="py-string">'smith'</span>, 22),
-<span class="py-more">... </span>        (<span class="py-string">'david'</span>, <span class="py-string">'thomas'</span>, 32)]:
-<span class="py-more">... </span>    s.insert(record)</pre>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>pprint(list(s))         <span class="py-comment"># show records sorted by age</span>
-<span class="py-output">[('bill', 'smith', 22),</span>
-<span class="py-output"> ('angela', 'jones', 28),</span>
-<span class="py-output"> ('roger', 'young', 30),</span>
-<span class="py-output"> ('david', 'thomas', 32)]</span></pre>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>s.find_le(29)           <span class="py-comment"># find oldest person aged 29 or younger</span>
-<span class="py-output">('angela', 'jones', 28)</span>
-<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>s.find_lt(28)           <span class="py-comment"># find oldest person under 28</span>
-<span class="py-output">('bill', 'smith', 22)</span>
-<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>s.find_gt(28)           <span class="py-comment"># find youngest person over 28</span>
-<span class="py-output">('roger', 'young', 30)</span></pre>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>r = s.find_ge(32)       <span class="py-comment"># find youngest person aged 32 or older</span>
-<span class="py-prompt">&gt;&gt;&gt; </span>s.index(r)              <span class="py-comment"># get the index of their record</span>
-<span class="py-output">3</span>
-<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>s[3]                    <span class="py-comment"># fetch the record at that index</span>
-<span class="py-output">('david', 'thomas', 32)</span></pre>
-<pre class="py-doctest">
-<span class="py-prompt">&gt;&gt;&gt; </span>s.key = itemgetter(0)   <span class="py-comment"># now sort by first name</span>
-<span class="py-prompt">&gt;&gt;&gt; </span>pprint(list(s))
-<span class="py-output">[('angela', 'jones', 28),</span>
-<span class="py-output"> ('bill', 'smith', 22),</span>
-<span class="py-output"> ('david', 'thomas', 32),</span>
-<span class="py-output"> ('roger', 'young', 30)]</span></pre>
-
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -139,14 +77,17 @@
 </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type"><pre class="literalblock">
+new empty dictionary
+
+</pre></span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">iterable</span>=<span class="summary-sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
-        <span class="summary-sig-arg">key</span>=<span class="summary-sig-default">None</span>)</span><br />
-      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      A SortedDict provides the same methods as a dict.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__init__">source&nbsp;code</a></span>
             
@@ -162,72 +103,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="clear"></a><span class="summary-sig-name">clear</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.clear">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="copy"></a><span class="summary-sig-name">copy</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.copy">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__len__"></a><span class="summary-sig-name">__len__</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__len__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__getitem__"></a><span class="summary-sig-name">__getitem__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">i</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__getitem__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__iter__"></a><span class="summary-sig-name">__iter__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return an iterator over the sorted keys of the dictionary.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__iter__">source&nbsp;code</a></span>
             
@@ -243,220 +120,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__reversed__"></a><span class="summary-sig-name">__reversed__</span>(<span class="summary-sig-arg">self</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__reversed__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      repr(x)</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__repr__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#__reduce__" class="summary-sig-name">__reduce__</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      helper for pickle</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__reduce__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="__contains__"></a><span class="summary-sig-name">__contains__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__contains__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#index" class="summary-sig-name">index</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>)</span><br />
-      Find the position of an item.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.index">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="count"></a><span class="summary-sig-name">count</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>)</span><br />
-      Return number of occurrences of item</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.count">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#insert" class="summary-sig-name">insert</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>)</span><br />
-      Insert a new item.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.insert">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#insert_right" class="summary-sig-name">insert_right</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>)</span><br />
-      Insert a new item.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.insert_right">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#remove" class="summary-sig-name">remove</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">item</span>)</span><br />
-      Remove first occurence of item.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.remove">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#find" class="summary-sig-name">find</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">k</span>)</span><br />
-      Return first item with a key == k.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#find_le" class="summary-sig-name">find_le</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">k</span>)</span><br />
-      Return last item with a key &lt;= k.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_le">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#find_lt" class="summary-sig-name">find_lt</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">k</span>)</span><br />
-      Return last item with a key &lt; k.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_lt">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#find_ge" class="summary-sig-name">find_ge</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">k</span>)</span><br />
-      Return first item with a key &gt;= equal to k.</td>
+          <td><span class="summary-sig"><a name="find_ge"></a><span class="summary-sig-name">find_ge</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">k</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_ge">source&nbsp;code</a></span>
             
@@ -472,11 +137,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#find_gt" class="summary-sig-name">find_gt</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">k</span>)</span><br />
-      Return first item with a key &gt; k.</td>
+          <td><span class="summary-sig"><a name="find_le"></a><span class="summary-sig-name">find_le</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">k</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_gt">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_le">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -490,10 +154,44 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="__eq__"></a><span class="summary-sig-name">__eq__</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">other</span>)</span></td>
+          <td><span class="summary-sig"><a name="get_value_larger_than"></a><span class="summary-sig-name">get_value_larger_than</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">k</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__eq__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.get_value_larger_than">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_value_smaller_than"></a><span class="summary-sig-name">get_value_smaller_than</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">k</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.get_value_smaller_than">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="insert"></a><span class="summary-sig-name">insert</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.insert">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -503,17 +201,85 @@
   </tr>
   <tr>
     <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>sortedcontainers.sorteddict.SortedDict</code></b>:
+      <code>__copy__</code>,
+      <code>__delitem__</code>,
+      <code>__reduce__</code>,
+      <code>__repr__</code>,
+      <code>__reversed__</code>,
+      <code>__setitem__</code>,
+      <code>clear</code>,
+      <code>copy</code>,
+      <code>items</code>,
+      <code>iteritems</code>,
+      <code>iterkeys</code>,
+      <code>itervalues</code>,
+      <code>keys</code>,
+      <code>pop</code>,
+      <code>popitem</code>,
+      <code>setdefault</code>,
+      <code>update</code>,
+      <code>values</code>,
+      <code>viewitems</code>,
+      <code>viewkeys</code>,
+      <code>viewvalues</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>dict</code></b>:
+      <code>__cmp__</code>,
+      <code>__contains__</code>,
+      <code>__eq__</code>,
+      <code>__ge__</code>,
+      <code>__getattribute__</code>,
+      <code>__getitem__</code>,
+      <code>__gt__</code>,
+      <code>__le__</code>,
+      <code>__len__</code>,
+      <code>__lt__</code>,
+      <code>__ne__</code>,
+      <code>__new__</code>,
+      <code>__sizeof__</code>,
+      <code>get</code>,
+      <code>has_key</code>
+      </p>
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
       <code>__delattr__</code>,
       <code>__format__</code>,
-      <code>__getattribute__</code>,
-      <code>__hash__</code>,
-      <code>__new__</code>,
       <code>__reduce_ex__</code>,
       <code>__setattr__</code>,
-      <code>__sizeof__</code>,
       <code>__str__</code>,
       <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>sortedcontainers.sorteddict.SortedDict</code></b>:
+      <code>fromkeys</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>dict</code></b>:
+      <code>__hash__</code>
       </p>
     </td>
   </tr>
@@ -526,14 +292,6 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.utils.SortedCollection-class.html#key" class="summary-name">key</a><br />
-      key function
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -559,8 +317,8 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">iterable</span>=<span class="sig-default"><code class="variable-group">(</code><code class="variable-group">)</code></span>,
-        <span class="sig-arg">key</span>=<span class="sig-default">None</span>)</span>
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -568,8 +326,43 @@
     </td>
   </tr></table>
   
-  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <p>A SortedDict provides the same methods as a dict.  Additionally, a 
+  SortedDict efficiently maintains its keys in sorted order. Consequently, 
+  the keys method will return the keys in sorted order, the popitem method 
+  will remove the item with the highest key, etc.</p>
+  <p>An optional *key* argument defines a callable that, like the `key` 
+  argument to Python's `sorted` function, extracts a comparison key from 
+  each dict key. If no function is specified, the default compares the dict
+  keys directly. The `key` argument must be provided as a positional 
+  argument and must come before all other arguments.</p>
+  <p>An optional *load* argument defines the load factor of the internal 
+  list used to maintain sort order. If present, this argument must come 
+  before an iterable. The default load factor of '1000' works well for 
+  lists from tens to tens of millions of elements.  Good practice is to use
+  a value that is the cube root of the list size.  With billions of 
+  elements, the best load factor depends on your usage.  It's best to leave
+  the load factor at the default until you start benchmarking.</p>
+  <p>An optional *iterable* argument provides an initial series of items to
+  populate the SortedDict.  Each item in the series must itself contain two
+  items.  The first is used as a key in the new dictionary, and the second 
+  as the key's value. If a given key is seen more than once, the last value
+  associated with it is retained in the new dictionary.</p>
+  <p>If keyword arguments are given, the keywords themselves with their 
+  associated values are added as items to the dictionary. If a key is 
+  specified both in the positional argument and as a keyword argument, the 
+  value associated with the keyword is retained in the dictionary. For 
+  example, these all return a dictionary equal to ``{&quot;one&quot;: 2, 
+  &quot;two&quot;: 3}``:</p>
+  <p>* ``SortedDict(one=2, two=3)`` * ``SortedDict({'one': 2, 'two': 3})`` 
+  * ``SortedDict(zip(('one', 'two'), (2, 3)))`` * ``SortedDict([['two', 3],
+  ['one', 2]])``</p>
+  <p>The first example only works for keys that are valid Python 
+  identifiers; the others work with any valid keys.</p>
   <dl class="fields">
+    <dt>Returns: <pre class="literalblock">
+new empty dictionary
+
+</pre></dt>
     <dt>Overrides:
         object.__init__
         <dd><em class="note">(inherited documentation)</em></dd>
@@ -577,265 +370,28 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="__repr__"></a>
+<a name="__iter__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
-    <br /><em class="fname">(Representation operator)</em>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__iter__</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__repr__">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__iter__">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>repr(x)</p>
+  <p>Return an iterator over the sorted keys of the dictionary.</p>
+  <p>Iterating the Mapping while adding or deleting keys may raise a 
+  `RuntimeError` or fail to iterate over all entries.</p>
   <dl class="fields">
     <dt>Overrides:
-        object.__repr__
+        dict.__iter__
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="__reduce__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__reduce__</span>(<span class="sig-arg">self</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.__reduce__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>helper for pickle</p>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__reduce__
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="index"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">index</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">item</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.index">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Find the position of an item.  Raise ValueError if not found.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="insert"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">insert</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">item</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.insert">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Insert a new item.  If equal keys are found, add to the left</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="insert_right"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">insert_right</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">item</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.insert_right">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Insert a new item.  If equal keys are found, add to the right</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="remove"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">remove</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">item</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.remove">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Remove first occurence of item.  Raise ValueError if not found</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="find"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">k</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Return first item with a key == k.  Raise ValueError if not found.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="find_le"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_le</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">k</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_le">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Return last item with a key &lt;= k.  Raise ValueError if not 
-  found.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="find_lt"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_lt</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">k</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_lt">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Return last item with a key &lt; k.  Raise ValueError if not 
-  found.</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="find_ge"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_ge</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">k</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_ge">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Return first item with a key &gt;= equal to k.</p>
-  <p>Raise ValueError if not found</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="find_gt"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">find_gt</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">k</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.utils-pysrc.html#SortedCollection.find_gt">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Return first item with a key &gt; k.  Raise ValueError if not 
-  found</p>
-  <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<br />
-<!-- ==================== PROPERTY DETAILS ==================== -->
-<a name="section-PropertyDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Property Details</span></td>
-</tr>
-</table>
-<a name="key"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <h3 class="epydoc">key</h3>
-  <p>key function</p>
-  <dl class="fields">
-    <dt>Get Method:</dt>
-    <dd class="value"><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#_getkey" class="summary-sig-name" onclick="show_private();">_getkey</a>(<span class="summary-sig-arg">self</span>)</span>
-    </dd>
-    <dt>Set Method:</dt>
-    <dd class="value"><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#_setkey" class="summary-sig-name" onclick="show_private();">_setkey</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">key</span>)</span>
-    </dd>
-    <dt>Delete Method:</dt>
-    <dd class="value"><span class="summary-sig"><a href="rekall.utils.SortedCollection-class.html#_delkey" class="summary-sig-name" onclick="show_private();">_delkey</a>(<span class="summary-sig-arg">self</span>)</span>
-    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -844,9 +400,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -871,7 +424,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:01 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:24 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

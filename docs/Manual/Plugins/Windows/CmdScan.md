@@ -1,13 +1,15 @@
 ---
-layout: plugin
-title: cmdscan
-abstract: |
-  Extract command history by scanning for _COMMAND_HISTORY
+abstract: Extract command history by scanning for _COMMAND_HISTORY
+args: {max_history: 'Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
+    for default.
 
+
+    * Default: 50'}
+class_name: CmdScan
 epydoc: rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html
-args:
-  max_history: 'Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize for default.'
-
+layout: plugin
+module: rekall.plugins.windows.malware.cmdhistory
+title: cmdscan
 ---
 
 The cmdscan plugin searches the memory of csrss.exe on XP/2003/Vista/2008 and

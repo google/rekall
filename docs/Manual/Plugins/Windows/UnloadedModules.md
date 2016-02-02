@@ -1,15 +1,12 @@
 ---
-layout: plugin
-title: unloaded_modules
-abstract: |
-  Print a list of recently unloaded modules.
-
-  Ref:
-  http://volatility-labs.blogspot.de/2013/05/movp-ii-22-unloaded-windows-kernel_22.html
-
+abstract: "Print a list of recently unloaded modules.\n\n    Ref:\n    http://volatility-labs.blogspot.de/2013/05/movp-ii-22-unloaded-windows-kernel_22.html\n\
+  \    "
+args: {}
+class_name: UnloadedModules
 epydoc: rekall.plugins.windows.modules.UnloadedModules-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.modules
+title: unloaded_modules
 ---
 
 For debugging purposes windows keeps a list of the last few kernel modules to

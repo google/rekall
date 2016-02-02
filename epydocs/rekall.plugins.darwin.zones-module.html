@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -61,11 +58,11 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module zones</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.zones-pysrc.html">source&nbsp;code</a></span></p>
-<p>Plugins for inspecting memory allocation zones.</p>
+<p>Collectors and plugins that deal with Darwin zone allocator.</p>
 
 <hr />
 <div class="fields">      <p><strong>Author:</strong>
-        Michael Cohen &lt;scudette@google.com&gt;
+        Adam Sindelar &lt;adamsh@google.com&gt;
       </p>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
@@ -79,6 +76,29 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinZoneHook-class.html" class="summary-name">DarwinZoneHook</a><br />
+      Lists all allocation zones.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinZoneCollector-class.html" class="summary-name">DarwinZoneCollector</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.AbstractZoneElementFinder-class.html" class="summary-name">AbstractZoneElementFinder</a><br />
+      Finds all the valid structs in an allocation zone.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.plugins.darwin.zones.DarwinDumpZone-class.html" class="summary-name">DarwinDumpZone</a><br />
       Dumps an allocation zone's contents.
     </td>
@@ -87,8 +107,85 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html" class="summary-name">DarwinDeadProcesses</a><br />
-      Show deallocated processes which still exist in the zone allocator.
+        <a href="rekall.plugins.darwin.zones.DarwinSocketZoneFinder-class.html" class="summary-name">DarwinSocketZoneFinder</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinSocketZoneCollector-class.html" class="summary-name">DarwinSocketZoneCollector</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinTTYZoneFinder-class.html" class="summary-name">DarwinTTYZoneFinder</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinTTYZoneCollector-class.html" class="summary-name">DarwinTTYZoneCollector</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinSessionZoneFinder-class.html" class="summary-name">DarwinSessionZoneFinder</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinSessionZoneCollector-class.html" class="summary-name">DarwinSessionZoneCollector</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinZoneVnodeFinder-class.html" class="summary-name">DarwinZoneVnodeFinder</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinZoneVnodeCollector-class.html" class="summary-name">DarwinZoneVnodeCollector</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.PsListDeadProcFinder-class.html" class="summary-name">PsListDeadProcFinder</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinDeadProcessCollector-class.html" class="summary-name">DarwinDeadProcessCollector</a><br />
+      Lists dead processes using the proc allocation zone.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinZoneFileprocFinder-class.html" class="summary-name">DarwinZoneFileprocFinder</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.zones.DarwinDeadFileprocCollector-class.html" class="summary-name">DarwinDeadFileprocCollector</a>
     </td>
   </tr>
 </table>
@@ -112,9 +209,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -139,7 +233,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,11 +1,15 @@
-
 ---
-layout: plugin
-title: check_proc_fops
-abstract: |
-    Checks the proc filesystem for hooked f_ops.
+abstract: Checks the proc filesystem for hooked f_ops.
+args: {all: 'Specify to see all the fops, even if they are known. (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: CheckProcFops
 epydoc: rekall.plugins.linux.check_fops.CheckProcFops-class.html
+layout: plugin
+module: rekall.plugins.linux.check_fops
+title: check_proc_fops
 ---
 
 `check_proc_fops` checks the file operations pointers of each open file in the

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -136,14 +133,28 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.windows.dns-module.html#types" class="summary-name">types</a> = <code title="{'DNS_HASHTABLE_ENTRY': [None,
-                         {'Name': [8,
+                         {'List': [0, ['_LIST_ENTRY']],
+                          'Name': [8,
                                    ['Pointer',
                                     {'target': 'UnicodeString'}]],
-                          'Next': [0,
+                          'Record': [24,
+                                     ['Pointer',
+                                      {'target': 'DNS_RECORD'}]]}],
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DNS_HASHTABLE_ENTRY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">List</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_LIST_EN</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.dns-module.html#win10_overlays" class="summary-name">win10_overlays</a> = <code title="{'DNS_HASHTABLE_ENTRY': [None,
+                         {'List': [8, ['_LIST_ENTRY']],
+                          'Name': [56,
                                    ['Pointer',
-                                    {'target': 'DNS_HASHTABLE_ENTRY'}]\
-],
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DNS_HASHTABLE_ENTRY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-ellipsis">...</code></code>
+                                    {'target': 'UnicodeString'}]],
+                          'Record': [88,
+                                     ['Pointer',
+                                      {'target': 'DNS_RECORD'}]]}]}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DNS_HASHTABLE_ENTRY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">List</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -176,14 +187,39 @@
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DNS_HASHTABLE_ENTRY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
-                         <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">,</code>
+                         <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">List</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_LIST_ENTRY</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                          <code class="variable-quote">'</code><code class="variable-string">Name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">,</code>
                                    <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                     <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">UnicodeString</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                          <code class="variable-quote">'</code><code class="variable-string">Next</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>0<code class="variable-op">,</code>
-                                   <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
-                                    <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">DNS_HASHTABLE_ENTRY</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-<code class="variable-group">]</code><code class="variable-op">,</code>
+                          <code class="variable-quote">'</code><code class="variable-string">Record</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>24<code class="variable-op">,</code>
+                                     <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                      <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">DNS_RECORD</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="win10_overlays"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">win10_overlays</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DNS_HASHTABLE_ENTRY</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
+                         <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">List</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">_LIST_ENTRY</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                          <code class="variable-quote">'</code><code class="variable-string">Name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>56<code class="variable-op">,</code>
+                                   <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                    <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">UnicodeString</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
+                          <code class="variable-quote">'</code><code class="variable-string">Record</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>88<code class="variable-op">,</code>
+                                     <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Pointer</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                      <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">target</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">DNS_RECORD</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-group">}</code><code class="variable-group">]</code><code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -194,9 +230,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -221,7 +254,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:20 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

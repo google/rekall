@@ -1,0 +1,591 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/Incoming/DarwinHandles.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-2">
+    
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
+ </a>
+
+ <a href='/docs/Manual/Plugins/Incoming/index.html' class="btn btn-default btn-lg btn-block">
+   Incoming
+ </a>
+ <p>
+
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#BaseSessionCommand.md' class="category-link">
+            BaseSessionCommand.md
+          </a>
+        </li>
+        <li>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        <li>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        <li>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        <li>
+          <a href='#allproc' class="category-link">
+            allproc
+          </a>
+        </li>
+        <li>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        <li>
+          <a href='#callback_scan' class="category-link">
+            callback_scan
+          </a>
+        </li>
+        <li>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        <li>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        <li>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        <li>
+          <a href='#collect' class="category-link">
+            collect
+          </a>
+        </li>
+        <li>
+          <a href='#consolescan' class="category-link">
+            consolescan
+          </a>
+        </li>
+        <li>
+          <a href='#dead_fileprocs' class="category-link">
+            dead_fileprocs
+          </a>
+        </li>
+        <li>
+          <a href='#dead_procs' class="category-link">
+            dead_procs
+          </a>
+        </li>
+        <li>
+          <a href='#dead_sessions' class="category-link">
+            dead_sessions
+          </a>
+        </li>
+        <li>
+          <a href='#dead_sockets' class="category-link">
+            dead_sockets
+          </a>
+        </li>
+        <li>
+          <a href='#dead_ttys' class="category-link">
+            dead_ttys
+          </a>
+        </li>
+        <li>
+          <a href='#dead_vnodes' class="category-link">
+            dead_vnodes
+          </a>
+        </li>
+        <li>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
+          </a>
+        </li>
+        <li>
+          <a href='#explain' class="category-link">
+            explain
+          </a>
+        </li>
+        <li>
+          <a href='#find_kernelslide' class="category-link">
+            find_kernelslide
+          </a>
+        </li>
+        <li>
+          <a href='#fstat' class="category-link">
+            fstat
+          </a>
+        </li>
+        <li class='active'>
+          <a href='#handles' class="category-link">
+            handles
+          </a>
+        </li>
+        <li>
+          <a href='#idump' class="category-link">
+            idump
+          </a>
+        </li>
+        <li>
+          <a href='#iexport' class="category-link">
+            iexport
+          </a>
+        </li>
+        <li>
+          <a href='#ifconfig' class="category-link">
+            ifconfig
+          </a>
+        </li>
+        <li>
+          <a href='#ils' class="category-link">
+            ils
+          </a>
+        </li>
+        <li>
+          <a href='#inspect_heap' class="category-link">
+            inspect_heap
+          </a>
+        </li>
+        <li>
+          <a href='#inspect_vaddr' class="category-link">
+            inspect_vaddr
+          </a>
+        </li>
+        <li>
+          <a href='#istat' class="category-link">
+            istat
+          </a>
+        </li>
+        <li>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        <li>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        <li>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        <li>
+          <a href='#memdump' class="category-link">
+            memdump
+          </a>
+        </li>
+        <li>
+          <a href='#memmap' class="category-link">
+            memmap
+          </a>
+        </li>
+        <li>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        <li>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
+          </a>
+        </li>
+        <li>
+          <a href='#moo' class="category-link">
+            moo
+          </a>
+        </li>
+        <li>
+          <a href='#null' class="category-link">
+            null
+          </a>
+        </li>
+        <li>
+          <a href='#open_sockets' class="category-link">
+            open_sockets
+          </a>
+        </li>
+        <li>
+          <a href='#pas2vas' class="category-link">
+            pas2vas
+          </a>
+        </li>
+        <li>
+          <a href='#pgrphash' class="category-link">
+            pgrphash
+          </a>
+        </li>
+        <li>
+          <a href='#pidhash' class="category-link">
+            pidhash
+          </a>
+        </li>
+        <li>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        <li>
+          <a href='#pslist' class="category-link">
+            pslist
+          </a>
+        </li>
+        <li>
+          <a href='#pstree' class="category-link">
+            pstree
+          </a>
+        </li>
+        <li>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        <li>
+          <a href='#sessions' class="category-link">
+            sessions
+          </a>
+        </li>
+        <li>
+          <a href='#show_allocation' class="category-link">
+            show_allocation
+          </a>
+        </li>
+        <li>
+          <a href='#show_referrer_alloc' class="category-link">
+            show_referrer_alloc
+          </a>
+        </li>
+        <li>
+          <a href='#sigscan' class="category-link">
+            sigscan
+          </a>
+        </li>
+        <li>
+          <a href='#sigscan' class="category-link">
+            sigscan
+          </a>
+        </li>
+        <li>
+          <a href='#sigscan' class="category-link">
+            sigscan
+          </a>
+        </li>
+        <li>
+          <a href='#tasks' class="category-link">
+            tasks
+          </a>
+        </li>
+        <li>
+          <a href='#terminals' class="category-link">
+            terminals
+          </a>
+        </li>
+        <li>
+          <a href='#unp_sockets' class="category-link">
+            unp_sockets
+          </a>
+        </li>
+        <li>
+          <a href='#vadmap' class="category-link">
+            vadmap
+          </a>
+        </li>
+        <li>
+          <a href='#vadmap' class="category-link">
+            vadmap
+          </a>
+        </li>
+        <li>
+          <a href='#vtop' class="category-link">
+            vtop
+          </a>
+        </li>
+        <li>
+          <a href='#vtop' class="category-link">
+            vtop
+          </a>
+        </li>
+        <li>
+          <a href='#which_plugin' class="category-link">
+            which_plugin
+          </a>
+        </li>
+        <li>
+          <a href='#zones' class="category-link">
+            zones
+          </a>
+        </li>
+        </ul></ul>
+  </div>
+
+  <div class="col-md-10">
+    
+
+<nav class="navbar navbar-default plugins" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Incoming/FStat.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         fstat
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Incoming/IDump.html">
+          idump
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+<h1 id="#handles" class="anchor" >handles</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.darwin.lsof.DarwinHandles-class.html">View Source</a>
+
+
+<div class="abstract">
+<h2>Walks open files of each proc and collects the fileproc.</h2>
+<p>This is the same algorithm as lsof, but aimed at just collecting the
+fileprocs, without doing anything with them, or sorting.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>phys_proc</p></td><td><p>Physical addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+<p>
+
+<nav class="navbar navbar-default plugins" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Incoming/FStat.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         fstat
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Incoming/IDump.html">
+          idump
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+  </div>
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
+  </script>
+  </div>
+ </body>
+</html>
+

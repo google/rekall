@@ -1,12 +1,11 @@
 ---
-layout: plugin
-title: object_types
-abstract: |
-  Displays all object Types on the system.
-
+abstract: Displays all object Types on the system.
+args: {}
+class_name: Objects
 epydoc: rekall.plugins.windows.misc.Objects-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.misc
+title: object_types
 ---
 
 The windows kernel has the notion of a **Kernel Object**. Objects are managed by

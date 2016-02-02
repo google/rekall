@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: check_idt
-abstract: |
-     Checks if the IDT has been altered 
-
+abstract: ' Checks if the IDT has been altered '
+args: {}
+class_name: CheckIdt
 epydoc: rekall.plugins.linux.check_idt.CheckIdt-class.html
+layout: plugin
+module: rekall.plugins.linux.check_idt
+title: check_idt
 ---
 
 This plugin tries to identify the symbol name or location of each entry in the

@@ -1,15 +1,20 @@
 ---
-layout: plugin
-title: mutantscan
-abstract: |
-  Scan for mutant objects _KMUTANT
+abstract: 'Scan for mutant objects _KMUTANT '
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
+class_name: MutantScan
 epydoc: rekall.plugins.windows.filescan.MutantScan-class.html
-args:
-  silent: ''
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.filescan
+title: mutantscan
 ---
 
 This plugin uses pool scanning techniques to find **_KMUTANT** objects.

@@ -1,14 +1,11 @@
 ---
-layout: plugin
-title: version_modules
-abstract: |
-  Try to determine the versions for all kernel drivers.
-
+abstract: Try to determine the versions for all kernel drivers.
+args: {name_regex: Filter module names by this regex.}
+class_name: ModVersions
 epydoc: rekall.plugins.windows.modules.ModVersions-class.html
-args:
-  name_regex: 'Filter module names by this regex.'
-  address_space: 'The address space to use.'
-
+layout: plugin
+module: rekall.plugins.windows.modules
+title: version_modules
 ---
 
 

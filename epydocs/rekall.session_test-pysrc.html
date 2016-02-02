@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.session_test</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        Module&nbsp;session_test
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.session_test-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.session_test-module.html">Module rekall.session_test</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.addrspace=rekall.addrspace-module.html"><a title="rekall.addrspace" class="py-name" href="#" onclick="return doclink('link-1', 'addrspace', 'link-1');">addrspace</a></tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.testlib=rekall.testlib-module.html"><a title="rekall.testlib" class="py-name" href="#" onclick="return doclink('link-3', 'testlib', 'link-3');">testlib</a></tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-4', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Variable rekall.plugins.common.search.CommandWrapper.session=rekall.plugins.common.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-5', 'session', 'link-5');">session</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"> </tt>
+<a name="CustomAddressSpace"></a><div id="CustomAddressSpace-def"><a name="L6"></a><tt class="py-lineno"> 6</tt> <a class="py-toggle" href="#" id="CustomAddressSpace-toggle" onclick="return toggle('CustomAddressSpace');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.session_test.CustomAddressSpace-class.html">CustomAddressSpace</a><tt class="py-op">(</tt><tt class="py-base-class">addrspace</tt><tt class="py-op">.</tt><tt class="py-base-class">BaseAddressSpace</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="CustomAddressSpace-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="CustomAddressSpace-expanded"><a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"> </tt>
+<a name="CustomAddressSpace.ConfigureSession"></a><div id="CustomAddressSpace.ConfigureSession-def"><a name="L8"></a><tt class="py-lineno"> 8</tt> <a class="py-toggle" href="#" id="CustomAddressSpace.ConfigureSession-toggle" onclick="return toggle('CustomAddressSpace.ConfigureSession');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.session_test.CustomAddressSpace-class.html#ConfigureSession">ConfigureSession</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">session_obj</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="CustomAddressSpace.ConfigureSession-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="CustomAddressSpace.ConfigureSession-expanded"><a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line">        <tt class="py-name">session_obj</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Method rekall.session.Session.SetCache()=rekall.session.Session-class.html#SetCache"><a title="rekall.session.Session.SetCache" class="py-name" href="#" onclick="return doclink('link-6', 'SetCache', 'link-6');">SetCache</a></tt><tt class="py-op">(</tt><tt class="py-string">"foo"</tt><tt class="py-op">,</tt> <tt class="py-string">"bar"</tt><tt class="py-op">,</tt> <tt id="link-7" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.volatile=rekall.addrspace.BaseAddressSpace-class.html#volatile,Variable rekall.kb.ParameterHook.volatile=rekall.kb.ParameterHook-class.html#volatile,Variable rekall.plugins.addrspaces.elfcore.KCoreAddressSpace.volatile=rekall.plugins.addrspaces.elfcore.KCoreAddressSpace-class.html#volatile,Variable rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.volatile=rekall.plugins.addrspaces.pmem.MacPmemAddressSpace-class.html#volatile,Variable rekall.plugins.addrspaces.win32.WinPmemAddressSpace.volatile=rekall.plugins.addrspaces.win32.WinPmemAddressSpace-class.html#volatile,Variable rekall.plugins.guess_profile.KernelASHook.volatile=rekall.plugins.guess_profile.KernelASHook-class.html#volatile,Variable rekall.plugins.guess_profile.ProfileHook.volatile=rekall.plugins.guess_profile.ProfileHook-class.html#volatile,Variable rekall.session.Session.volatile=rekall.session.Session-class.html#volatile"><a title="rekall.addrspace.BaseAddressSpace.volatile
+rekall.kb.ParameterHook.volatile
+rekall.plugins.addrspaces.elfcore.KCoreAddressSpace.volatile
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.volatile
+rekall.plugins.addrspaces.win32.WinPmemAddressSpace.volatile
+rekall.plugins.guess_profile.KernelASHook.volatile
+rekall.plugins.guess_profile.ProfileHook.volatile
+rekall.session.Session.volatile" class="py-name" href="#" onclick="return doclink('link-7', 'volatile', 'link-7');">volatile</a></tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"> </tt>
+<a name="SessionTest"></a><div id="SessionTest-def"><a name="L12"></a><tt class="py-lineno">12</tt> <a class="py-toggle" href="#" id="SessionTest-toggle" onclick="return toggle('SessionTest');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.session_test.SessionTest-class.html">SessionTest</a><tt class="py-op">(</tt><tt class="py-base-class">testlib</tt><tt class="py-op">.</tt><tt class="py-base-class">RekallBaseUnitTestCase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SessionTest-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="SessionTest-expanded"><a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line">    <tt class="py-docstring">"""Test the RunBasedAddressSpace implementation."""</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"> </tt>
+<a name="SessionTest.setUp"></a><div id="SessionTest.setUp-def"><a name="L15"></a><tt class="py-lineno">15</tt> <a class="py-toggle" href="#" id="SessionTest.setUp-toggle" onclick="return toggle('SessionTest.setUp');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.session_test.SessionTest-class.html#setUp">setUp</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SessionTest.setUp-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SessionTest.setUp-expanded"><a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-8', 'session', 'link-5');">session</a></tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-9', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Class rekall.session.Session=rekall.session.Session-class.html"><a title="rekall.session.Session" class="py-name" href="#" onclick="return doclink('link-10', 'Session', 'link-10');">Session</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">physical_AS</tt> <tt class="py-op">=</tt> <tt id="link-11" class="py-name" targets="Class rekall.session_test.CustomAddressSpace=rekall.session_test.CustomAddressSpace-class.html"><a title="rekall.session_test.CustomAddressSpace" class="py-name" href="#" onclick="return doclink('link-11', 'CustomAddressSpace', 'link-11');">CustomAddressSpace</a></tt><tt class="py-op">(</tt><tt id="link-12" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-12', 'session', 'link-5');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-13', 'session', 'link-5');">session</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"> </tt>
+<a name="SessionTest.testSessionCache"></a><div id="SessionTest.testSessionCache-def"><a name="L19"></a><tt class="py-lineno">19</tt> <a class="py-toggle" href="#" id="SessionTest.testSessionCache-toggle" onclick="return toggle('SessionTest.testSessionCache');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.session_test.SessionTest-class.html#testSessionCache">testSessionCache</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SessionTest.testSessionCache-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="SessionTest.testSessionCache-expanded"><a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line">        <tt class="py-docstring">"""Make sure session gets the correct cache."""</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line">        <tt class="py-keyword">with</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-14', 'session', 'link-5');">session</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-15', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.session.Session.SetParameter()=rekall.session.Session-class.html#SetParameter"><a title="rekall.session.Session.SetParameter" class="py-name" href="#" onclick="return doclink('link-16', 'SetParameter', 'link-16');">SetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"cache"</tt><tt class="py-op">,</tt> <tt class="py-string">"memory"</tt><tt class="py-op">)</tt> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line">            <tt class="py-comment"># Set something in the session cache.</tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-17', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.session.Session.SetCache" class="py-name" href="#" onclick="return doclink('link-18', 'SetCache', 'link-6');">SetCache</a></tt><tt class="py-op">(</tt><tt class="py-string">"a"</tt><tt class="py-op">,</tt> <tt class="py-string">"b"</tt><tt class="py-op">)</tt> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt>
+<a name="L27"></a><tt class="py-lineno">27</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure it is set.</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-19', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-20', 'GetParameter', 'link-20');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"a"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-string">"b"</tt><tt class="py-op">)</tt> </tt>
+<a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"> </tt>
+<a name="L30"></a><tt class="py-lineno">30</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">physical_AS</tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.volatile
+rekall.kb.ParameterHook.volatile
+rekall.plugins.addrspaces.elfcore.KCoreAddressSpace.volatile
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.volatile
+rekall.plugins.addrspaces.win32.WinPmemAddressSpace.volatile
+rekall.plugins.guess_profile.KernelASHook.volatile
+rekall.plugins.guess_profile.ProfileHook.volatile
+rekall.session.Session.volatile" class="py-name" href="#" onclick="return doclink('link-21', 'volatile', 'link-7');">volatile</a></tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> </tt>
+<a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-22', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.physical_address_space=rekall.plugins.hypervisors.VirtualMachine-class.html#physical_address_space,Variable rekall.session.Session.physical_address_space=rekall.session.Session-class.html#physical_address_space"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-23', 'physical_address_space', 'link-23');">physical_address_space</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">physical_AS</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line"> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">        <tt class="py-comment"># None volatile physical address space should use the user specified</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">        <tt class="py-comment"># cache type.</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-24', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-25" class="py-name" targets="Module rekall.cache=rekall.cache-module.html,Module rekall.plugins.windows.cache=rekall.plugins.windows.cache-module.html"><a title="rekall.cache
+rekall.plugins.windows.cache" class="py-name" href="#" onclick="return doclink('link-25', 'cache', 'link-25');">cache</a></tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">,</tt> <tt class="py-string">"Cache"</tt><tt class="py-op">)</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line"> </tt>
+<a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line">        <tt class="py-comment"># Assigning the physical address space causes the cache to be</tt> </tt>
+<a name="L38"></a><tt class="py-lineno">38</tt>  <tt class="py-line">        <tt class="py-comment"># purged. The cache is allowed to be purged at any time (it is only a</tt> </tt>
+<a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">        <tt class="py-comment"># cache).</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-26', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-27', 'GetParameter', 'link-20');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"a"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-name">None</tt><tt class="py-op">)</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">        <tt class="py-comment"># Volatile physical address space forces a TimedCache</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">physical_AS</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.volatile
+rekall.kb.ParameterHook.volatile
+rekall.plugins.addrspaces.elfcore.KCoreAddressSpace.volatile
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.volatile
+rekall.plugins.addrspaces.win32.WinPmemAddressSpace.volatile
+rekall.plugins.guess_profile.KernelASHook.volatile
+rekall.plugins.guess_profile.ProfileHook.volatile
+rekall.session.Session.volatile" class="py-name" href="#" onclick="return doclink('link-28', 'volatile', 'link-7');">volatile</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-29', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-30', 'physical_address_space', 'link-23');">physical_address_space</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">physical_AS</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line"> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-31', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.cache
+rekall.plugins.windows.cache" class="py-name" href="#" onclick="return doclink('link-32', 'cache', 'link-25');">cache</a></tt><tt class="py-op">.</tt><tt class="py-name">__class__</tt><tt class="py-op">.</tt><tt class="py-name">__name__</tt><tt class="py-op">,</tt> <tt class="py-string">"TimedCache"</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line"> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line">        <tt class="py-comment"># Any parameters set by the address space should be present in the</tt> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">        <tt class="py-comment"># session cache.</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-33', 'session', 'link-5');">session</a></tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-34', 'GetParameter', 'link-20');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"foo"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-string">"bar"</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:35 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -64,14 +61,14 @@
 <h1 class="epydoc">Class ProfileLP64</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#ProfileLP64">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_profilelp6" name="class_hierarchy_for_profilelp6">
-<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="471,6,540,29"/>
-<area shape="rect" id="node5" href="rekall.plugins.overlays.basic.ProfileLP64-class.html" title="ProfileLP64" alt="" coords="467,59,543,82"/>
-<area shape="rect" id="node2" href="rekall.plugins.addrspaces.pmem.EFIProfile-class.html" title="addrspaces.pmem.EFIProfile" alt="" coords="5,113,164,135"/>
-<area shape="rect" id="node3" href="rekall.plugins.hypervisors.VMCSProfile-class.html" title="hypervisors.VMCSProfile" alt="" coords="190,113,329,135"/>
-<area shape="rect" id="node4" href="rekall.plugins.linux.bash.BashProfile64-class.html" title="linux.bash.BashProfile64" alt="" coords="355,113,493,135"/>
-<area shape="rect" id="node6" href="rekall.plugins.overlays.darwin.darwin.Darwin64-class.html" title="darwin.darwin.Darwin64" alt="" coords="517,113,656,135"/>
-<area shape="rect" id="node7" href="rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html" title="darwin.macho.MACHO64Profile" alt="" coords="681,113,855,135"/>
-<area shape="rect" id="node8" href="rekall.plugins.overlays.linux.elf.ELFProfile-class.html" title="linux.elf.ELFProfile" alt="" coords="879,113,989,135"/>
+<area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="465,6,535,29"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.basic.ProfileLP64-class.html" title="ProfileLP64" alt="" coords="461,59,537,82"/>
+<area shape="rect" id="node2" href="rekall.plugins.addrspaces.lime.LimeProfile-class.html" title="addrspaces.lime.LimeProfile" alt="" coords="5,113,159,135"/>
+<area shape="rect" id="node3" href="rekall.plugins.hypervisors.VMCSProfile-class.html" title="hypervisors.VMCSProfile" alt="" coords="185,113,324,135"/>
+<area shape="rect" id="node4" href="rekall.plugins.linux.bash.BashProfile64-class.html" title="linux.bash.BashProfile64" alt="" coords="349,113,488,135"/>
+<area shape="rect" id="node6" href="rekall.plugins.overlays.darwin.darwin.Darwin64-class.html" title="darwin.darwin.Darwin64" alt="" coords="512,113,651,135"/>
+<area shape="rect" id="node7" href="rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html" title="darwin.macho.MACHO64Profile" alt="" coords="675,113,849,135"/>
+<area shape="rect" id="node8" href="rekall.plugins.overlays.linux.elf.ELFProfile-class.html" title="linux.elf.ELFProfile" alt="" coords="874,113,984,135"/>
 </map>
   <img src="class_hierarchy_for_profilelp6.gif" alt='' usemap="#class_hierarchy_for_profilelp6" ismap="ismap" class="graph-without-title" />
 </center>
@@ -124,6 +121,25 @@
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.EnsureInitialized">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_name</span>)</span><br />
+      Return a prototype of objects of type 'type_name'.
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.GetPrototype">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -279,8 +295,9 @@ kwargs.
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="add_constants"></a><span class="summary-sig-name">add_constants</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constants</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">constants_are_addresses</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+        <span class="summary-sig-arg">**_</span>)</span><br />
       Add the kwargs as constants for this profile.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
@@ -679,6 +696,25 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="merge_symbols"></a><span class="summary-sig-name">merge_symbols</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>,
+        <span class="summary-sig-arg">*args</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.merge_symbols">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="metadata"></a><span class="summary-sig-name">metadata</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -838,7 +874,8 @@ kwargs.
           <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#LoadProfileFromData" class="summary-sig-name">LoadProfileFromData</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>)</span><br />
       Creates a profile directly from a JSON object.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
@@ -864,6 +901,22 @@ kwargs.
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="METADATA"></a><span class="summary-name">METADATA</span> = <code title="{'arch': 'AMD64', 'data_model': 'LP64'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">arch</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">AMD64</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">data_model</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">LP64</code><code class="variable-quote">'</code><code class="variable-group">}</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Profile-class.html#COMMON_CLASSES" class="summary-name">COMMON_CLASSES</a> = <code title="{'Array': &lt;class 'rekall.obj.Array'&gt;,
+ 'BitField': &lt;class 'rekall.obj.BitField'&gt;,
+ 'Function': &lt;class 'rekall.plugins.tools.disassembler.Function'&gt;,
+ 'ListArray': &lt;class 'rekall.obj.ListArray'&gt;,
+ 'NativeType': &lt;class 'rekall.obj.NativeType'&gt;,
+ 'Pointer': &lt;class 'rekall.obj.Pointer'&gt;,
+ 'PointerArray': &lt;class 'rekall.obj.PointerArray'&gt;,
+ 'Struct': &lt;class 'rekall.obj.Struct'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.obj.Array'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">BitFie</code><code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
 <tr>
@@ -903,7 +956,15 @@ t86'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.filesystems.ntfs.NTFSProfile'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.filesystems.nt<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.obj.Profile'&gt;,
+        &lt;class 'rekall.obj.TestProfile'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileMIPS32Bits'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.Profile32Bits'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileLLP64'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileLP64'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
+        &lt;class 'rekall.plugins.overlays.linux.elf.ELFProfile'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.obj.Profile'&gt;<code class="variable-op">, </code>&lt;class<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
@@ -1058,9 +1119,6 @@ t86'&gt;,
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -1085,7 +1143,7 @@ t86'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:39 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:01 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

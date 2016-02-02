@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Manual
  </a>
@@ -172,59 +173,47 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'>
+<ul class='nav nav-pills nav-stacked'>
         <li>
-          <a href='/docs/Manual/Plugins/General' class="category-link">
+          <a href='/docs/Manual/Plugins/General' class="category-directory-link">
             General
           </a>
         </li>
         
         <li>
-          <a href='/docs/Manual/Plugins/Linux' class="category-link">
+          <a href='/docs/Manual/Plugins/Linux' class="category-directory-link">
             Linux
           </a>
         </li>
         
         <li>
-          <a href='/docs/Manual/Plugins/OSX' class="category-link">
+          <a href='/docs/Manual/Plugins/OSX' class="category-directory-link">
             OSX
           </a>
         </li>
         
         <li>
-          <a href='/docs/Manual/Plugins/Entities' class="category-link">
-            Entities
-          </a>
-        </li>
-        
-        <li>
-          <a href='/docs/Manual/Plugins/Windows' class="category-link">
+          <a href='/docs/Manual/Plugins/Windows' class="category-directory-link">
             Windows
           </a>
         </li>
-        </ul>
-
-
+        </ul></ul>
   </div>
 
   <div class="col-md-10">
     
-
-
-<h1>Rekall Plugins</h1>
-
-<div class="abstract">
-
-</div>
-
-
-
-
+<div class="plugin_doc">
+<h1 id="Rekall Plugins" class="anchor" >Rekall Plugins</h1>
 
 <p>Most of Rekall&rsquo;s Functionality comes from its plugins.</p>
-
-<p>
-
+<p>The plugins in this Manual are divided into several major categories:</p>
+<ul>
+<li>General: Plugins which do not require a specific image to work with, or can
+  work with multiple images.</li>
+<li>Linux: Plugins operating on Linux images.</li>
+<li>OSX: Plugins operating on OSX images.</li>
+<li>Windows: Plugins operating on Windows images.</li>
+</ul>
 
   </div>
 </div>
@@ -242,6 +231,10 @@ ript>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

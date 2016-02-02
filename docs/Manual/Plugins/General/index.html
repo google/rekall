@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Plugins
  </a>
@@ -172,170 +173,1018 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Manual/Plugins/General/BuildIndex.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/ConvertProfile.html' class="category-link">
+          <a href='#convert_profile' class="category-link">
             convert_profile
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/DT.html' class="category-link">
+          <a href='#dt' class="category-link">
             dt
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/Dump.html' class="category-link">
+          <a href='#dump' class="category-link">
             dump
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/DwarfParser.html' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/EWFAcquire.html' class="category-link">
+          <a href='#ewfacquire' class="category-link">
             ewfacquire
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/FetchPDB.html' class="category-link">
+          <a href='#fetch_pdb' class="category-link">
             fetch_pdb
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/Grep.html' class="category-link">
+          <a href='#grep' class="category-link">
             grep
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/GuessGUID.html' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/ImageCopy.html' class="category-link">
+          <a href='#imagecopy' class="category-link">
             imagecopy
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/Info.html' class="category-link">
-            info
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/JSONParser.html' class="category-link">
-            json_render
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/Lister.html' class="category-link">
+          <a href='#l' class="category-link">
             l
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/LoadAddressSpace.html' class="category-link">
-            load_as
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/LoadPlugins.html' class="category-link">
-            load_plugin
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/Notebook.html' class="category-link">
-            notebook
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/Printer.html' class="category-link">
+          <a href='#p' class="category-link">
             p
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/ParsePDB.html' class="category-link">
+          <a href='#parse_pdb' class="category-link">
             parse_pdb
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/Rekall.html' class="category-link">
-            rekal
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/SessionDelete.html' class="category-link">
+          <a href='#sdel' class="category-link">
             sdel
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/InteractiveShell.html' class="category-link">
-            shell
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/SessionList.html' class="category-link">
+          <a href='#slist' class="category-link">
             slist
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/SessionMod.html' class="category-link">
+          <a href='#smod' class="category-link">
             smod
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/SessionNew.html' class="category-link">
+          <a href='#snew' class="category-link">
             snew
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/SessionSwitch.html' class="category-link">
+          <a href='#sswitch' class="category-link">
             sswitch
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/VersionScan.html' class="category-link">
+          <a href='#version_scan' class="category-link">
             version_scan
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/General/VmScan.html' class="category-link">
+          <a href='#vmscan' class="category-link">
             vmscan
           </a>
         </li>
-        <li>
-          <a href='/docs/Manual/Plugins/General/WebConsole.html' class="category-link">
-            webconsole
-          </a>
-        </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
     
-
-
-<h1>General Plugins</h1>
-
-<div class="abstract">
-
-</div>
-
-
-
-
+<div class="plugin_doc">
+<h1 id="General Plugins" class="anchor" >General Plugins</h1>
 
 <p>The following plugins are general in nature - they are not specifically tied
 into an operating system. Some plugins are not even applied to an image..</p>
 
-<p>
+<h1 id="build_index" class="anchor">build_index</h1>
 
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.profile_tool.BuildIndex-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Generate a profile index file based on an index specification.</h2>
+<p>The index specification is currently a yaml file with the following
+structure:</p>
+<div class="highlight"><pre>base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
+    symbol. This includes MaxOffset and MinOffset.
+symbols: (array of dicts) # A list of symbols to index.
+  -
+    name: (string) # Symbol name
+    data: (string) # Data that should be at the symbol&#39;s offset
+    shift: (int) # OPTIONAL Adjust symbol offset by this number
+</pre></div>
+
+
+<h2>Example:</h2>
+<div class="highlight"><pre><span class="nl">path</span><span class="p">:</span> <span class="n">win32k</span><span class="p">.</span><span class="n">sys</span>
+<span class="nl">symbols</span><span class="p">:</span>
+  <span class="o">-</span>
+    <span class="cp"># The name of the symbol we test for.</span>
+    <span class="nl">name</span><span class="p">:</span> <span class="s">&quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;</span>
+
+    <span class="cp"># The data we expect to find at that offset.</span>
+    <span class="nl">data</span><span class="p">:</span> <span class="s">&quot;47005500490046006f006e0074002e00480065006900670068007400&quot;</span>
+
+  <span class="o">-</span>
+    <span class="nl">name</span><span class="p">:</span> <span class="s">&quot;wcschr&quot;</span>
+    <span class="nl">shift</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="nl">data</span><span class="p">:</span> <span class="s">&quot;90&quot;</span>
+</pre></div>
+
+
+<p>The result is an index profile. This has an $INDEX section which is a dict,
+with keys being the profile name, and values being a list of (offset, match)
+tuples. For example:</p>
+<div class="highlight"><pre><span class="err">{</span><span class="x"></span>
+<span class="x"> &quot;</span><span class="p">$</span><span class="nv">INDEX</span><span class="x">&quot;: </span><span class="err">{</span><span class="x"></span>
+<span class="x">  &quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;: [[1184600, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">  &quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;: [[1190376, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">  &quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;: [[1194296, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">...</span>
+
+<span class="x"> &quot;</span><span class="p">$</span><span class="nv">METADATA</span><span class="x">&quot;: </span><span class="err">{</span><span class="x"></span>
+<span class="x">  &quot;ProfileClass&quot;: &quot;Index&quot;,</span>
+<span class="x">  &quot;Type&quot;: &quot;Profile&quot;</span>
+<span class="x">  &quot;MaxOffset&quot;: 546567</span>
+<span class="x">  &quot;MinOffset&quot;: 0</span>
+<span class="x">  }</span>
+<span class="x"> }</span>
+</pre></div>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>root</p></td><td><p>Repository root path.</p>
+<ul>
+<li>Default: ./</li>
+</ul></td></tr><tr><td><p>spec</p></td><td><p>An Index specification file.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>For example:</p>
+<div class="highlight"><pre><span class="x">    </span><span class="err">{</span><span class="x"></span>
+<span class="x">     &quot;</span><span class="p">$</span><span class="nv">INDEX</span><span class="x">&quot;: </span><span class="err">{</span><span class="x"></span>
+<span class="x">      &quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;: [[1184600, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">      &quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;: [[1190376, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">      &quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;: [[1194296, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],</span>
+<span class="x">     &quot;</span><span class="p">$</span><span class="nv">METADATA</span><span class="x">&quot;: </span><span class="err">{</span><span class="x"></span>
+<span class="x">      &quot;ProfileClass&quot;: &quot;Index&quot;,</span>
+<span class="x">      &quot;Type&quot;: &quot;Profile&quot;</span>
+<span class="x">      }</span>
+<span class="x">     }</span>
+</pre></div>
+</div>
+
+<h1 id="convert_profile" class="anchor">convert_profile</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.profile_tool.ConvertProfile-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Convert a profile from another program to the Rekall format.</h2>
+<p>The Rekall profile format is optimized for loading at runtime. This plugin
+produces a Rekall profile from a variety of sources, including:</p>
+<ul>
+<li>Linux debug compiled kernel module (see tool/linux/README)</li>
+<li>OSX Dwarfdump outputs.</li>
+</ul>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>converter</p></td><td><p>The name of the converter to use. If not specified autoguess.</p></td></tr><tr><td><p>out_file</p></td><td><p>Path for output file.</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation to specify. If not specified, we autodetect.</p></td></tr><tr><td><p>source</p></td><td><p>Filename of profile to read.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>Rekall profiles are JSON files which contain information specific to a
+particular software version. For example, Rekall requires a Linux Kernel profile
+to be able to analyze a memory image of the Linux kernel.</p>
+<p>The <code>convert_profile</code> plugin converts profiles other formats to the standard
+JSON format used by Relall. There are two main use cases:</p>
+<ol>
+<li>
+<p>If you have an old Volatility profile, this plugin will parse that.</p>
+</li>
+<li>
+<p>When building a Linux kernel profile, the build system produces a debug
+   enabled kernel module inside a Zip file. In this case you can use the
+   <code>convert_profile</code> plugin to parse the DWARF stream from the debug module and
+   produce the JSON file required.</p>
+</li>
+</ol>
+<p>The below example demonstrates how to build and convert a Linux profile locally
+for live analysis:</p>
+<div class="highlight"><pre>rekall/tools/linux# make profile
+make -C /usr/src/linux-headers-3.13.0-74-generic <span class="nv">CONFIG_DEBUG_INFO</span><span class="o">=</span>y <span class="nv">M</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span> modules
+make<span class="o">[</span>1<span class="o">]</span>: Entering directory <span class="sb">`</span>/usr/src/linux-headers-3.13.0-74-generic<span class="s1">&#39;</span>
+<span class="s1">  Building modules, stage 2.</span>
+<span class="s1">    MODPOST 2 modules</span>
+<span class="s1">    make[1]: Leaving directory `/usr/src/linux-headers-3.13.0-74-generic&#39;</span>
+    cp module.ko module_dwarf.ko
+    zip <span class="s2">&quot;3.13.0-74-generic.zip&quot;</span> module_dwarf.ko /boot/System.map-3.13.0-74-generic /boot/config-3.13.0-74-generic
+    updating: module_dwarf.ko <span class="o">(</span>deflated 65%<span class="o">)</span>
+    updating: boot/System.map-3.13.0-74-generic <span class="o">(</span>deflated 79%<span class="o">)</span>
+    updating: boot/config-3.13.0-74-generic <span class="o">(</span>deflated 75%<span class="o">)</span>
+
+rekall/tools/linux# rekal convert_profile 3.13.0-74-generic.zip 3.13.0-74-generic.json
+rekall/tools/linux# rekal --profile 3.13.0-74-generic.json -f /proc/kcore pslist
+     task_struct           Name          PID    PPID   UID    GID        DTB              Start Time        Binary
+     -------------- -------------------- ------ ------ ------ ------ -------------- ------------------------ ------
+     0x8804285f0000 init                      <span class="m">1</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 0x000426592000     2016-01-29 12:50:31Z /sbin/init
+     0x8804285f1800 kthreadd                  <span class="m">2</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> -                  2016-01-29 12:50:31Z -
+     0x8804285f3000 ksoftirqd/0               <span class="m">3</span>      <span class="m">2</span>      <span class="m">0</span>      <span class="m">0</span> -                  2016-01-29 12:50:31Z -
+</pre></div>
+</div>
+
+<h1 id="dt" class="anchor">dt</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.core.DT-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Print a struct or other symbol.</h2>
+<p>Really just a convenience function for instantiating the object and printing
+all its members.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>address-space</p></td><td><p>The address space to use.</p></td></tr><tr><td><p>member_offset</p></td><td><p>If specified we only show the member at this offset. (type: IntParser)</p></td></tr><tr><td><p>offset</p></td><td><p>Name of a struct definition. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr><tr><td><p>target</p></td><td><p>Name of a struct definition.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>The <code>dt</code> plugin prints all the fields within a data structure and optionally,
+their contents.</p>
+<p>In the example below, we create an <code>_EPROCESS</code> instance over a specific virtual
+address (this was taken from the output of the <code>pslist</code> plugin). The <code>dt</code> plugin
+displays all the fields in the struct. If there is a nested struct, the <code>dt</code>
+plugin shows a tree view of the nested struct as well.</p>
+<p>Note that if an address is not specified, the <code>_EPROCESS</code> object will simply be
+instantiated over address 0 and all offsets will be relative to the begining of
+the struct. This is very useful when deciphering assembly code which
+dereferences members of the struct.</p>
+<p>Rekall also uses &ldquo;virtual members&rdquo; on structs, mostly placed there for
+convenience or to support multiple versions of the same struct. We can see in
+this case that the fields &ldquo;name&rdquo; and &ldquo;pid&rdquo; are virtual members since their
+offset is -1. These represent the name and the pid of the process in all
+operating systems.</p>
+<div class="highlight"><pre>[1] win7.elf 19:34:27&gt; dt session.profile._EPROCESS(0xfa8002a94060)
+---------------------&gt; dt(session.profile._EPROCESS(0xfa8002a94060))
+[_EPROCESS _EPROCESS] @ 0xfa8002a94060
+Offset             Field              Content
+------ ------------------------------ -------
+            0x-1    RealVadRoot                    [_MMADDRESS_NODE BalancedRoot] @ 0xFA8002A944A8
+. 0xfa8002a9449c    Tag                             [String:Tag]: &#39;\x14\xd0\x02\x00&#39;
+. 0xfa8002a944a8    u1                             [&lt;unnamed-5580&gt; u1] @ 0xFA8002A944A8
+.. 0xfa8002a944a8    Balance                         [BitField(0-2):Balance]: 0x00000000
+.. 0xfa8002a944a8    Parent                         &lt;_MMADDRESS_NODE Pointer to [0xFA8002A944A8] (Parent)&gt;
+. 0xfa8002a944b0    LeftChild                      &lt;_MMADDRESS_NODE Pointer to [0x00000000] (LeftChild)&gt;
+. 0xfa8002a944b8    RightChild                     &lt;_MMADDRESS_NODE Pointer to [0xFA8002A92710] (RightChild)&gt;
+. 0xfa8002a944c0    StartingVpn                     [unsigned long long:StartingVpn]: 0x00000000
+. 0xfa8002a944c8    EndingVpn                       [unsigned long long:EndingVpn]: 0x00000000
+            0x-1    dtb                            112128000
+            0x-1    name                            [String:ImageFileName]: &#39;Console.exe\x00&#39;
+            0x-1    pid                             [unsigned int:UniqueProcessId]: 0x00000A38
+  0xfa8002a94060    Pcb                            [_KPROCESS Pcb] @ 0xFA8002A94060
+. 0xfa8002a94060    Header                         [_DISPATCHER_HEADER Header] @ 0xFA8002A94060
+.. 0xfa8002a94060    Lock                            [long:Lock]: 0x00580003
+.. 0xfa8002a94060    Type                            [Enumeration:Type]: 0x00000003 (ProcessObject)
+.. 0xfa8002a94061    Abandoned                       [unsigned char:Abandoned]: 0x00000000
+.. 0xfa8002a94061    Absolute                        [BitField(0-1):Absolute]: 0x00000000
+.. 0xfa8002a94061    Coalescable                     [BitField(1-2):Coalescable]: 0x00000000
+.. 0xfa8002a94061    EncodedTolerableDelay           [BitField(3-8):EncodedTolerableDelay]: 0x00000000
+.. 0xfa8002a94061    KeepShifting                    [BitField(2-3):KeepShifting]: 0x00000000
+.. 0xfa8002a94061    Signalling                      [unsigned char:Signalling]: 0x00000000
+.. 0xfa8002a94061    TimerControlFlags               [unsigned char:TimerControlFlags]: 0x00000000
+.. 0xfa8002a94062    CounterProfiling                [BitField(2-3):CounterProfiling]: 0x00000000
+.. 0xfa8002a94062    CpuThrottled                    [BitField(0-1):CpuThrottled]: 0x00000000
+.. 0xfa8002a94062    CycleProfiling                  [BitField(1-2):CycleProfiling]: 0x00000000
+.. 0xfa8002a94062    Hand                            [unsigned char:Hand]: 0x00000058
+.. 0xfa8002a94062    Reserved                        [BitField(3-8):Reserved]: 0x0000000B
+.. 0xfa8002a94062    Size                            [unsigned char:Size]: 0x00000058
+.. 0xfa8002a94062    ThreadControlFlags              [unsigned char:ThreadControlFlags]: 0x00000058
+.. 0xfa8002a94063    ActiveDR7                       [BitField(0-1):ActiveDR7]: 0x00000000
+.. 0xfa8002a94063    DebugActive                     [unsigned char:DebugActive]: 0x00000000
+.. 0xfa8002a94063    DpcActive                       [unsigned char:DpcActive]: 0x00000000
+.. 0xfa8002a94063    Expired                         [BitField(7-8):Expired]: 0x00000000
+</pre></div>
+</div>
+
+<h1 id="dump" class="anchor">dump</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.core.Dump-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Hexdump an object or memory location.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>address_space</p></td><td><p>The address space to use.</p></td></tr><tr><td><p>data</p></td><td><p>Dump this string instead.</p></td></tr><tr><td><p>length</p></td><td><p>Maximum length to dump. (type: IntParser)</p></td></tr><tr><td><p>offset</p></td><td><p>An offset to hexdump. (type: SymbolAddress)</p></td></tr><tr><td><p>suppress_headers</p></td><td><p>Should headers be suppressed?. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>If you need to produce a hexdump of a region of memory, use the <code>dump</code>
+plugin. This plugin accepts a single symbol name or address in the default
+address space (see the <code>cc</code> plugin).</p>
+<p>The <code>dump</code> plugin will also show which symbol address is known to exist in every
+offset displayed. This is done via the Rekall address resolver. If colors are
+enabled, known symbols are highlighted in different colors both in the comment
+field and inside the hexdump area itself.</p>
+<p>In the below example we dump the &lsquo;SeTcbPrivilege&rsquo; symbol from the nt
+kernel. Also shown are other symbols located in the vicinity.</p>
+<div class="highlight"><pre>[1] win7.elf 22:32:36&gt; dump &quot;nt!SeTcbPrivilege&quot;
+---------------------&gt; dump(&quot;nt!SeTcbPrivilege&quot;)
+Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+0xf80002b590b8 07 00 00 00 00 00 00 00 44 02 01 00 80 f9 ff ff  ........D....... nt!SeTcbPrivilege, nt!NlsOemToUnicodeData
+0xf80002b590c8 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00  ................ nt!VfRandomVerifiedDrivers, nt!TunnelMaxEntries, nt!ExpBootLicensingData
+0xf80002b590d8 bc 00 00 00 00 10 00 00 00 00 ff 07 80 f8 ff ff  ................ nt!ExpLicensingDescriptorsCount, nt!CmpStashBufferSize, nt!ExpLicensingView
+0xf80002b590e8 e8 f5 00 00 a0 f8 ff ff e8 45 7a 05 a0 f8 ff ff  .........Ez..... nt!CmpHiveListHead
+0xf80002b590f8 1c 00 00 00 80 f9 ff ff 16 00 00 00 00 00 00 00  ................ nt!NlsAnsiToUnicodeData, nt!SeSystemEnvironmentPrivilege
+</pre></div>
+</div>
+
+<h1 id="ewfacquire" class="anchor">ewfacquire</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.ewf.EWFAcquire-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Copy the physical address space to an EWF file.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.E01 in current directory.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>Rekall supports many different image formats. One of the popular formats is the
+EWF or E01 formats. It is a compressible format for forensic images.</p>
+<p>The <code>ewfacquire</code> plugin will copy the physical address space into an EWF
+file. This can be used to acquire memory (e.g. when Rekall is used in live mode)
+or to convert a memory image from another format to EWF format.</p>
+<p>Note that the EWF format is not an open format. The variant written by Rekall is
+not necessarily interchangeable with other implementations. We usually recommend
+using <code>aff4acquire</code> over <code>ewfacquire</code> because the AFF4 format can contain
+multiple streams and can also keep important metadata.</p>
+<div class="highlight"><pre>[1] win7.elf 23:02:22&gt; ewfacquire destination=&quot;/tmp/test.E01&quot;
+---------------------&gt; ewfacquire(destination=&quot;/tmp/test.E01&quot;)
+ Writing 352Mb
+</pre></div>
+</div>
+
+<h1 id="fetch_pdb" class="anchor">fetch_pdb</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.mspdb.FetchPDB-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Fetch the PDB file for an executable from the Microsoft PDB server.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>guid</p></td><td><p>The GUID of the pdb file. If provided, the pdb filename must.be provided in the &ndash;pdb_filename parameter.</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the executable to get the PDB file for.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>The Microsoft Visual Studio compiler stores debugging information for each
+binary built in a PDB file. Each binary contains a unique GUID which can be used
+to fetch the correct PDB file from the public Microsoft symbol server.</p>
+<p>The <code>fetch_pdb</code> plugin is used to fetch the correct PDB file from the symbol
+server. You will need to provide the name of the PDB file and the GUID - both of
+these are found from the PE headers of the binary.</p>
+<p>Note that this plugin is mainly used by the <code>build_local_profile</code> plugin and by
+the <code>manage_repo</code> plugins, but might also be useful on its own. Usually you need
+to <code>parse_pdb</code> after fetching it so a profile can be generated for Rekall to
+use.</p>
+<p>In the example below we find the GUID and pdb file name of an executable from
+the image, then use the <code>fetch_pdb</code> plugin to fetch it. Note that PDB files are compressed using CAB on the symbol server so we need <code>cabextract</code> installed locally.</p>
+<div class="highlight"><pre>[1] win7.elf 23:08:40&gt; peinfo &quot;termdd&quot;
+          Attribute                                       Value
+------------------------------ ------------------------------------------------------------
+Machine                        IMAGE_FILE_MACHINE_AMD64
+TimeDateStamp                  2009-07-14 00:16:36Z
+Characteristics                IMAGE_FILE_DLL, IMAGE_FILE_EXECUTABLE_IMAGE,
+                               IMAGE_FILE_LARGE_ADDRESS_AWARE
+GUID/Age                       2A530717E88549BB92DBB72C224EC2B11
+PDB                            termdd.pdb
+MajorOperatingSystemVersion    6
+MinorOperatingSystemVersion    1
+MajorImageVersion              6
+
+....
+
+[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
+  extracting termdd.pdb
+
+All done, no errors.
+</pre></div>
+</div>
+
+<h1 id="grep" class="anchor">grep</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.core.Grep-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Search an address space for keywords.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>address_space</p></td><td><p>Name of the address_space to search.</p></td></tr><tr><td><p>context</p></td><td><p>Context to print around the hit. (type: IntParser)</p>
+<ul>
+<li>Default: 20</li>
+</ul></td></tr><tr><td><p>keyword</p></td><td><p>The binary strings to find. (type: ArrayStringParser)</p></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search.</p>
+<ul>
+<li>Default: 18446744073709551616</li>
+</ul></td></tr><tr><td><p>offset</p></td><td><p>Start searching from this offset. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>Sometimes we want to search for some data in the address space. Although we can
+use <code>yarascan</code> to do this, it is typically slower than just running the <code>grep</code>
+plugin. Note that the plugin can scan the entire address space efficiently
+(i.e. it will automatically skip over sparse memory regions).</p>
+<p>One of the more interesting uses of the <code>grep</code> plugin is looking for
+references. For example, suppose we wanted to see who has a reference to a
+particular _EPROCESS structure.</p>
+<p>In the below example, we pick an _EPROCESS from the output of <code>pslist</code> and
+search for pointers to it somewhere in kernel memory (There are many pointers!
+We just picked one for this example.). We then use the <code>analyze_struct</code> plugin
+to discover that the pointer resides in an allocation with the pool tag
+&lsquo;ObHd&rsquo;. We can search the kernel disassembly to realize this is an Object
+Handle. Note how we use grep to search for the little endian representation of
+the _EPROCESS address.</p>
+<div class="highlight"><pre>[1] win7.elf 23:14:38&gt; pslist
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+....
+0xfa8002ad0190 cmd.exe               2644   2616      2       66      1 True   2012-10-01 14:40:20Z     -
+
+[1] win7.elf 23:14:55&gt; grep keyword=&quot;\x90\x01\xad\x02\x80\xfa&quot;
+....
+    Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+0xf8a0013d8ad8 60 40 a9 02 80 fa ff ff 01 00 00 00 00 00 00 00  `@..............
+0xf8a0013d8ae8 90 01 ad 02 80 fa ff ff 01 00 00 00 00 00 00 00  ................
+0xf8a0013d8af8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+...
+[1] win7.elf 23:17:20&gt; analyze_struct 0xf8a0013d8ae8
+
+0xf8a0013d8ae8 is inside pool allocation with tag &#39;ObHd&#39; (0xf8a0013d8a30)  and size 0x100
+    Offset     Content
+-------------- -------
+           0x0 Data:0xfa8002ad0190 Tag:Pro\xe3 @0xfa8002ad0190 (0x530)
+           0x8 Data:0x1
+          0x10 Data:0x0
+          0x18 Data:0x0
+          0x20 Data:0x0
+          0x28 Data:0x0
+          0x30 Data:0xfa80017f9060 Tag:Pro\xe3 @0xfa80017f9060 (0x530)
+          0x38 Data:0x1
+          0x40 Data:0x730061006c
+          0x48 Data:0x744e034d0110
+          0x50 Data:0x490053004c
+          0x58 Data:0xa4801280702
+          0x60 Data:0x981e
+          0x68 Data:0x100000000
+          0x70 Data:0x0
+[1] win7.elf 23:22:25&gt; hex(struct.unpack(&quot;&lt;I&quot;, &#39;ObHd&#39;)[0])
+               Out&lt;24&gt; &#39;0x6448624f&#39;
+[1] win7.elf 23:22:33&gt; dis &quot;nt!ObpInsertHandleCount&quot;
+---------------------&gt; dis(&quot;nt!ObpInsertHandleCount&quot;)
+Address      Rel             Op Codes                     Instruction                Comment
+------- -------------- -------------------- ---------------------------------------- -------
+------ nt!ObpInsertHandleCount ------: 0xf80002976010
+  0xf80002976010            0x0 48895c2408           mov qword ptr [rsp + 8], rbx
+  0xf80002976015            0x5 48896c2410           mov qword ptr [rsp + 0x10], rbp
+....
+
+  0xf80002976089           0x79 41b84f624864         mov r8d, 0x6448624f
+  0xf8000297608f           0x7f e83cd3e4ff           call 0xf800027c33d0                      nt!ExAllocatePoolWithTag
+  0xf80002976094           0x84 4885c0               test rax, rax
+  0xf80002976097           0x87 0f84dacd0400         je 0xf800029c2e77                        nt!ExpProfileCreate+0x9d57
+  0xf8000297609d           0x8d 458bc5               mov r8d, r13d
+</pre></div>
+</div>
+
+<h1 id="imagecopy" class="anchor">imagecopy</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.imagecopy.ImageCopy-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Copies a physical address space out as a raw DD image</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>output-image</p></td><td><p>Filename to write output image.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>Rekall supports many different image formats. Image formats such as AFF4 and EWF
+are very convenient for long term storage and archiving of images. However, some
+other memory analysis tools do not support such a rich selection of image
+formats and might not be able to directly analyze some of these formats.</p>
+<p>Sometimes we might want to verify something with another tool, and the RAW image
+format seems to be most widely supported. The <code>imagecopy</code> plugin copies the
+current physical address space into a RAW file. It pads sparse regions with NULL
+bytes.</p>
+<p>Note that RAW images can not contain multiple streams (like the pagefile), nor
+do they support any metadata (such as registers). Hence the RAW image is vastly
+inferior. We do not recommend actually acquiring the image using the RAW format
+in the first place (use AFF4 or ELF). However, if Rekall is run in live mode,
+the <code>imagecopy</code> plugin will produce a RAW image of live memory.</p>
+<p>In the following example we convert an EWF image to raw so Volatility can read
+it:</p>
+<div class="highlight"><pre>[1] win7.elf.E01 23:36:57&gt; imagecopy &quot;/tmp/foo.raw&quot;
+---------------------&gt; imagecopy(&quot;/tmp/foo.raw&quot;)
+Range 0x0 - 0x2cb00000
+Range 0xe0000000 - 0x1000000
+Range 0xf0400000 - 0x400000
+Range 0xf0800000 - 0x4000
+Range 0xffff0000 - 0x10000
+               Out&lt;27&gt; Plugin: imagecopy
+
+[1] win7.elf.E01 23:38:06&gt; !python /home/scudette/projects/volatility/vol.py --profile Win7SP1x64 -f /tmp/foo.raw pslist
+Volatility Foundation Volatility Framework 2.5
+Offset(V)          Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                          Exit
+------------------ -------------------- ------ ------ ------ -------- ------ ------ ------------------------------ ------------------------------
+0xfffffa80008959e0 System                    4      0     84      511 ------      0 2012-10-01 21:39:51 UTC+0000
+0xfffffa8001994310 smss.exe                272      4      2       29 ------      0 2012-10-01 21:39:51 UTC+0000
+0xfffffa8002259060 csrss.exe               348    340      9      436      0      0 2012-10-01 21:39:57 UTC+0000
+</pre></div>
+</div>
+
+<h1 id="l" class="anchor">l</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.core.Lister-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>A plugin to list objects.</h2>
+</div>
+
+
+
+<p>Sometimes in the interactive console we receive a generator or a list. Use the
+<code>l</code> plugin to quickly print each value in the list.</p>
+<p>In the below example we instantiate the PsActiveProcessHeadHook and walk the
+list of processes (this is one of the <code>pslist</code> methods).</p>
+<div class="highlight"><pre>[1] win7.elf 23:48:12&gt; head = session.profile.get_constant_object(&quot;PsActiveProcessHead&quot;, &quot;_LIST_ENTRY&quot;)
+
+[1] win7.elf 23:48:32&gt; l head.list_of_type(&quot;_EPROCESS&quot;, &quot;ActiveProcessLinks&quot;)
+---------------------&gt; l(head.list_of_type(&quot;_EPROCESS&quot;, &quot;ActiveProcessLinks&quot;))
+[_EPROCESS _EPROCESS] @ 0xFA80008959E0 (pid=4)
+  0x00 Pcb                          [_KPROCESS Pcb] @ 0xFA80008959E0
+  0x160 ProcessLock                  [_EX_PUSH_LOCK ProcessLock] @ 0xFA8000895B40
+  0x168 CreateTime                    [WinFileTime:CreateTime]: 0x506A0DA7 (2012-10-01 21:39:51Z)
+  0x170 ExitTime                      [WinFileTime:ExitTime]: 0x00000000 (-)
+  0x178 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0xFA8000895B58
+  0x180 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x00000004
+  0x188 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0xFA8000895B68
+  ....
+</pre></div>
+</div>
+
+<h1 id="p" class="anchor">p</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.core.Printer-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>A plugin to print an object.</h2>
+</div>
+
+
+
+<p>This plugin is an alias to the print python command. Use it when you want to
+print something to the console.</p>
+</div>
+
+<h1 id="parse_pdb" class="anchor">parse_pdb</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.mspdb.ParsePDB-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Parse the PDB streams.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>concise</p></td><td><p>Specify this to emit less detailed information. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>output_filename</p></td><td><p>The name of the file to store this profile. </p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the PDB file.</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation. Default name is derived from the pdb filename.</p></td></tr><tr><td><p>windows_version</p></td><td><p>The windows version (major.minor.revision) corresponding with this PDB. For example, Windows 7 should be given as 6.1</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>Rekall uses debugging symbols to analyze memory. Each time Microsoft compilers
+generate a binary (executable or DLL) they also emit debugging information in a
+separate PDB file. Rekall needs a profile for each binary of interest (A
+profile is a JSON file containing important debugging information about the
+binary).</p>
+<p>Use the <code>fetch_pdb</code> plugin to fetch the PDB file and the <code>parse_pdb</code> plugin to
+parse it and produce a JSON file for Rekall to use.</p>
+<p>Note that normally this plugin is called by other plugins such as
+<code>build_local_profile</code> or automatically by Rekall. So users do not need to call
+this plugin directly in most cases.</p>
+<div class="highlight"><pre>[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+ Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
+Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
+  extracting termdd.pdb
+
+All done, no errors.
+[1] win7.elf 23:55:07&gt; parse_pdb pdb_filename=&quot;termdd.pdb&quot;, output_filename=&quot;termdd.json&quot;
+               Out&lt;59&gt; Plugin: parse_pdb
+[1] win7.elf 23:55:37&gt; !head termdd.json
+{
+ &quot;$CONSTANTS&quot;: {
+  &quot;ExEventObjectType&quot;: 41408,
+  &quot;Globals&quot;: 46144,
+  &quot;HotPatchBuffer&quot;: 45056,
+  &quot;IcaChannelDispatchTable&quot;: 45856,
+  &quot;IcaChargeForPostCompressionUsage&quot;: 46106,
+  &quot;IcaConnectionDispatchTable&quot;: 45632,
+  &quot;IcaDeviceObject&quot;: 46848,
+  &quot;IcaDisableFlowControl&quot;: 46105,
+</pre></div>
+</div>
+
+<h1 id="sdel" class="anchor">sdel</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.ipython.SessionDelete-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Delete a session.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>session_id</p></td><td><p>The session id to change to</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>See <code>snew</code>.</p>
+</div>
+
+<h1 id="slist" class="anchor">slist</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.ipython.SessionList-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>List the sessions available.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>session_id</p></td><td><p>The session id to change to</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>See <code>snew</code>.</p>
+</div>
+
+<h1 id="smod" class="anchor">smod</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.ipython.SessionMod-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Modifies parameters of the current analysis session.</h2>
+<p>Any session parameters can be set here. For example:</p>
+<p>smod colors=&rdquo;no&rdquo;, paging_limit=10, pager=&rdquo;less&rdquo;</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>filename</p></td><td><p>The name of the image file to analyze.</p></td></tr><tr><td><p>pager</p></td><td><p>The name of a program to page output (e.g. notepad or less).</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>See <code>snew</code>.</p>
+</div>
+
+<h1 id="snew" class="anchor">snew</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.ipython.SessionNew-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Creates a new session by cloning the current one.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>session_id</p></td><td><p>The session id to change to</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>The Rekall interactive console may be used to analyze several images at the same
+time. We do this by switching sessions. Each image has a unique session, but
+since none of the sessions are global, we can switch from one session to the
+next.</p>
+<p>Rekall&rsquo;s session management commands can be used to switch between sessions.</p>
+<p>The example below shows us loading a second session with a new image. We switch
+to the new session and list processes in it. We then switch back and delete the
+new session. Note how the prompt changes as we switch from one session to the
+other.</p>
+<div class="highlight"><pre>[1] win7.elf 23:55:46&gt; snew filename=&quot;/home/scudette/images/win10.aff4&quot;
+Created session [2] /home/scudette/images/win10.aff4 (2)
+               Out&lt;61&gt; Plugin: snew
+[2] /home/scudette/images/win10.aff4 (2) 23:57:03&gt; pslist
+-------------------------------------------------&gt; pslist()
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xe0003486d680 System                   4      0     82        -      - False  2015-06-03 06:56:02Z     -
+0xe00035e54040 smss.exe               260      4      2        -      - False  2015-06-03 06:56:02Z     -
+0xe00035b84080 csrss.exe              332    324      9        -      0 False  2015-06-03 06:56:03Z     -
+0xe0003489b280 wininit.exe            400    324      1        -      0 False  2015-06-03 06:56:03Z     -
+[2] /home/scudette/images/win10.aff4 (2) 23:57:09&gt; sswitch 1
+                                           Out&lt;63&gt; Plugin: sswitch
+[1] win7.elf 23:57:12&gt; pslist
+---------------------&gt; pslist()
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+0xfa80008959e0 System                   4      0     84      511      - False  2012-10-01 21:39:51Z     -
+0xfa80024f85d0 svchost.exe            236    480     19      455      0 False  2012-10-01 14:40:01Z     -
+0xfa8001994310 smss.exe               272      4      2       29      - False  2012-10-01 21:39:51Z     -
+0xfa8002259060 csrss.exe              348    340      9      436      0 False  2012-10-01 21:39:57Z     -
+[2] /home/scudette/images/win10.aff4 (2) 23:57:25&gt; slist
+  [1] win7.elf
+* [2] /home/scudette/images/win10.aff4 (2)
+                                           Out&lt;68&gt; Plugin: slist
+[1] win7.elf 23:57:33&gt; sdel 2
+               Out&lt;70&gt; Plugin: sdel
+[1] win7.elf 00:01:49&gt; slist
+* [1] win7.elf
+               Out&lt;73&gt; Plugin: slist
+</pre></div>
+</div>
+
+<h1 id="sswitch" class="anchor">sswitch</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.tools.ipython.SessionSwitch-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Changes the current session to the session with session_id.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>session_id</p></td><td><p>The session id to change to</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>See <code>snew</code>.</p>
+</div>
+
+<h1 id="version_scan" class="anchor">version_scan</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.modules.VersionScan-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Scan the physical address space for RSDS versions.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>name_regex</p></td><td><p>Filter module names by this regex.</p></td></tr><tr><td><p>scan_filename</p></td><td><p>Optional file to scan. If not specified we scan the physical address space.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>When the Microsoft Compilers create a binary (Executable or DLL) they leave a
+unique GUID in the PE header, so that the corresponding PDB file can be located
+for this binary.</p>
+<p>The GUID is encoded using a known signature and therefore we can scan for all
+GUIDs which might appear in the memory image. This is useful to locate the exact
+version of binaries running in the memory image. Often malware authors forget to
+disable PDB file generation in Visual Studio and the GUID remains in the
+malware. In that case scanning for a known malicious GUID can be a strong
+signature.</p>
+<p>In the below example we scan the memory image for the exact version of the
+windows kernel. Note how hits can be restricted by using a regular expression.</p>
+<div class="highlight"><pre>[1] win7.elf 00:01:51&gt; version_scan name_regex=&quot;krnl&quot;
+  Offset (P)             GUID/Version                         PDB
+-------------- --------------------------------- ------------------------------
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb
+</pre></div>
+</div>
+
+<h1 id="vmscan" class="anchor">vmscan</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.hypervisors.VmScan-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Scan the physical memory attempting to find hypervisors.</h2>
+<p>Once EPT values are found, you can use them to inspect virtual machines
+with any of the rekall modules by using the &ndash;ept parameter and
+specifying the guest virtual machine profile.</p>
+<p>Supports the detection of the following virtualization techonlogies:
+  * Intel VT-X with EPT. Microarchitectures:
+    + Westmere
+    + Nehalem
+    + Sandybridge
+    + Ivy Bridge
+    + Haswell</p>
+<ul>
+<li>Intel VT-X without EPT (unsupported page translation in rekall).<ul>
+<li>Penryn</li>
+</ul>
+</li>
+</ul>
+<p>For the specific processor models that support EPT, please check:
+http://ark.intel.com/products/virtualizationtechnology.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>image_is_guest</p></td><td><p>The image is for a guest VM, not the host. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>no_nested</p></td><td><p>Don&rsquo;t do nested VM detection. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>no_validation</p></td><td><p>[DEBUG SETTING] Disable validation of VMs. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>offset</p></td><td><p>Offset in the physical image to start the scan. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr><tr><td><p>quick</p></td><td><p>Perform quick VM detection. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>show_all</p></td><td><p>Also show VMs that failed validation. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
 
   </div>
 </div>
@@ -353,6 +1202,10 @@ into an operating system. Some plugins are not even applied to an image..</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

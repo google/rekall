@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -66,12 +63,11 @@
 <center>  <map id="class_hierarchy_for_darwinnoti" name="class_hierarchy_for_darwinnoti">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="283,113,405,135"/>
-<area shape="rect" id="node7" href="rekall.plugins.darwin.common.DarwinPlugin-class.html" title="common.DarwinPlugin" alt="" coords="279,166,408,189"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html" title="common.AbstractDarwinCommandPlugin" alt="" coords="40,113,259,135"/>
-<area shape="rect" id="node6" href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html" title="common.DarwinKASLRMixin" alt="" coords="430,113,588,135"/>
-<area shape="rect" id="node8" href="rekall.plugins.darwin.hooks.DarwinNotifiers-class.html" title="DarwinNotifiers" alt="" coords="297,219,391,242"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="163,59,285,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.darwin.common.AbstractDarwinCommand-class.html" title="common.AbstractDarwinCommand" alt="" coords="204,113,393,135"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="310,59,439,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.hooks.DarwinNotifiers-class.html" title="DarwinNotifiers" alt="" coords="251,166,345,189"/>
+<area shape="rect" id="node6" href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html" title="common.DarwinOnlyMixin" alt="" coords="463,59,608,82"/>
 </map>
   <img src="class_hierarchy_for_darwinnoti.gif" alt='' usemap="#class_hierarchy_for_darwinnoti" ismap="ismap" class="graph-without-title" />
 </center>
@@ -138,13 +134,31 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">vm_kernel_slide</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a href="rekall.plugin.KernelASMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dtb</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      A mixin for Darwin plugins that require a valid KASLR slide.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a>)</em></td>
+      A mixin for plugins which require a valid kernel address space.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -293,10 +307,11 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html">rekall.plugins.darwin.common.DarwinKASLRMixin</a>)</em></td>
+        <span class="summary-sig-arg">parser</span>)</span><br />
+      Declare the command line args we need.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinKASLRMixin.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -310,12 +325,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a name="is_active"></a><span class="summary-sig-name">is_active</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
       We are only active if the profile is darwin.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html">rekall.plugins.darwin.common.AbstractDarwinCommandPlugin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html">rekall.plugins.darwin.common.DarwinOnlyMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#AbstractDarwinCommandPlugin.is_active">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinOnlyMixin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -352,15 +367,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -368,15 +383,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -402,6 +417,14 @@ AnalyzeStruct'&gt;,
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -528,9 +551,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -555,7 +575,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:32 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:54 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

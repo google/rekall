@@ -1,14 +1,11 @@
 ---
-layout: plugin
-title: consoles
-abstract: |
-  Extract command history by scanning for _CONSOLE_INFORMATION
-
+abstract: Enumerate command consoles.
+args: {}
+class_name: Consoles
 epydoc: rekall.plugins.windows.malware.cmdhistory.Consoles-class.html
-args:
-  history_buffers: 'Number of history buffere. See HKCU\Console\NumberOfHistoryBuffers. Uses 4 by default.'
-  max_history: 'Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize for default.'
-
+layout: plugin
+module: rekall.plugins.windows.malware.cmdhistory
+title: consoles
 ---
 
 Similar to [cmdscan](CmdScan.html) the consoles plugin finds commands that

@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Windows
  </a>
@@ -172,54 +173,52 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Atoms.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#atoms' class="category-link">
             atoms
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/AtomScan.html' class="category-link">
+          <a href='#atomscan' class="category-link">
             atomscan
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinDesktops.html' class="category-link">
+          <a href='#desktops' class="category-link">
             desktops
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinEventHooks.html' class="category-link">
+          <a href='#eventhooks' class="category-link">
             eventhooks
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Gahti.html' class="category-link">
+          <a href='#gahti' class="category-link">
             gahti
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WinMessageHooks.html' class="category-link">
+          <a href='#messagehooks' class="category-link">
             messagehooks
           </a>
         </li>
         <li class='active'>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/Sessions.html' class="category-link">
+          <a href='#sessions' class="category-link">
             sessions
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/UserHandles.html' class="category-link">
+          <a href='#userhandles' class="category-link">
             userhandles
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Win32_GUI/WindowsStations.html' class="category-link">
+          <a href='#windows_stations' class="category-link">
             windows_stations
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
@@ -249,10 +248,14 @@ ript>
 </nav>
 
 
-<h1>sessions</h1>
+<h1 id="#sessions" class="anchor" >sessions</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.sessions.Sessions-class.html">View Source</a>
+
 
 <div class="abstract">
-<p>List details on _MM_SESSION_SPACE (user logon sessions).</p>
+<h2>List details on _MM_SESSION_SPACE (user logon sessions).</h2>
 <p>Windows uses sessions in order to separate processes. Sessions are used to
 separate the address spaces of windows processes.</p>
 <p>Note that this plugin traverses the ProcessList member of the session object
@@ -260,9 +263,29 @@ to list the processes - yet another list _EPROCESS objects are on.</p>
 </div>
 
 
-
-
-<a href="/epydocs/rekall.plugins.windows.gui.sessions.Sessions-class.html">View Source</a>
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -309,6 +332,10 @@ to list the processes - yet another list _EPROCESS objects are on.</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

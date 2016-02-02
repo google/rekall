@@ -1,14 +1,27 @@
-
 ---
-layout: plugin
-title: bash
-abstract: |
-    Scan the bash process for history.
+abstract: "Scan the bash process for history.\n\n    Based on original algorithm by\
+  \ Andrew Case.\n    "
+args: {method: "Method to list processes (Default uses all methods). (type: ChoiceArray)\n\
+    \n\n* Valid Choices:\n    - InitTask\n\n\n* Default: InitTask", phys_task: 'Physical
+    addresses of task structs. (type: ArrayIntParser)
 
-    Based on original algorithm by Andrew Case.
-    
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
 
+    ', proc_regex: A regex to select a process by name., scan_entire_address_space: 'Scan
+    the entire process address space, not only the heap. (type: Boolean)
+
+
+
+    * Default: False', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
+
+    ', task_head: 'Use this as the first task to follow the list. (type: IntParser)
+
+    '}
+class_name: BashHistory
 epydoc: rekall.plugins.linux.bash.BashHistory-class.html
+layout: plugin
+module: rekall.plugins.linux.bash
+title: bash
 ---
 
 The Bourne Again Shell maintains a history a history of all commands that

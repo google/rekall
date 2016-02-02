@@ -1,26 +1,20 @@
 ---
+abstract: "Print session and window station atom tables.\n\n    From:\n    http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx\n\
+  \n    An atom table is a system-defined table that stores strings and\n    corresponding\
+  \ identifiers. An application places a string in an atom table\n    and receives\
+  \ a 16-bit integer, called an atom, that can be used to access\n    the string.\
+  \ A string that has been placed in an atom table is called an atom\n    name.\n\n\
+  \    The global atom table is available to all applications. When an application\n\
+  \    places a string in the global atom table, the system generates an atom that\n\
+  \    is unique throughout the system. Any application that has the atom can\n  \
+  \  obtain the string it identifies by querying the global atom table.\n\n    (The\
+  \ global atom tables are only global within each session).\n    "
+args: {win32k_profile: Force this profile to be used for Win32k.}
+class_name: Atoms
+epydoc: rekall.plugins.windows.gui.atoms.Atoms-class.html
 layout: plugin
-category: Win32k GUI
+module: rekall.plugins.windows.gui.atoms
 title: atoms
-abstract: |
-  Print session and window station atom tables.
-
-  An atom table is a system-defined table that stores strings and corresponding
-  identifiers [(MSDN)]. An application places a string in an atom table and
-  receives a 16-bit integer, called an atom, that can be used to access the
-  string. A string that has been placed in an atom table is called an atom name.
-
-  The global atom table is available to all applications. When an application
-  places a string in the global atom table, the system generates an atom that is
-  unique throughout the system. Any application that has the atom can obtain the
-  string it identifies by querying the global atom table.
-
-  (The global atom tables are only global within each session).
-
-  [(MSDN)]: http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx
-
-epydoc:
-  rekall.plugins.windows.taskmods.WinPsList-class.html
 ---
 
 Using this plugin you can find registered window messages, rogue injected DLL

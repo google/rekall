@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.common.sigscan.TestSigScanKernel</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.common-module.html">Package&nbsp;common</a> ::
+        <a href="rekall.plugins.common.sigscan-module.html">Module&nbsp;sigscan</a> ::
+        Class&nbsp;TestSigScanKernel
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.common.sigscan.TestSigScanKernel-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class TestSigScanKernel</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.common.sigscan-pysrc.html#TestSigScanKernel">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_testsigsca" name="class_hierarchy_for_testsigsca">
+<area shape="rect" id="node1" href="rekall.plugins.common.sigscan.TestSigScanKernel-class.html" title="TestSigScanKernel" alt="" coords="34,166,147,189"/>
+<area shape="rect" id="node2" href="rekall.testlib.RekallBaseUnitTestCase-class.html" title="testlib.RekallBaseUnitTestCase" alt="" coords="5,59,176,82"/>
+<area shape="rect" id="node3" href="rekall.testlib.SimpleTestCase-class.html" title="testlib.SimpleTestCase" alt="" coords="25,113,155,135"/>
+<area shape="rect" id="node4" href="javascript:void(0);" title="unittest.case.TestCase" alt="" coords="25,6,155,29"/>
+</map>
+  <img src="class_hierarchy_for_testsigsca.gif" alt='' usemap="#class_hierarchy_for_testsigsca" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<p>Runs sigscan against the kernel.</p>
+
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html" class="summary-name">top_level_class</a><br />
+      Base class for all rekall unit tests.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>unittest.case.TestCase</code></b>:
+      <code><a href="exceptions.AssertionError-class.html">failureException</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="BuildBaselineData"></a><span class="summary-sig-name">BuildBaselineData</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">config_options</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.BuildBaselineData">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#LaunchExecutable" class="summary-sig-name">LaunchExecutable</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">config_options</span>)</span><br />
+      Launches the rekall executable with the config specified.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.LaunchExecutable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="MakeUserSession"></a><span class="summary-sig-name">MakeUserSession</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">config_options</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.MakeUserSession">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">method_name</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">__init__</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">baseline</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">current</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">debug</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">temp_directory</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">config_options</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Create an instance of the class that will use the named test method 
+      when executed.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.__unicode__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#assertListEqual" class="summary-sig-name">assertListEqual</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">a</span>,
+        <span class="summary-sig-arg">b</span>,
+        <span class="summary-sig-arg">msg</span>=<span class="summary-sig-default">None</span>)</span><br />
+      A list-specific equality assertion.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.assertListEqual">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#run" class="summary-sig-name">run</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">result</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.run">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="testCase"></a><span class="summary-sig-name">testCase</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.SimpleTestCase-class.html">rekall.testlib.SimpleTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#SimpleTestCase.testCase">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>unittest.case.TestCase</code></b>:
+      <code>__call__</code>,
+      <code>__eq__</code>,
+      <code>__hash__</code>,
+      <code>__ne__</code>,
+      <code>__repr__</code>,
+      <code>__str__</code>,
+      <code>addCleanup</code>,
+      <code>addTypeEqualityFunc</code>,
+      <code>assertAlmostEqual</code>,
+      <code>assertAlmostEquals</code>,
+      <code>assertDictContainsSubset</code>,
+      <code>assertDictEqual</code>,
+      <code>assertEqual</code>,
+      <code>assertEquals</code>,
+      <code>assertFalse</code>,
+      <code>assertGreater</code>,
+      <code>assertGreaterEqual</code>,
+      <code>assertIn</code>,
+      <code>assertIs</code>,
+      <code>assertIsInstance</code>,
+      <code>assertIsNone</code>,
+      <code>assertIsNot</code>,
+      <code>assertIsNotNone</code>,
+      <code>assertItemsEqual</code>,
+      <code>assertLess</code>,
+      <code>assertLessEqual</code>,
+      <code>assertMultiLineEqual</code>,
+      <code>assertNotAlmostEqual</code>,
+      <code>assertNotAlmostEquals</code>,
+      <code>assertNotEqual</code>,
+      <code>assertNotEquals</code>,
+      <code>assertNotIn</code>,
+      <code>assertNotIsInstance</code>,
+      <code>assertNotRegexpMatches</code>,
+      <code>assertRaises</code>,
+      <code>assertRaisesRegexp</code>,
+      <code>assertRegexpMatches</code>,
+      <code>assertSequenceEqual</code>,
+      <code>assertSetEqual</code>,
+      <code>assertTrue</code>,
+      <code>assertTupleEqual</code>,
+      <code>assert_</code>,
+      <code>countTestCases</code>,
+      <code>debug</code>,
+      <code>defaultTestResult</code>,
+      <code>doCleanups</code>,
+      <code>fail</code>,
+      <code>failIf</code>,
+      <code>failIfAlmostEqual</code>,
+      <code>failIfEqual</code>,
+      <code>failUnless</code>,
+      <code>failUnlessAlmostEqual</code>,
+      <code>failUnlessEqual</code>,
+      <code>failUnlessRaises</code>,
+      <code>id</code>,
+      <code>setUp</code>,
+      <code>shortDescription</code>,
+      <code>skipTest</code>,
+      <code>tearDown</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="CommandName"></a><span class="summary-sig-name">CommandName</span>(<span class="summary-sig-arg">cls</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.CommandName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.sigscan.TestSigScanKernel-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.sigscan-pysrc.html#TestSigScanKernel.ImplementationByClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.common.sigscan.TestSigScanKernel-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.sigscan-pysrc.html#TestSigScanKernel.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.SimpleTestCase-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span>
+      <em>(Inherited from <a href="rekall.testlib.SimpleTestCase-class.html">rekall.testlib.SimpleTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#SimpleTestCase.is_active">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#setUpClass" class="summary-sig-name">setUpClass</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Hook method for setting up class fixture before running tests in the 
+      class.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.setUpClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.testlib.RekallBaseUnitTestCase-class.html#tearDownClass" class="summary-sig-name">tearDownClass</a>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Hook method for deconstructing the class fixture after running all 
+      tests in the class.
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.testlib-pysrc.html#RekallBaseUnitTestCase.tearDownClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.common.sigscan.TestSigScanKernel-class.html#PARAMETERS" class="summary-name">PARAMETERS</a> = <code title="{'commandline': 'sigscan %(signature)s --scan_kernel',
+ 'signature': ''}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">commandline</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">sigscan %(signature)s --scan_ker</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PLUGIN"></a><span class="summary-name">PLUGIN</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes" class="summary-name">classes</a> = <code title="{'CellTest': &lt;class 'rekall.ui.text_test.CellTest'&gt;,
+ 'DisabledTest': &lt;class 'rekall.testlib.DisabledTest'&gt;,
+ 'HashChecker': &lt;class 'rekall.testlib.HashChecker'&gt;,
+ 'IOManagerTest': &lt;class 'rekall.io_manager_test.IOManagerTest'&gt;,
+ 'InlineTest': &lt;class 'rekall.testlib.InlineTest'&gt;,
+ 'JsonTest': &lt;class 'rekall.plugins.tools.json_test.JsonTest'&gt;,
+ 'MemoryMapTest': &lt;class 'rekall.plugins.renderers.visual_aides_test.M\
+emoryMapTest'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CellTest</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text_test.CellTest'&gt;<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.testlib.InlineTest'&gt;,
+        &lt;class 'rekall.testlib.SortedComparison'&gt;,
+        &lt;class 'rekall.testlib.DisabledTest'&gt;,
+        &lt;class 'rekall.testlib.HashChecker'&gt;,
+        &lt;class 'rekall.plugins.core.TestInfo'&gt;,
+        &lt;class 'rekall.plugins.tools.aff4acquire.TestAFF4Acquire'&gt;,
+        &lt;class 'rekall.plugins.tools.disassembler.TestDisassemble'&gt;,
+        &lt;class 'rekall.plugins.tools.ewf.TestEWFAcquire'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.testlib.InlineTest'&gt;<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="disabled"></a><span class="summary-name">disabled</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'RekallBaseUnitTestCase'"><code class="variable-quote">'</code><code class="variable-string">RekallBaseUnitTestCase</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="temp_directory"></a><span class="summary-name">temp_directory</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>unittest.case.TestCase</code></b>:
+      <code>longMessage</code>,
+      <code>maxDiff</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="ImplementationByClass"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.common.sigscan-pysrc.html#TestSigScanKernel.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#ImplementationByClass">testlib.RekallBaseUnitTestCase.ImplementationByClass</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ImplementationByName"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.common.sigscan-pysrc.html#TestSigScanKernel.ImplementationByName">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#ImplementationByName">testlib.RekallBaseUnitTestCase.ImplementationByName</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="PARAMETERS"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">PARAMETERS</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">commandline</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">sigscan %(signature)s --scan_kernel</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">signature</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-group">}</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:53 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -73,6 +70,7 @@
 <area shape="rect" id="node5" href="rekall.plugins.linux.common.AbstractLinuxCommandPlugin-class.html" title="common.AbstractLinuxCommandPlugin" alt="" coords="45,113,253,135"/>
 <area shape="rect" id="node6" href="rekall.plugins.linux.common.LinProcessFilter-class.html" title="common.LinProcessFilter" alt="" coords="173,219,315,242"/>
 <area shape="rect" id="node8" href="rekall.plugins.linux.yarascan.LinYaraScan-class.html" title="LinYaraScan" alt="" coords="148,6,229,29"/>
+<area shape="rect" id="node9" href="rekall.plugins.yarascanner.YaraScanMixin-class.html" title="yarascanner.YaraScanMixin" alt="" coords="255,6,408,29"/>
 </map>
   <img src="class_hierarchy_for_linyarasca.gif" alt='' usemap="#class_hierarchy_for_linyarasca" ismap="ismap" class="graph-without-title" />
 </center>
@@ -121,15 +119,18 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.yarascan.LinYaraScan-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.yarascanner.YaraScanMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">string</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">scan_physical</span>=<span class="summary-sig-default">False</span>,
         <span class="summary-sig-arg">yara_file</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">yara_expression</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">binary_string</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">hits</span>=<span class="summary-sig-default">10</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Scan using yara signatures.</td>
+      Scan using yara signatures.
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -143,81 +144,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="generate_hits"></a><span class="summary-sig-name">generate_hits</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">address_space</span>)</span></td>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.generate_hits">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="render_scan_physical"></a><span class="summary-sig-name">render_scan_physical</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      This method scans the process memory using the VAD.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.render_scan_physical">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="render_kernel_scan"></a><span class="summary-sig-name">render_kernel_scan</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.render_kernel_scan">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="render_task_scan"></a><span class="summary-sig-name">render_task_scan</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>,
-        <span class="summary-sig-arg">task</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.render_task_scan">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.yarascan.LinYaraScan-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Render output.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -267,11 +198,48 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="compile_rule"></a><span class="summary-sig-name">compile_rule</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">rule</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.compile_rule">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="filter_processes"></a><span class="summary-sig-name">filter_processes</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Filters task list using phys_task and pids lists.
       <em>(Inherited from <a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.linux.common-pysrc.html#LinProcessFilter.filter_processes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="generate_hits"></a><span class="summary-sig-name">generate_hits</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address_space</span>,
+        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">None</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.generate_hits">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -357,6 +325,82 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="render"></a><span class="summary-sig-name">render</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Render output.
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_kernel_scan"></a><span class="summary-sig-name">render_kernel_scan</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render_kernel_scan">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_scan_physical"></a><span class="summary-sig-name">render_scan_physical</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      This method scans the physical memory.
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render_scan_physical">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render_task_scan"></a><span class="summary-sig-name">render_task_scan</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>,
+        <span class="summary-sig-arg">task</span>)</span><br />
+      Scan a task's address space.
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render_task_scan">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.linux.common.LinProcessFilter-class.html#virtual_process_from_physical_offset" class="summary-sig-name">virtual_process_from_physical_offset</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">physical_offset</span>)</span><br />
       Tries to return an task in virtual space from a physical offset.
@@ -395,24 +439,6 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Class Methods</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.linux.yarascan.LinYaraScan-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args we need.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.args">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -461,6 +487,24 @@
       <em>(Inherited from <a href="rekall.plugins.linux.common.LinProcessFilter-class.html">rekall.plugins.linux.common.LinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.linux.common-pysrc.html#LinProcessFilter.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -524,15 +568,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -540,15 +584,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -573,7 +617,23 @@ AnalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="name"></a><span class="summary-name">name</span> = <code title="&quot;yarascan&quot;">&quot;yarascan&quot;</code>
+      <em>(Inherited from <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html">rekall.plugins.yarascanner.YaraScanMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -586,14 +646,6 @@ AnalyzeStruct'&gt;,
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#name" class="summary-name">name</a>
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
-    </td>
-  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -602,109 +654,10 @@ AnalyzeStruct'&gt;,
     </td>
   </tr>
 </table>
-<!-- ==================== METHOD DETAILS ==================== -->
-<a name="section-MethodDetails"></a>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Method Details</span></td>
-</tr>
-</table>
-<a name="args"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">args</span>(<span class="sig-arg">cls</span>,
-        <span class="sig-arg">parser</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.args">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Declare the command line args we need.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#args">plugin.Command.args</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="__init__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">string</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">scan_physical</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">yara_file</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">yara_expression</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
-    <br /><em class="fname">(Constructor)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.__init__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Scan using yara signatures.
-
-Args:
-  string: A verbatim string to search for.
-    we scan their entire address spaces.
-  scan_physical: If true we scan the physical address space.
-  yara_file: The yara file to read.
-  yara_expression: If provided we scan for this yarra expression.
-
-</pre>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__init__
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="render"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.linux.yarascan-pysrc.html#LinYaraScan.render">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Render output.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -729,7 +682,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:38 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:01 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

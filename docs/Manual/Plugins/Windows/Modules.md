@@ -1,14 +1,11 @@
 ---
-layout: plugin
-title: modules
-abstract: |
-  Print list of loaded kernel modules.
-
+abstract: Print list of loaded kernel modules.
+args: {name_regex: Filter module names by this regex.}
+class_name: Modules
 epydoc: rekall.plugins.windows.modules.Modules-class.html
-args:
-  name_regex: 'Filter module names by this regex.'
-  address_space: 'The address space to use.'
-
+layout: plugin
+module: rekall.plugins.windows.modules
+title: modules
 ---
 
 To view the list of kernel drivers loaded on the system, use the modules

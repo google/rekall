@@ -1,13 +1,10 @@
 ---
-layout: plugin
-title: dumpcompressedmemory
-abstract: |
-  Dumps all compressed pages.
-
+abstract: Dumps all compressed pages.
+args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directory)'}
+class_name: DarwinDumpCompressedPages
 epydoc: rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html
-args:
-  vm_kernel_slide: 'OS X 10.8 and later: kernel ASLR slide.'
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.darwin.compressor
+title: dumpcompressedmemory
 ---
 

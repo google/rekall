@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -160,6 +157,24 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       repr(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
@@ -252,103 +267,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="list_from_PsActiveProcessHead"></a><span class="summary-sig-name">list_from_PsActiveProcessHead</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_PsActiveProcessHead">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="list_from_csrss_handles"></a><span class="summary-sig-name">list_from_csrss_handles</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Enumerate processes using the csrss.exe handle table
-      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_csrss_handles">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="list_from_eprocess"></a><span class="summary-sig-name">list_from_eprocess</span>(<span class="summary-sig-arg">self</span>)</span>
       <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_eprocess">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="list_from_handle_tables"></a><span class="summary-sig-name">list_from_handle_tables</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span>
-      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_handle_tables">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="list_from_pspcid"></a><span class="summary-sig-name">list_from_pspcid</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Enumerate processes by walking the PspCidTable
-      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_pspcid">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="list_from_sessions"></a><span class="summary-sig-name">list_from_sessions</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">seen</span>=<span class="summary-sig-default">None</span>)</span><br />
-      List processes using the SessionProcessLinks.
-      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_sessions">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -510,12 +432,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.windows.common.WinProcessFilter-class.html#METHODS" class="summary-name">METHODS</a> = <code title="OrderedDict([('PsActiveProcessHead', &lt;function list_from_PsActiveProce\
-ssHead at 0x2b8d0cd3ecf8&gt;), ('CSRSS', &lt;function list_from_csrss_handle\
-s at 0x2b8d0cd3ede8&gt;), ('PspCidTable', &lt;function list_from_pspcid at 0\
-x2b8d0cd3eed8&gt;), ('Sessions', &lt;function list_from_sessions at 0x2b8d0c\
-d3ef50&gt;), ('Handles', &lt;function list_from_handle_tables at 0x2b8d0cd3e\
-e60&gt;)])">OrderedDict([('PsActiveProcessHead', &lt;function list_<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugins.windows.common.WinProcessFilter-class.html#METHODS" class="summary-name">METHODS</a> = <code title="['PsActiveProcessHead', 'CSRSS', 'PspCidTable', 'Sessions', 'Handles']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">PsActiveProcessHead</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">CSRSS</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">PspCidTable</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">Ses</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em>
     </td>
   </tr>
@@ -539,15 +456,15 @@ e60&gt;)])">OrderedDict([('PsActiveProcessHead', &lt;function list_<code class="
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -555,15 +472,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -589,6 +506,14 @@ AnalyzeStruct'&gt;,
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -707,9 +632,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -734,7 +656,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:50 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:14 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

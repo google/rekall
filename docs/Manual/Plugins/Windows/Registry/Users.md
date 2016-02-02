@@ -1,19 +1,15 @@
 ---
-layout: plugin
-title: users
-abstract: |
-  Enumerate all users of this system.
-  
-  Ref:
-  samparse.pl from RegRipper.
-  
-  copyright 2012 Quantum Analytics Research, LLC
-  Author: H. Carvey, keydet89@yahoo.com
+abstract: "Enumerate all users of this system.\n\n    Ref:\n    samparse.pl from RegRipper.\n\
+  \n    # copyright 2012 Quantum Analytics Research, LLC\n    # Author: H. Carvey,\
+  \ keydet89@yahoo.com\n    "
+args: {hive-offsets: 'A list of hive offsets as found by hivelist. If not provided
+    we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)
 
+    ', hive_regex: A regex to filter hive names.If not provided we use all hives.}
+class_name: Users
 epydoc: rekall.plugins.windows.registry.printkey.Users-class.html
-args:
-  hive_offsets: 'A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.'
-  hive_regex: 'A regex to filter hive names.If not provided we use all hives.'
-
+layout: plugin
+module: rekall.plugins.windows.registry.printkey
+title: users
 ---
 

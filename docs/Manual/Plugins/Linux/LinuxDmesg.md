@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: dmesg
-abstract: |
-    Gathers dmesg buffer.
-
+abstract: Gathers dmesg buffer.
+args: {}
+class_name: LinuxDmesg
 epydoc: rekall.plugins.linux.dmesg.LinuxDmesg-class.html
+layout: plugin
+module: rekall.plugins.linux.dmesg
+title: dmesg
 ---
 
 ### Sample output

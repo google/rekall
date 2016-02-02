@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: arp
-abstract: |
-    print the ARP table.
-
+abstract: print the ARP table.
+args: {}
+class_name: Arp
 epydoc: rekall.plugins.linux.arp.Arp-class.html
+layout: plugin
+module: rekall.plugins.linux.arp
+title: arp
 ---
 
 `arp` returns the list of IPv4 network neighbour entries in the kernel cache.

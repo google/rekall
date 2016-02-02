@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -169,10 +166,44 @@ There are a number of ways to find the DTB:
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.WinFindDTB-class.html#dtb_hits" class="summary-sig-name">dtb_hits</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Yields hits for the DTB offset.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.WinFindDTB-class.html#address_space_hits" class="summary-sig-name">address_space_hits</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Finds DTBs and yields virtual address spaces that expose kernel.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.dtb_hits">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.address_space_hits">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="dtb_eprocess_hits"></a><span class="summary-sig-name">dtb_eprocess_hits</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.dtb_eprocess_hits">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="TestEProcess"></a><span class="summary-sig-name">TestEProcess</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">address_space</span>,
+        <span class="summary-sig-arg">eprocess</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.TestEProcess">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -187,7 +218,7 @@ There are a number of ways to find the DTB:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.common.WinFindDTB-class.html#VerifyHit" class="summary-sig-name">VerifyHit</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">hit</span>)</span><br />
+        <span class="summary-sig-arg">dtb</span>)</span><br />
       Check the eprocess for sanity.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.VerifyHit">source&nbsp;code</a></span>
@@ -258,6 +289,24 @@ There are a number of ways to find the DTB:
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
       repr(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
@@ -294,11 +343,11 @@ There are a number of ways to find the DTB:
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.core.FindDTB-class.html#address_space_hits" class="summary-sig-name">address_space_hits</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Finds DTBs and yields virtual address spaces that expose kernel.
+          <td><span class="summary-sig"><a name="dtb_hits"></a><span class="summary-sig-name">dtb_hits</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Yields hits for the DTB offset.
       <em>(Inherited from <a href="rekall.plugins.core.FindDTB-class.html">rekall.plugins.core.FindDTB</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#FindDTB.address_space_hits">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.core-pysrc.html#FindDTB.dtb_hits">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -470,15 +519,15 @@ There are a number of ways to find the DTB:
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BaseSessionCommand': &lt;class 'rekall.plugins.tools.ipython.BaseSessio\
-nCommand'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -486,15 +535,15 @@ nCommand'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
- 'address_resolver': &lt;class 'rekall.plugins.linux.address_resolver.Lin\
-uxAddressResolver'&gt;,
- 'analyze': &lt;class 'rekall.plugins.common.entities.EntityAnalyze'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.ipython.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -520,6 +569,14 @@ AnalyzeStruct'&gt;,
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -620,25 +677,31 @@ Args:
   </dl>
 </td></tr></table>
 </div>
-<a name="dtb_hits"></a>
+<a name="address_space_hits"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">dtb_hits</span>(<span class="sig-arg">self</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">address_space_hits</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.dtb_hits">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.address_space_hits">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Yields hits for the DTB offset.</p>
+  <pre class="literalblock">
+Finds DTBs and yields virtual address spaces that expose kernel.
+
+Yields:
+  BaseAddressSpace-derived instances, validated using the VerifyHit()
+  method.
+
+</pre>
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.plugins.core.FindDTB-class.html#dtb_hits">core.FindDTB.dtb_hits</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
+        <a href="rekall.plugins.core.FindDTB-class.html#address_space_hits">core.FindDTB.address_space_hits</a>
     </dt>
   </dl>
 </td></tr></table>
@@ -651,7 +714,7 @@ Args:
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">VerifyHit</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">hit</span>)</span>
+        <span class="sig-arg">dtb</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinFindDTB.VerifyHit">source&nbsp;code</a></span>&nbsp;
@@ -777,9 +840,6 @@ Args:
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -804,7 +864,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:48 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:12 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -1,18 +1,17 @@
 ---
-layout: plugin
-title: psscan
-abstract: |
-  Scan Physical memory for _EPROCESS pool allocations.
+abstract: "Scan Physical memory for _EPROCESS pool allocations.\n\n    Status flags:\n\
+  \      E: A known _EPROCESS address from pslist.\n      P: A known pid from pslist.\n\
+  \    "
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
-  Status flags:
-    E: A known _EPROCESS address from pslist.
-    P: A known pid from pslist.
 
+
+    * Default: False'}
+class_name: PSScan
 epydoc: rekall.plugins.windows.filescan.PSScan-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.filescan
+title: psscan
 ---
 
 Pool scanning is a technique for discovering kernel data structures based on

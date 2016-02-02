@@ -1,12 +1,10 @@
 ---
-layout: plugin
-title: win32k_autodetect
-abstract: |
-  Automatically detect win32k struct layout.
-
+abstract: Automatically detect win32k struct layout.
+args: {}
+class_name: Win32kAutodetect
 epydoc: rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html
-args:
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.windows.gui.autodetect
+title: win32k_autodetect
 ---
 

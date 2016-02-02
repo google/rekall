@@ -1,14 +1,15 @@
 ---
-layout: plugin
-title: driverscan
-abstract: |
-  Scan for driver objects _DRIVER_OBJECT
+abstract: 'Scan for driver objects _DRIVER_OBJECT '
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: DriverScan
 epydoc: rekall.plugins.windows.filescan.DriverScan-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.filescan
+title: driverscan
 ---
 
 To find **_DRIVER_OBJECT**s in physical memory using pool tag scanning, use this

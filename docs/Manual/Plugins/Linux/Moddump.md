@@ -1,15 +1,11 @@
 ---
-layout: plugin
-title: moddump
-abstract: |
-  Dumps loaded kernel modules.
-
+abstract: Dumps loaded kernel modules.
+args: {dump_dir: Dump directory., regexp: Regexp on the module name.}
+class_name: Moddump
 epydoc: rekall.plugins.linux.lsmod.Moddump-class.html
-args:
-  dump_dir: 'Dump directory.'
-  regexp: 'Regexp on the module name.'
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.linux.lsmod
+title: moddump
 ---
 
 The list of loaded modules is obtained by running the `lsmod` plugin.

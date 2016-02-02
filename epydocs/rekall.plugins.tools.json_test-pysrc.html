@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -83,158 +80,231 @@
 <a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"> </tt>
 <a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">"""Tests for json encoding/decoding."""</tt> </tt>
 <a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">json</tt> </tt>
-<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Variable rekall.session.Session.logging=rekall.session.Session-class.html#logging"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-0', 'logging', 'link-0');">logging</a></tt> </tt>
 <a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"> </tt>
-<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module rekall.testlib=rekall.testlib-module.html"><a title="rekall.testlib" class="py-name" href="#" onclick="return doclink('link-1', 'testlib', 'link-1');">testlib</a></tt> </tt>
-<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-2', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.ui=rekall.ui-module.html"><a title="rekall.ui" class="py-name" href="#" onclick="return doclink('link-3', 'ui', 'link-3');">ui</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.ui.json_renderer=rekall.ui.json_renderer-module.html"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-4', 'json_renderer', 'link-4');">json_renderer</a></tt> </tt>
-<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-1', 'rekall', 'link-1');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Module rekall.testlib=rekall.testlib-module.html"><a title="rekall.testlib" class="py-name" href="#" onclick="return doclink('link-2', 'testlib', 'link-2');">testlib</a></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-3" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-3', 'rekall', 'link-1');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-4" class="py-name" targets="Package rekall.ui=rekall.ui-module.html"><a title="rekall.ui" class="py-name" href="#" onclick="return doclink('link-4', 'ui', 'link-4');">ui</a></tt> <tt class="py-keyword">import</tt> <tt id="link-5" class="py-name" targets="Module rekall.ui.json_renderer=rekall.ui.json_renderer-module.html"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-5', 'json_renderer', 'link-5');">json_renderer</a></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-6" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-6', 'rekall', 'link-1');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-7', 'plugins', 'link-7');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Package rekall.plugins.renderers=rekall.plugins.renderers-module.html,Variable rekall.plugins.renderers.base_objects.StructTextRenderer.renderers=rekall.plugins.renderers.base_objects.StructTextRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.DataExportTimestampObjectRenderer.renderers=rekall.plugins.renderers.data_export.DataExportTimestampObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers=rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers=rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers=rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers=rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers=rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer-class.html#renderers,Variable rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers=rekall.plugins.renderers.windows.UNICODE_STRING_Text-class.html#renderers,Variable rekall.plugins.renderers.xls.XLSObjectRenderer.renderers=rekall.plugins.renderers.xls.XLSObjectRenderer-class.html#renderers,Variable rekall.ui.json_renderer.JsonObjectRenderer.renderers=rekall.ui.json_renderer.JsonObjectRenderer-class.html#renderers,Variable rekall.ui.renderer.ObjectRenderer.renderers=rekall.ui.renderer.ObjectRenderer-class.html#renderers,Variable rekall.ui.text.TextObjectRenderer.renderers=rekall.ui.text.TextObjectRenderer-class.html#renderers"><a title="rekall.plugins.renderers
+rekall.plugins.renderers.base_objects.StructTextRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportObjectRenderer.renderers
+rekall.plugins.renderers.data_export.DataExportTimestampObjectRenderer.renderers
+rekall.plugins.renderers.data_export.NativeDataExportObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.renderers
+rekall.plugins.renderers.linux.kuid_t_TextObjectRenderer.renderers
+rekall.plugins.renderers.virtualization.VirtualizationNode_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_TextObjectRenderer.renderers
+rekall.plugins.renderers.windows.EPROCESS_WideTextObjectRenderer.renderers
+rekall.plugins.renderers.windows.MMVAD_FLAGS_TextRenderer.renderers
+rekall.plugins.renderers.windows.UNICODE_STRING_Text.renderers
+rekall.plugins.renderers.xls.XLSObjectRenderer.renderers
+rekall.ui.json_renderer.JsonObjectRenderer.renderers
+rekall.ui.renderer.ObjectRenderer.renderers
+rekall.ui.text.TextObjectRenderer.renderers" class="py-name" href="#" onclick="return doclink('link-8', 'renderers', 'link-8');">renderers</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name" targets="Module rekall.plugins.renderers.data_export=rekall.plugins.renderers.data_export-module.html"><a title="rekall.plugins.renderers.data_export" class="py-name" href="#" onclick="return doclink('link-9', 'data_export', 'link-9');">data_export</a></tt> </tt>
 <a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest"></a><div id="JsonTest-def"><a name="L29"></a><tt class="py-lineno"> 29</tt> <a class="py-toggle" href="#" id="JsonTest-toggle" onclick="return toggle('JsonTest');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html">JsonTest</a><tt class="py-op">(</tt><tt class="py-base-class">testlib</tt><tt class="py-op">.</tt><tt class="py-base-class">RekallBaseUnitTestCase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="JsonTest-expanded"><a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">    <tt class="py-docstring">"""Test the Json encode/decoder."""</tt> </tt>
-<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt id="link-5" class="py-name" targets="Variable rekall.plugins.tools.json_test.JsonTest.PLUGIN=rekall.plugins.tools.json_test.JsonTest-class.html#PLUGIN,Variable rekall.plugins.tools.json_tools.TestJSONParser.PLUGIN=rekall.plugins.tools.json_tools.TestJSONParser-class.html#PLUGIN,Variable rekall.plugins.windows.address_resolver.TestWindowsAddressResolver.PLUGIN=rekall.plugins.windows.address_resolver.TestWindowsAddressResolver-class.html#PLUGIN,Variable rekall.plugins.windows.malware.apihooks.TestEATHooks.PLUGIN=rekall.plugins.windows.malware.apihooks.TestEATHooks-class.html#PLUGIN,Variable rekall.plugins.windows.malware.apihooks.TestIATHooks.PLUGIN=rekall.plugins.windows.malware.apihooks.TestIATHooks-class.html#PLUGIN,Variable rekall.plugins.windows.malware.apihooks.TestInlineHooks.PLUGIN=rekall.plugins.windows.malware.apihooks.TestInlineHooks-class.html#PLUGIN,Variable rekall.testlib.RekallBaseUnitTestCase.PLUGIN=rekall.testlib.RekallBaseUnitTestCase-class.html#PLUGIN"><a title="rekall.plugins.tools.json_test.JsonTest.PLUGIN
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest"></a><div id="JsonTest-def"><a name="L30"></a><tt class="py-lineno"> 30</tt> <a class="py-toggle" href="#" id="JsonTest-toggle" onclick="return toggle('JsonTest');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html">JsonTest</a><tt class="py-op">(</tt><tt class="py-base-class">testlib</tt><tt class="py-op">.</tt><tt class="py-base-class">RekallBaseUnitTestCase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="JsonTest-expanded"><a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">    <tt class="py-docstring">"""Test the Json encode/decoder."""</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">    <tt id="link-10" class="py-name" targets="Variable rekall.plugins.common.search.TestCollect.PLUGIN=rekall.plugins.common.search.TestCollect-class.html#PLUGIN,Variable rekall.plugins.common.search.TestExplain.PLUGIN=rekall.plugins.common.search.TestExplain-class.html#PLUGIN,Variable rekall.plugins.common.search.TestSearch.PLUGIN=rekall.plugins.common.search.TestSearch-class.html#PLUGIN,Variable rekall.plugins.common.search.TestWhichPlugin.PLUGIN=rekall.plugins.common.search.TestWhichPlugin-class.html#PLUGIN,Variable rekall.plugins.tools.json_test.JsonTest.PLUGIN=rekall.plugins.tools.json_test.JsonTest-class.html#PLUGIN,Variable rekall.plugins.tools.json_tools.TestJSONParser.PLUGIN=rekall.plugins.tools.json_tools.TestJSONParser-class.html#PLUGIN,Variable rekall.plugins.windows.address_resolver.TestWindowsAddressResolver.PLUGIN=rekall.plugins.windows.address_resolver.TestWindowsAddressResolver-class.html#PLUGIN,Variable rekall.plugins.windows.malware.apihooks.TestEATHooks.PLUGIN=rekall.plugins.windows.malware.apihooks.TestEATHooks-class.html#PLUGIN,Variable rekall.plugins.windows.malware.apihooks.TestIATHooks.PLUGIN=rekall.plugins.windows.malware.apihooks.TestIATHooks-class.html#PLUGIN,Variable rekall.plugins.windows.malware.apihooks.TestInlineHooks.PLUGIN=rekall.plugins.windows.malware.apihooks.TestInlineHooks-class.html#PLUGIN,Variable rekall.testlib.RekallBaseUnitTestCase.PLUGIN=rekall.testlib.RekallBaseUnitTestCase-class.html#PLUGIN"><a title="rekall.plugins.common.search.TestCollect.PLUGIN
+rekall.plugins.common.search.TestExplain.PLUGIN
+rekall.plugins.common.search.TestSearch.PLUGIN
+rekall.plugins.common.search.TestWhichPlugin.PLUGIN
+rekall.plugins.tools.json_test.JsonTest.PLUGIN
 rekall.plugins.tools.json_tools.TestJSONParser.PLUGIN
 rekall.plugins.windows.address_resolver.TestWindowsAddressResolver.PLUGIN
 rekall.plugins.windows.malware.apihooks.TestEATHooks.PLUGIN
 rekall.plugins.windows.malware.apihooks.TestIATHooks.PLUGIN
 rekall.plugins.windows.malware.apihooks.TestInlineHooks.PLUGIN
-rekall.testlib.RekallBaseUnitTestCase.PLUGIN" class="py-name" href="#" onclick="return doclink('link-5', 'PLUGIN', 'link-5');">PLUGIN</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"json_render"</tt> </tt>
-<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest.setUp"></a><div id="JsonTest.setUp-def"><a name="L33"></a><tt class="py-lineno"> 33</tt> <a class="py-toggle" href="#" id="JsonTest.setUp-toggle" onclick="return toggle('JsonTest.setUp');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#setUp">setUp</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest.setUp-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.setUp-expanded"><a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-6', 'session', 'link-6');">session</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Method rekall.testlib.RekallBaseUnitTestCase.MakeUserSession()=rekall.testlib.RekallBaseUnitTestCase-class.html#MakeUserSession"><a title="rekall.testlib.RekallBaseUnitTestCase.MakeUserSession" class="py-name" href="#" onclick="return doclink('link-7', 'MakeUserSession', 'link-7');">MakeUserSession</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
-<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-8" class="py-name" targets="Module rekall.ui.renderer=rekall.ui.renderer-module.html"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-8', 'renderer', 'link-8');">renderer</a></tt> <tt class="py-op">=</tt> <tt id="link-9" class="py-name"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-9', 'json_renderer', 'link-4');">json_renderer</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Class rekall.ui.json_renderer.JsonRenderer=rekall.ui.json_renderer.JsonRenderer-class.html"><a title="rekall.ui.json_renderer.JsonRenderer" class="py-name" href="#" onclick="return doclink('link-10', 'JsonRenderer', 'link-10');">JsonRenderer</a></tt><tt class="py-op">(</tt><tt id="link-11" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-11', 'session', 'link-6');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-12', 'session', 'link-6');">session</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-13', 'renderer', 'link-8');">renderer</a></tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt> </tt>
-<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-14', 'renderer', 'link-8');">renderer</a></tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt> </tt>
-</div><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest.testObjectRenderer"></a><div id="JsonTest.testObjectRenderer-def"><a name="L39"></a><tt class="py-lineno"> 39</tt> <a class="py-toggle" href="#" id="JsonTest.testObjectRenderer-toggle" onclick="return toggle('JsonTest.testObjectRenderer');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testObjectRenderer">testObjectRenderer</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest.testObjectRenderer-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testObjectRenderer-expanded"><a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">        <tt class="py-name">cases</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> </tt>
-<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'\xff\xff\x00\x00'</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'mro'</tt><tt class="py-op">:</tt> <tt class="py-string">u'str:basestring:object'</tt><tt class="py-op">,</tt> </tt>
-<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                                  <tt class="py-string">'b64'</tt><tt class="py-op">:</tt> <tt class="py-string">u'//8AAA=='</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
-<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">"hello"</tt><tt class="py-op">,</tt> <tt class="py-string">u'hello'</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>  <tt class="py-comment"># A string is converted into unicode if</tt> </tt>
-<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">                                  <tt class="py-comment"># possible.</tt> </tt>
-<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"> </tt>
-<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>     <tt class="py-comment"># Ints are already JSON serializable.</tt> </tt>
-<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">foo</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'foo'</tt><tt class="py-op">:</tt> <tt class="py-number">2</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt id="link-15" class="py-name" targets="Variable rekall.entities.query.expression.Membership.set=rekall.entities.query.expression.Membership-class.html#set"><a title="rekall.entities.query.expression.Membership.set" class="py-name" href="#" onclick="return doclink('link-15', 'set', 'link-15');">set</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'mro'</tt><tt class="py-op">:</tt> <tt class="py-string">u'set:object'</tt><tt class="py-op">,</tt> <tt class="py-string">'data'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
-<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">"\xff\xff\x00\x00"</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'mro'</tt><tt class="py-op">:</tt> <tt class="py-string">u'str:basestring:object'</tt><tt class="py-op">,</tt> </tt>
-<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">                                              <tt class="py-string">'b64'</tt><tt class="py-op">:</tt> <tt class="py-string">u'//8AAA=='</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
-<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">            <tt class="py-op">]</tt> </tt>
-<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"> </tt>
-<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">case</tt> <tt class="py-keyword">in</tt> <tt class="py-name">cases</tt><tt class="py-op">:</tt> </tt>
-<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">            <tt class="py-name">encoded</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.ui.json_renderer.JsonEncoder.Encode()=rekall.ui.json_renderer.JsonEncoder-class.html#Encode"><a title="rekall.ui.json_renderer.JsonEncoder.Encode" class="py-name" href="#" onclick="return doclink('link-16', 'Encode', 'link-16');">Encode</a></tt><tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
-<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">,</tt> <tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
-</div><a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest.testProperSerialization"></a><div id="JsonTest.testProperSerialization-def"><a name="L61"></a><tt class="py-lineno"> 61</tt> <a class="py-toggle" href="#" id="JsonTest.testProperSerialization-toggle" onclick="return toggle('JsonTest.testProperSerialization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testProperSerialization">testProperSerialization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest.testProperSerialization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testProperSerialization-expanded"><a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">        <tt class="py-docstring">"""Test that serializing simple python objects with json works.</tt> </tt>
-<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring">        NOTE: Json is not intrinsically a fully functional serialization format</tt> </tt>
-<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">        - it is unable to serialize many common python primitives (e.g. strings,</tt> </tt>
-<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        dicts with numeric keys etc). This tests that our wrapping around the</tt> </tt>
-<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring">        json format allows the correct serialization of python primitives.</tt> </tt>
-<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
-<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">case</tt> <tt class="py-keyword">in</tt> <tt class="py-op">[</tt> </tt>
-<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
-<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">"hello"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
-<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-string">"1"</tt><tt class="py-op">,</tt> <tt class="py-string">"2"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
-<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-string">"hello"</tt><tt class="py-op">,</tt> <tt class="py-string">u'Gr\xfcetzi'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
-<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                <tt class="py-string">"hello"</tt><tt class="py-op">,</tt> </tt>
-<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                <tt class="py-string">u'Gr\xfcetzi'</tt><tt class="py-op">,</tt> </tt>
-<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">                <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-string">"hello"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
-<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">b</tt><tt class="py-op">=</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-string">"hello"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># Nested dict.</tt> </tt>
-<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">            <tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
-<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Method rekall.entities.manager.IngestionPipeline.flush()=rekall.entities.manager.IngestionPipeline-class.html#flush,Method rekall.plugins.renderers.xls.XLSRenderer.flush()=rekall.plugins.renderers.xls.XLSRenderer-class.html#flush,Method rekall.ui.json_renderer.JsonEncoder.flush()=rekall.ui.json_renderer.JsonEncoder-class.html#flush,Method rekall.ui.json_renderer.JsonRenderer.flush()=rekall.ui.json_renderer.JsonRenderer-class.html#flush,Method rekall.ui.renderer.BaseRenderer.flush()=rekall.ui.renderer.BaseRenderer-class.html#flush,Method rekall.ui.renderer.BaseTable.flush()=rekall.ui.renderer.BaseTable-class.html#flush,Method rekall.ui.text.Pager.flush()=rekall.ui.text.Pager-class.html#flush,Method rekall.ui.text.TextRenderer.flush()=rekall.ui.text.TextRenderer-class.html#flush,Method rekall.ui.text.TextTable.flush()=rekall.ui.text.TextTable-class.html#flush,Method rekall.ui.text.UnicodeWrapper.flush()=rekall.ui.text.UnicodeWrapper-class.html#flush"><a title="rekall.entities.manager.IngestionPipeline.flush
-rekall.plugins.renderers.xls.XLSRenderer.flush
-rekall.ui.json_renderer.JsonEncoder.flush
-rekall.ui.json_renderer.JsonRenderer.flush
-rekall.ui.renderer.BaseRenderer.flush
-rekall.ui.renderer.BaseTable.flush
-rekall.ui.text.Pager.flush
-rekall.ui.text.TextRenderer.flush
-rekall.ui.text.TextTable.flush
-rekall.ui.text.UnicodeWrapper.flush" class="py-name" href="#" onclick="return doclink('link-17', 'flush', 'link-17');">flush</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
-<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">            <tt id="link-18" class="py-name" targets="Variable rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data=rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE-class.html#data,Variable rekall.ui.json_renderer.JsonRenderer.data=rekall.ui.json_renderer.JsonRenderer-class.html#data,Variable rekall.utils.Node.data=rekall.utils.Node-class.html#data"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.testlib.RekallBaseUnitTestCase.PLUGIN" class="py-name" href="#" onclick="return doclink('link-10', 'PLUGIN', 'link-10');">PLUGIN</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"json_render"</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest.setUp"></a><div id="JsonTest.setUp-def"><a name="L34"></a><tt class="py-lineno"> 34</tt> <a class="py-toggle" href="#" id="JsonTest.setUp-toggle" onclick="return toggle('JsonTest.setUp');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#setUp">setUp</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest.setUp-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.setUp-expanded"><a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Variable rekall.plugins.common.search.CommandWrapper.session=rekall.plugins.common.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-11', 'session', 'link-11');">session</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Method rekall.testlib.RekallBaseUnitTestCase.MakeUserSession()=rekall.testlib.RekallBaseUnitTestCase-class.html#MakeUserSession"><a title="rekall.testlib.RekallBaseUnitTestCase.MakeUserSession" class="py-name" href="#" onclick="return doclink('link-12', 'MakeUserSession', 'link-12');">MakeUserSession</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Module rekall.ui.renderer=rekall.ui.renderer-module.html"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-13', 'renderer', 'link-13');">renderer</a></tt> <tt class="py-op">=</tt> <tt id="link-14" class="py-name"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-14', 'json_renderer', 'link-5');">json_renderer</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Class rekall.ui.json_renderer.JsonRenderer=rekall.ui.json_renderer.JsonRenderer-class.html"><a title="rekall.ui.json_renderer.JsonRenderer" class="py-name" href="#" onclick="return doclink('link-15', 'JsonRenderer', 'link-15');">JsonRenderer</a></tt><tt class="py-op">(</tt><tt id="link-16" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-16', 'session', 'link-11');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-17', 'session', 'link-11');">session</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-18', 'renderer', 'link-13');">renderer</a></tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-19', 'renderer', 'link-13');">renderer</a></tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt> </tt>
+</div><a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest.testObjectRenderer"></a><div id="JsonTest.testObjectRenderer-def"><a name="L40"></a><tt class="py-lineno"> 40</tt> <a class="py-toggle" href="#" id="JsonTest.testObjectRenderer-toggle" onclick="return toggle('JsonTest.testObjectRenderer');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testObjectRenderer">testObjectRenderer</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest.testObjectRenderer-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testObjectRenderer-expanded"><a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt class="py-name">cases</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">'\xff\xff\x00\x00'</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'mro'</tt><tt class="py-op">:</tt> <tt class="py-string">u'str:basestring:object'</tt><tt class="py-op">,</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">                                  <tt class="py-string">'b64'</tt><tt class="py-op">:</tt> <tt class="py-string">u'//8AAA=='</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">"hello"</tt><tt class="py-op">,</tt> <tt class="py-string">u'hello'</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>  <tt class="py-comment"># A string is converted into unicode if</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">                                  <tt class="py-comment"># possible.</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">,</tt>     <tt class="py-comment"># Ints are already JSON serializable.</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">foo</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'foo'</tt><tt class="py-op">:</tt> <tt class="py-number">2</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'mro'</tt><tt class="py-op">:</tt> <tt class="py-string">u'set:object'</tt><tt class="py-op">,</tt> <tt class="py-string">'data'</tt><tt class="py-op">:</tt> <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">"\xff\xff\x00\x00"</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-string">'mro'</tt><tt class="py-op">:</tt> <tt class="py-string">u'str:basestring:object'</tt><tt class="py-op">,</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">                                              <tt class="py-string">'b64'</tt><tt class="py-op">:</tt> <tt class="py-string">u'//8AAA=='</tt><tt class="py-op">}</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">            <tt class="py-op">]</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line"> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">case</tt> <tt class="py-keyword">in</tt> <tt class="py-name">cases</tt><tt class="py-op">:</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">            <tt class="py-name">encoded</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name" targets="Method rekall.ui.json_renderer.JsonEncoder.Encode()=rekall.ui.json_renderer.JsonEncoder-class.html#Encode"><a title="rekall.ui.json_renderer.JsonEncoder.Encode" class="py-name" href="#" onclick="return doclink('link-20', 'Encode', 'link-20');">Encode</a></tt><tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">,</tt> <tt class="py-name">case</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest.testProperSerialization"></a><div id="JsonTest.testProperSerialization-def"><a name="L62"></a><tt class="py-lineno"> 62</tt> <a class="py-toggle" href="#" id="JsonTest.testProperSerialization-toggle" onclick="return toggle('JsonTest.testProperSerialization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testProperSerialization">testProperSerialization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest.testProperSerialization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testProperSerialization-expanded"><a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">        <tt class="py-docstring">"""Test that serializing simple python objects with json works.</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt class="py-docstring">        NOTE: Json is not intrinsically a fully functional serialization format</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-docstring">        - it is unable to serialize many common python primitives (e.g. strings,</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-docstring">        dicts with numeric keys etc). This tests that our wrapping around the</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-docstring">        json format allows the correct serialization of python primitives.</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">case</tt> <tt class="py-keyword">in</tt> <tt class="py-op">[</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">"hello"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-string">"1"</tt><tt class="py-op">,</tt> <tt class="py-string">"2"</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                <tt class="py-op">[</tt><tt class="py-string">"hello"</tt><tt class="py-op">,</tt> <tt class="py-string">u'Gr\xfcetzi'</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                <tt class="py-string">"hello"</tt><tt class="py-op">,</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">                <tt class="py-string">u'Gr\xfcetzi'</tt><tt class="py-op">,</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">                <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-string">"hello"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">                <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">b</tt><tt class="py-op">=</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-string">"hello"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-comment"># Nested dict.</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">            <tt class="py-op">]</tt><tt class="py-op">:</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">            <tt id="link-21" class="py-name" targets="Variable rekall.addrspace.Run.data=rekall.addrspace.Run-class.html#data,Variable rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data=rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE-class.html#data,Variable rekall.ui.json_renderer.JsonRenderer.data=rekall.ui.json_renderer.JsonRenderer-class.html#data,Variable rekall.utils.Node.data=rekall.utils.Node-class.html#data"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-18', 'data', 'link-18');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.ui.json_renderer.JsonEncoder.Encode" class="py-name" href="#" onclick="return doclink('link-19', 'Encode', 'link-16');">Encode</a></tt><tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">)</tt> </tt>
-<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"%s-&gt;%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">,</tt> <tt id="link-20" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-21', 'data', 'link-21');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.ui.json_renderer.JsonEncoder.Encode" class="py-name" href="#" onclick="return doclink('link-22', 'Encode', 'link-20');">Encode</a></tt><tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">)</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">            <tt id="link-23" class="py-name"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-23', 'logging', 'link-0');">logging</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"%s-&gt;%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">,</tt> <tt id="link-24" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-20', 'data', 'link-18');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-24', 'data', 'link-21');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
 <a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line"> </tt>
 <a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">            <tt class="py-comment"># Make sure the data is JSON serializable.</tt> </tt>
-<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-21" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-25" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-21', 'data', 'link-18');">data</a></tt><tt class="py-op">,</tt> <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-25', 'data', 'link-21');">data</a></tt><tt class="py-op">,</tt> <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt id="link-26" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-22', 'data', 'link-18');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Method rekall.ui.json_renderer.JsonDecoder.SetLexicon()=rekall.ui.json_renderer.JsonDecoder-class.html#SetLexicon"><a title="rekall.ui.json_renderer.JsonDecoder.SetLexicon" class="py-name" href="#" onclick="return doclink('link-23', 'SetLexicon', 'link-23');">SetLexicon</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Method rekall.ui.json_renderer.JsonEncoder.GetLexicon()=rekall.ui.json_renderer.JsonEncoder-class.html#GetLexicon"><a title="rekall.ui.json_renderer.JsonEncoder.GetLexicon" class="py-name" href="#" onclick="return doclink('link-24', 'GetLexicon', 'link-24');">GetLexicon</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name" targets="Method rekall.ui.json_renderer.JsonDecoder.Decode()=rekall.ui.json_renderer.JsonDecoder-class.html#Decode"><a title="rekall.ui.json_renderer.JsonDecoder.Decode" class="py-name" href="#" onclick="return doclink('link-25', 'Decode', 'link-25');">Decode</a></tt><tt class="py-op">(</tt><tt id="link-26" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-26', 'data', 'link-21');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">case</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method rekall.ui.json_renderer.JsonDecoder.Decode()=rekall.ui.json_renderer.JsonDecoder-class.html#Decode"><a title="rekall.ui.json_renderer.JsonDecoder.Decode" class="py-name" href="#" onclick="return doclink('link-27', 'Decode', 'link-27');">Decode</a></tt><tt class="py-op">(</tt><tt id="link-28" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-26', 'data', 'link-18');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-</div><a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest.testObjectSerization"></a><div id="JsonTest.testObjectSerization-def"><a name="L88"></a><tt class="py-lineno"> 88</tt> <a class="py-toggle" href="#" id="JsonTest.testObjectSerization-toggle" onclick="return toggle('JsonTest.testObjectSerization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testObjectSerization">testObjectSerization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest.testObjectSerization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testObjectSerization-expanded"><a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-docstring">"""Serialize _EPROCESS objects.</tt> </tt>
-<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">        We check that the deserialized object is an exact replica of the</tt> </tt>
-<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring">        original - this includes the same address spaces, profile and offset.</tt> </tt>
-<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
-<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">        Having the objects identical allows us to dereference object members</tt> </tt>
-<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">        seamlessly.</tt> </tt>
-<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
-<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">task</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-27', 'session', 'link-6');">session</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-28', 'plugins', 'link-28');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name" targets="Module rekall.plugins.darwin.pslist=rekall.plugins.darwin.pslist-module.html,Module rekall.plugins.linux.pslist=rekall.plugins.linux.pslist-module.html"><a title="rekall.plugins.darwin.pslist
-rekall.plugins.linux.pslist" class="py-name" href="#" onclick="return doclink('link-29', 'pslist', 'link-29');">pslist</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-30" class="py-name" targets="Method rekall.plugins.darwin.common.DarwinProcessFilter.filter_processes()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#filter_processes,Method rekall.plugins.linux.common.LinProcessFilter.filter_processes()=rekall.plugins.linux.common.LinProcessFilter-class.html#filter_processes,Method rekall.plugins.windows.common.WinProcessFilter.filter_processes()=rekall.plugins.windows.common.WinProcessFilter-class.html#filter_processes"><a title="rekall.plugins.darwin.common.DarwinProcessFilter.filter_processes
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-28', 'data', 'link-21');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest.testObjectSerization"></a><div id="JsonTest.testObjectSerization-def"><a name="L87"></a><tt class="py-lineno"> 87</tt> <a class="py-toggle" href="#" id="JsonTest.testObjectSerization-toggle" onclick="return toggle('JsonTest.testObjectSerization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testObjectSerization">testObjectSerization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest.testObjectSerization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testObjectSerization-expanded"><a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-docstring">"""Serialize _EPROCESS objects.</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-docstring">        We check that the deserialized object is an exact replica of the</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-docstring">        original - this includes the same address spaces, profile and offset.</tt> </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-docstring">        Having the objects identical allows us to dereference object members</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-docstring">        seamlessly.</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">task</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-29', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt id="link-30" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-30', 'plugins', 'link-7');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Module rekall.plugins.linux.pslist=rekall.plugins.linux.pslist-module.html"><a title="rekall.plugins.linux.pslist" class="py-name" href="#" onclick="return doclink('link-31', 'pslist', 'link-31');">pslist</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name" targets="Method rekall.plugins.darwin.common.DarwinProcessFilter.filter_processes()=rekall.plugins.darwin.common.DarwinProcessFilter-class.html#filter_processes,Method rekall.plugins.darwin.common.ProcessFilterMixin.filter_processes()=rekall.plugins.darwin.common.ProcessFilterMixin-class.html#filter_processes,Method rekall.plugins.linux.common.LinProcessFilter.filter_processes()=rekall.plugins.linux.common.LinProcessFilter-class.html#filter_processes,Method rekall.plugins.windows.common.WinProcessFilter.filter_processes()=rekall.plugins.windows.common.WinProcessFilter-class.html#filter_processes"><a title="rekall.plugins.darwin.common.DarwinProcessFilter.filter_processes
+rekall.plugins.darwin.common.ProcessFilterMixin.filter_processes
 rekall.plugins.linux.common.LinProcessFilter.filter_processes
-rekall.plugins.windows.common.WinProcessFilter.filter_processes" class="py-name" href="#" onclick="return doclink('link-30', 'filter_processes', 'link-30');">filter_processes</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name"><a title="rekall.entities.manager.IngestionPipeline.flush
-rekall.plugins.renderers.xls.XLSRenderer.flush
-rekall.ui.json_renderer.JsonEncoder.flush
-rekall.ui.json_renderer.JsonRenderer.flush
-rekall.ui.renderer.BaseRenderer.flush
-rekall.ui.renderer.BaseTable.flush
-rekall.ui.text.Pager.flush
-rekall.ui.text.TextRenderer.flush
-rekall.ui.text.TextTable.flush
-rekall.ui.text.UnicodeWrapper.flush" class="py-name" href="#" onclick="return doclink('link-31', 'flush', 'link-17');">flush</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
-<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">            <tt id="link-32" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.plugins.windows.common.WinProcessFilter.filter_processes" class="py-name" href="#" onclick="return doclink('link-32', 'filter_processes', 'link-32');">filter_processes</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">            <tt id="link-33" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-32', 'data', 'link-18');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.ui.json_renderer.JsonEncoder.Encode" class="py-name" href="#" onclick="return doclink('link-33', 'Encode', 'link-16');">Encode</a></tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">)</tt> </tt>
-<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt class="py-name">logging</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"%r-&gt;%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">,</tt> <tt id="link-34" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-33', 'data', 'link-21');">data</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name"><a title="rekall.ui.json_renderer.JsonEncoder.Encode" class="py-name" href="#" onclick="return doclink('link-34', 'Encode', 'link-20');">Encode</a></tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">            <tt id="link-35" class="py-name"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-35', 'logging', 'link-0');">logging</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"%r-&gt;%s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">,</tt> <tt id="link-36" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-34', 'data', 'link-18');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"> </tt>
-<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">            <tt class="py-comment"># Make sure the data is JSON serializable.</tt> </tt>
-<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-35" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-36', 'data', 'link-21');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">            <tt class="py-comment"># Make sure the data is JSON serializable.</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-37" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-35', 'data', 'link-18');">data</a></tt><tt class="py-op">,</tt> <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt id="link-36" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-37', 'data', 'link-21');">data</a></tt><tt class="py-op">,</tt> <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">loads</tt><tt class="py-op">(</tt><tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt id="link-38" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
 rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-36', 'data', 'link-18');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-38', 'data', 'link-21');">data</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">            <tt class="py-name">decoded_task</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="rekall.ui.json_renderer.JsonDecoder.Decode" class="py-name" href="#" onclick="return doclink('link-39', 'Decode', 'link-27');">Decode</a></tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="rekall.addrspace.Run.data
+rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
+rekall.ui.json_renderer.JsonRenderer.data
+rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-40', 'data', 'link-21');">data</a></tt><tt class="py-op">)</tt> </tt>
 <a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"> </tt>
-<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt><tt class="py-op">.</tt><tt id="link-37" class="py-name"><a title="rekall.ui.json_renderer.JsonDecoder.SetLexicon" class="py-name" href="#" onclick="return doclink('link-37', 'SetLexicon', 'link-23');">SetLexicon</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">encoder</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.ui.json_renderer.JsonEncoder.GetLexicon" class="py-name" href="#" onclick="return doclink('link-38', 'GetLexicon', 'link-24');">GetLexicon</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-name">decoded_task</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">decoder</tt><tt class="py-op">.</tt><tt id="link-39" class="py-name"><a title="rekall.ui.json_renderer.JsonDecoder.Decode" class="py-name" href="#" onclick="return doclink('link-39', 'Decode', 'link-25');">Decode</a></tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
-rekall.ui.json_renderer.JsonRenderer.data
-rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-40', 'data', 'link-18');">data</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">)</tt> </tt>
-<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name" targets="Variable rekall.obj.BaseObject.obj_name=rekall.obj.BaseObject-class.html#obj_name"><a title="rekall.obj.BaseObject.obj_name" class="py-name" href="#" onclick="return doclink('link-41', 'obj_name', 'link-41');">obj_name</a></tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.obj.BaseObject.obj_name" class="py-name" href="#" onclick="return doclink('link-42', 'obj_name', 'link-41');">obj_name</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">obj_vm</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.entities.collector.EntityCollector.name=rekall.entities.collector.EntityCollector-class.html#name,Variable rekall.entities.entity.Entity.name=rekall.entities.entity.Entity-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name=rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace-class.html#name,Variable rekall.plugins.common.address_resolver.AddressResolverMixin.name=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#name,Variable rekall.plugins.common.inspection.MemoryTranslation.name=rekall.plugins.common.inspection.MemoryTranslation-class.html#name,Variable rekall.plugins.common.searches.ListEvents.name=rekall.plugins.common.searches.ListEvents-class.html#name,Variable rekall.plugins.common.searches.ListInterfaces.name=rekall.plugins.common.searches.ListInterfaces-class.html#name,Variable rekall.plugins.common.searches.ListZones.name=rekall.plugins.common.searches.ListZones-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.filesystems.ntfs.FLS.name=rekall.plugins.filesystems.ntfs.FLS-class.html#name,Variable rekall.plugins.filesystems.ntfs.FStat.name=rekall.plugins.filesystems.ntfs.FStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.IDump.name=rekall.plugins.filesystems.ntfs.IDump-class.html#name,Variable rekall.plugins.filesystems.ntfs.IExport.name=rekall.plugins.filesystems.ntfs.IExport-class.html#name,Variable rekall.plugins.filesystems.ntfs.ILS.name=rekall.plugins.filesystems.ntfs.ILS-class.html#name,Variable rekall.plugins.filesystems.ntfs.IStat.name=rekall.plugins.filesystems.ntfs.IStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.NTFSDetector.name=rekall.plugins.filesystems.ntfs.NTFSDetector-class.html#name,Variable rekall.plugins.guess_profile.DarwinIndexDetector.name=rekall.plugins.guess_profile.DarwinIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.DetectionMethod.name=rekall.plugins.guess_profile.DetectionMethod-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.LinuxBannerDetector.name=rekall.plugins.guess_profile.LinuxBannerDetector-class.html#name,Variable rekall.plugins.guess_profile.PEImageFileDetector.name=rekall.plugins.guess_profile.PEImageFileDetector-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.guess_profile.WindowsIndexDetector.name=rekall.plugins.guess_profile.WindowsIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsRSDSDetector.name=rekall.plugins.guess_profile.WindowsRSDSDetector-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKernelSlide.name=rekall.plugins.linux.common.LinuxFindKernelSlide-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name=rekall.plugins.linux.common.LinuxKernelPageOffsetHook-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelSlideHook.name=rekall.plugins.linux.common.LinuxKernelSlideHook-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.renderers.data_export.DataExportRenderer.name=rekall.plugins.renderers.data_export.DataExportRenderer-class.html#name,Variable rekall.plugins.renderers.xls.XLSRenderer.name=rekall.plugins.renderers.xls.XLSRenderer-class.html#name,Variable rekall.plugins.tools.ewf.EWFAcquire.name=rekall.plugins.tools.ewf.EWFAcquire-class.html#name,Variable rekall.plugins.tools.ipython.InteractiveShell.name=rekall.plugins.tools.ipython.InteractiveShell-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.tools.profile_tool.BuildProfileLocally.name=rekall.plugins.tools.profile_tool.BuildProfileLocally-class.html#name,Variable rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name=rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer-class.html#name,Variable rekall.plugins.windows.cache.DumpFiles.name=rekall.plugins.windows.cache.DumpFiles-class.html#name,Variable rekall.plugins.windows.cache.EnumerateVacbs.name=rekall.plugins.windows.cache.EnumerateVacbs-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.dns.WinDNSCache.name=rekall.plugins.windows.dns.WinDNSCache-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name=rekall.plugins.windows.heap_analysis.FindReferenceAlloc-class.html#name,Variable rekall.plugins.windows.heap_analysis.InspectHeap.name=rekall.plugins.windows.heap_analysis.InspectHeap-class.html#name,Variable rekall.plugins.windows.heap_analysis.ShowAllocation.name=rekall.plugins.windows.heap_analysis.ShowAllocation-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.malware.apihooks.CheckPEHooks.name=rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.EATHooks.name=rekall.plugins.windows.malware.apihooks.EATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.IATHooks.name=rekall.plugins.windows.malware.apihooks.IATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.InlineHooks.name=rekall.plugins.windows.malware.apihooks.InlineHooks-class.html#name,Variable rekall.plugins.windows.malware.callbacks.Callbacks.name=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#name,Variable rekall.plugins.windows.malware.cmdhistory.Consoles.name=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#name,Variable rekall.plugins.windows.malware.yarascan.WinYaraScan.name=rekall.plugins.windows.malware.yarascan.WinYaraScan-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pagefile.Pagefiles.name=rekall.plugins.windows.pagefile.Pagefiles-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.registry.printkey.Services.name=rekall.plugins.windows.registry.printkey.Services-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name,Variable rekall.plugins.windows.vadinfo.VADMap.name=rekall.plugins.windows.vadinfo.VADMap-class.html#name,Variable rekall.ui.json_renderer.JsonRenderer.name=rekall.ui.json_renderer.JsonRenderer-class.html#name,Variable rekall.ui.renderer.BaseRenderer.name=rekall.ui.renderer.BaseRenderer-class.html#name,Variable rekall.ui.text.TestRenderer.name=rekall.ui.text.TestRenderer-class.html#name,Variable rekall.ui.text.TextColumn.name=rekall.ui.text.TextColumn-class.html#name,Variable rekall.ui.text.TextRenderer.name=rekall.ui.text.TextRenderer-class.html#name,Variable rekall.ui.text.WideTextRenderer.name=rekall.ui.text.WideTextRenderer-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
-rekall.entities.collector.EntityCollector.name
-rekall.entities.entity.Entity.name
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt class="py-name">obj_offset</tt><tt class="py-op">)</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name" targets="Variable rekall.obj.BaseObject.obj_name=rekall.obj.BaseObject-class.html#obj_name"><a title="rekall.obj.BaseObject.obj_name" class="py-name" href="#" onclick="return doclink('link-41', 'obj_name', 'link-41');">obj_name</a></tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name"><a title="rekall.obj.BaseObject.obj_name" class="py-name" href="#" onclick="return doclink('link-42', 'obj_name', 'link-41');">obj_name</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">obj_vm</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name" targets="Variable rekall.addrspace.BaseAddressSpace.name=rekall.addrspace.BaseAddressSpace-class.html#name,Variable rekall.kb.ParameterHook.name=rekall.kb.ParameterHook-class.html#name,Variable rekall.obj.ConstantProfileSectionLoader.name=rekall.obj.ConstantProfileSectionLoader-class.html#name,Variable rekall.obj.EnumProfileSectionLoader.name=rekall.obj.EnumProfileSectionLoader-class.html#name,Variable rekall.obj.FunctionsProfileSectionLoader.name=rekall.obj.FunctionsProfileSectionLoader-class.html#name,Variable rekall.obj.MergeProfileLoader.name=rekall.obj.MergeProfileLoader-class.html#name,Variable rekall.obj.MetadataProfileSectionLoader.name=rekall.obj.MetadataProfileSectionLoader-class.html#name,Variable rekall.obj.ReverseEnumProfileSectionLoader.name=rekall.obj.ReverseEnumProfileSectionLoader-class.html#name,Variable rekall.obj.StructProfileLoader.name=rekall.obj.StructProfileLoader-class.html#name,Variable rekall.plugin.Command.name=rekall.plugin.Command-class.html#name,Variable rekall.plugins.addrspaces.lime.LimeAddressSpace.name=rekall.plugins.addrspaces.lime.LimeAddressSpace-class.html#name,Variable rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name=rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace-class.html#name,Variable rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name=rekall.plugins.addrspaces.pmem.MacPmemAddressSpace-class.html#name,Variable rekall.plugins.common.address_resolver.AddressResolverMixin.name=rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#name,Variable rekall.plugins.common.inspection.MemoryTranslation.name=rekall.plugins.common.inspection.MemoryTranslation-class.html#name,Variable rekall.plugins.common.memmap.MemDumpMixin.name=rekall.plugins.common.memmap.MemDumpMixin-class.html#name,Variable rekall.plugins.common.pas2kas.Pas2VasMixin.name=rekall.plugins.common.pas2kas.Pas2VasMixin-class.html#name,Variable rekall.plugins.common.pfn.VADMapMixin.name=rekall.plugins.common.pfn.VADMapMixin-class.html#name,Variable rekall.plugins.common.profile_index.IndexProfileLoader.name=rekall.plugins.common.profile_index.IndexProfileLoader-class.html#name,Variable rekall.plugins.common.search.Collect.name=rekall.plugins.common.search.Collect-class.html#name,Variable rekall.plugins.common.search.Explain.name=rekall.plugins.common.search.Explain-class.html#name,Variable rekall.plugins.common.search.FindPlugins.name=rekall.plugins.common.search.FindPlugins-class.html#name,Variable rekall.plugins.common.search.Search.name=rekall.plugins.common.search.Search-class.html#name,Variable rekall.plugins.common.sigscan.SigScanMixIn.name=rekall.plugins.common.sigscan.SigScanMixIn-class.html#name,Variable rekall.plugins.core.SetProcessContextMixin.name=rekall.plugins.core.SetProcessContextMixin-class.html#name,Variable rekall.plugins.core.VtoPMixin.name=rekall.plugins.core.VtoPMixin-class.html#name,Variable rekall.plugins.darwin.checks.OIDInfo.name=rekall.plugins.darwin.checks.OIDInfo-class.html#name,Variable rekall.plugins.darwin.common.CatfishOffsetHook.name=rekall.plugins.darwin.common.CatfishOffsetHook-class.html#name,Variable rekall.plugins.darwin.common.KernelSlideHook.name=rekall.plugins.darwin.common.KernelSlideHook-class.html#name,Variable rekall.plugins.darwin.lsof.DarwinHandles.name=rekall.plugins.darwin.lsof.DarwinHandles-class.html#name,Variable rekall.plugins.darwin.lsof.DarwinLsof.name=rekall.plugins.darwin.lsof.DarwinLsof-class.html#name,Variable rekall.plugins.darwin.misc.DarwinHighestUserAddress.name=rekall.plugins.darwin.misc.DarwinHighestUserAddress-class.html#name,Variable rekall.plugins.darwin.misc.DarwinImageFingerprint.name=rekall.plugins.darwin.misc.DarwinImageFingerprint-class.html#name,Variable rekall.plugins.darwin.networking.DarwinArp.name=rekall.plugins.darwin.networking.DarwinArp-class.html#name,Variable rekall.plugins.darwin.networking.DarwinGetArpListHead.name=rekall.plugins.darwin.networking.DarwinGetArpListHead-class.html#name,Variable rekall.plugins.darwin.networking.DarwinIfnetCollector.name=rekall.plugins.darwin.networking.DarwinIfnetCollector-class.html#name,Variable rekall.plugins.darwin.networking.DarwinIfnetHook.name=rekall.plugins.darwin.networking.DarwinIfnetHook-class.html#name,Variable rekall.plugins.darwin.networking.DarwinNetstat.name=rekall.plugins.darwin.networking.DarwinNetstat-class.html#name,Variable rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name=rekall.plugins.darwin.networking.DarwinSocketsFromHandles-class.html#name,Variable rekall.plugins.darwin.networking.DarwinUnpListCollector.name=rekall.plugins.darwin.networking.DarwinUnpListCollector-class.html#name,Variable rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name=rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook-class.html#name,Variable rekall.plugins.darwin.processes.DarwinAllProcCollector.name=rekall.plugins.darwin.processes.DarwinAllProcCollector-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name=rekall.plugins.darwin.processes.DarwinPgrpHashCollector-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name=rekall.plugins.darwin.processes.DarwinPidHashProcessCollector-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPsTree.name=rekall.plugins.darwin.processes.DarwinPsTree-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPslist.name=rekall.plugins.darwin.processes.DarwinPslist-class.html#name,Variable rekall.plugins.darwin.processes.DarwinPsxView.name=rekall.plugins.darwin.processes.DarwinPsxView-class.html#name,Variable rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name=rekall.plugins.darwin.processes.DarwinTaskProcessCollector-class.html#name,Variable rekall.plugins.darwin.processes.PsListAllProcHook.name=rekall.plugins.darwin.processes.PsListAllProcHook-class.html#name,Variable rekall.plugins.darwin.processes.PsListPgrpHashHook.name=rekall.plugins.darwin.processes.PsListPgrpHashHook-class.html#name,Variable rekall.plugins.darwin.processes.PsListPidHashHook.name=rekall.plugins.darwin.processes.PsListPidHashHook-class.html#name,Variable rekall.plugins.darwin.processes.PsListTasksHook.name=rekall.plugins.darwin.processes.PsListTasksHook-class.html#name,Variable rekall.plugins.darwin.sessions.DarwinSessions.name=rekall.plugins.darwin.sessions.DarwinSessions-class.html#name,Variable rekall.plugins.darwin.sessions.DarwinTerminals.name=rekall.plugins.darwin.sessions.DarwinTerminals-class.html#name,Variable rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name=rekall.plugins.darwin.zones.DarwinDeadFileprocCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name=rekall.plugins.darwin.zones.DarwinDeadProcessCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinDumpZone.name=rekall.plugins.darwin.zones.DarwinDumpZone-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name=rekall.plugins.darwin.zones.DarwinSessionZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name=rekall.plugins.darwin.zones.DarwinSessionZoneFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name=rekall.plugins.darwin.zones.DarwinSocketZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name=rekall.plugins.darwin.zones.DarwinSocketZoneFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name=rekall.plugins.darwin.zones.DarwinTTYZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name=rekall.plugins.darwin.zones.DarwinTTYZoneFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneCollector.name=rekall.plugins.darwin.zones.DarwinZoneCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name=rekall.plugins.darwin.zones.DarwinZoneFileprocFinder-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneHook.name=rekall.plugins.darwin.zones.DarwinZoneHook-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name=rekall.plugins.darwin.zones.DarwinZoneVnodeCollector-class.html#name,Variable rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name=rekall.plugins.darwin.zones.DarwinZoneVnodeFinder-class.html#name,Variable rekall.plugins.darwin.zones.PsListDeadProcFinder.name=rekall.plugins.darwin.zones.PsListDeadProcFinder-class.html#name,Variable rekall.plugins.filesystems.ntfs.FLS.name=rekall.plugins.filesystems.ntfs.FLS-class.html#name,Variable rekall.plugins.filesystems.ntfs.FStat.name=rekall.plugins.filesystems.ntfs.FStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.IDump.name=rekall.plugins.filesystems.ntfs.IDump-class.html#name,Variable rekall.plugins.filesystems.ntfs.IExport.name=rekall.plugins.filesystems.ntfs.IExport-class.html#name,Variable rekall.plugins.filesystems.ntfs.ILS.name=rekall.plugins.filesystems.ntfs.ILS-class.html#name,Variable rekall.plugins.filesystems.ntfs.IStat.name=rekall.plugins.filesystems.ntfs.IStat-class.html#name,Variable rekall.plugins.filesystems.ntfs.NTFSDetector.name=rekall.plugins.filesystems.ntfs.NTFSDetector-class.html#name,Variable rekall.plugins.guess_profile.DarwinIndexDetector.name=rekall.plugins.guess_profile.DarwinIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.DetectionMethod.name=rekall.plugins.guess_profile.DetectionMethod-class.html#name,Variable rekall.plugins.guess_profile.KernelASHook.name=rekall.plugins.guess_profile.KernelASHook-class.html#name,Variable rekall.plugins.guess_profile.LinuxBannerDetector.name=rekall.plugins.guess_profile.LinuxBannerDetector-class.html#name,Variable rekall.plugins.guess_profile.PEImageFileDetector.name=rekall.plugins.guess_profile.PEImageFileDetector-class.html#name,Variable rekall.plugins.guess_profile.ProfileHook.name=rekall.plugins.guess_profile.ProfileHook-class.html#name,Variable rekall.plugins.guess_profile.WindowsIndexDetector.name=rekall.plugins.guess_profile.WindowsIndexDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsKernelImageDetector.name=rekall.plugins.guess_profile.WindowsKernelImageDetector-class.html#name,Variable rekall.plugins.guess_profile.WindowsRSDSDetector.name=rekall.plugins.guess_profile.WindowsRSDSDetector-class.html#name,Variable rekall.plugins.linux.common.LinuxFindKernelSlide.name=rekall.plugins.linux.common.LinuxFindKernelSlide-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name=rekall.plugins.linux.common.LinuxKernelPageOffsetHook-class.html#name,Variable rekall.plugins.linux.common.LinuxKernelSlideHook.name=rekall.plugins.linux.common.LinuxKernelSlideHook-class.html#name,Variable rekall.plugins.linux.misc.LinImageFingerprint.name=rekall.plugins.linux.misc.LinImageFingerprint-class.html#name,Variable rekall.plugins.linux.misc.LinuxHighestUserAddress.name=rekall.plugins.linux.misc.LinuxHighestUserAddress-class.html#name,Variable rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name=rekall.plugins.linux.pas2kas.LinPas2VasResolverHook-class.html#name,Variable rekall.plugins.overlays.darwin.darwin.ifnet.name=rekall.plugins.overlays.darwin.darwin.ifnet-class.html#name,Variable rekall.plugins.overlays.darwin.darwin.session.name=rekall.plugins.overlays.darwin.darwin.session-class.html#name,Variable rekall.plugins.overlays.darwin.darwin.zone.name=rekall.plugins.overlays.darwin.darwin.zone-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DIETag.name=rekall.plugins.overlays.linux.dwarfparser.DIETag-class.html#name,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type-class.html#name,Variable rekall.plugins.overlays.linux.vfs.File.name=rekall.plugins.overlays.linux.vfs.File-class.html#name,Variable rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook.name=rekall.plugins.overlays.windows.tcpip_vtypes.TcpipHook-class.html#name,Variable rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name=rekall.plugins.overlays.windows.win7.ObjectTypeMapHook-class.html#name,Variable rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name=rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook-class.html#name,Variable rekall.plugins.renderers.data_export.DataExportRenderer.name=rekall.plugins.renderers.data_export.DataExportRenderer-class.html#name,Variable rekall.plugins.renderers.xls.XLSRenderer.name=rekall.plugins.renderers.xls.XLSRenderer-class.html#name,Variable rekall.plugins.tools.aff4acquire.AFF4Acquire.name=rekall.plugins.tools.aff4acquire.AFF4Acquire-class.html#name,Variable rekall.plugins.tools.aff4acquire.AFF4Export.name=rekall.plugins.tools.aff4acquire.AFF4Export-class.html#name,Variable rekall.plugins.tools.aff4acquire.AFF4Ls.name=rekall.plugins.tools.aff4acquire.AFF4Ls-class.html#name,Variable rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name=rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader-class.html#name,Variable rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name=rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader-class.html#name,Variable rekall.plugins.tools.ewf.EWFAcquire.name=rekall.plugins.tools.ewf.EWFAcquire-class.html#name,Variable rekall.plugins.tools.ipython.InteractiveShell.name=rekall.plugins.tools.ipython.InteractiveShell-class.html#name,Variable rekall.plugins.tools.ipython.PagingLimitHook.name=rekall.plugins.tools.ipython.PagingLimitHook-class.html#name,Variable rekall.plugins.tools.json_tools.JSONParser.name=rekall.plugins.tools.json_tools.JSONParser-class.html#name,Variable rekall.plugins.tools.live_darwin.Live.name=rekall.plugins.tools.live_darwin.Live-class.html#name,Variable rekall.plugins.tools.live_linux.Live.name=rekall.plugins.tools.live_linux.Live-class.html#name,Variable rekall.plugins.tools.live_windows.Live.name=rekall.plugins.tools.live_windows.Live-class.html#name,Variable rekall.plugins.tools.profile_tool.BuildProfileLocally.name=rekall.plugins.tools.profile_tool.BuildProfileLocally-class.html#name,Variable rekall.plugins.tools.repository_manager.ManageRepository.name=rekall.plugins.tools.repository_manager.ManageRepository-class.html#name,Variable rekall.plugins.windows.cache.DumpFiles.name=rekall.plugins.windows.cache.DumpFiles-class.html#name,Variable rekall.plugins.windows.cache.EnumerateVacbs.name=rekall.plugins.windows.cache.EnumerateVacbs-class.html#name,Variable rekall.plugins.windows.cache.MftDump.name=rekall.plugins.windows.cache.MftDump-class.html#name,Variable rekall.plugins.windows.common.KDBGHook.name=rekall.plugins.windows.common.KDBGHook-class.html#name,Variable rekall.plugins.windows.common.PsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsListCSRSSHook.name=rekall.plugins.windows.common.PsListCSRSSHook-class.html#name,Variable rekall.plugins.windows.common.PsListHandlesHook.name=rekall.plugins.windows.common.PsListHandlesHook-class.html#name,Variable rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name=rekall.plugins.windows.common.PsListPsActiveProcessHeadHook-class.html#name,Variable rekall.plugins.windows.common.PsListPspCidTableHook.name=rekall.plugins.windows.common.PsListPspCidTableHook-class.html#name,Variable rekall.plugins.windows.common.PsListSessionsHook.name=rekall.plugins.windows.common.PsListSessionsHook-class.html#name,Variable rekall.plugins.windows.common.PsLoadedModuleList.name=rekall.plugins.windows.common.PsLoadedModuleList-class.html#name,Variable rekall.plugins.windows.dns.WinDNSCache.name=rekall.plugins.windows.dns.WinDNSCache-class.html#name,Variable rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name=rekall.plugins.windows.gui.autodetect.Win32kAutodetect-class.html#name,Variable rekall.plugins.windows.gui.userhandles.Gahti.name=rekall.plugins.windows.gui.userhandles.Gahti-class.html#name,Variable rekall.plugins.windows.gui.userhandles.UserHandles.name=rekall.plugins.windows.gui.userhandles.UserHandles-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinEventHooks.name=rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html#name,Variable rekall.plugins.windows.gui.userhandles.WinMessageHooks.name=rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html#name,Variable rekall.plugins.windows.gui.win32k_core.Win32kHook.name=rekall.plugins.windows.gui.win32k_core.Win32kHook-class.html#name,Variable rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name=rekall.plugins.windows.heap_analysis.FindReferenceAlloc-class.html#name,Variable rekall.plugins.windows.heap_analysis.InspectHeap.name=rekall.plugins.windows.heap_analysis.InspectHeap-class.html#name,Variable rekall.plugins.windows.heap_analysis.ShowAllocation.name=rekall.plugins.windows.heap_analysis.ShowAllocation-class.html#name,Variable rekall.plugins.windows.index.GuessGUID.name=rekall.plugins.windows.index.GuessGUID-class.html#name,Variable rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name=rekall.plugins.windows.interactive.profiles.LoadWindowsProfile-class.html#name,Variable rekall.plugins.windows.interactive.structs.AnalyzeStruct.name=rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html#name,Variable rekall.plugins.windows.kernel.DTB2TaskMap.name=rekall.plugins.windows.kernel.DTB2TaskMap-class.html#name,Variable rekall.plugins.windows.kernel.DriveLetterDeviceHook.name=rekall.plugins.windows.kernel.DriveLetterDeviceHook-class.html#name,Variable rekall.plugins.windows.kernel.KernelBaseHook.name=rekall.plugins.windows.kernel.KernelBaseHook-class.html#name,Variable rekall.plugins.windows.kernel.ObjectTreeHook.name=rekall.plugins.windows.kernel.ObjectTreeHook-class.html#name,Variable rekall.plugins.windows.kernel.WindowsHighestUserAddress.name=rekall.plugins.windows.kernel.WindowsHighestUserAddress-class.html#name,Variable rekall.plugins.windows.malware.apihooks.CheckPEHooks.name=rekall.plugins.windows.malware.apihooks.CheckPEHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.EATHooks.name=rekall.plugins.windows.malware.apihooks.EATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.IATHooks.name=rekall.plugins.windows.malware.apihooks.IATHooks-class.html#name,Variable rekall.plugins.windows.malware.apihooks.InlineHooks.name=rekall.plugins.windows.malware.apihooks.InlineHooks-class.html#name,Variable rekall.plugins.windows.malware.callbacks.Callbacks.name=rekall.plugins.windows.malware.callbacks.Callbacks-class.html#name,Variable rekall.plugins.windows.malware.cmdhistory.Consoles.name=rekall.plugins.windows.malware.cmdhistory.Consoles-class.html#name,Variable rekall.plugins.windows.malware.psxview.PsListPSScanHook.name=rekall.plugins.windows.malware.psxview.PsListPSScanHook-class.html#name,Variable rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name=rekall.plugins.windows.malware.psxview.PsListThrdprocHook-class.html#name,Variable rekall.plugins.windows.mimikatz.Mimikatz.name=rekall.plugins.windows.mimikatz.Mimikatz-class.html#name,Variable rekall.plugins.windows.misc.ImageInfo.name=rekall.plugins.windows.misc.ImageInfo-class.html#name,Variable rekall.plugins.windows.misc.ObjectTree.name=rekall.plugins.windows.misc.ObjectTree-class.html#name,Variable rekall.plugins.windows.misc.Objects.name=rekall.plugins.windows.misc.Objects-class.html#name,Variable rekall.plugins.windows.misc.PoolTracker.name=rekall.plugins.windows.misc.PoolTracker-class.html#name,Variable rekall.plugins.windows.misc.Pools.name=rekall.plugins.windows.misc.Pools-class.html#name,Variable rekall.plugins.windows.misc.WinImageFingerprint.name=rekall.plugins.windows.misc.WinImageFingerprint-class.html#name,Variable rekall.plugins.windows.modules.UnloadedModules.name=rekall.plugins.windows.modules.UnloadedModules-class.html#name,Variable rekall.plugins.windows.pagefile.PagefileHook.name=rekall.plugins.windows.pagefile.PagefileHook-class.html#name,Variable rekall.plugins.windows.pagefile.Pagefiles.name=rekall.plugins.windows.pagefile.Pagefiles-class.html#name,Variable rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name=rekall.plugins.windows.pas2kas.WinPas2VasResolverHook-class.html#name,Variable rekall.plugins.windows.pfn.DTBScan2.name=rekall.plugins.windows.pfn.DTBScan2-class.html#name,Variable rekall.plugins.windows.privileges.Privileges.name=rekall.plugins.windows.privileges.Privileges-class.html#name,Variable rekall.plugins.windows.privileges.PrivilegesHook.name=rekall.plugins.windows.privileges.PrivilegesHook-class.html#name,Variable rekall.plugins.windows.registry.printkey.Services.name=rekall.plugins.windows.registry.printkey.Services-class.html#name,Variable rekall.plugins.windows.registry.printkey.Users.name=rekall.plugins.windows.registry.printkey.Users-class.html#name,Variable rekall.plugins.windows.registry.registry.Hives.name=rekall.plugins.windows.registry.registry.Hives-class.html#name,Variable rekall.plugins.windows.ssdt.WinSSDT.name=rekall.plugins.windows.ssdt.WinSSDT-class.html#name,Variable rekall.plugins.windows.taskmods.Threads.name=rekall.plugins.windows.taskmods.Threads-class.html#name,Variable rekall.plugins.yarascanner.YaraScanMixin.name=rekall.plugins.yarascanner.YaraScanMixin-class.html#name,Variable rekall.rekal.Run.name=rekall.rekal.Run-class.html#name,Variable rekall.ui.json_renderer.JsonRenderer.name=rekall.ui.json_renderer.JsonRenderer-class.html#name,Variable rekall.ui.renderer.BaseRenderer.name=rekall.ui.renderer.BaseRenderer-class.html#name,Variable rekall.ui.text.TestRenderer.name=rekall.ui.text.TestRenderer-class.html#name,Variable rekall.ui.text.TextColumn.name=rekall.ui.text.TextColumn-class.html#name,Variable rekall.ui.text.TextRenderer.name=rekall.ui.text.TextRenderer-class.html#name,Variable rekall.ui.text.WideTextRenderer.name=rekall.ui.text.WideTextRenderer-class.html#name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
 rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
 rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
 rekall.plugins.common.address_resolver.AddressResolverMixin.name
 rekall.plugins.common.inspection.MemoryTranslation.name
-rekall.plugins.common.searches.ListEvents.name
-rekall.plugins.common.searches.ListInterfaces.name
-rekall.plugins.common.searches.ListZones.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
 rekall.plugins.darwin.checks.OIDInfo.name
 rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
 rekall.plugins.filesystems.ntfs.FLS.name
 rekall.plugins.filesystems.ntfs.FStat.name
 rekall.plugins.filesystems.ntfs.IDump.name
@@ -249,10 +319,17 @@ rekall.plugins.guess_profile.LinuxBannerDetector.name
 rekall.plugins.guess_profile.PEImageFileDetector.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
 rekall.plugins.guess_profile.WindowsRSDSDetector.name
 rekall.plugins.linux.common.LinuxFindKernelSlide.name
 rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
 rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
 rekall.plugins.overlays.linux.vfs.File.name
@@ -261,16 +338,30 @@ rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
 rekall.plugins.renderers.data_export.DataExportRenderer.name
 rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
 rekall.plugins.tools.ewf.EWFAcquire.name
 rekall.plugins.tools.ipython.InteractiveShell.name
 rekall.plugins.tools.ipython.PagingLimitHook.name
 rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
 rekall.plugins.tools.profile_tool.BuildProfileLocally.name
-rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
 rekall.plugins.windows.cache.DumpFiles.name
 rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
 rekall.plugins.windows.dns.WinDNSCache.name
 rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
@@ -283,48 +374,116 @@ rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
 rekall.plugins.windows.heap_analysis.InspectHeap.name
 rekall.plugins.windows.heap_analysis.ShowAllocation.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
 rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
 rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
 rekall.plugins.windows.malware.apihooks.EATHooks.name
 rekall.plugins.windows.malware.apihooks.IATHooks.name
 rekall.plugins.windows.malware.apihooks.InlineHooks.name
 rekall.plugins.windows.malware.callbacks.Callbacks.name
 rekall.plugins.windows.malware.cmdhistory.Consoles.name
-rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
 rekall.plugins.windows.misc.PoolTracker.name
 rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
 rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
 rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
 rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
 rekall.plugins.windows.registry.printkey.Services.name
 rekall.plugins.windows.registry.printkey.Users.name
 rekall.plugins.windows.registry.registry.Hives.name
 rekall.plugins.windows.ssdt.WinSSDT.name
 rekall.plugins.windows.taskmods.Threads.name
-rekall.plugins.windows.vadinfo.VADMap.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
 rekall.ui.json_renderer.JsonRenderer.name
 rekall.ui.renderer.BaseRenderer.name
 rekall.ui.text.TestRenderer.name
 rekall.ui.text.TextColumn.name
 rekall.ui.text.TextRenderer.name
 rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-43', 'name', 'link-43');">name</a></tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt class="py-name">obj_vm</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
-rekall.entities.collector.EntityCollector.name
-rekall.entities.entity.Entity.name
 rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
 rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
 rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
 rekall.plugins.common.address_resolver.AddressResolverMixin.name
 rekall.plugins.common.inspection.MemoryTranslation.name
-rekall.plugins.common.searches.ListEvents.name
-rekall.plugins.common.searches.ListInterfaces.name
-rekall.plugins.common.searches.ListZones.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
 rekall.plugins.darwin.checks.OIDInfo.name
 rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
 rekall.plugins.filesystems.ntfs.FLS.name
 rekall.plugins.filesystems.ntfs.FStat.name
 rekall.plugins.filesystems.ntfs.IDump.name
@@ -339,10 +498,17 @@ rekall.plugins.guess_profile.LinuxBannerDetector.name
 rekall.plugins.guess_profile.PEImageFileDetector.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
 rekall.plugins.guess_profile.WindowsRSDSDetector.name
 rekall.plugins.linux.common.LinuxFindKernelSlide.name
 rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
 rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
 rekall.plugins.overlays.linux.vfs.File.name
@@ -351,16 +517,30 @@ rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
 rekall.plugins.renderers.data_export.DataExportRenderer.name
 rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
 rekall.plugins.tools.ewf.EWFAcquire.name
 rekall.plugins.tools.ipython.InteractiveShell.name
 rekall.plugins.tools.ipython.PagingLimitHook.name
 rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
 rekall.plugins.tools.profile_tool.BuildProfileLocally.name
-rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
 rekall.plugins.windows.cache.DumpFiles.name
 rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
 rekall.plugins.windows.dns.WinDNSCache.name
 rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
@@ -373,52 +553,120 @@ rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
 rekall.plugins.windows.heap_analysis.InspectHeap.name
 rekall.plugins.windows.heap_analysis.ShowAllocation.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
 rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
 rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
 rekall.plugins.windows.malware.apihooks.EATHooks.name
 rekall.plugins.windows.malware.apihooks.IATHooks.name
 rekall.plugins.windows.malware.apihooks.InlineHooks.name
 rekall.plugins.windows.malware.callbacks.Callbacks.name
 rekall.plugins.windows.malware.cmdhistory.Consoles.name
-rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
 rekall.plugins.windows.misc.PoolTracker.name
 rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
 rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
 rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
 rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
 rekall.plugins.windows.registry.printkey.Services.name
 rekall.plugins.windows.registry.printkey.Users.name
 rekall.plugins.windows.registry.registry.Hives.name
 rekall.plugins.windows.ssdt.WinSSDT.name
 rekall.plugins.windows.taskmods.Threads.name
-rekall.plugins.windows.vadinfo.VADMap.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
 rekall.ui.json_renderer.JsonRenderer.name
 rekall.ui.renderer.BaseRenderer.name
 rekall.ui.text.TestRenderer.name
 rekall.ui.text.TextColumn.name
 rekall.ui.text.TextRenderer.name
 rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-44', 'name', 'link-43');">name</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"> </tt>
-<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">            <tt class="py-comment"># Check the process name is the same - this tests subfield</tt> </tt>
-<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">            <tt class="py-comment"># dereferencing.</tt> </tt>
-<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
-rekall.entities.collector.EntityCollector.name
-rekall.entities.entity.Entity.name
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">            <tt class="py-comment"># Check the process name is the same - this tests subfield</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">            <tt class="py-comment"># dereferencing.</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
 rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
 rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
 rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
 rekall.plugins.common.address_resolver.AddressResolverMixin.name
 rekall.plugins.common.inspection.MemoryTranslation.name
-rekall.plugins.common.searches.ListEvents.name
-rekall.plugins.common.searches.ListInterfaces.name
-rekall.plugins.common.searches.ListZones.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
 rekall.plugins.darwin.checks.OIDInfo.name
 rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
 rekall.plugins.filesystems.ntfs.FLS.name
 rekall.plugins.filesystems.ntfs.FStat.name
 rekall.plugins.filesystems.ntfs.IDump.name
@@ -433,10 +681,17 @@ rekall.plugins.guess_profile.LinuxBannerDetector.name
 rekall.plugins.guess_profile.PEImageFileDetector.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
 rekall.plugins.guess_profile.WindowsRSDSDetector.name
 rekall.plugins.linux.common.LinuxFindKernelSlide.name
 rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
 rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
 rekall.plugins.overlays.linux.vfs.File.name
@@ -445,16 +700,30 @@ rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
 rekall.plugins.renderers.data_export.DataExportRenderer.name
 rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
 rekall.plugins.tools.ewf.EWFAcquire.name
 rekall.plugins.tools.ipython.InteractiveShell.name
 rekall.plugins.tools.ipython.PagingLimitHook.name
 rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
 rekall.plugins.tools.profile_tool.BuildProfileLocally.name
-rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
 rekall.plugins.windows.cache.DumpFiles.name
 rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
 rekall.plugins.windows.dns.WinDNSCache.name
 rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
@@ -467,48 +736,116 @@ rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
 rekall.plugins.windows.heap_analysis.InspectHeap.name
 rekall.plugins.windows.heap_analysis.ShowAllocation.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
 rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
 rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
 rekall.plugins.windows.malware.apihooks.EATHooks.name
 rekall.plugins.windows.malware.apihooks.IATHooks.name
 rekall.plugins.windows.malware.apihooks.InlineHooks.name
 rekall.plugins.windows.malware.callbacks.Callbacks.name
 rekall.plugins.windows.malware.cmdhistory.Consoles.name
-rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
 rekall.plugins.windows.misc.PoolTracker.name
 rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
 rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
 rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
 rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
 rekall.plugins.windows.registry.printkey.Services.name
 rekall.plugins.windows.registry.printkey.Users.name
 rekall.plugins.windows.registry.registry.Hives.name
 rekall.plugins.windows.ssdt.WinSSDT.name
 rekall.plugins.windows.taskmods.Threads.name
-rekall.plugins.windows.vadinfo.VADMap.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
 rekall.ui.json_renderer.JsonRenderer.name
 rekall.ui.renderer.BaseRenderer.name
 rekall.ui.text.TestRenderer.name
 rekall.ui.text.TextColumn.name
 rekall.ui.text.TextRenderer.name
 rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-45', 'name', 'link-43');">name</a></tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.name
-rekall.entities.collector.EntityCollector.name
-rekall.entities.entity.Entity.name
 rekall.kb.ParameterHook.name
+rekall.obj.ConstantProfileSectionLoader.name
+rekall.obj.EnumProfileSectionLoader.name
+rekall.obj.FunctionsProfileSectionLoader.name
+rekall.obj.MergeProfileLoader.name
+rekall.obj.MetadataProfileSectionLoader.name
+rekall.obj.ReverseEnumProfileSectionLoader.name
+rekall.obj.StructProfileLoader.name
 rekall.plugin.Command.name
+rekall.plugins.addrspaces.lime.LimeAddressSpace.name
 rekall.plugins.addrspaces.pagefile.PagefilePhysicalAddressSpace.name
+rekall.plugins.addrspaces.pmem.MacPmemAddressSpace.name
 rekall.plugins.common.address_resolver.AddressResolverMixin.name
 rekall.plugins.common.inspection.MemoryTranslation.name
-rekall.plugins.common.searches.ListEvents.name
-rekall.plugins.common.searches.ListInterfaces.name
-rekall.plugins.common.searches.ListZones.name
+rekall.plugins.common.memmap.MemDumpMixin.name
+rekall.plugins.common.pas2kas.Pas2VasMixin.name
+rekall.plugins.common.pfn.VADMapMixin.name
+rekall.plugins.common.profile_index.IndexProfileLoader.name
+rekall.plugins.common.search.Collect.name
+rekall.plugins.common.search.Explain.name
+rekall.plugins.common.search.FindPlugins.name
+rekall.plugins.common.search.Search.name
+rekall.plugins.common.sigscan.SigScanMixIn.name
+rekall.plugins.core.SetProcessContextMixin.name
+rekall.plugins.core.VtoPMixin.name
 rekall.plugins.darwin.checks.OIDInfo.name
 rekall.plugins.darwin.common.CatfishOffsetHook.name
 rekall.plugins.darwin.common.KernelSlideHook.name
+rekall.plugins.darwin.lsof.DarwinHandles.name
+rekall.plugins.darwin.lsof.DarwinLsof.name
+rekall.plugins.darwin.misc.DarwinHighestUserAddress.name
+rekall.plugins.darwin.misc.DarwinImageFingerprint.name
+rekall.plugins.darwin.networking.DarwinArp.name
+rekall.plugins.darwin.networking.DarwinGetArpListHead.name
+rekall.plugins.darwin.networking.DarwinIfnetCollector.name
+rekall.plugins.darwin.networking.DarwinIfnetHook.name
+rekall.plugins.darwin.networking.DarwinNetstat.name
+rekall.plugins.darwin.networking.DarwinSocketsFromHandles.name
+rekall.plugins.darwin.networking.DarwinUnpListCollector.name
+rekall.plugins.darwin.pas2kas.DarwinPas2VasResolverHook.name
+rekall.plugins.darwin.processes.DarwinAllProcCollector.name
+rekall.plugins.darwin.processes.DarwinPgrpHashCollector.name
+rekall.plugins.darwin.processes.DarwinPidHashProcessCollector.name
+rekall.plugins.darwin.processes.DarwinPsTree.name
+rekall.plugins.darwin.processes.DarwinPslist.name
+rekall.plugins.darwin.processes.DarwinPsxView.name
+rekall.plugins.darwin.processes.DarwinTaskProcessCollector.name
+rekall.plugins.darwin.processes.PsListAllProcHook.name
+rekall.plugins.darwin.processes.PsListPgrpHashHook.name
+rekall.plugins.darwin.processes.PsListPidHashHook.name
+rekall.plugins.darwin.processes.PsListTasksHook.name
+rekall.plugins.darwin.sessions.DarwinSessions.name
+rekall.plugins.darwin.sessions.DarwinTerminals.name
+rekall.plugins.darwin.zones.DarwinDeadFileprocCollector.name
+rekall.plugins.darwin.zones.DarwinDeadProcessCollector.name
+rekall.plugins.darwin.zones.DarwinDumpZone.name
+rekall.plugins.darwin.zones.DarwinSessionZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSessionZoneFinder.name
+rekall.plugins.darwin.zones.DarwinSocketZoneCollector.name
+rekall.plugins.darwin.zones.DarwinSocketZoneFinder.name
+rekall.plugins.darwin.zones.DarwinTTYZoneCollector.name
+rekall.plugins.darwin.zones.DarwinTTYZoneFinder.name
+rekall.plugins.darwin.zones.DarwinZoneCollector.name
+rekall.plugins.darwin.zones.DarwinZoneFileprocFinder.name
+rekall.plugins.darwin.zones.DarwinZoneHook.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeCollector.name
+rekall.plugins.darwin.zones.DarwinZoneVnodeFinder.name
+rekall.plugins.darwin.zones.PsListDeadProcFinder.name
 rekall.plugins.filesystems.ntfs.FLS.name
 rekall.plugins.filesystems.ntfs.FStat.name
 rekall.plugins.filesystems.ntfs.IDump.name
@@ -523,10 +860,17 @@ rekall.plugins.guess_profile.LinuxBannerDetector.name
 rekall.plugins.guess_profile.PEImageFileDetector.name
 rekall.plugins.guess_profile.ProfileHook.name
 rekall.plugins.guess_profile.WindowsIndexDetector.name
+rekall.plugins.guess_profile.WindowsKernelImageDetector.name
 rekall.plugins.guess_profile.WindowsRSDSDetector.name
 rekall.plugins.linux.common.LinuxFindKernelSlide.name
 rekall.plugins.linux.common.LinuxKernelPageOffsetHook.name
 rekall.plugins.linux.common.LinuxKernelSlideHook.name
+rekall.plugins.linux.misc.LinImageFingerprint.name
+rekall.plugins.linux.misc.LinuxHighestUserAddress.name
+rekall.plugins.linux.pas2kas.LinPas2VasResolverHook.name
+rekall.plugins.overlays.darwin.darwin.ifnet.name
+rekall.plugins.overlays.darwin.darwin.session.name
+rekall.plugins.overlays.darwin.darwin.zone.name
 rekall.plugins.overlays.linux.dwarfparser.DIETag.name
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_union_type.name
 rekall.plugins.overlays.linux.vfs.File.name
@@ -535,16 +879,30 @@ rekall.plugins.overlays.windows.win7.ObjectTypeMapHook.name
 rekall.plugins.overlays.windows.win8.ObpInfoMaskToOffsetHook.name
 rekall.plugins.renderers.data_export.DataExportRenderer.name
 rekall.plugins.renderers.xls.XLSRenderer.name
+rekall.plugins.tools.aff4acquire.AFF4Acquire.name
+rekall.plugins.tools.aff4acquire.AFF4Export.name
+rekall.plugins.tools.aff4acquire.AFF4Ls.name
+rekall.plugins.tools.dynamic_profiles.DynamicConstantProfileLoader.name
+rekall.plugins.tools.dynamic_profiles.DynamicStructProfileLoader.name
 rekall.plugins.tools.ewf.EWFAcquire.name
 rekall.plugins.tools.ipython.InteractiveShell.name
 rekall.plugins.tools.ipython.PagingLimitHook.name
 rekall.plugins.tools.json_tools.JSONParser.name
+rekall.plugins.tools.live_darwin.Live.name
+rekall.plugins.tools.live_linux.Live.name
+rekall.plugins.tools.live_windows.Live.name
 rekall.plugins.tools.profile_tool.BuildProfileLocally.name
-rekall.plugins.tools.webconsole.runplugin.WebConsoleRenderer.name
+rekall.plugins.tools.repository_manager.ManageRepository.name
 rekall.plugins.windows.cache.DumpFiles.name
 rekall.plugins.windows.cache.EnumerateVacbs.name
+rekall.plugins.windows.cache.MftDump.name
 rekall.plugins.windows.common.KDBGHook.name
 rekall.plugins.windows.common.PsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListCSRSSHook.name
+rekall.plugins.windows.common.PsListHandlesHook.name
+rekall.plugins.windows.common.PsListPsActiveProcessHeadHook.name
+rekall.plugins.windows.common.PsListPspCidTableHook.name
+rekall.plugins.windows.common.PsListSessionsHook.name
 rekall.plugins.windows.common.PsLoadedModuleList.name
 rekall.plugins.windows.dns.WinDNSCache.name
 rekall.plugins.windows.gui.autodetect.Win32kAutodetect.name
@@ -557,133 +915,128 @@ rekall.plugins.windows.heap_analysis.FindReferenceAlloc.name
 rekall.plugins.windows.heap_analysis.InspectHeap.name
 rekall.plugins.windows.heap_analysis.ShowAllocation.name
 rekall.plugins.windows.index.GuessGUID.name
+rekall.plugins.windows.interactive.profiles.LoadWindowsProfile.name
 rekall.plugins.windows.interactive.structs.AnalyzeStruct.name
+rekall.plugins.windows.kernel.DTB2TaskMap.name
+rekall.plugins.windows.kernel.DriveLetterDeviceHook.name
 rekall.plugins.windows.kernel.KernelBaseHook.name
+rekall.plugins.windows.kernel.ObjectTreeHook.name
+rekall.plugins.windows.kernel.WindowsHighestUserAddress.name
 rekall.plugins.windows.malware.apihooks.CheckPEHooks.name
 rekall.plugins.windows.malware.apihooks.EATHooks.name
 rekall.plugins.windows.malware.apihooks.IATHooks.name
 rekall.plugins.windows.malware.apihooks.InlineHooks.name
 rekall.plugins.windows.malware.callbacks.Callbacks.name
 rekall.plugins.windows.malware.cmdhistory.Consoles.name
-rekall.plugins.windows.malware.yarascan.WinYaraScan.name
+rekall.plugins.windows.malware.psxview.PsListPSScanHook.name
+rekall.plugins.windows.malware.psxview.PsListThrdprocHook.name
+rekall.plugins.windows.mimikatz.Mimikatz.name
 rekall.plugins.windows.misc.ImageInfo.name
 rekall.plugins.windows.misc.ObjectTree.name
 rekall.plugins.windows.misc.Objects.name
 rekall.plugins.windows.misc.PoolTracker.name
 rekall.plugins.windows.misc.Pools.name
+rekall.plugins.windows.misc.WinImageFingerprint.name
 rekall.plugins.windows.modules.UnloadedModules.name
+rekall.plugins.windows.pagefile.PagefileHook.name
 rekall.plugins.windows.pagefile.Pagefiles.name
+rekall.plugins.windows.pas2kas.WinPas2VasResolverHook.name
 rekall.plugins.windows.pfn.DTBScan2.name
+rekall.plugins.windows.privileges.Privileges.name
+rekall.plugins.windows.privileges.PrivilegesHook.name
 rekall.plugins.windows.registry.printkey.Services.name
 rekall.plugins.windows.registry.printkey.Users.name
 rekall.plugins.windows.registry.registry.Hives.name
 rekall.plugins.windows.ssdt.WinSSDT.name
 rekall.plugins.windows.taskmods.Threads.name
-rekall.plugins.windows.vadinfo.VADMap.name
+rekall.plugins.yarascanner.YaraScanMixin.name
+rekall.rekal.Run.name
 rekall.ui.json_renderer.JsonRenderer.name
 rekall.ui.renderer.BaseRenderer.name
 rekall.ui.text.TestRenderer.name
 rekall.ui.text.TextColumn.name
 rekall.ui.text.TextRenderer.name
 rekall.ui.text.WideTextRenderer.name" class="py-name" href="#" onclick="return doclink('link-46', 'name', 'link-43');">name</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">pid</tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt class="py-name">pid</tt><tt class="py-op">)</tt> </tt>
-</div><a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest.testAllObjectSerialization"></a><div id="JsonTest.testAllObjectSerialization-def"><a name="L116"></a><tt class="py-lineno">116</tt> <a class="py-toggle" href="#" id="JsonTest.testAllObjectSerialization-toggle" onclick="return toggle('JsonTest.testAllObjectSerialization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testAllObjectSerialization">testAllObjectSerialization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest.testAllObjectSerialization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testAllObjectSerialization-expanded"><a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">vtype</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-47', 'session', 'link-6');">session</a></tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Variable rekall.entities.collector.EntityCollector.profile=rekall.entities.collector.EntityCollector-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.entities.collector.EntityCollector.profile
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">pid</tt><tt class="py-op">,</tt> <tt class="py-name">decoded_task</tt><tt class="py-op">.</tt><tt class="py-name">pid</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest.testAllObjectSerialization"></a><div id="JsonTest.testAllObjectSerialization-def"><a name="L114"></a><tt class="py-lineno">114</tt> <a class="py-toggle" href="#" id="JsonTest.testAllObjectSerialization-toggle" onclick="return toggle('JsonTest.testAllObjectSerialization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#testAllObjectSerialization">testAllObjectSerialization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest.testAllObjectSerialization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.testAllObjectSerialization-expanded"><a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">vtype</tt> <tt class="py-keyword">in</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-47" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-47', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt id="link-48" class="py-name" targets="Variable rekall.plugins.windows.address_resolver.PEModule.profile=rekall.plugins.windows.address_resolver.PEModule-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
 rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-48', 'profile', 'link-48');">profile</a></tt><tt class="py-op">.</tt><tt id="link-49" class="py-name" targets="Variable rekall.obj.Profile.vtypes=rekall.obj.Profile-class.html#vtypes,Variable rekall.plugins.addrspaces.hibernate.HibernationSupport.vtypes=rekall.plugins.addrspaces.hibernate.HibernationSupport-class.html#vtypes,Variable rekall.plugins.overlays.windows.crashdump.vtypes=rekall.plugins.overlays.windows.crashdump-module.html#vtypes,Package rekall.plugins.windows.gui.vtypes=rekall.plugins.windows.gui.vtypes-module.html"><a title="rekall.obj.Profile.vtypes
 rekall.plugins.addrspaces.hibernate.HibernationSupport.vtypes
 rekall.plugins.overlays.windows.crashdump.vtypes
 rekall.plugins.windows.gui.vtypes" class="py-name" href="#" onclick="return doclink('link-49', 'vtypes', 'link-49');">vtypes</a></tt><tt class="py-op">:</tt> </tt>
-<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">            <tt id="link-50" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-50', 'obj', 'link-50');">obj</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-51', 'session', 'link-6');">session</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="rekall.entities.collector.EntityCollector.profile
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">            <tt id="link-50" class="py-name" targets="Module rekall.obj=rekall.obj-module.html"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-50', 'obj', 'link-50');">obj</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-51', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt id="link-52" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
 rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-52', 'profile', 'link-48');">profile</a></tt><tt class="py-op">.</tt><tt id="link-53" class="py-name" targets="Method rekall.obj.Profile.Object()=rekall.obj.Profile-class.html#Object"><a title="rekall.obj.Profile.Object" class="py-name" href="#" onclick="return doclink('link-53', 'Object', 'link-53');">Object</a></tt><tt class="py-op">(</tt><tt class="py-name">vtype</tt><tt class="py-op">)</tt> </tt>
-<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name" targets="Method rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization()=rekall.plugins.tools.json_test.JsonTest-class.html#CheckObjectSerization"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-54', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt id="link-55" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-55', 'obj', 'link-50');">obj</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
-<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-56', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-57', 'session', 'link-6');">session</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-58', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-59', 'session', 'link-6');">session</a></tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="rekall.entities.collector.EntityCollector.profile
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name" targets="Method rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization()=rekall.plugins.tools.json_test.JsonTest-class.html#CheckObjectSerization"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-54', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt id="link-55" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-55', 'obj', 'link-50');">obj</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-56', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-57', 'profile', 'link-48');">profile</a></tt> <tt class="py-op">!=</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-58" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-58', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-59" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-59', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt id="link-60" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
 rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-60', 'profile', 'link-48');">profile</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-61', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-62', 'session', 'link-6');">session</a></tt><tt class="py-op">.</tt><tt class="py-name">kernel_address_space</tt><tt class="py-op">)</tt> </tt>
-<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-63', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-64', 'session', 'link-6');">session</a></tt><tt class="py-op">.</tt><tt id="link-65" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.physical_address_space=rekall.plugins.hypervisors.VirtualMachine-class.html#physical_address_space"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space" class="py-name" href="#" onclick="return doclink('link-65', 'physical_address_space', 'link-65');">physical_address_space</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"> </tt>
-<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-comment"># Some native types.</tt> </tt>
-<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-66', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt id="link-67" class="py-name"><a title="rekall.entities.query.expression.Membership.set" class="py-name" href="#" onclick="return doclink('link-67', 'set', 'link-15');">set</a></tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-68', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-name">b</tt><tt class="py-op">=</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
-</div><a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"> </tt>
-<a name="JsonTest.CheckObjectSerization"></a><div id="JsonTest.CheckObjectSerization-def"><a name="L130"></a><tt class="py-lineno">130</tt> <a class="py-toggle" href="#" id="JsonTest.CheckObjectSerization-toggle" onclick="return toggle('JsonTest.CheckObjectSerization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#CheckObjectSerization">CheckObjectSerization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">obj</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
-</div><div id="JsonTest.CheckObjectSerization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.CheckObjectSerization-expanded"><a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-name">object_renderer_cls</tt> <tt class="py-op">=</tt> <tt id="link-69" class="py-name"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-69', 'json_renderer', 'link-4');">json_renderer</a></tt><tt class="py-op">.</tt><tt id="link-70" class="py-name" targets="Class rekall.ui.json_renderer.JsonObjectRenderer=rekall.ui.json_renderer.JsonObjectRenderer-class.html"><a title="rekall.ui.json_renderer.JsonObjectRenderer" class="py-name" href="#" onclick="return doclink('link-70', 'JsonObjectRenderer', 'link-70');">JsonObjectRenderer</a></tt><tt class="py-op">.</tt><tt id="link-71" class="py-name" targets="Class Method rekall.ui.renderer.ObjectRenderer.ForTarget()=rekall.ui.renderer.ObjectRenderer-class.html#ForTarget"><a title="rekall.ui.renderer.ObjectRenderer.ForTarget" class="py-name" href="#" onclick="return doclink('link-71', 'ForTarget', 'link-71');">ForTarget</a></tt><tt class="py-op">(</tt> </tt>
-<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">            <tt id="link-72" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-72', 'obj', 'link-50');">obj</a></tt><tt class="py-op">,</tt> <tt class="py-string">"JsonRenderer"</tt><tt class="py-op">)</tt> </tt>
-<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"> </tt>
-<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">        <tt id="link-73" class="py-name" targets="Variable rekall.ui.text.TextColumn.object_renderer=rekall.ui.text.TextColumn-class.html#object_renderer"><a title="rekall.ui.text.TextColumn.object_renderer" class="py-name" href="#" onclick="return doclink('link-73', 'object_renderer', 'link-73');">object_renderer</a></tt> <tt class="py-op">=</tt> <tt class="py-name">object_renderer_cls</tt><tt class="py-op">(</tt><tt id="link-74" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-74', 'session', 'link-6');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-75', 'session', 'link-6');">session</a></tt><tt class="py-op">,</tt> </tt>
-<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">                                              <tt id="link-76" class="py-name"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-76', 'renderer', 'link-8');">renderer</a></tt><tt class="py-op">=</tt><tt class="py-string">"JsonRenderer"</tt><tt class="py-op">)</tt> </tt>
-<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"> </tt>
-<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt class="py-name">encoded</tt> <tt class="py-op">=</tt> <tt id="link-77" class="py-name"><a title="rekall.ui.text.TextColumn.object_renderer" class="py-name" href="#" onclick="return doclink('link-77', 'object_renderer', 'link-73');">object_renderer</a></tt><tt class="py-op">.</tt><tt id="link-78" class="py-name" targets="Method rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.EncodeToJsonSafe()=rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer-class.html#EncodeToJsonSafe,Method rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.EncodeToJsonSafe()=rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer-class.html#EncodeToJsonSafe,Method rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.EncodeToJsonSafe()=rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer-class.html#EncodeToJsonSafe,Method rekall.plugins.renderers.windows.EPROCESSDataExport.EncodeToJsonSafe()=rekall.plugins.renderers.windows.EPROCESSDataExport-class.html#EncodeToJsonSafe,Method rekall.plugins.renderers.windows.STRINGDataExport.EncodeToJsonSafe()=rekall.plugins.renderers.windows.STRINGDataExport-class.html#EncodeToJsonSafe,Method rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.EncodeToJsonSafe()=rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html#EncodeToJsonSafe,Method rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.EncodeToJsonSafe()=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#EncodeToJsonSafe,Method rekall.ui.json_renderer.JsonObjectRenderer.EncodeToJsonSafe()=rekall.ui.json_renderer.JsonObjectRenderer-class.html#EncodeToJsonSafe,Method rekall.ui.json_renderer.StateBasedObjectRenderer.EncodeToJsonSafe()=rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#EncodeToJsonSafe,Method rekall.ui.json_renderer.StringRenderer.EncodeToJsonSafe()=rekall.ui.json_renderer.StringRenderer-class.html#EncodeToJsonSafe"><a title="rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.EncodeToJsonSafe
-rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.EncodeToJsonSafe
-rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.EncodeToJsonSafe
-rekall.plugins.renderers.windows.EPROCESSDataExport.EncodeToJsonSafe
-rekall.plugins.renderers.windows.STRINGDataExport.EncodeToJsonSafe
-rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.EncodeToJsonSafe
-rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.EncodeToJsonSafe
-rekall.ui.json_renderer.JsonObjectRenderer.EncodeToJsonSafe
-rekall.ui.json_renderer.StateBasedObjectRenderer.EncodeToJsonSafe
-rekall.ui.json_renderer.StringRenderer.EncodeToJsonSafe" class="py-name" href="#" onclick="return doclink('link-78', 'EncodeToJsonSafe', 'link-78');">EncodeToJsonSafe</a></tt><tt class="py-op">(</tt><tt id="link-79" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-79', 'obj', 'link-50');">obj</a></tt><tt class="py-op">,</tt> <tt class="py-name">strict</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-61" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-61', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-62', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt class="py-name">kernel_address_space</tt><tt class="py-op">)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-63" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-63', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-64', 'session', 'link-11');">session</a></tt><tt class="py-op">.</tt><tt id="link-65" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.physical_address_space=rekall.plugins.hypervisors.VirtualMachine-class.html#physical_address_space,Variable rekall.session.Session.physical_address_space=rekall.session.Session-class.html#physical_address_space"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-65', 'physical_address_space', 'link-65');">physical_address_space</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-comment"># Some native types.</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-66', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">set</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> <tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-67" class="py-name"><a title="rekall.plugins.tools.json_test.JsonTest.CheckObjectSerization" class="py-name" href="#" onclick="return doclink('link-67', 'CheckObjectSerization', 'link-54');">CheckObjectSerization</a></tt><tt class="py-op">(</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-name">b</tt><tt class="py-op">=</tt><tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-name">a</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"> </tt>
+<a name="JsonTest.CheckObjectSerization"></a><div id="JsonTest.CheckObjectSerization-def"><a name="L128"></a><tt class="py-lineno">128</tt> <a class="py-toggle" href="#" id="JsonTest.CheckObjectSerization-toggle" onclick="return toggle('JsonTest.CheckObjectSerization');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.tools.json_test.JsonTest-class.html#CheckObjectSerization">CheckObjectSerization</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">obj</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="JsonTest.CheckObjectSerization-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="JsonTest.CheckObjectSerization-expanded"><a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">        <tt class="py-name">json_renderer_obj</tt> <tt class="py-op">=</tt> <tt id="link-68" class="py-name"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-68', 'json_renderer', 'link-5');">json_renderer</a></tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer" class="py-name" href="#" onclick="return doclink('link-69', 'JsonRenderer', 'link-15');">JsonRenderer</a></tt><tt class="py-op">(</tt><tt id="link-70" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-70', 'session', 'link-11');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-71" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-71', 'session', 'link-11');">session</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-name">data_export_renderer_obj</tt> <tt class="py-op">=</tt> <tt id="link-72" class="py-name"><a title="rekall.plugins.renderers.data_export" class="py-name" href="#" onclick="return doclink('link-72', 'data_export', 'link-9');">data_export</a></tt><tt class="py-op">.</tt><tt id="link-73" class="py-name" targets="Class rekall.plugins.renderers.data_export.DataExportRenderer=rekall.plugins.renderers.data_export.DataExportRenderer-class.html"><a title="rekall.plugins.renderers.data_export.DataExportRenderer" class="py-name" href="#" onclick="return doclink('link-73', 'DataExportRenderer', 'link-73');">DataExportRenderer</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">            <tt id="link-74" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-74', 'session', 'link-11');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-75', 'session', 'link-11');">session</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-comment"># First test json encodings.</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">        <tt class="py-name">encoded</tt> <tt class="py-op">=</tt> <tt class="py-name">json_renderer_obj</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.encode()=rekall.ui.json_renderer.JsonRenderer-class.html#encode,Function rekall.yaml_utils.encode()=rekall.yaml_utils-module.html#encode"><a title="rekall.ui.json_renderer.JsonRenderer.encode
+rekall.yaml_utils.encode" class="py-name" href="#" onclick="return doclink('link-76', 'encode', 'link-76');">encode</a></tt><tt class="py-op">(</tt><tt id="link-77" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-77', 'obj', 'link-50');">obj</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure it is json safe.</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">)</tt> </tt>
 <a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"> </tt>
-<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure it is json safe.</tt> </tt>
-<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">)</tt> </tt>
-<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"> </tt>
-<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt class="py-comment"># Now decode it.</tt> </tt>
-<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-name">decoding_object_renderer_cls</tt> <tt class="py-op">=</tt> <tt id="link-80" class="py-name"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-80', 'json_renderer', 'link-4');">json_renderer</a></tt><tt class="py-op">.</tt><tt id="link-81" class="py-name"><a title="rekall.ui.json_renderer.JsonObjectRenderer" class="py-name" href="#" onclick="return doclink('link-81', 'JsonObjectRenderer', 'link-70');">JsonObjectRenderer</a></tt><tt class="py-op">.</tt><tt id="link-82" class="py-name" targets="Class Method rekall.ui.json_renderer.JsonObjectRenderer.FromEncoded()=rekall.ui.json_renderer.JsonObjectRenderer-class.html#FromEncoded"><a title="rekall.ui.json_renderer.JsonObjectRenderer.FromEncoded" class="py-name" href="#" onclick="return doclink('link-82', 'FromEncoded', 'link-82');">FromEncoded</a></tt><tt class="py-op">(</tt> </tt>
-<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">            <tt class="py-name">encoded</tt><tt class="py-op">,</tt> <tt class="py-string">"JsonRenderer"</tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">        <tt class="py-comment"># Now decode it.</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-name">decoded</tt> <tt class="py-op">=</tt> <tt class="py-name">json_renderer_obj</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name" targets="Method rekall.ui.json_renderer.JsonRenderer.decode()=rekall.ui.json_renderer.JsonRenderer-class.html#decode,Function rekall.yaml_utils.decode()=rekall.yaml_utils-module.html#decode"><a title="rekall.ui.json_renderer.JsonRenderer.decode
+rekall.yaml_utils.decode" class="py-name" href="#" onclick="return doclink('link-78', 'decode', 'link-78');">decode</a></tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">)</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">decoded</tt><tt class="py-op">,</tt> <tt id="link-79" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-79', 'obj', 'link-50');">obj</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-comment"># Now check the DataExportRenderer.</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">        <tt class="py-name">encoded</tt> <tt class="py-op">=</tt> <tt class="py-name">data_export_renderer_obj</tt><tt class="py-op">.</tt><tt id="link-80" class="py-name"><a title="rekall.ui.json_renderer.JsonRenderer.encode
+rekall.yaml_utils.encode" class="py-name" href="#" onclick="return doclink('link-80', 'encode', 'link-76');">encode</a></tt><tt class="py-op">(</tt><tt id="link-81" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-81', 'obj', 'link-50');">obj</a></tt><tt class="py-op">)</tt> </tt>
 <a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"> </tt>
-<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">decoding_object_renderer_cls</tt><tt class="py-op">,</tt> <tt class="py-name">object_renderer_cls</tt><tt class="py-op">)</tt> </tt>
-<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-name">decoded</tt> <tt class="py-op">=</tt> <tt id="link-83" class="py-name"><a title="rekall.ui.text.TextColumn.object_renderer" class="py-name" href="#" onclick="return doclink('link-83', 'object_renderer', 'link-73');">object_renderer</a></tt><tt class="py-op">.</tt><tt id="link-84" class="py-name" targets="Method rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.renderers.json_storage.NoneObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.json_storage.NoneObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.renderers.json_storage.ProfileObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.json_storage.ProfileObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.renderers.json_storage.SessionObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.json_storage.SessionObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.renderers.json_storage.SetObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.json_storage.SetObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.DecodeFromJsonSafe()=rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer.DecodeFromJsonSafe()=rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.ui.json_renderer.BaseObjectRenderer.DecodeFromJsonSafe()=rekall.ui.json_renderer.BaseObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.ui.json_renderer.JSTreeNodeRenderer.DecodeFromJsonSafe()=rekall.ui.json_renderer.JSTreeNodeRenderer-class.html#DecodeFromJsonSafe,Method rekall.ui.json_renderer.JsonObjectRenderer.DecodeFromJsonSafe()=rekall.ui.json_renderer.JsonObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.ui.json_renderer.StateBasedObjectRenderer.DecodeFromJsonSafe()=rekall.ui.json_renderer.StateBasedObjectRenderer-class.html#DecodeFromJsonSafe,Method rekall.ui.json_renderer.StringRenderer.DecodeFromJsonSafe()=rekall.ui.json_renderer.StringRenderer-class.html#DecodeFromJsonSafe"><a title="rekall.plugins.renderers.json_storage.AttributeDictObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.renderers.json_storage.NoneObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.renderers.json_storage.ProfileObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.renderers.json_storage.SessionObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.renderers.json_storage.SetObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.renderers.json_storage.UnixTimestampJsonObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.renderers.virtualization.VirtualMachine_JsonObjectRenderer.DecodeFromJsonSafe
-rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.DecodeFromJsonSafe
-rekall.ui.json_renderer.BaseAddressSpaceObjectRenderer.DecodeFromJsonSafe
-rekall.ui.json_renderer.BaseObjectRenderer.DecodeFromJsonSafe
-rekall.ui.json_renderer.JSTreeNodeRenderer.DecodeFromJsonSafe
-rekall.ui.json_renderer.JsonObjectRenderer.DecodeFromJsonSafe
-rekall.ui.json_renderer.StateBasedObjectRenderer.DecodeFromJsonSafe
-rekall.ui.json_renderer.StringRenderer.DecodeFromJsonSafe" class="py-name" href="#" onclick="return doclink('link-84', 'DecodeFromJsonSafe', 'link-84');">DecodeFromJsonSafe</a></tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt><tt class="py-op">)</tt> </tt>
-<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">decoded</tt><tt class="py-op">,</tt> <tt id="link-85" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-85', 'obj', 'link-50');">obj</a></tt><tt class="py-op">)</tt> </tt>
-<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"> </tt>
-<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-comment"># Now check the DataExportRenderer.</tt> </tt>
-<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">        <tt class="py-name">object_renderer_cls</tt> <tt class="py-op">=</tt> <tt id="link-86" class="py-name"><a title="rekall.ui.json_renderer" class="py-name" href="#" onclick="return doclink('link-86', 'json_renderer', 'link-4');">json_renderer</a></tt><tt class="py-op">.</tt><tt id="link-87" class="py-name"><a title="rekall.ui.json_renderer.JsonObjectRenderer" class="py-name" href="#" onclick="return doclink('link-87', 'JsonObjectRenderer', 'link-70');">JsonObjectRenderer</a></tt><tt class="py-op">.</tt><tt id="link-88" class="py-name"><a title="rekall.ui.renderer.ObjectRenderer.ForTarget" class="py-name" href="#" onclick="return doclink('link-88', 'ForTarget', 'link-71');">ForTarget</a></tt><tt class="py-op">(</tt> </tt>
-<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">            <tt id="link-89" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-89', 'obj', 'link-50');">obj</a></tt><tt class="py-op">,</tt> <tt class="py-string">"DataExportRenderer"</tt><tt class="py-op">)</tt> </tt>
-<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"> </tt>
-<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"> </tt>
-<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt id="link-90" class="py-name"><a title="rekall.ui.text.TextColumn.object_renderer" class="py-name" href="#" onclick="return doclink('link-90', 'object_renderer', 'link-73');">object_renderer</a></tt> <tt class="py-op">=</tt> <tt class="py-name">object_renderer_cls</tt><tt class="py-op">(</tt><tt id="link-91" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-91', 'session', 'link-6');">session</a></tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-92" class="py-name"><a title="rekall.session
-rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-92', 'session', 'link-6');">session</a></tt><tt class="py-op">,</tt> </tt>
-<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">                                              <tt id="link-93" class="py-name"><a title="rekall.ui.renderer" class="py-name" href="#" onclick="return doclink('link-93', 'renderer', 'link-8');">renderer</a></tt><tt class="py-op">=</tt><tt class="py-string">"DataExportRenderer"</tt><tt class="py-op">)</tt> </tt>
-<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line"> </tt>
-<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-name">encoded</tt> <tt class="py-op">=</tt> <tt id="link-94" class="py-name"><a title="rekall.ui.text.TextColumn.object_renderer" class="py-name" href="#" onclick="return doclink('link-94', 'object_renderer', 'link-73');">object_renderer</a></tt><tt class="py-op">.</tt><tt id="link-95" class="py-name"><a title="rekall.plugins.renderers.data_export.DataExportNativeTypeRenderer.EncodeToJsonSafe
-rekall.plugins.renderers.linux.kuid_t_JsonObjectRenderer.EncodeToJsonSafe
-rekall.plugins.renderers.virtualization.VirtualMachine_DataExportRenderer.EncodeToJsonSafe
-rekall.plugins.renderers.windows.EPROCESSDataExport.EncodeToJsonSafe
-rekall.plugins.renderers.windows.STRINGDataExport.EncodeToJsonSafe
-rekall.plugins.renderers.windows.UNICODE_STRINGDataExport.EncodeToJsonSafe
-rekall.plugins.tools.webconsole.runplugin.WebConsoleObjectRenderer.EncodeToJsonSafe
-rekall.ui.json_renderer.JsonObjectRenderer.EncodeToJsonSafe
-rekall.ui.json_renderer.StateBasedObjectRenderer.EncodeToJsonSafe
-rekall.ui.json_renderer.StringRenderer.EncodeToJsonSafe" class="py-name" href="#" onclick="return doclink('link-95', 'EncodeToJsonSafe', 'link-78');">EncodeToJsonSafe</a></tt><tt class="py-op">(</tt><tt id="link-96" class="py-name"><a title="rekall.obj" class="py-name" href="#" onclick="return doclink('link-96', 'obj', 'link-50');">obj</a></tt><tt class="py-op">,</tt> <tt class="py-name">strict</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
-<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"> </tt>
-<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure it is json safe.</tt> </tt>
-<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">        <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">)</tt> </tt>
-</div></div><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
-<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-comment"># Data Export is not decodable.</tt> </tt>
-<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt class="py-comment"># Make sure it is json safe.</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-name">json</tt><tt class="py-op">.</tt><tt class="py-name">dumps</tt><tt class="py-op">(</tt><tt class="py-name">encoded</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-comment"># Data Export is not decodable.</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"> </tt><script type="text/javascript">
 <!--
 expandto(location.href);
 // -->
@@ -694,9 +1047,6 @@ expandto(location.href);
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -721,7 +1071,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:09:03 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:35 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

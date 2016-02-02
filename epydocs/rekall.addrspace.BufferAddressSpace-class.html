@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -113,11 +110,30 @@
           <td><span class="summary-sig"><a href="rekall.addrspace.BufferAddressSpace-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">base_offset</span>=<span class="summary-sig-default">0</span>,
         <span class="summary-sig-arg">data</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">metadata</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Base is the AS we will be stacking on top of, opts are options which
 we may use.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.addrspace.BufferAddressSpace-class.html#metadata" class="summary-sig-name">metadata</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">key</span>)</span><br />
+      Obtain metadata about this address space.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.metadata">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -188,7 +204,8 @@ we may use.</td>
         <tr>
           <td><span class="summary-sig"><a href="rekall.addrspace.BufferAddressSpace-class.html#write" class="summary-sig-name">write</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">addr</span>,
-        <span class="summary-sig-arg">data</span>)</span></td>
+        <span class="summary-sig-arg">data</span>)</span><br />
+      Write to the address space, if writable.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.write">source&nbsp;code</a></span>
             
@@ -204,11 +221,11 @@ we may use.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.addrspace.BufferAddressSpace-class.html#get_available_addresses" class="summary-sig-name">get_available_addresses</a>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="rekall.addrspace.BufferAddressSpace-class.html#get_mappings" class="summary-sig-name">get_mappings</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Generates address ranges (offset, phys_offset, size) for this AS.</td>
+      Generates a sequence of Run() objects.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.get_available_addresses">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.get_mappings">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -290,6 +307,25 @@ we may use.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="ConfigureSession"></a><span class="summary-sig-name">ConfigureSession</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">session_obj</span>)</span><br />
+      Implement this method if you need to configure the session.
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.ConfigureSession">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="__eq__"></a><span class="summary-sig-name">__eq__</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">other</span>)</span>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
@@ -326,6 +362,23 @@ we may use.</td>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="__unicode__"></a><span class="summary-sig-name">__unicode__</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.__unicode__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.addrspace.BaseAddressSpace-class.html#as_assert" class="summary-sig-name">as_assert</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">assertion</span>,
         <span class="summary-sig-arg">error</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -334,6 +387,23 @@ we may use.</td>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.as_assert">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="close"></a><span class="summary-sig-name">close</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.close">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -368,11 +438,51 @@ we may use.</td>
         <tr>
           <td><span class="summary-sig"><a href="rekall.addrspace.BaseAddressSpace-class.html#get_address_ranges" class="summary-sig-name">get_address_ranges</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">0</span>,
-        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Generates the address ranges which fall between start and end.
+        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">4503599627370495</span>)</span><br />
+      Generates the runs which fall between start and end.
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.get_address_ranges">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_mapped_offset"></a><span class="summary-sig-name">get_mapped_offset</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">filename</span>,
+        <span class="summary-sig-arg">offset</span>)</span><br />
+      Implement this if we can map files into this address space.
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.get_mapped_offset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.addrspace.BaseAddressSpace-class.html#merge_base_ranges" class="summary-sig-name">merge_base_ranges</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">4503599627370495</span>)</span><br />
+      Generates merged address ranges from get_mapping().
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.merge_base_ranges">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -392,6 +502,25 @@ we may use.</td>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.vtop">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="vtop_run"></a><span class="summary-sig-name">vtop_run</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">addr</span>)</span><br />
+      Returns a Run object describing where addr can be read from.
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.vtop_run">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -458,26 +587,6 @@ we may use.</td>
       
     </td>
   </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="metadata"></a><span class="summary-sig-name">metadata</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Obtain metadata about this address space.
-      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.addrspace-pysrc.html#BaseAddressSpace.metadata">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 </table>
 <!-- ==================== CLASS VARIABLES ==================== -->
 <a name="section-ClassVariables"></a>
@@ -495,10 +604,10 @@ we may use.</td>
 sSpace'&gt;,
  'AMD64PagedMemory': &lt;class 'rekall.plugins.addrspaces.amd64.AMD64Page\
 dMemory'&gt;,
- 'CustomRunsAddressSpace': &lt;class 'rekall.addrspace_test.CustomRunsAdd\
-ressSpace'&gt;,
- 'DummyAddressSpace': &lt;class 'rekall.plugins.addrspaces.standard.Dummy\
-AddressSpace'&gt;,
+ 'ArmPagedMemory': &lt;class 'rekall.plugins.addrspaces.arm.ArmPagedMemor\
+y'&gt;,
+ 'CustomAddressSpace': &lt;class 'rekall.session_test.CustomAddressSpace'\
+&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4AddressSpace</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.addrspac<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
@@ -507,9 +616,15 @@ AddressSpace'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.addrspace.BaseAddressSpace-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'': &lt;class 'rekall.addrspace_test.CustomRunsAddressSpace'&gt;,
- 'pagefile': &lt;class 'rekall.plugins.addrspaces.pagefile.PagefilePhysic\
-alAddressSpace'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.addrspace_test.CustomRun<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.addrspace.BaseAddressSpace-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'': [&lt;class 'rekall.plugins.addrspaces.intel.IA32PagedMemory'&gt;,
+      &lt;class 'rekall.plugins.addrspaces.intel.IA32PagedMemoryPae'&gt;,
+      &lt;class 'rekall.plugins.addrspaces.standard.FDAddressSpace'&gt;,
+      &lt;class 'rekall.plugins.addrspaces.standard.FileAddressSpace'&gt;,
+      &lt;class 'rekall.plugins.addrspaces.standard.GlobalOffsetAddressSp\
+ace'&gt;,
+      &lt;class 'rekall.plugins.addrspaces.standard.WritableAddressSpace'\
+&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.addrspaces.inte<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
   </tr>
@@ -537,6 +652,14 @@ alAddressSpace'&gt;}"><code class="variable-group">{</code><code class="variable
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="volatile"></a><span class="summary-name">volatile</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
+    </td>
+  </tr>
 </table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
@@ -546,6 +669,14 @@ alAddressSpace'&gt;}"><code class="variable-group">{</code><code class="variable
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.addrspace.BufferAddressSpace-class.html#writable" class="summary-name">writable</a><br />
+      Buffer AS is always writable, no matter what the session says.
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -573,6 +704,7 @@ alAddressSpace'&gt;}"><code class="variable-group">{</code><code class="variable
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">base_offset</span>=<span class="sig-default">0</span>,
         <span class="sig-arg">data</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">metadata</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -587,19 +719,41 @@ we may use.
 
 Args:
   base: A base address space to stack on top of (i.e. delegate to it for
-    satisfying read requests).
+      satisfying read requests).
 
   session: An optional session object.
 
-  write: Should writing be allowed? Not currently implemented.
-
   profile: An optional profile to use for parsing the address space
-    (e.g. needed for hibernation, crash etc.)
+      (e.g. needed for hibernation, crash etc.)
 
 </pre>
   <dl class="fields">
     <dt>Overrides:
         object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="metadata"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">metadata</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">key</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.metadata">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Obtain metadata about this address space.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.addrspace.BaseAddressSpace-class.html#metadata">BaseAddressSpace.metadata</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -670,38 +824,70 @@ Args:
     </td>
   </tr></table>
   
-  
+  <pre class="literalblock">
+Write to the address space, if writable.
+
+The default behavior is to delegate the write to the base address space.
+If an address space has no base then this function will throw an
+IOError. Address spaces that actually implement writing should override.
+
+Raises:
+    IOError if there is no base address space. Subclasses may raise
+        under additional circumstances.
+
+Arguments:
+    addr: The address to write at, as understood by this AS (i.e.
+        a virtual address for virtual address spaces, physical for
+        physical).
+    buf: The data to write - most commonly a basestring instance.
+
+Returns:
+    Number of bytes written.
+
+</pre>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.addrspace.BaseAddressSpace-class.html#write">BaseAddressSpace.write</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
 </div>
-<a name="get_available_addresses"></a>
+<a name="get_mappings"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_available_addresses</span>(<span class="sig-arg">self</span>,
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_mappings</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">start</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.get_available_addresses">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.addrspace-pysrc.html#BufferAddressSpace.get_mappings">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <p>Generates address ranges (offset, phys_offset, size) for this AS.</p>
-  <p>NOTE!! The phys_offset here refers to an address read from the 
-  phys_base member of this address space. I.e. it should be possible for 
-  callers to call get_available_addresses() and then directly get data via 
-  address_space.phys_base.read(phys_offset, length).</p>
-  <p>Address ranges must be returned ordered.</p>
+  <pre class="literalblock">
+Generates a sequence of Run() objects.
+
+Each Run object describes a single range transformation from this
+address space to another address space at a potentially different
+mapped_offset.
+
+Runs are assumed to not overlap and are generated in increasing order.
+
+Args:
+  start: The suggested start address we are interested in. This function
+      may omit runs that lie entirely below this start address. Note:
+      Runs are not adjusted to begin at the start address - it may be
+      possible that this method returns a run which starts earlier than
+      the specified start address.
+
+</pre>
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.addrspace.BaseAddressSpace-class.html#get_available_addresses">BaseAddressSpace.get_available_addresses</a>
+        <a href="rekall.addrspace.BaseAddressSpace-class.html#get_mappings">BaseAddressSpace.get_mappings</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -802,13 +988,35 @@ Args:
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Property Details</span></td>
+</tr>
+</table>
+<a name="writable"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">writable</h3>
+  <p>Buffer AS is always writable, no matter what the session says.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.writable(<span class="summary-sig-arg">self</span>)</span>
+        - Buffer AS is always writable, no matter what the session says.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -833,7 +1041,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:21 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:46 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

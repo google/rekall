@@ -1,12 +1,11 @@
 ---
-layout: plugin
-title: phys_map
-abstract: |
-  Prints the boot physical memory map.
-
+abstract: Prints the boot physical memory map.
+args: {}
+class_name: WinPhysicalMap
 epydoc: rekall.plugins.windows.misc.WinPhysicalMap-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.misc
+title: phys_map
 ---
 
 This plugin will simply print the kernels idea of the physical memory layout on

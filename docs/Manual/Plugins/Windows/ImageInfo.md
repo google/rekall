@@ -1,12 +1,11 @@
 ---
-layout: plugin
-title: imageinfo
-abstract: |
-  List overview information about this image.
-
+abstract: List overview information about this image.
+args: {}
+class_name: ImageInfo
 epydoc: rekall.plugins.windows.misc.ImageInfo-class.html
-args:
-
+layout: plugin
+module: rekall.plugins.windows.misc
+title: imageinfo
 ---
 
 This plugin prints an overview of certain parameters of the image.

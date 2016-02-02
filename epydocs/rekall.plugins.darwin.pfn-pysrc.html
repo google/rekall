@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.darwin.pfn</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.darwin-module.html">Package&nbsp;darwin</a> ::
+        Module&nbsp;pfn
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.darwin.pfn-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.darwin.pfn-module.html">Module rekall.plugins.darwin.pfn</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Rekall Memory Forensics</tt> </tt>
+<a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-comment"># Copyright 2015 Google Inc. All Rights Reserved.</tt> </tt>
+<a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-comment"># Authors:</tt> </tt>
+<a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"><tt class="py-comment"># Michael Cohen &lt;scudette@google.com&gt;</tt> </tt>
+<a name="L7"></a><tt class="py-lineno"> 7</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno"> 8</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or modify</tt> </tt>
+<a name="L9"></a><tt class="py-lineno"> 9</tt>  <tt class="py-line"><tt class="py-comment"># it under the terms of the GNU General Public License as published by</tt> </tt>
+<a name="L10"></a><tt class="py-lineno">10</tt>  <tt class="py-line"><tt class="py-comment"># the Free Software Foundation; either version 2 of the License, or (at</tt> </tt>
+<a name="L11"></a><tt class="py-lineno">11</tt>  <tt class="py-line"><tt class="py-comment"># your option) any later version.</tt> </tt>
+<a name="L12"></a><tt class="py-lineno">12</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L13"></a><tt class="py-lineno">13</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful, but</tt> </tt>
+<a name="L14"></a><tt class="py-lineno">14</tt>  <tt class="py-line"><tt class="py-comment"># WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</tt> </tt>
+<a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-comment"># General Public License for more details.</tt> </tt>
+<a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L18"></a><tt class="py-lineno">18</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L19"></a><tt class="py-lineno">19</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L20"></a><tt class="py-lineno">20</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA</tt> </tt>
+<a name="L21"></a><tt class="py-lineno">21</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L22"></a><tt class="py-lineno">22</tt>  <tt class="py-line"> </tt>
+<a name="L23"></a><tt class="py-lineno">23</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-2', 'common', 'link-2');">common</a></tt> <tt class="py-keyword">import</tt> <tt id="link-3" class="py-name" targets="Module rekall.plugins.common.pfn=rekall.plugins.common.pfn-module.html,Module rekall.plugins.darwin.pfn=rekall.plugins.darwin.pfn-module.html,Module rekall.plugins.windows.pfn=rekall.plugins.windows.pfn-module.html"><a title="rekall.plugins.common.pfn
+rekall.plugins.darwin.pfn
+rekall.plugins.windows.pfn" class="py-name" href="#" onclick="return doclink('link-3', 'pfn', 'link-3');">pfn</a></tt> </tt>
+<a name="L24"></a><tt class="py-lineno">24</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-4" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-4', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-5" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-5', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Package rekall.plugins.darwin=rekall.plugins.darwin-module.html,Package rekall.plugins.overlays.darwin=rekall.plugins.overlays.darwin-module.html,Module rekall.plugins.overlays.darwin.darwin=rekall.plugins.overlays.darwin.darwin-module.html,Module rekall.plugins.renderers.darwin=rekall.plugins.renderers.darwin-module.html"><a title="rekall.plugins.darwin
+rekall.plugins.overlays.darwin
+rekall.plugins.overlays.darwin.darwin
+rekall.plugins.renderers.darwin" class="py-name" href="#" onclick="return doclink('link-6', 'darwin', 'link-6');">darwin</a></tt> <tt class="py-keyword">import</tt> <tt id="link-7" class="py-name"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-7', 'common', 'link-2');">common</a></tt> </tt>
+<a name="L25"></a><tt class="py-lineno">25</tt>  <tt class="py-line"> </tt>
+<a name="L26"></a><tt class="py-lineno">26</tt>  <tt class="py-line"> </tt>
+<a name="DarwinVadMap"></a><div id="DarwinVadMap-def"><a name="L27"></a><tt class="py-lineno">27</tt> <a class="py-toggle" href="#" id="DarwinVadMap-toggle" onclick="return toggle('DarwinVadMap');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.darwin.pfn.DarwinVadMap-class.html">DarwinVadMap</a><tt class="py-op">(</tt><tt class="py-base-class">pfn</tt><tt class="py-op">.</tt><tt class="py-base-class">VADMapMixin</tt><tt class="py-op">,</tt> </tt>
+<a name="L28"></a><tt class="py-lineno">28</tt>  <tt class="py-line">                   <tt class="py-base-class">common</tt><tt class="py-op">.</tt><tt class="py-base-class">DarwinProcessFilter</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinVadMap-collapsed" style="display:none;" pad="++" indent="++++"></div><div id="DarwinVadMap-expanded"><a name="L29"></a><tt class="py-lineno">29</tt>  <tt class="py-line"> </tt>
+<a name="DarwinVadMap._FillMetadata"></a><div id="DarwinVadMap._FillMetadata-def"><a name="L30"></a><tt class="py-lineno">30</tt> <a class="py-toggle" href="#" id="DarwinVadMap._FillMetadata-toggle" onclick="return toggle('DarwinVadMap._FillMetadata');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.darwin.pfn.DarwinVadMap-class.html#_FillMetadata">_FillMetadata</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">vaddr</tt><tt class="py-op">,</tt> <tt class="py-param">metadata</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinVadMap._FillMetadata-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="DarwinVadMap._FillMetadata-expanded"><a name="L31"></a><tt class="py-lineno">31</tt>  <tt class="py-line">        <tt id="link-8" class="py-name" targets="Variable rekall.addrspace.Run.address_space=rekall.addrspace.Run-class.html#address_space"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-8', 'address_space', 'link-8');">address_space</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Variable rekall.plugins.common.search.CommandWrapper.session=rekall.plugins.common.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-9', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-10" class="py-name" targets="Method rekall.session.Session.GetParameter()=rekall.session.Session-class.html#GetParameter"><a title="rekall.session.Session.GetParameter" class="py-name" href="#" onclick="return doclink('link-10', 'GetParameter', 'link-10');">GetParameter</a></tt><tt class="py-op">(</tt><tt class="py-string">"default_address_space"</tt><tt class="py-op">)</tt> </tt>
+<a name="L32"></a><tt class="py-lineno">32</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt id="link-11" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#type"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-11', 'type', 'link-11');">type</a></tt><tt class="py-op">,</tt> <tt class="py-name">_</tt><tt class="py-op">,</tt> <tt class="py-name">addr</tt> <tt class="py-keyword">in</tt> <tt id="link-12" class="py-name"><a title="rekall.addrspace.Run.address_space" class="py-name" href="#" onclick="return doclink('link-12', 'address_space', 'link-8');">address_space</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name" targets="Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.describe_vtop()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#describe_vtop,Method rekall.plugins.addrspaces.arm.ArmPagedMemory.describe_vtop()=rekall.plugins.addrspaces.arm.ArmPagedMemory-class.html#describe_vtop,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.describe_vtop()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#describe_vtop,Method rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.describe_vtop()=rekall.plugins.addrspaces.intel.IA32PagedMemoryPae-class.html#describe_vtop"><a title="rekall.plugins.addrspaces.amd64.AMD64PagedMemory.describe_vtop
+rekall.plugins.addrspaces.arm.ArmPagedMemory.describe_vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemory.describe_vtop
+rekall.plugins.addrspaces.intel.IA32PagedMemoryPae.describe_vtop" class="py-name" href="#" onclick="return doclink('link-13', 'describe_vtop', 'link-13');">describe_vtop</a></tt><tt class="py-op">(</tt><tt class="py-name">vaddr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L33"></a><tt class="py-lineno">33</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-14" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.type" class="py-name" href="#" onclick="return doclink('link-14', 'type', 'link-11');">type</a></tt> <tt class="py-op">==</tt> <tt class="py-string">"pte"</tt> <tt class="py-keyword">and</tt> <tt class="py-name">addr</tt><tt class="py-op">:</tt> </tt>
+<a name="L34"></a><tt class="py-lineno">34</tt>  <tt class="py-line">                <tt id="link-15" class="py-name" targets="Class Method rekall.addrspace.BaseAddressSpace.metadata()=rekall.addrspace.BaseAddressSpace-class.html#metadata,Method rekall.addrspace.BufferAddressSpace.metadata()=rekall.addrspace.BufferAddressSpace-class.html#metadata,Method rekall.obj.Profile.metadata()=rekall.obj.Profile-class.html#metadata,Method rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata()=rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor-class.html#metadata"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-15', 'metadata', 'link-15');">metadata</a></tt><tt class="py-op">[</tt><tt class="py-string">"type"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-string">"Valid"</tt> </tt>
+<a name="L35"></a><tt class="py-lineno">35</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Variable rekall.plugins.windows.address_resolver.PEModule.profile=rekall.plugins.windows.address_resolver.PEModule-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-16', 'profile', 'link-16');">profile</a></tt><tt class="py-op">.</tt><tt class="py-name">_MMPTE</tt><tt class="py-op">(</tt> </tt>
+<a name="L36"></a><tt class="py-lineno">36</tt>  <tt class="py-line">                    <tt class="py-name">addr</tt><tt class="py-op">,</tt> <tt class="py-name">vm</tt><tt class="py-op">=</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-17" class="py-name" targets="Variable rekall.plugins.hypervisors.VirtualMachine.physical_address_space=rekall.plugins.hypervisors.VirtualMachine-class.html#physical_address_space,Variable rekall.session.Session.physical_address_space=rekall.session.Session-class.html#physical_address_space"><a title="rekall.plugins.hypervisors.VirtualMachine.physical_address_space
+rekall.session.Session.physical_address_space" class="py-name" href="#" onclick="return doclink('link-17', 'physical_address_space', 'link-17');">physical_address_space</a></tt><tt class="py-op">)</tt> </tt>
+</div><a name="L37"></a><tt class="py-lineno">37</tt>  <tt class="py-line"> </tt>
+<a name="DarwinVadMap.GeneratePageMetatadata"></a><div id="DarwinVadMap.GeneratePageMetatadata-def"><a name="L38"></a><tt class="py-lineno">38</tt> <a class="py-toggle" href="#" id="DarwinVadMap.GeneratePageMetatadata-toggle" onclick="return toggle('DarwinVadMap.GeneratePageMetatadata');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.darwin.pfn.DarwinVadMap-class.html#GeneratePageMetatadata">GeneratePageMetatadata</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt> <tt class="py-param">task</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="DarwinVadMap.GeneratePageMetatadata-collapsed" style="display:none;" pad="++" indent="++++++++"></div><div id="DarwinVadMap.GeneratePageMetatadata-expanded"><a name="L39"></a><tt class="py-lineno">39</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">map</tt> <tt class="py-keyword">in</tt> <tt id="link-18" class="py-name" targets="Class rekall.plugins.overlays.darwin.darwin.proc=rekall.plugins.overlays.darwin.darwin.proc-class.html"><a title="rekall.plugins.overlays.darwin.darwin.proc" class="py-name" href="#" onclick="return doclink('link-18', 'proc', 'link-18');">proc</a></tt><tt class="py-op">.</tt><tt class="py-name">task</tt><tt class="py-op">.</tt><tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">hdr</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Method rekall.obj.Struct.walk_list()=rekall.obj.Struct-class.html#walk_list"><a title="rekall.obj.Struct.walk_list" class="py-name" href="#" onclick="return doclink('link-19', 'walk_list', 'link-19');">walk_list</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L40"></a><tt class="py-lineno">40</tt>  <tt class="py-line">                <tt class="py-string">"links.next"</tt><tt class="py-op">,</tt> <tt class="py-name">include_current</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L41"></a><tt class="py-lineno">41</tt>  <tt class="py-line"> </tt>
+<a name="L42"></a><tt class="py-lineno">42</tt>  <tt class="py-line">            <tt id="link-20" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-20', 'metadata', 'link-15');">metadata</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-op">}</tt> </tt>
+<a name="L43"></a><tt class="py-lineno">43</tt>  <tt class="py-line"> </tt>
+<a name="L44"></a><tt class="py-lineno">44</tt>  <tt class="py-line">            <tt class="py-comment"># Find the vnode this mapping is attached to.</tt> </tt>
+<a name="L45"></a><tt class="py-lineno">45</tt>  <tt class="py-line">            <tt id="link-21" class="py-name" targets="Variable rekall.plugins.overlays.darwin.darwin.socket.vnode=rekall.plugins.overlays.darwin.darwin.socket-class.html#vnode,Variable rekall.plugins.overlays.darwin.darwin.tty.vnode=rekall.plugins.overlays.darwin.darwin.tty-class.html#vnode,Class rekall.plugins.overlays.darwin.darwin.vnode=rekall.plugins.overlays.darwin.darwin.vnode-class.html"><a title="rekall.plugins.overlays.darwin.darwin.socket.vnode
+rekall.plugins.overlays.darwin.darwin.tty.vnode
+rekall.plugins.overlays.darwin.darwin.vnode" class="py-name" href="#" onclick="return doclink('link-21', 'vnode', 'link-21');">vnode</a></tt> <tt class="py-op">=</tt> <tt class="py-name">map</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Method rekall.plugins.overlays.darwin.darwin.vm_map_entry.find_vnode_object()=rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html#find_vnode_object"><a title="rekall.plugins.overlays.darwin.darwin.vm_map_entry.find_vnode_object" class="py-name" href="#" onclick="return doclink('link-22', 'find_vnode_object', 'link-22');">find_vnode_object</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno">46</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt id="link-23" class="py-name"><a title="rekall.plugins.overlays.darwin.darwin.socket.vnode
+rekall.plugins.overlays.darwin.darwin.tty.vnode
+rekall.plugins.overlays.darwin.darwin.vnode" class="py-name" href="#" onclick="return doclink('link-23', 'vnode', 'link-21');">vnode</a></tt><tt class="py-op">.</tt><tt id="link-24" class="py-name" targets="Variable rekall.plugins.overlays.linux.linux.dentry.path=rekall.plugins.overlays.linux.linux.dentry-class.html#path"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-24', 'path', 'link-24');">path</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno">47</tt>  <tt class="py-line">                <tt id="link-25" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-25', 'metadata', 'link-15');">metadata</a></tt><tt class="py-op">[</tt><tt class="py-string">"filename"</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt id="link-26" class="py-name"><a title="rekall.plugins.overlays.darwin.darwin.socket.vnode
+rekall.plugins.overlays.darwin.darwin.tty.vnode
+rekall.plugins.overlays.darwin.darwin.vnode" class="py-name" href="#" onclick="return doclink('link-26', 'vnode', 'link-21');">vnode</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.plugins.overlays.linux.linux.dentry.path" class="py-name" href="#" onclick="return doclink('link-27', 'path', 'link-24');">path</a></tt> </tt>
+<a name="L48"></a><tt class="py-lineno">48</tt>  <tt class="py-line"> </tt>
+<a name="L49"></a><tt class="py-lineno">49</tt>  <tt class="py-line">            <tt class="py-name">pte_plugin</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-28', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-29" class="py-name"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-29', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt class="py-name">pte</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno">50</tt>  <tt class="py-line">            <tt id="link-30" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#offset"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-30', 'offset', 'link-30');">offset</a></tt> <tt class="py-op">=</tt> <tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">links</tt><tt class="py-op">.</tt><tt id="link-31" class="py-name" targets="Variable rekall.addrspace.Run.start=rekall.addrspace.Run-class.html#start,Variable rekall.plugins.overlays.darwin.darwin.vm_map_entry.start=rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html#start,Method rekall.plugins.renderers.xls.XLSRenderer.start()=rekall.plugins.renderers.xls.XLSRenderer-class.html#start,Method rekall.ui.identity.IdentityRenderer.start()=rekall.ui.identity.IdentityRenderer-class.html#start,Method rekall.ui.json_renderer.JsonRenderer.start()=rekall.ui.json_renderer.JsonRenderer-class.html#start,Method rekall.ui.renderer.BaseRenderer.start()=rekall.ui.renderer.BaseRenderer-class.html#start"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-31', 'start', 'link-31');">start</a></tt> </tt>
+<a name="L51"></a><tt class="py-lineno">51</tt>  <tt class="py-line">            <tt id="link-32" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.end()=rekall.addrspace.BaseAddressSpace-class.html#end,Method rekall.addrspace.BufferAddressSpace.end()=rekall.addrspace.BufferAddressSpace-class.html#end,Variable rekall.addrspace.Run.end=rekall.addrspace.Run-class.html#end,Method rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end()=rekall.plugins.addrspaces.aff4.AFF4StreamWrapper-class.html#end,Method rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end()=rekall.plugins.addrspaces.amd64.AMD64PagedMemory-class.html#end,Method rekall.plugins.addrspaces.arm.ArmPagedMemory.end()=rekall.plugins.addrspaces.arm.ArmPagedMemory-class.html#end,Method rekall.plugins.addrspaces.intel.IA32PagedMemory.end()=rekall.plugins.addrspaces.intel.IA32PagedMemory-class.html#end,Method rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end()=rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn-class.html#end,Method rekall.plugins.addrspaces.win32.Win32FileWrapper.end()=rekall.plugins.addrspaces.win32.Win32FileWrapper-class.html#end,Method rekall.plugins.filesystems.ntfs.RunListAddressSpace.end()=rekall.plugins.filesystems.ntfs.RunListAddressSpace-class.html#end,Variable rekall.plugins.overlays.darwin.darwin.vm_map_entry.end=rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html#end,Method rekall.ui.json_renderer.JsonRenderer.end()=rekall.ui.json_renderer.JsonRenderer-class.html#end,Method rekall.ui.renderer.BaseRenderer.end()=rekall.ui.renderer.BaseRenderer-class.html#end"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-32', 'end', 'link-32');">end</a></tt> <tt class="py-op">=</tt> <tt class="py-name">map</tt><tt class="py-op">.</tt><tt class="py-name">links</tt><tt class="py-op">.</tt><tt id="link-33" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-33', 'end', 'link-32');">end</a></tt> </tt>
+<a name="L52"></a><tt class="py-lineno">52</tt>  <tt class="py-line"> </tt>
+<a name="L53"></a><tt class="py-lineno">53</tt>  <tt class="py-line">            <tt class="py-keyword">while</tt> <tt id="link-34" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-34', 'offset', 'link-30');">offset</a></tt> <tt class="py-op">&lt;</tt> <tt id="link-35" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-35', 'end', 'link-32');">end</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L54"></a><tt class="py-lineno">54</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name"><a title="rekall.addrspace.Run.start
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.start
+rekall.plugins.renderers.xls.XLSRenderer.start
+rekall.ui.identity.IdentityRenderer.start
+rekall.ui.json_renderer.JsonRenderer.start
+rekall.ui.renderer.BaseRenderer.start" class="py-name" href="#" onclick="return doclink('link-36', 'start', 'link-31');">start</a></tt> <tt class="py-op">&lt;=</tt> <tt id="link-37" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-37', 'offset', 'link-30');">offset</a></tt> <tt class="py-op">&lt;=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.end
+rekall.addrspace.BufferAddressSpace.end
+rekall.addrspace.Run.end
+rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.end
+rekall.plugins.addrspaces.amd64.AMD64PagedMemory.end
+rekall.plugins.addrspaces.arm.ArmPagedMemory.end
+rekall.plugins.addrspaces.intel.IA32PagedMemory.end
+rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.end
+rekall.plugins.addrspaces.win32.Win32FileWrapper.end
+rekall.plugins.filesystems.ntfs.RunListAddressSpace.end
+rekall.plugins.overlays.darwin.darwin.vm_map_entry.end
+rekall.ui.json_renderer.JsonRenderer.end
+rekall.ui.renderer.BaseRenderer.end" class="py-name" href="#" onclick="return doclink('link-38', 'end', 'link-32');">end</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno">55</tt>  <tt class="py-line">                    <tt class="py-name">pte</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">_GetPTE</tt><tt class="py-op">(</tt><tt id="link-39" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-39', 'offset', 'link-30');">offset</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L56"></a><tt class="py-lineno">56</tt>  <tt class="py-line">                    <tt id="link-40" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-40', 'metadata', 'link-15');">metadata</a></tt> <tt class="py-op">=</tt> <tt class="py-name">pte_plugin</tt><tt class="py-op">.</tt><tt class="py-name">ResolvePTE</tt><tt class="py-op">(</tt><tt class="py-name">pte</tt><tt class="py-op">,</tt> <tt id="link-41" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-41', 'offset', 'link-30');">offset</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L57"></a><tt class="py-lineno">57</tt>  <tt class="py-line"> </tt>
+<a name="L58"></a><tt class="py-lineno">58</tt>  <tt class="py-line">                    <tt class="py-keyword">yield</tt> <tt id="link-42" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-42', 'offset', 'link-30');">offset</a></tt><tt class="py-op">,</tt> <tt id="link-43" class="py-name"><a title="rekall.addrspace.BaseAddressSpace.metadata
+rekall.addrspace.BufferAddressSpace.metadata
+rekall.obj.Profile.metadata
+rekall.plugins.windows.pagefile.WindowsSubsectionPTEDescriptor.metadata" class="py-name" href="#" onclick="return doclink('link-43', 'metadata', 'link-15');">metadata</a></tt> </tt>
+<a name="L59"></a><tt class="py-lineno">59</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-44" class="py-name"><a title="rekall.plugins.common.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-44', 'session', 'link-9');">session</a></tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Method rekall.session.Session.report_progress()=rekall.session.Session-class.html#report_progress"><a title="rekall.session.Session.report_progress" class="py-name" href="#" onclick="return doclink('link-45', 'report_progress', 'link-45');">report_progress</a></tt><tt class="py-op">(</tt><tt class="py-string">"Inspecting 0x%08X"</tt><tt class="py-op">,</tt> <tt id="link-46" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-46', 'offset', 'link-30');">offset</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L60"></a><tt class="py-lineno">60</tt>  <tt class="py-line"> </tt>
+<a name="L61"></a><tt class="py-lineno">61</tt>  <tt class="py-line">                <tt id="link-47" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-47', 'offset', 'link-30');">offset</a></tt> <tt class="py-op">+=</tt> <tt class="py-number">0x1000</tt> </tt>
+</div></div><a name="L62"></a><tt class="py-lineno">62</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:33 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

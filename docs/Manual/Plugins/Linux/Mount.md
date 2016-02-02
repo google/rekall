@@ -1,13 +1,11 @@
 ---
-layout: plugin
-title: mount
-abstract: |
-  Lists the mount points.
-
+abstract: Lists the mount points.
+args: {}
+class_name: Mount
 epydoc: rekall.plugins.linux.mount.Mount-class.html
-args:
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.linux.mount
+title: mount
 ---
 
 ### Sample output

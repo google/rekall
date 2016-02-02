@@ -1,15 +1,21 @@
 ---
-layout: plugin
-title: printkey
-abstract: |
-  Print a registry key, and its subkeys and values
+abstract: Print a registry key, and its subkeys and values
+args: {hive-offsets: 'A list of hive offsets as found by hivelist. If not provided
+    we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)
 
+    ', hive_regex: A regex to filter hive names.If not provided we use all hives.,
+  key: 'Registry key to print.
+
+
+    * Default: ', recursive: 'If set print the entire subtree. (type: Boolean)
+
+
+
+    * Default: False'}
+class_name: PrintKey
 epydoc: rekall.plugins.windows.registry.printkey.PrintKey-class.html
-args:
-  key: 'Registry key to print.'
-  recursive: 'If set print the entire subtree.'
-  hive_offsets: 'A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.'
-  hive_regex: 'A regex to filter hive names.If not provided we use all hives.'
-
+layout: plugin
+module: rekall.plugins.windows.registry.printkey
+title: printkey
 ---
 

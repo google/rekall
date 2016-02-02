@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Windows
  </a>
@@ -172,54 +173,42 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#getservicesids' class="category-link">
             getservicesids
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="category-link">
-            hashdump
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/HiveDump.html' class="category-link">
+          <a href='#hivedump' class="category-link">
             hivedump
           </a>
         </li>
         <li class='active'>
-          <a href='/docs/Manual/Plugins/Windows/Registry/Hives.html' class="category-link">
+          <a href='#hives' class="category-link">
             hives
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/LSADump.html' class="category-link">
-            lsadump
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/PrintKey.html' class="category-link">
+          <a href='#printkey' class="category-link">
             printkey
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/RegDump.html' class="category-link">
+          <a href='#regdump' class="category-link">
             regdump
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/UserAssist.html' class="category-link">
+          <a href='#userassist' class="category-link">
             userassist
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/Users.html' class="category-link">
+          <a href='#users' class="category-link">
             users
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
@@ -239,8 +228,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/Registry/LSADump.html">
-          lsadump
+       <a href="/docs/Manual/Plugins/Windows/Registry/PrintKey.html">
+          printkey
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -249,23 +238,25 @@ ript>
 </nav>
 
 
-<h1>hives</h1>
+<h1 id="#hives" class="anchor" >hives</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.registry.Hives-class.html">View Source</a>
+
 
 <div class="abstract">
-<p>List all the registry hives on the system.</p>
+<h2>List all the registry hives on the system.</h2>
 </div>
 
 
 <h3>Plugin Arguments</h3>
-<table class='table table-striped table-bordered table-hover'>
+<div class="plugins_args">
+<table class='table table-condensed'>
 <tbody>
-<tr><td>hive_offsets</td><td>A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.</td></tr><tr><td>hive_regex</td><td>A regex to filter hive names.If not provided we use all hives.</td></tr>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
 </tbody>
 </table>
-
-
-
-<a href="/epydocs/rekall.plugins.windows.registry.registry.Hives-class.html">View Source</a>
+</div>
 
 
 
@@ -286,8 +277,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/Registry/LSADump.html">
-          lsadump
+       <a href="/docs/Manual/Plugins/Windows/Registry/PrintKey.html">
+          printkey
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -312,6 +303,10 @@ ript>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

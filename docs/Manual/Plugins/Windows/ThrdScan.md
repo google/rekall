@@ -1,14 +1,15 @@
 ---
-layout: plugin
-title: thrdscan
-abstract: |
-  Scan physical memory for _ETHREAD objects
+abstract: Scan physical memory for _ETHREAD objects
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False'}
+class_name: ThrdScan
 epydoc: rekall.plugins.windows.modscan.ThrdScan-class.html
-args:
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.modscan
+title: thrdscan
 ---
 
 Pool scanning is a technique for discovering kernel data structures based on

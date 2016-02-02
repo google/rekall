@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.windows.common.AbstractWindowsParameterHook</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.windows-module.html">Package&nbsp;windows</a> ::
+        <a href="rekall.plugins.windows.common-module.html">Module&nbsp;common</a> ::
+        Class&nbsp;AbstractWindowsParameterHook
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.windows.common.AbstractWindowsParameterHook-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class AbstractWindowsParameterHook</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="class_hierarchy_for_abstractwi_2" name="class_hierarchy_for_abstractwi_2">
+<area shape="rect" id="node1" href="rekall.kb.ParameterHook-class.html" title="kb.ParameterHook" alt="" coords="1384,6,1495,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.windows.common.AbstractWindowsParameterHook-class.html" title="AbstractWindowsParameterHook" alt="" coords="1350,59,1529,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.windows.common.KDBGHook-class.html" title="KDBGHook" alt="" coords="5,113,81,135"/>
+<area shape="rect" id="node4" href="rekall.plugins.windows.common.PsActiveProcessHeadHook-class.html" title="PsActiveProcessHeadHook" alt="" coords="107,113,257,135"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.common.PsListCSRSSHook-class.html" title="PsListCSRSSHook" alt="" coords="283,113,393,135"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.PsListHandlesHook-class.html" title="PsListHandlesHook" alt="" coords="419,113,533,135"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.PsListPsActiveProcessHeadHook-class.html" title="PsListPsActiveProcessHeadHook" alt="" coords="557,113,736,135"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.common.PsListPspCidTableHook-class.html" title="PsListPspCidTableHook" alt="" coords="760,113,895,135"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.common.PsListSessionsHook-class.html" title="PsListSessionsHook" alt="" coords="920,113,1036,135"/>
+<area shape="rect" id="node10" href="rekall.plugins.windows.common.PsLoadedModuleList-class.html" title="PsLoadedModuleList" alt="" coords="1062,113,1183,135"/>
+<area shape="rect" id="node11" href="rekall.plugins.windows.kernel.DTB2TaskMap-class.html" title="kernel.DTB2TaskMap" alt="" coords="1207,113,1333,135"/>
+<area shape="rect" id="node12" href="rekall.plugins.windows.kernel.DriveLetterDeviceHook-class.html" title="kernel.DriveLetterDeviceHook" alt="" coords="1358,113,1521,135"/>
+<area shape="rect" id="node13" href="rekall.plugins.windows.kernel.KernelBaseHook-class.html" title="kernel.KernelBaseHook" alt="" coords="1546,113,1680,135"/>
+<area shape="rect" id="node14" href="rekall.plugins.windows.kernel.ObjectTreeHook-class.html" title="kernel.ObjectTreeHook" alt="" coords="1705,113,1836,135"/>
+<area shape="rect" id="node15" href="rekall.plugins.windows.kernel.WindowsHighestUserAddress-class.html" title="kernel.WindowsHighestUserAddress" alt="" coords="1861,113,2056,135"/>
+<area shape="rect" id="node16" href="rekall.plugins.windows.malware.psxview.PsListPSScanHook-class.html" title="malware.psxview.PsListPSScanHook" alt="" coords="2080,113,2277,135"/>
+<area shape="rect" id="node17" href="rekall.plugins.windows.malware.psxview.PsListThrdprocHook-class.html" title="malware.psxview.PsListThrdprocHook" alt="" coords="2301,113,2504,135"/>
+<area shape="rect" id="node18" href="rekall.plugins.windows.misc.WinImageFingerprint-class.html" title="misc.WinImageFingerprint" alt="" coords="2528,113,2675,135"/>
+<area shape="rect" id="node19" href="rekall.plugins.windows.pagefile.PagefileHook-class.html" title="pagefile.PagefileHook" alt="" coords="2699,113,2824,135"/>
+<area shape="rect" id="node20" href="rekall.plugins.windows.pas2kas.WinPas2VasResolverHook-class.html" title="pas2kas.WinPas2VasResolverHook" alt="" coords="2849,113,3039,135"/>
+<area shape="rect" id="node21" href="rekall.plugins.windows.privileges.PrivilegesHook-class.html" title="privileges.PrivilegesHook" alt="" coords="3064,113,3203,135"/>
+</map>
+  <img src="class_hierarchy_for_abstractwi_2.gif" alt='' usemap="#class_hierarchy_for_abstractwi_2" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<!-- ==================== NESTED CLASSES ==================== -->
+<a name="section-NestedClasses"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Nested Classes</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.registry.MetaclassRegistry-class.html" class="summary-name">__metaclass__</a><br />
+      Automatic Plugin Registration through metaclasses.
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.kb.ParameterHook-class.html" class="summary-name">top_level_class</a><br />
+      A mechanism for automatically calculating a parameter.
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Instance Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.kb.ParameterHook-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.kb-pysrc.html#ParameterHook.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="calculate"></a><span class="summary-sig-name">calculate</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Derive the value of the parameter.
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.kb-pysrc.html#ParameterHook.calculate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Methods</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.AbstractWindowsParameterHook-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      We are only active if the profile is windows.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook.is_active">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.AbstractWindowsParameterHook-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook.ImplementationByClass">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.common.AbstractWindowsParameterHook-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variables</span></td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.kb.ParameterHook-class.html#classes" class="summary-name">classes</a> = <code title="{'CatfishOffsetHook': &lt;class 'rekall.plugins.darwin.common.CatfishOffs\
+etHook'&gt;,
+ 'DTB2TaskMap': &lt;class 'rekall.plugins.windows.kernel.DTB2TaskMap'&gt;,
+ 'DarwinGetArpListHead': &lt;class 'rekall.plugins.darwin.networking.Darw\
+inGetArpListHead'&gt;,
+ 'DarwinHighestUserAddress': &lt;class 'rekall.plugins.darwin.misc.Darwin\
+HighestUserAddress'&gt;,
+ 'DarwinIfnetHook': &lt;class 'rekall.plugins.darwin.networking.DarwinIfn\
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CatfishOffsetHook</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.darwin.<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.kb.ParameterHook-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'ObjectTypeMap': [&lt;class 'rekall.plugins.overlays.windows.win7.Object\
+TypeMapHook'&gt;],
+ 'ObpInfoMaskToOffset': [&lt;class 'rekall.plugins.overlays.windows.win8.\
+ObpInfoMaskToOffsetHook'&gt;],
+ 'PsActiveProcessHead': [&lt;class 'rekall.plugins.windows.common.PsActiv\
+eProcessHeadHook'&gt;],
+ 'PsLoadedModuleList': [&lt;class 'rekall.plugins.windows.common.PsLoaded\
+ModuleList'&gt;],
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ObjectTypeMap</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.ov<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="expiry"></a><span class="summary-name">expiry</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="name"></a><span class="summary-name">name</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'ParameterHook'"><code class="variable-quote">'</code><code class="variable-string">ParameterHook</code><code class="variable-quote">'</code></code>
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="volatile"></a><span class="summary-name">volatile</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.kb.ParameterHook-class.html">rekall.kb.ParameterHook</a>)</em>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Properties</span></td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Method Details</span></td>
+</tr>
+</table>
+<a name="is_active"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">is_active</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">session</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook.is_active">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>We are only active if the profile is windows.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.kb.ParameterHook-class.html#is_active">kb.ParameterHook.is_active</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ImplementationByClass"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.kb.ParameterHook-class.html#ImplementationByClass">kb.ParameterHook.ImplementationByClass</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ImplementationByName"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">name</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#AbstractWindowsParameterHook.ImplementationByName">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.kb.ParameterHook-class.html#ImplementationByName">kb.ParameterHook.ImplementationByName</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:12 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

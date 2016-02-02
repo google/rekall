@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> Windows
  </a>
@@ -172,76 +173,255 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/GetServiceSids.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#getservicesids' class="category-link">
             getservicesids
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/HashDump.html' class="category-link">
-            hashdump
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/HiveDump.html' class="category-link">
+          <a href='#hivedump' class="category-link">
             hivedump
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/Hives.html' class="category-link">
+          <a href='#hives' class="category-link">
             hives
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/LSADump.html' class="category-link">
-            lsadump
-          </a>
-        </li>
-        <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/PrintKey.html' class="category-link">
+          <a href='#printkey' class="category-link">
             printkey
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/RegDump.html' class="category-link">
+          <a href='#regdump' class="category-link">
             regdump
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/UserAssist.html' class="category-link">
+          <a href='#userassist' class="category-link">
             userassist
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/Plugins/Windows/Registry/Users.html' class="category-link">
+          <a href='#users' class="category-link">
             users
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
     
+<div class="plugin_doc">
+<h1 id="Windows Registry Plugins" class="anchor" >Windows Registry Plugins</h1>
+
+<p>Rekall has a complete registry parser. Many Rekall plugins are able to recover
+registry keys from memory.</p>
+
+<h1 id="getservicesids" class="anchor">getservicesids</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.getservicesids.GetServiceSids-class.html">View Source</a>
 
 
-<h1>Registry Plugins</h1>
-
+<div class="plugin_description">
 <div class="abstract">
+<h2>Get the names of services in the Registry and return Calculated SID</h2>
+</div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>The getservicesids command calculates the SIDs for services on a machine. The
+service names are taken from the registry (&ldquo;SYSTEM\CurrentControlSet\Services&rdquo;)</p>
+<h3>Sample output</h3>
+<div class="highlight"><pre>win8.1.raw 16:58:23&gt; getservicesids
+-------------------&gt; getservicesids()
+SID                                                                    Service Name
+---------------------------------------------------------------------- ------------
+S-1-5-80-3476726845-1218940557-3240126423-1396283824-3706223860        .NET CLR Data
+S-1-5-80-3749761688-76038143-2425834820-4129736068-309120712           .NET CLR Networking
+S-1-5-80-4151353957-356578678-4163131872-800126167-2037860865          .NET CLR Networking 4.0.0.0
+S-1-5-80-603392709-3706100282-1779817366-3290147925-2109454977         .NET Data Provider for Oracle
+S-1-5-80-1168016597-2140435647-491797002-352772175-817350590           .NET Data Provider for SqlServer
+S-1-5-80-1135273183-3738781202-689480478-891280274-255333391           .NET Memory Cache 4.0
+S-1-5-80-255220978-1106536095-1636044468-311807000-281316439           .NETFramework
+S-1-5-80-799694863-4024754253-4060439485-3284853837-2852070736         1394ohci
+S-1-5-80-3459415445-2224257447-3423677131-2829651752-4257665947        3ware
+S-1-5-80-550892281-1246201444-2906082186-2301917840-2280485454         ACPI
+S-1-5-80-2670625634-2386107419-4204951937-4094372046-2600379021        acpiex
+S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr
+</pre></div>
+</div>
+
+<h1 id="hivedump" class="anchor">hivedump</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.printkey.HiveDump-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Prints out a hive</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+</tbody>
+</table>
 </div>
 
 
 
+</div>
+
+<h1 id="hives" class="anchor">hives</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.registry.Hives-class.html">View Source</a>
 
 
-<p>The Windows Registry persists in memory. The following plugin are able to
-extract registry artifacts from the memory image. It is also possible to dump
-registry hives for offline analysis.</p>
+<div class="plugin_description">
+<div class="abstract">
+<h2>List all the registry hives on the system.</h2>
+</div>
 
-<p>
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="printkey" class="anchor">printkey</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.printkey.PrintKey-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Print a registry key, and its subkeys and values</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>key</p></td><td><p>Registry key to print.</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>recursive</p></td><td><p>If set print the entire subtree. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="regdump" class="anchor">regdump</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.printkey.RegDump-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Dump all registry hives from memory into a dump directory.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="userassist" class="anchor">userassist</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.userassist.UserAssist-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Print userassist registry keys and information</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="users" class="anchor">users</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.registry.printkey.Users-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Enumerate all users of this system.</h2>
+<p>Ref:
+samparse.pl from RegRipper.</p>
+<h1>copyright 2012 Quantum Analytics Research, LLC</h1>
+<h1>Author: H. Carvey, keydet89@yahoo.com</h1>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
 
   </div>
 </div>
@@ -259,6 +439,10 @@ registry hives for offline analysis.</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

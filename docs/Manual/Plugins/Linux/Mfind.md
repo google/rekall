@@ -1,15 +1,14 @@
 ---
-layout: plugin
-title: mfind
-abstract: |
-  Finds a file by name in memory.
+abstract: Finds a file by name in memory.
+args: {device: Name of the device to match., path: 'Path to the file.
 
+
+    * Default: /'}
+class_name: Mfind
 epydoc: rekall.plugins.linux.fs.Mfind-class.html
-args:
-  path: 'Path to the file.'
-  device: 'Name of the device to match.'
-  dtb: 'The DTB physical address.'
-
+layout: plugin
+module: rekall.plugins.linux.fs
+title: mfind
 ---
 
 `mfind` can and will find multiple files if more than one file potentially matches the path.

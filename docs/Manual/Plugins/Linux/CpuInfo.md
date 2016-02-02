@@ -1,11 +1,11 @@
-
 ---
-layout: plugin
-title: cpuinfo
-abstract: |
-     prints info about each active processor 
-
+abstract: Prints information about each active processor.
+args: {}
+class_name: CpuInfo
 epydoc: rekall.plugins.linux.cpuinfo.CpuInfo-class.html
+layout: plugin
+module: rekall.plugins.linux.cpuinfo
+title: cpuinfo
 ---
 
 

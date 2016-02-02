@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -108,84 +105,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="entry_present"></a><span class="summary-sig-name">entry_present</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">entry</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.entry_present">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="DeterminePTEType"></a><span class="summary-sig-name">DeterminePTEType</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pte</span>,
-        <span class="summary-sig-arg">virtual_address</span>)</span><br />
-      Determine which type of pte this is.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.DeterminePTEType">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.pagefile.WindowsPagedMemoryMixin-class.html#ResolveProtoPTE" class="summary-sig-name">ResolveProtoPTE</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pte</span>,
-        <span class="summary-sig-arg">virtual_address</span>)</span><br />
-      Second level resolution of prototype PTEs.</td>
+          <td><span class="summary-sig"><a name="ResolveProtoPTE"></a><span class="summary-sig-name">ResolveProtoPTE</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pte_value</span>,
+        <span class="summary-sig-arg">vaddr</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.ResolveProtoPTE">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="get_available_addresses"></a><span class="summary-sig-name">get_available_addresses</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">0</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.get_available_addresses">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.pagefile.WindowsPagedMemoryMixin-class.html#get_phys_addr" class="summary-sig-name">get_phys_addr</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">virtual_address</span>,
-        <span class="summary-sig-arg">pte_value</span>)</span><br />
-      First level resolution of PTEs.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.get_phys_addr">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -220,6 +144,14 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.pagefile.WindowsPagedMemoryMixin-class.html#vad" class="summary-name">vad</a><br />
+      Returns a cached RangedCollection() of vad ranges.
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -262,49 +194,28 @@
   </dl>
 </td></tr></table>
 </div>
-<a name="ResolveProtoPTE"></a>
+<br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Property Details</span></td>
+</tr>
+</table>
+<a name="vad"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ResolveProtoPTE</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">pte</span>,
-        <span class="sig-arg">virtual_address</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.ResolveProtoPTE">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Second level resolution of prototype PTEs.</p>
-  <p>This function resolves a prototype PTE. Some states must be 
-  interpreted differently than the first level PTE.</p>
+  <h3 class="epydoc">vad</h3>
+  <p>Returns a cached RangedCollection() of vad ranges.</p>
   <dl class="fields">
-  </dl>
-</td></tr></table>
-</div>
-<a name="get_phys_addr"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_phys_addr</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">virtual_address</span>,
-        <span class="sig-arg">pte_value</span>)</span>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.pagefile-pysrc.html#WindowsPagedMemoryMixin.get_phys_addr">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>First level resolution of PTEs.</p>
-  <p>pte_value must be the actual PTE from hardware page tables (Not 
-  software PTEs which are prototype PTEs).</p>
-  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.vad(<span class="summary-sig-arg">self</span>)</span>
+        - Returns a cached RangedCollection() of vad ranges.
+    </dd>
   </dl>
 </td></tr></table>
 </div>
@@ -313,9 +224,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -340,7 +248,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:54 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:18 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

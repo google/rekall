@@ -22,7 +22,7 @@ label.category {
 
 
 .highlight .hll { background-color: #ffffcc }
-.highlight  { background: #f8f8f8; }
+/* .highlight  { background: #f8f8f8; } */
 .highlight .c { color: #408080; font-style: italic } /* Comment */
 /* .highlight .err { border: 1px solid #FF0000 } /* Error */
 .highlight .k { color: #008000; font-weight: bold } /* Keyword */
@@ -92,11 +92,6 @@ label.category {
 .background {
     min-height: 100%;
     position: relative;
-    background-image: linear-gradient(
-        rgb(241, 241, 241) 0%,
-        rgba(235, 235, 235, 0) 21%,
-        rgba(245, 245, 245, 0) 81%,
-        rgb(248, 248, 248) 100%);
 }
 
 body, html {
@@ -123,6 +118,11 @@ pre code {
 .category-link {
   color: #337ab7;
 }
+
+.category-directory-link {
+  color: #FD2727;
+}
+
 
 .page-background {
     padding-top: 50px;
@@ -186,6 +186,11 @@ pre code {
 .plugins  li  a {
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+.plugins_args table tr td {
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 
 .docs-search {
@@ -257,4 +262,53 @@ margin-right: 10px;
     height: 100%;
     margin-top: 55px;
     margin-bottom: 50px;
+}
+
+h2 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+h3 {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+.bs-docs-sidebar > ul {
+    overflow-y: auto;
+    height: 100%;
+}
+
+.rekall-side-nav {
+    height: 100%;
+    padding-left: 5px;
+    max-width: 9%;
+}
+
+.anchor {
+    padding-top: 50px;
+    margin-top: -50px;
+}
+
+.plugin_description {
+    padding: 20px;
+    padding-bottom: 60px;
+    margin: 20px 0;
+    border: 1px solid rgba(91, 192, 222, 0.36);
+    border-left-width: 5px;
+    border-radius: 3px;
+}
+
+.highlight pre {
+    padding: 10px;
+    background-color: rgba(207, 207, 207, 0.08);
+    color: black;
+    display: flex;
+}
+
+.epydoc_link {
+    float: right;
+    margin-top: 20px;
+    margin-right: 20px;
 }

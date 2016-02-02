@@ -1,17 +1,22 @@
 ---
-layout: plugin
-title: tokens
-abstract: |
-  Print the SIDs owning each process token.
+abstract: Print the SIDs owning each process token.
+args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
+    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
+    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
+    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
+
+    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    '}
+class_name: GetSIDs
 epydoc: rekall.plugins.windows.registry.getsids.GetSIDs-class.html
-args:
-  pid: 'One or more pids of processes to select.'
-  eprocess: 'Kernel addresses of eprocess structs.'
-  phys_eprocess: 'Physical addresses of eprocess structs.'
-  proc_regex: 'A regex to select a process by name.'
-  method: 'Method to list processes (Default uses all methods).'
-
+layout: plugin
+module: rekall.plugins.windows.registry.getsids
+title: tokens
 ---
 
 In windows a process runs with a set of *Tokens*. These tokens are used to

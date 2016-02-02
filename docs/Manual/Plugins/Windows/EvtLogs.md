@@ -1,15 +1,20 @@
 ---
-layout: plugin
-title: evtlogs
-abstract: |
-  Extract Windows Event Logs (XP/2003 only)
+abstract: Extract Windows Event Logs (XP/2003 only)
+args: {hive-offsets: 'A list of hive offsets as found by hivelist. If not provided
+    we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)
 
+    ', hive_regex: A regex to filter hive names.If not provided we use all hives.,
+  verbosity: 'An integer reflecting the amount of desired output: 0 = quiet, 10 =
+    noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
+class_name: EvtLogs
 epydoc: rekall.plugins.windows.registry.evtlogs.EvtLogs-class.html
-args:
-  verbosity: 'Resolve sids to users, services etc.'
-  hive_offsets: 'A list of hive offsets as found by hivelist. If not provided we call hivescan ourselves and list the keys on all hives.'
-  hive_regex: 'A regex to filter hive names.If not provided we use all hives.'
-
+layout: plugin
+module: rekall.plugins.windows.registry.evtlogs
+title: evtlogs
 ---
 
 
@@ -25,7 +30,7 @@ services.exe process, parsed and shown as output.
 
 ### Sample output
 
-```
+```text
 xp-laptop-2005-06-25.img 16:43:19> evtlogs
 ---------------------------------> evtlogs()
 TimeWritten Filename Computer Sid Source Event Id Event Type Message

@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -137,6 +134,25 @@
       <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.GetPageOffset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">type_name</span>)</span><br />
+      Return a prototype of objects of type 'type_name'.
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.GetPrototype">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -310,8 +326,9 @@ kwargs.
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="add_constants"></a><span class="summary-sig-name">add_constants</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constants</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">constants_are_addresses</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+        <span class="summary-sig-arg">**_</span>)</span><br />
       Add the kwargs as constants for this profile.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
@@ -745,6 +762,45 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="ktime_sub"></a><span class="summary-sig-name">ktime_sub</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">lhs</span>,
+        <span class="summary-sig-arg">rhs</span>)</span><br />
+      Substracts two ktime_t instances.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.ktime_sub">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ktime_to_timespec"></a><span class="summary-sig-name">ktime_to_timespec</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">kt</span>)</span><br />
+      Transforms a ktime_t to a timespec.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.ktime_to_timespec">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#legacy_field_descriptor" class="summary-sig-name">legacy_field_descriptor</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">typeList</span>)</span><br />
       Converts the list expression into a target, target_args notation.
@@ -803,6 +859,25 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="merge_symbols"></a><span class="summary-sig-name">merge_symbols</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>,
+        <span class="summary-sig-arg">*args</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.merge_symbols">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="metadata"></a><span class="summary-sig-name">metadata</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">default</span>=<span class="summary-sig-default">None</span>)</span><br />
@@ -829,6 +904,44 @@ kwargs.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.metadatas">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="ns_to_timespec"></a><span class="summary-sig-name">ns_to_timespec</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">nsec</span>)</span><br />
+      Transforms nanoseconds to a timespec.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.ns_to_timespec">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux-class.html#nsec_to_clock_t" class="summary-sig-name">nsec_to_clock_t</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">x</span>)</span><br />
+      Convers nanoseconds to a clock_t.
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.nsec_to_clock_t">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -926,6 +1039,24 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux64-class.html#Initialize" class="summary-sig-name">Initialize</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">profile</span>)</span><br />
+      Install required types, classes and constants.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux64.Initialize">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux64-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>)</span></td>
           <td align="right" valign="top">
@@ -960,29 +1091,11 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux-class.html#Initialize" class="summary-sig-name">Initialize</a>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">profile</span>)</span><br />
-      Install required types, classes and constants.
-      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.Initialize">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#LoadProfileFromData" class="summary-sig-name">LoadProfileFromData</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">data</span>,
         <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>)</span><br />
+        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">profile</span>=<span class="summary-sig-default">None</span>)</span><br />
       Creates a profile directly from a JSON object.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
@@ -1003,6 +1116,22 @@ kwargs.
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Class Variables</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.obj.Profile-class.html#COMMON_CLASSES" class="summary-name">COMMON_CLASSES</a> = <code title="{'Array': &lt;class 'rekall.obj.Array'&gt;,
+ 'BitField': &lt;class 'rekall.obj.BitField'&gt;,
+ 'Function': &lt;class 'rekall.plugins.tools.disassembler.Function'&gt;,
+ 'ListArray': &lt;class 'rekall.obj.ListArray'&gt;,
+ 'NativeType': &lt;class 'rekall.obj.NativeType'&gt;,
+ 'Pointer': &lt;class 'rekall.obj.Pointer'&gt;,
+ 'PointerArray': &lt;class 'rekall.obj.PointerArray'&gt;,
+ 'Struct': &lt;class 'rekall.obj.Struct'&gt;,
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.obj.Array'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">BitFie</code><code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -1048,7 +1177,15 @@ t86'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: &lt;class 'rekall.plugins.filesystems.ntfs.NTFSProfile'&gt;}"><code class="variable-group">{</code>None<code class="variable-op">: </code>&lt;class 'rekall.plugins.filesystems.nt<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.obj.Profile-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.obj.Profile'&gt;,
+        &lt;class 'rekall.obj.TestProfile'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileMIPS32Bits'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.Profile32Bits'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileLLP64'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.ProfileLP64'&gt;,
+        &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
+        &lt;class 'rekall.plugins.overlays.linux.elf.ELFProfile'&gt;,
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.obj.Profile'&gt;<code class="variable-op">, </code>&lt;class<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
@@ -1122,6 +1259,34 @@ t86'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
+<a name="Initialize"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">Initialize</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">profile</span>)</span>
+    <br /><em class="fname">Class Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux64.Initialize">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Install required types, classes and constants.</p>
+  <p>This method should be extended by derived classes. It is a class 
+  method to allow other profiles to call this method and install the 
+  various components into their own profiles.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.obj.Profile-class.html#Initialize">obj.Profile.Initialize</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="ImplementationByClass"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1175,9 +1340,6 @@ t86'&gt;,
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -1202,7 +1364,7 @@ t86'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Wed Apr  1 01:08:41 2015
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:03 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

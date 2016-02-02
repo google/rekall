@@ -14,9 +14,6 @@
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -64,22 +61,28 @@
 <h1 class="epydoc">Class DarwinNetstat</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_darwinnets" name="class_hierarchy_for_darwinnets">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,5,123,32"/>
-<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,61,139,88"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="283,117,405,144"/>
-<area shape="rect" id="node7" href="rekall.plugins.darwin.common.DarwinPlugin-class.html" title="common.DarwinPlugin" alt="" coords="280,173,408,200"/>
-<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,61,291,88"/>
-<area shape="rect" id="node5" href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html" title="common.AbstractDarwinCommandPlugin" alt="" coords="40,117,259,144"/>
-<area shape="rect" id="node6" href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html" title="common.DarwinKASLRMixin" alt="" coords="429,117,587,144"/>
-<area shape="rect" id="node8" href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html" title="common.DarwinProcessFilter" alt="" coords="263,229,425,256"/>
-<area shape="rect" id="node9" href="rekall.plugins.darwin.lsof.DarwinLsof-class.html" title="lsof.DarwinLsof" alt="" coords="297,285,391,312"/>
-<area shape="rect" id="node10" href="rekall.plugins.darwin.networking.DarwinNetstat-class.html" title="DarwinNetstat" alt="" coords="299,341,389,368"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="35,6,137,29"/>
+<area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="20,59,153,82"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="192,113,315,135"/>
+<area shape="rect" id="node6" href="rekall.plugins.darwin.common.AbstractDarwinTypedCommand-class.html" title="common.AbstractDarwinTypedCommand" alt="" coords="219,166,437,189"/>
+<area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="339,113,468,135"/>
+<area shape="rect" id="node5" href="rekall.plugin.TypedProfileCommand-class.html" title="plugin.TypedProfileCommand" alt="" coords="5,113,168,135"/>
+<area shape="rect" id="node8" href="rekall.plugins.darwin.networking.DarwinNetstat-class.html" title="DarwinNetstat" alt="" coords="283,219,373,242"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html" title="common.DarwinOnlyMixin" alt="" coords="493,113,637,135"/>
 </map>
   <img src="class_hierarchy_for_darwinnets.gif" alt='' usemap="#class_hierarchy_for_darwinnets" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
-<p>List per process network connections.</p>
+<p>Prints all open sockets we know about, from any source.</p>
+  <p>Netstat will display even connections that lsof doesn't know about, 
+  because they were either recovered from an allocation zone, or found 
+  through a secondary mechanism (like system call handler cache).</p>
+  <p>On the other hand, netstat doesn't know the file descriptor or, 
+  really, the process that owns the connection (although it does know the 
+  PID of the last process to access the socket.)</p>
+  <p>Netstat will also tell you, in the style of psxview, if a socket was 
+  only found using some of the methods available.</p>
 
 <!-- ==================== NESTED CLASSES ==================== -->
 <a name="section-NestedClasses"></a>
@@ -122,9 +125,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="sockets"></a><span class="summary-sig-name">sockets</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a href="rekall.plugins.darwin.networking.DarwinNetstat-class.html#collect" class="summary-sig-name">collect</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Collect data that will be passed to renderer.table_row.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat.sockets">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat.collect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -138,36 +142,49 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.networking.DarwinNetstat-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat.render">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pid</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">proc_regex</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">phys_proc</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">proc</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">first</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">method</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a href="rekall.plugin.KernelASMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dtb</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Filters processes by parameters.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
+      A mixin for plugins which require a valid kernel address space.
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__iter__" class="summary-sig-name">__iter__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Make plugins that define collect iterable, as convenience.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__iter__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      repr(x)
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.__repr__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -199,11 +216,46 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="filter_processes"></a><span class="summary-sig-name">filter_processes</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Filters proc list using phys_proc and pids lists.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
+          <td><span class="summary-sig"><a name="collect_as_dicts"></a><span class="summary-sig-name">collect_as_dicts</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.filter_processes">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.collect_as_dicts">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column"></a><span class="summary-sig-name">get_column</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column_type"></a><span class="summary-sig-name">get_column_type</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column_type">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -237,12 +289,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="list_procs"></a><span class="summary-sig-name">list_procs</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">sort</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Uses a few methods to list the procs.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
+          <td><span class="summary-sig"><a name="getkeys"></a><span class="summary-sig-name">getkeys</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.list_procs">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.getkeys">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -256,11 +306,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="list_using_allproc"></a><span class="summary-sig-name">list_using_allproc</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      List all processes by following the _allproc list head.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
+          <td><span class="summary-sig"><a name="reflect"></a><span class="summary-sig-name">reflect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">member</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.list_using_allproc">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.reflect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -274,103 +324,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="list_using_dead_procs"></a><span class="summary-sig-name">list_using_dead_procs</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      List deallocated proc structs using the zone allocator.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
+          <td><span class="summary-sig"><a href="rekall.plugin.TypedProfileCommand-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>)</span><br />
+      Produce results on the renderer given.
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.list_using_dead_procs">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#list_using_pgrp_hash" class="summary-sig-name">list_using_pgrp_hash</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Process groups are organized in a hash chain.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.list_using_pgrp_hash">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#list_using_pid_hash" class="summary-sig-name">list_using_pid_hash</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Lists processes using pid hash tables.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.list_using_pid_hash">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#list_using_tasks" class="summary-sig-name">list_using_tasks</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      List processes using the processor tasks queue.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.list_using_tasks">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.lsof.DarwinLsof-class.html#lsof" class="summary-sig-name">lsof</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">proc_sort_key</span>=<span class="summary-sig-default">None</span>)</span><br />
-      Get all open files (sockets, vnodes, etc.) for all processes.
-      <em>(Inherited from <a href="rekall.plugins.darwin.lsof.DarwinLsof-class.html">rekall.plugins.darwin.lsof.DarwinLsof</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.lsof-pysrc.html#DarwinLsof.lsof">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#virtual_process_from_physical_offset" class="summary-sig-name">virtual_process_from_physical_offset</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">physical_offset</span>)</span><br />
-      Tries to return an proc in virtual space from a physical offset.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.virtual_process_from_physical_offset">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -388,7 +347,6 @@
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
-      <code>__repr__</code>,
       <code>__setattr__</code>,
       <code>__sizeof__</code>,
       <code>__subclasshook__</code>
@@ -404,6 +362,23 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Class Methods</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="methods"></a><span class="summary-sig-name">methods</span>(<span class="summary-sig-arg">cls</span>)</span><br />
+      Return the names of available socket enumeration methods.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat.methods">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -463,12 +438,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">parser</span>)</span><br />
       Declare the command line args we need.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugin.KernelASMixin-class.html">rekall.plugin.KernelASMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinProcessFilter.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#KernelASMixin.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -482,12 +457,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a name="is_active"></a><span class="summary-sig-name">is_active</span>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
       We are only active if the profile is darwin.
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.AbstractDarwinCommandPlugin-class.html">rekall.plugins.darwin.common.AbstractDarwinCommandPlugin</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html">rekall.plugins.darwin.common.DarwinOnlyMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#AbstractDarwinCommandPlugin.is_active">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinOnlyMixin.is_active">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -508,25 +483,38 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html#METHODS" class="summary-name">METHODS</a> = <code title="{&quot;allproc&quot;: list_using_allproc, &quot;deadprocs&quot;: list_using_dead_procs, &quot;t\
-asks&quot;: list_using_tasks, &quot;pgrphash&quot;: list_using_pgrp_hash, &quot;pidhash&quot;: \
-list_using_pid_hash,}">{&quot;allproc&quot;: list_using_allproc, &quot;deadprocs&quot;: list_us<code class="variable-ellipsis">...</code></code>
-      <em>(Inherited from <a href="rekall.plugins.darwin.common.DarwinProcessFilter-class.html">rekall.plugins.darwin.common.DarwinProcessFilter</a>)</em>
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'netstat'"><code class="variable-quote">'</code><code class="variable-string">netstat</code><code class="variable-quote">'</code></code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
+        <a name="PHYSICAL_AS_REQUIRED"></a><span class="summary-name">PHYSICAL_AS_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.PhysicalASMixin-class.html">rekall.plugin.PhysicalASMixin</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="PROFILE_REQUIRED"></a><span class="summary-name">PROFILE_REQUIRED</span> = <code title="True">True</code>
+      <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
+,
+ 'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
+ 'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
+ 'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
  'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'Atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'Banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
- 'BashHistory': &lt;class 'rekall.plugins.linux.bash.BashHistory'&gt;,
- 'BuildIndex': &lt;class 'rekall.plugins.tools.profile_tool.BuildIndex'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AnalyzeStruct</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.windows.int<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -534,15 +522,24 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'address_resolver': &lt;class 'rekall.plugins.windows.address_resolver.P\
-EAddressResolver'&gt;,
- 'analyze_struct': &lt;class 'rekall.plugins.windows.interactive.structs.\
-AnalyzeStruct'&gt;,
- 'arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'atoms': &lt;class 'rekall.plugins.windows.gui.atoms.Atoms'&gt;,
- 'atomscan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
- 'banner': &lt;class 'rekall.plugins.linux.cpuinfo.Banner'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">address_resolver</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.<code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+ 'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
+WindowsAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.windows.address_resolver.\
+PEAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.darwin.address_resolver.D\
+arwinAddressResolver'&gt;,
+                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="error_status"></a><span class="summary-name">error_status</span> = <code title="None">None</code><br />
+      hash(x)
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
@@ -562,6 +559,14 @@ AnalyzeStruct'&gt;,
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
 </table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
@@ -575,8 +580,8 @@ AnalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#name" class="summary-name">name</a>
-      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+        <a href="rekall.plugins.darwin.networking.DarwinNetstat-class.html#table_header" class="summary-name">table_header</a><br />
+      hash(x)
     </td>
   </tr>
   <tr>
@@ -596,37 +601,24 @@ AnalyzeStruct'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="render"></a>
+<a name="collect"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">collect</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat.render">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.darwin.networking-pysrc.html#DarwinNetstat.collect">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Produce results on the renderer given.
-
-Each plugin should implement this method to produce output on the
-renderer. The framework will initialize the plugin and provide it with
-some kind of renderer to write output on. The plugin should not assume
-that the renderer is actually TextRenderer, only that the methods
-defined in the BaseRenderer exist.
-
-Args:
-  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
-
-</pre>
+  <p>Collect data that will be passed to renderer.table_row.</p>
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
+        <a href="rekall.plugin.TypedProfileCommand-class.html#collect">plugin.TypedProfileCommand.collect</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -681,13 +673,34 @@ Args:
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Property Details</span></td>
+</tr>
+</table>
+<a name="table_header"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">table_header</h3>
+  <p>hash(x)</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.helper(<span class="summary-sig-arg">*args</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
   <tr valign="middle">
-  <!-- Home link -->
-      <th>&nbsp;&nbsp;&nbsp;<a
-        href="rekall-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
 
   <!-- Tree link -->
       <th>&nbsp;&nbsp;&nbsp;<a
@@ -712,7 +725,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Fri Aug 29 11:05:47 2014
+    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:55 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

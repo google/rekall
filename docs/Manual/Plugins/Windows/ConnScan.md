@@ -1,15 +1,15 @@
 ---
-layout: plugin
-title: connscan
-abstract: |
-  Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
+abstract: " Scan Physical memory for _TCPT_OBJECT objects (tcp connections)\n    "
+args: {scan_in_kernel: 'Scan in the kernel address space (type: Boolean)
 
+
+
+    * Default: False', tcpip_guid: Force this profile to be used for tcpip.}
+class_name: ConnScan
 epydoc: rekall.plugins.windows.connscan.ConnScan-class.html
-args:
-  tcpip_guid: 'Force this profile to be used for tcpip.'
-  address_space: ''
-  scan_in_kernel: 'Scan in the kernel address space'
-
+layout: plugin
+module: rekall.plugins.windows.connscan
+title: connscan
 ---
 
 
