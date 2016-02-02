@@ -93,7 +93,7 @@ class FindPlugins(plugin.ProfileCommand):
                             help="Only include producers: plugins that output "
                                  "only this struct and have no side effects.")
 
-    def __init__(self, type_name, producers_only=False, **kwargs):
+    def __init__(self, type_name=None, producers_only=False, **kwargs):
         super(FindPlugins, self).__init__(**kwargs)
         self.type_name = type_name
         self.producers_only = producers_only

@@ -84,6 +84,7 @@ http://pierrelib.pagesperso-orange.fr/exec_formats/MS_Symbol_Type_v1.0.pdf
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import glob
 import re
 import ntpath
 import os
@@ -217,6 +218,11 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                     raise RuntimeError(
                         "Failed to decompress output file %s. "
                         "Ensure cabextract is installed.\n" % output_file)
+
+                # Sometimes the CAB file contains a PDB file with a different
+                # name or casing than we expect. We use glob to find any PDB
+                # files in the temp directory.
+                output_file = glob.glob("%s/*pdb" % temp_dir)[0]
 
                 # We read the entire file into memory here - it should not be
                 # larger than approximately 10mb.

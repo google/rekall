@@ -111,21 +111,20 @@ class AbstractDarwinCommand(DarwinOnlyMixin, plugin.KernelASMixin,
     __abstract = True
 
 
-class AbstractDarwinTypedCommand(DarwinOnlyMixin, plugin.KernelASMixin,
-                                 plugin.PhysicalASMixin,
-                                 plugin.TypedProfileCommand):
+class AbstractDarwinTypedCommand(plugin.TypedProfileCommand,
+                                 AbstractDarwinCommand):
     """Base class for Darwin commands with typed output."""
     __abstract = True
 
 
-class AbstractDarwinProducer(DarwinOnlyMixin, plugin.KernelASMixin,
-                             plugin.PhysicalASMixin, plugin.Producer):
+class AbstractDarwinProducer(plugin.Producer,
+                             AbstractDarwinCommand):
     """Base class for Darwin producers using the physical AS."""
     __abstract = True
 
 
-class AbstractDarwinCachedProducer(AbstractDarwinProducer,
-                                   plugin.CachedProducer):
+class AbstractDarwinCachedProducer(plugin.CachedProducer,
+                                   AbstractDarwinCommand):
     """Base class for Darwin producers backed by a session param hook."""
     __abstract = True
 

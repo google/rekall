@@ -55,19 +55,19 @@ install_requires = [
     "acora == 1.9",
     "argparse == 1.2.1",
     "arrow == 0.7.0",
-    "capstone == 3.0.3",
     "efilter == 1450268920",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.23",
     "pytz == 2015.7",
     "sortedcontainers == 1.4.2",
-    "mock == 1.3.0",
 ]
 
 if platform.system() == "Windows":
     install_requires.append("pypiwin32 == 219")
-    install_requires.append("capstone-windows >= 3.0.3")
+    install_requires.append("capstone-windows == 3.0.4")
+else:
+    install_requires.append("capstone == 3.0.4")
 
 
 if "VIRTUAL_ENV" not in os.environ:
@@ -122,6 +122,27 @@ class CleanCommand(Command):
 commands = versioneer.get_cmdclass()
 commands["pip_upgrade"] = PIPUpgrade
 commands["clean"] = CleanCommand
+
+
+def fix_setuptools():
+    """Work around bugs in setuptools.
+
+    Some versions of setuptools are broken and raise SandboxViolation for normal
+    operations in a virtualenv. We therefore disable the sandbox to avoid these
+    issues.
+    """
+    try:
+        from setuptools.sandbox import DirectorySandbox
+        def violation(operation, *args, **_):
+            print "SandboxViolation: %s" % (args,)
+
+        DirectorySandbox._violation = violation
+    except ImportError:
+        pass
+
+# Fix bugs in setuptools.
+fix_setuptools()
+
 
 setup(
     name="rekall-core",

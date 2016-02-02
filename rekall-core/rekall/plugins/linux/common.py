@@ -23,7 +23,6 @@
 @organization: Digital Forensics Solutions
 """
 import re
-import struct
 
 from rekall import addrspace
 from rekall import kb
@@ -353,7 +352,7 @@ class LinProcessFilter(LinuxPlugin):
                         self.cache[k].add(proc.obj_offset)
 
                 self.session.logging.debug("Listed %s processes using %s",
-                              len(self.cache[k]), k)
+                                           len(self.cache[k]), k)
                 seen.update(self.cache[k])
 
         # Sort by pid so that the output ordering remains stable.

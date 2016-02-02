@@ -585,7 +585,7 @@ def PPrint(data, depth=0):
         return res
 
     if isinstance(data, basestring):
-        return json.dumps(data)
+        return json.dumps(SmartUnicode(data))
 
     # JSON encodes None as null.
     elif data is None:

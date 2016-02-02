@@ -271,10 +271,13 @@ class PluginHeader(object):
                                 "is invalid." % columns)
 
             cname = column.get("cname")
+            if cname is None:
+                cname = column.get("name")
+
             if not cname:
                 raise ValueError("Plugins declaring table headers ahead of "
                                  "time MUST specify 'cname' for each column. "
-                                 "Table header %r is invalid." % columns)
+                                 "Table header %r is invalid." % (columns,))
 
             if self.by_cname.get(cname):
                 raise ValueError("Duplicate cname %r! Table header %r is "
@@ -325,10 +328,8 @@ class PluginHeader(object):
         return self.by_cname.get(name, self.by_name.get(name))
 
 
-class TypedProfileCommand(ProfileCommand):
+class TypedProfileCommand(object):
     """Mixin that provides the plugin with standardized table output."""
-
-    __abstract = True
 
     # Subclasses must override. Has to be an instance of PluginHeader.
     table_header = None
@@ -389,8 +390,6 @@ class Producer(TypedProfileCommand):
     the individual pslist enumeration methods.
     """
 
-    __abstract = True
-
     # The type of the structs that's returned out of collect and render.
     type_name = None
 
@@ -414,8 +413,6 @@ class Producer(TypedProfileCommand):
 
 class CachedProducer(Producer):
     """A producer backed by a cached session parameter hook."""
-
-    __abstract = True
 
     @property
     def hook_name(self):
@@ -530,7 +527,7 @@ class VerbosityMixIn(object):
         parser.add_argument(
             "-V", "--verbosity", default=1, type="IntParser",
             help="An integer reflecting the amount of desired output: "
-            "0 = quiet, 10 = noisy. Default: 1")
+            "0 = quiet, 10 = noisy.")
 
     def __init__(self, *args, **kwargs):
         # Do not interfere with positional args, since this is a mixin.

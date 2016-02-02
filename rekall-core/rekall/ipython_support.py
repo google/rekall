@@ -18,18 +18,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""Support IPython 3.0."""
+"""Support IPython 4.0."""
 
 # pylint: disable=protected-access
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+
 import logging
 import re
 import readline
 
 from rekall import constants
 from rekall import config
-from rekall import session
+from rekall import session as session_module
+
+import IPython
+from IPython.core import page
 from IPython.core import oinspect
 from IPython.terminal import embed
 try:
@@ -60,16 +64,13 @@ def RekallCompleter(self, text):
                 result = [result[0] + "\""]
 
             result = [x.split("!", 1)[1] for x in result]
-
             return result
 
         # Only complete if there is exactly one object which matches and a space
         # was typed after it. e.g.: pslist <cursor>
-        if (global_matches and len(global_matches) == 1 and
-                len(command_parts) > 1):
-
+        if (command in global_matches and len(command_parts) > 1):
             # Get the object and ask it about the list of args that it supports.
-            obj = self.namespace.get(global_matches.pop())
+            obj = self.namespace.get(command)
             if obj:
                 try:
                     matches = [
@@ -85,6 +86,8 @@ def RekallCompleter(self, text):
     except Exception as e:
         logging.debug(e)
 
+    return []
+
 
 class RekallObjectInspector(oinspect.Inspector):
     """Rekall specific object inspector.
@@ -97,10 +100,6 @@ class RekallObjectInspector(oinspect.Inspector):
     specialized inspection to present the doc strings and arg list of the actual
     plugin.
     """
-
-    pinfo_fields1 = oinspect.Inspector.pinfo_fields1 + [
-        ("Link", "link"),
-        ("Parameters", "parameters")]
 
     def format_parameters(self, plugin_class):
         displayfields = []
@@ -116,34 +115,39 @@ class RekallObjectInspector(oinspect.Inspector):
 
         return self._format_fields(displayfields)
 
-    def plugin_info(self, runner, **kwargs):
+    def plugin_pinfo(self, runner, detail_level=0):
         """Generate info dict for a plugin from a plugin runner."""
         plugin_class = getattr(
             runner.session.plugins, runner.plugin_name)._target
 
-        result = oinspect.Inspector.info(self, plugin_class, **kwargs)
-        result["file"] = oinspect.find_file(plugin_class)
-        result["type_name"] = "Rekall Plugin (%s)" % plugin_class.__name__
-        result["parameters"] = self.format_parameters(plugin_class)
-        result["docstring"] = oinspect.getdoc(plugin_class)
-        result["link"] = (
-            "http://www.rekall-forensic.com/epydocs/%s.%s-class.html" % (
-                plugin_class.__module__, plugin_class.__name__))
+        display_fields = [
+            ("file", oinspect.find_file(plugin_class)),
+            ("Plugin", "%s (%s)" % (plugin_class.__name__, plugin_class.name)),
+            ("Parameters", self.format_parameters(plugin_class)),
+            ("Docstring", oinspect.getdoc(plugin_class)),
+            ("Link", (
+                "http://www.rekall-forensic.com/epydocs/%s.%s-class.html" % (
+                    plugin_class.__module__, plugin_class.__name__))),
+        ]
 
-        # Hide these two fields.
-        result["init_definition"] = None
-        result["string_form"] = None
+        # Include the source if required.
+        if detail_level > 0:
+            info = self.info(plugin_class, detail_level=detail_level)
+            display_fields.append(("source", self.format(info["source"])))
 
-        return result
+        return self._format_fields(display_fields)
 
-    def info(self, obj, **kwargs):
-        if isinstance(obj, session.PluginRunner):
+    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0):
+        if isinstance(obj, session_module.PluginRunner):
             # Delegate info generation for PluginRunners.
-            return self.plugin_info(obj, **kwargs)
+            result = self.plugin_pinfo(obj, detail_level=detail_level)
+            if result:
+                page.page(result)
 
-        result = oinspect.Inspector.info(self, obj, **kwargs)
-        result["link"] = result["parameters"] = None
-        return result
+        else:
+            oinspect.Inspector.pinfo(
+                self, obj, oname=oname, formatter=formatter,
+                info=info, detail_level=detail_level)
 
 
 class RekallShell(embed.InteractiveShellEmbed):
@@ -153,7 +157,20 @@ class RekallShell(embed.InteractiveShellEmbed):
         self.user_global_ns.session.Flush()
 
     def init_inspector(self):
-        self.inspector = RekallObjectInspector()
+        super(RekallShell, self).init_inspector()
+
+        ipython_version = IPython.__version__
+
+        # IPython 4 is the one we standardize on right now. This means we
+        # support earlier ones but turn off the bells and whistles.
+        if "4.0.0" <= ipython_version < "5.0.0":
+            self.inspector = RekallObjectInspector()
+
+        else:
+            self.user_ns.session.logging.warn(
+                "Warning: IPython version %s not fully supported. "
+                "We recommend installing ipython version 4.",
+                ipython_version)
 
 
 def Shell(user_session):
@@ -185,6 +202,8 @@ def Shell(user_session):
     # Do we need to pre-run something?
     if user_session.run != None:
         execfile(user_session.run, user_session.locals)
+
+    user_session.shell = shell
 
     # Set known delimeters for the completer. This varies by OS so we need to
     # set it to ensure consistency.

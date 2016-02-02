@@ -138,10 +138,6 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
 
         # Now decode it.
         decoded = json_renderer_obj.decode(encoded)
-        if decoded is None:
-            import pdb; pdb.set_trace()
-            json_renderer_obj.decode(encoded)
-
         self.assertEqual(decoded, obj)
 
         # Now check the DataExportRenderer.

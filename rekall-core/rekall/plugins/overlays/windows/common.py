@@ -590,6 +590,12 @@ class _UNICODE_STRING(obj.Struct):
         self.Buffer.dereference().write(string)
         self.Length = len(string) * 2
 
+class _LUID(obj.Struct):
+    """A Locally unique identifier."""
+
+    def v(self):
+        return (self.HighPart.v() << 32) + self.LowPart.v()
+
 
 class _SID(obj.Struct):
     """SID Structure.
@@ -1387,6 +1393,7 @@ def InitializeWindowsProfile(profile):
         '_CM_KEY_BODY': _CM_KEY_BODY,
         '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
         "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
+        "_LUID": _LUID,
         "_SID": _SID,
         "_KTIMER": _KTIMER,
         "_SHARED_CACHE_MAP": _SHARED_CACHE_MAP,

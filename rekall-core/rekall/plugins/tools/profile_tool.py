@@ -411,9 +411,7 @@ class BuildIndex(plugin.Command):
     The index specification is currently a yaml file with the following
     structure:
 
-    Structure:
-    ==========
-
+    ```
     base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
         symbol. This includes MaxOffset and MinOffset.
     symbols: (array of dicts) # A list of symbols to index.
@@ -421,10 +419,11 @@ class BuildIndex(plugin.Command):
         name: (string) # Symbol name
         data: (string) # Data that should be at the symbol's offset
         shift: (int) # OPTIONAL Adjust symbol offset by this number
+    ```
 
-    Example:
-    ========
+    ## Example:
 
+    ```
     path: win32k.sys
     symbols:
       -
@@ -438,11 +437,13 @@ class BuildIndex(plugin.Command):
         name: "wcschr"
         shift: -1
         data: "90"
+    ```
 
     The result is an index profile. This has an $INDEX section which is a dict,
     with keys being the profile name, and values being a list of (offset, match)
     tuples. For example:
 
+    ```
     {
      "$INDEX": {
       "tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202": [[1184600, "495053656344656c657465496e626f756e644f7574626f756e64536150616972"]],
@@ -457,6 +458,7 @@ class BuildIndex(plugin.Command):
       "MinOffset": 0
       }
      }
+    ```
     """
 
     __name = "build_index"
@@ -765,7 +767,7 @@ class BuildProfileLocally(plugin.Command):
         if not guid or not module_name:
             raise TypeError("GUID not specified.")
 
-        profile_name = "{0}/GUID/{1}".format(module_name, guid)
+        profile_name = "{0}/GUID/{1}".format(module_name.lower(), guid)
 
         # Get the first repository to write to.
         repository = self.session.repository_managers[0][1]

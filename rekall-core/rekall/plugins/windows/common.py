@@ -448,7 +448,7 @@ class WinProcessFilter(WindowsCommandPlugin):
         parser.add_argument(
             "--method", choices=cls.METHODS, type="ChoiceArray",
             default=cls.METHODS,
-            help="Method to list processes (Default uses all methods).")
+            help="Method to list processes.")
 
     def __init__(self, pid=None, eprocess=None, phys_eprocess=None,
                  proc_regex=None, method=None, **kwargs):

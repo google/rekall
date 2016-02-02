@@ -718,8 +718,8 @@ class DT(plugin.ProfileCommand):
             struct.obj_type, struct.obj_name or '',
             self.offset or struct.obj_offset)
 
-        width = int(math.ceil(math.log(struct.obj_size + 1, 16)))
-
+        end_address = struct.obj_size + struct.obj_offset
+        width = int(math.ceil(math.log(end_address + 1, 16)))
         renderer.table_header([
             dict(name="Offset", type="TreeNode", max_depth=5,
                  child=dict(style="address", width=width+5),

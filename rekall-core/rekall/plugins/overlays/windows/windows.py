@@ -26,6 +26,7 @@ from rekall import obj
 from rekall.plugins.overlays.windows import common
 from rekall.plugins.overlays.windows import heap
 from rekall.plugins.overlays.windows import pe_vtypes
+from rekall.plugins.overlays.windows import tokens
 
 from rekall.plugins.overlays.windows import xp
 from rekall.plugins.overlays.windows import vista
@@ -110,7 +111,7 @@ class Ntoskrnl(pe_vtypes.BasicPEProfile):
         # Install the base windows support.
         common.InitializeWindowsProfile(profile)
         crashdump.InstallKDDebuggerProfile(profile)
-
+        tokens.InitializeTokenProfiles(profile)
         heap.InitializeHeapProfile(profile)
 
         # Get the windows version of this profile.

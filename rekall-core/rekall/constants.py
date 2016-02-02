@@ -20,7 +20,7 @@ import time
 from rekall import _version
 
 VERSION = _version.get_versions()["version"]
-CODENAME = "Etzel"   # https://en.wikipedia.org/wiki/Etzel_Pass
+CODENAME = "Furka"   # https://en.wikipedia.org/wiki/Furka_Pass
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 PROFILE_REPOSITORIES = [

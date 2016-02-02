@@ -43,7 +43,8 @@ class Module(object):
     Within Rekall, each module has a name. Rekall uses a simple syntax to refer
     to an address in the address space by name (see below).
     """
-    def __init__(self, name=None, start=None, end=None, profile=None, session=None):
+    def __init__(self, name=None, start=None, end=None, profile=None,
+                 session=None):
         self.name = name
         self.start = int(start)
         self.end = int(end)
@@ -311,7 +312,8 @@ class AddressResolverMixin(object):
             return (-1, [])
 
         if module.profile != None:
-            offset, symbols = module.profile.get_nearest_constant_by_address(address)
+            offset, symbols = module.profile.get_nearest_constant_by_address(
+                address)
 
         # Symbols not found at all
         if not symbols:
@@ -321,7 +323,8 @@ class AddressResolverMixin(object):
             if address == module.start:
                 return (module.start, [module.name])
 
-            return (module.start, ["%s+%#x" % (module.name, address - module.start)])
+            return (module.start, [
+                "%s+%#x" % (module.name, address - module.start)])
 
         if address - offset > max_distance:
             return (-1, [])

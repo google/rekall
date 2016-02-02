@@ -143,6 +143,17 @@ class PluginContainer(object):
             if cls.name]
 
 
+class PluginRunnerContainer(PluginContainer):
+    """Like a PluginContainer but returns plugin runners."""
+
+    def __getattr__(self, name):
+        plugin_cls = self.GetPluginClass(name)
+        if plugin_cls == None:
+            return plugin_cls
+
+        return PluginRunner(self.session, name)
+
+
 class Configuration(utils.AttributeDict):
     """The session's configuration is managed through this object.
 
@@ -581,6 +592,10 @@ class Session(object):
         if self.physical_address_space:
             self.physical_address_space.ConfigureSession(self)
 
+        # Fix up the completer. This is sometimes required after the debugger
+        # steals readline focus. Typing session.Reset() fixes things again.
+        self.shell.init_completer()
+
     @property
     def default_address_space(self):
         return self.GetParameter("default_address_space")
@@ -976,7 +991,16 @@ class Session(object):
 
 
 class DynamicNameSpace(dict):
-    """A namespace which dynamically reflects the currently active plugins."""
+    """A namespace which dynamically reflects the currently active plugins.
+
+    This forms the global namespace inside the ipython interpreter shell. There
+    are some special variables prepopulated:
+
+    - plugins: A PluginRunnerContainer that users can use to see which plugins
+      are active.
+
+    - session: A reference to the current session.
+    """
 
     def __init__(self, session=None, **kwargs):
         if session is None:
@@ -986,7 +1010,8 @@ class DynamicNameSpace(dict):
         self.session = session
 
         super(DynamicNameSpace, self).__init__(
-            session=session, plugins=session.plugins,
+            session=session,
+            plugins=PluginRunnerContainer(session),
             **kwargs)
 
     def __iter__(self):

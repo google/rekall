@@ -67,8 +67,8 @@ class IOManagerTest(testlib.RekallBaseUnitTestCase):
                          "hello")
 
         # Test ListFiles().
-        self.assertListEqual(list(manager.ListFiles()),
-                             ["foo", "bar"])
+        self.assertListEqual(sorted(manager.ListFiles()),
+                             ["bar", "foo"])
 
         # Storing a data structure.
         data = dict(a=1)

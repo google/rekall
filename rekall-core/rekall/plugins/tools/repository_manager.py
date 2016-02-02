@@ -26,10 +26,11 @@ import json
 import os
 import yaml
 
-from rekall import registry
-from rekall import utils
 from rekall import io_manager
 from rekall import plugin
+from rekall import registry
+from rekall import testlib
+from rekall import utils
 
 
 class RepositoryManager(io_manager.DirectoryIOManager):
@@ -235,3 +236,7 @@ class ManageRepository(plugin.Command):
                 session=self.session, repository=self.repository,
                 profile_name=profile_name, **kwargs)
             handler.Build(renderer)
+
+
+class TestManageRepository(testlib.DisabledTest):
+    """Dont run automated tests for this tool."""

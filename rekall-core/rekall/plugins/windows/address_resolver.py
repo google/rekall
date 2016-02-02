@@ -119,8 +119,11 @@ class PEModule(address_resolver.Module):
         # Finally try to apply the index if available.
         return self.detect_profile_from_index()
 
-    def build_local_profile(self, profile_name, force=False):
+    def build_local_profile(self, profile_name=None, force=False):
         """Fetch and build a local profile from the symbol server."""
+        if profile_name is None:
+            profile_name = self.detect_profile_name()
+
         mode = self.session.GetParameter("autodetect_build_local")
         if force or mode == "full" or (
                 mode == "basic" and
@@ -162,15 +165,22 @@ class PEModule(address_resolver.Module):
         result.add_constants(constants_are_addresses=True, constants=constants)
         return result
 
+    def reset(self):
+        self._profile = None
+
     @property
     def profile(self):
         if self._profile:
             return self._profile
 
+        return self.load_profile(force=False)
+
+    def load_profile(self, force=True):
         profile_name = self.detect_profile_name()
         if profile_name:
-            self._profile = (self.session.LoadProfile(profile_name) or
-                             self.build_local_profile(profile_name))
+            self._profile = (
+                self.session.LoadProfile(profile_name) or
+                self.build_local_profile(profile_name, force=force))
 
         if not self._profile:
             # Profile is not available, should we build it?
@@ -231,6 +241,22 @@ class KernelModule(PEModule):
 class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                              common.WindowsCommandPlugin):
     """A windows specific address resolver plugin."""
+
+    @classmethod
+    def args(cls, parser):
+        parser.add_argument(
+            "download_profile", default=False,
+            help="Try to download the profile for this module from the "
+            "symbol server.")
+
+    def __init__(self, download_profile=None, **kwargs):
+        super(WindowsAddressResolver, self).__init__(**kwargs)
+        self.download_profile = download_profile
+
+    def render(self, renderer):
+        if self.download_profile:
+            self.session.address_resolver.GetModuleByName(
+                self.download_profile).load_profile(force=True)
 
     @staticmethod
     def NormalizeModuleName(module_name):
@@ -354,9 +380,6 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
                             profile=self.pe_profile,
                             session=self.session))
 
-        # Insert a psuedo module for each section
-        module_end = self.image_base
-
         # Find the highest address covered in this executable image.
         for _, name, virtual_address, length in self.pe_helper.Sections():
             if length > 0:
@@ -365,7 +388,7 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
                     PESectionModule(start=virtual_address,
                                     end=virtual_address + length,
                                     name=self.NormalizeModuleName(name),
-                                    profile = self.pe_profile,
+                                    profile=self.pe_profile,
                                     session=self.session))
 
         self._initialized = True

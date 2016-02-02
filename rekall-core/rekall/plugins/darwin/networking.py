@@ -79,8 +79,10 @@ class DarwinNetstat(common.AbstractDarwinTypedCommand):
         # AbstractDarwinCachedProducer.
         methods = []
         for subclass in common.AbstractDarwinProducer.classes.itervalues():
-            if (issubclass(subclass, common.AbstractDarwinProducer)
-                    and subclass.type_name == "socket"):
+            # We look for a plugin which is a producer and a darwin command.
+            if (issubclass(subclass, common.AbstractDarwinCommand) and
+                    issubclass(subclass, plugin.Producer) and
+                    subclass.type_name == "socket"):
                 methods.append(subclass.name)
         methods.sort()
 

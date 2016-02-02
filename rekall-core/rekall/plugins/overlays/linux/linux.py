@@ -1076,14 +1076,15 @@ class Linux(basic.BasicClasses):
             ts.tv_sec = 0
             ts.tv_nsec = 0
         else:
-          tv_sec = nsec / timespec.NSEC_PER_SEC
-          rem = nsec % timespec.NSEC_PER_SEC
-          ts.tv_sec = tv_sec
+            tv_sec = nsec / timespec.NSEC_PER_SEC
+            rem = nsec % timespec.NSEC_PER_SEC
+            ts.tv_sec = tv_sec
 
-          if rem < 0:
-            ts.tv_sec -= 1
-            rem += timespec.NSEC_PER_SEC
-          ts.tv_nsec = rem
+            if rem < 0:
+                ts.tv_sec -= 1
+                rem += timespec.NSEC_PER_SEC
+
+            ts.tv_nsec = rem
         return ts
 
     def phys_addr(self, va):
@@ -1142,3 +1143,13 @@ class Linux64(Linux):
     def Initialize(cls, profile):
         profile.set_metadata("arch", "AMD64")
         super(Linux64, cls).Initialize(profile)
+
+
+class LinuxConfigProfileLoader(obj.ProfileSectionLoader):
+    """Linux profiles can carry the original Kconfig in the $CONFIG section."""
+    name = "$CONFIG"
+
+    def LoadIntoProfile(self, session, profile, config):
+        profile.kernel_config_options = config
+
+        return profile

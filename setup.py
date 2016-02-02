@@ -24,6 +24,9 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import os
+import sys
+import subprocess
 import versioneer
 
 try:
@@ -31,14 +34,63 @@ try:
 except ImportError:
     from distutils.core import setup
 
+from setuptools.command.install import install as _install
+from setuptools.command.develop import develop as _develop
+
+
 rekall_description = "Rekall Memory Forensic Framework"
 
 MY_VERSION = versioneer.get_version()
 
+
+# This is a metapackage which pulls in the dependencies. There are two main
+# installation scenarios:
+
+# 1) We get installed from PyPi from our own sdist. In this case we need to
+# declare dependencies on the released PyPi packages.
+
+# 2) We get run from the root of the source tree (e.g. checked out from git). In
+# this case we need to declare the setup.py as a dependency so it gets installed
+# first.
+
+class install(_install):
+    def do_egg_install(self):
+        path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "rekall-core", "setup.py"))
+
+        if os.access(path, os.F_OK):
+            print "Installing rekall-core from local directory."
+
+            subprocess.check_call([sys.executable, "setup.py", "install"],
+                                  cwd="rekall-core")
+
+        # Need to call this directly because _install.run does crazy stack
+        # walking and falls back to compatibility mode.
+        _install.do_egg_install(self)
+
+
+class develop(_develop):
+    def run(self):
+        path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "rekall-core", "setup.py"))
+
+        if os.access(path, os.F_OK):
+            print "Installing rekall-core from local directory."
+
+            subprocess.check_call([sys.executable, "setup.py", "develop"],
+                                  cwd="rekall-core")
+
+        _develop.run(self)
+
+commands = versioneer.get_cmdclass()
+commands["install"] = install
+commands["develop"] = develop
+
+
 setup(
     name="rekall",
     version=MY_VERSION,
-    cmdclass=versioneer.get_cmdclass(),
+    cmdclass=commands,
     description=rekall_description,
     long_description=open("README.md").read(),
     license="GPL",
@@ -56,6 +108,6 @@ setup(
     # pulls in tested dependencies.
     install_requires=[
         "rekall-core >= 1.4.0.pre3",
-        "rekall-gui >= 1.4.0.pre3",
+        "ipython==4.0.0",
     ],
 )
