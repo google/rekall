@@ -142,6 +142,9 @@ class CachingManager(io_manager.IOManager):
         if modified:
             self.cache_io_manager.FlushInventory()
 
+    def ListFiles(self):
+        return self.url_manager.ListFiles()
+
 
 class CacheDirectoryManager(CachingManager):
     DELEGATE = io_manager.DirectoryIOManager

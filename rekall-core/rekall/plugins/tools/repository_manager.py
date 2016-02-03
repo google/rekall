@@ -43,7 +43,12 @@ class RepositoryManager(io_manager.DirectoryIOManager):
         return utils.PPrint(data)
 
     def Decoder(self, raw):
-        return yaml.safe_load(raw)
+        try:
+            # First try to load it with json because it is way faster.
+            return super(RepositoryManager, self).Decoder(raw)
+        except ValueError:
+            # If that does not work, try to load it with yaml.
+            return yaml.safe_load(raw)
 
 
 class RepositoryPlugin(object):
@@ -65,6 +70,15 @@ class RepositoryPlugin(object):
                 raise RuntimeError("Unknown transform %s" % transform)
 
         return profile
+
+    def BuildIndex(self):
+        repository = self.args.repository
+        spec = repository.GetData(self.args.index)
+
+        index = self.session.plugins.build_index(
+            manager=repository).build_index(spec)
+
+        repository.StoreData("%s/index" % self.args.profile_name, index)
 
     def Build(self, renderer):
         """Implementation of the build routine."""
@@ -104,23 +118,6 @@ class WindowsGUIDProfile(RepositoryPlugin):
         profile_data = self.TransformProfile(profile_data)
         repository.StoreData("%s/%s" % (self.args.profile_name, guid),
                              profile_data)
-
-    def BuildIndex(self):
-        repository = self.args.repository
-        # Rebuild the index.
-        with utils.TempDirectory() as temp_dir:
-            output_filename = os.path.join(temp_dir, "index")
-            spec_filename = os.path.join(temp_dir, "index.yaml")
-
-            with open(spec_filename, "wb") as fd:
-                fd.write(repository.GetData(self.args.index, raw=True))
-
-            self._RunPlugin("build_index",
-                            output=output_filename,
-                            spec=spec_filename)
-
-            repository.StoreData("%s/index" % self.args.profile_name,
-                                 json.load(open(output_filename)))
 
     def Build(self, renderer):
         repository = self.args.repository
@@ -179,13 +176,14 @@ class OSXProfile(RepositoryPlugin):
 
     def Build(self, renderer):
         repository = self.args.repository
+        changed_files = False
         for source in self.args.sources:
             profile_name = "OSX/%s" % source.split("/")[-1]
             profile_metadata = repository.Metadata(profile_name)
 
             # Profile does not exist - rebuild it.
             if not profile_metadata:
-                data = json.loads(repository.GetData(source, raw=True))
+                data = repository.GetData(source)
 
                 # Transform the data as required.
                 data = self.TransformProfile(data)
@@ -193,6 +191,13 @@ class OSXProfile(RepositoryPlugin):
                                      raw=True)
                 renderer.format("Building profile {0} from {1}\n",
                                 profile_name, source)
+                changed_files = True
+
+        if changed_files and self.args.index:
+            renderer.format("Building index for profile {0} from {1}\n",
+                            self.args.profile_name, self.args.index)
+
+            self.BuildIndex()
 
 
 class ManageRepository(plugin.Command):

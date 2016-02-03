@@ -82,12 +82,9 @@ Now simply specify the rekall profile using the --profile command line arg.
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-import gzip
-import json
 import os
 import re
 import StringIO
-import yaml
 
 from rekall import io_manager
 from rekall import plugin
@@ -474,10 +471,13 @@ class BuildIndex(plugin.Command):
             "--root", default="./",
             help="Repository root path.")
 
-    def __init__(self, spec=None, root="./", **kwargs):
+    def __init__(self, spec=None, root="./", manager=None, **kwargs):
         super(BuildIndex, self).__init__(**kwargs)
         self.spec = spec
-        self.root = root
+        if manager is None:
+            manager = io_manager.DirectoryIOManager(
+                root, session=self.session)
+        self.io_manager = manager
 
     @staticmethod
     def _decide_base(data, base_symbol):
@@ -486,7 +486,7 @@ class BuildIndex(plugin.Command):
 
         return data["$CONSTANTS"].get(base_symbol, None)
 
-    def ValidateDataIndex(self, index, spec):
+    def ValidateDataIndex(self, index):
         """Check the index for collisions.
 
         An index collision occurs when all the comparison points in one GUID are
@@ -531,8 +531,9 @@ class BuildIndex(plugin.Command):
 
     def _AreProfilesEquivalent(self, profile, profile2):
         # Check if the two profiles are equivalent:
-        profile_obj = self._GetProfile(profile)
-        profile2_obj = self._GetProfile(profile2)
+        profile_obj = self.io_manager.GetData(profile)
+        profile2_obj = self.io_manager.GetData(profile2)
+
         for section in ["$CONSTANTS", "$FUNCTIONS"]:
             if profile_obj.get(section) != profile2_obj.get(section):
                 return False
@@ -556,7 +557,7 @@ class BuildIndex(plugin.Command):
                   "$INDEX": index}
 
         highest_offset = 0
-        lowest_offset = float("inf")
+        lowest_offset = 2 ** 64
         base_sym = spec.get("base_symbol", None)
 
         for relative_path, data in self._GetAllProfiles(spec["path"]):
@@ -624,7 +625,7 @@ class BuildIndex(plugin.Command):
         metadata["MinOffset"] = lowest_offset
 
         # Make sure to issue warnings if the index is not good enough.
-        self.ValidateDataIndex(index, spec)
+        self.ValidateDataIndex(index)
 
         return result
 
@@ -659,36 +660,24 @@ class BuildIndex(plugin.Command):
 
         return result
 
-    def _GetProfile(self, name):
-        path = "%s.gz" % name
-        file_data = gzip.open(path).read()
-        return json.loads(file_data)
-
     def _GetAllProfiles(self, path):
         """Iterate over all paths and get the profiles."""
-        for root, _, files in os.walk(os.path.join(self.root, path)):
-            for name in files:
-                path = os.path.join(root, name)
-                relative_path = os.path.splitext(path[len(self.root):])[0]
+        for profile_name in self.io_manager.ListFiles():
+            if profile_name.startswith(path):
+                self.session.report_progress("Processing %s", profile_name)
+                data = self.io_manager.GetData(profile_name)
 
-                if path.endswith(".gz"):
-                    self.session.report_progress("Processing %s", relative_path)
-                    file_data = gzip.open(path).read()
-                    data = json.loads(file_data)
+                yield profile_name, data
 
-                    yield relative_path, data
+    def build_index(self, spec):
+        if spec.get("type") == "struct":
+            return self.BuildStructIndex(spec)
+        else:
+            return self.BuildDataIndex(spec)
 
     def render(self, renderer):
-        with renderer.open(filename=self.spec, mode="rb") as fd:
-            spec = yaml.safe_load(fd)
-
-
-        if spec.get("type") == "struct":
-            result = self.BuildStructIndex(spec)
-        else:
-            result = self.BuildDataIndex(spec)
-
-        renderer.write(utils.PPrint(result))
+        spec = self.io_manager.GetData(self.spec)
+        renderer.write(utils.PPrint(self.build_index(spec)))
 
 
 class BuildProfileLocally(plugin.Command):
