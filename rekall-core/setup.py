@@ -55,7 +55,7 @@ install_requires = [
     "acora == 1.9",
     "argparse == 1.2.1",
     "arrow == 0.7.0",
-    "efilter == 1450268920",
+    "efilter == 1453815385",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.23",
