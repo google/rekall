@@ -215,7 +215,7 @@ class WinPmemAddressSpace(Win32AddressSpace):
 
     def ConfigureSession(self, session):
         dtb = self.memory_parameters["CR3"]
-        self.session.SetCache("dtb", int(dtb), volatile=False)
+        session.SetCache("dtb", int(dtb), volatile=False)
 
         # Get the kernel base directly from the winpmem driver if that is
         # available.

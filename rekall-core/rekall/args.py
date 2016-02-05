@@ -448,11 +448,13 @@ class IntParser(argparse.Action):
     def parse_int(self, value):
         # Support suffixes
         multiplier = 1
-        m = re.search("(.*)(mb|kb|m|k)", value)
+        m = re.search("(.*)(Mb|mb|kb|m|M|k|g|G|Gb)", value)
         if m:
             value = m.group(1)
             suffix = m.group(2).lower()
-            if suffix in ("mb", "m"):
+            if suffix in ("gb", "g"):
+                multiplier = 1024 * 1024 * 1024
+            elif suffix in ("mb", "m"):
                 multiplier = 1024 * 1024
             elif suffix in ("kb", "k"):
                 multiplier = 1024

@@ -135,7 +135,7 @@ config.DeclareOption("autodetect_build_local", default="basic",
                      help="Attempts to fetch and build profile locally.",
                      type="Choices")
 
-config.DeclareOption("autodetect_scan_length", default=1000000000,
+config.DeclareOption("autodetect_scan_length", default=2**64,
                      group="Autodetection Overrides",
                      help="How much of physical memory to scan before failing",
                      type="IntParser")
