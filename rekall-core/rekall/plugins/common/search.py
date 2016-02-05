@@ -187,15 +187,29 @@ class CommandWrapper(object):
     This is a helper class for the Search plugin. It lets us pretend that
     plugins are functions to be called from inside EFILTER queries, and also
     takes care of running the plugin and saving its output and headers.
+
+    Members:
+        plugin_cls: The type of the Command subclass.
+        rows: Output of rendering the plugin.
+        columns: How 'rows' are structured.
+        table_header: If Command is a subclass of TypedProfileCommand then this
+            will contain its table header once applied.
     """
     plugin_cls = None
     rows = None
+    columns = None
     table_header = None
     session = None
+
+    _last_args = None
 
     def __init__(self, plugin_cls, session):
         self.plugin_cls = plugin_cls
         self.session = session
+
+    def materialize(self):
+        """Ensure we have some data by applying with no arguments."""
+        self.apply((), {})
 
     # IApplicative
 
@@ -208,8 +222,8 @@ class CommandWrapper(object):
         Arguments:
             args, kwargs: Arguments to the plugin.
         """
-        if self.rows:
-            # We've already applied.
+        if self._last_args == (args, kwargs):
+            # We've already run with these args and the results are cached.
             return self
 
         if issubclass(self.plugin_cls, plugin.TypedProfileCommand):
@@ -218,6 +232,7 @@ class CommandWrapper(object):
             plugin_curry = getattr(self.session.plugins, self.plugin_cls.name)
             command = plugin_curry(session=self.session, *args, **kwargs)
             self.rows = list(command.collect_as_dicts())
+            self.columns = self.table_header.header
         else:
             # We do not have a table header declaration, so we need to run
             # the plugin and use an identity renderer to capture its output
@@ -232,6 +247,7 @@ class CommandWrapper(object):
             self.rows = renderer.rows
             self.columns = renderer.columns
 
+        self._last_args = (args, kwargs)
         return self
 
     # IRepeated
@@ -239,7 +255,7 @@ class CommandWrapper(object):
     def getvalues(self):
         """Pretend the plugin is an IRepeated instead of a function."""
         # Make sure we have data.
-        self.apply((), {})
+        self.materialize()
 
         return self.rows
 
@@ -266,7 +282,7 @@ class CommandWrapper(object):
         we just run 'apply' with no arguments to populate 'rows'.
         """
         # Make sure we have data.
-        self.apply((), {})
+        self.materialize()
 
         return repeated.meld(*[r[name] for r in self.rows])
 
@@ -310,8 +326,12 @@ class EfilterPlugin(plugin.ProfileCommand):
             type="ArrayStringParser",
             help="Positional parameters for parametrized queries.")
 
-    def __init__(self, query, query_parameters=None, **kwargs):
+    def __init__(self, query=None, query_parameters=None, **kwargs):
         super(EfilterPlugin, self).__init__(**kwargs)
+
+        if not query:
+            raise ValueError("You must supply a query (got %r)." % (query,))
+
         self.query_source = query
 
         try:
@@ -319,6 +339,13 @@ class EfilterPlugin(plugin.ProfileCommand):
         except errors.EfilterError as error:
             self.query_error = error
             self.query = None
+        except Exception:
+            # I am using a broad except here to make sure we always display a
+            # friendly error message. EFILTER will usually raise a friendly
+            # error, but we might get a non-EfilterError exception if the user
+            # gets creative (e.g. passing a custom object as query, instead of a
+            # string).
+            raise ValueError("Could not parse your query %r." % (query,))
 
         self.query_parameters = query_parameters
 
@@ -517,6 +544,15 @@ class Search(EfilterPlugin):
         # Maybe we cached the header when we ran the plugin?
         if isinstance(t, plugin.Command):
             wrapper = self._cached_plugin_wrappers.get(t.name)
+            # If we land here there's two options: either the query already
+            # forced the wrapper to apply (either by explicitly using it as a
+            # function, or by doing something non-lazy; or the wrapper hasn't
+            # been called yet. The latter can only be the case if the wrapper is
+            # being used as a variable, not a function, so we need to
+            # materialize it with no arguments. If it already has data for a
+            # call with no args then this won't do anything.
+            wrapper.materialize()
+
             if wrapper:
                 renderer.table_header(wrapper.columns)
                 return self._render_plugin_output(renderer,
