@@ -190,18 +190,19 @@ class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
             # XEN PV guests have a mapping in p2m_top. We verify this symbol
             # is not NULL.
             pv_info_virt = self.profile.get_constant("pv_info")
+
             if pv_info_virt:
                 pv_info_phys = self.profile.phys_addr(pv_info_virt)
-                paravirt_enabled = self.session.profile.pv_info(
+                pv_info = self.session.profile.pv_info(
                     offset=pv_info_phys,
-                    vm=self.physical_address_space).paravirt_enabled
-                if paravirt_enabled and paravirt_enabled != 0:
+                    vm=self.physical_address_space)
+
+                if pv_info.paravirt_enabled and pv_info.paravirt_enabled == 1:
                     self.session.logging.debug(
                         "Detected paravirtualized XEN guest")
                     impl = "XenParaVirtAMD64PagedMemory"
                     as_class = addrspace.BaseAddressSpace.classes[impl]
                     return as_class
-
 
         elif self.profile.get_constant("arm_syscall"):
             # An ARM address space.
@@ -390,7 +391,7 @@ class LinProcessFilter(LinuxPlugin):
         We do this by reflecting off the list elements.
 
         Args:
-           physical_offset: The physcial offset of the process.
+           physical_offset: The physical offset of the process.
 
         Returns:
            an _TASK object or a NoneObject on failure.

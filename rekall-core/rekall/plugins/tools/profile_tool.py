@@ -80,19 +80,28 @@ $ ls -l Ubuntu-3.0.0-32-generic-pae.*
 Now simply specify the rekall profile using the --profile command line arg.
 """
 
-__author__ = "Michael Cohen <scudette@google.com>"
+__author__ = (
+    "Michael Cohen <scudette@google.com>",
+    "Jordi Sanchez <nop@google.com>"
+)
 
+import gzip
+import itertools
+import json
 import os
+import random
 import re
 import StringIO
 
 from rekall import io_manager
+from rekall import obj
 from rekall import plugin
 from rekall import registry
 from rekall import testlib
 from rekall import utils
 
 from rekall.plugins import core
+from rekall.plugins.common import profile_index
 from rekall.plugins.overlays.linux import dwarfdump
 from rekall.plugins.overlays.linux import dwarfparser
 from rekall.plugins.windows import common
@@ -104,9 +113,8 @@ class ProfileConverter(object):
     __metaclass__ = registry.MetaclassRegistry
     __abstract = True
 
-    def __init__(self, input, output, profile_class=None, session=None):
+    def __init__(self, input, profile_class=None, session=None):
         self.input = input
-        self.output = output
         self.session = session
         self.profile_class = profile_class
 
@@ -128,10 +136,6 @@ class ProfileConverter(object):
             }
 
         return result
-
-    def WriteProfile(self, profile_file):
-        self.output.write(utils.PPrint(profile_file))
-
 
     def Convert(self):
         raise RuntimeError("Unknown profile format.")
@@ -242,7 +246,7 @@ class LinuxConverter(ProfileConverter):
 
                 profile_file = self.BuildProfile(system_map, parser.VType(),
                                                  config=config)
-                return self.WriteProfile(profile_file)
+                return profile_file
 
             dwarf_file = self.SelectFile(r"\.dwarf$")
             if dwarf_file:
@@ -258,7 +262,7 @@ class LinuxConverter(ProfileConverter):
 
                 profile_file = self.BuildProfile(system_map, l["linux_types"],
                                                  config=config)
-                return self.WriteProfile(profile_file)
+                return profile_file
 
         raise RuntimeError("Unknown profile format.")
 
@@ -356,15 +360,13 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
         self.converter = converter
         self.source = source
 
-    def ConvertProfile(self, input, output):
+    def ConvertProfile(self, input):
         """Converts the input profile to a new standard profile in output."""
         # First detect what kind of profile the input profile is.
         for converter in (LinuxConverter, OSXConverter):
             try:
-                converter(input, output, session=self.session).Convert()
-                self.session.logging.info("Converted %s to %s", input,
-                                          output.name)
-                return
+                profile = converter(input, session=self.session).Convert()
+                return profile
             except RuntimeError:
                 pass
 
@@ -372,26 +374,31 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
             "No suitable converter found - profile not recognized.")
 
     def render(self, renderer):
-        with renderer.open(filename=self.out_file, mode="wb") as output:
-            if self.converter:
-                cls = ProfileConverter.classes.get(self.converter)
-                if not cls:
-                    raise IOError("Unknown converter %s" % self.converter)
+        if self.converter:
+            cls = ProfileConverter.classes.get(self.converter)
+            if not cls:
+                raise IOError("Unknown converter %s" % self.converter)
 
-                return cls(self.source, output,
-                           profile_class=self.profile_class).Convert()
+            return cls(self.source,
+                       profile_class=self.profile_class).Convert()
 
-            try:
-                input = io_manager.Factory(self.source, session=self.session,
-                                           mode="r")
-            except IOError:
-                self.session.logging.critical(
-                    "Input profile file %s could not be opened.",
-                    self.source)
-                return
+        try:
+            input = io_manager.Factory(self.source, session=self.session,
+                                       mode="r")
+        except IOError:
+            self.session.logging.critical(
+                "Input profile file %s could not be opened.",
+                self.source)
+            return
 
-            with input, output:
-                self.ConvertProfile(input, output)
+        with input:
+            profile = self.ConvertProfile(input)
+            if profile:
+                with renderer.open(
+                    filename=self.out_file, mode="wb") as output:
+                    output.write(utils.PPrint(profile))
+                    self.session.logging.info("Converted %s to %s",
+                                              input, output.name)
 
 
 class TestConvertProfile(testlib.DisabledTest):
@@ -660,6 +667,461 @@ class BuildIndex(plugin.Command):
 
         return result
 
+    def _SymbolIsUnique(self,  profile_id, symbol, profiles):
+      """Returns True if symbol uniquely identifies profile_id within profiles.
+
+      Args:
+        profile_id: The unique identifier of symbol's profile.
+        symbol: The symbol to test.
+        profiles: A dictionary of profile_id:symbol_dict entries where
+          symbol_dict is a dictionary of symbol:offset entries.
+
+          Every profile in profiles must be unique. That is, two entries must
+          not share the exact same set of symbol:offset pairs.
+      """
+
+      offset = profiles[profile_id].get(symbol)
+
+      # If the symbol doesn't exist it can't be unique
+      if offset is None:
+          return False
+
+      unique = True
+
+      for other_id, other_symbols in profiles.iteritems():
+          # Skip comparing this profile against itself.
+          if profile_id == other_id:
+            continue
+
+          # Find duplicates
+          if offset == other_symbols.get(symbol):
+            unique = False
+            break
+
+      return unique
+
+    def _FindNewProfiles(self, index, target):
+        """Finds new profiles in the repository that were not in the index."""
+
+        new_profiles = 0
+
+        # Walk all files to find new profiles
+        for profile_id in self.io_manager.ListFiles():
+            if not profile_id.startswith(target):
+                continue
+
+            # Skip known duplicates.
+            # Skip profiles that haven't changed.
+            file_mtime = self.io_manager.Metadata(profile_id)["LastModified"]
+
+            try:
+                profile_mtime = index.ProfileMetadata(
+                    profile_id)["LastModified"]
+
+                # If the current file is not fresher than the old file, we
+                # just copy the metadata from the old profile. Allow 1
+                # second grace for float round ups.
+                if profile_mtime+1 >= file_mtime:
+                    continue
+            except (KeyError, TypeError):
+                # Profile doesn't exist in the index yet.
+                # See if it was a duplicate.
+                pass
+
+            try:
+                data = self.io_manager.GetData(profile_id)
+                if "$CONSTANTS" not in data:
+                    self.session.logging.debug(
+                        "File %s doesn't look like a profile, skipping...",
+                        profile_id)
+                    continue
+                data["$CONSTANTS"] = index.RelativizeSymbols(
+                    data["$CONSTANTS"], "linux_proc_banner")
+                # Free up some memory
+                del data["$CONFIG"]
+                del data["$STRUCTS"]
+            except ValueError as e:
+                self.session.logging.error("ERROR loading %s: %s",
+                                           profile_id, e)
+                continue
+
+            new_profiles += 1
+            self.session.report_progress(
+                "[STEP 1/6] Found %d new profiles: %s",
+                new_profiles, profile_id)
+            yield profile_id, data
+
+
+    def _FindProfilesWithSymbolOffset(self, symbol_name, symbol_offset,
+                                      profiles=None):
+      """Returns a set of profile_ids that have symbol_name: symbol_offset."""
+
+      matching_profiles = set()
+      for profile_id, symbols in profiles.iteritems():
+          if symbols.get(symbol_name) == symbol_offset:
+              matching_profiles.add(profile_id)
+      return matching_profiles
+
+    def _FindTraits(self, profile_id=None, profiles=None, num_traits=1,
+                    trait_length=1, first_try_symbols=None):
+        """Finds traits of profile against other_profiles.
+
+        Args:
+            profile_id: The id of the profile to find traits for within profiles
+            profiles: A dict of profile:symbols tuples where symbols is a dict
+              of symbol:value.
+            num_traits: How many traits to find.
+            trait_length: How many symbols to consider per trait.
+            first_try_symbols: A list of symbols to try first.
+        """
+        found_traits = []
+        profile_symbols = profiles.get(profile_id)
+
+        # The set we're looking for.
+        exit_set = set([profile_id])
+
+        # Store a pool of symbols
+        symbol_pool = profile_symbols.keys()
+        if first_try_symbols:
+            # Reorder these symbols so they are tried first
+            for symbol in reversed(first_try_symbols):
+                try:
+                    symbol_pool.remove(symbol)
+                except ValueError:
+                    pass
+                symbol_pool.insert(0, symbol)
+
+        for trait_symbols in itertools.combinations(symbol_pool, trait_length):
+
+            symbol = trait_symbols[0]
+            offset = profile_symbols.get(symbol)
+            intersection_set = self._FindProfilesWithSymbolOffset(
+                symbol, offset,  profiles=profiles)
+
+            for next_symbol in trait_symbols[1:]:
+                next_offset = profile_symbols.get(next_symbol)
+                next_set = self._FindProfilesWithSymbolOffset(
+                    next_symbol, next_offset,
+                    profiles=profiles)
+
+                # For a trait to be unique, the resulting set of performing
+                # the intersection of the sets of profiles containing the
+                # symbol-offset tuples must be the original profile_id.
+                intersection_set &= next_set
+
+                # If the comparison set is empty, we're done
+                if intersection_set == exit_set:
+                    break
+
+            if intersection_set == exit_set:
+                # Found a trait
+                trait = [(s, profile_symbols.get(s)) for s in trait_symbols]
+                found_traits.append(trait)
+                if len(found_traits) == num_traits:
+                    break
+        return found_traits
+
+    def BuildSymbolsIndex(self, spec):
+        """Builds an index to identify profiles based on their symbols-offsets.
+
+        The index stores traits for each profile. A trait is a combination of
+        1 or more symbol-offset pairs that uniquely identify it within the
+        current profile repository.
+
+        The code handles:
+          - Incremental updates of the index. Adding a new profile to the index
+          doesn't trigger recomputing the entire index.
+          - Detection of duplicates. If a profile is to be added that's already
+          in the index, it will be detected and skipped.
+          - Clash detection. If a new profile has some symbol-offsets that were
+          traits of other profiles, the profile whose traits are not unique
+          anymore will be found and its index rebuilt.
+        """
+
+        directory_to_index = spec.get("path", "Linux")
+        index_path = os.path.join(directory_to_index, "index")
+
+        # Load the current index from the index directory.
+        #index = self.session.LoadProfile(index_path, use_cache=False)
+        index = obj.Profile.LoadProfileFromData(
+            self.io_manager.GetData(index_path), name=index_path,
+            session=self.session)
+
+        # A list of duplicate profiles to update the index
+        new_duplicate_profiles = []
+
+
+        # If we don't yet have an index, we start with a blank one.
+        if not index:
+            dummy_index = profile_index.LinuxSymbolOffsetIndex.BuildIndex(
+                iomanager=self.io_manager)
+            index = obj.Profile.LoadProfileFromData(
+                data=dummy_index, session=self.session)
+
+        if not isinstance(index, profile_index.SymbolOffsetIndex):
+            raise ValueError(
+                "The index should be a SymbolOffsetIndex but found %s instead" %
+                (index.___class__.__name__))
+        self.session.logging.debug("Index is a %s", index.__class__.__name__)
+
+        # STEP 1. Find new profiles. New profiles are profiles not in the
+        # index or profiles that have been updated.
+        self.session.report_progress("[STEP 1/6] Finding new profiles...",
+                                     force=True)
+        new_profile_candidates = list(self._FindNewProfiles(index,
+                                                            spec["path"]))
+
+        # STEP 2. Determine how many of the new profiles are duplicates.
+        # New profiles can be duplicates because they already exist in the index
+        # with another name or because they clash with some other new profile.
+        self.session.report_progress("[STEP 2/6] Finding duplicate profiles...",
+                                     force=True)
+        new_hashes_dict = dict()
+        new_profiles = dict()
+        for i, (profile_id, data) in enumerate(sorted(new_profile_candidates)):
+            self.session.report_progress(
+                "[STEP 2/6][%d/%d] Finding if %s is duplicate.",
+                i, len(new_profile_candidates), profile_id)
+            profile_hash = index.CalculateRawProfileHash(data)
+            existing_profile = index.LookupHash(profile_hash)
+
+            if existing_profile == profile_id:
+                # This is a profile already in the index that's been updated.
+                # But if the profile still has the same hash, we have to do
+                # nothing as the index is still good.
+                # This wil be the case when touch()ing profiles or probably
+                # copying them over.
+                continue
+
+            # If it's identical to a profile we already have indexed, this is a
+            # duplicate.
+            #
+            # TODO: We should remove the profile and make it a Symlink.
+            if existing_profile:
+                self.session.logging.info(
+                    ("New profile %s is equivalent to %s, which is already "
+                     "in the index."),
+                    profile_id, existing_profile)
+                new_duplicate_profiles.append(profile_id)
+                continue
+
+            # Otherwise it may clash with another new profile. This can easily
+            # happen when we add more than one profile at a time, with minor
+            # version increases.
+            #
+            # Example: Ubuntu Trusty 3.13.0-54-generic vs 3.13.0-55-generic.
+            if profile_hash in new_hashes_dict:
+                # This is a duplicate. Discard.
+                # TODO: Remove the profile and make it a Symlink.
+                self.session.logging.info(
+                    "New profile %s is equivalent to another new profile %s.",
+                    profile_id,
+                    new_hashes_dict.get(profile_hash))
+                new_duplicate_profiles.append(profile_id)
+                continue
+
+            # If it was not a duplicate,
+            symbols = data.get("$CONSTANTS")
+            symbols = index.FilterSymbols(symbols)
+            new_profiles[profile_id] = symbols
+            new_hashes_dict[profile_hash] = profile_id
+
+        # Inform of how many profiles we skipped indexing.
+        if len(new_profile_candidates) > len(new_profiles):
+            self.session.logging.info(
+                "Skipped indexing %d profiles, since they were duplicates.",
+                len(new_profile_candidates) - len(new_profiles))
+
+
+        # STEP 3. Find if any of the new profiles forces us to recompute
+        # traits for profiles already in the repository. This can happen if
+        # the trait that's in the index now appears in one of the
+        # new profiles.
+        #
+        # Since we calculate more than one trait per profile the index may
+        # still work for other traits. But we want healthy indexes, so we
+        # recalculate all the traits.
+
+        num_clashing_profiles = 0
+        self.session.report_progress(
+            "[STEP 3/6] Finding index clashes with new profiles", force=True)
+
+        for i, (profile_id, traits_dict) in enumerate(sorted(index)):
+            self.session.report_progress(
+                "[STEP 3/6][%d/%d] Finding index clashes with new profiles",
+                i, len(index))
+            profile_needs_rebuild = False
+
+            for trait in traits_dict:
+                for new_profile_id, symbols in new_profiles.iteritems():
+                    if index.RawProfileMatchesTrait(symbols, trait):
+                        self.session.logging.warn(
+                          "New profile %s clashes with %s, will recalculate.",
+                          new_profile_id, profile_id)
+                        profile_needs_rebuild = True
+                        break
+
+                # Leave the loop early if a trait is not unique anymore.
+                if profile_needs_rebuild:
+                    break
+
+            if profile_needs_rebuild:
+                num_clashing_profiles += 1
+                data = self.io_manager.GetData(profile_id)
+                data["$CONSTANTS"] = index.RelativizeSymbols(
+                    data["$CONSTANTS"])
+                new_profiles[profile_id] = data["$CONSTANTS"]
+
+        if not new_profiles:
+            self.session.logging.info("No new profiles found. Exitting.")
+            return profile_index.LinuxSymbolOffsetIndex.BuildIndex(
+                hashes=index.hashes,
+                traits=index.traits,
+                spec=spec,
+                duplicates=index.duplicates + new_duplicate_profiles,
+                iomanager=self.io_manager)
+
+        self.session.logging.info(
+            ("Will regenerate an index for %d profiles. %d are new and %d "
+             "were in the index but now have clashes"),
+            len(new_profiles),
+            len(new_profiles) - num_clashing_profiles,
+            num_clashing_profiles)
+
+        # STEP 4. Find unique symbols for all new profiles. We need to open
+        # all the profiles in the repo
+        # additionally to the new ones which we opened earlier.
+
+        self.session.report_progress(
+            "[STEP 4/6] Opening all profiles in the repository.", force=True)
+        # Start by opening all profiles in the index.
+        index_profiles = dict()
+        for i, (profile_id, _) in enumerate(index):
+            self.session.report_progress(
+                "[STEP 4/6][%d/%d] Opening %s...",
+                i, len(index), profile_id)
+            profile = self.io_manager.GetData(profile_id)
+            profile["$CONSTANTS"] = index.RelativizeSymbols(
+                profile["$CONSTANTS"])
+            # Free up some memory
+            del profile["$STRUCTS"]
+            del profile["$CONFIG"]
+            symbols = profile.get("$CONSTANTS")
+            symbols = index.FilterSymbols(symbols)
+            index_profiles[profile_id] = symbols
+
+        all_profiles = index_profiles.copy()
+        # Any profile that was in the index but has been updated on disk will
+        # be overriden here, which is what we want.
+        all_profiles.update(dict(new_profiles))
+
+        self.session.report_progress(
+            "[STEP 4/6] Finding single-symbol traits.", force=True)
+        # A list of profiles we haven't found traits for.
+        retry_profiles = []
+        # Maximum number of traits to find.
+        min_traits = spec.get("min_traits", 5)
+        self.session.report_progress(
+            "[STEP 4/6] Finding single-symbol traits. Opening all, done.",
+            force=True)
+
+        # A dictionary of traits per profile_id
+        traits_dict = dict()
+        for i, (profile_id, symbols) in enumerate(
+            sorted(new_profiles.iteritems())):
+
+            self.session.report_progress(
+                "[STEP 4/6][%d/%d] Finding %d traits for %s",
+                i, len(new_profiles), min_traits, profile_id)
+
+            traits = self._FindTraits(profile_id,
+                                      profiles=all_profiles,
+                                      num_traits=min_traits,
+                                      trait_length=1)
+            traits_dict[profile_id] = traits
+
+            if not traits_dict.get(profile_id):
+                self.session.logging.warning(
+                    "Profile %s has no single-symbol trait.", profile_id)
+                retry_profiles.append(profile_id)
+            elif len(traits_dict.get(profile_id)) < min_traits:
+                self.session.logging.info(
+                    "[STEP 4/6][%d/%d] Found %d/%d traits for %s. Queueing...",
+                    i, len(new_profiles), len(traits), min_traits,
+                    profile_id)
+                retry_profiles.append(profile_id)
+            else:
+                self.session.logging.info(
+                    "[STEP 4/6][%d/%d] Found %d/%d traits for %s",
+                    i, len(new_profiles), len(traits), min_traits,
+                    profile_id)
+
+
+        self.session.report_progress(
+            "[STEP 5/6] Finding unique 2-symbol traits...", force=True)
+
+        # STEP 5. Process the remaining profiles to find unique pairs.
+        for i, profile_id in enumerate(retry_profiles):
+            self.session.report_progress(
+                "[STEP 5/6][%d/%d] Finding unique 2-symbol pairs for %s",
+                i, len(retry_profiles), profile_id, force=True)
+
+            # We have to find only the remaining number of traits to reach
+            # min_traits.
+            num_traits_to_find = (min_traits -
+                                  len(traits_dict.get(profile_id, [])))
+
+            first_try_symbols  = None
+            if len(traits_dict.get(profile_id, [])) == 1:
+                first_try_symbols = [trait[0] for trait
+                                      in traits_dict.get(profile_id)]
+
+            traits = self._FindTraits(profile_id,
+                                      profiles=all_profiles,
+                                      num_traits=num_traits_to_find,
+                                      trait_length=2,
+                                      first_try_symbols=first_try_symbols)
+            traits_dict[profile_id] = traits
+
+            if traits_dict.get(profile_id) is None:
+                self.session.logging.error(
+                    "Profile %s has no 2-symbol trait.", profile_id)
+            else:
+                self.session.logging.info(
+                    "[STEP 5/6][%d/%d] Found %d/%d 2-symbol traits for %s",
+                    i, len(retry_profiles),
+                    len(traits_dict.get(profile_id, [])),
+                    min_traits,
+                    profile_id)
+
+        # LAST STEP: Build the index augmenting the previous index.
+        self.session.report_progress(
+            "[STEP 6/6] Building index...", force=True)
+        new_index_hashes = index.hashes.copy()
+        new_index_hashes.update(new_hashes_dict)
+
+        new_index_traits = index.traits.copy()
+        new_index_traits.update(traits_dict)
+
+        # Update the profile metadata with the new and updated profiles.
+        new_index_profile_metadata =  index.profiles.copy()
+        for profile_id in new_profiles:
+            file_mtime = self.io_manager.Metadata(profile_id)["LastModified"]
+            metadata_dict = new_index_profile_metadata.get(profile_id, {})
+            metadata_dict["LastModified"] = file_mtime
+
+        return profile_index.LinuxSymbolOffsetIndex.BuildIndex(
+            hashes=new_index_hashes,
+            traits=new_index_traits,
+            duplicates=index.duplicates + new_duplicate_profiles,
+            spec=spec,
+            iomanager=self.io_manager)
+
+    def _GetProfile(self, name):
+        path = "%s.gz" % name
+        file_data = gzip.open(path).read()
+        return json.loads(file_data)
+
     def _GetAllProfiles(self, path):
         """Iterate over all paths and get the profiles."""
         for profile_name in self.io_manager.ListFiles():
@@ -672,6 +1134,8 @@ class BuildIndex(plugin.Command):
     def build_index(self, spec):
         if spec.get("type") == "struct":
             return self.BuildStructIndex(spec)
+        elif spec.get("type") == "symbol_offset":
+            return self.BuildSymbolsIndex(spec)
         else:
             return self.BuildDataIndex(spec)
 

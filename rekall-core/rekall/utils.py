@@ -571,7 +571,7 @@ def PPrint(data, depth=0):
 
         result.append(", \n".join(tmp)[depth:])
 
-        result.append(" }")
+        result.append("}")
         return "\n".join([(" " * depth + x) for x in result])
 
     if isinstance(data, (list, tuple)):

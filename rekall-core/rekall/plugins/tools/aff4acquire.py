@@ -194,6 +194,8 @@ class AFF4Acquire(plugin.Command):
         vma_files = set()
         filenames = set()
 
+        self._copy_file_to_image(renderer, resolver, volume, "/proc/kallsyms")
+
         for task in self.session.plugins.pslist().filter_processes():
             for vma in task.mm.mmap.walk_list("vm_next"):
                 vm_file_offset = vma.vm_file.obj_offset
@@ -232,7 +234,7 @@ class AFF4Acquire(plugin.Command):
                         rdfvalue.XSDString(filename))
 
                     # Use the AFF4 stream writer interface.
-                    out_fd.WriteStream(in_fd.read)
+                    out_fd.WriteStream(in_fd)
 
         except IOError:
             try:

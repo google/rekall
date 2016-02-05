@@ -414,7 +414,7 @@ class VirtualMachine(object):
             if self.base_session:
                 self.base_session.report_progress(
                     "Validating VMCS %08X @ %08X" % (
-                        vmcs.obj_offset, vaddr))
+                        vmcs.obj_offset, run.start))
             if (vmcs.obj_offset >= run.file_offset and
                     vmcs.obj_offset < run.file_offset + run.length):
                 validated = True

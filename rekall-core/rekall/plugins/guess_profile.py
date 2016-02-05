@@ -23,6 +23,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 # pylint: disable=protected-access
 import re
+import os
 
 from rekall import addrspace
 from rekall import cache
@@ -419,6 +420,148 @@ class WindowsKernelImageDetector(WindowsRSDSDetector):
             return self._test_rsds(pe_helper.RSDS)
 
 
+class LinuxIndexDetector(DetectionMethod):
+    """A kernel detector that uses live symbols to do exact matching.
+
+    LinuxIndexDetector uses kallsyms (or any other source of live symbols) to
+    match a kernel exactly by finding known-unique symbols.
+    """
+
+    name = "linux_index"
+
+    # Location of the kallsyms file. We use it to do instant, accurate detection
+    # of the profile.
+    KALLSYMS_FILE = "/proc/kallsyms"
+
+    # The regular expression to parse the kallsyms file.
+    KALLSYMS_REGEXP = ("(?P<offset>[0-9a-fA-F]+) "
+                       "(?P<type>[a-zA-Z]) "
+                       "(?P<symbol>[^ ]+)"
+                       "(\t(?P<module>[^ ]+))?$")
+
+    find_dtb_impl = linux_common.LinuxFindDTB
+
+    def __init__(self, **kwargs):
+        super(LinuxIndexDetector, self).__init__(**kwargs)
+        self.index = self.session.LoadProfile("Linux/index")
+
+    def Offsets(self):
+        return [0]
+
+    def _ParseKallsym(self, line):
+        """Parses a single symbol line from a symbols file.
+
+        This is the result of obtaining symbols from nm:
+
+        0000000000 t linux_proc_banner
+        0000000010 s other_symbol [module]
+
+        Yields:
+          Tuple of offset, symbol_name, type, module
+        """
+
+        matches = None
+        if line:
+            matches = re.match(self.KALLSYMS_REGEXP, line.rstrip("\n"))
+
+        if not matches:
+            raise ValueError("Invalid line: %s", line)
+
+        # Obtain all fields from the kallsyms entry
+        offset = matches.group("offset")
+        symbol_type = matches.group("type")
+        symbol = matches.group("symbol")
+        try:
+            module = matches.group("module")
+        except IndexError as e:
+            module = None
+
+        try:
+            offset = int(offset, 16)
+        except ValueError:
+            pass
+
+        return offset, symbol, symbol_type, module
+
+    def ObtainSymbols(self, address_space):
+        """Obtain symbol names and values for a live machine.
+
+        Yields:
+          Tuples of offset, symbol_name, type, module
+        """
+
+        match_failures = 0
+
+        kallsyms_as = self._OpenLiveSymbolsFile(address_space)
+
+        if not kallsyms_as:
+          return
+
+        data = kallsyms_as.read(0, kallsyms_as.end())
+        if not data:
+            # Try to fully read the file
+            read_length = 1*1024*1024
+            data = kallsyms_as.read(0, read_length)
+            while len(data) <= kallsyms_as.end() and read_length < 2**30:
+                read_length *= 2
+                data = kallsyms_as.read(0, read_length)
+            # Truncate data to the actual size
+            data = data[:kallsyms_as.end()]
+
+        self.session.logging.debug(
+            "Found /proc/kallsyms of size: %d", len(data))
+
+        for line in data.split(os.linesep):
+            if match_failures >= 50:
+                break
+
+            try:
+                yield self._ParseKallsym(line)
+            except ValueError:
+                match_failures += 1
+                continue
+
+    def _OpenLiveSymbolsFile(self, address_space):
+        """Opens the live symbols file to parse."""
+
+        return address_space.get_file_address_space("/proc/kallsyms")
+
+    def DetectFromHit(self, hit, offset, address_space):
+        self.symbol_groups = {}
+
+        if offset != 0:
+            return
+
+        self.session.logging.debug(
+            "LinuxIndexDetector:DetectFromHit(%x) = %s", offset, hit)
+
+        # We create a dictionary of symbol: offset. Skip exported modules
+        # symbols.
+        symbol_dict = dict([(s[1], s[0])
+                            for s in self.ObtainSymbols(address_space)
+                            if not s[3]])
+        if not symbol_dict:
+            return
+
+        matching_profiles = self.index.LookupProfile(symbol_dict)
+        if len(matching_profiles) > 1:
+            self.session.logging.info(
+                "LinuxIndexDetector found %d matching profiles: %s",
+                len(matching_profiles),
+                ', '.join([p[0] for p in matching_profiles]))
+            return
+        elif len(matching_profiles) == 1:
+            profile_id = matching_profiles[0][0]
+            self.session.logging.info(
+                "LinuxIndexDetector found profile %s with %d/%d matches.",
+                profile_id,
+                matching_profiles[0][1],
+                len(self.index.traits[profile_id]))
+            return self.VerifyProfile(profile_id)
+        else:
+            self.session.logging.warn("LinuxIndexDetector found no matches.")
+
+
 class LinuxBannerDetector(DetectionMethod):
     """Detect a linux kernel from its banner text."""
 
@@ -549,6 +692,8 @@ class ProfileHook(kb.ParameterHook):
                 needle_lookup.setdefault(keyword, []).append(method)
 
             for offset in method.Offsets():
+                self.session.logging.debug("Trying method %s, offset %d",
+                                           method.name, offset)
                 profile = method.DetectFromHit(None, offset, address_space)
                 if profile:
                     self.session.logging.info(

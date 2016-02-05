@@ -31,6 +31,8 @@ import os
 import yaml
 
 from rekall import addrspace
+from rekall import constants
+from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays.linux import elf
 
 PT_PMEM_METADATA = 0x6d656d70  # Spells 'pmem'
@@ -177,12 +179,14 @@ class KCoreAddressSpace(Elf64CoreDump):
     __name = "elf64"
     __image = True
 
-    volatile = True
-
     def __init__(self, **kwargs):
         super(KCoreAddressSpace, self).__init__(**kwargs)
 
-        # Collect all ranges between ffff880000000000 - ffffc7ffffffffff
+        # This is a live address space.
+        self.volatile = True
+        self.mapped_files = {}
+
+        # Collect all ranges between 0xffff880000000000 - 0xffffc7ffffffffff
         runs = []
 
         for start, _, run in self.runs:
@@ -216,6 +220,14 @@ class KCoreAddressSpace(Elf64CoreDump):
 
         for x in runs:
             self.add_run(*x)
+
+    def get_file_address_space(self, filename):
+        try:
+            # Try to read the file with OS APIs.
+            return standard.FileAddressSpace(filename=filename,
+                                             session=self.session)
+        except IOError:
+            return
 
 
 def WriteElfFile(address_space, outfd, session=None):

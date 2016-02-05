@@ -56,7 +56,7 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
 
     def close(self):
         pass
-        
+
     def render(self, renderer):
         renderer.format("Launching live memory analysis\n")
         self.live()

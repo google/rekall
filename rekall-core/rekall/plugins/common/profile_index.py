@@ -29,7 +29,11 @@ detected, about the image.
 __author__ = (
     "Michael Cohen <scudette@google.com>",
     "Adam Sindelar <adamsh@google.com>",
+    "Jordi Sanchez <nop@google.com>"
 )
+
+import hashlib
+import os
 
 from rekall import obj
 
@@ -147,3 +151,229 @@ class Index(obj.Profile):
         partial_matches.sort(reverse=True)
         for match, profile in partial_matches:
             yield (profile, match)
+
+
+class SymbolOffsetIndex(Index):
+    """A specialized index that works on symbols-offsets."""
+
+    def __init__(self, *args, **kwargs):
+        super(SymbolOffsetIndex, self).__init__(*args, **kwargs)
+        if not self.index:
+            self.index = {}
+
+    @property
+    def hashes(self):
+        return self.index.get("$HASHES", {})
+
+    @property
+    def traits(self):
+        return self.index.get("$TRAITS", {})
+
+    @property
+    def profiles(self):
+        return self.index.get("$PROFILES", {})
+
+    @property
+    def duplicates(self):
+        return [p for p in self.index.get("$PROFILES") if p not in self.hashes]
+
+    def LookupProfile(self, symbols):
+        """Returns which profiles in the index match a dict of symbols.
+
+        Returns:
+            A list of tuples of (profile, num_matched_traits).
+        """
+        profiles = []
+        try:
+           relative_symbols = self.RelativizeSymbols(symbols.copy())
+        except ValueError as e:
+           self.session.logging.debug(str(e))
+
+        for profile, traits in self.traits.iteritems():
+            matched_traits = 0
+
+            for trait in traits:
+                # A trait is a list of symbol-offset tuples.
+                match = all([relative_symbols.get(symbol) == offset
+                             for (symbol, offset) in trait])
+                if match:
+                    matched_traits += 1
+
+            if matched_traits > 0:
+              profiles.append((profile, matched_traits))
+        return profiles
+
+    def LookupHash(self, profile_hash):
+        """Returns the profile with hash profile_hash."""
+        return self.hashes.get(profile_hash)
+
+    @classmethod
+    def FilterSymbols(cls, symbols):
+        """Filters a dict of symbols, discarding irrelevant ones."""
+        return symbols
+
+    @classmethod
+    def CalculateRawProfileHash(cls, profile):
+        """Calculates a hash of a list of symbols."""
+
+        # Skip superfluous symbols.
+        symbols = profile["$CONSTANTS"]
+        ordered_symbol_list = sorted(
+            ["(%s, %d)" % (k, v)
+             for (k, v) in cls.FilterSymbols(symbols).iteritems()])
+
+        hasher = hashlib.sha256()
+        hasher.update("|".join(ordered_symbol_list))
+        return hasher.hexdigest()
+
+    @classmethod
+    def CalculateRawSymbolsHash(cls, profile):
+        """Calculates a hash of a list of symbols."""
+
+        # Skip superfluous symbols.
+        symbols = profile["$CONSTANTS"]
+        ordered_symbol_list = sorted(symbols.keys())
+        hasher = hashlib.sha256()
+        hasher.update("|".join(ordered_symbol_list))
+        return hasher.hexdigest()
+
+    def ProfileMetadata(self, profile_name):
+        return self.profiles.get(profile_name)
+
+    @classmethod
+    def ProfileMatchesTrait(cls, profile, trait):
+        """Whether a profile matches another profile's trait.
+
+        A trait is a list of tuples (symbol, offset) that uniquely identify
+        a profile.
+        """
+        return all([profile.get_constant(t[0]) == t[1] for t in trait])
+
+    @classmethod
+    def RawProfileMatchesTrait(cls, profile, trait):
+        """Whether a raw profile (JSON) matches another profile's trait.
+
+        A trait is a list of tuples (symbol, offset) that uniquely identify
+        a profile.
+        """
+        return all([profile.get(t[0]) == t[1] for t in trait])
+
+    @classmethod
+    def BuildIndex(cls, hashes=None, traits=None, duplicates=None, spec=None,
+                   iomanager=None):
+        """Builds a SymbolOffset index from traits, profiles, hashes and a spec.
+
+        Args:
+            hashes: A dictionary of hash:profile_id. Hashes must be obtained via
+            the SymbolOffsetIndex.CalculateRawProfileHash() method.
+
+            traits: A dictionary of profile_id:traits. Traits are the result
+            of calling the SymbolOffsetIndex.FindTraits() method.
+
+            profiles: A dictionary of profile_id metadata. Profile metadata
+            is obtained via SymbolOffsetIndex.GetProfileMetadata().
+
+            duplicates: A list of newly found profile ids that are duplicate.
+        """
+
+        spec = spec or {}
+        metadata = dict(Type="Index",
+                        ProfileClass=spec.get("implementation", cls.__name__),
+                        BaseSymbol=spec.get("base_symbol"))
+
+        hashes = hashes or {}
+        traits = traits or {}
+        # Assert all profiles that have hashes have traits as well
+        if not all([profile in hashes.values() for profile in traits]):
+            raise ValueError("Not all profiles with traits have hashes")
+
+        # Assert all profiles that have traits have hashes as well
+        if not all([profile in traits for profile in hashes.values()]):
+            raise ValueError("Not all profiles with hashes have traits")
+
+        profiles = dict([(profile_id,
+                          cls.GetProfileMetadata(
+                              iomanager=iomanager, profile_id=profile_id))
+                         for  profile_id in traits])
+
+        duplicates = duplicates or []
+        for duplicate_profile in duplicates:
+          profiles[duplicate_profile] = cls.GetProfileMetadata(
+              iomanager=iomanager, profile_id=duplicate_profile)
+
+        index = {
+            "$METADATA": metadata,
+            "$INDEX": {
+                "$TRAITS": traits or {},
+                "$PROFILES": profiles or {},
+                "$HASHES": hashes or {},
+            }
+        }
+
+        return index
+
+    @classmethod
+    def GetProfileMetadata(cls, iomanager=None, profile_id=None):
+        profile_metadata = dict()
+        file_mtime = iomanager.Metadata(profile_id)["LastModified"]
+        profile_metadata["LastModified"] = file_mtime
+        return profile_metadata
+
+    def __len__(self):
+        return len(self.traits)
+
+    def __iter__(self):
+        """Yields tuples of profile_id, traits.
+
+        Each trait is a list of tuples of (symbol, offset) that make this
+        profile unique within the repository.
+        """
+        for profile, traits in self.index.get("$TRAITS").iteritems():
+            yield profile, traits
+
+    def RelativizeSymbols(self, symbols, base_symbol=None):
+        """Modifies a dict of symbols so its offsets relative to base_symbol.
+        If no base_symbol is provided and the index itself doesn't define one
+        then returns the symbols as is.
+
+        Args:
+            symbols: A dictionary of symbol:value
+            base_symbol: The name of the symbol to base others' values on.
+        """
+
+        if not base_symbol:
+          base_symbol = self.metadata("BaseSymbol")
+
+        if not base_symbol:
+            return symbols
+
+        base_value = symbols.get(base_symbol)
+        if not base_value:
+            raise ValueError("Symbol %s not found in profile", base_symbol)
+        new_symbols = symbols.copy()
+        for symbol, value in new_symbols.iteritems():
+            new_symbols[symbol] = value - base_value
+        return new_symbols
+
+
+class LinuxSymbolOffsetIndex(SymbolOffsetIndex):
+    """Specialized symbol-offset index for linux."""
+
+    @classmethod
+    def FilterSymbols(cls, symbols):
+        """Filters a dict of symbols, discarding irrelevant ones."""
+        return dict([(k,v) for (k,v) in symbols.iteritems()
+                     if not "." in k and k != "__irf_end"])
+
+    @classmethod
+    def BuildIndex(cls, hashes=None, traits=None, duplicates=None, spec=None,
+                   iomanager=None):
+        index = super(LinuxSymbolOffsetIndex, cls).BuildIndex(
+            hashes=hashes, traits=traits, spec=spec, duplicates=duplicates,
+            iomanager=iomanager)
+        # By default, we'll calculate KASLR from linux_proc_banner which is
+        # present on all kernels.
+        spec = spec or {}
+        index["$METADATA"]["BaseSymbol"] = spec.get("base_symbol",
+                                                    "linux_proc_banner")
+        return index

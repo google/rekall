@@ -27,6 +27,7 @@ import os
 import yaml
 
 from rekall import io_manager
+from rekall import obj
 from rekall import plugin
 from rekall import registry
 from rekall import testlib
@@ -87,10 +88,6 @@ class RepositoryPlugin(object):
 class WindowsGUIDProfile(RepositoryPlugin):
     """Manage a Windows profile from the symbol server."""
 
-    def _RunPlugin(self, plugin_name, **args):
-        # Run the plugin inline.
-        self.session.RunPlugin(plugin_name, **args)
-
     def FetchPDB(self, temp_dir, guid, pdb_filename):
         self._RunPlugin("fetch_pdb", pdb_filename=pdb_filename,
                         guid=guid, dump_dir=temp_dir)
@@ -144,7 +141,7 @@ class WindowsGUIDProfile(RepositoryPlugin):
 
                     self.ParsePDB(temp_dir, guid, pdb_filename)
 
-        if changed_files and self.args.index:
+        if changed_files and self.args.index or self.args.force_build_index:
             renderer.format("Building index for profile {0} from {1}\n",
                             self.args.profile_name, self.args.index)
 
@@ -200,6 +197,63 @@ class OSXProfile(RepositoryPlugin):
             self.BuildIndex()
 
 
+class LinuxProfile(RepositoryPlugin):
+    """Build Linux profiles."""
+
+    def Build(self, renderer):
+        """Linux profile location"""
+        convert_profile = self.session.plugins.convert_profile(
+            session=self.session,
+            out_file="dummy file")  # We don't really output the profile.
+
+        # Open the previous index to update it.
+        index = self.session.LoadProfile("Linux/index")
+
+        changed_files = False
+        total_profiles = 0
+        new_profiles = 0
+
+        for source_profile in self.args.repository.ListFiles():
+            # Find all source profiles.
+            if (source_profile.startswith("src/Linux") and
+                source_profile.endswith(".zip")):
+
+                total_profiles += 1
+                profile_id = source_profile.lstrip("src/").rstrip(".zip")
+
+                # Skip already built profiles.
+                if self.args.repository.Metadata(profile_id):
+                    continue
+
+                # Convert the profile
+                self.session.report_progress(
+                    "Found new raw Linux profile %s. Converting...", profile_id)
+                self.session.logging.info(
+                    "Found new raw Linux profile %s", profile_id)
+
+                profile_fullpath = self.args.repository.GetAbsolutePathName(
+                    source_profile)
+                profile = convert_profile.ConvertProfile(
+                    io_manager.Factory(
+                        profile_fullpath, session=self.session, mode="r"))
+                if not profile:
+                    self.session.logging.info(
+                        "Skipped %s, Unable to convert to a Rekall profile.",
+                        profile_path)
+                    continue
+
+                # Add profile to the repository and the inventory
+                self.args.repository.StoreData(profile_id, profile)
+                new_profiles += 1
+                changed_files = True
+
+        self.session.logging.info("Found %d profiles. %d are new.",
+                                  total_profiles, new_profiles)
+        # Now rebuild the index
+        if changed_files and self.args.index or self.args.force_build_index:
+            self.BuildIndex()
+
+
 class ManageRepository(plugin.Command):
     """Manages the profile repository."""
 
@@ -212,11 +266,21 @@ class ManageRepository(plugin.Command):
         parser.add_argument(
             "path_to_repository", default=".",
             help="The path to the profile repository")
+        parser.add_argument(
+            "--build_targets", type="ArrayStringParser",
+            help="A list of targets to build.")
+        parser.add_argument(
+            "--force_build_index", type="Boolean", default=False,
+            help="Forces building the index.")
 
-    def __init__(self, command=None, path_to_repository=None, **kwargs):
+
+    def __init__(self, command=None, path_to_repository=None,
+                 build_targets=None, force_build_index=False, **kwargs):
         super(ManageRepository, self).__init__(**kwargs)
         self.command = command
         self.path_to_repository = os.path.abspath(path_to_repository)
+        self.build_targets = build_targets
+        self.force_build_index = force_build_index
 
         # Check if we can load the repository config file.
         self.repository = RepositoryManager(
@@ -226,6 +290,9 @@ class ManageRepository(plugin.Command):
 
     def render(self, renderer):
         for profile_name, kwargs in self.config_file.iteritems():
+            if self.build_targets and profile_name not in self.build_targets:
+              continue
+
             handler_type = kwargs.pop("type", None)
             if not handler_type:
                 raise RuntimeError(
@@ -239,7 +306,9 @@ class ManageRepository(plugin.Command):
 
             handler = handler_cls(
                 session=self.session, repository=self.repository,
-                profile_name=profile_name, **kwargs)
+                profile_name=profile_name,
+                force_build_index=self.force_build_index,
+                **kwargs)
             handler.Build(renderer)
 
 

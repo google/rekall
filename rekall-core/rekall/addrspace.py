@@ -393,6 +393,9 @@ class BaseAddressSpace(object):
         return (isinstance(other, self.__class__) and
                 self.base == other.base)
 
+    def get_file_address_space(self, filename):
+        """Implement this to return an address space for filename."""
+
     def get_mapped_offset(self, filename, offset):
         """Implement this if we can map files into this address space."""
 

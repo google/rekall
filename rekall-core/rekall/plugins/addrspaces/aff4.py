@@ -250,6 +250,15 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         return mapped_offset
 
+    def get_file_address_space(self, filename):
+        """Return an address space for filename."""
+        subject = utils.CaseInsensitiveDictLookup(
+            filename, self.filenames)
+
+        if subject:
+          return AFF4StreamWrapper(self.resolver.AFF4FactoryOpen(subject))
+        return
+
     def get_mapped_offset(self, filename, file_offset=0):
         """Map the filename into the address space.
 

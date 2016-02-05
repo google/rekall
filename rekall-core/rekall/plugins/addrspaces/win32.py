@@ -241,26 +241,34 @@ class WinPmemAddressSpace(Win32AddressSpace):
         # Open the $DATA stream
         return mft_entry.open_file()
 
-    def get_mapped_offset(self, filename, file_offset):
+    def get_file_address_space(self, filename):
+        """Return an address space for filename."""
+        try:
+            # Try to read the file with OS APIs.
+            file_as = Win32FileAddressSpace(filename=filename,
+                                            session=self.session)
+            return file_as
+        except IOError:
+            try:
+                # Try to read the file with raw access.
+                file_as = self._map_raw_filename(filename)
+                return file_as
+            except IOError:
+                # Cant read this file - no mapping available.
+                return
+
+    def get_mapped_offset(self, filename, file_offset, length=None):
         # Normalize filename for case insenstive comparisons.
         filename = filename.lower()
         mapped_offset = self.mapped_files.get(filename)
         if mapped_offset is None:
-            try:
-                # Try to read the file with OS APIs.
-                file_as = Win32FileAddressSpace(filename=filename,
-                                                session=self.session)
-            except IOError:
-                try:
-                    # Try to read the file with raw access.
-                    file_as = self._map_raw_filename(filename)
-                except IOError:
-                    # Cant read this file - no mapping available.
-                    return
+            file_as = self.get_file_address_space(filename)
+            if not file_as:
+                return
 
             # Add a guard page and align.
             mapped_offset = self.mapped_files[filename] = (
-                self.end() + 0x10000) & 0xFFFFFFFFFFFFF000
+                (length or self.end()) + 0x10000) & 0xFFFFFFFFFFFFF000
 
             self.add_run(mapped_offset, 0, file_as.end(), file_as)
 
