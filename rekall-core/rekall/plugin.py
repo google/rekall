@@ -252,6 +252,8 @@ class ProfileCommand(Command):
                 raise PluginError(
                     "Profile could not detected. "
                     "Try specifying one explicitly.")
+        else:
+            self.profile = obj.NoneObject("No profile")
 
 
 class PluginHeader(object):

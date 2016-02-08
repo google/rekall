@@ -256,7 +256,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             filename, self.filenames)
 
         if subject:
-          return AFF4StreamWrapper(self.resolver.AFF4FactoryOpen(subject))
+            return AFF4StreamWrapper(self.resolver.AFF4FactoryOpen(subject))
         return
 
     def get_mapped_offset(self, filename, file_offset=0):

@@ -417,7 +417,11 @@ class WindowsKernelImageDetector(WindowsRSDSDetector):
                 address_space=pe_file_as,
                 image_base=pe_file_as.image_base)
 
-            return self._test_rsds(pe_helper.RSDS)
+            rsds = pe_helper.RSDS
+            self.session.logging.info(
+                "Found RSDS in kernel image: %s (%s)",
+                rsds.GUID_AGE, rsds.Filename)
+            return self._test_rsds(rsds)
 
 
 class LinuxIndexDetector(DetectionMethod):

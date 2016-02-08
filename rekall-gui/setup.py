@@ -51,7 +51,7 @@ if "unknown" in MY_VERSION:
     except ImportError:
         pass
 
-install_requires=[
+install_requires = [
     "rekall-core >= 1.4.0.pre3",
     "ipython >= 3.0.0",
     "codegen >= 1.0",

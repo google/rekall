@@ -23,7 +23,7 @@
 """Meta-script for pulling in all Rekall components."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
+import platform
 import os
 import sys
 import subprocess
@@ -86,6 +86,17 @@ commands = versioneer.get_cmdclass()
 commands["install"] = install
 commands["develop"] = develop
 
+install_requires = [
+    "rekall-core >= 1.4.0.pre3",
+    "ipython==4.0.0",
+]
+
+
+# IPython's setup.py is broken since it does not include this dependency on
+# windows. For the other OS's this is OK.
+if platform.system() == "Windows":
+    install_requires.append("pyreadline >= 2.0")
+
 
 setup(
     name="rekall",
@@ -106,8 +117,5 @@ setup(
 
     # This requires an exact version to ensure that installing the meta package
     # pulls in tested dependencies.
-    install_requires=[
-        "rekall-core >= 1.4.0.pre3",
-        "ipython==4.0.0",
-    ],
+    install_requires=install_requires,
 )

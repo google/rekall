@@ -50,7 +50,7 @@ def find_data_files_directory(source):
 # approach ensures that any Rekall version will always work as tested - even
 # when external packages are upgraded in an incompatible way.
 install_requires = [
-    "PyAFF4 == 0.20",
+    "PyAFF4 == 0.22",
     "PyYAML == 3.11",
     "acora == 1.9",
     "argparse == 1.2.1",
@@ -61,7 +61,7 @@ install_requires = [
     "pyelftools == 0.23",
     "pytz == 2015.7",
     "rekall-yara==3.4.0.1",
-    "sortedcontainers == 1.4.2",
+    "sortedcontainers == 1.4.4",
 ]
 
 if platform.system() == "Windows":

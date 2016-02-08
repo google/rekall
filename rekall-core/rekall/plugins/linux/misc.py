@@ -20,7 +20,7 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 import hashlib
-
+from rekall import obj
 from rekall.plugins import core
 from rekall.plugins.linux import common
 
@@ -81,8 +81,6 @@ class LinImageFingerprint(common.AbstractLinuxParameterHook):
 
         result = []
         profile = self.session.profile
-        phys_as = self.session.physical_address_space
-
         address_space = self.session.GetParameter("default_address_space")
 
         banner = profile.get_constant_object("linux_banner", "String")

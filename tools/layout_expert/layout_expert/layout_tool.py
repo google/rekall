@@ -80,6 +80,12 @@ def _get_parser():
     # Global options.
     argument_parser = argparse.ArgumentParser()
     argument_parser.add_argument(
+        "-v", "--verbose",
+        default=False,
+        action="store_true",
+        help="Enable to see more verbose messages")
+
+    argument_parser.add_argument(
         '--cache_dir',
         default=None,
         help="The path where cache files can be written."
@@ -184,6 +190,9 @@ def main():
 
         _parser_obj = _get_parser()
         _args = _parser_obj.parse_args()
+        if _args.verbose:
+            root_logger.setLevel(logging.DEBUG)
+
         _args.action(_args)
     except (Exception, KeyboardInterrupt):
         import pdb
