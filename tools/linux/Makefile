@@ -19,13 +19,14 @@ all: dwarf pmem profile
 
 pmem: pmem.c
 	$(MAKE) -C $(KHEADER) M=$(PWD) modules
+	cp pmem.ko "pmem-$(KVER).ko"
 
 dwarf: module.c
 	$(MAKE) -C $(KHEADER) CONFIG_DEBUG_INFO=y M=$(PWD) modules
 	cp module.ko module_dwarf.ko
 
 profile: dwarf
-	zip "$(KVER).zip" module_dwarf.ko $(KSYSTEMMAP) $(KCONFIG)
+	zip "$(KVER).zip" module_dwarf.ko $(KSYSTEMMAP) $(KCONFIG) "pmem-$(KVER).ko"
 
 clean:
 	$(MAKE) -C $(KHEADER) M=$(PWD) clean

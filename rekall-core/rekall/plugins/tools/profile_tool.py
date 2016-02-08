@@ -237,7 +237,7 @@ class LinuxConverter(ProfileConverter):
             # Parse the system map file.
             system_map = self.ParseSystemMap(system_map)
 
-            ko_file = self.SelectFile(r"\.ko$")
+            ko_file = self.SelectFile(r"module.*\.ko$")
             if ko_file:
                 self.session.logging.info(
                     "Converting Linux profile with ko module.")
