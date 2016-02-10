@@ -927,10 +927,12 @@ class InodePermission(basic.Flags):
         return self.v() & mask
 
 
-class Linux(basic.BasicClasses):
+class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
     METADATA = dict(
         os="linux",
         type="Kernel")
+
+    image_base = 0
 
     @classmethod
     def Initialize(cls, profile):
@@ -979,6 +981,12 @@ class Linux(basic.BasicClasses):
 
         elif profile.metadata("arch") == "AMD64":
             basic.ProfileLP64.Initialize(profile)
+
+    def GetImageBase(self):
+        if not self.image_base:
+            self.image_base = obj.Pointer.integer_to_address(
+                self.session.GetParameter("kernel_slide", 0))
+        return self.image_base
 
     def _SetupProfileFromData(self, data):
         """Sets up the kernel profile, adding kernel config options."""
@@ -1095,27 +1103,56 @@ class Linux(basic.BasicClasses):
         physical addresses (aka PAGE_OFFSET). This is defined by the __va macro:
 
         #define __va(x) ((void *)((unsigned long) (x) + PAGE_OFFSET))
-
-        However, the kernel can be rebased when CONFIG_RELOCATABLE is active.
-        phys_addr detects the relocation and returns the correct physical
-        address.
         """
         va_addr = obj.Pointer.integer_to_address(va)
         page_offset_addr = obj.Pointer.integer_to_address(
             self.GetPageOffset())
 
         if va_addr >= page_offset_addr:
-            return (va_addr - page_offset_addr + self.GetRelocationDelta())
+            return (va_addr - page_offset_addr)
         else:
             return obj.NoneObject("Unable to translate VA 0x%x", va)
 
-    def GetRelocationDelta(self):
-        """Returns the number of bytes the kernel base is shifted."""
-        return self.session.GetParameter("kernel_slide")
-
     def GetPageOffset(self):
-        """Gets the page offset without accounting for relocations or KASLR."""
-        return self.session.GetParameter("linux_page_offset")
+        """Gets the page offset."""
+        page_offset = self.session.GetParameter("linux_page_offset")
+        if not page_offset:
+            self.session.logging.debug("Calculating page offset...")
+            if self.metadata("arch") == "I386":
+                page_offset = (self.get_constant("_text", False) -
+                               self.get_constant("phys_startup_32", False))
+
+            elif self.metadata("arch") == "AMD64":
+                # We use the symbol phys_startup_64. If it's not present in the
+                # profile and it's different than the default, we should be able
+                # to autodetect the difference via kernel_slide.
+                phys_startup_64 = (
+                    self.get_constant("phys_startup_64", False) or 0x1000000)
+                page_offset = (
+                    self.get_constant("_text", False) - phys_startup_64)
+
+            elif self.metadata("arch") == "MIPS":
+                page_offset = 0x80000000
+
+            elif self.metadata("arch") == "ARM":
+                # This might not be always the same. According to arm/Kconfig,
+                # this only seems to be accurate with the default split in linux
+                # (VMSPLIT_3G). See arm/Kconfig. TODO: Use the VMSPLIT_3G config
+                # variable here.
+
+                # 1563 config PAGE_OFFSET
+                # 1564         hex
+                # 1565         default PHYS_OFFSET if !MMU
+                # 1566         default 0x40000000 if VMSPLIT_1G
+                # 1567         default 0x80000000 if VMSPLIT_2G
+                # 1568         default 0xC0000000
+
+                page_offset = 0xc0000000
+
+            else:
+                raise RuntimeError("No profile architecture set.")
+            self.session.SetParameter("linux_page_offset", page_offset)
+        return page_offset
 
     def nsec_to_clock_t(self, x):
         """Convers nanoseconds to a clock_t. Introduced in 3.17.

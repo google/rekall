@@ -21,6 +21,7 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import exceptions
 import inspect
 import pdb
 import math
@@ -1171,3 +1172,26 @@ class VtoPMixin(object):
             renderer.format(
                 "Physical Address {0}\n",
                 self.physical_address_space.describe(physical_address))
+
+
+class RaisingPlugin(plugin.Command):
+    """A plugin that simply raises. To aid in testing."""
+
+    name = "raise"
+
+    @classmethod
+    def args(cls, parser):
+        super(RaisingPlugin, cls).args(parser)
+        parser.add_argument("--exception_class", required=False,
+                            help="The exception class to raise.")
+        parser.add_argument("--exception_text", required=False,
+                            help="The text to initialize the exception with.")
+
+    def __init__(self, exception_class=None, exception_text=None, **kwargs):
+        super(RaisingPlugin, self).__init__(**kwargs)
+        self.exception_class = exception_class or "ValueError"
+        self.exception_text = exception_text or "Default exception"
+
+    def render(self, renderer,  **kwargs):
+        exc_cls = getattr(exceptions, self.exception_class, ValueError)
+        raise exc_cls(self.exception_text)

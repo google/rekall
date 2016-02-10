@@ -73,6 +73,11 @@ config.DeclareOption(
     "--home", default=None,
     help="An alternative home directory path. If not set we use $HOME.")
 
+config.DeclareOption(
+    "--logging_format",
+    default="%(asctime)s:%(levelname)s:%(name)s:%(message)s",
+    help="The format string to pass to the logging module.")
+
 
 class RecursiveHookException(RuntimeError):
     """Raised when a hook is invoked recursively."""
@@ -300,6 +305,21 @@ class Configuration(utils.AttributeDict):
         if isinstance(self.session, InteractiveSession):
             # Also set the root logging level, to reflect it in the console.
             logging.getLogger().setLevel(int(level))
+
+    def _set_logging_format(self, logging_format, _):
+        formatter = logging.Formatter(fmt=logging_format)
+
+        # Set the logging format on the console
+        root_logger = logging.getLogger()
+        if not root_logger.handlers:
+            logging.basicConfig(format=logging_format)
+        else:
+            for handler in root_logger.handlers:
+                handler.setFormatter(formatter)
+
+        # Now set the format of our custom handler(s).
+        for handler in self.session.logging.handlers:
+            handler.setFormatter(formatter)
 
     def _set_ept(self, ept, _):
         self.session.Reset()

@@ -481,7 +481,7 @@ class LinuxIndexDetector(DetectionMethod):
             module = None
 
         try:
-            offset = int(offset, 16)
+            offset = obj.Pointer.integer_to_address(int(offset, 16))
         except ValueError:
             pass
 
@@ -561,7 +561,28 @@ class LinuxIndexDetector(DetectionMethod):
                 profile_id,
                 matching_profiles[0][1],
                 len(self.index.traits[profile_id]))
-            return self.VerifyProfile(profile_id)
+            # Now calculate the KASLR slide
+            profile = self.session.LoadProfile(profile_id)
+            if not profile:
+                return
+
+            # At this point we also know the kernel slide.
+            kallsyms_proc_banner = symbol_dict["linux_proc_banner"]
+            profile_proc_banner = profile.get_constant("linux_proc_banner",
+                                                       is_address=False)
+            kernel_slide = kallsyms_proc_banner - profile_proc_banner
+            self.session.logging.info("Found slide 0x%x", kernel_slide)
+            self.session.SetCache("kernel_slide", kernel_slide)
+            verified_profile = self.VerifyProfile(profile)
+            if not verified_profile:
+                # If we found a profile via the index, but it didn't actually
+                # verify it's unlikely we'll find the correct one by scanning
+                # so we easy the pain on users by not scanning the entire
+                # physical memory.
+                self.session.SetCache("kernel_slide", None)
+                self.session.SetParameter("autodetect_scan_length",
+                                          1024*1024*1024)
+            return verified_profile
         else:
             self.session.logging.warn("LinuxIndexDetector found no matches.")
 
@@ -593,12 +614,25 @@ class LinuxBannerDetector(DetectionMethod):
                 distribution = "Debian"
 
             profile_name = "%s/%s" % (distribution, m.group(1))
-            profile = self.VerifyProfile(profile_name)
+            profile = self.session.LoadProfile(profile_name)
             if profile:
                 self.session.logging.info(
                     "Detected %s: %s", profile_name, m.group(0))
+            else:
+                return
 
-                return profile
+            # At this point we should know the kernel slide.
+            profile_proc_banner = profile.get_constant("linux_banner",
+                                                       is_address=False)
+            expected_proc_banner = profile.phys_addr(profile_proc_banner)
+            kernel_slide = offset - expected_proc_banner
+            self.session.logging.info("Found slide 0x%x", kernel_slide)
+            self.session.SetCache("kernel_slide", kernel_slide)
+            verified_profile = self.VerifyProfile(profile)
+            if not verified_profile:
+                self.session.SetCache("kernel_slide", None)
+
+            return verified_profile
 
 
 class DarwinIndexDetector(DetectionMethod):
