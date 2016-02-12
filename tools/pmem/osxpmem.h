@@ -18,23 +18,17 @@ specific language governing permissions and limitations under the License.
 
 #include "pmem.h"
 // Driver API.
-#include "MacPmem/pmem_common.h"
+#include "MacPmem/Common/pmem_common.h"
 #include <stdint.h>
-
-struct OSXPmemRange {
-  uint64_t phys_offset;
-  uint64_t length;
-};
-
 
 class OSXPmemImager: public PmemImager {
  private:
-  bool driver_installed_ = false;
-  URN device_urn;                       /**< The URN of the pmem device. */
-  URN driver_urn;
-  string sysctl_name;
   string device_name;
-
+  string sysctl_name;
+  URN device_urn;   /**< The URN of the pmem device. */
+  URN driver_urn;
+  bool driver_installed_ = false;
+  
  protected:
   virtual string GetName() {
     return "The OSXPmem memory imager.  Copyright 2015 Google Inc.";
@@ -64,10 +58,6 @@ class OSXPmemImager: public PmemImager {
    */
   AFF4Status UninstallDriver();
 
-  AFF4Status GetRanges(vector<OSXPmemRange> &ranges);
-
-  virtual AFF4Status Initialize();
-
   virtual AFF4Status RegisterArgs() {
     AddArg(new TCLAP::ValueArg<string>(
         "", "driver", "Path to driver to load. "
@@ -82,12 +72,12 @@ class OSXPmemImager: public PmemImager {
     return PmemImager::RegisterArgs();
   }
 
+  virtual AFF4Status CreateMap_(AFF4Map *map, aff4_off_t *length);  
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
 
  public:
   virtual ~OSXPmemImager();
-  virtual AFF4Status ImagePhysicalMemoryToElf();
 };
 
 #endif  // TOOLS_PMEM_OSXPMEM_H_

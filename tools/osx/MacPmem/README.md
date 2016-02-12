@@ -1,6 +1,9 @@
 # MacPmem - OS X Physical Memory Access
 
-MacPmem enables read/write access to physical memory on OS X 10.8 through 10.11. It simultaneously exposes a wealth of useful information about the operating system and hardware it's running on through a informational device and sysctl interface.
+MacPmem enables read/write access to physical memory on OS X 10.8 through
+10.11. It simultaneously exposes a wealth of useful information about the
+operating system and hardware it's running on through a informational device and
+sysctl interface.
 
 It exposes two devices:
 
@@ -11,7 +14,7 @@ It exposes two devices:
 
 	> sudo kextload MacPmem.kext
 	> sudo cat /dev/pmem_info
-	
+
 	# Outputs:
 	# %YAML 1.2
 	# ---
@@ -29,9 +32,9 @@ It exposes two devices:
 	#   kernel_poffset: 305135616
 	#   kernel_version: "Darwin Kernel Version 14.4.0: Thu May 28 11:35:04 PDT 2015; root:xnu-2782.30.5~1/RELEASE_X86_64"
 	#   version_poffset: 313959808
-	
+
 	> sudo xxd -s 313959808 /dev/pmem | head
-	
+
 	# Outputs:
 	# 12b6a580:4461 7277 696e 204b 6572 6e65 6c20 5665  Darwin Kernel Ve
 	# 12b6a590:7273 696f 6e20 3134 2e34 2e30 3a20 5468  rsion 14.4.0: Th
@@ -43,7 +46,7 @@ It exposes two devices:
 	# 12b6a5f0:0000 0000 3000 726f 6f74 0031 342e 342e  ....0.root.14.4.
 	# 12b6a600:3000 4461 7277 696e 0000 0000 0000 0000  0.Darwin........
 	# 12b6a610:0000 0000 0100 0000 0200 0000 0300 0000  ................
-	
+
 	> sudo rekall -f /dev/pmem  # Analyze the running memory of my own system.
 
 ## SYSCTL controls
@@ -52,23 +55,21 @@ It exposes two devices:
 
 	# Enable debug logging.
 	> sudo sysctl -w kern.pmem_logging=4
-	
+
 	# Set to warn-level logging (default).
 	> sudo sysctl -w kern.pmem_logging=2
 
 ### Read/write safety
 
-By default, IO operations to /dev/pmem will silently fail (return zeros) for any reads or writes to parts of memory marked as inaccessible by the EFI. The EFI creates a physical memory map early in the boot process for the bootloader and the kernel to interpret. This map demarks regions that are physically damaged, backed by a PCI device (as opposed to RAM) or otherwise deserving special consideration.
+By default, IO operations to /dev/pmem will silently fail (return zeros) for any
+reads or writes to parts of memory marked as inaccessible by the EFI. The EFI
+creates a physical memory map early in the boot process for the bootloader and
+the kernel to interpret. This map demarks regions that are physically damaged,
+backed by a PCI device (as opposed to RAM) or otherwise deserving special
+consideration.
 
 	# Disable read/write safety.
-<<<<<<< HEAD
 	> sudo sysctl -w kern.pmem_allow_unsafe_operations=1
-	
+
 	# Re-enable read/write safety.
 	> sudo sysctl -w kern.pmem_allow_unsafe_operations=0
-=======
-	> sudo sysctl -w kern.pmem_allow_unsafe_reads=1
-	
-	# Re-enable read/write safety.
-	> sudo sysctl -w kern.pmem_allow_unsafe_reads=0
->>>>>>> c4d4996e2edac7b6512a161c451c88417d6ad752

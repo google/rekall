@@ -89,8 +89,8 @@ class WindowsGUIDProfile(RepositoryPlugin):
     """Manage a Windows profile from the symbol server."""
 
     def FetchPDB(self, temp_dir, guid, pdb_filename):
-        self._RunPlugin("fetch_pdb", pdb_filename=pdb_filename,
-                        guid=guid, dump_dir=temp_dir)
+        self.session.RunPlugin("fetch_pdb", pdb_filename=pdb_filename,
+                               guid=guid, dump_dir=temp_dir)
 
         data = open(os.path.join(temp_dir, pdb_filename)).read()
         repository = self.args.repository
@@ -107,7 +107,7 @@ class WindowsGUIDProfile(RepositoryPlugin):
 
         profile_class = (self.args.profile_class or
                          original_pdb_filename.capitalize())
-        self._RunPlugin(
+        self.session.RunPlugin(
             "parse_pdb", pdb_filename=pdb_filename, profile_class=profile_class,
             output=output_filename)
 
@@ -216,7 +216,7 @@ class LinuxProfile(RepositoryPlugin):
         for source_profile in self.args.repository.ListFiles():
             # Find all source profiles.
             if (source_profile.startswith("src/Linux") and
-                source_profile.endswith(".zip")):
+                    source_profile.endswith(".zip")):
 
                 total_profiles += 1
                 profile_id = source_profile.lstrip("src/").rstrip(".zip")
@@ -273,7 +273,6 @@ class ManageRepository(plugin.Command):
             "--force_build_index", type="Boolean", default=False,
             help="Forces building the index.")
 
-
     def __init__(self, command=None, path_to_repository=None,
                  build_targets=None, force_build_index=False, **kwargs):
         super(ManageRepository, self).__init__(**kwargs)
@@ -291,7 +290,7 @@ class ManageRepository(plugin.Command):
     def render(self, renderer):
         for profile_name, kwargs in self.config_file.iteritems():
             if self.build_targets and profile_name not in self.build_targets:
-              continue
+                continue
 
             handler_type = kwargs.pop("type", None)
             if not handler_type:

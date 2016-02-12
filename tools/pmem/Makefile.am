@@ -4,7 +4,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
 # This is so we can #include <package/foo>
-AM_CPPFLAGS = -I$(top_srcdir) -DHAVE_SSTREAM -I$(top_srcdir)/../osx/MacPmem/
+AM_CPPFLAGS = -I$(top_srcdir) -DHAVE_SSTREAM -I$(top_srcdir)/../osx/
 
 # These are good warnings to turn on by default
 if GCC
