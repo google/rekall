@@ -1174,24 +1174,33 @@ class VtoPMixin(object):
                 self.physical_address_space.describe(physical_address))
 
 
-class RaisingPlugin(plugin.Command):
-    """A plugin that simply raises. To aid in testing."""
+class RaisingTheRoof(plugin.Command):
+    """A plugin that exists to break your tests and make you cry."""
 
-    name = "raise"
+    # Can't call this raise, because it aliases the keyword.
+    name = "raise_the_roof"
 
     @classmethod
     def args(cls, parser):
-        super(RaisingPlugin, cls).args(parser)
+        super(RaisingTheRoof, cls).args(parser)
         parser.add_argument("--exception_class", required=False,
                             help="The exception class to raise.")
         parser.add_argument("--exception_text", required=False,
                             help="The text to initialize the exception with.")
 
     def __init__(self, exception_class=None, exception_text=None, **kwargs):
-        super(RaisingPlugin, self).__init__(**kwargs)
+        super(RaisingTheRoof, self).__init__(**kwargs)
         self.exception_class = exception_class or "ValueError"
         self.exception_text = exception_text or "Default exception"
 
     def render(self, renderer,  **kwargs):
         exc_cls = getattr(exceptions, self.exception_class, ValueError)
         raise exc_cls(self.exception_text)
+
+
+class TestRaisingTheRoof(testlib.DisabledTest):
+    """Disable the Raise test."""
+
+    PARAMETERS = dict(commandline="raise_the_roof")
+
+

@@ -148,6 +148,11 @@ class Collect(plugin.ProfileCommand):
         parser.add_argument("type_name", required=True,
                             help="The type (struct) to collect.")
 
+    @classmethod
+    def GetPrototype(cls, session):
+        """Instantiate with suitable default arguments."""
+        return cls(None, session=session)
+
     def __init__(self, type_name, **kwargs):
         super(Collect, self).__init__(**kwargs)
         self.type_name = type_name
@@ -201,15 +206,26 @@ class CommandWrapper(object):
     table_header = None
     session = None
 
-    _last_args = None
+    # Once the CommandWrapper is run, this will be set to the arguments that
+    # were used. You cannot apply the same CommandWrapper twice with different
+    # args. If you need to do that, create two instances of CommandWrapper.
+    _applied_args = None
 
     def __init__(self, plugin_cls, session):
         self.plugin_cls = plugin_cls
         self.session = session
 
-    def materialize(self):
-        """Ensure we have some data by applying with no arguments."""
-        self.apply((), {})
+    def __iter__(self):
+        if self._applied_args is None:
+            self.apply((), {})
+
+        return iter(self.rows)
+
+    def __getitem__(self, idx):
+        if self._applied_args is None:
+            self.apply((), {})
+
+        return self.rows[idx]
 
     # IApplicative
 
@@ -222,9 +238,16 @@ class CommandWrapper(object):
         Arguments:
             args, kwargs: Arguments to the plugin.
         """
-        if self._last_args == (args, kwargs):
-            # We've already run with these args and the results are cached.
-            return self
+        if self._applied_args is None:
+            self._applied_args = (args, kwargs)
+        else:
+            if self._applied_args != (args, kwargs):
+                raise ValueError("%r was previously called with %r but is now "
+                        "being called with %r." % (
+                            self, self._applied_args, (args, kwargs)))
+            else:
+                # Results already cached.
+                return self
 
         if issubclass(self.plugin_cls, plugin.TypedProfileCommand):
             # We have access to table header and rows without running render.
@@ -247,17 +270,19 @@ class CommandWrapper(object):
             self.rows = renderer.rows
             self.columns = renderer.columns
 
-        self._last_args = (args, kwargs)
         return self
 
     # IRepeated
 
     def getvalues(self):
         """Pretend the plugin is an IRepeated instead of a function."""
-        # Make sure we have data.
-        self.materialize()
+        # If we're being used as a repeated value (not a function) then we could
+        # get here without apply already having been called.
+        if self._applied_args is None:
+            self.apply((), {})
 
-        return self.rows
+        # Just return self, which is iterable.
+        return self
 
     def value_eq(self, other):
         """This is required by the IRepeated protocol, but not actually used."""
@@ -271,25 +296,9 @@ class CommandWrapper(object):
         """This is required by the IRepeated protocol, but not actually used."""
         return self.plugin_cls
 
-    # IStructured
-
-    def resolve(self, name):
-        """Pretend the plugin is an IStructured instead of a function.
-
-        This lets us pretend that the plugin is a structured datatype (like an
-        object) making it possible for the user to get data without calling
-        it as a function. The first time the plugin is asked for any data
-        we just run 'apply' with no arguments to populate 'rows'.
-        """
-        # Make sure we have data.
-        self.materialize()
-
-        return repeated.meld(*[r[name] for r in self.rows])
-
 
 # Implement the relevant EFILTER protocols using methods already on the
 # CommandWrapper class.
-structured.IStructured.implicit_static(CommandWrapper)
 repeated.IRepeated.implicit_static(CommandWrapper)
 applicative.IApplicative.implicit_static(CommandWrapper)
 
@@ -306,9 +315,9 @@ class EfilterPlugin(plugin.ProfileCommand):
     query_source = None  # The source of the query, passed by the user.
     query_error = None  # An exception, if any, caused when parsing the query.
 
-    # We cache plugin wrappers here, keyed on plugin class. Each renderer
-    # is populated with rows and the table header for future reference.
-    _cached_plugin_wrappers = {}  # Instances of CommandWrapper.
+    # We cache CommandWrapper instances because they end up containing header
+    # information for untyped plugins.
+    _cached_command_wrappers = None
 
     # Plugin lifecycle:
 
@@ -348,6 +357,7 @@ class EfilterPlugin(plugin.ProfileCommand):
             raise ValueError("Could not parse your query %r." % (query,))
 
         self.query_parameters = query_parameters
+        self._cached_command_wrappers = dict()
 
     # IStructured implementation for EFILTER:
 
@@ -369,7 +379,12 @@ class EfilterPlugin(plugin.ProfileCommand):
         """
         meta = self.session.plugins.plugin_db.GetActivePlugin(name)
         wrapper = CommandWrapper(meta.plugin_cls, self.session)
-        self._cached_plugin_wrappers[name] = wrapper
+
+        # We build the cache but don't retrieve wrappers from it. We need to
+        # build a new wrapper every time a plugin is resolved from the query
+        # because plugins are functions and might be called with different args
+        # every time.
+        self._cached_command_wrappers[name] = wrapper
 
         return wrapper
 
@@ -384,8 +399,15 @@ class EfilterPlugin(plugin.ProfileCommand):
         * This returns the plugin instance, not its class, because the entire
         reflection API requires information only available to Rekall at runtime.
         """
-        return self.session.plugins.plugin_db.GetActivePlugin(name).plugin_cls(
-            session=self.session)
+        cls = self.session.plugins.plugin_db.GetActivePlugin(name).plugin_cls
+
+        # Does this plugin implement the reflection helper?
+        try:
+            return cls.GetPrototype(session=self.session)
+        except NotImplementedError:
+            # GetPrototype is not overriden and the default implementation
+            # didn't work.
+            return None
 
     # Plugin methods:
 
@@ -470,15 +492,33 @@ class Search(EfilterPlugin):
         super(Search, self).__init__(*args, **kwargs)
 
     def collect(self):
-        """Return the search results without displaying them."""
+        """Return the search results without displaying them.
+
+        Returns:
+            A list of results from the query solver.
+
+        Raises:
+            EfilterError unless 'silent' flag was set.
+        """
         try:
-            result = solve.solve(self.query, self)
-            return repeated.getvalues(result.value)
+            result = self.solve()
+            return repeated.getvalues(result)
         except errors.EfilterError:
             if self.silent:
                 return None
 
             raise
+
+    def solve(self):
+        """Return the search results exactly as EFILTER returns them.
+
+        Returns:
+            Depends on the query.
+
+        Raises:
+            EfilterError if anything goes wrong.
+        """
+        return solve.solve(self.query, self).value
 
     @property
     def first_result(self):
@@ -516,6 +556,18 @@ class Search(EfilterPlugin):
         for row in rows:
             renderer.table_row(row)
 
+    def _find_matching_header(self, keys):
+        sorted_keys = sorted(keys)
+        for cached_wrapper in self._cached_command_wrappers.itervalues():
+            if not cached_wrapper.columns:
+                continue
+
+            column_names = [c.get("cname", c.get("name"))
+                            for c in cached_wrapper.columns]
+            if sorted(column_names) == sorted_keys:
+                return cached_wrapper.columns
+
+
     def render(self, renderer):
         # Do we have a query?
         if not self.query:
@@ -535,38 +587,50 @@ class Search(EfilterPlugin):
             self.query_error = error
             return self.render_error(renderer)
 
-        # If we know the header, great!
+        # If the output type is a TypeProfileCommand subclass then we can just
+        # interrogate its header.
         if isinstance(t, plugin.TypedProfileCommand):
             renderer.table_header(t.table_header)
             return self._render_plugin_output(renderer, t.table_header,
                                               *rows)
 
-        # Maybe we cached the header when we ran the plugin?
+        # If the output type is a regular plugin then we must've run it at some
+        # point and should be able to retrieve a cached copy of the wrapper,
+        # which will have preserved the output columns.
         if isinstance(t, plugin.Command):
-            wrapper = self._cached_plugin_wrappers.get(t.name)
-            # If we land here there's two options: either the query already
-            # forced the wrapper to apply (either by explicitly using it as a
-            # function, or by doing something non-lazy; or the wrapper hasn't
-            # been called yet. The latter can only be the case if the wrapper is
-            # being used as a variable, not a function, so we need to
-            # materialize it with no arguments. If it already has data for a
-            # call with no args then this won't do anything.
-            wrapper.materialize()
+            cached_wrapper = self._cached_command_wrappers.get(t.name)
+            if not cached_wrapper:
+                raise RuntimeError("Command of type %r is the output of an "
+                                   "EFILTER query but no such command was "
+                                   "executed." % (t,))
 
-            if wrapper:
-                renderer.table_header(wrapper.columns)
-                return self._render_plugin_output(renderer,
-                                                  wrapper.columns,
-                                                  *rows)
+            if not cached_wrapper._applied_args:
+                cached_wrapper.apply((), {})
 
-        # Try to guess the header based on structure of the first row.
-        if not rows:
+            renderer.table_header(cached_wrapper.columns)
+            return self._render_plugin_output(renderer, cached_wrapper.columns,
+                                              *rows)
+
+        # If we got no rows in the output the just say so.
+        rows = iter(rows)
+        try:
+            first_row = next(rows)
+        except StopIteration:
             renderer.table_header([("No Results", "no_results", "20")])
             return
 
-        rows = iter(rows)
-        first_row = next(rows)
+        # As last ditch, try to guess the header based on the data in the
+        # first row.
         if isinstance(first_row, dict):
+            # Maybe we have a plugin with matching columns in its output?
+            columns = self._find_matching_header(first_row.keys())
+            if columns:
+                renderer.table_header(columns)
+                return self._render_plugin_output(renderer,
+                                                  columns,
+                                                  first_row,
+                                                  *rows)
+
             renderer.table_header(
                 [dict(name=unicode(k), cname=unicode(k))
                  for k in first_row.iterkeys()])
@@ -744,12 +808,15 @@ applicative.IApplicative.implement(
 
 
 # TypedProfileCommands can reflect a lot about their output columns.
+# The 'resolve' function will never actually be called on TypeProfileCommand,
+# because we treat plugins as tables, not rows. 'resolve' will instead be
+# passed the rowdicts.
 structured.IStructured.implement(
     for_type=plugin.TypedProfileCommand,
     implementations={
         structured.resolve: lambda _, __: None,  # This should not happen.
         structured.reflect_runtime_member:
-            lambda c, name: c.get_column_type(name),
+        lambda c, name: c.get_column_type(name),
         structured.getmembers_runtime: lambda c: c.table_header.all_names
     }
 )
@@ -757,12 +824,14 @@ structured.IStructured.implement(
 
 # We support IAssociative (plugin[column]) using the same accessors as
 # IStructured (plugin.column). We're easy-going like that.
+# As with IStructured, the 'select' function doesn't get called on the
+# plugin itself, which is why we don't provide a real implementation.
 associative.IAssociative.implement(
     for_type=plugin.TypedProfileCommand,
     implementations={
         associative.select: lambda _, __: None,  # This should not happen.
         associative.reflect_runtime_key:
-            lambda c, name: c.get_column_type(name),
+        lambda c, name: c.get_column_type(name),
         associative.getkeys_runtime: lambda c: c.table_header.all_names
     }
 )
@@ -802,7 +871,7 @@ associative.IAssociative.implement(
 )
 
 
-# This lets us do some_array.some_member.
+# This lets us do some_array.some_member. Useful for accessing properties.
 structured.IStructured.implement(
     for_type=obj.Array,
     implementations={
@@ -811,21 +880,40 @@ structured.IStructured.implement(
 )
 
 
+def select_Pointer(ptr, key):
+    """Delegate to target of the pointer, if any."""
+    obj = ptr.deref()
+    if not obj:
+        ptr.session.logging.warn(
+            "Attempting to access key %r of a void pointer %r.", key, ptr)
+    if obj:
+        return associative.select(obj, key)
+
+
 # Pointer[key] is implemented as Pointer.dereference()[key].
 associative.IAssociative.implement(
     for_type=obj.Pointer,
     implementations={
-        associative.select:
-            lambda ptr, key: associative.select(ptr.deref(), key),
+        associative.select: select_Pointer
     }
 )
+
+
+def resolve_Pointer(ptr, member):
+    """Delegate to target of the pointer, if any."""
+    obj = ptr.deref()
+    if not obj:
+        ptr.session.logging.warn(
+            "Attempting to access member %r of a void pointer %r.", member, ptr)
+    if obj:
+        return structured.resolve(obj, member)
 
 
 # Pointer.member is implemented as Pointer.dereference().member.
 structured.IStructured.implement(
     for_type=obj.Pointer,
     implementations={
-        structured.resolve:
-            lambda ptr, key: structured.resolve(ptr.deref(), key)
+        structured.resolve: resolve_Pointer
     }
 )
+

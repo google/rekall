@@ -669,6 +669,18 @@ class fileproc(obj.Struct):
             # OS X 10.9 and later
             "f_fglob.fg_ops.fo_type")
 
+    @property
+    def socket(self):
+        """Return the associated socket if the dtype is for socket."""
+        if self.fg_type == "DTYPE_SOCKET":
+            return self.f_fglob.fg_data.dereference_as("socket")
+
+    @property
+    def vnode(self):
+        """Return the associated vnode if the dtype is for vnode."""
+        if self.fg_type == "DTYPE_VNODE":
+            return self.f_fglob.fg_data.dereference_as("vnode")
+
     def autocast_fg_data(self):
         """Returns the correct struct with fg_type-specific information.
 

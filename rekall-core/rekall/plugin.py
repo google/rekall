@@ -84,6 +84,35 @@ class Command(object):
     def args(cls, parser):
         """Declare the command line args this plugin needs."""
 
+    @classmethod
+    def GetPrototype(cls, session):
+        """Return an instance of this plugin with suitable default arguments.
+
+        In most general applications, types are declared at compile time and
+        remain immutable, or at least available throughout the program's
+        lifecycle. Rekall, on the other hand, leave many of the decisions
+        usually made at type declaration time until late in the runtime,
+        when the profile data is available. For this reason, in many of the
+        cases when other applications would interrogate classes (for attributes
+        and properties, among other things), in Rekall we must interrogate
+        their instances, which have access to profile data. In order to
+        make this possible slightly earlier in the runtime than when running
+        the plugin, we introduce the concept of prototypes, which are
+        instances of the plugin or struct with the current session and profile
+        available, but with no data or arguments set.
+
+        Arguments:
+            session
+
+        Returns:
+            And instance of this Command with suitable default arguments.
+        """
+        try:
+            return cls(session=session)
+        except (TypeError, ValueError):
+            raise NotImplementedError("Subclasses must override GetPrototype "
+                                      "if they require arguments.")
+
     @registry.classproperty
     def name(cls):  # pylint: disable=no-self-argument
         return getattr(cls, "_%s__name" % cls.__name__, None)
