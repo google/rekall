@@ -176,7 +176,7 @@ class _OBJECT_HEADER(common._OBJECT_HEADER):
         return self.obj_session.GetParameter("ObjectTypeMap")[
             self.TypeIndex].Name.v()
 
-    @property
+    @utils.safe_property
     def TypeIndex(self):
         """In windows 10 the type index is obfuscated.
         Windows 10 obfuscates the object type using a cookie:
@@ -276,15 +276,15 @@ class _POOL_HEADER(common._POOL_HEADER):
 
     MAX_PREAMBLE_SIZE = 0x50
 
-    @property
+    @utils.safe_property
     def NonPagedPool(self):
         return self.PoolType.v() % 2 == 0 and self.PoolType.v() > 0
 
-    @property
+    @utils.safe_property
     def PagedPool(self):
         return self.PoolType.v() % 2 == 1
 
-    @property
+    @utils.safe_property
     def FreePool(self):
         return self.PoolType.v() == 0
 

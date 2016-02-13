@@ -263,7 +263,7 @@ class WindowsPagedMemoryMixin(object):
         # pagefiles.
         self._resolving_pagefiles = False
 
-    @property
+    @utils.safe_property
     def vad(self):
         """Returns a cached RangedCollection() of vad ranges."""
 

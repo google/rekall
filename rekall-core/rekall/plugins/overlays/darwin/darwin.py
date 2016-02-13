@@ -587,7 +587,7 @@ class LIST_ENTRY(obj.Struct):
 
 
 class llinfo_arp(obj.Struct):
-    @property
+    @utils.safe_property
     def isvalid(self):
         try:
             return self.la_rt.rt_llinfo.v() == self.obj_offset
@@ -659,7 +659,7 @@ class fileproc(obj.Struct):
         "-": "INVALID",
     }
 
-    @property
+    @utils.safe_property
     def fg_type(self):
         """Returns type of the fileglob (e.g. vnode, socket, etc.)"""
         return self.multi_m(
@@ -708,11 +708,11 @@ class fileproc(obj.Struct):
         # That would be an unknown DTYPE.
         return self.f_fglob.fg_data
 
-    @property
+    @utils.safe_property
     def human_name(self):
         return getattr(self.autocast_fg_data(), "human_name", None)
 
-    @property
+    @utils.safe_property
     def human_type(self):
         # Delegate to fg_data if it thinks it knows what it is.
         return getattr(
@@ -872,26 +872,26 @@ class socket(obj.Struct):
 
         return self.cached_socketinfo[attr]
 
-    @property
+    @utils.safe_property
     def src_addr(self):
         """For IPv[46] sockets, return source IP as string."""
         return self.get_socketinfo_attr("insi_laddr")
 
-    @property
+    @utils.safe_property
     def dst_addr(self):
         """For IPv[46] sockets, return destination IP as string."""
         return self.get_socketinfo_attr("insi_faddr")
 
-    @property
+    @utils.safe_property
     def addressing_family(self):
         """The Addressing Family corresponds roughly to OSI layer 3."""
         return self.so_proto.pr_domain.dom_family
 
-    @property
+    @utils.safe_property
     def tcp_state(self):
         return self.get_socketinfo_attr("tcpsi_state")
 
-    @property
+    @utils.safe_property
     def vnode(self):
         """For Unix sockets, pointer to vnode, if any.
 
@@ -904,7 +904,7 @@ class socket(obj.Struct):
         if self.addressing_family == "AF_UNIX":
             return self.so_pcb.dereference_as("unpcb").unp_vnode
 
-    @property
+    @utils.safe_property
     def unp_conn(self):
         """For Unix sockets, the pcb of the paired socket. [1]
 
@@ -919,21 +919,21 @@ class socket(obj.Struct):
         if self.addressing_family == "AF_UNIX":
             return self.so_pcb.dereference_as("unpcb").unp_conn
 
-    @property
+    @utils.safe_property
     def src_port(self):
         return self.get_socketinfo_attr("insi_lport")
 
-    @property
+    @utils.safe_property
     def dst_port(self):
         return self.get_socketinfo_attr("insi_fport")
 
-    @property
+    @utils.safe_property
     def l4_protocol(self):
         if self.addressing_family in ["AF_INET", "AF_INET6"]:
             # All the values start with IPPROTO_.
             return str(self.so_proto.pr_protocol).replace("IPPROTO_", "")
 
-    @property
+    @utils.safe_property
     def unix_type(self):
         if self.addressing_family == "AF_UNIX":
             pr_type = str(self.so_proto.pr_type)
@@ -947,7 +947,7 @@ class socket(obj.Struct):
                 # error), I'll need to do more research.
                 return "Unix Socket"
 
-    @property
+    @utils.safe_property
     def human_name(self):
         if self.addressing_family in ["AF_INET", "AF_INET6"]:
             if self.l4_protocol in ["TCP", "UDP"]:
@@ -962,7 +962,7 @@ class socket(obj.Struct):
 
         return None
 
-    @property
+    @utils.safe_property
     def human_type(self):
         if self.addressing_family == "AF_INET":
             return "{}v4".format(self.l4_protocol)
@@ -997,7 +997,7 @@ class sockaddr(obj.Struct):
 
         return addr
 
-    @property
+    @utils.safe_property
     def address(self):
         result = ""
         addr = self._get_address_obj()
@@ -1049,7 +1049,7 @@ class vm_map_entry(obj.Struct):
 
         return obj.NoneObject("vnode not found")
 
-    @property
+    @utils.safe_property
     def sharing_mode(self):
         """Returns the sharing mode of the backing vm_object.
 
@@ -1079,11 +1079,11 @@ class vm_map_entry(obj.Struct):
 
         return "SM_SHARED"
 
-    @property
+    @utils.safe_property
     def code_signed(self):
         return self.last_shadow.code_signed
 
-    @property
+    @utils.safe_property
     def last_shadow(self):
         shadow = self.object.vm_object
         if not shadow:
@@ -1094,18 +1094,18 @@ class vm_map_entry(obj.Struct):
 
         return shadow
 
-    @property
+    @utils.safe_property
     def start(self):
         return self.links.start.v()
 
-    @property
+    @utils.safe_property
     def end(self):
         return self.links.end.v()
 
 
 class clist(obj.Struct):
 
-    @property
+    @utils.safe_property
     def recovered_contents(self):
         """Gets the full contents of the ring buffer, which may be freed.
 
@@ -1117,21 +1117,21 @@ class clist(obj.Struct):
         """
         return self.obj_vm.read(self.c_cs, self.c_cn)
 
-    @property
+    @utils.safe_property
     def size(self):
         return int(self.c_cn)
 
 
 class tty(obj.Struct):
-    @property
+    @utils.safe_property
     def vnode(self):
         return self.t_session.s_ttyvp
 
-    @property
+    @utils.safe_property
     def input_buffer(self):
         return self.t_rawq
 
-    @property
+    @utils.safe_property
     def output_buffer(self):
         return self.t_outq
 
@@ -1139,7 +1139,7 @@ class tty(obj.Struct):
 class proc(obj.Struct):
     """Represents a Darwin process."""
 
-    @property
+    @utils.safe_property
     def vads(self):
         return self.task.map.hdr.walk_list("links.next", include_current=False)
 
@@ -1191,19 +1191,19 @@ class proc(obj.Struct):
         return as_class(base=self.obj_vm.base, session=self.obj_vm.session,
                         dtb=cr3, name="Pid %s" % self.p_pid)
 
-    @property
+    @utils.safe_property
     def command(self):
         return utils.SmartUnicode(self.p_comm)
 
-    @property
+    @utils.safe_property
     def cr3(self):
         return self.task.map.pmap.pm_cr3
 
-    @property
+    @utils.safe_property
     def is_64bit(self):
         return proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT"
 
-    @property
+    @utils.safe_property
     def argv(self):
         result = []
         array = self.obj_profile.ListArray(
@@ -1244,7 +1244,7 @@ class proc(obj.Struct):
 
 
 class vnode(obj.Struct):
-    @property
+    @utils.safe_property
     def full_path(self):
         # TODO: Speed this up by caching the paths in the session.
         result = []
@@ -1269,15 +1269,15 @@ class vnode(obj.Struct):
         return unicode(path.encode("string-escape"))
         # return "/" + "/".join((unicode(x) for x in reversed(result) if x))
 
-    @property
+    @utils.safe_property
     def human_type(self):
         return "Reg. File"
 
-    @property
+    @utils.safe_property
     def human_name(self):
         return self.full_path
 
-    @property
+    @utils.safe_property
     def cnode(self):
         """If this is an HFS vnode, then v_data is a cnode."""
         node = self.v_data.dereference_as("cnode")
@@ -1286,7 +1286,7 @@ class vnode(obj.Struct):
 
         return node
 
-    @property
+    @utils.safe_property
     def uid(self):
         uid = self.v_cred.cr_posix.cr_ruid
         if uid:
@@ -1296,41 +1296,41 @@ class vnode(obj.Struct):
 
 
 class cnode(obj.Struct):
-    @property
+    @utils.safe_property
     def created_at(self):
         return self.c_cattr.ca_ctime.as_datetime()
 
-    @property
+    @utils.safe_property
     def modified_at(self):
         return self.c_cattr.ca_mtime.as_datetime()
 
-    @property
+    @utils.safe_property
     def accessed_at(self):
         return self.c_cattr.ca_atime.as_datetime()
 
-    @property
+    @utils.safe_property
     def backedup_at(self):
         return self.c_cattr.ca_btime.as_datetime()
 
 
 class zone(obj.Struct):
-    @property
+    @utils.safe_property
     def name(self):
         return utils.SmartUnicode(self.zone_name.deref())
 
-    @property
+    @utils.safe_property
     def count_active(self):
         return int(self.count)
 
-    @property
+    @utils.safe_property
     def count_free(self):
         return int(self.m("sum_count") - self.count)
 
-    @property
+    @utils.safe_property
     def tracks_pages(self):
         return bool(self.m("use_page_list"))
 
-    @property
+    @utils.safe_property
     def known_offsets(self):
         """Find valid offsets in the zone as tuples of (state, offset).
 
@@ -1394,11 +1394,11 @@ class zone(obj.Struct):
 
 
 class ifnet(obj.Struct):
-    @property
+    @utils.safe_property
     def name(self):
         return "%s%d" % (self.if_name.deref(), self.if_unit)
 
-    @property
+    @utils.safe_property
     def addresses(self):
         # There should be exactly one link layer address.
         for tqe in self.if_addrhead.tqh_first.walk_list(
@@ -1420,18 +1420,18 @@ class ifnet(obj.Struct):
             l3_addr = utils.SmartUnicode(tqe.ifa_addr.deref())
             yield (l3_proto, l3_addr)
 
-    @property
+    @utils.safe_property
     def l2_addr(self):
         for proto, addr in self.addresses:
             if proto == "MAC":
                 return addr
 
-    @property
+    @utils.safe_property
     def l3_addrs(self):
         return [(proto, addr) for proto, addr in self.addresses
                 if proto != "MAC"]
 
-    @property
+    @utils.safe_property
     def ipv4_addr(self):
         result = []
         for proto, addr in self.addresses:
@@ -1440,7 +1440,7 @@ class ifnet(obj.Struct):
 
         return ", ".join(result)
 
-    @property
+    @utils.safe_property
     def ipv6_addr(self):
         result = []
         for proto, addr in self.addresses:
@@ -1451,19 +1451,19 @@ class ifnet(obj.Struct):
 
 
 class session(obj.Struct):
-    @property
+    @utils.safe_property
     def tty(self):
         return self.session.s_ttyp
 
-    @property
+    @utils.safe_property
     def name(self):
         return "Session %d (%s)" % (self.s_sid, self.s_leader.command)
 
-    @property
+    @utils.safe_property
     def username(self):
         return utils.SmartUnicode(self.s_login)
 
-    @property
+    @utils.safe_property
     def uid(self):
         return self.tty.vnode.uid
 

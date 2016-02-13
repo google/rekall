@@ -268,7 +268,7 @@ class _MM_SESSION_SPACE(obj.Struct):
                 "_EPROCESS", "SessionProcessLinks"):
             yield p
 
-    @property
+    @utils.safe_property
     def Win32KBase(self):
         """Get the base address of the win32k.sys as mapped
         into this session's memory.
@@ -375,12 +375,12 @@ class _HANDLEENTRY(obj.Struct):
         return self.obj_profile.Object(
             object_type, offset=self.phead, vm=self.obj_vm)
 
-    @property
+    @utils.safe_property
     def Free(self):
         """Check if the handle has been freed"""
         return str(self.bType) == "TYPE_FREE"
 
-    @property
+    @utils.safe_property
     def ThreadOwned(self):
         """Handles of these types are always thread owned"""
         return str(self.bType) in [
@@ -388,14 +388,14 @@ class _HANDLEENTRY(obj.Struct):
             'TYPE_DDEACCESS', 'TYPE_DDECONV', 'TYPE_DDEXACT',
             'TYPE_WINEVENTHOOK', 'TYPE_INPUTCONTEXT', 'TYPE_HIDDATA',
             'TYPE_TOUCH', 'TYPE_GESTURE']
-    @property
+    @utils.safe_property
     def ProcessOwned(self):
         """Handles of these types are always process owned"""
         return str(self.bType) in [
             'TYPE_MENU', 'TYPE_CURSOR', 'TYPE_TIMER',
             'TYPE_CALLPROC', 'TYPE_ACCELTABLE']
 
-    @property
+    @utils.safe_property
     def Thread(self):
         """Return the ETHREAD if its thread owned"""
         if self.ThreadOwned:
@@ -404,7 +404,7 @@ class _HANDLEENTRY(obj.Struct):
                         pEThread.dereference()
         return obj.NoneObject("Cannot find thread")
 
-    @property
+    @utils.safe_property
     def Process(self):
         """Return the _EPROCESS if its process or thread owned"""
         if self.ProcessOwned:
@@ -428,17 +428,17 @@ class tagWINDOWSTATION(obj.Struct):
         return (super(tagWINDOWSTATION, self).is_valid() and
                 self.dwSessionId < 0xFF)
 
-    @property
+    @utils.safe_property
     def LastRegisteredViewer(self):
         """The EPROCESS of the last registered clipboard viewer"""
         return self.m("spwndClipViewer.head.pti.ppi.Process")
 
-    @property
+    @utils.safe_property
     def Interactive(self):
         """Check if a window station is interactive"""
         return not self.dwWSF_Flags & 4 # WSF_NOIO
 
-    @property
+    @utils.safe_property
     def Name(self):
         """Get the window station name.
 
@@ -465,12 +465,12 @@ class tagDESKTOP(tagWINDOWSTATION):
     def is_valid(self):
         return  obj.Struct.is_valid(self) and self.dwSessionId < 0xFF
 
-    @property
+    @utils.safe_property
     def WindowStation(self):
         """Returns this desktop's parent window station"""
         return self.rpwinstaParent.dereference()
 
-    @property
+    @utils.safe_property
     def DeskInfo(self):
         """Returns the desktop info object"""
         return self.pDeskInfo.dereference()
@@ -553,32 +553,32 @@ class tagDESKTOP(tagWINDOWSTATION):
 class tagWND(obj.Struct):
     """A class for window structures"""
 
-    @property
+    @utils.safe_property
     def IsClipListener(self):
         """Check if this window listens to clipboard changes"""
         return self.bClipboardListener.v()
 
-    @property
+    @utils.safe_property
     def ClassAtom(self):
         """The class atom for this window"""
         return self.pcls.atomClassName
 
-    @property
+    @utils.safe_property
     def SuperClassAtom(self):
         """The window's super class"""
         return self.pcls.atomNVClassName
 
-    @property
+    @utils.safe_property
     def Process(self):
         """The EPROCESS that owns the window"""
         return self.head.pti.ppi.Process.dereference()
 
-    @property
+    @utils.safe_property
     def Thread(self):
         """The ETHREAD that owns the window"""
         return self.head.pti.pEThread.dereference()
 
-    @property
+    @utils.safe_property
     def Visible(self):
         """Is this window visible on the desktop"""
         return 'WS_VISIBLE' in self.style
@@ -590,12 +590,12 @@ class tagWND(obj.Struct):
 
         return ','.join([n for (n, v) in flags.items() if member & v == v])
 
-    @property
+    @utils.safe_property
     def style(self):
         """The basic style flags as a string"""
         return self._get_flags(self.m('style').v(), constants.WINDOW_STYLES)
 
-    @property
+    @utils.safe_property
     def ExStyle(self):
         """The extended style flags as a string"""
         return self._get_flags(
@@ -658,7 +658,7 @@ class tagTHREADINFO(obj.Struct):
 class tagEVENTHOOK(obj.Struct):
     """A class for event hooks"""
 
-    @property
+    @utils.safe_property
     def dwFlags(self):
         """Event hook flags need special handling so we can't use vtypes"""
 

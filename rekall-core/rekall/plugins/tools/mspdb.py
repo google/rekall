@@ -486,7 +486,7 @@ class lfClass(obj.Struct):
         super(lfClass, self).__init__(**kwargs)
         self._DecodeVariableData()
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         """Our size is the end of the object plus any padding."""
         return pe_vtypes.RoundUpToWordAlignment(
@@ -547,7 +547,7 @@ class lfClass(obj.Struct):
         if self.name == "__unnamed":
             self.name = "__unnamed_%s" % self.field
 
-    @property
+    @utils.safe_property
     def obj_end(self):
         return self._obj_end
 
@@ -594,7 +594,7 @@ class lfNestType(obj.Struct):
         if m:
             self.name = m.group(1)
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         """Our size is the end of the object plus any padding."""
         return pe_vtypes.RoundUpToWordAlignment(
@@ -617,7 +617,7 @@ class lfModifier(lfClass):
 class lfEnum(obj.Struct):
     """Represents an enumeration definition."""
 
-    @property
+    @utils.safe_property
     def Name(self):
         enum_name = str(self.m("Name"))
         if enum_name == "<unnamed-tag>":
@@ -766,7 +766,7 @@ class _PDB_ROOT_700(obj.Struct):
 
 
 class DBIExHeaders(obj.Struct):
-    @property
+    @utils.safe_property
     def obj_size(self):
         return (pe_vtypes.RoundUpToWordAlignment(
             self.objName.obj_offset + self.objName.obj_size) -

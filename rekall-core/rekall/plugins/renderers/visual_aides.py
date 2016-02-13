@@ -22,6 +22,7 @@
 
 from rekall.ui import colors
 from rekall.ui import text
+from rekall import utils
 
 
 class DepthIndicator(int):
@@ -115,7 +116,7 @@ class MemoryMap(object):
 
         return rows, columns
 
-    @property
+    @utils.safe_property
     def cells(self):
         for row in self.rows:
             for cell in row:

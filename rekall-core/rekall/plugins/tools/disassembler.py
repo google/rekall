@@ -30,6 +30,7 @@ from capstone import x86_const
 from rekall import addrspace
 from rekall import plugin
 from rekall import obj
+from rekall import utils
 from rekall import testlib
 
 
@@ -99,7 +100,7 @@ class CapstoneInstruction(Instruction):
         if not self.REGISTERS:
             self._init_class()
 
-    @property
+    @utils.safe_property
     def operands(self):
         if self._operands is not None:
             return self._operands
@@ -163,22 +164,22 @@ class CapstoneInstruction(Instruction):
         result["comment"] = self._comment
         return result
 
-    @property
+    @utils.safe_property
     def comment(self):
         return self.GetCanonical()["comment"]
 
-    @property
+    @utils.safe_property
     def op_str(self):
         return self.GetCanonical()["str"]
 
-    @property
+    @utils.safe_property
     def text(self):
         canonical = self.GetCanonical()
         if canonical["comment"]:
             return "%s (%s)" % (canonical["str"], canonical["comment"])
         return canonical["str"]
 
-    @property
+    @utils.safe_property
     def hexbytes(self):
         return unicode(binascii.hexlify(self.insn.bytes))
 
@@ -214,7 +215,7 @@ class CapstoneInstruction(Instruction):
         """
         return self.mnemonic.startswith("j")
 
-    @property
+    @utils.safe_property
     def target(self):
         if self.mnemonic[0] == "j":
             operand = self.operands[0]

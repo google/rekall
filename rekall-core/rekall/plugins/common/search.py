@@ -520,7 +520,7 @@ class Search(EfilterPlugin):
         """
         return solve.solve(self.query, self).value
 
-    @property
+    @utils.safe_property
     def first_result(self):
         """Get only the first search result.
 
@@ -916,4 +916,3 @@ structured.IStructured.implement(
         structured.resolve: resolve_Pointer
     }
 )
-

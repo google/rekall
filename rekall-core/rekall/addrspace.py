@@ -94,7 +94,7 @@ class Run(object):
         self.file_offset = file_offset
         self.data = data
 
-    @property
+    @utils.safe_property
     def length(self):
         return self.end - self.start
 
@@ -412,7 +412,7 @@ class BaseAddressSpace(object):
 class BufferAddressSpace(BaseAddressSpace):
     __abstract = True
 
-    @property
+    @utils.safe_property
     def writable(self):
         """Buffer AS is always writable, no matter what the session says."""
         return True

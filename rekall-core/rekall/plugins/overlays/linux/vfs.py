@@ -48,7 +48,7 @@ class File(object):
         self.is_root = is_root
         self.session = session
 
-    @property
+    @utils.safe_property
     def fullpath(self):
         if self.is_root:
             return self.mountpoint.name
@@ -56,18 +56,18 @@ class File(object):
             return '/'.join([self.mountpoint.name.rstrip("/"),
                              '/'.join(self.filename)])
 
-    @property
+    @utils.safe_property
     def name(self):
         try:
             return self.filename[-1] or obj.NoneObject()
         except IndexError:
             return obj.NoneObject()
 
-    @property
+    @utils.safe_property
     def size(self):
         return self.dentry.d_inode.i_size
 
-    @property
+    @utils.safe_property
     def extents(self):
         """Returns a list of ranges for which we have data in memory."""
         page_size = self.session.kernel_address_space.PAGE_SIZE
@@ -244,7 +244,7 @@ class MountPoint(object):
                                            unallocated=unallocated):
                 yield sub_file
 
-    @property
+    @utils.safe_property
     def fstype(self):
         return self.sb.s_type.name.deref()
 

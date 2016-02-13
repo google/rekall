@@ -605,7 +605,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     """
     _pe = None
 
-    @property
+    @utils.safe_property
     def PE(self):
         if self._pe is None:
             self._pe = PE(address_space=self.obj_vm, image_base=self.DllBase,
@@ -613,7 +613,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
 
         return self._pe
 
-    @property
+    @utils.safe_property
     def NTHeader(self):
         """Return the _IMAGE_NT_HEADERS object"""
 
@@ -628,7 +628,7 @@ class _IMAGE_DOS_HEADER(obj.Struct):
 
     #Put checks in constructor.
 
-    @property
+    @utils.safe_property
     def NTHeader(self):
         """Get the NT header"""
         if self.e_magic != 0x5a4d:
@@ -651,7 +651,7 @@ class _IMAGE_DOS_HEADER(obj.Struct):
 class _IMAGE_NT_HEADERS(obj.Struct):
     """PE header"""
 
-    @property
+    @utils.safe_property
     def OptionalHeader(self):
         optional_header = self.m("OptionalHeader")
         if optional_header.Magic == 0x20b:
@@ -736,14 +736,14 @@ class _IMAGE_RESOURCE_DIRECTORY(obj.Struct):
 
 class _IMAGE_RESOURCE_DIRECTORY_ENTRY(obj.Struct):
 
-    @property
+    @utils.safe_property
     def Name(self):
         if self.NameIsString:
             return utils.SmartUnicode(self.m("Name").Buffer)
         else:
             return utils.SmartUnicode(self.Type)
 
-    @property
+    @utils.safe_property
     def Entry(self):
         if self.ChildIsEntry:
             return self.m("Entry").dereference()
@@ -766,7 +766,7 @@ class ThunkArray(SentinelArray):
 
 class VS_VERSIONINFO(obj.Struct):
 
-    @property
+    @utils.safe_property
     def Children(self):
         """Get all the children of this node.
 
@@ -855,7 +855,7 @@ class PE(object):
 
         self.nt_header = self.dos_header.NTHeader
 
-    @property
+    @utils.safe_property
     def RSDS(self):
         return self.nt_header.OptionalHeader.DataDirectory[
             "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(

@@ -109,7 +109,7 @@ class DIETag(object):
         for attr in die.attributes.values():
             self.attributes[attr.name] = attr
 
-    @property
+    @utils.safe_property
     def name(self):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
@@ -121,7 +121,7 @@ class DIETag(object):
         else:
             return "__unnamed_%s" % self.die.offset
 
-    @property
+    @utils.safe_property
     def type_id(self):
         if "DW_AT_type" in self.attributes:
             return self.attributes["DW_AT_type"].value + self.die.cu.cu_offset
@@ -160,7 +160,7 @@ class DW_TAG_structure_type(DIETag):
         # All the members of this struct.
         self.members = []
 
-    @property
+    @utils.safe_property
     def size(self):
         try:
             return self.attributes['DW_AT_byte_size'].value
@@ -187,7 +187,7 @@ class DW_TAG_structure_type(DIETag):
 
 
 class DW_TAG_union_type(DW_TAG_structure_type):
-    @property
+    @utils.safe_property
     def name(self):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value

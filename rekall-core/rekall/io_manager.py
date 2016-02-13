@@ -119,7 +119,7 @@ class IOManager(object):
         self._inventory = None
         self.location = ""
 
-    @property
+    @utils.safe_property
     def inventory(self):
         if self._inventory is None:
             self._inventory = self.GetData("inventory", default={})
@@ -319,7 +319,6 @@ class DirectoryIOManager(IOManager):
 
     def __init__(self, urn=None, **kwargs):
         super(DirectoryIOManager, self).__init__(**kwargs)
-
         self.location = self.dump_dir = os.path.normpath(os.path.abspath(
             os.path.expandvars(urn)))
         if not self.version:
@@ -328,7 +327,7 @@ class DirectoryIOManager(IOManager):
         self.check_dump_dir(self.dump_dir)
         self.canonical_name = os.path.basename(self.dump_dir)
 
-    @property
+    @utils.safe_property
     def inventory(self):
         # In DirectoryIOManager the inventory reflects the directory structure.
         if self._inventory is None:
@@ -483,7 +482,7 @@ class ZipFileManager(IOManager):
         # closed we can flush the ZipFile.
         self._outstanding_writers = set()
 
-    @property
+    @utils.safe_property
     def inventory(self):
         """We do not really need an inventory for zip files.
 

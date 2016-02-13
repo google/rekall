@@ -164,7 +164,7 @@ class FileCache(Cache):
         self.cache_dir = None
         self.enabled = True
 
-    @property
+    @utils.safe_property
     def io_manager(self):
         if not self.enabled:
             return
@@ -235,7 +235,7 @@ class FileCache(Cache):
         if self._io_manager:
             self._io_manager.Destroy("sessions/%s" % self.name)
 
-    @property
+    @utils.safe_property
     def location(self):
         return "%s/v1.0/sessions/%s" % (self._io_manager.location, self.name)
 
@@ -293,6 +293,28 @@ class SessionIndex(object):
                 return False
 
         return True
+
+
+def GetCacheDir(session):
+    """Returns the path of a usable cache directory."""
+    cache_dir = os.path.expandvars(session.GetParameter("cache_dir"))
+
+    if not cache_dir:
+        raise io_manager.IOManagerError(
+            "Local profile cache is not configured - "
+            "add a cache_dir parameter to ~/.rekallrc.")
+
+    # Cache dir may be specified relative to the home directory.
+    cache_dir = os.path.join(config.GetHomeDir(session), cache_dir)
+
+    if not os.access(cache_dir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
+        try:
+            os.makedirs(cache_dir)
+        except (IOError, OSError):
+            raise io_manager.IOManagerError(
+                "Unable to create or access cache directory %s" % cache_dir)
+
+    return cache_dir
 
 
 def Factory(session, cache_type):

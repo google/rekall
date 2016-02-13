@@ -1193,14 +1193,10 @@ class RaisingTheRoof(plugin.Command):
         self.exception_class = exception_class or "ValueError"
         self.exception_text = exception_text or "Default exception"
 
-    def render(self, renderer,  **kwargs):
+    def render(self, renderer):
         exc_cls = getattr(exceptions, self.exception_class, ValueError)
         raise exc_cls(self.exception_text)
 
 
-class TestRaisingTheRoof(testlib.DisabledTest):
-    """Disable the Raise test."""
-
-    PARAMETERS = dict(commandline="raise_the_roof")
-
-
+class TestRaisingPlugin(testlib.DisabledTest):
+    PLUGIN = "raise"

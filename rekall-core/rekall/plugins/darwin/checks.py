@@ -21,6 +21,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 
 from rekall import obj
+from rekall import utils
 from rekall.plugins.darwin import common
 
 
@@ -72,13 +73,13 @@ class OIDInfo(object):
 
             oidp = oidp.oid_link.sle_next
 
-    @property
+    @utils.safe_property
     def perms(self):
         return (("R" if self.oidp.oid_perms.CTLFLAG_RD else "-") +
                 ("W" if self.oidp.oid_perms.CTLFLAG_WR else "-") +
                 ("L" if self.oidp.oid_perms.CTLFLAG_LOCKED else "-"))
 
-    @property
+    @utils.safe_property
     def arg(self):
         """Decode the arg according to its type."""
         if self.oidp.oid_kind_type == "CTLTYPE_NODE":
@@ -107,13 +108,13 @@ class OIDInfo(object):
 
         return obj.NoneObject("Unknown arg type")
 
-    @property
+    @utils.safe_property
     def name(self):
         names = self._names[:]
         names.append(self.oidp.oid_name.deref())
         return ".".join(["%s" % x for x in names])
 
-    @property
+    @utils.safe_property
     def number(self):
         numbers = self._numbers[:]
         numbers.append(self.oidp.oid_number)

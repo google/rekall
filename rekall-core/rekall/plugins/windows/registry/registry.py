@@ -113,7 +113,7 @@ registry_overlays = {
 class _HMAP_ENTRY(obj.Struct):
     """Windows uses this to track registry HBIN cells mapped into memory."""
 
-    @property
+    @utils.safe_property
     def BlockAddress(self):
         """Compatibility field for Windows 7 and Windows 10."""
         if "BlockAddress" in self.members:
@@ -154,7 +154,7 @@ class HiveFileAddressSpace(HiveBaseAddressSpace):
     def vtop(self, vaddr):
         return vaddr + self.PAGE_SIZE + 4
 
-    @property
+    @utils.safe_property
     def Name(self):
         return self.base
 
@@ -286,13 +286,13 @@ class HiveAddressSpace(HiveBaseAddressSpace):
 
         return (bad_blocks_reg, bad_blocks_mem, total_blocks)
 
-    @property
+    @utils.safe_property
     def Name(self):
         return self.hive.Name
 
 
 class _CMHIVE(obj.Struct):
-    @property
+    @utils.safe_property
     def Name(self):
         name = "[no name]"
         try:
@@ -355,7 +355,7 @@ class _CM_KEY_NODE(obj.Struct):
             if value.Signature == self.VK_SIG:
                 yield value
 
-    @property
+    @utils.safe_property
     def Path(self):
         """Traverse our parent objects to print the full path of this key."""
         path = []
@@ -369,7 +369,7 @@ class _CM_KEY_NODE(obj.Struct):
 
         return "/".join(reversed(path))
 
-    @property
+    @utils.safe_property
     def Name(self):
         """The name of the key is actually a unicode object.
         This is encoded either in ascii or utf16 according to the Flags.
@@ -437,7 +437,7 @@ class _CM_KEY_VALUE(obj.Struct):
                      "REG_DWORD_BIG_ENDIAN": ">L",
                      "REG_QWORD": "<Q"}
 
-    @property
+    @utils.safe_property
     def DecodedData(self):
         """Returns the data for this key decoded according to the type."""
         # When the data length is 0x80000000, the value is stored in the type
@@ -535,7 +535,7 @@ class Registry(object):
         self.root = self.profile.Object(
             "_CM_KEY_NODE", offset=root_index, vm=address_space)
 
-    @property
+    @utils.safe_property
     def Name(self):
         """Return the name of the registry."""
         return self.address_space.Name

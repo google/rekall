@@ -32,6 +32,7 @@ import re
 import shutil
 import socket
 import sortedcontainers
+import sys
 import tempfile
 import threading
 import traceback
@@ -909,3 +910,25 @@ def InternObject(obj):
         return [InternObject(x) for x in obj]
 
     return obj
+
+
+class safe_property(property):
+    """Re-Raises AttributeError in properties.
+
+    In Python @property swallows AttributeError and calls __getattr__. This is
+    rarely what you want because sometime an AttributeError is erronously raised
+    from legitimately broken property code and just swallowing it automatically
+    can cause weird error messages (e.g. Attribute foobar does not exist, if
+    foobar is a property) or even worse, it calls __getattr__ which does
+    something completely different.
+    """
+
+    def __get__(self, *args, **kwargs):
+        try:
+            return super(safe_property, self).__get__(*args, **kwargs)
+        except AttributeError as e:
+            message = "AttributeError raised: %s" % e
+
+            # Retain the original backtrace but re-raise a RuntimeError to
+            # prevent the property from calling __getattr__.
+            raise RuntimeError, message, sys.exc_info()[2]

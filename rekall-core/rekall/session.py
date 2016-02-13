@@ -539,7 +539,7 @@ class Session(object):
         # Locks for running hooks.
         self._hook_locks = set()
 
-    @property
+    @utils.safe_property
     def logging(self):
         if self.logger is not None:
             return self.logger
@@ -565,12 +565,12 @@ class Session(object):
 
         return self._logger
 
-    @property
+    @utils.safe_property
     def volatile(self):
         return (self.physical_address_space and
                 self.physical_address_space.volatile)
 
-    @property
+    @utils.safe_property
     def repository_managers(self):
         """The IO managers that are used to fetch profiles from the profile
         repository.
@@ -584,8 +584,20 @@ class Session(object):
                            self.GetParameter("profile_path") or [])
 
         for path in repository_path:
-            self._repository_managers.append(
-                (path, io_manager.Factory(path, session=self)))
+            try:
+                self._repository_managers.append(
+                    (path, io_manager.Factory(path, session=self)))
+            except ValueError:
+                pass
+
+        if not self._repository_managers:
+            self.logging.warn(
+                "No usable repositories were found. "
+                "Rekall Will attempt to use the local cache. This is likely "
+                "to fail if profiles are missing locally!")
+            self._repository_managers = [
+                (None, io_manager.DirectoryIOManager(
+                    urn=cache.GetCacheDir(self), session=self))]
 
         return self._repository_managers
 
@@ -616,11 +628,11 @@ class Session(object):
         # steals readline focus. Typing session.Reset() fixes things again.
         self.shell.init_completer()
 
-    @property
+    @utils.safe_property
     def default_address_space(self):
         return self.GetParameter("default_address_space")
 
-    @property
+    @utils.safe_property
     def address_resolver(self):
         """A convenience accessor for the address resolver implementation.
 
@@ -938,7 +950,7 @@ class Session(object):
 
         return ui_renderer
 
-    @property
+    @utils.safe_property
     def physical_address_space(self):
         res = self.GetParameter("physical_address_space", None)
         return res
@@ -956,7 +968,7 @@ class Session(object):
         if value:
             value.ConfigureSession(self)
 
-    @property
+    @utils.safe_property
     def profile(self):
         res = self.GetParameter("profile_obj")
         return res
@@ -1140,7 +1152,7 @@ class InteractiveSession(Session):
                 for k, v in kwargs.items():
                     self.state.Set(k, v)
 
-    @property
+    @utils.safe_property
     def session_id(self):
         return self.GetParameter("session_id", default=Session.session_id)
 

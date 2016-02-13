@@ -66,7 +66,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         self.length = int(length)
         self.max_length = max_length
 
-    @property
+    @utils.safe_property
     def obj_end(self):
         return self.obj_offset + self.length
 
@@ -107,7 +107,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
     def __len__(self):
         return len(str(self))
 
-    @property
+    @utils.safe_property
     def indices(self):
         return (str(self),)
 
@@ -122,7 +122,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         """Set up mappings for reverse concat"""
         return other + str(self)
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         """This is equivalent to strlen() plus the terminator."""
         # The length is really determined by the terminator here.
@@ -192,7 +192,7 @@ class UnicodeString(String):
         return "%s (%s%s)" % (super(UnicodeString, self).__repr__(),
                               value, elide)
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return len(self.v()) * 2
         # This will only work if the encoding and decoding are equivalent.
@@ -221,7 +221,7 @@ class Flags(obj.NativeType):
             target, offset=self.obj_offset, vm=self.obj_vm,
             context=self.obj_context, **(target_args or {}))
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return self.target_obj.obj_size
 
@@ -322,7 +322,7 @@ class Enumeration(obj.NativeType):
                 vm=self.obj_vm, context=self.obj_context,
                 **(target_args or {}))
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return self.target_obj.obj_size
 
@@ -371,7 +371,7 @@ class Enumeration(obj.NativeType):
 
     _reverse_choices = None
 
-    @property
+    @utils.safe_property
     def reverse_choices(self):
         if self._reverse_choices is None:
             self._reverse_choices = {v: int(k)

@@ -25,6 +25,7 @@
 
 from rekall import addrspace
 from rekall import obj
+from rekall import utils
 from rekall.plugins.addrspaces import standard
 from rekall.plugins.overlays import basic
 
@@ -124,7 +125,7 @@ class _VMWARE_HEADER(obj.Struct):
 
 class _VMWARE_GROUP(obj.Struct):
 
-    @property
+    @utils.safe_property
     def Tags(self):
         tag = self.TagsPointer.deref()
         while tag.NameLength > 0:
@@ -142,7 +143,7 @@ class _VMWARE_TAG(obj.Struct):
         8: "unsigned long long",
         }
 
-    @property
+    @utils.safe_property
     def Data(self):
         """The data immediately follows the TagIndices array.
 

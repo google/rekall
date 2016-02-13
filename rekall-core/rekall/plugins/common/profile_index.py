@@ -33,9 +33,8 @@ __author__ = (
 )
 
 import hashlib
-import os
-
 from rekall import obj
+from rekall import utils
 
 
 class IndexProfileLoader(obj.ProfileSectionLoader):
@@ -161,19 +160,19 @@ class SymbolOffsetIndex(Index):
         if not self.index:
             self.index = {}
 
-    @property
+    @utils.safe_property
     def hashes(self):
         return self.index.get("$HASHES", {})
 
-    @property
+    @utils.safe_property
     def traits(self):
         return self.index.get("$TRAITS", {})
 
-    @property
+    @utils.safe_property
     def profiles(self):
         return self.index.get("$PROFILES", {})
 
-    @property
+    @utils.safe_property
     def duplicates(self):
         return [p for p in self.index.get("$PROFILES") if p not in self.hashes]
 
@@ -185,9 +184,9 @@ class SymbolOffsetIndex(Index):
         """
         profiles = []
         try:
-           relative_symbols = self.RelativizeSymbols(symbols.copy())
+            relative_symbols = self.RelativizeSymbols(symbols.copy())
         except ValueError as e:
-           self.session.logging.debug(str(e))
+            self.session.logging.debug(str(e))
 
         for profile, traits in self.traits.iteritems():
             matched_traits = 0
@@ -200,7 +199,7 @@ class SymbolOffsetIndex(Index):
                     matched_traits += 1
 
             if matched_traits > 0:
-              profiles.append((profile, matched_traits))
+                profiles.append((profile, matched_traits))
         return profiles
 
     def LookupHash(self, profile_hash):
@@ -298,8 +297,8 @@ class SymbolOffsetIndex(Index):
 
         duplicates = duplicates or []
         for duplicate_profile in duplicates:
-          profiles[duplicate_profile] = cls.GetProfileMetadata(
-              iomanager=iomanager, profile_id=duplicate_profile)
+            profiles[duplicate_profile] = cls.GetProfileMetadata(
+                iomanager=iomanager, profile_id=duplicate_profile)
 
         index = {
             "$METADATA": metadata,
@@ -342,7 +341,7 @@ class SymbolOffsetIndex(Index):
         """
 
         if not base_symbol:
-          base_symbol = self.metadata("BaseSymbol")
+            base_symbol = self.metadata("BaseSymbol")
 
         if not base_symbol:
             return symbols
@@ -362,7 +361,7 @@ class LinuxSymbolOffsetIndex(SymbolOffsetIndex):
     @classmethod
     def FilterSymbols(cls, symbols):
         """Filters a dict of symbols, discarding irrelevant ones."""
-        return dict([(k,v) for (k,v) in symbols.iteritems()
+        return dict([(k, v) for (k, v) in symbols.iteritems()
                      if not "." in k and k != "__irf_end"])
 
     @classmethod

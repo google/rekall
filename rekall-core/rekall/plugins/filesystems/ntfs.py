@@ -546,11 +546,11 @@ class MFT_ENTRY(obj.Struct):
         # Change to DEBUG to turn on module level debugging.
         self.logging.setLevel(logging.ERROR)
 
-    @property
+    @utils.safe_property
     def mft_entry(self):
         return self.obj_context.get("index", self.record_number.v())
 
-    @property
+    @utils.safe_property
     def attributes(self):
         seen = set()
 
@@ -656,7 +656,7 @@ class MFT_ENTRY(obj.Struct):
 
         return obj.NoneObject("No data")
 
-    @property
+    @utils.safe_property
     def filename(self):
         dos_name = obj.NoneObject()
         for attribute in self.attributes:
@@ -672,7 +672,7 @@ class MFT_ENTRY(obj.Struct):
         # If only the dos name exists, fall back to it.
         return dos_name
 
-    @property
+    @utils.safe_property
     def full_path(self):
         """Returns the full path of this MFT to the root."""
         result = []
@@ -695,7 +695,7 @@ class MFT_ENTRY(obj.Struct):
         result.reverse()
         return "/".join(result)
 
-    @property
+    @utils.safe_property
     def data_size(self):
         """Search all the $DATA attributes for the allocated size."""
         for attribute in self.attributes:
@@ -773,7 +773,7 @@ class NTFS_ATTRIBUTE(obj.Struct):
         x = x & self.MASK[b]
         return (x ^ m) - m
 
-    @property
+    @utils.safe_property
     def data(self):
         """Returns an address space representing the data of this attribute."""
         if self.is_resident:
@@ -864,17 +864,17 @@ class NTFS_ATTRIBUTE(obj.Struct):
             else:
                 yield run_offset, run_length
 
-    @property
+    @utils.safe_property
     def indices(self):
         return self.type, self.attribute_id
 
-    @property
+    @utils.safe_property
     def owner_MFT(self):
         """The MFT entry containing this entry."""
         # Note that our offset is expressed in terms of the MFT already.
         return self.obj_offset / 0x400
 
-    @property
+    @utils.safe_property
     def size(self):
         """The size of this attribute's data."""
         if self.is_resident:

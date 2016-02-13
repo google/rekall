@@ -514,29 +514,29 @@ windows_overlay = {
 
 class _LDR_DATA_TABLE_ENTRY(obj.Struct):
 
-    @property
+    @utils.safe_property
     def name(self):
         return unicode(self.BaseDllName)
 
-    @property
+    @utils.safe_property
     def size(self):
         return int(self.SizeOfImage)
 
-    @property
+    @utils.safe_property
     def base(self):
         return int(self.DllBase)
 
-    @property
+    @utils.safe_property
     def filename(self):
         object_tree_plugin = self.obj_session.plugins.object_tree()
         return object_tree_plugin.FileNameWithDrive(self.FullDllName.v())
 
-    @property
+    @utils.safe_property
     def end(self):
         """The end address of this module's code in memory."""
         return int(self.DllBase) + int(self.SizeOfImage)
 
-    @property
+    @utils.safe_property
     def RSDS(self):
         helper = pe_vtypes.PE(address_space=self.obj_vm,
                               image_base=self.DllBase,
@@ -636,7 +636,7 @@ class _SID(obj.Struct):
 class _EPROCESS(obj.Struct):
     """ An extensive _EPROCESS with bells and whistles """
 
-    @property
+    @utils.safe_property
     def address_mode(self):
         # If this is a Wow64 process, address_mode is 32 bit.
         if self.IsWow64:
@@ -664,7 +664,7 @@ class _EPROCESS(obj.Struct):
 
         return True
 
-    @property
+    @utils.safe_property
     def Peb(self):
         """ Returns a _PEB object which is using the process address space.
 
@@ -675,12 +675,12 @@ class _EPROCESS(obj.Struct):
         return self.m("Peb").cast("Pointer", target="_PEB",
                                   vm=self.get_process_address_space())
 
-    @property
+    @utils.safe_property
     def IsWow64(self):
         """Returns True if this is a wow64 process"""
         return hasattr(self, 'Wow64Process') and self.Wow64Process.v() != 0
 
-    @property
+    @utils.safe_property
     def SessionId(self):
         """Returns the Session ID of the process"""
 
@@ -692,7 +692,7 @@ class _EPROCESS(obj.Struct):
 
         return obj.NoneObject("Cannot find process session")
 
-    @property
+    @utils.safe_property
     def FullPath(self):
         """Return the full path of image loaded. Obtained via the VAD root."""
         for vad in self.RealVadRoot.traverse():
@@ -819,7 +819,7 @@ class _POOL_HEADER(obj.Struct):
 
         return size_of_obj
 
-    @property
+    @utils.safe_property
     def size(self):
         pool_align = self.obj_profile.get_constant("PoolAlignment")
         return self.BlockSize * pool_align
@@ -881,15 +881,15 @@ class _POOL_HEADER(obj.Struct):
                         offset=i + self.obj_offset + self.obj_size,
                         vm=self.obj_vm, parent=self)
 
-    @property
+    @utils.safe_property
     def FreePool(self):
         return self.PoolType.v() == 0
 
-    @property
+    @utils.safe_property
     def NonPagedPool(self):
         return str(self.PoolType).startswith("NonPagedPool")
 
-    @property
+    @utils.safe_property
     def PagedPool(self):
         return str(self.PoolType).startswith("PagedPool")
 
@@ -1014,7 +1014,7 @@ class _PSP_CID_TABLE(_HANDLE_TABLE):
 class ObjectMixin(object):
     """A mixin to be applied on Object Manager Objects."""
 
-    @property
+    @utils.safe_property
     def ObjectHeader(self):
         return self.obj_profile._OBJECT_HEADER(
             self.obj_offset - self.obj_profile.get_obj_size(
@@ -1064,7 +1064,7 @@ class _OBJECT_HEADER(obj.Struct):
             struct_name, offset=self.obj_offset - header_offset,
             vm=self.obj_vm, parent=self)
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         """The size of the object header is actually the position of the Body
         element."""
@@ -1084,7 +1084,7 @@ class _OBJECT_HEADER(obj.Struct):
 
         return type_obj.Name.v()
 
-    @property
+    @utils.safe_property
     def Object(self):
         """Return the object following this header."""
         required_type = self.type_lookup.get(self.get_object_type())
@@ -1107,7 +1107,7 @@ class _DEVICE_OBJECT(ObjectMixin, obj.Struct):
 class _FILE_OBJECT(ObjectMixin, obj.Struct):
     """Class for file objects"""
 
-    @property
+    @utils.safe_property
     def AccessString(self):
         """Make a nicely formatted ACL string."""
         return (((self.ReadAccess > 0 and "R") or '-') +
@@ -1207,7 +1207,7 @@ class _EX_FAST_REF(obj.Struct):
     def v(self):
         return self.m("Object").obj_offset & self.mask
 
-    @property
+    @utils.safe_property
     def Object(self):
         if self._object is None:
             result = self.m("Object")
@@ -1317,7 +1317,7 @@ class VadTraverser(obj.Struct):
 
 
 class _KTIMER(obj.Struct):
-    @property
+    @utils.safe_property
     def Dpc(self):
         # On Windows 7 Patch guard obfuscates the DPC address.
         self.KiWaitNever = self.obj_profile.get_constant_object(
@@ -1366,7 +1366,7 @@ class _KTIMER(obj.Struct):
 
 
 class _SHARED_CACHE_MAP(obj.Struct):
-    @property
+    @utils.safe_property
     def FileObject(self):
         result = self.m("FileObject")
         if result == None:

@@ -366,15 +366,15 @@ class BaseObject(object):
         self.obj_session = session
         self.obj_producers = set()
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return 0
 
-    @property
+    @utils.safe_property
     def obj_end(self):
         return self.obj_offset + self.obj_size
 
-    @property
+    @utils.safe_property
     def parents(self):
         """Returns all the parents of this object."""
         obj = self
@@ -433,7 +433,7 @@ class BaseObject(object):
         # if task.UniqueProcessId in pids: ....
         return hash(self.v())
 
-    @property
+    @utils.safe_property
     def indices(self):
         """Returns (usually 1) representation(s) of self usable as dict keys.
 
@@ -621,7 +621,7 @@ class NativeType(NumericProxyMixIn, BaseObject):
     def __rsub__(self, other):
         return long(other) - self.v()
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return struct.calcsize(self.format_string)
 
@@ -675,7 +675,7 @@ class BitField(NativeType):
         self.end_bit = end_bit
         self.mask = ((1 << end_bit) - 1) ^ ((1 << start_bit) - 1)
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return self._proxy.obj_size
 
@@ -725,7 +725,7 @@ class Pointer(NativeType):
         self.target_size = 0
         self.kwargs = kwargs
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         return self._proxy.obj_size
 
@@ -870,7 +870,7 @@ class Pointer(NativeType):
     def __unicode__(self):
         return u"Pointer to %s" % self.deref()
 
-    @property
+    @utils.safe_property
     def indices(self):
         return self.dereference().indices
 
@@ -924,7 +924,7 @@ class Void(Pointer):
     def dereference(self, vm=None):
         return NoneObject("Void reference")
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         self.obj_session.logging.warning(
             "Void objects have no size! Are you doing pointer arithmetic on a "
@@ -997,7 +997,7 @@ class Array(BaseObject):
         if size > 0:
             self.count = size / self.target_size
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         """The size of the entire array."""
         return self.target_size * self.count
@@ -1144,7 +1144,7 @@ class ListArray(Array):
         """It is generally too expensive to rely on the count of this array."""
         raise NotImplementedError
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         """It is generally too expensive to rely on the size of this array."""
         raise NotImplementedError
@@ -1253,7 +1253,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
     def __hash__(self):
         return hash(self.indices)
 
-    @property
+    @utils.safe_property
     def indices(self):
         return ("%s(%#x, vm=%s@%s)" % (
             self.obj_type,
@@ -1283,7 +1283,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         """
         return 0
 
-    @property
+    @utils.safe_property
     def obj_size(self):
         if callable(self.struct_size):
             # We must always return an integer, even if NoneObject is returned
@@ -2010,7 +2010,7 @@ class Profile(object):
                 getter = lambda self, name=name: self.m(name)
                 setter = lambda self, v=value, n=name: self.SetMember(n, v)
 
-            properties[name] = property(getter, setter, None, name)
+            properties[name] = utils.safe_property(getter, setter, None, name)
 
         # Extend the provided class by attaching the properties to it. We can
         # not just monkeypatch here because cls will be shared between all

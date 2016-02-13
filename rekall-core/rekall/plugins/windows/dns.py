@@ -92,7 +92,7 @@ win10_overlays = {
 
 
 class DNS_RECORD(obj.Struct):
-    @property
+    @utils.safe_property
     def Data(self):
         if self.Type == "CNAME":
             return self.m("Data").cast(

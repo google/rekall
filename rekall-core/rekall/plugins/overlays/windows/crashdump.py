@@ -25,6 +25,7 @@
 import copy
 
 import rekall.obj as obj
+from rekall import utils
 from rekall.plugins.overlays import basic
 
 
@@ -387,7 +388,7 @@ class _KDDEBUGGER_DATA64(obj.Struct):
         return (super(_KDDEBUGGER_DATA64, self).is_valid() and
                 self.Header.OwnerTag == 0x4742444B)
 
-    @property
+    @utils.safe_property
     def ServicePack(self):
         """Get the service pack number. This is something
         like 0x100 for SP1, 0x200 for SP2 etc.

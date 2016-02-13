@@ -340,7 +340,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
     __metaclass__ = registry.MetaclassRegistry
     DEFAULT_STYLE = "full"
 
-    @property
+    @utils.safe_property
     def address_size(self):
         address_size = 14
 
@@ -584,22 +584,22 @@ class BaseCell(object):
     def __unicode__(self):
         return u"\n".join(self.lines)
 
-    @property
+    @utils.safe_property
     def lines(self):
         if not self._lines:
             self.rebuild()
 
         return self._lines
 
-    @property
+    @utils.safe_property
     def width(self):
         return self._width
 
-    @property
+    @utils.safe_property
     def height(self):
         return self._height
 
-    @property
+    @utils.safe_property
     def align(self):
         return self._align
 
@@ -752,14 +752,14 @@ class StackedCell(BaseCell):
             else:
                 self.cells.append(cell)
 
-    @property
+    @utils.safe_property
     def width(self):
         if not self._lines:
             self.rebuild()
 
         return self._width
 
-    @property
+    @utils.safe_property
     def column_count(self):
         if not self.table_align:
             raise AttributeError(
@@ -969,7 +969,7 @@ class Cell(BaseCell):
         self.paragraphs.append(line)
         self.dirty()
 
-    @property
+    @utils.safe_property
     def height(self):
         """The number of chars this Cell takes in height."""
         return len(self.lines)
@@ -1070,7 +1070,7 @@ class TextColumn(object):
 
         return result
 
-    @property
+    @utils.safe_property
     def name(self):
         return self.options.get("name") or self.options.get("cname", "")
 

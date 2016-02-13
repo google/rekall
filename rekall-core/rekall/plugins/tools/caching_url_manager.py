@@ -29,8 +29,7 @@ background.
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
-import os
-
+from rekall import cache
 from rekall import config
 from rekall import io_manager
 
@@ -50,22 +49,9 @@ class CachingManager(io_manager.IOManager):
     order = DELEGATE.order - 10
 
     def __init__(self, session=None, **kwargs):
-        cache_dir = os.path.expandvars(session.GetParameter("cache_dir"))
+        super(CachingManager, self).__init__(session=session, **kwargs)
 
-        if not cache_dir:
-            raise io_manager.IOManagerError(
-                "Local profile cache is not configured - "
-                "add a cache_dir parameter to ~/.rekallrc.")
-
-        # Cache dir may be specified relative to the home directory.
-        cache_dir = os.path.join(config.GetHomeDir(session), cache_dir)
-
-        if not os.access(cache_dir, os.F_OK | os.R_OK | os.W_OK | os.X_OK):
-            try:
-                os.makedirs(cache_dir)
-            except (IOError, OSError):
-                raise io_manager.IOManagerError(
-                    "Unable to create or access cache directory %s" % cache_dir)
+        cache_dir = cache.GetCacheDir(session)
 
         # We use an IO manager to manage the cache directory directly.
         self.cache_io_manager = io_manager.DirectoryIOManager(urn=cache_dir,
@@ -73,8 +59,6 @@ class CachingManager(io_manager.IOManager):
         self.url_manager = self.DELEGATE(session=session, **kwargs)
 
         self.CheckUpstreamRepository()
-
-        super(CachingManager, self).__init__(session=session, **kwargs)
 
     def __str__(self):
         return "Local Cache %s" % self.cache_io_manager
@@ -123,9 +107,8 @@ class CachingManager(io_manager.IOManager):
         # we do not want to invalidate our cache, just use the cache as is.
         if not self.url_manager.ValidateInventory():
             self.session.logging.warn(
-                "Will attempt to use the local cache. This is likely "
-                "to fail if profiles are missing locally!")
-            return
+                "Repository %s will be disabled.", self.urn)
+            raise ValueError("Invalid inventory.")
 
         cache_inventory = self.cache_io_manager.inventory
         modified = False

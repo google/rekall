@@ -589,17 +589,17 @@ class hlist_node(list_head):
 class inet_sock(obj.Struct):
     """Class for an internet socket object"""
 
-    @property
+    @utils.safe_property
     def src_port(self):
         return (self.m("sport") or self.m("inet_sport")).cast(
             "unsigned be short")
 
-    @property
+    @utils.safe_property
     def dst_port(self):
         return ((self.m("dport") or self.m("inet_dport")).cast(
             "unsigned be short") or self.sk.m("__sk_common.u3.u1.skc_dport") or
                 self.sk.m("__sk_common.u3.skc_dport"))
-    @property
+    @utils.safe_property
     def src_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("rcv_saddr") or self.m("inet_rcv_saddr") or
@@ -610,7 +610,7 @@ class inet_sock(obj.Struct):
         else:
             return self.m("pinet6.saddr").cast("Ipv6Address")
 
-    @property
+    @utils.safe_property
     def dst_addr(self):
         if self.sk.m("__sk_common").skc_family == "AF_INET":
             return (self.m("daddr") or self.m("inet_daddr") or
@@ -644,7 +644,7 @@ class files_struct(obj.Struct):
 
 
 class dentry(obj.Struct):
-    @property
+    @utils.safe_property
     def path(self):
         dentry_ = self
 
@@ -676,7 +676,7 @@ class dentry(obj.Struct):
 
 class task_struct(obj.Struct):
 
-    @property
+    @utils.safe_property
     def commandline(self):
         if self.mm:
             # The argv string is initialized inside the process's address space.
@@ -697,7 +697,7 @@ class task_struct(obj.Struct):
 
         return name
 
-    @property
+    @utils.safe_property
     def task_start_time(self):
         if self.obj_profile.get_constant("tk_core"):
             # Kernel 3.17 changes how start_time is stored. Now it's
@@ -811,7 +811,7 @@ class timespec(obj.Struct):
 
 
 class net_device(obj.Struct):
-    @property
+    @utils.safe_property
     def mac_addr(self):
         addr = self.perm_addr
         if (addr.obj_vm.read(addr.obj_offset, addr.obj_size) ==
@@ -864,7 +864,7 @@ class kuid_t(kgid_t):
 
 
 class proc_dir_entry(obj.Struct):
-    @property
+    @utils.safe_property
     def Name(self):
         if self.name.obj_type == "Pointer":
             return self.name.deref().cast("String", length=self.namelen)

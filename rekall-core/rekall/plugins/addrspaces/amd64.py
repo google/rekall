@@ -30,6 +30,7 @@ import struct
 from rekall import addrspace
 from rekall import config
 from rekall import obj
+from rekall import utils
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.addrspaces import standard
 
@@ -307,7 +308,7 @@ class VTxPagedMemory(AMD64PagedMemory):
         self._ept = this_ept
         self.name = "VTxPagedMemory@%#x" % self._ept
 
-    @property
+    @utils.safe_property
     def ept(self):
         return self._ept
 

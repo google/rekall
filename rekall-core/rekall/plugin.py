@@ -27,6 +27,7 @@ import StringIO
 from rekall import config
 from rekall import obj
 from rekall import registry
+from rekall import utils
 from rekall.ui import text as text_renderer
 
 
@@ -322,7 +323,7 @@ class PluginHeader(object):
 
         self.header = columns
 
-    @property
+    @utils.safe_property
     def types_in_output(self):
         """What types of thing does this plugin output?
 
@@ -350,7 +351,7 @@ class PluginHeader(object):
 
         return result
 
-    @property
+    @utils.safe_property
     def all_names(self):
         return set(self.by_cname.iterkeys()) | set(self.by_name.iterkeys())
 
@@ -445,7 +446,7 @@ class Producer(TypedProfileCommand):
 class CachedProducer(Producer):
     """A producer backed by a cached session parameter hook."""
 
-    @property
+    @utils.safe_property
     def hook_name(self):
         """By convention, the hook name should be the same as our name."""
         # Override if you really want to.

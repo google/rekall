@@ -168,7 +168,7 @@ class PEModule(address_resolver.Module):
     def reset(self):
         self._profile = None
 
-    @property
+    @utils.safe_property
     def profile(self):
         if self._profile:
             return self._profile

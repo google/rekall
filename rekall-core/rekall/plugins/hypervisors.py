@@ -2,6 +2,7 @@
 
 from rekall import plugin
 from rekall import obj
+from rekall import utils
 from rekall import scan
 from rekall import session as session_module
 from rekall.plugins.addrspaces import amd64
@@ -187,19 +188,19 @@ class VirtualMachine(object):
         self.vmcs_validation = dict()
         self.virtual_machines = set()
 
-    @property
+    @utils.safe_property
     def is_valid(self):
         """A VM is valid if at least one of its VMCS is valid."""
         if any([self.vmcs_validation.get(vmcs, False) for vmcs in self.vmcss]):
             return True
         return False
 
-    @property
+    @utils.safe_property
     def is_nested(self):
         """A VM is nested if it has a parent or all its VMCS are nested."""
         return self.parent != None
 
-    @property
+    @utils.safe_property
     def hostname(self):
         try:
             session = self.GetSession()
@@ -209,7 +210,7 @@ class VirtualMachine(object):
         except InvalidVM:
             return obj.NoneObject("**INVALID VM**")
 
-    @property
+    @utils.safe_property
     def num_cores(self):
         """The number of virtual cores of this VM."""
         valid_vmcss = filter(self.is_valid_vmcs, self.vmcss)
@@ -220,7 +221,7 @@ class VirtualMachine(object):
         else:
             return len(valid_vmcss)
 
-    @property
+    @utils.safe_property
     def host_arch(self):
         """The architecture of the host that started this VM."""
         all_host_as = set([self.get_vmcs_host_as_type(v) for v in self.vmcss
@@ -229,7 +230,7 @@ class VirtualMachine(object):
             return all_host_as.pop()
         return "???"
 
-    @property
+    @utils.safe_property
     def guest_arch(self):
         """The architecture of the guest OS of the VM."""
         all_guest_as = set([self.get_vmcs_guest_as_type(v) for v in self.vmcss
@@ -238,7 +239,7 @@ class VirtualMachine(object):
             return all_guest_as.pop()
         return "???"
 
-    @property
+    @utils.safe_property
     def ept_list(self):
         """The list of EPT values needed to instantiate VM guest physical AS.
 
@@ -252,7 +253,7 @@ class VirtualMachine(object):
             ept_list = [self.ept]
         return ept_list
 
-    @property
+    @utils.safe_property
     def physical_address_space(self):
         """The physical address space of this VM's guest."""
 
@@ -399,7 +400,7 @@ class VirtualMachine(object):
         page_walk_length = (vmcs.EPT_POINTER_FULL & 0b111000) >> 3
 
         if (vmcs.EPT_POINTER_FULL & 0b111111000000 or
-            page_walk_length != 3):
+                page_walk_length != 3):
             self.vmcs_validation[vmcs] = validated
             return validated
 
@@ -488,13 +489,15 @@ class VirtualMachine(object):
                         # Change the VMCS to be mapped in this VM's physical AS.
                         vmcs.obj_vm = self.physical_address_space
 
-                        # The new offset is the run.start + the offset within the
-                        # physical page. We need to do this when we're dealing
-                        # with large/huge pages.
+                        # The new offset is the run.start + the offset within
+                        # the physical page. We need to do this when we're
+                        # dealing with large/huge pages.
+
                         # Note that run.start here really means the physical
-                        # address of the L1 guest. run.file_offset means the physical
-                        # address of the base AS (the host).
-                        vmcs.obj_offset = run.start + (run.file_offset - vmcs.obj_offset)
+                        # address of the L1 guest. run.file_offset means the
+                        # physical address of the base AS (the host).
+                        vmcs.obj_offset = (run.start +
+                                           (run.file_offset - vmcs.obj_offset))
                         if vm.validate_vmcs(vmcs):
                             # This steps validates that the VMCS is mapped in
                             # the Level1 guest hypervisor AS.

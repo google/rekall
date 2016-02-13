@@ -154,7 +154,7 @@ class _HEAP_ENTRY(obj.Struct):
                     encoding)
                 )
 
-    @property
+    @utils.safe_property
     def PrevEntry(self):
         if self.PreviousSize == 0:
             return obj.NoneObject("First Entry")
@@ -165,7 +165,7 @@ class _HEAP_ENTRY(obj.Struct):
             value=(self.obj_offset +
                    self.PreviousSize * self.obj_size))
 
-    @property
+    @utils.safe_property
     def NextEntry(self):
         if self.Flags.LAST_ENTRY or self.Size == 0:
             return obj.NoneObject("Last Entry")
@@ -176,7 +176,7 @@ class _HEAP_ENTRY(obj.Struct):
             value=(self.obj_offset +
                    self.Size * self.obj_profile.get_obj_size("_HEAP_ENTRY")))
 
-    @property
+    @utils.safe_property
     def Allocation(self):
         allocation_size = self.Size * self.obj_size
 
@@ -206,7 +206,7 @@ class _HEAP(obj.Struct):
 
         self.obj_context["HeapAS"] = self.obj_vm
 
-    @property
+    @utils.safe_property
     def Segments(self):
         """Returns an iterator over the segments."""
         # Windows XP has an array of segments.
@@ -230,7 +230,7 @@ class _HEAP(obj.Struct):
             yield segment
 
 
-    @property
+    @utils.safe_property
     def Entries(self):
         """Iterates over all the entries in all the segments."""
         for segment in self.Segments:
