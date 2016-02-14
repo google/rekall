@@ -206,9 +206,6 @@ class LinuxProfile(RepositoryPlugin):
             session=self.session,
             out_file="dummy file")  # We don't really output the profile.
 
-        # Open the previous index to update it.
-        index = self.session.LoadProfile("Linux/index")
-
         changed_files = False
         total_profiles = 0
         new_profiles = 0
@@ -239,7 +236,7 @@ class LinuxProfile(RepositoryPlugin):
                 if not profile:
                     self.session.logging.info(
                         "Skipped %s, Unable to convert to a Rekall profile.",
-                        profile_path)
+                        profile_fullpath)
                     continue
 
                 # Add profile to the repository and the inventory

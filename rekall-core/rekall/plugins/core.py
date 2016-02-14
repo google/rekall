@@ -1200,4 +1200,3 @@ class RaisingTheRoof(plugin.Command):
 
 class TestRaisingTheRoof(testlib.DisabledTest):
     PLUGIN = "raise_the_roof"
-

@@ -477,7 +477,7 @@ class LinuxIndexDetector(DetectionMethod):
         symbol = matches.group("symbol")
         try:
             module = matches.group("module")
-        except IndexError as e:
+        except IndexError:
             module = None
 
         try:
@@ -531,8 +531,6 @@ class LinuxIndexDetector(DetectionMethod):
         return address_space.get_file_address_space("/proc/kallsyms")
 
     def DetectFromHit(self, hit, offset, address_space):
-        self.symbol_groups = {}
-
         if offset != 0:
             return
 
