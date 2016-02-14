@@ -36,7 +36,7 @@ from rekall import utils
 
 class Zeroer(object):
     def __init__(self):
-        self.store = utils.FastStore(10)
+        self.store = utils.FastStore(10, lock=True)
 
     def GetZeros(self, length):
         try:
