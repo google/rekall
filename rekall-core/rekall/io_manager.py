@@ -118,6 +118,7 @@ class IOManager(object):
         self.pretty_print = pretty_print
         self._inventory = None
         self.location = ""
+        self._dirty = False
 
     @utils.safe_property
     def inventory(self):
@@ -180,12 +181,16 @@ class IOManager(object):
 
     def FlushInventory(self):
         """Write the inventory to the storage."""
+        if not self._dirty:
+            return
+
         self.inventory.setdefault("$METADATA", dict(
             Type="Inventory",
             ProfileClass="Inventory"))
         self.inventory.setdefault("$INVENTORY", dict())
 
         self.StoreData("inventory", self.inventory)
+        self._dirty = False
 
     def ListFiles(self):
         """Returns a generator over all the files in this container."""
@@ -285,8 +290,7 @@ class IOManager(object):
             self.session.logging.error("Unable to serialize %s", name)
             return
 
-        with self.Create(name) as fd:
-            fd.write(to_write)
+        self._StoreData(name, to_write)
 
         # Update the inventory.
         if name != "inventory":
@@ -294,6 +298,11 @@ class IOManager(object):
                 LastModified=time.time())
 
             self.FlushInventory()
+
+    def _StoreData(self, name, to_write):
+        with self.Create(name) as fd:
+            fd.write(to_write)
+            self._dirty = True
 
     def __enter__(self):
         return self
@@ -432,6 +441,22 @@ class DirectoryIOManager(IOManager):
 
         self.session.logging.debug("Opened local file %s" % result.name)
         return result
+
+    def _StoreData(self, name, to_write):
+        path = self.GetAbsolutePathName(name)
+        self.EnsureDirectoryExists(os.path.dirname(path))
+
+        # We need to update the file atomically in case someone else is trying
+        # to open it right now. Since the files are expected to be fairly small
+        # its ok to compress into memory and just write atomically.
+        fd = StringIO.StringIO()
+        with gzip.GzipFile(filename=name, mode="wb", fileobj=fd) as gzip_fd:
+            gzip_fd.write(to_write)
+
+        with open(path + ".gz", "wb") as out_fd:
+            out_fd.write(fd.getvalue())
+
+        self._dirty = True
 
     def __str__(self):
         return "Directory:%s" % self.dump_dir
