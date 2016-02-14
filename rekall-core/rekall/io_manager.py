@@ -450,7 +450,7 @@ class DirectoryIOManager(IOManager):
         # to open it right now. Since the files are expected to be fairly small
         # its ok to compress into memory and just write atomically.
         fd = StringIO.StringIO()
-        with gzip.GzipFile(filename=name, mode="wb", fileobj=fd) as gzip_fd:
+        with gzip.GzipFile(mode="wb", fileobj=fd) as gzip_fd:
             gzip_fd.write(to_write)
 
         with open(path + ".gz", "wb") as out_fd:
