@@ -43,6 +43,12 @@ class DarwinNotifiers(common.AbstractDarwinCommand):
             )
         )
 
+        if not gnotifications:
+            self.session.logging.error("Could not find the gNotifications "
+                                       "object. The profile %r could be "
+                                       "incomplete." % self.profile)
+            return
+
         resolver = self.session.address_resolver
         # The notification dictionary contains sets of _IOServiceNotifier
         # handlers.

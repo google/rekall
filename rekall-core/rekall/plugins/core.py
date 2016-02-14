@@ -1198,5 +1198,6 @@ class RaisingTheRoof(plugin.Command):
         raise exc_cls(self.exception_text)
 
 
-class TestRaisingPlugin(testlib.DisabledTest):
-    PLUGIN = "raise"
+class TestRaisingTheRoof(testlib.DisabledTest):
+    PLUGIN = "raise_the_roof"
+
