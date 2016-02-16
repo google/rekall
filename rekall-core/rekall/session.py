@@ -222,6 +222,15 @@ class Configuration(utils.AttributeDict):
     def __repr__(self):
         return "<Configuration Object>"
 
+    def _set_live(self, live, _):
+        if live and not self.live:
+            live_plugin = self.session.plugins.live()
+            live_plugin.live()
+
+            self.session.register_flush_hook(live_plugin.close)
+
+        return live
+
     def _set_home(self, home, _):
         """Ensure the home directory is valid."""
         if home:
@@ -538,6 +547,10 @@ class Session(object):
 
         # Locks for running hooks.
         self._hook_locks = set()
+
+        # Hooks that will be called when we get flushed.
+        self._flush_hooks = []
+        self.register_flush_hook(self.cache.Flush)
 
     @utils.safe_property
     def logging(self):
@@ -990,13 +1003,6 @@ class Session(object):
         else:
             raise AttributeError("Type %s not allowed for profile" % value)
 
-    def Flush(self):
-        """Destroy this session.
-
-        This should be called when the session is destroyed.
-        """
-        self.cache.Flush()
-
     def clone(self, **kwargs):
         new_state = self.state.copy()
         # Remove the cache from the copy so we start with a fresh cache.
@@ -1020,6 +1026,18 @@ class Session(object):
             for k, v in kwargs.iteritems():
                 new_session.SetParameter(k, v)
         return new_session
+
+    def register_flush_hook(self, hook, args=()):
+        """This hook will run when the session is closed."""
+        self._flush_hooks.append((hook, args))
+
+    def Flush(self):
+        """Destroy this session.
+
+        This should be called when the session is destroyed.
+        """
+        for hook, args in self._flush_hooks:
+            hook(*args)
 
 
 class DynamicNameSpace(dict):

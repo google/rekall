@@ -41,7 +41,7 @@ from rekall import plugin
 from rekall.plugins.addrspaces import win32
 
 
-class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
+class Live(plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"
@@ -62,6 +62,12 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
     def __init__(self, driver=None, device=r"\\.\pmem", service_name="pmem",
                  **kw):
         super(Live, self).__init__(**kw)
+        # It is OK for non privileged sessions to use the default drivers.
+        if not self.session.privileged and driver:
+            raise plugin.PluginError(
+                "Installing arbitrary drivers is only available for "
+                "interactive or privileged sessions.")
+
         self.driver = driver
         self.device = device
         self.name = service_name
@@ -94,15 +100,17 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
             else:
                 raise plugin.PluginError("Unsupported architecture")
 
-            self.driver = os.path.join(rekall.RESOURCES_PATH,
-                                       "WinPmem/%s" % driver)
+            self.driver = rekall.get_resource("WinPmem/%s" % driver)
 
-        driver = os.path.join(os.getcwd(), self.driver)
-        self.session.logging.debug("Loading driver from %s", driver)
+            # Try the local directory
+            if self.driver is None:
+                self.driver = os.path.join(os.getcwd(), "WinPmem", driver)
 
-        if not os.access(driver, os.R_OK):
+        self.session.logging.debug("Loading driver from %s", self.driver)
+
+        if not os.access(self.driver, os.R_OK):
             raise plugin.PluginError(
-                "Driver file %s is not accessible." % driver)
+                "Driver file %s is not accessible." % self.driver)
 
         # Must have absolute path here.
         self.hScm = win32service.OpenSCManager(
@@ -115,7 +123,7 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
                 win32service.SERVICE_KERNEL_DRIVER,
                 win32service.SERVICE_DEMAND_START,
                 win32service.SERVICE_ERROR_IGNORE,
-                driver,
+                self.driver,
                 None, 0, None, None, None)
 
             self.session.logging.debug("Created service %s", self.name)

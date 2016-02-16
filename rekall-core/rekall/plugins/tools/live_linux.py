@@ -37,7 +37,7 @@ from rekall.plugins.addrspaces import elfcore
 from rekall.plugins.addrspaces import standard
 
 
-class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
+class Live(plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"
@@ -56,6 +56,11 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
 
     def close(self):
         pass
+
+    def __str__(self):
+        # The default __str__ form will run the plugin which will drop into a
+        # shell!
+        return "Live Plugin"
 
     def render(self, renderer):
         renderer.format("Launching live memory analysis\n")

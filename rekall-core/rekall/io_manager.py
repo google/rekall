@@ -258,13 +258,13 @@ class IOManager(object):
 
             return self.Decoder(data)
 
-        except (DecodeError, ValueError) as e:
+        except IOError:
+            return default
+
+        except Exception as e:
             self.session.logging.error(
                 "Cannot parse profile %s because of decoding error '%s'.",
                 name, e)
-            return default
-
-        except IOError:
             return default
 
     def StoreData(self, name, data, raw=False, **options):

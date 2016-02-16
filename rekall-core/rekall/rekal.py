@@ -33,7 +33,6 @@ from rekall import config
 from rekall import constants
 from rekall import plugin
 from rekall import session
-from rekall.ui import text
 
 from pkg_resources import iter_entry_points
 for entry_point in iter_entry_points(group='rekall.plugins', name=None):
@@ -93,11 +92,6 @@ def main(argv=None):
 
             print rekall.get_versions()
             sys.exit(0)
-
-        if global_flags.live:
-            user_session.live_plugin = user_session.plugins.live()
-            user_session.live_plugin.live()
-
 
     plugin_cls, flags = args.parse_args(
         argv=argv, global_arg_cb=global_arg_cb,

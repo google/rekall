@@ -42,7 +42,7 @@ from rekall import utils
 from rekall.plugins.addrspaces import pmem
 
 
-class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
+class Live(plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"
@@ -66,10 +66,17 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
     def __init__(self, driver_path=None, device=r"/dev/pmem", unload=None,
                  load=None, **kw):
         super(Live, self).__init__(**kw)
-        self.driver_path = driver_path
+        # It is OK for non privileged sessions to use the default drivers.
+        if not self.session.privileged and driver_path:
+            raise plugin.PluginError(
+                "Installing arbitrary drivers is only available for "
+                "interactive or privileged sessions.")
+
+        self.driver_path = (driver_path or
+                            rekall.get_resource("MacPmem.kext.tgz"))
         if self.driver_path is None:
-            self.driver_path = os.path.join(rekall.RESOURCES_PATH,
-                                            "MacPmem.kext.tgz")
+            raise IOError("Driver resource not found.")
+
         self.device = device
         self.unload = unload
         self.load = load
@@ -121,7 +128,7 @@ class Live(plugin.PrivilegedMixIn, plugin.ProfileCommand):
             for member_name in tarfile_handle.getnames():
                 if not member_name.endswith(".kext"):
                     continue
-                
+
                 self.member_name = member_name.lstrip("/")
 
                 # Try to extract the resource into a tempdir.
