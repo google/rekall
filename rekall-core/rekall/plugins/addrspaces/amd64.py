@@ -581,8 +581,16 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
             # mapping.
             page_offset = obj.Pointer.integer_to_address(
                 self.profile.GetPageOffset())
+
             if vaddr > page_offset:
-                return self.profile.phys_addr(vaddr)
+                result = self.profile.phys_addr(vaddr)
+                if result > self.base.end():
+                    # Force a rebuild if the phys_addr is outside the base
+                    # image.
+                    self._RebuildM2PMapping()
+                    return super(XenParaVirtAMD64PagedMemory,
+                                 self).vtop(vaddr)
+                return result
 
             # Try to update the mapping
             if not self.rebuilding_map:
