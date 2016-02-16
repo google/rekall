@@ -196,7 +196,7 @@ class IOManager(object):
         """Returns a generator over all the files in this container."""
         return []
 
-    def Create(self, name):
+    def Create(self, name, **options):
         """Creates a new file in the container.
 
         Returns a file like object which should support the context manager
@@ -225,6 +225,9 @@ class IOManager(object):
         """
 
     def Encoder(self, data, **options):
+        if options.get("raw"):
+            return utils.SmartStr(data)
+
         if self.pretty_print:
             return utils.PPrint(data)
 
@@ -267,7 +270,7 @@ class IOManager(object):
                 name, e)
             return default
 
-    def StoreData(self, name, data, raw=False, **options):
+    def StoreData(self, name, data, **options):
         """Stores the data in the named container member.
 
         This serializes the data and stores it in the named member. Not all
@@ -278,19 +281,18 @@ class IOManager(object):
           name: The name under which the data will be stored.
           data: The data to store.
 
+        Common options:
           raw: If true we write the data directly without encoding to json. In
             this case data should be a string.
+          uncompressed: File will not be compressed (default gzip compression).
         """
         try:
-            if raw:
-                to_write = utils.SmartStr(data)
-            else:
-                to_write = self.Encoder(data, **options)
+            to_write = self.Encoder(data, **options)
         except EncodeError:
             self.session.logging.error("Unable to serialize %s", name)
             return
 
-        self._StoreData(name, to_write)
+        self._StoreData(name, to_write, **options)
 
         # Update the inventory.
         if name != "inventory":
@@ -299,8 +301,8 @@ class IOManager(object):
 
             self.FlushInventory()
 
-    def _StoreData(self, name, to_write):
-        with self.Create(name) as fd:
+    def _StoreData(self, name, to_write, **options):
+        with self.Create(name, **options) as fd:
             fd.write(to_write)
             self._dirty = True
 
@@ -325,6 +327,10 @@ class DirectoryIOManager(IOManager):
 
     Where $urn is the path where the DirectoryIOManager was initialized with.
     """
+
+    # Any paths beginning with these prefixes will not be included in the
+    # inventory.
+    EXCLUDED_PATH_PREFIX = []
 
     def __init__(self, urn=None, **kwargs):
         super(DirectoryIOManager, self).__init__(**kwargs)
@@ -355,9 +361,15 @@ class DirectoryIOManager(IOManager):
             "$INVENTORY": {},
         }
         for member in self.ListFiles():
-            result["$INVENTORY"][member] = self.Metadata(member)
+            if not self._is_excluded_member(member):
+                result["$INVENTORY"][member] = self.Metadata(member)
 
         return result
+
+    def _is_excluded_member(self, member):
+        for prefix in self.EXCLUDED_PATH_PREFIX:
+            if member.startswith(prefix):
+                return True
 
     def CheckInventory(self, path):
         """Checks the validity of the inventory and if the path exists in it.
@@ -442,9 +454,16 @@ class DirectoryIOManager(IOManager):
         self.session.logging.debug("Opened local file %s" % result.name)
         return result
 
-    def _StoreData(self, name, to_write):
+    def _StoreData(self, name, to_write, **options):
         path = self.GetAbsolutePathName(name)
         self.EnsureDirectoryExists(os.path.dirname(path))
+
+        # If we are asked to write uncompressed files we do.
+        if options.get("uncompressed"):
+            with open(path, "wb") as out_fd:
+                out_fd.write(to_write)
+            self._dirty = True
+            return
 
         # We need to update the file atomically in case someone else is trying
         # to open it right now. Since the files are expected to be fairly small

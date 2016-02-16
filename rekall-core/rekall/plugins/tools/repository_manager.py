@@ -24,14 +24,24 @@ This plugin manages the profile repository.
 """
 import json
 import os
+import multiprocessing
+import subprocess
+import sys
 import yaml
 
 from rekall import io_manager
-from rekall import obj
 from rekall import plugin
 from rekall import registry
+from rekall import threadpool
 from rekall import testlib
 from rekall import utils
+
+
+NUMBER_OF_CORES = multiprocessing.cpu_count()
+
+
+class BuilderError(Exception):
+    """Raised when the builder failed."""
 
 
 class RepositoryManager(io_manager.DirectoryIOManager):
@@ -39,8 +49,17 @@ class RepositoryManager(io_manager.DirectoryIOManager):
 
     YAML is more user friendly than JSON.
     """
+    # Do not include src files in the inventory.
+    EXCLUDED_PATH_PREFIX = ["src"]
 
-    def Encoder(self, data, **_):
+    def Encoder(self, data, **options):
+        if options.get("raw"):
+            return utils.SmartStr(data)
+
+        # If the user specifically wants to encode in yaml, then do so.
+        if options.get("yaml"):
+            return yaml.safe_dump(data, default_flow_style=False)
+
         return utils.PPrint(data)
 
     def Decoder(self, raw):
@@ -51,6 +70,14 @@ class RepositoryManager(io_manager.DirectoryIOManager):
             # If that does not work, try to load it with yaml.
             return yaml.safe_load(raw)
 
+    def _StoreData(self, name, to_write, **options):
+        # The user wants to store a yaml file, we make it uncompressed.
+        if options.get("yaml"):
+            options["uncompressed"] = True
+
+        return super(RepositoryManager, self)._StoreData(
+            name, to_write, **options)
+
 
 class RepositoryPlugin(object):
     """A plugin to manage a type of profile in the repository."""
@@ -60,6 +87,7 @@ class RepositoryPlugin(object):
         """Instantiate the plugin with the provided kwargs."""
         self.args = utils.AttributeDict(kwargs)
         self.session = session
+        self.pool = threadpool.ThreadPool(self.args.processes)
 
     def TransformProfile(self, profile):
         """Transform the profile according to the specified transforms."""
@@ -81,6 +109,34 @@ class RepositoryPlugin(object):
 
         repository.StoreData("%s/index" % self.args.profile_name, index)
 
+    def LaunchPlugin(self, plugin_name, *pos, **kwargs):
+        """Runs a plugin in another process."""
+        subprocess.check_call(
+            [sys.executable, plugin_name] + pos +
+            ["--%s='%s'" % (k, v) for k, v in kwargs.iteritems()])
+
+    def LaunchBuilder(self, *args):
+        """Relaunch this builder with the provided parameters."""
+        executable = self.args.executable
+        if executable is None:
+            executable = sys.argv[0]
+        cmdline = [executable]
+
+        # We are launched with the python executable.
+        if "python" in executable:
+            cmdline.append(sys.argv[1])
+
+        cmdline.extend(["manage_repo", "--path_to_repository",
+                        self.args.repository.location])
+        cmdline.append(self.args.profile_name)
+        cmdline.extend(args)
+
+        pipe = subprocess.Popen(cmdline, stderr=subprocess.PIPE)
+        _, stderr_text = pipe.communicate()
+        if pipe.returncode != 0:
+            error_message = stderr_text.strip().splitlines()[-1]
+            raise BuilderError(error_message)
+
     def Build(self, renderer):
         """Implementation of the build routine."""
 
@@ -88,64 +144,158 @@ class RepositoryPlugin(object):
 class WindowsGUIDProfile(RepositoryPlugin):
     """Manage a Windows profile from the symbol server."""
 
-    def FetchPDB(self, temp_dir, guid, pdb_filename):
-        self.session.RunPlugin("fetch_pdb", pdb_filename=pdb_filename,
-                               guid=guid, dump_dir=temp_dir)
-
-        data = open(os.path.join(temp_dir, pdb_filename)).read()
+    def FetchPDB(self, guid, pdb_filename):
         repository = self.args.repository
-
+        fetch_pdb = self.session.plugins.fetch_pdb()
+        data = fetch_pdb.FetchPDBFile(pdb_filename=pdb_filename, guid=guid)
         repository.StoreData("src/pdb/%s.pdb" % guid, data, raw=True)
 
-    def ParsePDB(self, temp_dir, guid, original_pdb_filename):
+    def ParsePDB(self, guid, original_pdb_filename):
         repository = self.args.repository
         data = repository.GetData("src/pdb/%s.pdb" % guid, raw=True)
-        pdb_filename = os.path.join(temp_dir, guid + ".pdb")
-        output_filename = os.path.join(temp_dir, guid)
-        with open(pdb_filename, "wb") as fd:
-            fd.write(data)
-
         profile_class = (self.args.profile_class or
                          original_pdb_filename.capitalize())
-        self.session.RunPlugin(
-            "parse_pdb", pdb_filename=pdb_filename, profile_class=profile_class,
-            output=output_filename)
 
-        profile_data = json.loads(open(output_filename, "rb").read())
+        with utils.TempDirectory() as temp_dir:
+            pdb_filename = os.path.join(temp_dir, guid + ".pdb")
+            with open(pdb_filename, "wb") as fd:
+                fd.write(data)
+
+            parse_pdb = self.session.plugins.parse_pdb(
+                pdb_filename=pdb_filename,
+                profile_class=profile_class)
+
+            profile_data = json.loads(str(parse_pdb))
+
         profile_data = self.TransformProfile(profile_data)
         repository.StoreData("%s/%s" % (self.args.profile_name, guid),
                              profile_data)
 
-    def Build(self, renderer):
+    def ProcessPdb(self, guid, pdb_filename):
+        self.session.logging.info(
+            "Building profile %s/%s\n", self.args.profile_name, guid)
+
+        # Do we need to fetch the pdb file?
+        repository = self.args.repository
+        if not repository.Metadata("src/pdb/%s.pdb" % guid):
+            self.FetchPDB(guid, pdb_filename)
+
+        self.ParsePDB(guid, pdb_filename)
+
+    def Build(self, renderer, *args):
+        self.guid_file = self.args.repository.GetData(self.args.guids)
+        if not args:
+            command = "build_all"
+        else:
+            command = args[0]
+            args = args[1:]
+
+        self.ParseCommand(renderer, command, args)
+
+    def _FindPDBFilename(self, guid):
+        possible_guids = self.args.possible_guid_filenames
+        if not possible_guids:
+            possible_guids = [self.args.profile_name + ".pdb"]
+
+        for guid_file in possible_guids:
+            try:
+                self.FetchPDB(guid, guid_file)
+                return guid_file
+            except Exception:
+                continue
+
+        raise ValueError("Unknown pdb filename for guid %s" % guid)
+
+    def _DecodeGUIDFromArg(self, arg):
+        if "/" in arg:
+            pdb_filename, guid = arg.split("/")
+        else:
+            guid = arg
+            pdb_filename = self._FindPDBFilename(arg)
+
+        if not pdb_filename.endswith("pdb") or len(guid) != 33:
+            raise ValueError("Invalid GUID or pdb filename - e.g. "
+                             "ntkrnlmp.pdb/00625D7D36754CBEBA4533BA9A0F3FE22.")
+
+        return pdb_filename, guid
+
+    def _AddGUIDs(self, args):
         repository = self.args.repository
         guid_file = self.args.repository.GetData(self.args.guids)
+        existing_guids = dict((x, set(y)) for x, y in guid_file.iteritems())
 
-        changed_files = False
-        for pdb_filename, guids in guid_file.iteritems():
-            for guid in guids:
-                # If the profile exists in the repository continue.
-                if repository.Metadata(
-                        "%s/%s" % (self.args.profile_name, guid)):
-                    continue
+        for arg in args:
+            pdb_filename, guid = self._DecodeGUIDFromArg(arg)
+            self.session.logging.info(
+                "Adding GUID %s %s" % (pdb_filename, guid))
+            existing_guids.setdefault(pdb_filename, set()).add(guid)
 
-                renderer.format("Building profile {0}/{1}\n",
-                                self.args.profile_name, guid)
+        new_guids = dict((k, sorted(v)) for k, v in existing_guids.iteritems())
+        repository.StoreData(self.args.guids, new_guids, yaml=True)
 
-                # Otherwise build it.
-                changed_files = True
+    def ParseCommand(self, renderer, command, args):
+        if command == "build":
+            for arg in args:
+                pdb_filename, guid = self._DecodeGUIDFromArg(arg)
+                self.ProcessPdb(guid, pdb_filename)
 
-                with utils.TempDirectory() as temp_dir:
-                    # Do we need to fetch the pdb file?
-                    if not repository.Metadata("src/pdb/%s.pdb" % guid):
-                        self.FetchPDB(temp_dir, guid, pdb_filename)
+        elif command == "build_all":
+            self.BuildAll(renderer)
 
-                    self.ParsePDB(temp_dir, guid, pdb_filename)
+        elif command == "add_guid":
+            self._AddGUIDs(args)
+            self.BuildAll(renderer)
 
-        if changed_files and self.args.index or self.args.force_build_index:
-            renderer.format("Building index for profile {0} from {1}\n",
-                            self.args.profile_name, self.args.index)
+        else:
+            raise RuntimeError(
+                "Unknown command for %s" % self.__class__.__name__)
 
-            self.BuildIndex()
+    def BuildAll(self, renderer):
+        repository = self.args.repository
+        guid_file = self.args.repository.GetData(self.args.guids)
+        rejects_filename = self.args.guids + ".rejects"
+        rejects = self.args.repository.GetData(rejects_filename, default={})
+        reject_len = len(rejects)
+
+        try:
+            changed_files = set()
+            for pdb_filename, guids in guid_file.iteritems():
+                for guid in guids:
+                    if guid in rejects:
+                        continue
+
+                    # If the profile exists in the repository continue.
+                    if repository.Metadata(
+                            "%s/%s" % (self.args.profile_name, guid)):
+                        continue
+
+                    def Reject(e, guid=guid, changed_files=changed_files):
+                        print "GUID %s rejected: %s" % (guid, e)
+                        rejects[guid] = str(e)
+                        changed_files.remove(guid)
+
+                    # Otherwise build it.
+                    changed_files.add(guid)
+                    self.pool.AddTask(
+                        self.LaunchBuilder,
+                        ("build", "%s/%s" % (pdb_filename, guid)),
+                        on_error=Reject)
+
+            self.pool.Stop()
+
+            if changed_files and self.args.index or self.args.force_build_index:
+                renderer.format("Building index for profile {0} from {1}\n",
+                                self.args.profile_name, self.args.index)
+
+                self.BuildIndex()
+
+        finally:
+            if len(rejects) != reject_len:
+                repository.StoreData(
+                    rejects_filename, utils.PPrint(rejects), raw=True)
+
+            renderer.format("Updating inventory.\n")
+            repository.StoreData("inventory", repository.RebuildInventory())
 
 
 class CopyAndTransform(RepositoryPlugin):
@@ -246,6 +396,7 @@ class LinuxProfile(RepositoryPlugin):
 
         self.session.logging.info("Found %d profiles. %d are new.",
                                   total_profiles, new_profiles)
+
         # Now rebuild the index
         if changed_files and self.args.index or self.args.force_build_index:
             self.BuildIndex()
@@ -259,24 +410,42 @@ class ManageRepository(plugin.Command):
     @classmethod
     def args(cls, parser):
         super(ManageRepository, cls).args(parser)
+        parser.add_argument(
+            "-e", "--executable",
+            default=None,
+            help="The path to the rekall binary. This is used for "
+            "spawning multiple processes.")
 
         parser.add_argument(
-            "path_to_repository", default=".",
-            help="The path to the profile repository")
+            "--processes", default=NUMBER_OF_CORES, type="IntParser",
+            help="Number of concurrent workers.")
+
         parser.add_argument(
-            "--build_targets", type="ArrayStringParser",
-            help="A list of targets to build.")
+            "--path_to_repository", default=".",
+            help="The path to the profile repository")
+
         parser.add_argument(
             "--force_build_index", type="Boolean", default=False,
             help="Forces building the index.")
 
+        parser.add_argument(
+            "build_target", type="StringParser", required=False,
+            help="A single target to build.")
+
+        parser.add_argument(
+            "builder_args", type="ArrayStringParser", required=False,
+            help="Optional args for the builder.")
+
     def __init__(self, command=None, path_to_repository=None,
-                 build_targets=None, force_build_index=False, **kwargs):
-        super(ManageRepository, self).__init__(**kwargs)
+                 build_target=None, force_build_index=False,
+                 builder_args=None, session=None, **kwargs):
+        super(ManageRepository, self).__init__(session=session)
         self.command = command
+        self.builder_kwargs = kwargs
         self.path_to_repository = os.path.abspath(path_to_repository)
-        self.build_targets = build_targets
+        self.build_target = build_target
         self.force_build_index = force_build_index
+        self.builder_args = builder_args or []
 
         # Check if we can load the repository config file.
         self.repository = RepositoryManager(
@@ -286,7 +455,9 @@ class ManageRepository(plugin.Command):
 
     def render(self, renderer):
         for profile_name, kwargs in self.config_file.iteritems():
-            if self.build_targets and profile_name not in self.build_targets:
+            # Inject args from the commandline into the builder args.
+            kwargs.update(self.builder_kwargs)
+            if self.build_target and profile_name != self.build_target:
                 continue
 
             handler_type = kwargs.pop("type", None)
@@ -305,7 +476,7 @@ class ManageRepository(plugin.Command):
                 profile_name=profile_name,
                 force_build_index=self.force_build_index,
                 **kwargs)
-            handler.Build(renderer)
+            handler.Build(renderer, *self.builder_args)
 
 
 class TestManageRepository(testlib.DisabledTest):

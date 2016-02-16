@@ -124,7 +124,7 @@ class RekallObjectInspector(oinspect.Inspector):
             ("file", oinspect.find_file(plugin_class)),
             ("Plugin", "%s (%s)" % (plugin_class.__name__, plugin_class.name)),
             ("Parameters", self.format_parameters(plugin_class)),
-            ("Docstring", oinspect.getdoc(plugin_class)),
+            ("Docstring", oinspect.getdoc(plugin_class) or ""),
             ("Link", (
                 "http://www.rekall-forensic.com/epydocs/%s.%s-class.html" % (
                     plugin_class.__module__, plugin_class.__name__))),

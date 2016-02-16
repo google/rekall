@@ -45,17 +45,21 @@ class Worker(threading.Thread):
     def run(self):
         while True:
             # Get a callable from the queue.
-            task, args = self.queue.get()
+            task, args, kwargs = self.queue.get()
 
             try:
                 # Stop the worker by sending it a task of None.
                 if task is None:
                     break
 
-                task(*args)
+                on_error = kwargs.pop("on_error", lambda x: None)
+
+                task(*args, **kwargs)
             except Exception as e:
+                print e
                 logging.error("Worker raised %s", e)
                 traceback.print_exc()
+                on_error(e)
 
             finally:
                 self.queue.task_done()
@@ -71,14 +75,17 @@ class ThreadPool(object):
 
     def Stop(self):
         """Stop all the threads when they are ready."""
+        self.queue.join()
+
         # Send all workers the stop message.
         for worker in self.workers:
             self.AddTask(None)
 
-        self.queue.join()
         for worker in self.workers:
             worker.join()
 
-    def AddTask(self, task, args=None):
-        self.queue.put((task, args or []))
-
+    def AddTask(self, task, args=None, kwargs=None, on_error=None):
+        if kwargs is None:
+            kwargs = {}
+        kwargs["on_error"] = on_error
+        self.queue.put((task, args or [], kwargs))
