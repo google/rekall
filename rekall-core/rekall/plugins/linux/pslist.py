@@ -110,8 +110,8 @@ class PidHashTable(LinuxPsList):
 
         # Now we iterate over all the hash slots in the hash table to retrieve
         # their struct upid entries.
-        for hash in pidhash:
-            for upid in hash.list_of_type("upid", "pid_chain"):
+        for hash_slot in pidhash:
+            for upid in hash_slot.list_of_type("upid", "pid_chain"):
                 # upid structures are contained inside pid structures:
                 # http://lxr.free-electrons.com/source/kernel/pid.c?v=3.8#L351
                 # container_of(pnr, struct pid, numbers[ns->level]);

@@ -17,10 +17,14 @@
 #
 
 """This module implements renderers specific to Linux structures."""
+
+import os
+
 from rekall.ui import json_renderer
 from rekall.ui import text
 from rekall.plugins.addrspaces import amd64
 from rekall.plugins.renderers import base_objects
+from rekall.plugins.renderers import data_export
 
 
 class kuid_t_TextObjectRenderer(text.TextObjectRenderer):
@@ -63,3 +67,32 @@ class TaskStruct_TextObjectRenderer(base_objects.StructTextRenderer):
         dict(name="Name", width=20, align="l", cname="name"),
         dict(name="PID", width=6, align="r", cname="pid")
     ]
+
+
+class TaskStruct_DataExport(data_export.DataExportBaseObjectRenderer):
+    renders_type = "task_struct"
+
+    def EncodeToJsonSafe(self, task, **_):
+        result = super(TaskStruct_DataExport, self).EncodeToJsonSafe(task)
+        fullpath = task.get_path(task.mm.m("exe_file"))
+        result["Cybox"] = dict(
+            type=u"ProcessObj:ProcessObjectType",
+            Name=task.name,
+            PID=task.pid,
+            Creation_Time=task.task_start_time,
+            Parent_PID=task.parent.pid,
+            Image_Info=dict(
+                type=u"ProcessObj:ImageInfoType",
+                Path=fullpath,
+                Command_Line=task.commandline,
+                TrustedPath=fullpath,
+                File_Name=os.path.basename(fullpath),
+                )
+            )
+
+        res = json_renderer.JsonObjectRenderer.EncodeToJsonSafe(self, result)
+        return res
+
+    def Summary(self, item, **_):
+        return "%s (%s)" % (item.get("Cybox", {}).get("Name", ""),
+                            item.get("Cybox", {}).get("PID", ""))
