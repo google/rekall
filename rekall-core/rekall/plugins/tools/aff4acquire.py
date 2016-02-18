@@ -446,6 +446,8 @@ class AFF4Acquire(plugin.ProfileCommand):
                 finally:
                     live.close()
 
+    def render_acquisition(self, renderer):
+        """Do the actual acquisition."""
         with renderer.open(filename=self.destination, mode="a+b") as out_fd:
             with data_store.MemoryDataStore() as resolver:
                 output_urn = rdfvalue.URN.FromFileName(out_fd.name)

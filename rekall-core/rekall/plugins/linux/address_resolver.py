@@ -19,7 +19,6 @@
 """The module implements the linux specific address resolution plugin."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import re
 from rekall import obj
 from rekall.plugins.common import address_resolver
 from rekall.plugins.linux import common

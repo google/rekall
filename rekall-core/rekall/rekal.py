@@ -38,7 +38,8 @@ from pkg_resources import iter_entry_points
 for entry_point in iter_entry_points(group='rekall.plugins', name=None):
     entry_point.load()
 
-from rekall import plugins
+# Load all the plugins.
+from rekall import plugins  # pylint: disable=unused-import
 
 
 config.DeclareOption(
@@ -106,7 +107,6 @@ def main(argv=None):
             pdb.post_mortem(sys.exc_info()[2])
         raise
     finally:
-        user_session.live_plugin.close()
         user_session.Flush()
 
 if __name__ == '__main__':

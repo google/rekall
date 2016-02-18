@@ -29,6 +29,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 from rekall import obj
 from rekall import scan
+from rekall.plugins import core
 from rekall.plugins.windows import common
 from rekall.plugins.overlays.windows import pe_vtypes
 
@@ -63,6 +64,7 @@ class ObjectTreeHook(common.AbstractWindowsParameterHook):
                 children = entry["Children"] = {}
                 self.BuildTree(children, x.Object)
 
+    @core.MethodWithAddressSpace()
     def calculate(self):
         root = self.session.profile.get_constant_object(
             "ObpRootDirectoryObject",
@@ -87,6 +89,7 @@ class DriveLetterDeviceHook(common.AbstractWindowsParameterHook):
 
     name = "drive_letter_device_map"
 
+    @core.MethodWithAddressSpace()
     def calculate(self):
         result = {}
         obj_tree_plugin = self.session.plugins.object_tree()

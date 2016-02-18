@@ -102,12 +102,13 @@ class RepositoryPlugin(object):
 
     def BuildIndex(self):
         repository = self.args.repository
-        spec = repository.GetData(self.args.index)
+        for index in self.args.index:
+            spec = repository.GetData(index["src"])
 
-        index = self.session.plugins.build_index(
-            manager=repository).build_index(spec)
+            built_index = self.session.plugins.build_index(
+                manager=repository).build_index(spec)
 
-        repository.StoreData("%s/index" % self.args.profile_name, index)
+            repository.StoreData(index["dest"], built_index)
 
     def LaunchPlugin(self, plugin_name, *pos, **kwargs):
         """Runs a plugin in another process."""

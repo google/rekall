@@ -227,7 +227,8 @@ class Configuration(utils.AttributeDict):
             live_plugin = self.session.plugins.live()
             live_plugin.live()
 
-            self.session.register_flush_hook(live_plugin.close)
+            # When the session is destroyed, close the live plugin.
+            self.session.register_flush_hook(self, live_plugin.close)
 
         return live
 
@@ -550,7 +551,6 @@ class Session(object):
 
         # Hooks that will be called when we get flushed.
         self._flush_hooks = []
-        self.register_flush_hook(self.cache.Flush)
 
     @utils.safe_property
     def logging(self):
@@ -632,6 +632,9 @@ class Session(object):
         cache_type = self.GetParameter("cache", "memory")
         if self.volatile:
             cache_type = "timed"
+
+        if self.cache:
+            self.remove_flush_hook(self.cache)
 
         self.cache = cache.Factory(self, cache_type)
         if self.physical_address_space:
@@ -815,8 +818,8 @@ class Session(object):
 
     def _HandleRunPluginException(self, ui_renderer, e):
         """Handle exceptions thrown while trying to run a plugin."""
-        _ = ui_renderer
-        raise e
+        _ = ui_renderer, e
+        raise
 
     def _GetPluginName(self, plugin_obj):
         """Extract the name from the plugin object."""
@@ -1027,16 +1030,32 @@ class Session(object):
                 new_session.SetParameter(k, v)
         return new_session
 
-    def register_flush_hook(self, hook, args=()):
+    def register_flush_hook(self, owner, hook, args=()):
         """This hook will run when the session is closed."""
-        self._flush_hooks.append((hook, args))
+        self._flush_hooks.append((owner, hook, args))
+
+    def remove_flush_hook(self, owner):
+        """Removes the flush hooks set by the owner.
+
+        Returns the hooks so they can be called if needed.
+        """
+        owners_hooks = []
+        flush_hooks = []
+        for x in self._flush_hooks:
+            if x[0] is owner:
+                owners_hooks.append(x)
+            else:
+                flush_hooks.append(x)
+        self._flush_hooks = flush_hooks
+
+        return owners_hooks
 
     def Flush(self):
         """Destroy this session.
 
         This should be called when the session is destroyed.
         """
-        for hook, args in self._flush_hooks:
+        for _, hook, args in self._flush_hooks:
             hook(*args)
 
 

@@ -252,7 +252,7 @@ class WindowsIndexDetector(DetectionMethod):
                     session=self.session, base=address_space,
                     dtb=self.session.GetParameter("dtb"))
 
-                if self.VerifAMD64yDTB(test_as):
+                if self.VerifyAMD64DTB(test_as):
                     return self._match_profile_for_kernel_base(
                         self.session.GetParameter("kernel_base"),
                         test_as)

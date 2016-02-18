@@ -97,6 +97,15 @@ class Live(plugin.ProfileCommand):
                 self.session.logging.info("Unpacking driver to %s", tmp_name)
                 tarfile_handle.extractall(tmp_name)
 
+                # Change ownership of the extracted files to make sure they are
+                # owned by root otherwise they will not load.
+                for root, files, dirs in os.walk(tmp_name):
+                    for f in files:
+                        os.chown(os.path.join(root, f), 0, 0)
+
+                    for d in dirs:
+                        os.chown(os.path.join(root, d), 0, 0)
+
                 for member_name in tarfile_handle.getnames():
                     if member_name.endswith(".kext"):
                         self.member_name = member_name.lstrip("/")
@@ -111,8 +120,8 @@ class Live(plugin.ProfileCommand):
                             raise plugin.PluginError("%s. Are you root?" % e)
 
                         try:
-                            base_as = pmem.MacPmemAddressSpace(session=self.session,
-                                                               filename=self.device)
+                            base_as = pmem.MacPmemAddressSpace(
+                                session=self.session, filename=self.device)
                             self.we_started_driver = True
                             break
                         except IOError as e:
@@ -138,10 +147,13 @@ class Live(plugin.ProfileCommand):
                                                     self.member_name)
                     self.session.logging.info(
                         "Unloading driver from %s", full_driver_path)
-                    res = subprocess.check_call(
-                        ["kextunload", os.path.join(tmp_name, self.member_name)])
-                    if res != 0:
-                        raise plugin.PluginError("Unable to unload driver: %s" % e)
+                    try:
+                        subprocess.check_call(
+                            ["kextunload",
+                             os.path.join(tmp_name, self.member_name)])
+                    except Exception as e:
+                        raise plugin.PluginError(
+                            "Unable to unload driver: %s" % e)
 
     def render(self, renderer):
         renderer.format("Launching live memory analysis\n")

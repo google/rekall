@@ -164,6 +164,9 @@ class FileCache(Cache):
         self.cache_dir = None
         self.enabled = True
 
+        # Make sure we get flushed when the session is closed.
+        self.session.register_flush_hook(self, self.Flush)
+
     @utils.safe_property
     def io_manager(self):
         if not self.enabled:

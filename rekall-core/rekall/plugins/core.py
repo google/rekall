@@ -1104,6 +1104,19 @@ class SetProcessContextMixin(object):
         renderer.format(message + "\n")
 
 
+def MethodWithAddressSpace(process=None):
+    """A decorator to do an operation in another address space."""
+    def wrap(f):
+        def wrapped_f(self, *_args, **_kwargs):
+            with self.session.plugins.cc() as cc:
+                cc.SwitchProcessContext(process=process)
+
+                return f(self, *_args, **_kwargs)
+        return wrapped_f
+
+    return wrap
+
+
 class VtoPMixin(object):
     """Prints information about the virtual to physical translation."""
 

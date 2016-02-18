@@ -287,6 +287,21 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
                 self.AddModule(
                     KernelModule(ldr_module=ldr_entry, session=self.session))
 
+            # Windows 10 does not have the kernel in the modules list.
+            if not self._modules_by_name.get("nt"):
+                start = obj.Pointer.integer_to_address(
+                    self.session.GetParameter("kernel_base"))
+                pe = pe_vtypes.PE(image_base=start, session=self.session)
+                end = start + pe.nt_header.OptionalHeader.SizeOfImage
+                self.AddModule(
+                    PEModule(
+                        session=self.session,
+                        name="nt",
+                        start=start,
+                        end=end,
+                        profile=self.session.profile)
+                )
+
             # Now use the vad.
             process_context = self.session.GetParameter("process_context")
             if process_context != None:
