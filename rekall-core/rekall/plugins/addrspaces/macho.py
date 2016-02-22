@@ -18,14 +18,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-"""An Address Space for processing MACH-O coredumps."""
+"""An Address Space for processing Mach-O coredumps."""
 
 from rekall import addrspace
 from rekall.plugins.overlays.darwin import macho
 
 
 class MACHOCoreDump(addrspace.RunBasedAddressSpace):
-    """This AS supports MACH-O coredump files."""
+    """This AS supports Mach-O coredump files."""
 
     __name = "macho64"
     __image = True
@@ -36,7 +36,7 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
         self.check_file()
 
         # Try to parse the file now.
-        macho_profile = macho.MACHO64Profile(session=self.session)
+        macho_profile = macho.MachoProfile(session=self.session)
         self.header = macho_profile.mach_header_64(
             vm=self.base, offset=0)
 
@@ -50,10 +50,10 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
                     segment.vmaddr, segment.fileoff, segment.filesize)
 
     def check_file(self):
-        """Check for a valid MACH-O file."""
+        """Check for a valid Mach-O file."""
         self.as_assert(self.base,
                        "Must stack on another address space")
 
-        ## Must start with the magic for macho 64.
+        # Must start with the magic for macho 64.
         self.as_assert((self.base.read(0, 4) == "\xcf\xfa\xed\xfe"),
                        "Header signature invalid")

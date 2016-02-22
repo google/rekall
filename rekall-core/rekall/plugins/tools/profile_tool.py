@@ -318,7 +318,7 @@ class OSXConverter(LinuxConverter):
                 exec(vtype_file, {}, l)
 
                 profile_file = self.BuildProfile(system_map, l["mac_types"])
-                return self.WriteProfile(profile_file)
+                return profile_file
 
         raise RuntimeError("Unknown profile format.")
 
