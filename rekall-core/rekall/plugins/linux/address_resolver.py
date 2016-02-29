@@ -47,7 +47,7 @@ class KernelModule(address_resolver.Module):
             # Check if the address appears in the kernel binary.
             start=obj.Pointer.integer_to_address(
                 session.profile.get_constant("_text")),
-            end=session.profile.get_constant("_etext"),
+            end=session.profile.get_constant("_end"),
             name="linux",
             profile=session.profile,
             session=session, **kwargs)

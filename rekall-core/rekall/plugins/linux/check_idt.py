@@ -25,7 +25,9 @@
 @contact:      atcuno@gmail.com
 @organization:
 """
+from rekall import testlib
 from rekall.plugins.linux import common
+
 
 class CheckIdt(common.LinuxPlugin):
     """ Checks if the IDT has been altered """
@@ -48,8 +50,6 @@ class CheckIdt(common.LinuxPlugin):
 
         for i in check_indexes:
             entry = table[i]
-            idt_addr = entry.address
-
             yield i, entry
 
     def CheckIDTTables(self):
@@ -89,7 +89,7 @@ class CheckIdt(common.LinuxPlugin):
         for (i, entry) in self.CheckIDTTables():
             symbol = ", ".join(
                 self.session.address_resolver.format_address(
-                    func.obj_offset))
+                    entry.address))
 
             # Point out suspicious constants.
             highlight = None if symbol.startswith("linux") else "important"
@@ -97,3 +97,7 @@ class CheckIdt(common.LinuxPlugin):
             renderer.table_row(i, entry.address, entry.gate_type,
                                entry.present, entry.dpl, symbol,
                                highlight=highlight)
+
+
+class TestCheckIdt(testlib.SimpleTestCase):
+    PARAMETERS = dict(commandline="check_idt")

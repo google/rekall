@@ -259,7 +259,8 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
         }],
 
     'gate_struct64': [None, {
-        'address': lambda x: (x.offset_low |
+        'address': lambda x: obj.Pointer.integer_to_address(
+                              x.offset_low |
                               x.offset_middle << 16 |
                               x.offset_high << 32),
         'gate_type': [5, ['Enumeration', {
