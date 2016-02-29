@@ -445,6 +445,8 @@ class AFF4Acquire(plugin.ProfileCommand):
                     self.render_acquisition(renderer)
                 finally:
                     live.close()
+            else:
+                self.render_acquisition(renderer)
 
     def render_acquisition(self, renderer):
         """Do the actual acquisition."""
@@ -460,36 +462,42 @@ class AFF4Acquire(plugin.ProfileCommand):
                 resolver.Set(output_urn, lexicon.AFF4_STREAM_WRITE_MODE,
                              rdfvalue.XSDString(mode))
 
+                phys_as = self.session.physical_address_space
                 with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
                     # We allow acquiring memory from a non volatile physical
                     # address space as a way of converting an image from another
                     # format to AFF4.
-                    if self.session.physical_address_space:
+                    if phys_as:
                         if self.also_memory:
                             # Get the physical memory.
                             self.copy_physical_address_space(
                                 renderer, resolver, volume)
 
-                            # Also grab the default files on this OS.
-                            self.copy_files(renderer, resolver, volume,
-                                            self._default_file_globs())
-
-                        # We only copy files if we are running on a raw device.
-                        if self.session.physical_address_space.volatile:
-                            if self.also_pagefile:
-                                self.copy_page_file(renderer, resolver, volume)
-
-                            if self.also_mapped_files:
-                                self.copy_mapped_files(
-                                    renderer, resolver, volume)
-
-                            # If a physical_address_space is specified, then we
-                            # only allow copying files if it is volatile.
-                            if self.files:
+                            # Copy files only if we're not targetting a VM.
+                            if not phys_as.virtualized:
+                                # Also grab the default files on this OS.
                                 self.copy_files(renderer, resolver, volume,
-                                                self.files)
-                        elif any(self.also_pagefile, self.also_mapped_files,
-                                 self.files):
+                                                self._default_file_globs())
+
+                        # We only copy files if we are running on a raw device
+                        # and we're not targetting a VM.
+                        if phys_as.volatile:
+                            if not phys_as.virtualized:
+                              if self.also_pagefile:
+                                  self.copy_page_file(
+                                      renderer, resolver, volume)
+
+                              if self.also_mapped_files:
+                                  self.copy_mapped_files(
+                                      renderer, resolver, volume)
+
+                              # If a physical_address_space is specified, then
+                              # we only allow copying files if it is volatile.
+                              if self.files:
+                                  self.copy_files(renderer, resolver, volume,
+                                                  self.files)
+                        elif any([self.also_pagefile, self.also_mapped_files,
+                                  self.files]):
                             raise RuntimeError(
                                 "Imaging options require access to live memory "
                                 "but the physical address space is not "

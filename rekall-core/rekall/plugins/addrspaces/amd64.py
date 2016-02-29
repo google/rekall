@@ -276,6 +276,9 @@ class VTxPagedMemory(AMD64PagedMemory):
     # A page entry being present depends only on bits 2:0 for EPT translation.
     valid_mask = 7
 
+    # This is a virtualized address space.
+    virtualized = True
+
     def __init__(self, ept=None, **kwargs):
         # A dummy DTB is passed to the base class so the DTB checks on
         # IA32PagedMemory don't bail out. We require the DTB to never be used

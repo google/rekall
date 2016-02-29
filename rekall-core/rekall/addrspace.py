@@ -144,6 +144,9 @@ class BaseAddressSpace(object):
     # False) then reads from the same offset MUST always return the same bytes.
     volatile = False
 
+    # This flag signifies whether this address space is for a virtual machine.
+    virtualized = False
+
     def __init__(self, base=None, session=None, profile=None, **_):
         """Base is the AS we will be stacking on top of, opts are options which
         we may use.
