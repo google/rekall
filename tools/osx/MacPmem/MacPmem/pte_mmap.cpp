@@ -285,8 +285,9 @@ static kern_return_t pmem_read_pte(vm_address_t page, PTE *pte,
     }
 
     if (pde.page_size) {
-        pmem_error("PDE %u of vaddr %#016llx is for a huge (2 MB) page.",
+        pmem_warn("PDE %u of vaddr %#016llx is for a huge (2 MB) page.",
                    vaddr.pd_index, vaddr.value);
+        pmem_log_PDE(pde, kPmemWarn, "Offending PDE.");
         return KERN_FAILURE;
     }
 

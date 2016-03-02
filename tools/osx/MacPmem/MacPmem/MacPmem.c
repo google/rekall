@@ -351,6 +351,12 @@ static kern_return_t pmem_init() {
     // This malloc tag is used by everyone - needs to be the first thing.
     pmem_alloc_tag = OSMalloc_Tagalloc(pmem_tagname, OSMT_DEFAULT);
 
+#ifdef LOG_KERNEL_POINTERS
+    // If we're going to log pointers we need to tell the logging system what
+    // tag to use when it's formatting them.
+    pmem_logging_malloc_tag = pmem_alloc_tag;
+#endif
+
     // Same as the malloc tag, lock groups are shared and need to be setup
     // by the time we initialize other components.
     pmem_rwlock_grp_attr = lck_grp_attr_alloc_init();

@@ -29,6 +29,10 @@ int pmem_logging_level = kPmemInfo;
 int pmem_logging_level = kPmemWarn;
 #endif
 
+#ifdef LOG_KERNEL_POINTERS
+OSMallocTag_t pmem_logging_malloc_tag = 0;
+#endif
+
 extern "C" {
 
 void pmem_log(PmemLogLevel lvl, const char *fmt, ...) {
@@ -63,8 +67,39 @@ void pmem_logv(PmemLogLevel lvl, const char *fmt, va_list args) {
         break;
     }
 
+#ifdef LOG_KERNEL_POINTERS
+    if (pmem_logging_malloc_tag) {
+        pmem_OSBuffer *buffer = pmem_alloc(0x8, pmem_logging_malloc_tag);
+
+        // We can't know how much room we need until we try it. Copy the args
+        // pointer so we can run vsnprintf twice.
+        va_list copied_args;
+        va_copy(copied_args, args);
+        int required_size = vsnprintf(buffer->buffer, buffer->size, fmt,
+                                      copied_args);
+
+        if (required_size >= buffer->size) {
+            // +1 is for the terminating \0.
+            if(pmem_resize(buffer, required_size + 1) != KERN_SUCCESS) {
+                printf("Fatal: Couldn't resize buffer inside pmem_logv! This"
+                       " sucks!");
+                return; // Failed pmem_resize has already freed 'buffer'.
+            }
+
+            vsnprintf(buffer->buffer, buffer->size, fmt, args);
+        }
+
+        printf("%.*s\n", buffer->size, buffer->buffer);
+        pmem_free(buffer);
+    } else {
+        vprintf(fmt, args);
+        printf("\n");
+    }
+#else
     vprintf(fmt, args);
     printf("\n");
+#endif
+
 }
 
 #ifdef DEBUG

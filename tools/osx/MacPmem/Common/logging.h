@@ -29,6 +29,22 @@
 #ifdef KERNEL
 #include <mach/mach_types.h>
 #include <libkern/libkern.h>
+
+// This will cause pmem_logv to format messages using vsnprintf, which prevents
+// the kernel from replacing pointers with '<ptr>', since we need those for
+// debugging. (This should not be enabled in production builds! There are good
+// reasons why kernel pointers shouldn't be logged by deployed drivers.)
+#ifdef DEBUG
+#define LOG_KERNEL_POINTERS 1
+
+#include "util.h"
+
+// If the user sets this tag to a valid OSMallocTag then logging kernel pointers
+// is enabled. It's initialized to 0 by default.
+extern OSMallocTag_t pmem_logging_malloc_tag;
+
+#endif
+
 #else
 #include <stdio.h>
 #include <stdarg.h>

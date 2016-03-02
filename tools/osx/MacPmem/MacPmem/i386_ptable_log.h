@@ -41,6 +41,10 @@
 extern "C" {
 #endif
 
+#ifdef LOG_KERNEL_POINTERS
+#define PMEM_PTE_DEBUG
+#endif
+
 #ifdef PMEM_PTE_DEBUG
 void pmem_log_CR3(CR3 x, PmemLogLevel lvl, const char *reason);
 void pmem_log_CR4(CR4 x, PmemLogLevel lvl, const char *reason);
