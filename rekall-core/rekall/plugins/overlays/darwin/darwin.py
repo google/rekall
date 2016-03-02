@@ -1056,10 +1056,10 @@ class vm_map_entry(obj.Struct):
         This is losely adapted from vm_map.c, void vm_map_region_top_walk(),
         except we're not filling page counts for resident/reusable, etc.
         """
-        if not self.object.vm_object or self.is_sub_map:
+        if not self.vmo_object or self.is_sub_map:
             return "SM_EMPTY"  # Nada.
 
-        vmobj = self.object.vm_object
+        vmobj = self.vmo_object
         ref_count = vmobj.ref_count
         if vmobj.paging_in_progress:
             ref_count -= 1
@@ -1085,7 +1085,7 @@ class vm_map_entry(obj.Struct):
 
     @utils.safe_property
     def last_shadow(self):
-        shadow = self.object.vm_object
+        shadow = self.vmo_object
         if not shadow:
             return obj.NoneObject("no vm_object found")
 
@@ -1101,6 +1101,27 @@ class vm_map_entry(obj.Struct):
     @utils.safe_property
     def end(self):
         return self.links.end.v()
+
+    @utils.safe_property
+    def vmo_object(self):
+        """Return the vm_object instance for this entry.
+
+        There's an intermediate link called struct vm_map_entry.
+
+        The members will be called either 'object' and 'vm_object' or
+        'vme_object' and 'vmo_object'.
+
+        There is no easy heuristic for which it will be in a particular kernel
+        version* so we just try both, since they mean the same thing.
+
+        * The kernel version numbers could be identical for kernels built from
+        a feature branch and a kernel build from trunk, and the two could be
+        months apart. Furthermore, the profiles are generated not from the
+        kernel itself but from a debug kit and can end up using out of date
+        naming conventions.
+        """
+        vme_object = self.multi_m("vme_object", "object")
+        return vme_object.multi_m("vmo_object", "vm_object")
 
 
 class clist(obj.Struct):
