@@ -23,6 +23,10 @@
 
 """Common windows overlays and classes."""
 import struct
+from itertools import chain
+
+from rekall.plugins.windows.registry.registry import Pointer32
+
 from rekall import addrspace
 from rekall import obj
 from rekall import utils
@@ -73,7 +77,14 @@ windows_overlay = {
             target_args=dict(length=lambda x: x.Length)
             )]],
         }],
-
+    '_UNICODE_STRING32': [8, {
+        "Buffer": [4, ['Pointer32', dict(
+            target='UnicodeString',
+            target_args=dict(length=lambda x: x.Length)
+        )]],
+        "Length": [0, ["unsigned short", {}]],
+        "MaximumLength": [2, ["unsigned short", {}]]
+    }],
     '_EPROCESS' : [None, {
         # Some standard fields for windows processes.
         'name': lambda x: x.ImageFileName,
@@ -509,6 +520,50 @@ windows_overlay = {
             count=4095
         ),
     }],
+    '_PEB32': [None, {
+        "Ldr": [None, ["Pointer32", {
+            "target": "_PEB_LDR_DATA32"
+        }]]
+    }],
+    '_PEB_LDR_DATA32': [48, {
+        "EntryInProgress": [36, ["Pointer32", {
+            "target": "Void"
+        }]],
+        "InInitializationOrderModuleList": [28, ["LIST_ENTRY32", {}]],
+        "InLoadOrderModuleList": [12, ["LIST_ENTRY32", {}]],
+        "InMemoryOrderModuleList": [20, ["LIST_ENTRY32", {}]],
+        "Initialized": [4, ["unsigned char", {}]],
+        "Length": [0, ["unsigned long", {}]],
+        "ShutdownInProgress": [40, ["unsigned char", {}]],
+        "ShutdownThreadId": [44, ["Pointer32", {
+            "target": "Void"
+        }]],
+        "SsHandle": [8, ["Pointer32", {
+            "target": "Void"
+        }]]
+    }],
+    '_LDR_DATA_TABLE_ENTRY32': [76, {
+        "InLoadOrderLinks": [0, ["LIST_ENTRY32", {}]],
+        "InMemoryOrderLinks": [8, ["LIST_ENTRY32", {}]],
+        "InInitializationOrderLinks": [16, ["LIST_ENTRY32", {}]],
+        "DllBase": [24, ["Pointer32", {
+            "target": "Void"
+        }]],
+        "EntryPoint": [28, ["Pointer32", {
+            "target": "Void"
+        }]],
+        "SizeOfImage": [32, ["unsigned long", {}]],
+        "FullDllName": [36, ["_UNICODE_STRING32", {}]],
+        "BaseDllName": [44, ["_UNICODE_STRING32", {}]],
+        "Flags": [52, ["unsigned long", {}]],
+        "LoadReason": [56, ["unsigned short", {}]],
+        "TlsIndex": [58, ["unsigned short", {}]],
+        "HashLinks": [60, ["LIST_ENTRY32", {}]],
+        "TimeDateStamp": [68, ["unsigned long", {}]],
+        "EntryPointActivationContext": [72, ["Pointer32", {
+            "target": "_ACTIVATION_CONTEXT"
+        }]]
+    }]
 }
 
 
@@ -676,6 +731,10 @@ class _EPROCESS(obj.Struct):
                                   vm=self.get_process_address_space())
 
     @utils.safe_property
+    def Wow64Process(self):
+        return self.m("Wow64Process").cast("Pointer", target="_PEB32", vm=self.get_process_address_space())
+
+    @utils.safe_property
     def IsWow64(self):
         """Returns True if this is a wow64 process"""
         return hasattr(self, 'Wow64Process') and self.Wow64Process.v() != 0
@@ -725,23 +784,34 @@ class _EPROCESS(obj.Struct):
 
         return process_as
 
-    def _get_modules(self, the_list, the_type):
+    def _get_modules(self, the_list, the_type, wow64=False):
         """Generator for DLLs in one of the 3 PEB lists"""
         if self.UniqueProcessId and the_list:
-            for l in the_list.list_of_type("_LDR_DATA_TABLE_ENTRY", the_type):
-                yield l
+            if wow64:
+                for l in the_list.list_of_type("_LDR_DATA_TABLE_ENTRY32", the_type):
+                    yield l
+            else:
+                for l in the_list.list_of_type("_LDR_DATA_TABLE_ENTRY", the_type):
+                    yield l
 
     def get_init_modules(self):
-        return self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList,
-                                 "InInitializationOrderLinks")
+        return chain(self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList,
+                                 "InInitializationOrderLinks"),
+                     self._get_modules(self.Wow64Process.Ldr.InInitializationOrderModuleList,
+                                 "InInitializationOrderLinks", wow64=True))
+
 
     def get_mem_modules(self):
-        return self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList,
-                                 "InMemoryOrderLinks")
+        return chain(self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList,
+                                 "InMemoryOrderLinks"),
+                     self._get_modules(self.Wow64Process.Ldr.InMemoryOrderModuleList,
+                                 "InMemoryOrderLinks", wow64=True))
 
     def get_load_modules(self):
-        return self._get_modules(
-            self.Peb.Ldr.InLoadOrderModuleList, "InLoadOrderLinks")
+        return chain(self._get_modules(self.Peb.Ldr.InLoadOrderModuleList,
+                                 "InLoadOrderLinks"),
+            self._get_modules(self.Wow64Process.Ldr.InLoadOrderModuleList,
+                                 "InLoadOrderLinks", wow64=True))
 
     def get_token(self):
         """Return the process's TOKEN object if its valid"""
@@ -1380,6 +1450,8 @@ def InitializeWindowsProfile(profile):
     """Install the basic windows overlays."""
     profile.add_classes({
         '_UNICODE_STRING': _UNICODE_STRING,
+        '_UNICODE_STRING32': _UNICODE_STRING,
+        'Pointer32': Pointer32,
         '_EPROCESS': _EPROCESS,
         '_ETHREAD': _ETHREAD,
         '_HANDLE_TABLE': _HANDLE_TABLE,

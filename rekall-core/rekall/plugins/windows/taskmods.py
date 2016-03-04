@@ -98,10 +98,6 @@ class WinDllList(common.WinProcessFilter):
                 renderer.format(u"Command line : {0}\n",
                                 task.Peb.ProcessParameters.CommandLine)
 
-                if task.IsWow64:
-                    renderer.format(u"Note: use ldrmodules for listing DLLs "
-                                    "in Wow64 processes\n")
-
                 renderer.format(u"{0}\n\n", task.Peb.CSDVersion)
                 renderer.table_header([("Base", "module_base", "[addrpad]"),
                                        ("Size", "module_size", "[addr]"),

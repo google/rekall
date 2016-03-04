@@ -755,8 +755,12 @@ class ProfileLP64(obj.Profile):
 
 common_overlay = {
     'LIST_ENTRY32': [0x8, {
-        'Flink': [0x0, ['pointer', ['LIST_ENTRY32']]],
-        'Blink': [0x4, ['pointer', ['LIST_ENTRY32']]],
+        'Flink': [0x0, ['Pointer32', dict(
+            target='LIST_ENTRY32'
+        )]],
+        'Blink': [0x4, ['Pointer32', dict(
+            target='LIST_ENTRY32'
+        )]],
     }],
 
     'LIST_ENTRY64': [0x10, {
