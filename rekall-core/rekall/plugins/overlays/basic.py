@@ -821,7 +821,8 @@ class RelativeOffsetMixin(object):
 
         The windows profile specify addresses relative to the kernel image base.
         """
-        base_constant = super(RelativeOffsetMixin, self).get_constant(name)
+        base_constant = super(RelativeOffsetMixin, self).get_constant(
+            name, is_address=is_address)
         if is_address and isinstance(base_constant, (int, long)):
             return base_constant + self.GetImageBase()
 

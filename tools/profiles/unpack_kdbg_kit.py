@@ -115,14 +115,19 @@ def run_umount(mountpoint):
 @contextlib.contextmanager
 def run_xz_decompress(stdout, stderr=None):
     """Run xz --decompress and return a contextmanager object for the proc."""
+    xz = None
     try:
         xz = subprocess.Popen(["xz", "--decompress", "--stdout"],
                               stdin=subprocess.PIPE, stdout=stdout,
                               stderr=stderr)
         yield xz
     finally:
+        if not xz:
+            raise OSError("You must have an 'xz' binary in PATH.")
+
         xz.stdin.close()
         result = xz.wait()
+
         if result != 0:
             raise IOError("xz --decompress returned %d." % result)
 
