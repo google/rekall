@@ -55,7 +55,13 @@ class Win32FileWrapper(object):
 
     def write(self, offset, data):
         win32file.SetFilePointer(self.fhandle, offset, 0)
-        return win32file.WriteFile(self.fhandle, data)
+        # The WinPmem driver returns bytes_written == 0 always. This is probably
+        # a bug in its write routine, so we ignore it here. If the operation was
+        # successful we assume all bytes were written.
+        err, _bytes_written = win32file.WriteFile(self.fhandle, data)
+        if err == 0:
+            return len(data)
+        return 0
 
     def end(self):
         return self.size

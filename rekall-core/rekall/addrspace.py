@@ -214,6 +214,7 @@ class BaseAddressSpace(object):
               possible that this method returns a run which starts earlier than
               the specified start address.
         """
+        _ = start
         return []
 
     def end(self):
@@ -654,7 +655,7 @@ class RunBasedAddressSpace(PagedReader):
 
     def _read_chunk(self, addr, length):
         """Read from addr as much as possible up to a length of length."""
-        start, end, data = self.runs.get_containing_range(addr)
+        start, end, run = self.runs.get_containing_range(addr)
 
         # addr is not in any range, pad to the next range.
         if start is None:
@@ -666,12 +667,30 @@ class RunBasedAddressSpace(PagedReader):
 
         # Read as much as we can from this address space.
         available_length = min(end - addr, length)
-        file_offset = data.file_offset + addr - start
+        file_offset = run.file_offset + addr - start
 
-        return data.address_space.read(file_offset, available_length)
+        return run.address_space.read(file_offset, available_length)
+
+    def _write_chunk(self, addr, buf):
+        length = len(buf)
+        start, end, run = self.runs.get_containing_range(addr)
+
+        # addr is not in any range, ignore to the next range.
+        if start is None:
+            end = self.runs.get_next_range_start(addr)
+            if end is None:
+                end = addr + length
+
+            return min(end - addr, length)
+
+        # Write as much as we can to this run.
+        available_length = min(end - addr, length)
+        file_offset = run.file_offset + addr - start
+
+        return run.address_space.write(file_offset, buf[:available_length])
 
     def vtop_run(self, addr):
-        start, end, run = self.runs.get_containing_range(addr)
+        start, _, run = self.runs.get_containing_range(addr)
         if start is not None:
             return Run(start=addr,
                        end=run.end,
@@ -684,10 +703,10 @@ class RunBasedAddressSpace(PagedReader):
         Note that this does not mean much without also knowing the address space
         to read from. Maybe we need to change this method's prototype?
         """
-        start, end, data = self.runs.get_containing_range(addr)
+        start, end, run = self.runs.get_containing_range(addr)
         if start is not None:
             if addr < end:
-                return data.file_offset + addr - start
+                return run.file_offset + addr - start
 
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None
