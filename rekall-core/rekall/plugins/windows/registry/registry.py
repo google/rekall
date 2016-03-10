@@ -123,17 +123,6 @@ class _HMAP_ENTRY(obj.Struct):
         return self.PermanentBinAddress & 0xfffffffffff0
 
 
-class Pointer32(obj.Pointer):
-    """A 32 bit pointer (Even in 64 bit arch).
-
-    These kinds of pointers are used most commonly in the Registry code which
-    always treats the hives as 32 bit address spaces.
-    """
-    def __init__(self, **kwargs):
-        super(Pointer32, self).__init__(**kwargs)
-        self._proxy = self._proxy.cast("unsigned int")
-
-
 class HiveBaseAddressSpace(addrspace.PagedReader):
     __abstract = True
     BLOCK_SIZE = PAGE_SIZE = 0x1000
@@ -490,7 +479,6 @@ def RekallRegisteryImplementation(profile):
         _CM_KEY_NODE=_CM_KEY_NODE, _CM_KEY_INDEX=_CM_KEY_INDEX,
         _CM_KEY_VALUE=_CM_KEY_VALUE, _CMHIVE=_CMHIVE,
         _HMAP_ENTRY=_HMAP_ENTRY,
-        Pointer32=Pointer32
         ))
 
     profile.add_overlay(registry_overlays)

@@ -913,6 +913,17 @@ class Pointer(NativeType):
         return 0xffffffffffff & int(value)
 
 
+class Pointer32(Pointer):
+    """A 32 bit pointer (Even in 64 bit arch).
+
+    These kinds of pointers are used most commonly in the Registry code which
+    always treats the hives as 32 bit address spaces.
+    """
+    def __init__(self, **kwargs):
+        super(Pointer32, self).__init__(**kwargs)
+        self._proxy = self._proxy.cast("unsigned int")
+
+
 class Void(Pointer):
     def __init__(self, **kwargs):
         kwargs['type_name'] = 'unsigned long'
@@ -1655,6 +1666,7 @@ class Profile(object):
     # classes will be available everywhere profiles are used.
     COMMON_CLASSES = {'BitField': BitField,
                       'Pointer': Pointer,
+                      'Pointer32': Pointer32,
                       'Void': Void,
                       'void': Void,
                       'Array': Array,

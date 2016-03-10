@@ -25,8 +25,6 @@
 import struct
 from itertools import chain
 
-from rekall.plugins.windows.registry.registry import Pointer32
-
 from rekall import addrspace
 from rekall import obj
 from rekall import utils
@@ -732,12 +730,23 @@ class _EPROCESS(obj.Struct):
 
     @utils.safe_property
     def Wow64Process(self):
-        return self.m("Wow64Process").cast("Pointer", target="_PEB32", vm=self.get_process_address_space())
+        return self.m("Wow64Process").cast(
+            "Pointer", target="_PEB32", vm=self.get_process_address_space())
 
     @utils.safe_property
     def IsWow64(self):
-        """Returns True if this is a wow64 process"""
-        return hasattr(self, 'Wow64Process') and self.Wow64Process.v() != 0
+        """Returns True if this is a wow64 process.
+
+        We check for a valid or non zero Wow64Process pointer.
+
+        Possible values:
+
+          32 bit OS: Wow64Process is missing from _EPROCESS and therefore this
+                     is not a Wow64 process (but it is 32 bits).
+          64 bit OS but Wow64Process is NULL pointer: Not Wow64 process.
+          64 bit OS and Wow64Process is valid: It is a Wow64 process.
+        """
+        return bool(self.Wow64Process.v())
 
     @utils.safe_property
     def SessionId(self):
@@ -788,30 +797,37 @@ class _EPROCESS(obj.Struct):
         """Generator for DLLs in one of the 3 PEB lists"""
         if self.UniqueProcessId and the_list:
             if wow64:
-                for l in the_list.list_of_type("_LDR_DATA_TABLE_ENTRY32", the_type):
+                for l in the_list.list_of_type(
+                        "_LDR_DATA_TABLE_ENTRY32", the_type):
                     yield l
             else:
-                for l in the_list.list_of_type("_LDR_DATA_TABLE_ENTRY", the_type):
+                for l in the_list.list_of_type(
+                        "_LDR_DATA_TABLE_ENTRY", the_type):
                     yield l
 
     def get_init_modules(self):
-        return chain(self._get_modules(self.Peb.Ldr.InInitializationOrderModuleList,
-                                 "InInitializationOrderLinks"),
-                     self._get_modules(self.Wow64Process.Ldr.InInitializationOrderModuleList,
-                                 "InInitializationOrderLinks", wow64=True))
-
+        return chain(
+            self._get_modules(
+                self.Peb.Ldr.InInitializationOrderModuleList,
+                "InInitializationOrderLinks"),
+            self._get_modules(
+                self.Wow64Process.Ldr.InInitializationOrderModuleList,
+                "InInitializationOrderLinks", wow64=True))
 
     def get_mem_modules(self):
-        return chain(self._get_modules(self.Peb.Ldr.InMemoryOrderModuleList,
-                                 "InMemoryOrderLinks"),
-                     self._get_modules(self.Wow64Process.Ldr.InMemoryOrderModuleList,
-                                 "InMemoryOrderLinks", wow64=True))
+        return chain(
+            self._get_modules(
+                self.Peb.Ldr.InMemoryOrderModuleList, "InMemoryOrderLinks"),
+            self._get_modules(
+                self.Wow64Process.Ldr.InMemoryOrderModuleList,
+                "InMemoryOrderLinks", wow64=True))
 
     def get_load_modules(self):
-        return chain(self._get_modules(self.Peb.Ldr.InLoadOrderModuleList,
-                                 "InLoadOrderLinks"),
+        return chain(
+            self._get_modules(self.Peb.Ldr.InLoadOrderModuleList,
+                              "InLoadOrderLinks"),
             self._get_modules(self.Wow64Process.Ldr.InLoadOrderModuleList,
-                                 "InLoadOrderLinks", wow64=True))
+                              "InLoadOrderLinks", wow64=True))
 
     def get_token(self):
         """Return the process's TOKEN object if its valid"""
@@ -1451,7 +1467,6 @@ def InitializeWindowsProfile(profile):
     profile.add_classes({
         '_UNICODE_STRING': _UNICODE_STRING,
         '_UNICODE_STRING32': _UNICODE_STRING,
-        'Pointer32': Pointer32,
         '_EPROCESS': _EPROCESS,
         '_ETHREAD': _ETHREAD,
         '_HANDLE_TABLE': _HANDLE_TABLE,
