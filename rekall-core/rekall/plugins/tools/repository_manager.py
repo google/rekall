@@ -341,7 +341,7 @@ class OSXProfile(RepositoryPlugin):
                                 profile_name, source)
                 changed_files = True
 
-        if changed_files and self.args.index:
+        if changed_files and self.args.index or self.force_build_index:
             renderer.format("Building index for profile {0} from {1}\n",
                             self.args.profile_name, self.args.index)
 
@@ -461,6 +461,7 @@ class ManageRepository(plugin.Command):
             if self.build_target and profile_name != self.build_target:
                 continue
 
+            self.session.logging.info("Building profiles for %s", profile_name)
             handler_type = kwargs.pop("type", None)
             if not handler_type:
                 raise RuntimeError(

@@ -73,6 +73,8 @@ class Live(plugin.ProfileCommand):
         self.name = service_name
         # Did we start the service? If so we need to clean up.
         self.we_started_service = False
+        self.hScm = None
+        self.hSvc = None
 
     exception_format_regex = re.compile(r": \((\d+),")
     def parse_exception(self, e):
@@ -112,9 +114,11 @@ class Live(plugin.ProfileCommand):
             raise plugin.PluginError(
                 "Driver file %s is not accessible." % self.driver)
 
-        # Must have absolute path here.
         self.hScm = win32service.OpenSCManager(
             None, None, win32service.SC_MANAGER_CREATE_SERVICE)
+
+        # First uninstall the driver
+        self.remove_service(also_close_as=False)
 
         try:
             self.hSvc = win32service.CreateService(
@@ -173,18 +177,34 @@ class Live(plugin.ProfileCommand):
 
         self.session.physical_address_space = phys_as
 
-    def remove_service(self):
+    def remove_service(self, also_close_as=True):
         self.session.logging.debug("Removing service %s", self.name)
-        # Make sure the handle is closed.
-        self.session.physical_address_space.close()
 
-        try:
-            win32service.ControlService(
-                self.hSvc, win32service.SERVICE_CONTROL_STOP)
-        except win32service.error:
-            pass
-        win32service.DeleteService(self.hSvc)
-        win32service.CloseServiceHandle(self.hSvc)
+        # Make sure the handle is closed.
+        if also_close_as:
+            self.session.physical_address_space.close()
+
+        # Stop the service if it's running.
+        if not self.hSvc:
+            try:
+                self.hSvc = win32service.OpenService(
+                    self.hScm, self.name,
+                    win32service.SERVICE_ALL_ACCESS)
+            except win32service.error:
+                self.session.logging.debug("%s service does not exist.",
+                                           self.name)
+
+        if self.hSvc:
+            self.session.logging.debug("Stopping service: %s", self.name)
+            try:
+                win32service.ControlService(
+                    self.hSvc, win32service.SERVICE_CONTROL_STOP)
+            except win32service.error as e:
+                self.session.logging.debug("Error stopping service: %s", e)
+
+            self.session.logging.debug("Deleting service: %s", self.name)
+            win32service.DeleteService(self.hSvc)
+            win32service.CloseServiceHandle(self.hSvc)
 
     def close(self):
         if self.we_started_service:
