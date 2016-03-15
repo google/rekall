@@ -89,6 +89,15 @@ class RekallProfileBuilder(object):
         elif isinstance(type, c_ast.CEnum):
             self._add_enum(name, type)
 
+        elif isinstance(type, c_ast.CProgram):
+            self.add_type(name, type.content[0])
+
+        elif isinstance(type, (c_ast.CTypedef, c_ast.CTypeDefinition)):
+            self.add_type(name, type.type_definition)
+
+        elif isinstance(type, c_ast.CTypeReference):
+            self.add_type(name, self.type_manager.get_type_ast(type.name))
+
     def _normalize_name(self, name):
         """Rekall profile strip the "struct" from the full type name."""
         parts = name.split()
@@ -97,6 +106,28 @@ class RekallProfileBuilder(object):
 
         return name
 
+    def _resolve_typedef(self, type):
+        """Return the final type that a typedef is pointing to."""
+        if isinstance(type, c_ast.CProgram):
+            return self._resolve_typedef(type.content[0])
+
+        if isinstance(type, (c_ast.CTypedef, c_ast.CTypeDefinition)):
+            referred_type = self._resolve_typedef(type.type_definition)
+            # If the target is anonymous we refer to it by the typedef name.
+            if referred_type.name and "__unknown" in referred_type.name:
+                referred_type.name = type.name
+
+            return referred_type
+
+        if isinstance(type, c_ast.CTypeReference):
+            referred_type = self.type_manager.get_type_ast(type.name)
+            if referred_type.name == type.name:
+                return type
+
+            return self._resolve_typedef(referred_type)
+
+        return type
+
     def _resolve_reference(self, type):
         """Recursively resolve the type_name.
 
@@ -104,6 +135,8 @@ class RekallProfileBuilder(object):
 
         Returns: a list of [target, target_args]
         """
+        type = self._resolve_typedef(type)
+
         if isinstance(type, (c_ast.CUnion, c_ast.CStruct, c_ast.CSimpleType)):
             return [self._normalize_name(type.name), {}]
 
@@ -132,6 +165,9 @@ class RekallProfileBuilder(object):
 
         elif isinstance(type, c_ast.CTypeReference):
             referred_type = self.type_manager.get_type_ast(type.name)
+
+            if isinstance(referred_type, c_ast.CProgram):
+                referred_type = referred_type.content[0]
 
             if not isinstance(referred_type, c_ast.CEnum):
                 # Reference loop means the type is not known, just refer to it
@@ -183,6 +219,7 @@ class RekallProfileBuilder(object):
         ]
 
     def _add_struct(self, name, struct_type):
+        local_field_id = 1
         layout = self.type_manager.get_type_layout(name)
         fields = {}
         result = [layout.bit_size // 8, fields]
@@ -197,7 +234,13 @@ class RekallProfileBuilder(object):
             else:
                 byte_offset = field_layout.bit_offset // 8
 
-            fields[field.name] = [byte_offset, [target, target_args]]
+            # Name local unknown fields in a consistent way.
+            field_name = field.name
+            if "unknown" in field_name:
+                field_name = "u%s" % local_field_id
+                local_field_id += 1
+
+            fields[field_name] = [byte_offset, [target, target_args]]
 
         self.structs[self._normalize_name(name)] = result
 

@@ -75,6 +75,20 @@ QUOTES = [
     "If I am not me, then who the hell am I?",
     "Give those people air!",
     "You call this a delusion?",
+    ("You wouldn't hurt me, would you, sweetheart? "
+     "Sweetheart, be reasonable. After all, we're married!"),
+    "What you been feeding this thing? I think it's still hungry.",
+    "Let me suggest that you take a vacation from yourself.",
+    "How did I get in this taxi? The door opened. You got in.",
+    "Don't fuck with your brain, pal. It ain't worth it.",
+    ("Take this out of the case, and stick it up your nose. Don't worry, "
+     "it's self-guiding. Just shove real hard."),
+    "What do you want, Mr. Quaid? The same as you; to remember.",
+    "You went to Rekall, remember?",
+    ("Who told you to THINK? I don't give you enough information to THINK! "
+     "You do as you're told, THAT'S WHAT YOU DO!"),
+    ("And thanks for not getting yourself killed. Maybe now, "
+     "we will meet in dreams, you never know."),
 ]
 
 def GetQuote():

@@ -144,6 +144,7 @@ def _get_parser():
             'struct cred',
             'struct dentry',
             'struct file',
+            'struct timekeeper',
             'struct fpu',
             'struct fs_struct',
             'struct list_head',
@@ -151,7 +152,9 @@ def _get_parser():
             'struct mm_struct',
             'struct module',
             'struct path',
+            'struct pv_info',
             'struct qstr',
+            'struct mount',
             'struct rb_node',
             'struct restart_block',
             'struct sched_entity',
@@ -161,6 +164,8 @@ def _get_parser():
             'struct thread_struct',
             'struct tty_ldisc',
             'struct vfsmount',
+            'struct kuid_t',
+            'struct kgid_t',
         ],
     )
 
