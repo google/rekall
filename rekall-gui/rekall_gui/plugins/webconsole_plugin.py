@@ -33,11 +33,12 @@ import webbrowser
 from rekall import constants
 from rekall import io_manager
 from rekall import plugin
+from rekall import resources
 from rekall import testlib
 from rekall import yaml_utils
 
 from rekall.ui import renderer
-
+from rekall.plugins.renderers import data_export
 from rekall_gui.plugins.webconsole import runplugin
 
 from flask import Blueprint
@@ -49,11 +50,8 @@ from manuskript import plugins as manuskript_plugins
 from manuskript import plugin as manuskript_plugin
 from manuskript import server as manuskript_server
 
-try:
-    STATIC_PATH = os.path.join(sys._MEIPASS, "webconsole", "static")  # pylint: disable=protected-access
-except AttributeError:
-    STATIC_PATH = os.path.join(os.path.dirname(__file__), "webconsole",
-                               "static")
+STATIC_PATH = resources.get_resource(
+    "static", package="rekall-gui", prefix="rekall_gui/plugins/webconsole")
 
 
 class RekallWebConsole(manuskript_plugin.Plugin):
@@ -162,10 +160,10 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
     def GetSessionsAsJson(self):
         sessions = []
         for session in self.session.session_list:
+            de_renderer = data_export.DataExportRenderer(session=session)
             # Serialize the session and append it to the sessions list.
             object_renderer = renderer.ObjectRenderer.ForTarget(
-                session, "DataExportRenderer")(
-                    session=session, renderer="DataExportRenderer")
+                session, de_renderer)(session=session, renderer=de_renderer)
 
             sessions.append(object_renderer.EncodeToJsonSafe(session))
 
@@ -376,7 +374,7 @@ class WebConsole(plugin.Command):
                            static_folder=self.worksheet_path)
 
             @bp.after_request
-            def add_header(response):  # pylint: disable=unused-variable
+            def add_header_2(response):  # pylint: disable=unused-variable
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 return response
 
@@ -400,7 +398,7 @@ class WebConsole(plugin.Command):
 
         # Handle the special file association .rkl
         if (not os.path.isdir(self.worksheet_path) and
-            self.worksheet_path.endswith(".rkl")):
+                self.worksheet_path.endswith(".rkl")):
             self.worksheet_path = os.path.dirname(self.worksheet_path)
 
         if os.path.isdir(self.worksheet_path):

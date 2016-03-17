@@ -87,8 +87,8 @@ commands["install"] = install
 commands["develop"] = develop
 
 install_requires = [
-    "rekall-core >= 1.4.0.pre3",
-    "ipython==4.0.0",
+    "rekall-core >= 1.5.0",
+    "ipython==4.1.2",
 ]
 
 
@@ -103,6 +103,7 @@ setup(
     version=MY_VERSION,
     cmdclass=commands,
     description=rekall_description,
+    namespace_packages=['rekall'],
     long_description=open("README.md").read(),
     license="GPL",
     url="https://www.rekall-forensic.com/",

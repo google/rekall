@@ -113,7 +113,9 @@ class AddressResolverMixin(object):
 
     def __init__(self, **kwargs):
         super(AddressResolverMixin, self).__init__(**kwargs)
+        self.reset()
 
+    def Reset(self):
         # A ranged collection of Module() objects.
         self._address_ranges = utils.RangedCollection()
 

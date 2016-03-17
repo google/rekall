@@ -36,7 +36,7 @@ import platform
 import re
 import win32service
 
-import rekall
+from rekall import resources
 from rekall import plugin
 from rekall.plugins.addrspaces import win32
 
@@ -102,7 +102,7 @@ class Live(plugin.ProfileCommand):
             else:
                 raise plugin.PluginError("Unsupported architecture")
 
-            self.driver = rekall.get_resource("WinPmem/%s" % driver)
+            self.driver = resources.get_resource("WinPmem/%s" % driver)
 
             # Try the local directory
             if self.driver is None:
@@ -203,7 +203,11 @@ class Live(plugin.ProfileCommand):
                 self.session.logging.debug("Error stopping service: %s", e)
 
             self.session.logging.debug("Deleting service: %s", self.name)
-            win32service.DeleteService(self.hSvc)
+            try:
+                win32service.DeleteService(self.hSvc)
+            except win32service.error as e:
+                self.session.logging.debug("Error deleting service: %s", e)
+
             win32service.CloseServiceHandle(self.hSvc)
 
     def close(self):

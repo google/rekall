@@ -23,14 +23,9 @@
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
-import platform
 import versioneer
 
-
-try:
-    from setuptools import find_packages, setup
-except ImportError:
-    from distutils.core import find_packages, setup
+from setuptools import find_packages, setup, Command
 
 rekall_description = "Rekall Memory Forensic Framework"
 
@@ -52,8 +47,7 @@ if "unknown" in MY_VERSION:
         pass
 
 install_requires = [
-    "rekall-core >= 1.4.0.pre3",
-    "ipython >= 3.0.0",
+    "rekall >= 1.5.0",
     "codegen >= 1.0",
     "Flask >= 0.10.1",
     "Flask-Sockets >= 0",
@@ -61,17 +55,35 @@ install_requires = [
     "gevent-websocket >= 0.9.3",
 ]
 
+data_files = (
+    find_data_files_directory('manuskript/static') +
+    find_data_files_directory('rekall_gui/plugins/webconsole/static')
+)
 
-# IPython's setup.py is broken since it does not include this dependency on
-# windows. For the other OS's this is OK.
-if platform.system() == "Windows":
-    install_requires.append("pyreadline >= 2.0")
+
+class CleanCommand(Command):
+    description = ("custom clean command that forcefully removes "
+                   "dist/build directories")
+    user_options = []
+    def initialize_options(self):
+        self.cwd = None
+    def finalize_options(self):
+        self.cwd = os.getcwd()
+    def run(self):
+        if os.getcwd() != self.cwd:
+            raise RuntimeError('Must be in package root: %s' % self.cwd)
+
+        os.system('rm -rf ./build ./dist')
+
+
+commands = versioneer.get_cmdclass()
+commands["clean"] = CleanCommand
 
 
 setup(
     name="rekall_gui",
     version=MY_VERSION,
-    cmdclass=versioneer.get_cmdclass(),
+    cmdclass=commands,
     description=rekall_description,
     long_description="This is the GUI component of the Rekall framework.",
     license="GPL",
@@ -86,12 +98,7 @@ setup(
     ],
     package_dir={'rekall_gui': 'rekall_gui'},
     packages=find_packages('.'),
-    include_package_data=True,
-    data_files=(
-        find_data_files_directory('manuskript/static') +
-        find_data_files_directory(
-            'rekall_gui/plugins/webconsole/static')
-    ),
+    data_files=data_files,
     entry_points="""
       [rekall.plugins]
       webconsole=rekall_gui.plugins.webconsole_plugin:RekallWebConsole

@@ -1,5 +1,4 @@
 import os
-import sys
 import StringIO
 
 from flask import Flask
@@ -9,11 +8,13 @@ from manuskript import plugins as manuskript_plugins
 
 from werkzeug import serving
 
+from rekall import resources
+
 
 # If the binary is frozen it has an empty __file__ path, then use the main
 # executable path instead.
-STATIC_PATH = os.path.join(
-    os.path.dirname(__file__ or sys.executable), "static")
+STATIC_PATH = resources.get_resource(
+    "static", package="rekall-gui", prefix="manuskript")
 
 DEFAULT_PLUGINS = [manuskript_plugins.PlainText,
                    manuskript_plugins.Markdown,

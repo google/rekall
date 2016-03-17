@@ -1,7 +1,6 @@
 """A build script for windows installation."""
 from rekall import constants
 
-import fix_deps
 import glob
 import os
 import platform
@@ -96,7 +95,7 @@ Root: HKCR; Subkey: "RekallForensicFile\shell\open\command"; ValueType: string; 
 
 
 def copy(src, dst):
-    for filename in glob.iglob(src):
+    for filename in glob.glob(src):
         dest = os.path.join(dst, os.path.basename(filename))
         if os.path.isdir(filename):
             shutil.copytree(filename, dest)
@@ -110,6 +109,11 @@ def rm(fileglob):
             shutil.rmtree(filename)
         else:
             os.remove(filename)
+
+
+def touch(path):
+    with open(path, "wb") as fd:
+        fd.write("")
 
 
 def main():
@@ -127,9 +131,6 @@ def main():
     shutil.rmtree("build", True)
     shutil.rmtree("dist", True)
 
-    print "Fixing build environment"
-    fix_deps.patch_all()
-
     print "Building with Pyinstaller"
     subprocess.call(["pyinstaller", "--onedir", "-y", "-i",
                      "resources/rekall.ico",
@@ -139,15 +140,22 @@ def main():
     subprocess.call(["python", "tools/installers/copy_dlls.py"])
 
     print "Copy resources into the package."
-    copy("rekall-core/resources/*", "dist/rekal")
+    # Recent versions of Pyinstaller already copy resources they know about.
+    # copy("rekall-core/resources/*", "dist/rekal/resources")
     copy("rekall-gui/manuskript", "dist/rekal")
     copy("rekall-gui/rekall_gui/plugins/webconsole",
-         "dist/rekal")
+         "dist/rekal/rekall_gui/plugins")
 
     print "Remove unnecessary crap added by pyinstaller."
     rm("dist/rekal/_MEI")
-    rm("dist/rekal/tcl*.dll")
+    rm("dist/rekal/tcl/*")
+    rm("dist/rekal/tk/*")
     rm("dist/rekal/tk*.dll")
+    rm("dist/rekal/tcl*.dll")
+    rm("dist/rekal/idlelib")
+    rm("dist/rekal/Include")
+    touch("dist/rekal/tcl/ignore")
+    touch("dist/rekal/tk/ignore")
 
 
 if __name__ == "__main__":

@@ -13,5 +13,4 @@ exclude *.pyc
 include rekall/_version.py
 
 # Drivers for OSX and windows.
-recursive-include resources *.sys
-recursive-include resources *.tgz
+recursive-include rekall/resources *

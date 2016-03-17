@@ -27,17 +27,14 @@ import os
 import subprocess
 import versioneer
 
-try:
-    from setuptools import find_packages, setup, Command
-except ImportError:
-    from distutils.core import find_packages, setup
+from setuptools import find_packages, setup, Command
 
 rekall_description = "Rekall Memory Forensic Framework"
 
 current_directory = os.path.dirname(__file__)
 
 
-def find_data_files_directory(source):
+def find_data_files(source):
     result = []
     for directory, _, files in os.walk(source):
         files = [os.path.join(directory, x) for x in files]
@@ -50,7 +47,7 @@ def find_data_files_directory(source):
 # approach ensures that any Rekall version will always work as tested - even
 # when external packages are upgraded in an incompatible way.
 install_requires = [
-    "PyAFF4 == 0.22",
+    "PyAFF4 == 0.23",
     "PyYAML == 3.11",
     "acora == 1.9",
     "argparse == 1.2.1",
@@ -63,6 +60,10 @@ install_requires = [
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
     "sortedcontainers == 1.4.4",
+
+    # Version 2.5.0 is broken with pyinstaller.
+    # https://github.com/pyinstaller/pyinstaller/issues/1848
+    "python-dateutil == 2.4.2",
 ]
 
 if platform.system() == "Windows":
@@ -142,10 +143,8 @@ setup(
     scripts=["rekall/rekal.py"],
     package_dir={'rekall': 'rekall'},
     packages=find_packages('.'),
-    include_package_data=True,
-    data_files=(
-        find_data_files_directory('resources')
-    ),
+    data_files=find_data_files("resources"),
+
     entry_points="""
     [rekall.plugins]
     plugins=rekall.plugins

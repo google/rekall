@@ -34,9 +34,9 @@ supported operating systems.
 import os
 import subprocess
 import tarfile
-import rekall
 
 from rekall import plugin
+from rekall import resources
 from rekall import utils
 
 from rekall.plugins.addrspaces import pmem
@@ -73,7 +73,7 @@ class Live(plugin.ProfileCommand):
                 "interactive or privileged sessions.")
 
         self.driver_path = (driver_path or
-                            rekall.get_resource("MacPmem.kext.tgz"))
+                            resources.get_resource("MacPmem.kext.tgz"))
         if self.driver_path is None:
             raise IOError("Driver resource not found.")
 
@@ -152,7 +152,8 @@ class Live(plugin.ProfileCommand):
                             ["kextunload",
                              os.path.join(tmp_name, self.member_name)])
                     except Exception as e:
-                        raise plugin.PluginError(
+                        # There isnt much we can do about it here.
+                        self.session.logging.debug(
                             "Unable to unload driver: %s" % e)
 
     def render(self, renderer):

@@ -341,7 +341,7 @@ class OSXProfile(RepositoryPlugin):
                                 profile_name, source)
                 changed_files = True
 
-        if changed_files and self.args.index or self.force_build_index:
+        if changed_files and self.args.index or self.args.force_build_index:
             renderer.format("Building index for profile {0} from {1}\n",
                             self.args.profile_name, self.args.index)
 
