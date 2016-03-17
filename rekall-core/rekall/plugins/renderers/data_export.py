@@ -165,3 +165,18 @@ class DataExportNativeTypeRenderer(DataExportObjectRenderer):
 
     def EncodeToJsonSafe(self, item, **_):
         return item.v()
+
+
+class DataExportRDFValueObjectRenderer(DataExportBaseObjectRenderer):
+    renders_type = "RDFValue"
+
+    def Summary(self, item, **_):
+        return utils.SmartStr(item.get("str", ""))
+
+    def GetState(self, item, **options):
+        result = super(DataExportRDFValueObjectRenderer, self).GetState(
+            item, **options)
+
+        result["str"] = item.SerializeToString()
+
+        return result
