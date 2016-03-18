@@ -174,9 +174,4 @@ class DataExportRDFValueObjectRenderer(DataExportBaseObjectRenderer):
         return utils.SmartStr(item.get("str", ""))
 
     def GetState(self, item, **options):
-        result = super(DataExportRDFValueObjectRenderer, self).GetState(
-            item, **options)
-
-        result["str"] = item.SerializeToString()
-
-        return result
+        return dict(str=item.SerializeToString())
