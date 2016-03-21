@@ -20,7 +20,7 @@ it through the **MmGetPhysicalMemoryRanges()** function.
 
 ### Notes
 
-1. It is rather easy to manupulate this information to subvert acquisition. Most
+1. It is rather easy to manipulate this information to subvert acquisition. Most
    acquisition tools use this information to determine where it is safe to read
    and to avoid reading from DMA mapped memory.
 
