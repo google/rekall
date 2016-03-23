@@ -673,7 +673,8 @@ class WindowsIA32PagedMemoryPae(WindowsPagedMemoryMixin,
     __pae = True
 
 
-class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin, amd64.AMD64PagedMemory):
+class WindowsAMD64PagedMemory(WindowsPagedMemoryMixin,
+                              amd64.AMD64PagedMemory):
     """A windows specific AMD64PagedMemory.
 
     Implements support for reading the pagefile if the base address space

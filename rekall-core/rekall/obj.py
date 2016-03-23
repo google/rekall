@@ -2354,7 +2354,8 @@ class Profile(object):
 
     def __dir__(self):
         """Support tab completion."""
-        return sorted(self.__dict__.keys() + list(self.known_types))
+        return sorted(self.__dict__.keys() + list(self.known_types) +
+                      dir(self.__class__))
 
     def __getattr__(self, attr):
         """Make it easier to instantiate individual members.

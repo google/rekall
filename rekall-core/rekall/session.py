@@ -36,6 +36,7 @@ import weakref
 
 from rekall import cache
 from rekall import config
+from rekall import constants
 from rekall import io_manager
 from rekall import kb
 from rekall import obj
@@ -78,6 +79,11 @@ config.DeclareOption(
     default="%(asctime)s:%(levelname)s:%(name)s:%(message)s",
     help="The format string to pass to the logging module.")
 
+config.DeclareOption(
+    "--performance", default="normal", type="Choices",
+    choices=["normal", "fast", "thorough"],
+    help="Tune Rekall's choice of algorithms, depending on performance "
+    "priority.")
 
 class RecursiveHookException(RuntimeError):
     """Raised when a hook is invoked recursively."""
@@ -597,6 +603,15 @@ class Session(object):
                            self.GetParameter("profile_path") or [])
 
         for path in repository_path:
+            # TODO(scudette): remove this hack for 1.6 release.  Github has
+            # changed their static URL access. If the user is using an old URL
+            # we warn and correct it.
+            if path in constants.OLD_DEPRECATED_URLS:
+                self.logging.warn(
+                    "Rekall's profile repository is pointing to deprecated URL "
+                    "(%s). Please update your ~/.rekallrc file.", path)
+                path = constants.PROFILE_REPOSITORIES[0]
+
             try:
                 self._repository_managers.append(
                     (path, io_manager.Factory(path, session=self)))

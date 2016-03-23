@@ -23,9 +23,16 @@ VERSION = _version.get_versions()["version"]
 CODENAME = "Furka"   # https://en.wikipedia.org/wiki/Furka_Pass
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
+# Official profile repository locations. We create the initial .rekallrc from
+# this list.
 PROFILE_REPOSITORIES = [
-    "https://raw.githubusercontent.com/google/rekall-profiles/master",
+    "https://github.com/google/rekall-profiles/raw/master",
     "http://profiles.rekall-forensic.com",
+]
+
+# Deprecated URLs that don't work any more.
+OLD_DEPRECATED_URLS = [
+    "https://raw.githubusercontent.com/google/rekall-profiles/master"
 ]
 
 

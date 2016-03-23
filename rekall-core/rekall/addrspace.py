@@ -172,11 +172,6 @@ class BaseAddressSpace(object):
         if session is None:
             raise RuntimeError("Session must be provided.")
 
-        # This is a short lived cache. If we use a static image, this cache need
-        # not expire, however, when analysing a live system we need to flush the
-        # cache frequently.
-        self.cache = utils.AgeBasedCache(max_age=20)
-
     def as_assert(self, assertion, error=None):
         """Duplicate for the assert command (so that optimizations don't disable
         them)

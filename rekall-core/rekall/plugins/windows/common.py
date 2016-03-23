@@ -202,12 +202,22 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         """Returns the correct address space class for this profile."""
         # The virtual address space implementation is chosen by the profile.
         architecture = self.profile.metadata("arch")
+        performance = self.session.GetParameter("performance")
         if architecture == "AMD64":
-            impl = "WindowsAMD64PagedMemory"
+            # If the user prefers performance we will use the simplest Address
+            # Space Implementation.
+            if performance == "fast":
+                impl = "AMD64PagedMemory"
+            else:
+                impl = "WindowsAMD64PagedMemory"
 
         # PAE profiles go with the pae address space.
         elif architecture == "I386" and self.profile.metadata("pae"):
-            impl = "WindowsIA32PagedMemoryPae"
+            if performance == "fast":
+                impl = "IA32PagedMemoryPae"
+            else:
+                impl = "WindowsIA32PagedMemoryPae"
+
         else:
             return super(WinFindDTB, self).GetAddressSpaceImplementation()
 
