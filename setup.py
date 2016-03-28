@@ -86,18 +86,6 @@ commands = versioneer.get_cmdclass()
 commands["install"] = install
 commands["develop"] = develop
 
-install_requires = [
-    "rekall-core >= 1.5.0",
-    "ipython==4.1.2",
-]
-
-
-# IPython's setup.py is broken since it does not include this dependency on
-# windows. For the other OS's this is OK.
-if platform.system() == "Windows":
-    install_requires.append("pyreadline >= 2.0")
-
-
 setup(
     name="rekall",
     version=MY_VERSION,
@@ -117,5 +105,15 @@ setup(
 
     # This requires an exact version to ensure that installing the meta package
     # pulls in tested dependencies.
-    install_requires=install_requires,
+    install_requires=[
+        "rekall-core >= 1.5.0",
+        "ipython >= 4.1.2, < 5.0",
+    ],
+
+    extras_require={
+        # The following requirements are needed in Windows.
+        ':sys_platform=="win32"': [
+            "pyreadline >= 2.0",
+        ],
+    }
 )
