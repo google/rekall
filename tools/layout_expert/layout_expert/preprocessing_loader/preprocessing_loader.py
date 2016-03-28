@@ -30,7 +30,7 @@ import itertools
 import logging
 import os
 
-from layout_expert.parser import util
+from layout_expert.parsers import util
 from layout_expert.preprocessing_visitors import include_collecting_visitor
 from layout_expert.preprocessing_parser import preprocessing_parser
 

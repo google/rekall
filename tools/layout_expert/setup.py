@@ -34,9 +34,9 @@ from setuptools.command.test import test as TestCommand
 
 current_directory = os.path.dirname(__file__)
 install_requires = [
-    "pyparsing==2.0.7",
-    "rekall-core>=1.4.1",
-    "mock==1.3.0",
+    "pyparsing > 2, < 3",
+    "rekall-core >= 1.5, < 1.6",
+    "mock > 1, < 2",
 ]
 
 

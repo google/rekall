@@ -28,7 +28,7 @@ from __future__ import unicode_literals
 import unittest
 from layout_expert.c_ast import c_ast
 from layout_expert.c_ast import c_ast_test
-from layout_expert.parser import trimming_parser
+from layout_expert.parsers import trimming_parser
 
 
 class TestTrimmingParser(c_ast_test.CASTTestCase):

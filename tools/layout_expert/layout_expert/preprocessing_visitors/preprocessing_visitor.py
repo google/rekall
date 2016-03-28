@@ -27,7 +27,7 @@ from __future__ import unicode_literals
 
 from layout_expert.c_ast import c_ast
 from layout_expert.c_ast import pre_ast
-from layout_expert.parser import expression_parser
+from layout_expert.parsers import expression_parser
 from layout_expert.preprocessing_visitors import macro_expander
 from layout_expert.preprocessing_visitors import macro_expression_evaluator_visitor
 

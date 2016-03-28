@@ -29,7 +29,7 @@ import logging
 from layout_expert.builtins import functions
 from layout_expert.builtins import types
 from layout_expert.c_ast import c_ast
-from layout_expert.parser import parser
+from layout_expert.parsers import c_parser
 from layout_expert.visitors import expression_evaluator_visitor
 from layout_expert.visitors import layout_computing_visitor
 from layout_expert.visitors import type_collecting_visitor
@@ -57,7 +57,7 @@ class TypeManager(object):
         self.trimming_dict = trimming_dict
         self.types_cast_to_void = set()
         self.progress_cb = progress_cb or (lambda *_: None)
-        self.parser = parser.Parser(type_manager=self)
+        self.parser = c_parser.Parser(type_manager=self)
         self.variables = {}
         self.types = types.get_64bit_types()
         self.functions = functions.get_arithmetic_functions()

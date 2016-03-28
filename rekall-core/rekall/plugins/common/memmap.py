@@ -21,6 +21,7 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+from rekall import plugin
 from rekall import utils
 from rekall.ui import text
 from rekall.plugins import core
@@ -124,10 +125,11 @@ class MemDumpMixin(core.DirectoryDumperMixin, MemmapMixIn):
                         break
 
                     data = task_as.read(offset, to_read)
+                    file_offset = fd.tell()
                     fd.write(data)
 
                     # Write the index file.
-                    temp_renderer.table_row(fd.tell(), to_read, offset)
+                    temp_renderer.table_row(file_offset, to_read, offset)
 
 
     def render(self, renderer):

@@ -33,8 +33,8 @@ import pyparsing
 
 from layout_expert.c_ast import c_ast
 from layout_expert.lib import parsers
-from layout_expert.parser import expression_parser
-from layout_expert.parser import util
+from layout_expert.parsers import expression_parser
+from layout_expert.parsers import util
 
 _LINE_END = pyparsing.LineEnd().suppress()
 

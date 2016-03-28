@@ -22,7 +22,6 @@
 #
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import platform
 import os
 import subprocess
 import versioneer
@@ -47,7 +46,7 @@ def find_data_files(source):
 # approach ensures that any Rekall version will always work as tested - even
 # when external packages are upgraded in an incompatible way.
 install_requires = [
-    "PyAFF4 == 0.23",
+    "PyAFF4 >= 0.23, < 0.3",
     "PyYAML == 3.11",
     "acora == 1.9",
     "argparse == 1.2.1",
@@ -65,9 +64,6 @@ install_requires = [
     # https://github.com/pyinstaller/pyinstaller/issues/1848
     "python-dateutil == 2.4.2",
 ]
-
-if platform.system() == "Windows":
-    install_requires.append("pypiwin32 == 219")
 
 
 if "VIRTUAL_ENV" not in os.environ:
@@ -154,4 +150,10 @@ setup(
     rekall = rekall.rekal:main
     """,
     install_requires=install_requires,
+    extras_require={
+        # The following requirements are needed in Windows.
+        ':sys_platform=="win32"': [
+            "pypiwin32==219",
+        ],
+    }
 )

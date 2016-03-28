@@ -31,7 +31,7 @@ import pyparsing
 from layout_expert.lib import parsers
 from layout_expert.c_ast import c_ast
 from layout_expert.c_ast import pre_ast
-from layout_expert.parser import util
+from layout_expert.parsers import util
 
 # pylint: disable=expression-not-assigned
 

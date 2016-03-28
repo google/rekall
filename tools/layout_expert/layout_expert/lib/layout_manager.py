@@ -36,8 +36,8 @@ from layout_expert.builtins import types as types_module
 from layout_expert.c_ast import c_ast
 from layout_expert.config_parser import config_parser as config_parser_module
 from layout_expert.lib import type_manager as type_manager_module
-from layout_expert.parser import trimming_parser
-from layout_expert.parser import util
+from layout_expert.parsers import trimming_parser
+from layout_expert.parsers import util
 from layout_expert.preprocessing_parser import preprocessing_parser
 from layout_expert.preprocessing_visitors import include_linking_visitor
 from layout_expert.preprocessing_loader import preprocessing_loader

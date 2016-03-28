@@ -33,7 +33,7 @@ from layout_expert.c_ast import c_ast
 from layout_expert.c_ast import c_ast_test
 from layout_expert.c_ast import pre_ast
 from layout_expert.lib import type_manager as type_manager_module
-from layout_expert.parser import expression_parser
+from layout_expert.parsers import expression_parser
 
 
 sys.setrecursionlimit(10000)

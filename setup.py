@@ -103,7 +103,6 @@ setup(
     version=MY_VERSION,
     cmdclass=commands,
     description=rekall_description,
-    namespace_packages=['rekall'],
     long_description=open("README.md").read(),
     license="GPL",
     url="https://www.rekall-forensic.com/",

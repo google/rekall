@@ -32,7 +32,6 @@ from layout_expert.builtins import gcc_constants
 
 from layout_expert.c_ast import pre_ast
 from layout_expert.lib import parsers
-from layout_expert.parser import util
 
 
 STANDARD_FUNCTION_LIKE = [

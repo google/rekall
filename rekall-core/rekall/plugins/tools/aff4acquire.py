@@ -473,29 +473,22 @@ class AFF4Acquire(plugin.ProfileCommand):
                             self.copy_physical_address_space(
                                 renderer, resolver, volume)
 
-                            # Copy files only if we're not targetting a VM.
-                            if not phys_as.virtualized:
-                                # Also grab the default files on this OS.
-                                self.copy_files(renderer, resolver, volume,
-                                                self._default_file_globs())
-
                         # We only copy files if we are running on a raw device
                         # and we're not targetting a VM.
-                        if phys_as.volatile:
-                            if not phys_as.virtualized:
-                                if self.also_pagefile:
-                                    self.copy_page_file(
-                                        renderer, resolver, volume)
+                        if phys_as.volatile and not phys_as.virtualized:
+                            if self.also_pagefile:
+                                self.copy_page_file(
+                                    renderer, resolver, volume)
 
-                                if self.also_mapped_files:
-                                    self.copy_mapped_files(
-                                        renderer, resolver, volume)
+                            if self.also_mapped_files:
+                                self.copy_mapped_files(
+                                    renderer, resolver, volume)
 
-                                # If a physical_address_space is specified, then
-                                # we only allow copying files if it is volatile.
-                                if self.files:
-                                    self.copy_files(renderer, resolver, volume,
-                                                    self.files)
+                            # If a physical_address_space is specified, then
+                            # we only allow copying files if it is volatile.
+                            if self.files:
+                                self.copy_files(renderer, resolver, volume,
+                                                self.files)
                         elif any([self.also_pagefile, self.also_mapped_files,
                                   self.files]):
                             raise RuntimeError(

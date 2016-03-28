@@ -35,7 +35,9 @@ from rekall import session as session_module
 import IPython
 from IPython.core import page
 from IPython.core import oinspect
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.terminal import embed
+
 try:
     from traitlets.config.loader import Config
 except ImportError:
@@ -159,6 +161,9 @@ class RekallShell(embed.InteractiveShellEmbed):
     def init_inspector(self):
         super(RekallShell, self).init_inspector()
 
+        # This is a hack but seems the only way to make get_ipython() work
+        # properly.
+        InteractiveShell._instance = self
         ipython_version = IPython.__version__
 
         # IPython 4 is the one we standardize on right now. This means we

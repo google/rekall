@@ -47,7 +47,7 @@ if "unknown" in MY_VERSION:
         pass
 
 install_requires = [
-    "rekall >= 1.5.0",
+    "rekall-core >= 1.5.0, < 1.6",
     "codegen >= 1.0",
     "Flask >= 0.10.1",
     "Flask-Sockets >= 0",
