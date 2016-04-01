@@ -21,8 +21,10 @@
 """Tests for json encoding/decoding."""
 import json
 import logging
+import StringIO
 
 from rekall import testlib
+from rekall import utils
 from rekall.ui import json_renderer
 from rekall.plugins.renderers import data_export
 
@@ -36,6 +38,25 @@ class JsonTest(testlib.RekallBaseUnitTestCase):
         self.renderer = json_renderer.JsonRenderer(session=self.session)
         self.encoder = self.renderer.encoder
         self.decoder = self.renderer.decoder
+
+    def testEncoderCache(self):
+        # Make the string long enough so that parts of it are garbage
+        # collected. If the encoded uses id() to deduplicate it will fail since
+        # id() might reuse across GCed objects.
+        test_string = ("this_is_a_very_long_sentence" * 10)
+        parts = [test_string[x:x+16] for x in xrange(
+            0, len(test_string), 16)]
+        with data_export.DataExportRenderer(
+                session=self.session,
+                output=StringIO.StringIO()).start() as renderer:
+            utils.WriteHexdump(renderer, test_string)
+            rows = []
+            for row in renderer.data:
+                if row[0] == "r":
+                    rows.append(row[1]["data"])
+
+            self.assertEqual(rows, parts)
+
 
     def testObjectRenderer(self):
         cases = [

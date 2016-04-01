@@ -49,7 +49,10 @@ class Win32FileWrapper(object):
 
     def read(self, offset, length):
         win32file.SetFilePointer(self.fhandle, offset, 0)
-        _, data = win32file.ReadFile(self.fhandle, length)
+        try:
+            _, data = win32file.ReadFile(self.fhandle, length)
+        except Exception:
+            return addrspace.ZEROER.GetZeros(length)
 
         return data
 

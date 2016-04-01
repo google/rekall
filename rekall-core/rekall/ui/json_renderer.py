@@ -91,9 +91,12 @@ class JsonObjectRenderer(renderer_module.ObjectRenderer):
     def cache_key_from_object(cls, item):
         """Get the cache key from the object."""
         try:
-            return item._object_id
+            return item._object_id  # pylint: disable=protected-access
         except AttributeError:
-            return id(item)
+            # For unregistered objects we can not cache them (Note: The python
+            # id() method is useless because it does not actually guarantee
+            # unique id.).
+            return None
 
     @classmethod
     def FromEncoded(cls, item, renderer):
@@ -376,12 +379,15 @@ class JsonEncoder(object):
         try:
             # The contents of this cache are guaranteed to be json safe so we
             # can copy them.
-            return copy.deepcopy(self.cache.Get(cache_key))
+            if cache_key is not None:
+                return copy.deepcopy(self.cache.Get(cache_key))
         except KeyError:
-            json_safe_item = object_renderer.EncodeToJsonSafe(item, **options)
+            pass
 
-            self.cache.Put(cache_key, json_safe_item)
-            return json_safe_item
+        json_safe_item = object_renderer.EncodeToJsonSafe(item, **options)
+
+        self.cache.Put(cache_key, json_safe_item)
+        return json_safe_item
 
 
 class _Empty(object):

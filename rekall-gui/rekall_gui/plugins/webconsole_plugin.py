@@ -87,7 +87,7 @@ class WebConsoleDocument(io_manager.DirectoryIOManager):
 
         return open(path, "wb")
 
-    def Encoder(self, data):
+    def Encoder(self, data, **_):
         return yaml_utils.encode(data)
 
     def Decoder(self, raw_data):
