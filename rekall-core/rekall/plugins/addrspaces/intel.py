@@ -347,7 +347,7 @@ class IA32PagedMemory(addrspace.PagedReader):
         string = self.base.read(addr, 4)
         return struct.unpack('<I', string)[0]
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         """Enumerate all valid memory ranges.
 
         Yields:
@@ -359,6 +359,9 @@ class IA32PagedMemory(addrspace.PagedReader):
         # PDEs and PTEs we must test
         for pde in range(0, 0x400):
             vaddr = pde << 22
+            if vaddr > end:
+                return
+
             next_vaddr = (pde + 1) << 22
             if start > next_vaddr:
                 continue
@@ -391,6 +394,9 @@ class IA32PagedMemory(addrspace.PagedReader):
             tmp1 = vaddr
             for i, pte_value in enumerate(pte_table):
                 vaddr = tmp1 | i << 12
+                if vaddr > end:
+                    return
+
                 next_vaddr = tmp1 | ((i + 1) << 12)
 
                 if start > next_vaddr:
@@ -521,13 +527,16 @@ class IA32PagedMemoryPae(IA32PagedMemory):
 
             return result
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         """A generator of address, length tuple for all valid memory regions."""
         # Pages that hold PDEs and PTEs are 0x1000 bytes each.
         # Each PDE and PTE is eight bytes. Thus there are 0x1000 / 8 = 0x200
         # PDEs and PTEs we must test.
         for pdpte_index in range(0, 4):
             vaddr = pdpte_index << 30
+            if vaddr > end:
+                return
+
             next_vaddr = (pdpte_index + 1) << 30
             if start >= next_vaddr:
                 continue
@@ -542,6 +551,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             tmp1 = vaddr
             for pde_index in range(0, 0x200):
                 vaddr = tmp1 | (pde_index << 21)
+                if vaddr > end:
+                    return
+
                 next_vaddr = tmp1 | ((pde_index + 1) << 21)
                 if start >= next_vaddr:
                     continue
@@ -577,6 +589,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
                 for i, pte_value in enumerate(pte_table):
                     if pte_value & self.valid_mask:
                         vaddr = tmp2 | i << 12
+                        if vaddr > end:
+                            return
+
                         next_vaddr = tmp2 | (i + 1) << 12
                         if start >= next_vaddr:
                             continue

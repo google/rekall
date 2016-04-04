@@ -153,8 +153,18 @@ class WindowsHighestUserAddress(common.AbstractWindowsParameterHook):
     name = "highest_usermode_address"
 
     def calculate(self):
-        return self.session.profile.get_constant_object(
+        result = self.session.profile.get_constant_object(
             "MmHighestUserAddress", "Pointer").v()
+
+        # Sometimes the pointer is not present, in that case we use hardcoded
+        # values. I dont think these values will ever change, maybe we should
+        # just hard code them anyway.
+        if result == 0:
+            if self.profile.metadata("arch") == "AMD64":
+                result = 0x7fffffeffff
+            result = 0x7ffeffff
+
+        return result
 
 
 class DTB2TaskMap(common.AbstractWindowsParameterHook):

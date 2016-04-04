@@ -1,4 +1,5 @@
 import logging
+import unittest
 
 from rekall import addrspace
 from rekall import obj

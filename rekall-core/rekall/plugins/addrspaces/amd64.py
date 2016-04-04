@@ -120,7 +120,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         """Returns the PML4, the base of the paging tree."""
         return self.dtb
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         """Enumerate all available ranges.
 
         Yields Run objects for all available ranges in the virtual address
@@ -131,6 +131,8 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         # PDEs and PTEs we must test.
         for pml4e_index in range(0, 0x200):
             vaddr = pml4e_index << 39
+            if vaddr > end:
+                return
 
             next_vaddr = (pml4e_index + 1) << 39
             if start >= next_vaddr:
@@ -145,6 +147,8 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             tmp1 = vaddr
             for pdpte_index in range(0, 0x200):
                 vaddr = tmp1 | (pdpte_index << 30)
+                if vaddr > end:
+                    return
 
                 next_vaddr = tmp1 | ((pdpte_index + 1) << 30)
                 if start >= next_vaddr:
@@ -168,7 +172,8 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
                         address_space=self.base)
                     continue
 
-                for x in self._get_available_PDEs(vaddr, pdpte_value, start):
+                for x in self._get_available_PDEs(
+                        vaddr, pdpte_value, start, end):
                     yield x
 
     def _get_pte_addr(self, vaddr, pde_value):
@@ -180,7 +185,7 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             return ((pdpte_value & 0xffffffffff000) |
                     ((vaddr & 0x3fe00000) >> 18))
 
-    def _get_available_PDEs(self, vaddr, pdpte_value, start):
+    def _get_available_PDEs(self, vaddr, pdpte_value, start, end):
         # This reads the entire PDE table at once - On
         # windows where IO is extremely expensive, its
         # about 10 times more efficient than reading it
@@ -195,6 +200,8 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
         tmp2 = vaddr
         for pde_index in range(0, 0x200):
             vaddr = tmp2 | (pde_index << 21)
+            if vaddr > end:
+                return
 
             next_vaddr = tmp2 | ((pde_index + 1) << 21)
             if start >= next_vaddr:
@@ -224,16 +231,19 @@ class AMD64PagedMemory(intel.IA32PagedMemoryPae):
             pte_table = struct.unpack("<" + "Q" * 0x200, data)
 
             for x in self._get_available_PTEs(
-                    pte_table, vaddr, start=start):
+                    pte_table, vaddr, start=start, end=end):
                 yield x
 
-    def _get_available_PTEs(self, pte_table, vaddr, start=0):
+    def _get_available_PTEs(self, pte_table, vaddr, start=0, end=2**64):
         tmp3 = vaddr
         for i, pte_value in enumerate(pte_table):
             if not pte_value & self.valid_mask:
                 continue
 
             vaddr = tmp3 | i << 12
+            if vaddr > end:
+                return
+
             next_vaddr = tmp3 | ((i + 1) << 12)
             if start >= next_vaddr:
                 continue
@@ -541,7 +551,8 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
     def IDENTITY_FRAME(self, pfn):
         """Returns the identity frame of pfn.
 
-        From http://lxr.free-electrons.com/source/arch/x86/include/asm/xen/page.h?v=3.8#L36
+        From
+        http://lxr.free-electrons.com/source/arch/x86/include/asm/xen/page.h?v=3.8#L36
         """
 
         BITS_PER_LONG = 64
@@ -601,7 +612,7 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
 
         return super(XenParaVirtAMD64PagedMemory, self).vtop(vaddr)
 
-    def _get_available_PDEs(self, vaddr, pdpte_value, start):
+    def _get_available_PDEs(self, vaddr, pdpte_value, start, end):
         # This reads the entire PDE table at once - On
         # windows where IO is extremely expensive, its
         # about 10 times more efficient than reading it
@@ -616,6 +627,8 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
         tmp2 = vaddr
         for pde_index in range(0, 0x200):
             vaddr = tmp2 | (pde_index << 21)
+            if vaddr > end:
+                return
 
             next_vaddr = tmp2 | ((pde_index + 1) << 21)
             if start >= next_vaddr:
@@ -645,10 +658,10 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
             pte_table = struct.unpack("<" + "Q" * 0x200, data)
 
             for x in self._get_available_PTEs(
-                    pte_table, vaddr, start=start):
+                    pte_table, vaddr, start=start, end=end):
                 yield x
 
-    def _get_available_PTEs(self, pte_table, vaddr, start=0):
+    def _get_available_PTEs(self, pte_table, vaddr, start=0, end=2**64):
         """Returns PFNs for each PTE entry."""
         tmp3 = vaddr
         for i, pte_value in enumerate(pte_table):
@@ -665,6 +678,9 @@ class XenParaVirtAMD64PagedMemory(AMD64PagedMemory):
                 continue
 
             vaddr = tmp3 | i << 12
+            if vaddr > end:
+                return
+
             next_vaddr = tmp3 | ((i + 1) << 12)
             if start >= next_vaddr:
                 continue

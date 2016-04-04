@@ -79,7 +79,7 @@ class MmapFileAddressSpace(addrspace.BaseAddressSpace):
 
         return result + addrspace.ZEROER.GetZeros(length - len(result))
 
-    def get_mappings(self):
+    def get_mappings(self, start=0, end=2**64):
         yield addrspace.Run(start=0,
                             end=self.fsize, file_offset=0,
                             address_space=self.base)

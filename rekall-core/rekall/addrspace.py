@@ -193,7 +193,7 @@ class BaseAddressSpace(object):
 
         return ZEROER.GetZeros(length)
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         """Generates a sequence of Run() objects.
 
         Each Run object describes a single range transformation from this
@@ -210,6 +210,7 @@ class BaseAddressSpace(object):
               the specified start address.
         """
         _ = start
+        _ = end
         return []
 
     def end(self):
@@ -236,7 +237,7 @@ class BaseAddressSpace(object):
         """
         last_voffset = last_voffset_end = 0
 
-        for run in self.get_mappings(start=start):
+        for run in self.get_mappings(start=start, end=end):
             # No more runs apply.
             if run.start > end:
                 break
@@ -289,7 +290,7 @@ class BaseAddressSpace(object):
         last_run_length = 0
         last_as = None
 
-        for run in self.get_mappings(start=start):
+        for run in self.get_mappings(start=start, end=end):
             # No more runs apply.
             if end and run.start > end:
                 break
@@ -447,8 +448,8 @@ class BufferAddressSpace(BaseAddressSpace):
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
         return len(data)
 
-    def get_mappings(self, start=None):
-        if self.end > start:
+    def get_mappings(self, start=None, end=2**64):
+        if self.end > start and self.end < end:
             yield Run(start=self.base_offset,
                       end=self.end,
                       file_offset=self.base_offset,
@@ -706,7 +707,7 @@ class RunBasedAddressSpace(PagedReader):
     def is_valid_address(self, addr):
         return self.vtop(addr) is not None
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         """Yields the mappings.
 
         Yields: A seqence of Run objects representing each run.
@@ -714,6 +715,9 @@ class RunBasedAddressSpace(PagedReader):
         for _, _, run in self.runs:
             if start > run.end:
                 continue
+
+            if run.start > end:
+                return
 
             yield run
 

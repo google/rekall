@@ -1053,6 +1053,7 @@ class SetProcessContextMixin(object):
 
     name = "cc"
     interactive = True
+    process_context = None
 
     def __enter__(self):
         """Use this plugin as a context manager.
@@ -1074,6 +1075,7 @@ class SetProcessContextMixin(object):
             self.session.SetCache("default_address_space",
                                   self.session.kernel_address_space,
                                   volatile=False)
+
         else:
             message = ("Switching to process context: {0} "
                        "(Pid {1}@{2:#x})").format(

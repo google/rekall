@@ -95,13 +95,21 @@ class BaseYaraASScanner(scan.BaseScanner):
         return next_hit - offset
 
 
-class YaraScanMixin(object):
+class YaraScanMixin(plugin.TypedProfileCommand):
     """A common implementation of yara scanner.
 
     This should be mixed with the process filter.
     """
 
     name = "yarascan"
+
+    table_header = plugin.PluginHeader(
+        dict(name="Owner"),
+        dict(name="Rule", width=10),
+        dict(name="Offset", style="address"),
+        dict(name="HexDump", style="hexdump", hex_width=16),
+        dict(name="Symbol"),
+    )
 
     @classmethod
     def args(cls, parser):
@@ -122,20 +130,37 @@ class YaraScanMixin(object):
                             help="The yara signature file to read.")
 
         parser.add_argument("--yara_expression", default=None,
-                            help="If provided we scan for this yarra "
+                            help="If provided we scan for this yara "
                             "expression.")
 
         parser.add_argument(
             "--scan_physical", default=False, type="Boolean",
             help="If specified we scan the physcial address space. Note that "
             "by default we scan the address space of the specified processes "
-            "(or if no process selectors are specified, the kernel).")
+            "(or if no process selectors are specified, the default AS).")
+
+        parser.add_argument("--start", default=0, type="IntParser",
+                            help="Start searching from this offset.")
+
+        parser.add_argument("--context", default=0x40, type="IntParser",
+                            help="Context to print after the hit.")
+
+        parser.add_argument("--pre_context", default=0, type="IntParser",
+                            help="Context to print before the hit.")
+
+        parser.add_argument("--limit", default=2**64,
+                            help="The length of data to search.")
 
     def __init__(self, string=None, scan_physical=False,
-                 yara_file=None, yara_expression=None, binary_string=None, hits=10,
+                 yara_file=None, yara_expression=None, binary_string=None,
+                 hits=10, context=0x40, start=0, limit=2**64, pre_context=0,
                  **kwargs):
         """Scan using yara signatures."""
         super(YaraScanMixin, self).__init__(**kwargs)
+        self.context = context
+        self.pre_context = pre_context
+        self.start = self.session.address_resolver.get_address_by_name(start)
+        self.end = self.start + limit
         self.hits = hits
         if yara_expression:
             self.rules_source = yara_expression
@@ -173,66 +198,72 @@ class YaraScanMixin(object):
             address_space=address_space,
             rules=self.rules)
 
-        for hit in scanner.scan(maxlen=end):
+        for hit in scanner.scan(offset=self.start, maxlen=end):
             yield hit
 
             count += 1
             if count >= self.hits:
                 break
 
-    def render_scan_physical(self, renderer):
+    def collect_scan_physical(self):
         """This method scans the physical memory."""
         for rule, address, _, _ in self.generate_hits(
                 self.physical_address_space):
-            renderer.format("Rule: {0}\n", rule)
+            if address > self.end:
+                return
 
-            context = self.physical_address_space.read(address, 0x40)
-            utils.WriteHexdump(renderer, context, base=address)
+            yield (None, rule, address, utils.HexDumpedString(
+                self.physical_address_space.read(
+                    address - self.pre_context,
+                    self.context + self.pre_context)))
 
-    def render_kernel_scan(self, renderer):
+    def collect_kernel_scan(self):
         for rule, address, _, _ in self.generate_hits(
-                self.kernel_address_space):
-            renderer.format("Rule: {0}\n", rule)
-            owner = self.session.address_resolver.format_address(address)
-            if not owner:
-                owner = "Unknown"
+                self.session.default_address_space):
+            if address > self.end:
+                return
 
-            renderer.format("Owner: {0}\n", owner)
+            symbol = self.session.address_resolver.format_address(address)
+            yield (None, rule, address, utils.HexDumpedString(
+                self.session.default_address_space.read(
+                    address - self.pre_context,
+                    self.context + self.pre_context)), symbol)
 
-            context = self.kernel_address_space.read(address, 0x40)
-            utils.WriteHexdump(renderer, context, base=address)
-
-    def render_task_scan(self, renderer, task):
+    def collect_task_scan(self, task):
         """Scan a task's address space."""
-        end = self.session.GetParameter("highest_usermode_address")
+        end = min(self.session.GetParameter("highest_usermode_address"),
+                  self.end)
         task_as = task.get_process_address_space()
 
         for rule, address, _, _ in self.generate_hits(task_as, end=end):
-            renderer.format("Rule: {0}\n", rule)
+            if address > self.end:
+                return
 
-            renderer.format(
-                "Owner: {0} ({1})\n", task,
-                self.session.address_resolver.format_address(address))
+            symbol = self.session.address_resolver.format_address(address)
+            yield (task, rule, address, utils.HexDumpedString(
+                task_as.read(
+                    address - self.pre_context,
+                    self.context + self.pre_context)), symbol)
 
-            context = task_as.read(address, 0x40)
-            utils.WriteHexdump(renderer, context, base=address)
-
-    def render(self, renderer):
+    def collect(self):
         """Render output."""
         cc = self.session.plugins.cc()
         with cc:
             if self.scan_physical:
-                return self.render_scan_physical(renderer)
+                for row in self.collect_scan_physical():
+                    yield row
 
             elif self.filtering_requested:
                 for task in self.filter_processes():
                     cc.SwitchProcessContext(task)
 
-                    self.render_task_scan(renderer, task)
+                    for row in self.collect_task_scan(task):
+                        yield row
 
             # We are searching the kernel address space
             else:
-                return self.render_kernel_scan(renderer)
+                for row in self.collect_kernel_scan():
+                    yield row
 
 
 class TestYara(testlib.SimpleTestCase):

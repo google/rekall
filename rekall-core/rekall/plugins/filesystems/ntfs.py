@@ -498,8 +498,9 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
             return self.base.read(
                 block_offset, min(length, available_length))
 
-    def get_mappings(self, start=0):
-        for run in super(RunListAddressSpace, self).get_mappings(start=start):
+    def get_mappings(self, start=0, end=2**64):
+        for run in super(RunListAddressSpace, self).get_mappings(
+                start=start, end=end):
             if start > run.end:
                 continue
 

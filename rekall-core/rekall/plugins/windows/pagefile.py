@@ -302,7 +302,7 @@ class WindowsPagedMemoryMixin(object):
         finally:
             self._resolve_vads = True
 
-    def _get_available_PTEs(self, pte_table, vaddr, start=0):
+    def _get_available_PTEs(self, pte_table, vaddr, start=0, end=2**64):
         """Scan the PTE table and yield address ranges which are valid."""
         tmp = vaddr
         for i in xrange(0, len(pte_table)):
@@ -310,10 +310,12 @@ class WindowsPagedMemoryMixin(object):
             pte_value = pte_table[i]
 
             vaddr = tmp | pfn
+            if vaddr > end:
+                return
+
             next_vaddr = tmp | ((i + 1) << 12)
             if start >= next_vaddr:
                 continue
-
 
             # A PTE value of 0 means to consult the vad, but the vad shows no
             # mapping at this virtual address, so we can just skip this PTE in

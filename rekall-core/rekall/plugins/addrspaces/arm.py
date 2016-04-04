@@ -275,7 +275,7 @@ class ArmPagedMemory(addrspace.PagedReader):
         _ = descriptor, vaddr
         return None
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         """Generate all valid addresses.
 
         Note that ARM requires page table entries for large sections to be
@@ -283,8 +283,7 @@ class ArmPagedMemory(addrspace.PagedReader):
         duplicated 16 times). We don't actually check for this here.
         """
         vaddr = 0
-        max_vaddr = 1 << 32
-        while vaddr < max_vaddr:
+        while vaddr < end:
             l1_descriptor = self.read_long_phys(self.dtb | (
                 (vaddr & self.table_index_mask) >> 18))
 
@@ -298,19 +297,22 @@ class ArmPagedMemory(addrspace.PagedReader):
             if l1_descriptor_type == 0b10:
                 # A valid super section is 16mb (1<<24) large.
                 if l1_descriptor & self.super_section_mask:
-                    yield addrspace.Run(start=vaddr,
-                                        end=vaddr + (1 << 24),
-                                        file_offset=l1_descriptor & self.super_section_base_address_mask,
-                                        address_space=self.base)
+                    yield addrspace.Run(
+                        start=vaddr,
+                        end=vaddr + (1 << 24),
+                        file_offset=(l1_descriptor &
+                                     self.super_section_base_address_mask),
+                        address_space=self.base)
 
                     vaddr += 1 << 24
                     continue
 
                 # Regular sections is 1mb large.
-                yield addrspace.Run(start=vaddr,
-                                    end=vaddr + (1 << 20),
-                                    file_offset=l1_descriptor & self.section_base_address_mask,
-                                    address_space=self.base)
+                yield addrspace.Run(
+                    start=vaddr,
+                    end=vaddr + (1 << 20),
+                    file_offset=l1_descriptor & self.section_base_address_mask,
+                    address_space=self.base)
                 vaddr += 1 << 20
                 continue
 
@@ -338,19 +340,23 @@ class ArmPagedMemory(addrspace.PagedReader):
 
             # 64kb Large (coarse) page table.
             if l2_descriptor_type == 0b01:
-                yield addrspace.Run(start=vaddr,
-                                    end=vaddr + (1 << 16),
-                                    file_offset=l2_descriptor & self.large_page_base_address_mask,
-                                    address_space=self.base)
+                yield addrspace.Run(
+                    start=vaddr,
+                    end=vaddr + (1 << 16),
+                    file_offset=(l2_descriptor &
+                                 self.large_page_base_address_mask),
+                    address_space=self.base)
                 vaddr += 1 << 16
                 continue
 
             # 4kb small page.
             if l2_descriptor_type == 0b10 or l2_descriptor_type == 0b11:
-                yield addrspace.Run(start=vaddr,
-                                    end=vaddr + (1 << 12),
-                                    file_offset=l2_descriptor & self.small_page_base_address_mask,
-                                    address_space=self.base)
+                yield addrspace.Run(
+                    start=vaddr,
+                    end=vaddr + (1 << 12),
+                    file_offset=(l2_descriptor &
+                                 self.small_page_base_address_mask),
+                    address_space=self.base)
                 vaddr += 1 << 12
                 continue
 

@@ -1,3 +1,6 @@
+import logging
+import unittest
+
 from rekall import addrspace
 from rekall import testlib
 from rekall import session
@@ -124,3 +127,19 @@ class RunBasedTest(testlib.RekallBaseUnitTestCase):
             break
 
         self.assertTrue(run)
+
+        # Check that get_mappings honors the end parameter.
+        run = None
+        for run in self.test_as.get_mappings(end=1022):
+            pass
+
+        # Check the last run. Note get_mappings may not clip the last run so it
+        # may extend past the end but should never start past the specified end
+        # point.
+        self.assertEqual(run.start, 1020)
+        self.assertEqual(run.end, 1030)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()

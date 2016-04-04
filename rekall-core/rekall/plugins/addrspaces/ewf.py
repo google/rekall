@@ -70,6 +70,6 @@ class EWFAddressSpace(addrspace.CachingAddressSpaceMixIn,
 
         return res
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
         yield addrspace.Run(start=0, end=self.ewf_file.size,
                             file_offset=0, address_space=self)

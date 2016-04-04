@@ -453,7 +453,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         data = str(target)
         if not highlights:
             try:
-                highlights = target.highlights
+                highlights = target.highlights or ()
             except AttributeError:
                 pass
 

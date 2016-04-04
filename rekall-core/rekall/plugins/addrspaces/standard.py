@@ -83,7 +83,8 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         (longval,) = struct.unpack('=I', string)
         return longval
 
-    def get_mappings(self, start=0):
+    def get_mappings(self, start=0, end=2**64):
+        _ = end
         yield addrspace.Run(start=0, end=self.fsize,
                             file_offset=0, address_space=self)
 
