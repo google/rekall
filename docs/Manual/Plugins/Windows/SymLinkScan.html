@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -678,18 +673,18 @@ open a handle to <strong>\.\pmem</strong>.</p>
 </ol>
 <h3>Sample output</h3>
 <p>Here we see the <strong>symlinkscan</strong> plugin detecting the pmem link.</p>
-<div class="highlight"><pre>    Offset(P)      #Ptr   #Hnd Creation time            From To
-- -------------- ------ ------ ------------------------ ---- ------------------------------------------------------------
-  0x00000010d470      3      2 2014-01-24 22:07:29+0000 HDAUDIO#FUNC_01&amp;VEN_8384&amp;DEV_7680&amp;SUBSYS_83847680&amp;REV_1034#4&amp;136d1aa0&amp;0&amp;0001#{65e8773e-8f56-11d0-a3b9-00a0c9223196} \Device\0000001e
+<div class="highlight"><pre>    <span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>      <span class="err">#</span><span class="n">Ptr</span>   <span class="err">#</span><span class="n">Hnd</span> <span class="n">Creation</span> <span class="n">time</span>            <span class="n">From</span> <span class="n">To</span>
+<span class="o">-</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">----</span> <span class="o">------------------------------------------------------------</span>
+  <span class="mh">0x00000010d470</span>      <span class="mi">3</span>      <span class="mi">2</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">29</span><span class="o">+</span><span class="mo">0000</span> <span class="n">HDAUDIO</span><span class="err">#</span><span class="n">FUNC_01</span><span class="o">&amp;</span><span class="n">VEN_8384</span><span class="o">&amp;</span><span class="n">DEV_7680</span><span class="o">&amp;</span><span class="n">SUBSYS_83847680</span><span class="o">&amp;</span><span class="n">REV_1034</span><span class="err">#</span><span class="mi">4</span><span class="o">&amp;</span><span class="mi">136</span><span class="n">d1aa0</span><span class="o">&amp;</span><span class="mi">0</span><span class="o">&amp;</span><span class="mo">0001</span><span class="err">#</span><span class="p">{</span><span class="mf">65e8773</span><span class="n">e</span><span class="o">-</span><span class="mf">8f</span><span class="mi">56</span><span class="o">-</span><span class="mi">11</span><span class="n">d0</span><span class="o">-</span><span class="n">a3b9</span><span class="o">-</span><span class="mo">00</span><span class="n">a0c9223196</span><span class="p">}</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="mo">0000001</span><span class="n">e</span>
 
-  0x00000040e940      1      0 2014-01-24 22:07:23+0000 Psched \Device\Psched
-  0x0000004e9490      2      1 2014-01-24 22:07:32+0000 DISPLAY#Default_Monitor#4&amp;d9dcf0b&amp;0&amp;UID0#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7} \Device\00000021
-...
-  0x00002be706f0      2      1 2014-01-24 22:07:32+0000 AppContainerNamedObjects \Sessions\1\AppContainerNamedObjects
-  0x00002bf89f20      2      1 2014-01-24 22:07:32+0000 Global \BaseNamedObjects
-  0x00002c0b8270      2      1 2014-01-24 22:07:32+0000 1 \Sessions\1\BaseNamedObjects
-  0x00002dbdbe00      1      0 2014-01-24 21:20:05+0000 pmem \Device\pmem
-  0x00002f2b7240      1      0 2014-01-24 22:07:26+0000 HCD0 \Device\USBFDO-0
+  <span class="mh">0x00000040e940</span>      <span class="mi">1</span>      <span class="mi">0</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">23</span><span class="o">+</span><span class="mo">0000</span> <span class="n">Psched</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">Psched</span>
+  <span class="mh">0x0000004e9490</span>      <span class="mi">2</span>      <span class="mi">1</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="n">DISPLAY</span><span class="err">#</span><span class="n">Default_Monitor</span><span class="err">#</span><span class="mi">4</span><span class="o">&amp;</span><span class="n">d9dcf0b</span><span class="o">&amp;</span><span class="mi">0</span><span class="o">&amp;</span><span class="n">UID0</span><span class="err">#</span><span class="p">{</span><span class="n">e6f07b5f</span><span class="o">-</span><span class="n">ee97</span><span class="o">-</span><span class="mi">4</span><span class="n">a90</span><span class="o">-</span><span class="n">b076</span><span class="o">-</span><span class="mf">33f</span><span class="mi">57</span><span class="n">bf4eaa7</span><span class="p">}</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="mo">00000021</span>
+<span class="p">...</span>
+  <span class="mh">0x00002be706f0</span>      <span class="mi">2</span>      <span class="mi">1</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="n">AppContainerNamedObjects</span> <span class="err">\</span><span class="n">Sessions</span><span class="err">\</span><span class="mi">1</span><span class="err">\</span><span class="n">AppContainerNamedObjects</span>
+  <span class="mh">0x00002bf89f20</span>      <span class="mi">2</span>      <span class="mi">1</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="n">Global</span> <span class="err">\</span><span class="n">BaseNamedObjects</span>
+  <span class="mh">0x00002c0b8270</span>      <span class="mi">2</span>      <span class="mi">1</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="mi">1</span> <span class="err">\</span><span class="n">Sessions</span><span class="err">\</span><span class="mi">1</span><span class="err">\</span><span class="n">BaseNamedObjects</span>
+  <span class="mh">0x00002dbdbe00</span>      <span class="mi">1</span>      <span class="mi">0</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mo">05</span><span class="o">+</span><span class="mo">0000</span> <span class="n">pmem</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">pmem</span>
+  <span class="mh">0x00002f2b7240</span>      <span class="mi">1</span>      <span class="mi">0</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">26</span><span class="o">+</span><span class="mo">0000</span> <span class="n">HCD0</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">USBFDO</span><span class="o">-</span><span class="mi">0</span>
 </pre></div>
 
 <p>

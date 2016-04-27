@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -647,18 +642,18 @@ still boots (In real mode). The kernel then keeps this information and returns
 it through the <strong>MmGetPhysicalMemoryRanges()</strong> function.</p>
 <h3>Notes</h3>
 <ol>
-<li>It is rather easy to manupulate this information to subvert acquisition. Most
+<li>It is rather easy to manipulate this information to subvert acquisition. Most
    acquisition tools use this information to determine where it is safe to read
    and to avoid reading from DMA mapped memory.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win8.1.raw 15:19:26&gt; phys_map
--------------------&gt; phys_map()
-  Phys Start      Phys End    Number of Pages
--------------- -------------- ---------------
-0x000000001000 0x00000009f000 158
-0x000000100000 0x000000102000 2
-0x000000103000 0x00003fff0000 261869
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">15</span><span class="o">:</span><span class="mi">19</span><span class="o">:</span><span class="mi">26</span><span class="o">&gt;</span> <span class="n">phys_map</span>
+<span class="o">-------------------&gt;</span> <span class="n">phys_map</span><span class="p">()</span>
+  <span class="n">Phys</span> <span class="n">Start</span>      <span class="n">Phys</span> <span class="n">End</span>    <span class="n">Number</span> <span class="n">of</span> <span class="n">Pages</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">---------------</span>
+<span class="mh">0x000000001000</span> <span class="mh">0x00000009f000</span> <span class="mi">158</span>
+<span class="mh">0x000000100000</span> <span class="mh">0x000000102000</span> <span class="mi">2</span>
+<span class="mh">0x000000103000</span> <span class="mh">0x00003fff0000</span> <span class="mi">261869</span>
 </pre></div>
 
 <p>

@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> docs
  </a>
@@ -172,25 +173,23 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li class='active'>
-          <a href='/docs/Manual/overview.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'>
+        <li>
+          <a href='/docs/Manual/Plugins' class="category-directory-link">
+            Plugins
+          </a>
+        </li>
+        <li class='active'>
+          <a href='#Rekall Overview' class="category-link">
             Rekall Overview
           </a>
         </li>
         <li>
-          <a href='/docs/Manual/tutorial.html' class="category-link">
+          <a href='#Rekall Tutorial' class="category-link">
             Rekall Tutorial
           </a>
         </li>
-        </ul>
-        <li>
-          <a href='/docs/Manual/Plugins' class="category-link">
-            Plugins
-          </a>
-        </li>
-        </ul>
-
-
+        </ul></ul>
   </div>
 
   <div class="col-md-10">
@@ -211,13 +210,12 @@ ript>
 </nav>
 
 
-<h1>Rekall Overview</h1>
+<h1 id="#Rekall Overview" class="anchor" >Rekall Overview</h1>
+
 
 <div class="abstract">
-
+<h2></h2>
 </div>
-
-
 
 
 
@@ -380,6 +378,10 @@ analysis solution for at least Windows, OSX and Linux.</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

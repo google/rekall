@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -652,16 +647,16 @@ memory.</p>
 <p>Optionally, if a dump directory is provided the DER encoded certificates are
 also dumped to files in the specified directory.</p>
 <h3>Sample Output</h3>
-<div class="highlight"><pre>win8.1.raw 22:07:35&gt; certscan
--------------------&gt; certscan()
-   Address     Type       Length     Description
--------------- ---------- ---------- -----------
-0x000000030c95 X509       1287       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Windows
-0x00000003119c X509       1499       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Windows Production PCA 2011
-0x000000031b94 X509       1653       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Time-Stamp PCA 2010
-0x000000032209 X509       1246       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/OU=MOPR/OU=nCipher DSE ESN:F528-3777-8A76/CN=Microsoft Time-Stamp Service
-0x00000017114e X509       1499       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Windows Production PCA 2011
-0x000000171b46 X509       1653       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Time-Stamp PCA 2010
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> <span class="n">certscan</span>
+<span class="o">-------------------&gt;</span> <span class="n">certscan</span><span class="p">()</span>
+   <span class="n">Address</span>     <span class="n">Type</span>       <span class="n">Length</span>     <span class="n">Description</span>
+<span class="o">--------------</span> <span class="o">----------</span> <span class="o">----------</span> <span class="o">-----------</span>
+<span class="mh">0x000000030c95</span> <span class="n">X509</span>       <span class="mi">1287</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span>
+<span class="mh">0x00000003119c</span> <span class="n">X509</span>       <span class="mi">1499</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Production</span> <span class="n">PCA</span> <span class="mi">2011</span>
+<span class="mh">0x000000031b94</span> <span class="n">X509</span>       <span class="mi">1653</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">PCA</span> <span class="mi">2010</span>
+<span class="mh">0x000000032209</span> <span class="n">X509</span>       <span class="mi">1246</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">MOPR</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">nCipher</span> <span class="n">DSE</span> <span class="n">ESN</span><span class="o">:</span><span class="n">F528</span><span class="o">-</span><span class="mi">3777</span><span class="o">-</span><span class="mi">8</span><span class="n">A76</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">Service</span>
+<span class="mh">0x00000017114e</span> <span class="n">X509</span>       <span class="mi">1499</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Production</span> <span class="n">PCA</span> <span class="mi">2011</span>
+<span class="mh">0x000000171b46</span> <span class="n">X509</span>       <span class="mi">1653</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">PCA</span> <span class="mi">2010</span>
 </pre></div>
 
 <p>

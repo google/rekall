@@ -269,11 +269,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#find_kernelslide' class="category-link">
-            find_kernelslide
-          </a>
-        </li>
-        <li>
           <a href='#fstat' class="category-link">
             fstat
           </a>
@@ -399,6 +394,11 @@ ript>
           </a>
         </li>
         <li>
+          <a href='#raise_the_roof' class="category-link">
+            raise_the_roof
+          </a>
+        </li>
+        <li>
           <a href='#search' class="category-link">
             search
           </a>
@@ -497,7 +497,7 @@ ript>
 <div class="plugin_description">
 <div class="abstract">
 <h2>Copy the physical address space to an AFF4 file.</h2>
-<p>NOTE: This plugin does not required a working profile - unless the user also
+<p>NOTE: This plugin does not require a working profile - unless the user also
 wants to copy the pagefile or mapped files. In that case we must analyze the
 live memory to gather the required files.</p>
 </div>
@@ -507,10 +507,13 @@ live memory to gather the required files.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>also_files</p></td><td><p>Also get mapped or opened files (requires a profile) (type: Boolean)</p>
+<tr><td><p>also_mapped_files</p></td><td><p>Also get mapped or opened files (requires a profile) (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>also_pagefile</p></td><td><p>Also get the pagefile/swap partition (requires a profile) (type: Boolean)</p>
+</ul></td></tr><tr><td><p>also_memory</p></td><td><p>Also acquire physical memory. If not specified we acquire physical memory only when no other operation is specified. (type: Boolean)</p></td></tr><tr><td><p>also_pagefile</p></td><td><p>Also get the pagefile/swap partition (requires a profile) (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>append</p></td><td><p>Append to the current volume.. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
 </ul></td></tr><tr><td><p>compression</p></td><td><p>The compression to use.</p>
@@ -524,6 +527,9 @@ live memory to gather the required files.</p>
 </ul></td></tr><tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.aff4 in current directory.</p>
 <ul>
 <li>Default: output.aff4</li>
+</ul></td></tr><tr><td><p>files</p></td><td><p>Also acquire files matching the following globs. (type: ArrayStringParser)</p>
+<ul>
+<li>Default: </li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -549,9 +555,9 @@ live memory to gather the required files.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Required)</p></td></tr><tr><td><p>regex</p></td><td><p>Regex of filenames to dump.</p>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Required)</p></td></tr><tr><td><p>regex</p></td><td><p>One or more Regex of filenames to dump. (type: ArrayStringParser)</p>
 <ul>
-<li>Default: .</li>
+<li>Default: .+</li>
 </ul></td></tr><tr><td><p>volume</p></td><td><p>Volume to list.</p></td></tr>
 </tbody>
 </table>
@@ -583,6 +589,9 @@ live memory to gather the required files.</p>
 </ul></td></tr><tr><td><p>regex</p></td><td><p>Regex of filenames to dump.</p>
 <ul>
 <li>Default: .</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr><tr><td><p>volume</p></td><td><p>Volume to list.</p></td></tr>
 </tbody>
 </table>
@@ -999,22 +1008,6 @@ are valid in the Search plugin. It supports:</p>
 
 </div>
 
-<h1 id="find_kernelslide" class="anchor">find_kernelslide</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.linux.common.LinuxFindKernelSlide-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>Locate the slide value if the kernel physical base has been relocated.</h2>
-</div>
-
-
-
-
-</div>
-
 <h1 id="fstat" class="anchor">fstat</h1>
 
 <a class="btn btn-default epydoc_link"
@@ -1340,9 +1333,15 @@ server interactively.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>path_to_repository</p></td><td><p>The path to the profile repository</p>
+<tr><td><p>build_target</p></td><td><p>A single target to build. (type: StringParser)</p></td></tr><tr><td><p>builder_args</p></td><td><p>Optional args for the builder. (type: ArrayStringParser)</p></td></tr><tr><td><p>executable</p></td><td><p>The path to the rekall binary. This is used for spawning multiple processes.</p></td></tr><tr><td><p>force_build_index</p></td><td><p>Forces building the index. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>path_to_repository</p></td><td><p>The path to the profile repository</p>
 <ul>
 <li>Default: .</li>
+</ul></td></tr><tr><td><p>processes</p></td><td><p>Number of concurrent workers. (type: IntParser)</p>
+<ul>
+<li>Default: 4</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -1660,6 +1659,31 @@ same time:</p>
   dtb: A potential dtb to be used.</p>
 </div>
 
+
+
+
+</div>
+
+<h1 id="raise_the_roof" class="anchor">raise_the_roof</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.core.RaisingTheRoof-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>A plugin that exists to break your tests and make you cry.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>exception_class</p></td><td><p>The exception class to raise.</p></td></tr><tr><td><p>exception_text</p></td><td><p>The text to initialize the exception with.</p></td></tr>
+</tbody>
+</table>
+</div>
 
 
 

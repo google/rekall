@@ -1,0 +1,589 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/Windows/Win32_GUI/index.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-2">
+    
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
+ <a href="/docs/Manual/Plugins/Windows/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Windows
+ </a>
+
+ <a href='/docs/Manual/Plugins/Windows/Win32_GUI/index.html' class="btn btn-default btn-lg btn-block">
+   Win32_GUI
+ </a>
+ <p>
+
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#atoms' class="category-link">
+            atoms
+          </a>
+        </li>
+        <li>
+          <a href='#atomscan' class="category-link">
+            atomscan
+          </a>
+        </li>
+        <li>
+          <a href='#desktops' class="category-link">
+            desktops
+          </a>
+        </li>
+        <li>
+          <a href='#eventhooks' class="category-link">
+            eventhooks
+          </a>
+        </li>
+        <li>
+          <a href='#gahti' class="category-link">
+            gahti
+          </a>
+        </li>
+        <li>
+          <a href='#messagehooks' class="category-link">
+            messagehooks
+          </a>
+        </li>
+        <li>
+          <a href='#sessions' class="category-link">
+            sessions
+          </a>
+        </li>
+        <li>
+          <a href='#userhandles' class="category-link">
+            userhandles
+          </a>
+        </li>
+        <li>
+          <a href='#windows_stations' class="category-link">
+            windows_stations
+          </a>
+        </li>
+        </ul></ul>
+  </div>
+
+  <div class="col-md-10">
+    
+<div class="plugin_doc">
+<h1 id="Windows GUI Plugins" class="anchor" >Windows GUI Plugins</h1>
+
+
+
+<h1 id="atoms" class="anchor">atoms</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.atoms.Atoms-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Print session and window station atom tables.</h2>
+<p>From:
+http://msdn.microsoft.com/en-us/library/windows/desktop/ms649053.aspx</p>
+<p>An atom table is a system-defined table that stores strings and
+corresponding identifiers. An application places a string in an atom table
+and receives a 16-bit integer, called an atom, that can be used to access
+the string. A string that has been placed in an atom table is called an atom
+name.</p>
+<p>The global atom table is available to all applications. When an application
+places a string in the global atom table, the system generates an atom that
+is unique throughout the system. Any application that has the atom can
+obtain the string it identifies by querying the global atom table.</p>
+<p>(The global atom tables are only global within each session).</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+<p>Using this plugin you can find registered window messages, rogue injected DLL
+paths, window class names, etc.</p>
+<p>Sample output:</p>
+<div class="highlight"><pre>  Offset(P)    Session    WindowStation           Atom      RefCount   HIndex     Pinned     Name
+-------------- ---------- ------------------ -------------- ---------- ---------- ---------- ----
+0xf8a002871020 0          WinSta0                    0xc001 1          1          True       StdExit
+0xf8a002871020 0          WinSta0                    0xc002 1          2          True       StdNewDocument
+0xf8a002871020 0          WinSta0                    0xc003 1          3          True       StdOpenDocument
+0xf8a002871020 0          WinSta0                    0xc004 1          4          True       StdEditDocument
+0xf8a002871020 0          WinSta0                    0xc005 1          5          True       StdNewfromTemplate
+0xf8a002871020 0          WinSta0                    0xc006 1          6          True       StdCloseDocument
+0xf8a002871020 0          WinSta0                    0xc007 1          7          True       StdShowItem
+0xf8a002871020 0          WinSta0                    0xc008 1          8          True       StdDoVerbItem
+0xf8a002871020 0          WinSta0                    0xc009 1          9          True       System
+0xf8a002871020 0          WinSta0                    0xc00a 1          10         True       OLEsystem
+0xf8a002871020 0          WinSta0                    0xc00b 1          11         True       StdDocumentName
+0xf8a002871020 0          WinSta0                    0xc00c 1          12         True       Protocols
+0xf8a002871020 0          WinSta0                    0xc00d 1          13         True       Topics
+0xf8a002871020 0          WinSta0                    0xc00e 1          14         True       Formats
+0xf8a002871020 0          WinSta0                    0xc00f 1          15         True       Status
+0xf8a002871020 0          WinSta0                    0xc010 1          16         True       EditEnvItems
+0xf8a002811020 0          ------------------         0xc045 2          69         False      MSUIM.Msg.LBUpdate
+0xf8a002811020 0          ------------------         0xc046 2          70         False      MSUIM.Msg.MuiMgrDirtyUpdate
+0xf8a002811020 0          ------------------         0xc047 1          71         False      C:\Windows\system32\wls0wndh.dll
+0xf8a002811020 0          ------------------         0xc048 27         72         False      {FB8F0821-0164-101B-84ED-08002B2EC713}
+0xf8a002811020 0          ------------------         0xc049 2          73         False      MMDEVAPI
+</pre></div>
+</div>
+
+<h1 id="atomscan" class="anchor">atomscan</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.atoms.AtomScan-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Pool scanner for _RTL_ATOM_TABLE</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>scan_in_kernel</p></td><td><p>Scan in the kernel address space (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>sort-by</p></td><td><p>Sort by [offset | atom | refcount]</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>atom</li>
+<li>refcount</li>
+<li>offset</li>
+</ul>
+</li>
+<li>
+<p>Default: offset</p>
+</li>
+</ul></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="desktops" class="anchor">desktops</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.windowstations.WinDesktops-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Print information on each desktop.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="eventhooks" class="anchor">eventhooks</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Print details on windows event hooks</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="gahti" class="anchor">gahti</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.userhandles.Gahti-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Dump the USER handle type information.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="messagehooks" class="anchor">messagehooks</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.userhandles.WinMessageHooks-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>List desktop and thread window message hooks.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="sessions" class="anchor">sessions</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.sessions.Sessions-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>List details on _MM_SESSION_SPACE (user logon sessions).</h2>
+<p>Windows uses sessions in order to separate processes. Sessions are used to
+separate the address spaces of windows processes.</p>
+<p>Note that this plugin traverses the ProcessList member of the session object
+to list the processes - yet another list _EPROCESS objects are on.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="userhandles" class="anchor">userhandles</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.userhandles.UserHandles-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Dump the USER handle tables</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>free</p></td><td><p>Also include free handles. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>type</p></td><td><p>Filter handle type by this Regular Expression.</p></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="windows_stations" class="anchor">windows_stations</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.gui.windowstations.WindowsStations-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Displays all the windows stations by following lists.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+  </div>
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
+  </script>
+  </div>
+ </body>
+</html>
+

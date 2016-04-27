@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -676,30 +671,30 @@ possible to tell immediately if the malware is running on the machine.</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win8.1.raw 23:46:56&gt; mutantscan scan_in_kernel=1
--------------------&gt; mutantscan(scan_in_kernel=1)
-    Offset(P)      #Ptr #Hnd Signal     Thread           CID Name
-- -------------- ------ ---- ------ -------------- --------- ----
-  0xe0000007f810      3  2 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:thumbcache_sr.db!dfMaintainer
-  0xe0000007f8d0      3  2 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:thumbcache_1600.db!dfMaintainer
-  0xe000000b8d00  32722  1 1    0x000000000000           BcdSyncMutant
-  0xe00000624240  32769  1 0    0xe00000624700  556:1396 F659A567-8ACB-4E4A-92A7-5C2DD1884F72
-  0xe000006f4a60  32768  1 0    0xe000006dc080 2332:2460 Instance2:  ESENT Performance Data Schema Version 255
-  0xe00001253080  32768  1 0    0xe000007fd080  880:3144 Instance3:  ESENT Performance Data Schema Version 255
-  0xe00001262360      2  1 1    0x000000000000           ARC_AppRepSettings_Mutex
-  0xe00001272530      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_1024.db!dfMaintainer
-  0xe000012725f0      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_256.db!dfMaintainer
-  0xe000012726b0      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_96.db!dfMaintainer
-  0xe00001272770      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_48.db!dfMaintainer
-  0xe00001272ac0 131007  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_32.db!dfMaintainer
-  0xe0000128e1e0 131005  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_16.db!dfMaintainer
-  0xe0000129a2c0  32734  1 1    0x000000000000           SmartScreen_AppRepSettings_Mutex
-  0xe000012c7950 131061  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_idx.db!IconCacheInit
-  0xe000012c7a10      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_wide_alternate.db!dfMaintainer
-  0xe000012c7ad0      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_exif.db!dfMaintainer
-  0xe000012c7b90      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_wide.db!dfMaintainer
-  0xe000012c7c50      5  4 1    0x000000000000           C::Users:test:AppData:Local:Microsoft:Windows:Explorer:iconcache_sr.db!dfMaintainer
-...
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">23</span><span class="o">:</span><span class="mi">46</span><span class="o">:</span><span class="mi">56</span><span class="o">&gt;</span> <span class="n">mutantscan</span> <span class="n">scan_in_kernel</span><span class="o">=</span><span class="mi">1</span>
+<span class="o">-------------------&gt;</span> <span class="n">mutantscan</span><span class="p">(</span><span class="n">scan_in_kernel</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>      <span class="err">#</span><span class="n">Ptr</span> <span class="err">#</span><span class="n">Hnd</span> <span class="n">Signal</span>     <span class="n">Thread</span>           <span class="n">CID</span> <span class="n">Name</span>
+<span class="o">-</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">----</span> <span class="o">------</span> <span class="o">--------------</span> <span class="o">---------</span> <span class="o">----</span>
+  <span class="mh">0xe0000007f810</span>      <span class="mi">3</span>  <span class="mi">2</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">thumbcache_sr</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe0000007f8d0</span>      <span class="mi">3</span>  <span class="mi">2</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">thumbcache_1600</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe000000b8d00</span>  <span class="mi">32722</span>  <span class="mi">1</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">BcdSyncMutant</span>
+  <span class="mh">0xe00000624240</span>  <span class="mi">32769</span>  <span class="mi">1</span> <span class="mi">0</span>    <span class="mh">0xe00000624700</span>  <span class="mi">556</span><span class="o">:</span><span class="mi">1396</span> <span class="n">F659A567</span><span class="o">-</span><span class="mi">8</span><span class="n">ACB</span><span class="o">-</span><span class="mf">4E4</span><span class="n">A</span><span class="o">-</span><span class="mi">92</span><span class="n">A7</span><span class="o">-</span><span class="mi">5</span><span class="n">C2DD1884F72</span>
+  <span class="mh">0xe000006f4a60</span>  <span class="mi">32768</span>  <span class="mi">1</span> <span class="mi">0</span>    <span class="mh">0xe000006dc080</span> <span class="mi">2332</span><span class="o">:</span><span class="mi">2460</span> <span class="n">Instance2</span><span class="o">:</span>  <span class="n">ESENT</span> <span class="n">Performance</span> <span class="n">Data</span> <span class="n">Schema</span> <span class="n">Version</span> <span class="mi">255</span>
+  <span class="mh">0xe00001253080</span>  <span class="mi">32768</span>  <span class="mi">1</span> <span class="mi">0</span>    <span class="mh">0xe000007fd080</span>  <span class="mi">880</span><span class="o">:</span><span class="mi">3144</span> <span class="n">Instance3</span><span class="o">:</span>  <span class="n">ESENT</span> <span class="n">Performance</span> <span class="n">Data</span> <span class="n">Schema</span> <span class="n">Version</span> <span class="mi">255</span>
+  <span class="mh">0xe00001262360</span>      <span class="mi">2</span>  <span class="mi">1</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">ARC_AppRepSettings_Mutex</span>
+  <span class="mh">0xe00001272530</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_1024</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe000012725f0</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_256</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe000012726b0</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_96</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe00001272770</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_48</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe00001272ac0</span> <span class="mi">131007</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_32</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe0000128e1e0</span> <span class="mi">131005</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_16</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe0000129a2c0</span>  <span class="mi">32734</span>  <span class="mi">1</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">SmartScreen_AppRepSettings_Mutex</span>
+  <span class="mh">0xe000012c7950</span> <span class="mi">131061</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_idx</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">IconCacheInit</span>
+  <span class="mh">0xe000012c7a10</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_wide_alternate</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe000012c7ad0</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_exif</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe000012c7b90</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_wide</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+  <span class="mh">0xe000012c7c50</span>      <span class="mi">5</span>  <span class="mi">4</span> <span class="mi">1</span>    <span class="mh">0x000000000000</span>           <span class="n">C</span><span class="o">::</span><span class="n">Users</span><span class="o">:</span><span class="n">test</span><span class="o">:</span><span class="n">AppData</span><span class="o">:</span><span class="n">Local</span><span class="o">:</span><span class="n">Microsoft</span><span class="o">:</span><span class="n">Windows</span><span class="o">:</span><span class="n">Explorer</span><span class="o">:</span><span class="n">iconcache_sr</span><span class="p">.</span><span class="n">db</span><span class="o">!</span><span class="n">dfMaintainer</span>
+<span class="p">...</span>
 </pre></div>
 
 <p>

@@ -172,38 +172,38 @@ ript>
 include various presentations and papers written by Rekall contributors. Here
 you will find Rekall specific manuals and details information about all
 available plugins.</p> <ul class="nav nav-sidebar">
-    <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
+    <ul class='nav nav-pills nav-stacked'><li>
           <a href='/docs/MemoryAnalysis.html' class="category-link">
             Memory Analysis Course
           </a>
         </li>
-        </ul>
+        </ul><ul class='nav nav-pills nav-stacked'>
         <li>
-          <a href='/docs/Developers' class="category-link">
+          <a href='/docs/Developers' class="category-directory-link">
             Developers
           </a>
         </li>
         
         <li>
-          <a href='/docs/References' class="category-link">
+          <a href='/docs/References' class="category-directory-link">
             References
           </a>
         </li>
         
         <li>
-          <a href='/docs/GUI' class="category-link">
+          <a href='/docs/GUI' class="category-directory-link">
             GUI
           </a>
         </li>
         
         <li>
-          <a href='/docs/Manual' class="category-link">
+          <a href='/docs/Manual' class="category-directory-link">
             Manual
           </a>
         </li>
         
         <li>
-          <a href='/docs/Tools' class="category-link">
+          <a href='/docs/Tools' class="category-directory-link">
             Tools
           </a>
         </li>
@@ -224,6 +224,10 @@ available plugins.</p> <ul class="nav nav-sidebar">
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

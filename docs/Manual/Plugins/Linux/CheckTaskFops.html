@@ -358,6 +358,11 @@ ript>
             vaddump
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -436,11 +441,11 @@ pointer resides within a known module or the kernel image.</p>
 </ul>
 <h3>Sample output</h3>
 <p>Expect blank output on clean systems.</p>
-<div class="highlight"><pre>pmem 15:44:30&gt; check_task_fops
--------------&gt; check_proc_fops()
-   DirEntry    Path                                               Member                  Address     Module              
--------------- -------------------------------------------------- -------------------- -------------- --------------------
-pmem 15:44:35&gt; 
+<div class="highlight"><pre><span class="n">pmem</span> <span class="mi">15</span><span class="o">:</span><span class="mi">44</span><span class="o">:</span><span class="mi">30</span><span class="o">&gt;</span> <span class="n">check_task_fops</span>
+<span class="o">-------------&gt;</span> <span class="n">check_proc_fops</span><span class="p">()</span>
+   <span class="n">DirEntry</span>    <span class="n">Path</span>                                               <span class="n">Member</span>                  <span class="n">Address</span>     <span class="n">Module</span>              
+<span class="o">--------------</span> <span class="o">--------------------------------------------------</span> <span class="o">--------------------</span> <span class="o">--------------</span> <span class="o">--------------------</span>
+<span class="n">pmem</span> <span class="mi">15</span><span class="o">:</span><span class="mi">44</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> 
 </pre></div>
 
 <p>

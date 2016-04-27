@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -656,44 +651,44 @@ signature in order to identify the executable version.</p>
 <a href="VersionScan.html">version_scan</a> module to search for RSDS signatures in
 physical memory.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win7_trial_64bit.dmp.E01 23:48:26&gt; version_modules
-  Offset (V)   Name                 GUID/Version                     PDB
--------------- -------------------- -------------------------------- ------------------------------
-0xf800027f4b0c ntoskrnl.exe         C07170995AA8441B952E3B9AE3F3754B2 ntkrnlmp.pdb
-0xf8000262deb4 hal.dll              0C72B43B8AC64E22AB88B564E69330372 hal.pdb
-0xf88002d34af4 wanarp.sys           7BA2309F029F4DE7878AED80636C2D132 wanarp.pdb
-0xf8800183eed4 TDI.SYS              C519554437F04B63BC39FF4E69578DC42 tdi.pdb
-0xf88000d95b24 volmgrx.sys          C047BA32ABCB4A948CBB8930F352B1032 volmgrx.pdb
-0xf88003de7c60 dump_dumpfve.sys     A2CC4DFB86424750871BCB8E1E841E3C1 dumpfve.pdb
-0xf880019d4e00 watchdog.sys         79ACBD31D1BD428A8311AD9D5DCDEAA61 watchdog.pdb
-0xf8800111004c cng.sys              F0AA00E320D4468A9D3F7078E2AE2BF52 cng.pdb
-0xf88002c2e648 csc.sys              56B7C3B9040B47D9821E6A57E6A5AE4A1 csc.pdb
-0xf88000c02f48 CI.dll               5F1BDC2205AC402CB0F09FC7CF17A3701 ci.pdb
-0xf88003c3f2dc USBD.SYS             BE6200B21204452DADDF85CED51A5BDE1 usbd.pdb
-0xf88002d0a1fc netbios.sys          084EB51DBDE844CF9EAD3B5FDFABDC721 netbios.pdb
-0xf88000cc80a0 mcupdate.dll         8C7A27566CD54FB9A00AF26B5BF941651 mcupdate_GenuineIntel.pdb
-0xf8800145c920 ndis.sys             40D6C85AC9F74887A652601839A1F56D2 ndis.pdb
-0xf880019eb04c rdpencdd.sys         C299649119AC4CC888F37C32A216781A1 RDPENCDD.pdb
-0xf88003814d08 srv.sys              20C4A475BE954C10997EAD2C623E40C32 srv.pdb
-0xf88003a52c10 raspptp.sys          C9106AFB80474EFCAF9384DA26CC35622 raspptp.pdb
-0xf880019b42ec VIDEOPRT.SYS         1B0FC2CC31FE41CEBEAC4ABB7375EA481 videoprt.pdb
-0xf88000fda340 PCIIDEX.SYS          2C4F146DA2774ACEA1D5499284DDDB271 pciidex.pdb
-0xf88003c2962c HIDCLASS.SYS         1815DD7E268B4BB9BCD5226204CFEC9C1 hidclass.pdb
-0xf88000fd105c intelide.sys         B72598DF61A84806B7AC593BA128300C1 intelide.pdb
-0xf88003a37320 raspppoe.sys         39B224364B9042649CA0CDB8270762931 raspppoe.pdb
-0xf88000e040ec atapi.sys            4E82D8C0AB5A41799B979539D280167D1 atapi.pdb
-0xf88002cba464 netbt.sys            840D3E3C828C4D60A905DC82D8CBF8FA2 netbt.pdb
-0xf880011f647c kbdclass.sys         D5F7E088FAF44B60A3774197A9ADEEC01 kbdclass.pdb
-0xf88000e361f0 amdxata.sys          8D1A5FFBAEEA4D388F8B7B3B9378C3671 amdxata.pdb
-0xf880031abb04 srvnet.sys           608D364BC5524794BD70C89773BD51EF2 srvnet.pdb
-0xf880028fa614 bowser.sys           26FAC99A52F8439E9A5B8B4B37F90D5B1 bowser.pdb
-0xf88002ddb6f4 dfsc.sys             827F5D478C94478299C7FEC7FEE4DAFA1 dfsc.pdb
-0xf880011bf9dc fvevol.sys           2FBEA7856251499B87C65A29FC51E6191 fvevol.pdb
-0xf80000bc13b0 kdcom.dll            ACC6A823A2844D22B68CD5D48D42381F2 kdcom.pdb
-0xf88000fbe5a4 volmgr.sys           39E92F60716140C38C723CDF21B956CD2 volmgr.pdb
-0xf88000f5c108 msisadrv.sys         09A612E6691847ED98E4F36F3CC9EE641 msisadrv.pdb
-0xf8800183127c tdx.sys              FB912A34EB1A44EC9F65E250879944B52 tdx.pdb
-0xf8800119f10c rdyboost.sys         20E6E50C6F9B42589E18D96AD84608DB1 rdyboost.pdb
+<div class="highlight"><pre><span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mi">23</span><span class="o">:</span><span class="mi">48</span><span class="o">:</span><span class="mi">26</span><span class="o">&gt;</span> <span class="n">version_modules</span>
+  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                 <span class="n">GUID</span><span class="o">/</span><span class="n">Version</span>                     <span class="n">PDB</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">--------------------------------</span> <span class="o">------------------------------</span>
+<span class="mh">0xf800027f4b0c</span> <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>         <span class="n">C07170995AA8441B952E3B9AE3F3754B2</span> <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf8000262deb4</span> <span class="n">hal</span><span class="p">.</span><span class="n">dll</span>              <span class="mi">0</span><span class="n">C72B43B8AC64E22AB88B564E69330372</span> <span class="n">hal</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88002d34af4</span> <span class="n">wanarp</span><span class="p">.</span><span class="n">sys</span>           <span class="mi">7</span><span class="n">BA2309F029F4DE7878AED80636C2D132</span> <span class="n">wanarp</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf8800183eed4</span> <span class="n">TDI</span><span class="p">.</span><span class="n">SYS</span>              <span class="n">C519554437F04B63BC39FF4E69578DC42</span> <span class="n">tdi</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000d95b24</span> <span class="n">volmgrx</span><span class="p">.</span><span class="n">sys</span>          <span class="n">C047BA32ABCB4A948CBB8930F352B1032</span> <span class="n">volmgrx</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88003de7c60</span> <span class="n">dump_dumpfve</span><span class="p">.</span><span class="n">sys</span>     <span class="n">A2CC4DFB86424750871BCB8E1E841E3C1</span> <span class="n">dumpfve</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880019d4e00</span> <span class="n">watchdog</span><span class="p">.</span><span class="n">sys</span>         <span class="mi">79</span><span class="n">ACBD31D1BD428A8311AD9D5DCDEAA61</span> <span class="n">watchdog</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf8800111004c</span> <span class="n">cng</span><span class="p">.</span><span class="n">sys</span>              <span class="n">F0AA00E320D4468A9D3F7078E2AE2BF52</span> <span class="n">cng</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88002c2e648</span> <span class="n">csc</span><span class="p">.</span><span class="n">sys</span>              <span class="mi">56</span><span class="n">B7C3B9040B47D9821E6A57E6A5AE4A1</span> <span class="n">csc</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000c02f48</span> <span class="n">CI</span><span class="p">.</span><span class="n">dll</span>               <span class="mf">5F</span><span class="mi">1</span><span class="n">BDC2205AC402CB0F09FC7CF17A3701</span> <span class="n">ci</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88003c3f2dc</span> <span class="n">USBD</span><span class="p">.</span><span class="n">SYS</span>             <span class="n">BE6200B21204452DADDF85CED51A5BDE1</span> <span class="n">usbd</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88002d0a1fc</span> <span class="n">netbios</span><span class="p">.</span><span class="n">sys</span>          <span class="mi">084</span><span class="n">EB51DBDE844CF9EAD3B5FDFABDC721</span> <span class="n">netbios</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000cc80a0</span> <span class="n">mcupdate</span><span class="p">.</span><span class="n">dll</span>         <span class="mi">8</span><span class="n">C7A27566CD54FB9A00AF26B5BF941651</span> <span class="n">mcupdate_GenuineIntel</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf8800145c920</span> <span class="n">ndis</span><span class="p">.</span><span class="n">sys</span>             <span class="mi">40</span><span class="n">D6C85AC9F74887A652601839A1F56D2</span> <span class="n">ndis</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880019eb04c</span> <span class="n">rdpencdd</span><span class="p">.</span><span class="n">sys</span>         <span class="n">C299649119AC4CC888F37C32A216781A1</span> <span class="n">RDPENCDD</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88003814d08</span> <span class="n">srv</span><span class="p">.</span><span class="n">sys</span>              <span class="mi">20</span><span class="n">C4A475BE954C10997EAD2C623E40C32</span> <span class="n">srv</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88003a52c10</span> <span class="n">raspptp</span><span class="p">.</span><span class="n">sys</span>          <span class="n">C9106AFB80474EFCAF9384DA26CC35622</span> <span class="n">raspptp</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880019b42ec</span> <span class="n">VIDEOPRT</span><span class="p">.</span><span class="n">SYS</span>         <span class="mi">1</span><span class="n">B0FC2CC31FE41CEBEAC4ABB7375EA481</span> <span class="n">videoprt</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000fda340</span> <span class="n">PCIIDEX</span><span class="p">.</span><span class="n">SYS</span>          <span class="mi">2</span><span class="n">C4F146DA2774ACEA1D5499284DDDB271</span> <span class="n">pciidex</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88003c2962c</span> <span class="n">HIDCLASS</span><span class="p">.</span><span class="n">SYS</span>         <span class="mi">1815</span><span class="n">DD7E268B4BB9BCD5226204CFEC9C1</span> <span class="n">hidclass</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000fd105c</span> <span class="n">intelide</span><span class="p">.</span><span class="n">sys</span>         <span class="n">B72598DF61A84806B7AC593BA128300C1</span> <span class="n">intelide</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88003a37320</span> <span class="n">raspppoe</span><span class="p">.</span><span class="n">sys</span>         <span class="mi">39</span><span class="n">B224364B9042649CA0CDB8270762931</span> <span class="n">raspppoe</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000e040ec</span> <span class="n">atapi</span><span class="p">.</span><span class="n">sys</span>            <span class="mf">4E82</span><span class="n">D8C0AB5A41799B979539D280167D1</span> <span class="n">atapi</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88002cba464</span> <span class="n">netbt</span><span class="p">.</span><span class="n">sys</span>            <span class="mi">840</span><span class="n">D3E3C828C4D60A905DC82D8CBF8FA2</span> <span class="n">netbt</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880011f647c</span> <span class="n">kbdclass</span><span class="p">.</span><span class="n">sys</span>         <span class="n">D5F7E088FAF44B60A3774197A9ADEEC01</span> <span class="n">kbdclass</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000e361f0</span> <span class="n">amdxata</span><span class="p">.</span><span class="n">sys</span>          <span class="mi">8</span><span class="n">D1A5FFBAEEA4D388F8B7B3B9378C3671</span> <span class="n">amdxata</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880031abb04</span> <span class="n">srvnet</span><span class="p">.</span><span class="n">sys</span>           <span class="mi">608</span><span class="n">D364BC5524794BD70C89773BD51EF2</span> <span class="n">srvnet</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880028fa614</span> <span class="n">bowser</span><span class="p">.</span><span class="n">sys</span>           <span class="mf">26F</span><span class="n">AC99A52F8439E9A5B8B4B37F90D5B1</span> <span class="n">bowser</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88002ddb6f4</span> <span class="n">dfsc</span><span class="p">.</span><span class="n">sys</span>             <span class="mf">827F</span><span class="mi">5</span><span class="n">D478C94478299C7FEC7FEE4DAFA1</span> <span class="n">dfsc</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf880011bf9dc</span> <span class="n">fvevol</span><span class="p">.</span><span class="n">sys</span>           <span class="mf">2F</span><span class="n">BEA7856251499B87C65A29FC51E6191</span> <span class="n">fvevol</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf80000bc13b0</span> <span class="n">kdcom</span><span class="p">.</span><span class="n">dll</span>            <span class="n">ACC6A823A2844D22B68CD5D48D42381F2</span> <span class="n">kdcom</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000fbe5a4</span> <span class="n">volmgr</span><span class="p">.</span><span class="n">sys</span>           <span class="mf">39E92</span><span class="n">F60716140C38C723CDF21B956CD2</span> <span class="n">volmgr</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf88000f5c108</span> <span class="n">msisadrv</span><span class="p">.</span><span class="n">sys</span>         <span class="mi">09</span><span class="n">A612E6691847ED98E4F36F3CC9EE641</span> <span class="n">msisadrv</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf8800183127c</span> <span class="n">tdx</span><span class="p">.</span><span class="n">sys</span>              <span class="n">FB912A34EB1A44EC9F65E250879944B52</span> <span class="n">tdx</span><span class="p">.</span><span class="n">pdb</span>
+<span class="mh">0xf8800119f10c</span> <span class="n">rdyboost</span><span class="p">.</span><span class="n">sys</span>         <span class="mf">20E6</span><span class="n">E50C6F9B42589E18D96AD84608DB1</span> <span class="n">rdyboost</span><span class="p">.</span><span class="n">pdb</span>
 </pre></div>
 
 <p>

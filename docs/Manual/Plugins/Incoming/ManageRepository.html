@@ -174,11 +174,6 @@ ript>
  <p>
 
 <ul class='nav nav-pills nav-stacked'><li>
-          <a href='#BaseSessionCommand.md' class="category-link">
-            BaseSessionCommand.md
-          </a>
-        </li>
-        <li>
           <a href='#aff4acquire' class="category-link">
             aff4acquire
           </a>
@@ -271,11 +266,6 @@ ript>
         <li>
           <a href='#explain' class="category-link">
             explain
-          </a>
-        </li>
-        <li>
-          <a href='#find_kernelslide' class="category-link">
-            find_kernelslide
           </a>
         </li>
         <li>
@@ -404,6 +394,11 @@ ript>
           </a>
         </li>
         <li>
+          <a href='#raise_the_roof' class="category-link">
+            raise_the_roof
+          </a>
+        </li>
+        <li>
           <a href='#search' class="category-link">
             search
           </a>
@@ -528,9 +523,15 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>path_to_repository</p></td><td><p>The path to the profile repository</p>
+<tr><td><p>build_target</p></td><td><p>A single target to build. (type: StringParser)</p></td></tr><tr><td><p>builder_args</p></td><td><p>Optional args for the builder. (type: ArrayStringParser)</p></td></tr><tr><td><p>executable</p></td><td><p>The path to the rekall binary. This is used for spawning multiple processes.</p></td></tr><tr><td><p>force_build_index</p></td><td><p>Forces building the index. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>path_to_repository</p></td><td><p>The path to the profile repository</p>
 <ul>
 <li>Default: .</li>
+</ul></td></tr><tr><td><p>processes</p></td><td><p>Number of concurrent workers. (type: IntParser)</p>
+<ul>
+<li>Default: 4</li>
 </ul></td></tr>
 </tbody>
 </table>

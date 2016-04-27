@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -671,13 +666,13 @@ address to a physical address.</p>
    <a href="SetProcessContext.html">cc</a> plugin.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win7_trial_64bit.dmp.E01 23:52:53&gt; vtop 0xfa8000a2d060
-Virtual 0xfa8000a2d060 Page Directory 0x00187000
-pml4e@ 0x187fa8 = 0x3c00863
-pdpte@ 0x3c00000 = 0x3c01863
-pde@ 0x3c01028 = 0x30c009e3
-Large page mapped 0x30e2d060
-Physical Address 0x30c2d060
+<div class="highlight"><pre><span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mi">23</span><span class="o">:</span><span class="mi">52</span><span class="o">:</span><span class="mi">53</span><span class="o">&gt;</span> <span class="n">vtop</span> <span class="mh">0xfa8000a2d060</span>
+<span class="n">Virtual</span> <span class="mh">0xfa8000a2d060</span> <span class="n">Page</span> <span class="n">Directory</span> <span class="mh">0x00187000</span>
+<span class="n">pml4e</span><span class="err">@</span> <span class="mh">0x187fa8</span> <span class="o">=</span> <span class="mh">0x3c00863</span>
+<span class="n">pdpte</span><span class="err">@</span> <span class="mh">0x3c00000</span> <span class="o">=</span> <span class="mh">0x3c01863</span>
+<span class="n">pde</span><span class="err">@</span> <span class="mh">0x3c01028</span> <span class="o">=</span> <span class="mh">0x30c009e3</span>
+<span class="n">Large</span> <span class="n">page</span> <span class="n">mapped</span> <span class="mh">0x30e2d060</span>
+<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x30c2d060</span>
 </pre></div>
 
 <p>

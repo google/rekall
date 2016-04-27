@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> docs
  </a>
@@ -172,42 +173,39 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Developers/how_to_contribute.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#Code review workflow for Rekall.' class="category-link">
             Code review workflow for Rekall.
           </a>
         </li>
         <li>
-          <a href='/docs/Developers/epydocs.html' class="category-link">
+          <a href='#Generated API Docs.' class="category-link">
             Generated API Docs.
           </a>
         </li>
         <li>
-          <a href='/docs/Developers/development.html' class="category-link">
+          <a href='#The Rekall Memory Forensic Framework API.' class="category-link">
             The Rekall Memory Forensic Framework API.
           </a>
         </li>
         <li>
-          <a href='/docs/Developers/renderers.html' class="category-link">
+          <a href='#The Rekall Rendering framework.' class="category-link">
             The Rekall Rendering framework.
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
     
 
 
-<h1>Developer Documentation.</h1>
+<h1 id="#Developer Documentation." class="anchor" >Developer Documentation.</h1>
+
 
 <div class="abstract">
-
+<h2></h2>
 </div>
-
-
 
 
 
@@ -233,6 +231,10 @@ APIs and implementation details.</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

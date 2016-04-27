@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/References/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> References
  </a>
@@ -172,47 +173,44 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/References/Presentations/AntiForensic.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#DFRWS 2013: Anti-Forensic Resilient Memory Acquisition' class="category-link">
             DFRWS 2013: Anti-Forensic Resilient Memory Acquisition
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/DFRWS EU 2014 Rekall workshop.html' class="category-link">
+          <a href='#DFRWS-EU 2014: Forensic Memory Analysis Workshop' class="category-link">
             DFRWS-EU 2014: Forensic Memory Analysis Workshop
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/LMAP-DFRWS_EU_2014.html' class="category-link">
+          <a href='#DFRWS-EU 2014: Linux Memory Acquisition' class="category-link">
             DFRWS-EU 2014: Linux Memory Acquisition
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/SFCS2015.html' class="category-link">
+          <a href='#IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.' class="category-link">
             IEEE ISCC 2015: Forensic Analysis of Windows User space Applications through Heap allocations.
           </a>
         </li>
         <li>
-          <a href='/docs/References/Presentations/Rekall Memory Forensics - SANS EU 2014.html' class="category-link">
+          <a href='#SANS DFIR Summit - Prague 2014' class="category-link">
             SANS DFIR Summit - Prague 2014
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
     
 
 
-<h1>Presentations</h1>
+<h1 id="#Presentations" class="anchor" >Presentations</h1>
+
 
 <div class="abstract">
-
+<h2></h2>
 </div>
-
-
 
 
 
@@ -237,6 +235,10 @@ ript>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

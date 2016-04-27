@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> docs
  </a>
@@ -172,27 +173,24 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/Tools/pmem.html' class="category-link">
+<ul class='nav nav-pills nav-stacked'><li>
+          <a href='#The Pmem Memory acquisition suite (Legacy).' class="category-link">
             The Pmem Memory acquisition suite (Legacy).
           </a>
         </li>
         </ul></ul>
-
-
   </div>
 
   <div class="col-md-10">
     
 
 
-<h1>The Pmem Memory acquisition suite.</h1>
+<h1 id="#The Pmem Memory acquisition suite." class="anchor" >The Pmem Memory acquisition suite.</h1>
+
 
 <div class="abstract">
-
+<h2></h2>
 </div>
-
-
 
 
 
@@ -799,6 +797,10 @@ device for Rekall.</p>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

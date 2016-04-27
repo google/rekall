@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -662,24 +657,24 @@ obfuscates all other timers, including ones possibly used by malware.</p>
 <p>Rekall is able to de-obfuscate these DPC address and resolve them back to their
 correct module. Rekall will also indicate when the timer is due to go off.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win8.1.raw 22:25:53&gt; timers
-Table     Offset     DueTime(H) DueTime              Period(ms)   Signaled    Routine     Module
------ -------------- ---------- -------------------- ---------- ---------- -------------- --------------------
-2   0xe00001a58708 0x0000000001f0df8a92 2014-01-24 21:21:14+0000       1000        Yes 0xf80000298480 wdf01000 + 0x8480
-8   0xf802d32ecd00 0x0000000001c789ad30 2014-01-24 21:20:05+0000          0          - 0xf802d311b194 nt!CcScanDpc
-9   0xf802d32bcce0 0x0000010c0d9d767529 2015-01-01 00:00:00+0000          0          - 0xf802d32467b4 nt!ExpNextYearDpcRoutine
-9   0xf802d32ac920 0x0000000001e478b3c5 2014-01-24 21:20:53+0000          0          - 0xf802d3116abc nt!CmpLazyFlushDpcRoutine
-13  0xf80002146660 0x0000000001f3302411 2014-01-24 21:21:18+0000      43348        Yes 0xf80002140c44 bowser + 0x3c44
-15  0xf8000072e320 0x00000000c877502ee7 2014-01-25 21:02:20+0000          0          - 0xf80000719230 storport + 0x23230
-17  0xf800024cbb28 0x0000000001fdfb093c 2014-01-24 21:21:36+0000      28348        Yes 0xf800024af550 tunnel + 0x1550
-18  0xe0000127ff40 0x0000000002f06baf46 2014-01-24 21:28:23+0000          0          - 0xf80000b31394 volsnap + 0x2394
-21  0xe0000137bb40 0x0000000001f0df8a92 2014-01-24 21:21:14+0000       1000        Yes 0xf8000194a860 usbport + 0x2860
-24  0xe00000203b88 0x0000000002534bd8cd 2014-01-24 21:23:59+0000          0          - 0xf80001a930a4 battc + 0x10a4
-38  0xe00001493278 0x0000000001f1249ec9 2014-01-24 21:21:14+0000          0          - 0xf80000c2ac30 ndis + 0x4c30
-38  0xe00002327228 0x00000000024c651b42 2014-01-24 21:23:47+0000     944848          - 0xf8000249cbb4 mslldp + 0x4bb4
-38  0xe000013f7ef8 0x00000000324d602123 2014-01-25 03:07:25+0000   21600000          - 0xf80001491cf0 dxgkrnl + 0x19cf0
-38  0xf802d32ea250 0x0000000001d163bc04 2014-01-24 21:20:21+0000      60000        Yes 0xf802d3116bac nt!IopIrpStackProfilerTimer
-40  0xf80000e981c0 0x0000000002840a55a8 2014-01-24 21:25:21+0000          0          - 0xf80000e94c9c mup + 0x1c9c
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">53</span><span class="o">&gt;</span> <span class="n">timers</span>
+<span class="n">Table</span>     <span class="n">Offset</span>     <span class="n">DueTime</span><span class="p">(</span><span class="n">H</span><span class="p">)</span> <span class="n">DueTime</span>              <span class="n">Period</span><span class="p">(</span><span class="n">ms</span><span class="p">)</span>   <span class="n">Signaled</span>    <span class="n">Routine</span>     <span class="n">Module</span>
+<span class="o">-----</span> <span class="o">--------------</span> <span class="o">----------</span> <span class="o">--------------------</span> <span class="o">----------</span> <span class="o">----------</span> <span class="o">--------------</span> <span class="o">--------------------</span>
+<span class="mi">2</span>   <span class="mh">0xe00001a58708</span> <span class="mh">0x0000000001f0df8a92</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">21</span><span class="o">:</span><span class="mi">14</span><span class="o">+</span><span class="mo">0000</span>       <span class="mi">1000</span>        <span class="n">Yes</span> <span class="mh">0xf80000298480</span> <span class="n">wdf01000</span> <span class="o">+</span> <span class="mh">0x8480</span>
+<span class="mi">8</span>   <span class="mh">0xf802d32ecd00</span> <span class="mh">0x0000000001c789ad30</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mo">05</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf802d311b194</span> <span class="n">nt</span><span class="o">!</span><span class="n">CcScanDpc</span>
+<span class="mi">9</span>   <span class="mh">0xf802d32bcce0</span> <span class="mh">0x0000010c0d9d767529</span> <span class="mi">2015</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mo">01</span> <span class="mo">00</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mo">00</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf802d32467b4</span> <span class="n">nt</span><span class="o">!</span><span class="n">ExpNextYearDpcRoutine</span>
+<span class="mi">9</span>   <span class="mh">0xf802d32ac920</span> <span class="mh">0x0000000001e478b3c5</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mi">53</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf802d3116abc</span> <span class="n">nt</span><span class="o">!</span><span class="n">CmpLazyFlushDpcRoutine</span>
+<span class="mi">13</span>  <span class="mh">0xf80002146660</span> <span class="mh">0x0000000001f3302411</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">21</span><span class="o">:</span><span class="mi">18</span><span class="o">+</span><span class="mo">0000</span>      <span class="mi">43348</span>        <span class="n">Yes</span> <span class="mh">0xf80002140c44</span> <span class="n">bowser</span> <span class="o">+</span> <span class="mh">0x3c44</span>
+<span class="mi">15</span>  <span class="mh">0xf8000072e320</span> <span class="mh">0x00000000c877502ee7</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">25</span> <span class="mi">21</span><span class="o">:</span><span class="mo">02</span><span class="o">:</span><span class="mi">20</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf80000719230</span> <span class="n">storport</span> <span class="o">+</span> <span class="mh">0x23230</span>
+<span class="mi">17</span>  <span class="mh">0xf800024cbb28</span> <span class="mh">0x0000000001fdfb093c</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">21</span><span class="o">:</span><span class="mi">36</span><span class="o">+</span><span class="mo">0000</span>      <span class="mi">28348</span>        <span class="n">Yes</span> <span class="mh">0xf800024af550</span> <span class="n">tunnel</span> <span class="o">+</span> <span class="mh">0x1550</span>
+<span class="mi">18</span>  <span class="mh">0xe0000127ff40</span> <span class="mh">0x0000000002f06baf46</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">28</span><span class="o">:</span><span class="mi">23</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf80000b31394</span> <span class="n">volsnap</span> <span class="o">+</span> <span class="mh">0x2394</span>
+<span class="mi">21</span>  <span class="mh">0xe0000137bb40</span> <span class="mh">0x0000000001f0df8a92</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">21</span><span class="o">:</span><span class="mi">14</span><span class="o">+</span><span class="mo">0000</span>       <span class="mi">1000</span>        <span class="n">Yes</span> <span class="mh">0xf8000194a860</span> <span class="n">usbport</span> <span class="o">+</span> <span class="mh">0x2860</span>
+<span class="mi">24</span>  <span class="mh">0xe00000203b88</span> <span class="mh">0x0000000002534bd8cd</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">59</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf80001a930a4</span> <span class="n">battc</span> <span class="o">+</span> <span class="mh">0x10a4</span>
+<span class="mi">38</span>  <span class="mh">0xe00001493278</span> <span class="mh">0x0000000001f1249ec9</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">21</span><span class="o">:</span><span class="mi">14</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf80000c2ac30</span> <span class="n">ndis</span> <span class="o">+</span> <span class="mh">0x4c30</span>
+<span class="mi">38</span>  <span class="mh">0xe00002327228</span> <span class="mh">0x00000000024c651b42</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">47</span><span class="o">+</span><span class="mo">0000</span>     <span class="mi">944848</span>          <span class="o">-</span> <span class="mh">0xf8000249cbb4</span> <span class="n">mslldp</span> <span class="o">+</span> <span class="mh">0x4bb4</span>
+<span class="mi">38</span>  <span class="mh">0xe000013f7ef8</span> <span class="mh">0x00000000324d602123</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">25</span> <span class="mo">03</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">25</span><span class="o">+</span><span class="mo">0000</span>   <span class="mi">21600000</span>          <span class="o">-</span> <span class="mh">0xf80001491cf0</span> <span class="n">dxgkrnl</span> <span class="o">+</span> <span class="mh">0x19cf0</span>
+<span class="mi">38</span>  <span class="mh">0xf802d32ea250</span> <span class="mh">0x0000000001d163bc04</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mi">21</span><span class="o">+</span><span class="mo">0000</span>      <span class="mi">60000</span>        <span class="n">Yes</span> <span class="mh">0xf802d3116bac</span> <span class="n">nt</span><span class="o">!</span><span class="n">IopIrpStackProfilerTimer</span>
+<span class="mi">40</span>  <span class="mh">0xf80000e981c0</span> <span class="mh">0x0000000002840a55a8</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="mi">21</span><span class="o">+</span><span class="mo">0000</span>          <span class="mi">0</span>          <span class="o">-</span> <span class="mh">0xf80000e94c9c</span> <span class="n">mup</span> <span class="o">+</span> <span class="mh">0x1c9c</span>
 </pre></div>
 
 <p>

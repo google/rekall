@@ -168,7 +168,7 @@ ript>
   <div class="col-md-10">
     
      <ul class="nav nav-sidebar">
-    <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
+    <ul class='nav nav-pills nav-stacked'><li>
           <a href='/Discuss/github.html' class="category-link">
             GitHub
           </a>
@@ -188,7 +188,7 @@ ript>
             The Rekall Blog
           </a>
         </li>
-        </ul></ul></ul>
+        </ul></ul>
   </div>
 </div>
 </div>
@@ -205,6 +205,10 @@ ript>
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

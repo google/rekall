@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -669,28 +664,28 @@ who started it.</p>
 <h3>Sample output</h3>
 <p>In the below we can see that this cmd.exe process was started by the user <code>test</code>
 with SID <code>S-1-5-21-1077689984-2177008626-1601812314-1001</code>.</p>
-<div class="highlight"><pre>win8.1.raw 22:41:01&gt; tokens
--------------------&gt; tokens()
-Process          Pid   Sid                                                Comment
----------------- ----- -------------------------------------------------- -------
-...
-cmd.exe          888   S-1-5-21-1077689984-2177008626-1601812314-1001     User: test
-cmd.exe          888   S-1-5-21-1077689984-2177008626-1601812314-513      Domain Users
-cmd.exe          888   S-1-1-0                                            Everyone
-cmd.exe          888   S-1-5-114
-cmd.exe          888   S-1-5-21-1077689984-2177008626-1601812314-1002
-cmd.exe          888   S-1-5-32-544                                       Administrators
-cmd.exe          888   S-1-5-32-545                                       Users
-cmd.exe          888   S-1-5-4                                            Interactive
-cmd.exe          888   S-1-2-1                                            Console Logon (Users who are logged onto the physical console)
-cmd.exe          888   S-1-5-11                                           Authenticated Users
-cmd.exe          888   S-1-5-15                                           This Organization
-cmd.exe          888   S-1-5-113
-cmd.exe          888   S-1-5-5-0-126935                                   Logon Session
-cmd.exe          888   S-1-2-0                                            Local (Users with the ability to log in locally)
-cmd.exe          888   S-1-5-64-10                                        NTLM Authentication
-cmd.exe          888   S-1-16-12288                                       High Mandatory Level
-...
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mo">01</span><span class="o">&gt;</span> <span class="n">tokens</span>
+<span class="o">-------------------&gt;</span> <span class="n">tokens</span><span class="p">()</span>
+<span class="n">Process</span>          <span class="n">Pid</span>   <span class="n">Sid</span>                                                <span class="n">Comment</span>
+<span class="o">----------------</span> <span class="o">-----</span> <span class="o">--------------------------------------------------</span> <span class="o">-------</span>
+<span class="p">...</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">1077689984</span><span class="o">-</span><span class="mi">2177008626</span><span class="o">-</span><span class="mi">1601812314</span><span class="o">-</span><span class="mi">1001</span>     <span class="n">User</span><span class="o">:</span> <span class="n">test</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">1077689984</span><span class="o">-</span><span class="mi">2177008626</span><span class="o">-</span><span class="mi">1601812314</span><span class="o">-</span><span class="mi">513</span>      <span class="n">Domain</span> <span class="n">Users</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">0</span>                                            <span class="n">Everyone</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">114</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">1077689984</span><span class="o">-</span><span class="mi">2177008626</span><span class="o">-</span><span class="mi">1601812314</span><span class="o">-</span><span class="mi">1002</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">32</span><span class="o">-</span><span class="mi">544</span>                                       <span class="n">Administrators</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">32</span><span class="o">-</span><span class="mi">545</span>                                       <span class="n">Users</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">4</span>                                            <span class="n">Interactive</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span>                                            <span class="n">Console</span> <span class="n">Logon</span> <span class="p">(</span><span class="n">Users</span> <span class="n">who</span> <span class="n">are</span> <span class="n">logged</span> <span class="n">onto</span> <span class="n">the</span> <span class="n">physical</span> <span class="n">console</span><span class="p">)</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">11</span>                                           <span class="n">Authenticated</span> <span class="n">Users</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">15</span>                                           <span class="n">This</span> <span class="n">Organization</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">113</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">0</span><span class="o">-</span><span class="mi">126935</span>                                   <span class="n">Logon</span> <span class="n">Session</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="mi">0</span>                                            <span class="n">Local</span> <span class="p">(</span><span class="n">Users</span> <span class="n">with</span> <span class="n">the</span> <span class="n">ability</span> <span class="n">to</span> <span class="n">log</span> <span class="n">in</span> <span class="n">locally</span><span class="p">)</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">64</span><span class="o">-</span><span class="mi">10</span>                                        <span class="n">NTLM</span> <span class="n">Authentication</span>
+<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">16</span><span class="o">-</span><span class="mi">12288</span>                                       <span class="n">High</span> <span class="n">Mandatory</span> <span class="n">Level</span>
+<span class="p">...</span>
 </pre></div>
 
 <p>

@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -647,27 +642,27 @@ removes it this will leave traces in this list.</p>
 the Honeynet project&rsquo;s <a href="https://projects.honeynet.org/capture-hpc/browser/capture-hpc/branches/dev/capture-client/KernelDrivers/CaptureKernelDrivers">capture
 tools</a>
 were used.</p>
-<div class="highlight"><pre>130115b.w32 22:53:17&gt; unloaded_modules
-INFO:root:Detected kernel base at 0x804D7000-
-Name                   Start       End     Time
--------------------- ---------- ---------- ----
-Sfloppy.SYS          0xf8383000 0xf8386000 2013-01-15 22:06:06+0000
-Cdaudio.SYS          0xf89c2000 0xf89c7000 2013-01-15 22:06:06+0000
-processr.sys         0xf88aa000 0xf88b3000 2013-01-15 22:06:06+0000
-splitter.sys         0xf8bc6000 0xf8bc8000 2013-01-15 22:06:41+0000
-aec.sys              0xb1be6000 0xb1c09000 2013-01-15 22:06:41+0000
-swmidi.sys           0xb1d06000 0xb1d14000 2013-01-15 22:06:41+0000
-DMusic.sys           0xb1cf6000 0xb1d03000 2013-01-15 22:06:41+0000
-drmkaud.sys          0xf8c9f000 0xf8ca0000 2013-01-15 22:06:41+0000
-kmixer.sys           0xb1b1b000 0xb1b46000 2013-01-15 22:06:51+0000
-kmixer.sys           0xb14df000 0xb150a000 2013-01-15 22:08:04+0000
-kmixer.sys           0xb14df000 0xb150a000 2013-01-15 22:09:21+0000
-win32dd.sys          0xb160a000 0xb1616000 2013-01-15 22:27:39+0000
-fastdumpx86.sys      0xf8942000 0xf8948000 2013-01-15 22:30:55+0000
-CaptureFileMonitor.sys 0xb1c3a000 0xb1c3d000 2013-01-15 22:35:48+0000
-CaptureRegistryMonitor.sys 0xf8c1e000 0xf8c20000 2013-01-15 22:39:51+0000
-CaptureProcessMonitor.sys 0xf8c0e000 0xf8c10000 2013-01-15 22:39:52+0000
-CaptureFileMonitor.sys 0xb15ba000 0xb15bd000 2013-01-15 22:39:52+0000
+<div class="highlight"><pre><span class="mi">130115</span><span class="n">b</span><span class="p">.</span><span class="n">w32</span> <span class="mi">22</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">17</span><span class="o">&gt;</span> <span class="n">unloaded_modules</span>
+<span class="nl">INFO:</span><span class="n">root</span><span class="o">:</span><span class="n">Detected</span> <span class="n">kernel</span> <span class="n">base</span> <span class="n">at</span> <span class="mh">0x804D7000</span><span class="o">-</span>
+<span class="n">Name</span>                   <span class="n">Start</span>       <span class="n">End</span>     <span class="n">Time</span>
+<span class="o">--------------------</span> <span class="o">----------</span> <span class="o">----------</span> <span class="o">----</span>
+<span class="n">Sfloppy</span><span class="p">.</span><span class="n">SYS</span>          <span class="mh">0xf8383000</span> <span class="mh">0xf8386000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mo">06</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">Cdaudio</span><span class="p">.</span><span class="n">SYS</span>          <span class="mh">0xf89c2000</span> <span class="mh">0xf89c7000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mo">06</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">processr</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf88aa000</span> <span class="mh">0xf88b3000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mo">06</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">splitter</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf8bc6000</span> <span class="mh">0xf8bc8000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mi">41</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">aec</span><span class="p">.</span><span class="n">sys</span>              <span class="mh">0xb1be6000</span> <span class="mh">0xb1c09000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mi">41</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">swmidi</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xb1d06000</span> <span class="mh">0xb1d14000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mi">41</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">DMusic</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xb1cf6000</span> <span class="mh">0xb1d03000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mi">41</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">drmkaud</span><span class="p">.</span><span class="n">sys</span>          <span class="mh">0xf8c9f000</span> <span class="mh">0xf8ca0000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mi">41</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">kmixer</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xb1b1b000</span> <span class="mh">0xb1b46000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mo">06</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">kmixer</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xb14df000</span> <span class="mh">0xb150a000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">08</span><span class="o">:</span><span class="mo">04</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">kmixer</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xb14df000</span> <span class="mh">0xb150a000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">09</span><span class="o">:</span><span class="mi">21</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">win32dd</span><span class="p">.</span><span class="n">sys</span>          <span class="mh">0xb160a000</span> <span class="mh">0xb1616000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">27</span><span class="o">:</span><span class="mi">39</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">fastdumpx86</span><span class="p">.</span><span class="n">sys</span>      <span class="mh">0xf8942000</span> <span class="mh">0xf8948000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">55</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">CaptureFileMonitor</span><span class="p">.</span><span class="n">sys</span> <span class="mh">0xb1c3a000</span> <span class="mh">0xb1c3d000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">35</span><span class="o">:</span><span class="mi">48</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">CaptureRegistryMonitor</span><span class="p">.</span><span class="n">sys</span> <span class="mh">0xf8c1e000</span> <span class="mh">0xf8c20000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">CaptureProcessMonitor</span><span class="p">.</span><span class="n">sys</span> <span class="mh">0xf8c0e000</span> <span class="mh">0xf8c10000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">52</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">CaptureFileMonitor</span><span class="p">.</span><span class="n">sys</span> <span class="mh">0xb15ba000</span> <span class="mh">0xb15bd000</span> <span class="mi">2013</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">15</span> <span class="mi">22</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">52</span><span class="o">+</span><span class="mo">0000</span>
 </pre></div>
 
 <p>

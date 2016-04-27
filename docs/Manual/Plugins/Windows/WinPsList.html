@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -700,19 +695,19 @@ subsequent invokations should be almost instant.</p>
 </li>
 </ul>
 <h3>Sample output</h3>
-<div class="highlight"><pre>  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                    Exit
--------------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------ ------------------------
-DEBUG:root:Listed 48 processes using PsActiveProcessHead
-DEBUG:root:Listed 43 processes using CSRSS
-DEBUG:root:Listed 47 processes using PspCidTable
-DEBUG:root:Listed 45 processes using Sessions
-DEBUG:root:Listed 45 processes using Handles
-0xe00000074580 System                    4      0     97 -------- ------  False 2014-01-24 22:07:24+0000 -
-0xe00001499040 smss.exe                292      4      2 -------- ------  False 2014-01-24 22:07:24+0000 -
-0xe0000212c900 svchost.exe             372    528     15 --------      0  False 2014-01-24 21:07:51+0000 -
-0xe00001be1280 csrss.exe               380    372      8 --------      0  False 2014-01-24 22:07:32+0000 -
-0xe000000ce080 wininit.exe             432    372      1 --------      0  False 2014-01-24 22:07:32+0000 -
-0xe000000d9280 csrss.exe               440    424      9 --------      1  False 2014-01-24 22:07:32+0000 -
+<div class="highlight"><pre>  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                    <span class="n">Exit</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">48</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">PsActiveProcessHead</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">43</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">CSRSS</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">47</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">PspCidTable</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">45</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">Sessions</span>
+<span class="nl">DEBUG:</span><span class="n">root</span><span class="o">:</span><span class="n">Listed</span> <span class="mi">45</span> <span class="n">processes</span> <span class="n">using</span> <span class="n">Handles</span>
+<span class="mh">0xe00000074580</span> <span class="n">System</span>                    <span class="mi">4</span>      <span class="mi">0</span>     <span class="mi">97</span> <span class="o">--------</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">24</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe00001499040</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">292</span>      <span class="mi">4</span>      <span class="mi">2</span> <span class="o">--------</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">24</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe0000212c900</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">372</span>    <span class="mi">528</span>     <span class="mi">15</span> <span class="o">--------</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">51</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe00001be1280</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">380</span>    <span class="mi">372</span>      <span class="mi">8</span> <span class="o">--------</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe000000ce080</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>             <span class="mi">432</span>    <span class="mi">372</span>      <span class="mi">1</span> <span class="o">--------</span>      <span class="mi">0</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
+<span class="mh">0xe000000d9280</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">440</span>    <span class="mi">424</span>      <span class="mi">9</span> <span class="o">--------</span>      <span class="mi">1</span>  <span class="n">False</span> <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">32</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
 </pre></div>
 
 <p>

@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -660,24 +655,24 @@ the order they were loaded on the system.</p>
    using the <a href="PEInfo.html">peinfo</a> plugin, providing the base address.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win8.1.raw 23:35:19&gt; modules
--------------------&gt; modules()
-  Offset (V)   Name                      Base           Size      File
--------------- -------------------- -------------- -------------- ----
-0xe00000057620 ntoskrnl.exe         0xf802d3019000       0x781000 \SystemRoot\system32\ntoskrnl.exe
-0xe00000057530 hal.dll              0xf802d379a000        0x6f000 \SystemRoot\system32\hal.dll
-0xe000000557c0 storahci.sys         0xf800006d9000        0x1d000 \SystemRoot\System32\drivers\storahci.sys
-0xe0000149ade0 mssmbios.sys         0xf800018c4000         0xc000 \SystemRoot\System32\drivers\mssmbios.sys
-0xe000013871e0 Npfs.SYS             0xf800008ba000        0x14000 \SystemRoot\System32\Drivers\Npfs.SYS
-0xe00000055d50 volmgrx.sys          0xf80000393000        0x5f000 \SystemRoot\System32\drivers\volmgrx.sys
-0xe00002145a50 lltdio.sys           0xf80001c9b000        0x14000 \SystemRoot\system32\DRIVERS\lltdio.sys
-0xe00000055e40 volmgr.sys           0xf8000045d000        0x15000 \SystemRoot\System32\drivers\volmgr.sys
-0xe00000054950 fwpkclnt.sys         0xf80001144000        0x6c000 \SystemRoot\System32\drivers\fwpkclnt.sys
-0xe00000054c60 NETIO.SYS            0xf80000d3e000        0x79000 \SystemRoot\system32\drivers\NETIO.SYS
-0xe000014b3500 kbdclass.sys         0xf80001a1f000        0x10000 \SystemRoot\System32\drivers\kbdclass.sys
-0xe00001339b50 drmk.sys             0xf80001c00000        0x1c000 \SystemRoot\system32\drivers\drmk.sys
-0xe00000054b70 ksecpkg.sys          0xf80000db7000        0x34000 \SystemRoot\System32\Drivers\ksecpkg.sys
-0xe00000054100 CLASSPNP.SYS         0xf80000800000        0x56000 \SystemRoot\System32\drivers\CLASSPNP.SYS
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">23</span><span class="o">:</span><span class="mi">35</span><span class="o">:</span><span class="mi">19</span><span class="o">&gt;</span> <span class="n">modules</span>
+<span class="o">-------------------&gt;</span> <span class="n">modules</span><span class="p">()</span>
+  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                      <span class="n">Base</span>           <span class="n">Size</span>      <span class="n">File</span>
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----</span>
+<span class="mh">0xe00000057620</span> <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>         <span class="mh">0xf802d3019000</span>       <span class="mh">0x781000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span>
+<span class="mh">0xe00000057530</span> <span class="n">hal</span><span class="p">.</span><span class="n">dll</span>              <span class="mh">0xf802d379a000</span>        <span class="mh">0x6f000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">hal</span><span class="p">.</span><span class="n">dll</span>
+<span class="mh">0xe000000557c0</span> <span class="n">storahci</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf800006d9000</span>        <span class="mh">0x1d000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">storahci</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe0000149ade0</span> <span class="n">mssmbios</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf800018c4000</span>         <span class="mh">0xc000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">mssmbios</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe000013871e0</span> <span class="n">Npfs</span><span class="p">.</span><span class="n">SYS</span>             <span class="mh">0xf800008ba000</span>        <span class="mh">0x14000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">Drivers</span><span class="err">\</span><span class="n">Npfs</span><span class="p">.</span><span class="n">SYS</span>
+<span class="mh">0xe00000055d50</span> <span class="n">volmgrx</span><span class="p">.</span><span class="n">sys</span>          <span class="mh">0xf80000393000</span>        <span class="mh">0x5f000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">volmgrx</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00002145a50</span> <span class="n">lltdio</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf80001c9b000</span>        <span class="mh">0x14000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">lltdio</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00000055e40</span> <span class="n">volmgr</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf8000045d000</span>        <span class="mh">0x15000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">volmgr</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00000054950</span> <span class="n">fwpkclnt</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf80001144000</span>        <span class="mh">0x6c000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">fwpkclnt</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00000054c60</span> <span class="n">NETIO</span><span class="p">.</span><span class="n">SYS</span>            <span class="mh">0xf80000d3e000</span>        <span class="mh">0x79000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">NETIO</span><span class="p">.</span><span class="n">SYS</span>
+<span class="mh">0xe000014b3500</span> <span class="n">kbdclass</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf80001a1f000</span>        <span class="mh">0x10000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">kbdclass</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00001339b50</span> <span class="n">drmk</span><span class="p">.</span><span class="n">sys</span>             <span class="mh">0xf80001c00000</span>        <span class="mh">0x1c000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">drmk</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00000054b70</span> <span class="n">ksecpkg</span><span class="p">.</span><span class="n">sys</span>          <span class="mh">0xf80000db7000</span>        <span class="mh">0x34000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">Drivers</span><span class="err">\</span><span class="n">ksecpkg</span><span class="p">.</span><span class="n">sys</span>
+<span class="mh">0xe00000054100</span> <span class="n">CLASSPNP</span><span class="p">.</span><span class="n">SYS</span>         <span class="mh">0xf80000800000</span>        <span class="mh">0x56000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">CLASSPNP</span><span class="p">.</span><span class="n">SYS</span>
 </pre></div>
 
 <p>

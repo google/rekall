@@ -358,6 +358,11 @@ ript>
             vaddump
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -431,28 +436,28 @@ credentials (most often ID 0: <code>root</code>).</p>
 structure is being reused, you&rsquo;ll see more than one line of output with the
 same <code>cred</code> address.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 15:40:12&gt; check_creds
------------------------------------------------------------------------&gt; check_creds()
-     Cred      PID      Command             
--------------- -------- --------------------
-0x88003b86c900 966      dbus-daemon         
-0x88003c766480 1031     systemd-logind      
-0x88003c1a7380 1056     getty               
-0x88003c1d2180 1103     irqbalance          
-0x88003c1d23c0 1290     kauditd             
-0x88003c1a6c00 1058     getty               
-0x880036b2e840 1132     atd                 
-0x88003b96d080 1055     getty               
-0x88003c767440 1335     bash                
-0x88003c1a6cc0 1074     sshd                
-0x88003c1d2c00 1131     cron                
-0x88003cbc0900 1160     login               
-0x88003c183140 1081     acpid               
-0x88003b9ded80 1042     getty               
-0x88003b9dee40 1049     getty               
-0x88003c1a78c0 1176     whoopsie            
-0x88003c69a480 1486     dnsmasq             
-0x88003cbc1440 1199     libvirtd            
+<div class="highlight"><pre><span class="n">Windows7_VMware</span><span class="p">(</span><span class="n">Win7x64</span><span class="o">+</span><span class="n">Ubuntu686</span><span class="p">,</span><span class="n">Ubuntu64</span><span class="p">)</span><span class="n">_VBox</span><span class="p">(</span><span class="n">XPSP3x86</span><span class="p">).</span><span class="n">ram</span> <span class="mi">15</span><span class="o">:</span><span class="mi">40</span><span class="o">:</span><span class="mi">12</span><span class="o">&gt;</span> <span class="n">check_creds</span>
+<span class="o">-----------------------------------------------------------------------&gt;</span> <span class="n">check_creds</span><span class="p">()</span>
+     <span class="n">Cred</span>      <span class="n">PID</span>      <span class="n">Command</span>             
+<span class="o">--------------</span> <span class="o">--------</span> <span class="o">--------------------</span>
+<span class="mh">0x88003b86c900</span> <span class="mi">966</span>      <span class="n">dbus</span><span class="o">-</span><span class="n">daemon</span>         
+<span class="mh">0x88003c766480</span> <span class="mi">1031</span>     <span class="n">systemd</span><span class="o">-</span><span class="n">logind</span>      
+<span class="mh">0x88003c1a7380</span> <span class="mi">1056</span>     <span class="n">getty</span>               
+<span class="mh">0x88003c1d2180</span> <span class="mi">1103</span>     <span class="n">irqbalance</span>          
+<span class="mh">0x88003c1d23c0</span> <span class="mi">1290</span>     <span class="n">kauditd</span>             
+<span class="mh">0x88003c1a6c00</span> <span class="mi">1058</span>     <span class="n">getty</span>               
+<span class="mh">0x880036b2e840</span> <span class="mi">1132</span>     <span class="n">atd</span>                 
+<span class="mh">0x88003b96d080</span> <span class="mi">1055</span>     <span class="n">getty</span>               
+<span class="mh">0x88003c767440</span> <span class="mi">1335</span>     <span class="n">bash</span>                
+<span class="mh">0x88003c1a6cc0</span> <span class="mi">1074</span>     <span class="n">sshd</span>                
+<span class="mh">0x88003c1d2c00</span> <span class="mi">1131</span>     <span class="n">cron</span>                
+<span class="mh">0x88003cbc0900</span> <span class="mi">1160</span>     <span class="n">login</span>               
+<span class="mh">0x88003c183140</span> <span class="mi">1081</span>     <span class="n">acpid</span>               
+<span class="mh">0x88003b9ded80</span> <span class="mi">1042</span>     <span class="n">getty</span>               
+<span class="mh">0x88003b9dee40</span> <span class="mi">1049</span>     <span class="n">getty</span>               
+<span class="mh">0x88003c1a78c0</span> <span class="mi">1176</span>     <span class="n">whoopsie</span>            
+<span class="mh">0x88003c69a480</span> <span class="mi">1486</span>     <span class="n">dnsmasq</span>             
+<span class="mh">0x88003cbc1440</span> <span class="mi">1199</span>     <span class="n">libvirtd</span>            
 </pre></div>
 
 <p>

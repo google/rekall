@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -666,11 +661,11 @@ equivalent to calling <strong>pedump</strong> with an image base corresponding t
 section of the main process executable.</p>
 <p>The <strong>procdump</strong> plugin is a thin wrapper around the <strong>pedump</strong> plugin.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win7.elf 14:42:55&gt; procdump proc_regex=&quot;csrss&quot;, dump_dir=&quot;/tmp/&quot;
-**************************************************
-Dumping csrss.exe, pid: 348    output: executable.csrss_exe_348.exe
-**************************************************
-Dumping csrss.exe, pid: 396    output: executable.csrss_exe_396.exe
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">14</span><span class="o">:</span><span class="mi">42</span><span class="o">:</span><span class="mi">55</span><span class="o">&gt;</span> <span class="n">procdump</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;csrss&quot;</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp/&quot;</span>
+<span class="o">**************************************************</span>
+<span class="n">Dumping</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span><span class="p">,</span> <span class="n">pid</span><span class="o">:</span> <span class="mi">348</span>    <span class="n">output</span><span class="o">:</span> <span class="n">executable</span><span class="p">.</span><span class="n">csrss_exe_348</span><span class="p">.</span><span class="n">exe</span>
+<span class="o">**************************************************</span>
+<span class="n">Dumping</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span><span class="p">,</span> <span class="n">pid</span><span class="o">:</span> <span class="mi">396</span>    <span class="n">output</span><span class="o">:</span> <span class="n">executable</span><span class="p">.</span><span class="n">csrss_exe_396</span><span class="p">.</span><span class="n">exe</span>
 </pre></div>
 
 <p>

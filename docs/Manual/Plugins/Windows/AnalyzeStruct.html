@@ -185,16 +185,6 @@ ript>
             Registry
           </a>
         </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
         <li class='active'>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -602,15 +597,6 @@ ript>
     
 
 <nav class="navbar navbar-default plugins" role="navigation">
-
-  <ul class="nav navbar-nav navbar-left">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WindowsAddressResolver.html">
-         <span class="glyphicon glyphicon-arrow-left"></span>
-         address_resolver
-       </a>
-    </li>
-  </ul>
 
 
   <ul class="nav navbar-nav navbar-right">
@@ -652,20 +638,83 @@ ript>
 </div>
 
 
+<p>The Windows kernel allocates memory from &ldquo;pool space&rdquo;. To ease debugging memory
+leaks, the kernel uses a unique &ldquo;Pool Tag&rdquo; to tag many allocations. Each kernel
+subsystem or driver would use a specific tag to keep track of its allocation.</p>
+<p>We can use this fact when we look at some undocumented, or unknown memory
+region. This is what the <code>analyze_struct</code> plugin does:</p>
+<ol>
+<li>It first searched back from the address of interest to determine if this
+   address is part of a pool allocation. The plugin will report the pool tag of
+   this allocation as well as its size and starting offset.</li>
+<li>For each slot in the struct, the plugin assumes it is a pointer to something,
+   and checks if whatever it is pointing to is a pool allocation or a known
+   address.</li>
+</ol>
+<p>We can use this to get an idea of what exists at this memory location and its
+struct layout.</p>
+<p>In the below example, we pick an _EPROCESS from the output of <code>pslist</code> and
+search for pointers to it somewhere in kernel memory (There are many pointers!
+We just picked one for this example.). We then use the <code>analyze_struct</code> plugin
+to discover that the pointer resides in an allocation with the pool tag
+&lsquo;ObHd&rsquo;. We can search the kernel disassembly to realize this is an Object
+Handle. Note how we use grep to search for the little endian representation of
+the _EPROCESS address.</p>
+<div class="highlight"><pre>[1] win7.elf 23:14:38&gt; pslist
+  _EPROCESS            Name          PID   PPID   Thds    Hnds    Sess  Wow64           Start                     Exit
+-------------- -------------------- ----- ------ ------ -------- ------ ------ ------------------------ ------------------------
+....
+0xfa8002ad0190 cmd.exe               2644   2616      2       66      1 True   2012-10-01 14:40:20Z     -
 
+[1] win7.elf 23:14:55&gt; grep keyword=&quot;\x90\x01\xad\x02\x80\xfa&quot;
+....
+    Offset                                   Data                                                Comment
+-------------- ----------------------------------------------------------------- ----------------------------------------
+0xf8a0013d8ad8 60 40 a9 02 80 fa ff ff 01 00 00 00 00 00 00 00  `@..............
+0xf8a0013d8ae8 90 01 ad 02 80 fa ff ff 01 00 00 00 00 00 00 00  ................
+0xf8a0013d8af8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+...
+[1] win7.elf 23:17:20&gt; analyze_struct 0xf8a0013d8ae8
+
+0xf8a0013d8ae8 is inside pool allocation with tag &#39;ObHd&#39; (0xf8a0013d8a30)  and size 0x100
+    Offset     Content
+-------------- -------
+           0x0 Data:0xfa8002ad0190 Tag:Pro\xe3 @0xfa8002ad0190 (0x530)
+           0x8 Data:0x1
+          0x10 Data:0x0
+          0x18 Data:0x0
+          0x20 Data:0x0
+          0x28 Data:0x0
+          0x30 Data:0xfa80017f9060 Tag:Pro\xe3 @0xfa80017f9060 (0x530)
+          0x38 Data:0x1
+          0x40 Data:0x730061006c
+          0x48 Data:0x744e034d0110
+          0x50 Data:0x490053004c
+          0x58 Data:0xa4801280702
+          0x60 Data:0x981e
+          0x68 Data:0x100000000
+          0x70 Data:0x0
+[1] win7.elf 23:22:25&gt; hex(struct.unpack(&quot;&lt;I&quot;, &#39;ObHd&#39;)[0])
+               Out&lt;24&gt; &#39;0x6448624f&#39;
+[1] win7.elf 23:22:33&gt; dis &quot;nt!ObpInsertHandleCount&quot;
+---------------------&gt; dis(&quot;nt!ObpInsertHandleCount&quot;)
+Address      Rel             Op Codes                     Instruction                Comment
+------- -------------- -------------------- ---------------------------------------- -------
+------ nt!ObpInsertHandleCount ------: 0xf80002976010
+  0xf80002976010            0x0 48895c2408           mov qword ptr [rsp + 8], rbx
+  0xf80002976015            0x5 48896c2410           mov qword ptr [rsp + 0x10], rbp
+....
+
+  0xf80002976089           0x79 41b84f624864         mov r8d, 0x6448624f
+  0xf8000297608f           0x7f e83cd3e4ff           call 0xf800027c33d0                      nt!ExAllocatePoolWithTag
+  0xf80002976094           0x84 4885c0               test rax, rax
+  0xf80002976097           0x87 0f84dacd0400         je 0xf800029c2e77                        nt!ExpProfileCreate+0x9d57
+  0xf8000297609d           0x8d 458bc5               mov r8d, r13d
+</pre></div>
 
 <p>
 
 <nav class="navbar navbar-default plugins" role="navigation">
-
-  <ul class="nav navbar-nav navbar-left">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WindowsAddressResolver.html">
-         <span class="glyphicon glyphicon-arrow-left"></span>
-         address_resolver
-       </a>
-    </li>
-  </ul>
 
 
   <ul class="nav navbar-nav navbar-right">

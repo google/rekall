@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -677,22 +672,22 @@ need to enumerate all address spaces prior to running (so it is a bit faster).</
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win7.elf 15:22:57&gt; vtop 0xfa8002635810
------------------&gt; vtop(0xfa8002635810)
-Virtual 0xfa8002635810 Page Directory 0x271ec000
-pml4e@ 0x271ecfa8 = 0x4000863
-pdpte@ 0x4000000 = 0x4001863
-pde@ 0x4001098 = 0x2ac009e3
-Large page mapped 0x2ae35810
-Physical Address 0x2ac35810
-win7.elf 15:23:05&gt; ptov 0x2ac35810
------------------&gt; ptov(0x2ac35810)
-Physical Address 0x2ac35810 =&gt; Virtual Address 0xf6fd40035810
-DTB @ 0x187000
-PML4E @ 0x187f68
-PDPTE @ 0x187fa8
-PDE @ 0x4000000
-PTE @ 0x40011a8
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">15</span><span class="o">:</span><span class="mi">22</span><span class="o">:</span><span class="mi">57</span><span class="o">&gt;</span> <span class="n">vtop</span> <span class="mh">0xfa8002635810</span>
+<span class="o">-----------------&gt;</span> <span class="n">vtop</span><span class="p">(</span><span class="mh">0xfa8002635810</span><span class="p">)</span>
+<span class="n">Virtual</span> <span class="mh">0xfa8002635810</span> <span class="n">Page</span> <span class="n">Directory</span> <span class="mh">0x271ec000</span>
+<span class="n">pml4e</span><span class="err">@</span> <span class="mh">0x271ecfa8</span> <span class="o">=</span> <span class="mh">0x4000863</span>
+<span class="n">pdpte</span><span class="err">@</span> <span class="mh">0x4000000</span> <span class="o">=</span> <span class="mh">0x4001863</span>
+<span class="n">pde</span><span class="err">@</span> <span class="mh">0x4001098</span> <span class="o">=</span> <span class="mh">0x2ac009e3</span>
+<span class="n">Large</span> <span class="n">page</span> <span class="n">mapped</span> <span class="mh">0x2ae35810</span>
+<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x2ac35810</span>
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">15</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mo">05</span><span class="o">&gt;</span> <span class="n">ptov</span> <span class="mh">0x2ac35810</span>
+<span class="o">-----------------&gt;</span> <span class="n">ptov</span><span class="p">(</span><span class="mh">0x2ac35810</span><span class="p">)</span>
+<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x2ac35810</span> <span class="o">=&gt;</span> <span class="n">Virtual</span> <span class="n">Address</span> <span class="mh">0xf6fd40035810</span>
+<span class="n">DTB</span> <span class="err">@</span> <span class="mh">0x187000</span>
+<span class="n">PML4E</span> <span class="err">@</span> <span class="mh">0x187f68</span>
+<span class="n">PDPTE</span> <span class="err">@</span> <span class="mh">0x187fa8</span>
+<span class="n">PDE</span> <span class="err">@</span> <span class="mh">0x4000000</span>
+<span class="n">PTE</span> <span class="err">@</span> <span class="mh">0x40011a8</span>
 </pre></div>
 
 <p>

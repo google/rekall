@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -676,33 +671,33 @@ work for closed files).</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="x">win8.1.raw 16:55:44&gt; filescan scan_in_kernel=True</span>
-<span class="x">-------------------&gt; filescan(scan_in_kernel=True)</span>
-<span class="x">      Offset       </span><span class="cp">#</span><span class="nf">Ptr</span><span class="x"> </span><span class="cp">#</span><span class="nf">Hnd</span><span class="x"> Access     Owner      Owner Pid Owner Name       Name</span>
-<span class="x">- -------------- ------ ---- ------ -------------- --------- ---------------- ----</span>
-<span class="x">  0xe000000421e0     17   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
-<span class="x">  0xe00000057d70     14   0 R--rwd -------------- ---- ---------------- \Windows\System32\AuthBroker.dll</span>
-<span class="x">  0xe000000599d0  32758   1 R--rw- 0xe00000074580    4 System           \Windows\CSC\v2.0.6</span>
-<span class="x">  0xe000000686e0     19   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
-<span class="x">  0xe0000006a1f0     19   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
-<span class="x">  0xe0000006b5a0     16   0 R--r-d -------------- ---- ---------------- \Windows\Fonts\modern.fon</span>
-<span class="x">  0xe0000006d8c0      4   0 R--r-d -------------- ---- ---------------- \Windows\System32\negoexts.dll</span>
-<span class="x">  0xe0000006dc40     16   0 R--r-- -------------- ---- ---------------- \Windows\Fonts\meiryob.ttc</span>
-<span class="x">  0xe0000006e1f0  29617   1 ------ 0xe0000204a900 2628 winpmem_1.5.2.   \Connect</span>
-<span class="x">  0xe0000006edd0     16   0 R--rwd -------------- ---- ---------------- \Windows\System32\msctf.dll</span>
-<span class="x">  0xe00000079270     16   0 R--r-- -------------- ---- ---------------- \Windows\Cursors\aero_up.cur</span>
-<span class="x">  0xe0000007abc0     12   0 R--rwd -------------- ---- ---------------- \Windows\System32\puiobj.dll</span>
-<span class="x">  0xe0000007ba90     18   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
-<span class="x">  0xe0000007e070      3   0 R--r-- -------------- ---- ---------------- \Windows\Fonts\segoeui.ttf</span>
-<span class="x">  0xe0000007e360      4   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">ConvertToNonresident</span><span class="x"></span>
-<span class="x">  0xe0000007e890      7   0 R--r-d -------------- ---- ---------------- \Windows\System32\usbmon.dll</span>
-<span class="x">  0xe0000007f360  32768   1 R--r-d 0xe000000ce080  432 wininit.exe      \Windows\System32\en-GB\user32.dll.mui</span>
-<span class="x">  0xe0000007f980      4   0 R--r-d -------------- ---- ---------------- \Windows\System32\KBDUK.DLL</span>
-<span class="x">  0xe000000b1d90     17   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
-<span class="x">  0xe000000b1f20      5   0 R--r-d -------------- ---- ---------------- \Windows\System32\AppXDeploymentServer.dll</span>
-<span class="x">  0xe000000b4610     12   0 R--rwd -------------- ---- ---------------- \Windows\SysWOW64\winmmbase.dll</span>
-<span class="x">  0xe000000b6820      1   1 RWD--- 0xe00000074580    4 System           \Windows\System32\config\RegBack\SECURITY</span>
-<span class="x">  0xe000000b6a50  32766   1 RW---- 0xe00000074580    4 System           \Windows\System32\config\SECURITY.LOG2</span>
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">55</span><span class="o">:</span><span class="mi">44</span><span class="o">&gt;</span> <span class="n">filescan</span> <span class="n">scan_in_kernel</span><span class="o">=</span><span class="n">True</span>
+<span class="o">-------------------&gt;</span> <span class="n">filescan</span><span class="p">(</span><span class="n">scan_in_kernel</span><span class="o">=</span><span class="n">True</span><span class="p">)</span>
+      <span class="n">Offset</span>       <span class="err">#</span><span class="n">Ptr</span> <span class="err">#</span><span class="n">Hnd</span> <span class="n">Access</span>     <span class="n">Owner</span>      <span class="n">Owner</span> <span class="n">Pid</span> <span class="n">Owner</span> <span class="n">Name</span>       <span class="n">Name</span>
+<span class="o">-</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">----</span> <span class="o">------</span> <span class="o">--------------</span> <span class="o">---------</span> <span class="o">----------------</span> <span class="o">----</span>
+  <span class="mh">0xe000000421e0</span>     <span class="mi">17</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe00000057d70</span>     <span class="mi">14</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">AuthBroker</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe000000599d0</span>  <span class="mi">32758</span>   <span class="mi">1</span> <span class="n">R</span><span class="o">--</span><span class="n">rw</span><span class="o">-</span> <span class="mh">0xe00000074580</span>    <span class="mi">4</span> <span class="n">System</span>           <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">CSC</span><span class="err">\</span><span class="n">v2</span><span class="mf">.0.6</span>
+  <span class="mh">0xe000000686e0</span>     <span class="mi">19</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe0000006a1f0</span>     <span class="mi">19</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe0000006b5a0</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Fonts</span><span class="err">\</span><span class="n">modern</span><span class="p">.</span><span class="n">fon</span>
+  <span class="mh">0xe0000006d8c0</span>      <span class="mi">4</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">negoexts</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe0000006dc40</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">--</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Fonts</span><span class="err">\</span><span class="n">meiryob</span><span class="p">.</span><span class="n">ttc</span>
+  <span class="mh">0xe0000006e1f0</span>  <span class="mi">29617</span>   <span class="mi">1</span> <span class="o">------</span> <span class="mh">0xe0000204a900</span> <span class="mi">2628</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="err">\</span><span class="n">Connect</span>
+  <span class="mh">0xe0000006edd0</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">msctf</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe00000079270</span>     <span class="mi">16</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">--</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Cursors</span><span class="err">\</span><span class="n">aero_up</span><span class="p">.</span><span class="n">cur</span>
+  <span class="mh">0xe0000007abc0</span>     <span class="mi">12</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">puiobj</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe0000007ba90</span>     <span class="mi">18</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe0000007e070</span>      <span class="mi">3</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">--</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">Fonts</span><span class="err">\</span><span class="n">segoeui</span><span class="p">.</span><span class="n">ttf</span>
+  <span class="mh">0xe0000007e360</span>      <span class="mi">4</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">ConvertToNonresident</span>
+  <span class="mh">0xe0000007e890</span>      <span class="mi">7</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">usbmon</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe0000007f360</span>  <span class="mi">32768</span>   <span class="mi">1</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="mh">0xe000000ce080</span>  <span class="mi">432</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">en</span><span class="o">-</span><span class="n">GB</span><span class="err">\</span><span class="n">user32</span><span class="p">.</span><span class="n">dll</span><span class="p">.</span><span class="n">mui</span>
+  <span class="mh">0xe0000007f980</span>      <span class="mi">4</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">KBDUK</span><span class="p">.</span><span class="n">DLL</span>
+  <span class="mh">0xe000000b1d90</span>     <span class="mi">17</span>   <span class="mi">0</span> <span class="n">RW</span><span class="o">-</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\$</span><span class="n">Directory</span>
+  <span class="mh">0xe000000b1f20</span>      <span class="mi">5</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">r</span><span class="o">-</span><span class="n">d</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">AppXDeploymentServer</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe000000b4610</span>     <span class="mi">12</span>   <span class="mi">0</span> <span class="n">R</span><span class="o">--</span><span class="n">rwd</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----------------</span> <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">winmmbase</span><span class="p">.</span><span class="n">dll</span>
+  <span class="mh">0xe000000b6820</span>      <span class="mi">1</span>   <span class="mi">1</span> <span class="n">RWD</span><span class="o">---</span> <span class="mh">0xe00000074580</span>    <span class="mi">4</span> <span class="n">System</span>           <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">config</span><span class="err">\</span><span class="n">RegBack</span><span class="err">\</span><span class="n">SECURITY</span>
+  <span class="mh">0xe000000b6a50</span>  <span class="mi">32766</span>   <span class="mi">1</span> <span class="n">RW</span><span class="o">----</span> <span class="mh">0xe00000074580</span>    <span class="mi">4</span> <span class="n">System</span>           <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">config</span><span class="err">\</span><span class="n">SECURITY</span><span class="p">.</span><span class="n">LOG2</span>
 </pre></div>
 
 <p>

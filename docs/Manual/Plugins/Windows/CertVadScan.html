@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -670,20 +665,20 @@ also dumped to files in the specified directory.</p>
 <h3>Sample Output</h3>
 <p>In the example below we scan the address space of the winpmem acquistion tool to
 find certificates used to sign the driver and binary.</p>
-<div class="highlight"><pre>win8.1.raw 22:07:16&gt; cert_vad_scan proc_regex=&quot;winpmem&quot;
--------------------&gt; cert_vad_scan(proc_regex=&quot;winpmem&quot;)
-Pid   Command       Address     Type  Length Description
------ ---------- -------------- ----- ------ -----------
-2628  winpmem_1.5.2. 0x00000003c179 X509  1010  /C=US/O=Symantec Corporation/CN=Symantec Time Stamping Services CA - G2
-2628  winpmem_1.5.2. 0x00000003c56b X509  1191  /C=US/O=Symantec Corporation/CN=Symantec Time Stamping Services Signer - G4
-2628  winpmem_1.5.2. 0x00000003ca12 X509  1343  /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
-2628  winpmem_1.5.2. 0x00000003cf51 X509  1690  /C=CH/ST=Switzerland/L=Horgen/O=Michael Cohen/CN=Michael Cohen
-2628  winpmem_1.5.2. 0x00000003d285 X509  443   -
-2628  winpmem_1.5.2. 0x00000003d5eb X509  1734  /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance Code Signing CA-1
-2628  winpmem_1.5.2. 0x00000003d87c X509  442   -
-2628  winpmem_1.5.2. 0x000000bd2260 X509  704   /O=VeriSign Trust Network/OU=VeriSign, Inc./OU=VeriSign Time Stamping Service Root/OU=NO LIABILITY ACCEPTED, (c)97 VeriSign, Inc.
-2628  winpmem_1.5.2. 0x000000bd2720 X509  462   /CN=Root Agency
-2628  winpmem_1.5.2. 0x000000c153b0 X509  1491  /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/OU=MOPR/CN=Microsoft Update
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">cert_vad_scan</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span>
+<span class="o">-------------------&gt;</span> <span class="n">cert_vad_scan</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">)</span>
+<span class="n">Pid</span>   <span class="n">Command</span>       <span class="n">Address</span>     <span class="n">Type</span>  <span class="n">Length</span> <span class="n">Description</span>
+<span class="o">-----</span> <span class="o">----------</span> <span class="o">--------------</span> <span class="o">-----</span> <span class="o">------</span> <span class="o">-----------</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003c179</span> <span class="n">X509</span>  <span class="mi">1010</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Services</span> <span class="n">CA</span> <span class="o">-</span> <span class="n">G2</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003c56b</span> <span class="n">X509</span>  <span class="mi">1191</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Symantec</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Services</span> <span class="n">Signer</span> <span class="o">-</span> <span class="n">G4</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003ca12</span> <span class="n">X509</span>  <span class="mi">1343</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">Inc</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">www</span><span class="p">.</span><span class="n">digicert</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">High</span> <span class="n">Assurance</span> <span class="n">EV</span> <span class="n">Root</span> <span class="n">CA</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003cf51</span> <span class="n">X509</span>  <span class="mi">1690</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">CH</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Switzerland</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Horgen</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Michael</span> <span class="n">Cohen</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Michael</span> <span class="n">Cohen</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d285</span> <span class="n">X509</span>  <span class="mi">443</span>   <span class="o">-</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d5eb</span> <span class="n">X509</span>  <span class="mi">1734</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">Inc</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">www</span><span class="p">.</span><span class="n">digicert</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">DigiCert</span> <span class="n">High</span> <span class="n">Assurance</span> <span class="n">Code</span> <span class="n">Signing</span> <span class="n">CA</span><span class="o">-</span><span class="mi">1</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x00000003d87c</span> <span class="n">X509</span>  <span class="mi">442</span>   <span class="o">-</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000bd2260</span> <span class="n">X509</span>  <span class="mi">704</span>   <span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">VeriSign</span> <span class="n">Trust</span> <span class="n">Network</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">VeriSign</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">VeriSign</span> <span class="n">Time</span> <span class="n">Stamping</span> <span class="n">Service</span> <span class="n">Root</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">NO</span> <span class="n">LIABILITY</span> <span class="n">ACCEPTED</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="mi">97</span> <span class="n">VeriSign</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000bd2720</span> <span class="n">X509</span>  <span class="mi">462</span>   <span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Root</span> <span class="n">Agency</span>
+<span class="mi">2628</span>  <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span> <span class="mh">0x000000c153b0</span> <span class="n">X509</span>  <span class="mi">1491</span>  <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">MOPR</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Update</span>
 </pre></div>
 
 <p>

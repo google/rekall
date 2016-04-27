@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -676,7 +671,8 @@ signatures or other patterns in tools which do not understand virtual memory
 mappings.</p>
 <p>The plugin accepts all the usual process filtering commands (e.g. by pid,
 proc_regex etc). Additionally if no filtering command is specified the plugin
-dumps the kernel&rsquo;s address space. (You can dump all processes by providing a<strong>proc_regex</strong> of &lsquo;.&rsquo;).</p>
+dumps the kernel&rsquo;s address space. (You can dump all processes by providing a
+<strong>proc_regex</strong> of &lsquo;.&rsquo;).</p>
 <h3>Notes</h3>
 <ol>
 <li>
@@ -704,22 +700,22 @@ dumps the kernel&rsquo;s address space. (You can dump all processes by providing
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win7.elf 00:30:52&gt; memdump pid=2912, dump_dir=&quot;/tmp/&quot;
------------------&gt; memdump(pid=2912, dump_dir=&quot;/tmp/&quot;)
-**************************************************
-Writing vol.exe 0xfa8002193060 to vol.exe_2912.dmp
-win7.elf 00:30:55&gt; ls -l /tmp/vol.exe_2912.dmp -h
--rw-r----- 1 scudette staff 2.2M Jun 18 00:30 /tmp/vol.exe_2912.dmp
-win7.elf 00:30:59&gt; less /tmp/vol.exe_2912.dmp.idx
- File Address      Length      Virtual Addr
--------------- -------------- --------------
-0x000000000000 0x000000001000 0x000000010000
-0x000000001000 0x000000001000 0x000000020000
-0x000000002000 0x000000001000 0x000000021000
-0x000000003000 0x000000001000 0x00000002f000
-0x000000004000 0x000000001000 0x000000040000
-0x000000005000 0x000000001000 0x000000050000
-0x000000006000 0x000000001000 0x000000051000
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">00</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">52</span><span class="o">&gt;</span> <span class="n">memdump</span> <span class="n">pid</span><span class="o">=</span><span class="mi">2912</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp/&quot;</span>
+<span class="o">-----------------&gt;</span> <span class="n">memdump</span><span class="p">(</span><span class="n">pid</span><span class="o">=</span><span class="mi">2912</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp/&quot;</span><span class="p">)</span>
+<span class="o">**************************************************</span>
+<span class="n">Writing</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="mh">0xfa8002193060</span> <span class="n">to</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe_2912</span><span class="p">.</span><span class="n">dmp</span>
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">00</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">55</span><span class="o">&gt;</span> <span class="n">ls</span> <span class="o">-</span><span class="n">l</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">vol</span><span class="p">.</span><span class="n">exe_2912</span><span class="p">.</span><span class="n">dmp</span> <span class="o">-</span><span class="n">h</span>
+<span class="o">-</span><span class="n">rw</span><span class="o">-</span><span class="n">r</span><span class="o">-----</span> <span class="mi">1</span> <span class="n">scudette</span> <span class="n">staff</span> <span class="mf">2.2</span><span class="n">M</span> <span class="n">Jun</span> <span class="mi">18</span> <span class="mo">00</span><span class="o">:</span><span class="mi">30</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">vol</span><span class="p">.</span><span class="n">exe_2912</span><span class="p">.</span><span class="n">dmp</span>
+<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">00</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">59</span><span class="o">&gt;</span> <span class="n">less</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">vol</span><span class="p">.</span><span class="n">exe_2912</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">idx</span>
+ <span class="n">File</span> <span class="n">Address</span>      <span class="n">Length</span>      <span class="n">Virtual</span> <span class="n">Addr</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------</span>
+<span class="mh">0x000000000000</span> <span class="mh">0x000000001000</span> <span class="mh">0x000000010000</span>
+<span class="mh">0x000000001000</span> <span class="mh">0x000000001000</span> <span class="mh">0x000000020000</span>
+<span class="mh">0x000000002000</span> <span class="mh">0x000000001000</span> <span class="mh">0x000000021000</span>
+<span class="mh">0x000000003000</span> <span class="mh">0x000000001000</span> <span class="mh">0x00000002f000</span>
+<span class="mh">0x000000004000</span> <span class="mh">0x000000001000</span> <span class="mh">0x000000040000</span>
+<span class="mh">0x000000005000</span> <span class="mh">0x000000001000</span> <span class="mh">0x000000050000</span>
+<span class="mh">0x000000006000</span> <span class="mh">0x000000001000</span> <span class="mh">0x000000051000</span>
 </pre></div>
 
 <p>

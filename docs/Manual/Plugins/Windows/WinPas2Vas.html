@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -706,7 +701,7 @@ which other process has that physical page mapped.</p>
 <span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">29</span><span class="o">:</span><span class="mi">59</span><span class="o">&gt;</span> <span class="n">vad</span> <span class="mi">2912</span>
 <span class="o">-----------------&gt;</span> <span class="n">vad</span><span class="p">(</span><span class="mi">2912</span><span class="p">)</span>
 <span class="o">**************************************************</span>
-<span class="nl">Pid</span><span class="p">:</span> <span class="mi">2912</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>
+<span class="nl">Pid:</span> <span class="mi">2912</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>
      <span class="n">VAD</span>       <span class="n">lev</span>     <span class="n">start</span>           <span class="n">end</span>        <span class="n">com</span> <span class="o">-</span>       <span class="o">-</span>      <span class="n">Protect</span>              <span class="n">Filename</span>
 <span class="o">--------------</span> <span class="o">---</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">-------</span> <span class="o">------</span> <span class="o">--------------------</span> <span class="o">--------</span>
 <span class="mh">0xfa80026f9d80</span> <span class="mi">1</span>         <span class="mh">0x74400</span>        <span class="mh">0x7443e</span>    <span class="mi">3</span> <span class="n">Mapped</span>  <span class="n">Exe</span>    <span class="n">EXECUTE_WRITECOPY</span>    <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
@@ -716,16 +711,16 @@ which other process has that physical page mapped.</p>
 <span class="p">...</span>
 <span class="mh">0xfa80028f59d0</span> <span class="mi">5</span>         <span class="mh">0x7fff0</span>     <span class="mh">0x7fffffef</span>   <span class="o">-</span><span class="mi">1</span> <span class="n">Private</span>        <span class="n">READONLY</span>
 <span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">08</span><span class="o">&gt;</span> <span class="n">cc</span> <span class="mi">2912</span>
-<span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="nl">context</span><span class="p">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="p">(</span><span class="n">Pid</span> <span class="mi">2912</span><span class="mh">@0xfa8002193060</span><span class="p">)</span>
+<span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="n">context</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="p">(</span><span class="n">Pid</span> <span class="mi">2912</span><span class="err">@</span><span class="mh">0xfa8002193060</span><span class="p">)</span>
 
 <span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">45</span><span class="o">&gt;</span> <span class="n">vtop</span> <span class="mh">0x766c0000</span>
 <span class="o">-----------------&gt;</span> <span class="n">vtop</span><span class="p">(</span><span class="mh">0x766c0000</span><span class="p">)</span>
 <span class="n">Virtual</span> <span class="mh">0x766c0000</span> <span class="n">Page</span> <span class="n">Directory</span> <span class="mh">0x271ec000</span>
-<span class="n">pml4e</span><span class="p">@</span> <span class="mh">0x271ec000</span> <span class="o">=</span> <span class="mh">0x70000008844867</span>
-<span class="n">pdpte</span><span class="p">@</span> <span class="mh">0x8844008</span> <span class="o">=</span> <span class="mh">0x80000007845867</span>
-<span class="n">pde</span><span class="p">@</span> <span class="mh">0x7845d98</span> <span class="o">=</span> <span class="mh">0x7b55847</span>
-<span class="n">pte</span><span class="p">@</span> <span class="mh">0x7b55600</span> <span class="o">=</span> <span class="mh">0x1a58f005</span>
-<span class="n">PTE</span> <span class="n">mapped</span><span class="p">@</span> <span class="mh">0x7b55600</span> <span class="o">=</span> <span class="mh">0x1a58f000</span>
+<span class="n">pml4e</span><span class="err">@</span> <span class="mh">0x271ec000</span> <span class="o">=</span> <span class="mh">0x70000008844867</span>
+<span class="n">pdpte</span><span class="err">@</span> <span class="mh">0x8844008</span> <span class="o">=</span> <span class="mh">0x80000007845867</span>
+<span class="n">pde</span><span class="err">@</span> <span class="mh">0x7845d98</span> <span class="o">=</span> <span class="mh">0x7b55847</span>
+<span class="n">pte</span><span class="err">@</span> <span class="mh">0x7b55600</span> <span class="o">=</span> <span class="mh">0x1a58f005</span>
+<span class="n">PTE</span> <span class="n">mapped</span><span class="err">@</span> <span class="mh">0x7b55600</span> <span class="o">=</span> <span class="mh">0x1a58f000</span>
 <span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x1a58f000</span>
 <span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">53</span><span class="o">&gt;</span> <span class="n">pas2vas</span> <span class="mh">0x1a58f000</span>
 

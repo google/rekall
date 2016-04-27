@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -686,9 +681,9 @@ dump.</p>
 <p>In this example we dump the winpmem driver to disk. The winpmem driver loads
 from a temporary file name (You can see it using the <a href="Modules.html">modules</a>
 plugin.</p>
-<div class="highlight"><pre>win8.1.raw 23:27:12&gt; moddump regex=&quot;tmp&quot;, dump_dir=&quot;/tmp&quot;
--------------------&gt; moddump(regex=&quot;tmp&quot;, dump_dir=&quot;/tmp&quot;)
-Dumping pmeA86F.tmp, Base: f800025ca000 output: driver.f800025ca000.sys
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">23</span><span class="o">:</span><span class="mi">27</span><span class="o">:</span><span class="mi">12</span><span class="o">&gt;</span> <span class="n">moddump</span> <span class="n">regex</span><span class="o">=</span><span class="s">&quot;tmp&quot;</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp&quot;</span>
+<span class="o">-------------------&gt;</span> <span class="n">moddump</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="s">&quot;tmp&quot;</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp&quot;</span><span class="p">)</span>
+<span class="n">Dumping</span> <span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span><span class="p">,</span> <span class="n">Base</span><span class="o">:</span> <span class="n">f800025ca000</span> <span class="n">output</span><span class="o">:</span> <span class="n">driver</span><span class="p">.</span><span class="n">f800025ca000</span><span class="p">.</span><span class="n">sys</span>
 </pre></div>
 
 <p>

@@ -163,6 +163,7 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
  <a href="/docs/index.html" class="btn btn-default btn-lg btn-block">
   <span class="glyphicon glyphicon-arrow-left"></span> docs
  </a>
@@ -172,39 +173,36 @@ ript>
  </a>
  <p>
 
- <ul class='nav nav-pills nav-stacked'><ul class='nav nav-pills nav-stacked'><li>
-          <a href='/docs/References/MemoryAnalysis.html' class="category-link">
-            Memory Analysis Course
-          </a>
-        </li>
-        </ul>
+<ul class='nav nav-pills nav-stacked'>
         <li>
-          <a href='/docs/References/Papers' class="category-link">
+          <a href='/docs/References/Papers' class="category-directory-link">
             Papers
           </a>
         </li>
         
         <li>
-          <a href='/docs/References/Presentations' class="category-link">
+          <a href='/docs/References/Presentations' class="category-directory-link">
             Presentations
           </a>
         </li>
-        </ul>
-
-
+        <li>
+          <a href='#Memory Analysis Course' class="category-link">
+            Memory Analysis Course
+          </a>
+        </li>
+        </ul></ul>
   </div>
 
   <div class="col-md-10">
     
 
 
-<h1>References</h1>
+<h1 id="#References" class="anchor" >References</h1>
+
 
 <div class="abstract">
-
+<h2></h2>
 </div>
-
-
 
 
 
@@ -241,6 +239,10 @@ applied in practice. You can visit this site at<a href="http://memory-analysis.r
 
   <script>
    $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
   </script>
   </div>
  </body>

@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -665,108 +660,108 @@ ript>
 the usual process selectors (e.g. pid, name etc) and prints information about
 the PE file (using <strong>peinfo</strong>) as well as the process environment strings.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="nt">win7</span><span class="nc">.elf</span> <span class="nt">14</span><span class="nd">:43:15</span><span class="o">&gt;</span> <span class="nt">procinfo</span> <span class="nt">proc_regex</span><span class="o">=</span><span class="s2">&quot;csrss&quot;</span>
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">14</span><span class="o">:</span><span class="mi">43</span><span class="o">:</span><span class="mi">15</span><span class="o">&gt;</span> <span class="n">procinfo</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;csrss&quot;</span>
 <span class="o">**************************************************</span>
-<span class="nt">Pid</span><span class="o">:</span> <span class="nt">348</span> <span class="nt">csrss</span><span class="nc">.exe</span>
+<span class="nl">Pid:</span> <span class="mi">348</span> <span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>
 
-<span class="nt">Process</span> <span class="nt">Environment</span>
-   <span class="nt">ComSpec</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">system32</span><span class="err">\</span><span class="nt">cmd</span><span class="nc">.exe</span>
-   <span class="nt">FP_NO_HOST_CHECK</span><span class="o">=</span><span class="nt">NO</span>
-   <span class="nt">NUMBER_OF_PROCESSORS</span><span class="o">=</span><span class="nt">1</span>
-   <span class="nt">OS</span><span class="o">=</span><span class="nt">Windows_NT</span>
-   <span class="nt">Path</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">system32</span><span class="o">;</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="o">;</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">System32</span><span class="err">\</span><span class="nt">Wbem</span><span class="o">;</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">System32</span><span class="err">\</span><span class="nt">WindowsPowerShell</span><span class="err">\</span><span class="nt">v1</span><span class="nc">.0</span><span class="err">\</span>
-   <span class="nt">PATHEXT</span><span class="o">=</span><span class="nc">.COM</span><span class="o">;</span><span class="nc">.EXE</span><span class="o">;</span><span class="nc">.BAT</span><span class="o">;</span><span class="nc">.CMD</span><span class="o">;</span><span class="nc">.VBS</span><span class="o">;</span><span class="nc">.VBE</span><span class="o">;</span><span class="nc">.JS</span><span class="o">;</span><span class="nc">.JSE</span><span class="o">;</span><span class="nc">.WSF</span><span class="o">;</span><span class="nc">.WSH</span><span class="o">;</span><span class="nc">.MSC</span>
-   <span class="nt">PROCESSOR_ARCHITECTURE</span><span class="o">=</span><span class="nt">AMD64</span>
-   <span class="nt">PROCESSOR_IDENTIFIER</span><span class="o">=</span><span class="nt">Intel64</span> <span class="nt">Family</span> <span class="nt">6</span> <span class="nt">Model</span> <span class="nt">37</span> <span class="nt">Stepping</span> <span class="nt">2</span><span class="o">,</span> <span class="nt">GenuineIntel</span>
-   <span class="nt">PROCESSOR_LEVEL</span><span class="o">=</span><span class="nt">6</span>
-   <span class="nt">PROCESSOR_REVISION</span><span class="o">=</span><span class="nt">2502</span>
-   <span class="nt">PSModulePath</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">system32</span><span class="err">\</span><span class="nt">WindowsPowerShell</span><span class="err">\</span><span class="nt">v1</span><span class="nc">.0</span><span class="err">\</span><span class="nt">Modules</span><span class="err">\</span>
-   <span class="nt">SystemDrive</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span>
-   <span class="nt">SystemRoot</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span>
-   <span class="nt">TEMP</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">TEMP</span>
-   <span class="nt">TMP</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span><span class="err">\</span><span class="nt">TEMP</span>
-   <span class="nt">USERNAME</span><span class="o">=</span><span class="nt">SYSTEM</span>
-   <span class="nt">windir</span><span class="o">=</span><span class="nt">C</span><span class="o">:</span><span class="err">\</span><span class="nt">Windows</span>
+<span class="n">Process</span> <span class="n">Environment</span>
+   <span class="n">ComSpec</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>
+   <span class="n">FP_NO_HOST_CHECK</span><span class="o">=</span><span class="n">NO</span>
+   <span class="n">NUMBER_OF_PROCESSORS</span><span class="o">=</span><span class="mi">1</span>
+   <span class="n">OS</span><span class="o">=</span><span class="n">Windows_NT</span>
+   <span class="n">Path</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="p">;</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="p">;</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">Wbem</span><span class="p">;</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">WindowsPowerShell</span><span class="err">\</span><span class="n">v1</span><span class="mf">.0</span>\
+   <span class="n">PATHEXT</span><span class="o">=</span><span class="p">.</span><span class="n">COM</span><span class="p">;.</span><span class="n">EXE</span><span class="p">;.</span><span class="n">BAT</span><span class="p">;.</span><span class="n">CMD</span><span class="p">;.</span><span class="n">VBS</span><span class="p">;.</span><span class="n">VBE</span><span class="p">;.</span><span class="n">JS</span><span class="p">;.</span><span class="n">JSE</span><span class="p">;.</span><span class="n">WSF</span><span class="p">;.</span><span class="n">WSH</span><span class="p">;.</span><span class="n">MSC</span>
+   <span class="n">PROCESSOR_ARCHITECTURE</span><span class="o">=</span><span class="n">AMD64</span>
+   <span class="n">PROCESSOR_IDENTIFIER</span><span class="o">=</span><span class="n">Intel64</span> <span class="n">Family</span> <span class="mi">6</span> <span class="n">Model</span> <span class="mi">37</span> <span class="n">Stepping</span> <span class="mi">2</span><span class="p">,</span> <span class="n">GenuineIntel</span>
+   <span class="n">PROCESSOR_LEVEL</span><span class="o">=</span><span class="mi">6</span>
+   <span class="n">PROCESSOR_REVISION</span><span class="o">=</span><span class="mi">2502</span>
+   <span class="n">PSModulePath</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">WindowsPowerShell</span><span class="err">\</span><span class="n">v1</span><span class="mf">.0</span><span class="err">\</span><span class="n">Modules</span>\
+   <span class="n">SystemDrive</span><span class="o">=</span><span class="n">C</span><span class="o">:</span>
+   <span class="n">SystemRoot</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span>
+   <span class="n">TEMP</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">TEMP</span>
+   <span class="n">TMP</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">TEMP</span>
+   <span class="n">USERNAME</span><span class="o">=</span><span class="n">SYSTEM</span>
+   <span class="n">windir</span><span class="o">=</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span>
 
-<span class="nt">PE</span> <span class="nt">Infomation</span>
-<span class="nt">Attribute</span>            <span class="nt">Value</span>
-<span class="nt">--------------------</span> <span class="nt">-----</span>
-<span class="nt">Machine</span>              <span class="nt">IMAGE_FILE_MACHINE_AMD64</span>
-<span class="nt">TimeDateStamp</span>        <span class="nt">2009-07-13</span> <span class="nt">23</span><span class="nd">:19:49</span><span class="o">+</span><span class="nt">0000</span>
-<span class="nt">Characteristics</span>      <span class="nt">IMAGE_FILE_EXECUTABLE_IMAGE</span><span class="o">,</span> <span class="nt">IMAGE_FILE_LARGE_ADDRESS_AWARE</span>
-<span class="nt">GUID</span><span class="o">/</span><span class="nt">Age</span>             <span class="nt">E8979C26A0EE47A69575E54FA6C7F6BE1</span>
-<span class="nt">PDB</span>                  <span class="nt">csrss</span><span class="nc">.pdb</span>
-<span class="nt">MajorOperatingSystemVersion</span> <span class="nt">6</span>
-<span class="nt">MinorOperatingSystemVersion</span> <span class="nt">1</span>
-<span class="nt">MajorImageVersion</span>    <span class="nt">6</span>
-<span class="nt">MinorImageVersion</span>    <span class="nt">1</span>
-<span class="nt">MajorSubsystemVersion</span> <span class="nt">6</span>
-<span class="nt">MinorSubsystemVersion</span> <span class="nt">1</span>
+<span class="n">PE</span> <span class="n">Infomation</span>
+<span class="n">Attribute</span>            <span class="n">Value</span>
+<span class="o">--------------------</span> <span class="o">-----</span>
+<span class="n">Machine</span>              <span class="n">IMAGE_FILE_MACHINE_AMD64</span>
+<span class="n">TimeDateStamp</span>        <span class="mi">2009</span><span class="o">-</span><span class="mo">07</span><span class="o">-</span><span class="mi">13</span> <span class="mi">23</span><span class="o">:</span><span class="mi">19</span><span class="o">:</span><span class="mi">49</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">Characteristics</span>      <span class="n">IMAGE_FILE_EXECUTABLE_IMAGE</span><span class="p">,</span> <span class="n">IMAGE_FILE_LARGE_ADDRESS_AWARE</span>
+<span class="n">GUID</span><span class="o">/</span><span class="n">Age</span>             <span class="n">E8979C26A0EE47A69575E54FA6C7F6BE1</span>
+<span class="n">PDB</span>                  <span class="n">csrss</span><span class="p">.</span><span class="n">pdb</span>
+<span class="n">MajorOperatingSystemVersion</span> <span class="mi">6</span>
+<span class="n">MinorOperatingSystemVersion</span> <span class="mi">1</span>
+<span class="n">MajorImageVersion</span>    <span class="mi">6</span>
+<span class="n">MinorImageVersion</span>    <span class="mi">1</span>
+<span class="n">MajorSubsystemVersion</span> <span class="mi">6</span>
+<span class="n">MinorSubsystemVersion</span> <span class="mi">1</span>
 
-<span class="nt">Sections</span> <span class="o">(</span><span class="nt">Relative</span> <span class="nt">to</span> <span class="nt">0x497B0000</span><span class="o">):</span>
-<span class="nt">Perm</span> <span class="nt">Name</span>          <span class="nt">VMA</span>            <span class="nt">Size</span>
-<span class="nt">----</span> <span class="nt">--------</span> <span class="nt">--------------</span> <span class="nt">--------------</span>
-<span class="nt">xr-</span>  <span class="nc">.text</span>    <span class="nt">0x000000001000</span> <span class="nt">0x000000000c00</span>
-<span class="nt">-rw</span>  <span class="nc">.data</span>    <span class="nt">0x000000002000</span> <span class="nt">0x000000000200</span>
-<span class="nt">-r-</span>  <span class="nc">.pdata</span>   <span class="nt">0x000000003000</span> <span class="nt">0x000000000200</span>
-<span class="nt">-r-</span>  <span class="nc">.rsrc</span>    <span class="nt">0x000000004000</span> <span class="nt">0x000000000800</span>
-<span class="nt">-r-</span>  <span class="nc">.reloc</span>   <span class="nt">0x000000005000</span> <span class="nt">0x000000000200</span>
+<span class="n">Sections</span> <span class="p">(</span><span class="n">Relative</span> <span class="n">to</span> <span class="mh">0x497B0000</span><span class="p">)</span><span class="o">:</span>
+<span class="n">Perm</span> <span class="n">Name</span>          <span class="n">VMA</span>            <span class="n">Size</span>
+<span class="o">----</span> <span class="o">--------</span> <span class="o">--------------</span> <span class="o">--------------</span>
+<span class="n">xr</span><span class="o">-</span>  <span class="p">.</span><span class="n">text</span>    <span class="mh">0x000000001000</span> <span class="mh">0x000000000c00</span>
+<span class="o">-</span><span class="n">rw</span>  <span class="p">.</span><span class="n">data</span>    <span class="mh">0x000000002000</span> <span class="mh">0x000000000200</span>
+<span class="o">-</span><span class="n">r</span><span class="o">-</span>  <span class="p">.</span><span class="n">pdata</span>   <span class="mh">0x000000003000</span> <span class="mh">0x000000000200</span>
+<span class="o">-</span><span class="n">r</span><span class="o">-</span>  <span class="p">.</span><span class="n">rsrc</span>    <span class="mh">0x000000004000</span> <span class="mh">0x000000000800</span>
+<span class="o">-</span><span class="n">r</span><span class="o">-</span>  <span class="p">.</span><span class="n">reloc</span>   <span class="mh">0x000000005000</span> <span class="mh">0x000000000200</span>
 
-<span class="nt">Data</span> <span class="nt">Directories</span><span class="o">:</span>
-<span class="nt">-</span>                                             <span class="nt">VMA</span>            <span class="nt">Size</span>
-<span class="nt">----------------------------------------</span> <span class="nt">--------------</span> <span class="nt">--------------</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_EXPORT</span>             <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_IMPORT</span>             <span class="nt">0x0000497b17c4</span> <span class="nt">0x00000000003c</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_RESOURCE</span>           <span class="nt">0x0000497b4000</span> <span class="nt">0x0000000007f8</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_EXCEPTION</span>          <span class="nt">0x0000497b3000</span> <span class="nt">0x00000000003c</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_SECURITY</span>           <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_BASERELOC</span>          <span class="nt">0x0000497b5000</span> <span class="nt">0x00000000000c</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_DEBUG</span>              <span class="nt">0x0000497b10a0</span> <span class="nt">0x00000000001c</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_COPYRIGHT</span>          <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_GLOBALPTR</span>          <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_TLS</span>                <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG</span>        <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT</span>       <span class="nt">0x0000497b02b0</span> <span class="nt">0x000000000030</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_IAT</span>                <span class="nt">0x0000497b1000</span> <span class="nt">0x000000000098</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT</span>       <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR</span>     <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
-<span class="nt">IMAGE_DIRECTORY_ENTRY_RESERVED</span>           <span class="nt">0x000000000000</span> <span class="nt">0x000000000000</span>
+<span class="n">Data</span> <span class="n">Directories</span><span class="o">:</span>
+<span class="o">-</span>                                             <span class="n">VMA</span>            <span class="n">Size</span>
+<span class="o">----------------------------------------</span> <span class="o">--------------</span> <span class="o">--------------</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_EXPORT</span>             <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_IMPORT</span>             <span class="mh">0x0000497b17c4</span> <span class="mh">0x00000000003c</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_RESOURCE</span>           <span class="mh">0x0000497b4000</span> <span class="mh">0x0000000007f8</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_EXCEPTION</span>          <span class="mh">0x0000497b3000</span> <span class="mh">0x00000000003c</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_SECURITY</span>           <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_BASERELOC</span>          <span class="mh">0x0000497b5000</span> <span class="mh">0x00000000000c</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_DEBUG</span>              <span class="mh">0x0000497b10a0</span> <span class="mh">0x00000000001c</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_COPYRIGHT</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_GLOBALPTR</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_TLS</span>                <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG</span>        <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT</span>       <span class="mh">0x0000497b02b0</span> <span class="mh">0x000000000030</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_IAT</span>                <span class="mh">0x0000497b1000</span> <span class="mh">0x000000000098</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT</span>       <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR</span>     <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+<span class="n">IMAGE_DIRECTORY_ENTRY_RESERVED</span>           <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
 
-<span class="nt">Import</span> <span class="nt">Directory</span> <span class="o">(</span><span class="nt">Original</span><span class="o">):</span>
-<span class="nt">Name</span>                                               <span class="nt">Ord</span>
-<span class="nt">--------------------------------------------------</span> <span class="nt">-----</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">NtSetInformationProcess</span>                  <span class="nt">498</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlSetHeapInformation</span>                    <span class="nt">1158</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlSetUnhandledExceptionFilter</span>           <span class="nt">1179</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">NtTerminateProcess</span>                       <span class="nt">535</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlVirtualUnwind</span>                         <span class="nt">1264</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlLookupFunctionEntry</span>                   <span class="nt">1025</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlCaptureContext</span>                        <span class="nt">635</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">NtTerminateThread</span>                        <span class="nt">536</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlUnhandledExceptionFilter</span>              <span class="nt">1219</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlSetProcessIsCritical</span>                  <span class="nt">1166</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">isspace</span>                                  <span class="nt">1900</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlUnicodeStringToAnsiString</span>             <span class="nt">1222</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlAllocateHeap</span>                          <span class="nt">613</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlFreeAnsiString</span>                        <span class="nt">840</span>
-<span class="nt">ntdll</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">RtlNormalizeProcessParams</span>                <span class="nt">1041</span>
-<span class="nt">CSRSRV</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">CsrServerInitialization</span>                 <span class="nt">22</span>
-<span class="nt">CSRSRV</span><span class="nc">.dll</span><span class="o">!</span><span class="nt">CsrUnhandledExceptionFilter</span>             <span class="nt">26</span>
+<span class="n">Import</span> <span class="n">Directory</span> <span class="p">(</span><span class="n">Original</span><span class="p">)</span><span class="o">:</span>
+<span class="n">Name</span>                                               <span class="n">Ord</span>
+<span class="o">--------------------------------------------------</span> <span class="o">-----</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">NtSetInformationProcess</span>                  <span class="mi">498</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlSetHeapInformation</span>                    <span class="mi">1158</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlSetUnhandledExceptionFilter</span>           <span class="mi">1179</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">NtTerminateProcess</span>                       <span class="mi">535</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlVirtualUnwind</span>                         <span class="mi">1264</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlLookupFunctionEntry</span>                   <span class="mi">1025</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlCaptureContext</span>                        <span class="mi">635</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">NtTerminateThread</span>                        <span class="mi">536</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlUnhandledExceptionFilter</span>              <span class="mi">1219</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlSetProcessIsCritical</span>                  <span class="mi">1166</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">isspace</span>                                  <span class="mi">1900</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlUnicodeStringToAnsiString</span>             <span class="mi">1222</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlAllocateHeap</span>                          <span class="mi">613</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlFreeAnsiString</span>                        <span class="mi">840</span>
+<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlNormalizeProcessParams</span>                <span class="mi">1041</span>
+<span class="n">CSRSRV</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">CsrServerInitialization</span>                 <span class="mi">22</span>
+<span class="n">CSRSRV</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">CsrUnhandledExceptionFilter</span>             <span class="mi">26</span>
 
-<span class="nt">Export</span> <span class="nt">Directory</span><span class="o">:</span>
-    <span class="nt">Entry</span>      <span class="nt">Stat</span> <span class="nt">Ord</span>   <span class="nt">Name</span>
-<span class="nt">--------------</span> <span class="nt">----</span> <span class="nt">-----</span> <span class="nt">--------------------------------------------------</span>
-<span class="nt">Version</span> <span class="nt">Information</span><span class="o">:</span>
-<span class="nt">key</span>                  <span class="nt">value</span>
-<span class="nt">--------------------</span> <span class="nt">-----</span>
-<span class="nt">CompanyName</span>          <span class="nt">Microsoft</span> <span class="nt">Corporation</span>
-<span class="nt">FileDescription</span>      <span class="nt">Client</span> <span class="nt">Server</span> <span class="nt">Runtime</span> <span class="nt">Process</span>
-<span class="nt">FileVersion</span>          <span class="nt">6</span><span class="nc">.1.7600.16385</span> <span class="o">(</span><span class="nt">win7_rtm</span><span class="nc">.090713-1255</span><span class="o">)</span>
-<span class="nt">InternalName</span>         <span class="nt">CSRSS</span><span class="nc">.Exe</span>
-<span class="nt">LegalCopyright</span>       <span class="nt">Microsoft</span> <span class="nt">Corporation</span><span class="o">.</span> <span class="nt">All</span> <span class="nt">rights</span> <span class="nt">reserved</span><span class="o">.</span>
-<span class="nt">OriginalFilename</span>     <span class="nt">CSRSS</span><span class="nc">.Exe</span>
-<span class="nt">ProductName</span>          <span class="nt">Microsoft</span> <span class="nt">Windows</span> <span class="nt">Operating</span> <span class="nt">System</span>
-<span class="nt">ProductVersion</span>       <span class="nt">6</span><span class="nc">.1.7600.16385</span>
+<span class="n">Export</span> <span class="n">Directory</span><span class="o">:</span>
+    <span class="n">Entry</span>      <span class="n">Stat</span> <span class="n">Ord</span>   <span class="n">Name</span>
+<span class="o">--------------</span> <span class="o">----</span> <span class="o">-----</span> <span class="o">--------------------------------------------------</span>
+<span class="n">Version</span> <span class="n">Information</span><span class="o">:</span>
+<span class="n">key</span>                  <span class="n">value</span>
+<span class="o">--------------------</span> <span class="o">-----</span>
+<span class="n">CompanyName</span>          <span class="n">Microsoft</span> <span class="n">Corporation</span>
+<span class="n">FileDescription</span>      <span class="n">Client</span> <span class="n">Server</span> <span class="n">Runtime</span> <span class="n">Process</span>
+<span class="n">FileVersion</span>          <span class="mf">6.1.7600.16385</span> <span class="p">(</span><span class="n">win7_rtm</span><span class="mf">.090713</span><span class="o">-</span><span class="mi">1255</span><span class="p">)</span>
+<span class="n">InternalName</span>         <span class="n">CSRSS</span><span class="p">.</span><span class="n">Exe</span>
+<span class="n">LegalCopyright</span>       <span class="n">Microsoft</span> <span class="n">Corporation</span><span class="p">.</span> <span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="p">.</span>
+<span class="n">OriginalFilename</span>     <span class="n">CSRSS</span><span class="p">.</span><span class="n">Exe</span>
+<span class="n">ProductName</span>          <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Operating</span> <span class="n">System</span>
+<span class="n">ProductVersion</span>       <span class="mf">6.1.7600.16385</span>
 </pre></div>
 
 <p>

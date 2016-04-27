@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -667,20 +662,20 @@ files are managed via the <strong>_FILE_OBJECT</strong> object.</p>
 </ol>
 <h3>Sample output</h3>
 <p>The below output indicates that there should be 41 processes active, and 548 threads.</p>
-<div class="highlight"><pre>win7.elf 01:39:36&gt; object_types
------------------&gt; object_types()
-Index  Number Objects PoolType        Name
------ --------------- --------------- ----
-    2              42 NonPagedPool    Type
-    3              40 PagedPool       Directory
-    4             173 PagedPool       SymbolicLink
-    5             704 PagedPool       Token
-    6               3 NonPagedPool    Job
-    7              41 NonPagedPool    Process
-    8             548 NonPagedPool    Thread
-    9               0 NonPagedPool    UserApcReserve
-   10               1 NonPagedPool    IoCompletionReserve
-...
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">01</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">36</span><span class="o">&gt;</span> <span class="n">object_types</span>
+<span class="o">-----------------&gt;</span> <span class="n">object_types</span><span class="p">()</span>
+<span class="n">Index</span>  <span class="n">Number</span> <span class="n">Objects</span> <span class="n">PoolType</span>        <span class="n">Name</span>
+<span class="o">-----</span> <span class="o">---------------</span> <span class="o">---------------</span> <span class="o">----</span>
+    <span class="mi">2</span>              <span class="mi">42</span> <span class="n">NonPagedPool</span>    <span class="n">Type</span>
+    <span class="mi">3</span>              <span class="mi">40</span> <span class="n">PagedPool</span>       <span class="n">Directory</span>
+    <span class="mi">4</span>             <span class="mi">173</span> <span class="n">PagedPool</span>       <span class="n">SymbolicLink</span>
+    <span class="mi">5</span>             <span class="mi">704</span> <span class="n">PagedPool</span>       <span class="n">Token</span>
+    <span class="mi">6</span>               <span class="mi">3</span> <span class="n">NonPagedPool</span>    <span class="n">Job</span>
+    <span class="mi">7</span>              <span class="mi">41</span> <span class="n">NonPagedPool</span>    <span class="n">Process</span>
+    <span class="mi">8</span>             <span class="mi">548</span> <span class="n">NonPagedPool</span>    <span class="n">Thread</span>
+    <span class="mi">9</span>               <span class="mi">0</span> <span class="n">NonPagedPool</span>    <span class="n">UserApcReserve</span>
+   <span class="mi">10</span>               <span class="mi">1</span> <span class="n">NonPagedPool</span>    <span class="n">IoCompletionReserve</span>
+<span class="p">...</span>
 </pre></div>
 
 <p>

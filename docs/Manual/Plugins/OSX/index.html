@@ -328,6 +328,11 @@ ript>
             vaddump
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -947,6 +952,59 @@ structs can be on the following types:</p>
 <table class='table table-condensed'>
 <tbody>
 <tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>phys_proc</p></td><td><p>Physical addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+</div>
+
+<h1 id="yarascan" class="anchor">yarascan</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.darwin.yarascan.DarwinYaraScan-class.html">View Source</a>
+
+
+<div class="plugin_description">
+<div class="abstract">
+<h2>Scan using yara signatures.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>binary_string</p></td><td><p>A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506</p></td></tr><tr><td><p>context</p></td><td><p>Context to print after the hit. (type: IntParser)</p>
+<ul>
+<li>Default: 64</li>
+</ul></td></tr><tr><td><p>hits</p></td><td><p>Quit after finding this many hits. (type: IntParser)</p>
+<ul>
+<li>Default: 100000000.0</li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search.</p>
+<ul>
+<li>Default: 18446744073709551616</li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes (Default uses all methods).</p>
+<ul>
+<li>Valid Choices:<ul>
+<li>allproc</li>
+<li>dead_procs</li>
+<li>tasks</li>
+<li>pidhash</li>
+<li>pgrphash</li>
+</ul>
+</li>
+</ul></td></tr><tr><td><p>phys_proc</p></td><td><p>Physical addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>pre_context</p></td><td><p>Context to print before the hit. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr><tr><td><p>scan_physical</p></td><td><p>If specified we scan the physcial address space. Note that by default we scan the address space of the specified processes (or if no process selectors are specified, the default AS). (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>start</p></td><td><p>Start searching from this offset. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for.</p></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression.</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read.</p></td></tr>
 </tbody>
 </table>
 </div>

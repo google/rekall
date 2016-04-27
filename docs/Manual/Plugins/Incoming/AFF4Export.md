@@ -1,10 +1,11 @@
 ---
 abstract: Exports all the streams in an AFF4 Volume.
-args: {dump_dir: Path suitable for dumping files. (Required), regex: 'Regex of filenames
-    to dump.
+args: {dump_dir: Path suitable for dumping files. (Required), regex: 'One or more
+    Regex of filenames to dump. (type: ArrayStringParser)
 
 
-    * Default: .', volume: Volume to list.}
+
+    * Default: .+', volume: Volume to list.}
 class_name: AFF4Export
 epydoc: rekall.plugins.tools.aff4acquire.AFF4Export-class.html
 layout: plugin

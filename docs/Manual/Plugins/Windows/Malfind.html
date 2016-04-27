@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -678,108 +673,108 @@ stubs.</p>
 malfind, just supply an output directory with the <em>dump_dir</em> parameter. In this
 case, an unpacked copy of the Zeus binary that was injected into explorer.exe
 would be written to disk.</p>
-<div class="highlight"><pre>zeus2x4.vmem 22:53:43&gt; malfind proc_regex=&quot;explorer&quot;
----------------------&gt; malfind(proc_regex=&quot;explorer&quot;)
-**************************************************f pid 1752
-Process: explorer.exe Pid: 1752 Address: 0x2aa0000
-Vad Tag: VadS Protection: EXECUTE_READWRITE
-Flags: CommitCharge: 1, MemCommit: 1, PrivateMemory: 1, Protection: 6
+<div class="highlight"><pre><span class="n">zeus2x4</span><span class="p">.</span><span class="n">vmem</span> <span class="mi">22</span><span class="o">:</span><span class="mi">53</span><span class="o">:</span><span class="mi">43</span><span class="o">&gt;</span> <span class="n">malfind</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;explorer&quot;</span>
+<span class="o">---------------------&gt;</span> <span class="n">malfind</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;explorer&quot;</span><span class="p">)</span>
+<span class="o">**************************************************</span><span class="n">f</span> <span class="n">pid</span> <span class="mi">1752</span>
+<span class="nl">Process:</span> <span class="n">explorer</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">1752</span> <span class="n">Address</span><span class="o">:</span> <span class="mh">0x2aa0000</span>
+<span class="n">Vad</span> <span class="n">Tag</span><span class="o">:</span> <span class="n">VadS</span> <span class="n">Protection</span><span class="o">:</span> <span class="n">EXECUTE_READWRITE</span>
+<span class="nl">Flags:</span> <span class="n">CommitCharge</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MemCommit</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">PrivateMemory</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Protection</span><span class="o">:</span> <span class="mi">6</span>
 
- 0x2aa0000 b8 35 00 00 00 e9 a9 d1 e6 79 68 6c 02 00 00 e9  .5.......yhl....
- 0x2aa0010 b4 63 e7 79 8b ff 55 8b ec e9 7c 11 d7 79 8b ff  .c.y..U...|..y..
- 0x2aa0020 55 8b ec e9 01 32 77 74 8b ff 55 8b ec e9 7c 60  U....2wt..U...|`
- 0x2aa0030 72 74 8b ff 55 8b ec e9 ca e9 72 74 8b ff 55 8b  rt..U.....rt..U.
+ <span class="mh">0x2aa0000</span> <span class="n">b8</span> <span class="mi">35</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">e9</span> <span class="n">a9</span> <span class="n">d1</span> <span class="n">e6</span> <span class="mi">79</span> <span class="mi">68</span> <span class="mi">6</span><span class="n">c</span> <span class="mo">02</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">e9</span>  <span class="mf">.5</span><span class="p">.......</span><span class="n">yhl</span><span class="p">....</span>
+ <span class="mh">0x2aa0010</span> <span class="n">b4</span> <span class="mi">63</span> <span class="n">e7</span> <span class="mi">79</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="mi">7</span><span class="n">c</span> <span class="mi">11</span> <span class="n">d7</span> <span class="mi">79</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span>  <span class="p">.</span><span class="n">c</span><span class="p">.</span><span class="n">y</span><span class="p">..</span><span class="n">U</span><span class="p">...</span><span class="o">|</span><span class="p">..</span><span class="n">y</span><span class="p">..</span>
+ <span class="mh">0x2aa0020</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="mo">01</span> <span class="mi">32</span> <span class="mi">77</span> <span class="mi">74</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="mi">7</span><span class="n">c</span> <span class="mi">60</span>  <span class="n">U</span><span class="p">...</span><span class="mf">.2</span><span class="n">wt</span><span class="p">..</span><span class="n">U</span><span class="p">...</span><span class="o">|</span><span class="err">`</span>
+ <span class="mh">0x2aa0030</span> <span class="mi">72</span> <span class="mi">74</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ec</span> <span class="n">e9</span> <span class="n">ca</span> <span class="n">e9</span> <span class="mi">72</span> <span class="mi">74</span> <span class="mi">8</span><span class="n">b</span> <span class="n">ff</span> <span class="mi">55</span> <span class="mi">8</span><span class="n">b</span>  <span class="n">rt</span><span class="p">..</span><span class="n">U</span><span class="p">.....</span><span class="n">rt</span><span class="p">..</span><span class="n">U</span><span class="p">.</span>
 
-0x02aa0000      b835000000           MOV EAX, 0x35
-0x02aa0005      e9a9d1e679           JMP 0x7c90d1b3
-0x02aa000a      686c020000           PUSH DWORD 0x26c
-0x02aa000f      e9b463e779           JMP 0x7c9163c8
-0x02aa0014      8bff                 MOV EDI, EDI
-0x02aa0016      55                   PUSH EBP
-0x02aa0017      8bec                 MOV EBP, ESP
-0x02aa0019      e97c11d779           JMP 0x7c81119a
-0x02aa001e      8bff                 MOV EDI, EDI
-0x02aa0020      55                   PUSH EBP
-0x02aa0021      8bec                 MOV EBP, ESP
-0x02aa0023      e901327774           JMP 0x77213229
-0x02aa0028      8bff                 MOV EDI, EDI
-0x02aa002a      55                   PUSH EBP
-0x02aa002b      8bec                 MOV EBP, ESP
-0x02aa002d      e97c607274           JMP 0x771c60ae
-0x02aa0032      8bff                 MOV EDI, EDI
-0x02aa0034      55                   PUSH EBP
-0x02aa0035      8bec                 MOV EBP, ESP
-0x02aa0037      e9cae97274           JMP 0x771cea06
-0x02aa003c      8bff                 MOV EDI, EDI
-0x02aa003e      55                   PUSH EBP
-0x02aa003f      8bec                 MOV EBP, ESP
-0x02aa0041      e9e8327774           JMP 0x7721332e
-0x02aa0046      8bff                 MOV EDI, EDI
-0x02aa0048      55                   PUSH EBP
-0x02aa0049      8bec                 MOV EBP, ESP
-0x02aa004b      e9494d7274           JMP 0x771c4d99
-0x02aa0050      8bff                 MOV EDI, EDI
-0x02aa0052      55                   PUSH EBP
-0x02aa0053      8bec                 MOV EBP, ESP
-0x02aa0055      e99d827274           JMP 0x771c82f7
-0x02aa005a      8bff                 MOV EDI, EDI
-0x02aa005c      55                   PUSH EBP
-0x02aa005d      8bec                 MOV EBP, ESP
-0x02aa005f      e9ef927574           JMP 0x771f9353
-0x02aa0064      8bff                 MOV EDI, EDI
-0x02aa0066      55                   PUSH EBP
-0x02aa0067      8bec                 MOV EBP, ESP
-0x02aa0069      e9fe897374           JMP 0x771d8a6c
-0x02aa006e      6a2c                 PUSH 0x2c
-0x02aa0070      68187b1c77           PUSH DWORD 0x771c7b18
-0x02aa0075      e957797274           JMP 0x771c79d1
-0x02aa007a      8bff                 MOV EDI, EDI
-0x02aa007c      55                   PUSH EBP
-0x02aa007d      8bec                 MOV EBP, ESP
-0x02aa007f      e9ac3d016f           JMP 0x71ab3e30
-0x02aa0084      8bff                 MOV EDI, EDI
-0x02aa0086      55                   PUSH EBP
-0x02aa0087      8bec                 MOV EBP, ESP
-0x02aa0089      e99e4b016f           JMP 0x71ab4c2c
-0x02aa008e      8bff                 MOV EDI, EDI
-0x02aa0090      55                   PUSH EBP
-0x02aa0091      8bec                 MOV EBP, ESP
-0x02aa0093      e96768016f           JMP 0x71ab68ff
-0x02aa0098      8bff                 MOV EDI, EDI
-0x02aa009a      55                   PUSH EBP
-0x02aa009b      8bec                 MOV EBP, ESP
-0x02aa009d      e9598b977b           JMP 0x7e418bfb
-0x02aa00a2      8bff                 MOV EDI, EDI
-0x02aa00a4      55                   PUSH EBP
-0x02aa00a5      8bec                 MOV EBP, ESP
-0x02aa00a7      e9130d997b           JMP 0x7e430dbf
-0x02aa00ac      8bff                 MOV EDI, EDI
-0x02aa00ae      55                   PUSH EBP
-**************************************************
-Process: explorer.exe Pid: 1752 Address: 0x3080000
-Vad Tag: VadS Protection: EXECUTE_READWRITE
-Flags: CommitCharge: 52, MemCommit: 1, PrivateMemory: 1, Protection: 6
+<span class="mh">0x02aa0000</span>      <span class="n">b835000000</span>           <span class="n">MOV</span> <span class="n">EAX</span><span class="p">,</span> <span class="mh">0x35</span>
+<span class="mh">0x02aa0005</span>      <span class="n">e9a9d1e679</span>           <span class="n">JMP</span> <span class="mh">0x7c90d1b3</span>
+<span class="mh">0x02aa000a</span>      <span class="mi">686</span><span class="n">c020000</span>           <span class="n">PUSH</span> <span class="n">DWORD</span> <span class="mh">0x26c</span>
+<span class="mh">0x02aa000f</span>      <span class="n">e9b463e779</span>           <span class="n">JMP</span> <span class="mh">0x7c9163c8</span>
+<span class="mh">0x02aa0014</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0016</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0017</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0019</span>      <span class="n">e97c11d779</span>           <span class="n">JMP</span> <span class="mh">0x7c81119a</span>
+<span class="mh">0x02aa001e</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0020</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0021</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0023</span>      <span class="n">e901327774</span>           <span class="n">JMP</span> <span class="mh">0x77213229</span>
+<span class="mh">0x02aa0028</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa002a</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa002b</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa002d</span>      <span class="n">e97c607274</span>           <span class="n">JMP</span> <span class="mh">0x771c60ae</span>
+<span class="mh">0x02aa0032</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0034</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0035</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0037</span>      <span class="n">e9cae97274</span>           <span class="n">JMP</span> <span class="mh">0x771cea06</span>
+<span class="mh">0x02aa003c</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa003e</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa003f</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0041</span>      <span class="n">e9e8327774</span>           <span class="n">JMP</span> <span class="mh">0x7721332e</span>
+<span class="mh">0x02aa0046</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0048</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0049</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa004b</span>      <span class="n">e9494d7274</span>           <span class="n">JMP</span> <span class="mh">0x771c4d99</span>
+<span class="mh">0x02aa0050</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0052</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0053</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0055</span>      <span class="n">e99d827274</span>           <span class="n">JMP</span> <span class="mh">0x771c82f7</span>
+<span class="mh">0x02aa005a</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa005c</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa005d</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa005f</span>      <span class="n">e9ef927574</span>           <span class="n">JMP</span> <span class="mh">0x771f9353</span>
+<span class="mh">0x02aa0064</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0066</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0067</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0069</span>      <span class="n">e9fe897374</span>           <span class="n">JMP</span> <span class="mh">0x771d8a6c</span>
+<span class="mh">0x02aa006e</span>      <span class="mi">6</span><span class="n">a2c</span>                 <span class="n">PUSH</span> <span class="mh">0x2c</span>
+<span class="mh">0x02aa0070</span>      <span class="mi">68187</span><span class="n">b1c77</span>           <span class="n">PUSH</span> <span class="n">DWORD</span> <span class="mh">0x771c7b18</span>
+<span class="mh">0x02aa0075</span>      <span class="n">e957797274</span>           <span class="n">JMP</span> <span class="mh">0x771c79d1</span>
+<span class="mh">0x02aa007a</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa007c</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa007d</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa007f</span>      <span class="n">e9ac3d016f</span>           <span class="n">JMP</span> <span class="mh">0x71ab3e30</span>
+<span class="mh">0x02aa0084</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0086</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0087</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0089</span>      <span class="n">e99e4b016f</span>           <span class="n">JMP</span> <span class="mh">0x71ab4c2c</span>
+<span class="mh">0x02aa008e</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa0090</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa0091</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa0093</span>      <span class="n">e96768016f</span>           <span class="n">JMP</span> <span class="mh">0x71ab68ff</span>
+<span class="mh">0x02aa0098</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa009a</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa009b</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa009d</span>      <span class="n">e9598b977b</span>           <span class="n">JMP</span> <span class="mh">0x7e418bfb</span>
+<span class="mh">0x02aa00a2</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa00a4</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="mh">0x02aa00a5</span>      <span class="mi">8</span><span class="n">bec</span>                 <span class="n">MOV</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span>
+<span class="mh">0x02aa00a7</span>      <span class="n">e9130d997b</span>           <span class="n">JMP</span> <span class="mh">0x7e430dbf</span>
+<span class="mh">0x02aa00ac</span>      <span class="mi">8</span><span class="n">bff</span>                 <span class="n">MOV</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EDI</span>
+<span class="mh">0x02aa00ae</span>      <span class="mi">55</span>                   <span class="n">PUSH</span> <span class="n">EBP</span>
+<span class="o">**************************************************</span>
+<span class="nl">Process:</span> <span class="n">explorer</span><span class="p">.</span><span class="n">exe</span> <span class="n">Pid</span><span class="o">:</span> <span class="mi">1752</span> <span class="n">Address</span><span class="o">:</span> <span class="mh">0x3080000</span>
+<span class="n">Vad</span> <span class="n">Tag</span><span class="o">:</span> <span class="n">VadS</span> <span class="n">Protection</span><span class="o">:</span> <span class="n">EXECUTE_READWRITE</span>
+<span class="nl">Flags:</span> <span class="n">CommitCharge</span><span class="o">:</span> <span class="mi">52</span><span class="p">,</span> <span class="n">MemCommit</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">PrivateMemory</span><span class="o">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Protection</span><span class="o">:</span> <span class="mi">6</span>
 
- 0x3080000 4d 5a 90 00 03 00 00 00 04 00 00 00 ff ff 00 00  MZ..............
- 0x3080010 b8 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00  ........@.......
- 0x3080020 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
- 0x3080030 00 00 00 00 00 00 00 00 00 00 00 00 c0 00 00 00  ................
+ <span class="mh">0x3080000</span> <span class="mi">4</span><span class="n">d</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">90</span> <span class="mo">00</span> <span class="mo">03</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">04</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">ff</span> <span class="n">ff</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="n">MZ</span><span class="p">..............</span>
+ <span class="mh">0x3080010</span> <span class="n">b8</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="p">........</span><span class="err">@</span><span class="p">.......</span>
+ <span class="mh">0x3080020</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="p">................</span>
+ <span class="mh">0x3080030</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="n">c0</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span>  <span class="p">................</span>
 
-0x03080000      4d                   DEC EBP
-0x03080001      5a                   POP EDX
-0x03080002      90                   NOP
-0x03080003      0003                 ADD [EBX], AL
-0x03080005      0000                 ADD [EAX], AL
-0x03080007      000400               ADD [EAX+EAX], AL
-0x0308000a      0000                 ADD [EAX], AL
-0x0308000c      ff                   DB 0xff
-0x0308000d      ff00                 INC DWORD [EAX]
-0x0308000f      00b800000000         ADD [EAX+0x0], BH
-0x03080015      0000                 ADD [EAX], AL
-0x03080017      004000               ADD [EAX+0x0], AL
-0x0308001a      0000                 ADD [EAX], AL
-0x0308001c      0000                 ADD [EAX], AL
-0x0308001e      0000                 ADD [EAX], AL
+<span class="mh">0x03080000</span>      <span class="mi">4</span><span class="n">d</span>                   <span class="n">DEC</span> <span class="n">EBP</span>
+<span class="mh">0x03080001</span>      <span class="mi">5</span><span class="n">a</span>                   <span class="n">POP</span> <span class="n">EDX</span>
+<span class="mh">0x03080002</span>      <span class="mi">90</span>                   <span class="n">NOP</span>
+<span class="mh">0x03080003</span>      <span class="mo">0003</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EBX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x03080005</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x03080007</span>      <span class="mo">000400</span>               <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="o">+</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308000a</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308000c</span>      <span class="n">ff</span>                   <span class="n">DB</span> <span class="mh">0xff</span>
+<span class="mh">0x0308000d</span>      <span class="n">ff00</span>                 <span class="n">INC</span> <span class="n">DWORD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">]</span>
+<span class="mh">0x0308000f</span>      <span class="mo">00</span><span class="n">b800000000</span>         <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="o">+</span><span class="mh">0x0</span><span class="p">],</span> <span class="n">BH</span>
+<span class="mh">0x03080015</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x03080017</span>      <span class="mo">004000</span>               <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="o">+</span><span class="mh">0x0</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308001a</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308001c</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
+<span class="mh">0x0308001e</span>      <span class="mo">0000</span>                 <span class="n">ADD</span> <span class="p">[</span><span class="n">EAX</span><span class="p">],</span> <span class="n">AL</span>
 </pre></div>
 
 <p>

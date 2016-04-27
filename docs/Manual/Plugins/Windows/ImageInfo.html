@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -646,24 +641,24 @@ ript>
    the same purpose as in previous version of the software.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win8.1.raw 18:00:48&gt; imageinfo
--------------------&gt; imageinfo()
-Fact                 Value
--------------------- -----
-Kernel DTB           0x1a7000
-NT Build             9600.winblue_gdr.130913-2141
-NT Build Ex          9600.16404.amd64fre.winblue_gdr.130913-2141
-Signed Drivers       -
-Time (UTC)           2014-01-24 21:20:05+0000
-Time (Local)         2014-01-24 21:20:05+0000
-Sec Since Boot       764.359375
-NtSystemRoot         C:\Windows
-**************** Physical Layout ****************
-Physical Start  Physical End  Number of Pages
--------------- -------------- ---------------
-0x000000001000 0x00000009f000 158
-0x000000100000 0x000000102000 2
-0x000000103000 0x00003fff0000 261869
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">18</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">48</span><span class="o">&gt;</span> <span class="n">imageinfo</span>
+<span class="o">-------------------&gt;</span> <span class="n">imageinfo</span><span class="p">()</span>
+<span class="n">Fact</span>                 <span class="n">Value</span>
+<span class="o">--------------------</span> <span class="o">-----</span>
+<span class="n">Kernel</span> <span class="n">DTB</span>           <span class="mh">0x1a7000</span>
+<span class="n">NT</span> <span class="n">Build</span>             <span class="mf">9600.</span><span class="n">winblue_gdr</span><span class="mf">.130913</span><span class="o">-</span><span class="mi">2141</span>
+<span class="n">NT</span> <span class="n">Build</span> <span class="n">Ex</span>          <span class="mf">9600.16404</span><span class="p">.</span><span class="n">amd64fre</span><span class="p">.</span><span class="n">winblue_gdr</span><span class="mf">.130913</span><span class="o">-</span><span class="mi">2141</span>
+<span class="n">Signed</span> <span class="n">Drivers</span>       <span class="o">-</span>
+<span class="n">Time</span> <span class="p">(</span><span class="n">UTC</span><span class="p">)</span>           <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mo">05</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">Time</span> <span class="p">(</span><span class="n">Local</span><span class="p">)</span>         <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mo">05</span><span class="o">+</span><span class="mo">0000</span>
+<span class="n">Sec</span> <span class="n">Since</span> <span class="n">Boot</span>       <span class="mf">764.359375</span>
+<span class="n">NtSystemRoot</span>         <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span>
+<span class="o">****************</span> <span class="n">Physical</span> <span class="n">Layout</span> <span class="o">****************</span>
+<span class="n">Physical</span> <span class="n">Start</span>  <span class="n">Physical</span> <span class="n">End</span>  <span class="n">Number</span> <span class="n">of</span> <span class="n">Pages</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">---------------</span>
+<span class="mh">0x000000001000</span> <span class="mh">0x00000009f000</span> <span class="mi">158</span>
+<span class="mh">0x000000100000</span> <span class="mh">0x000000102000</span> <span class="mi">2</span>
+<span class="mh">0x000000103000</span> <span class="mh">0x00003fff0000</span> <span class="mi">261869</span>
 </pre></div>
 
 <p>

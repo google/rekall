@@ -173,12 +173,7 @@ ript>
  </a>
  <p>
 
-<ul class='nav nav-pills nav-stacked'><li>
-          <a href='#BaseSessionCommand.md' class="category-link">
-            BaseSessionCommand.md
-          </a>
-        </li>
-        <li class='active'>
+<ul class='nav nav-pills nav-stacked'><li class='active'>
           <a href='#aff4acquire' class="category-link">
             aff4acquire
           </a>
@@ -271,11 +266,6 @@ ript>
         <li>
           <a href='#explain' class="category-link">
             explain
-          </a>
-        </li>
-        <li>
-          <a href='#find_kernelslide' class="category-link">
-            find_kernelslide
           </a>
         </li>
         <li>
@@ -404,6 +394,11 @@ ript>
           </a>
         </li>
         <li>
+          <a href='#raise_the_roof' class="category-link">
+            raise_the_roof
+          </a>
+        </li>
+        <li>
           <a href='#search' class="category-link">
             search
           </a>
@@ -491,15 +486,6 @@ ript>
 
 <nav class="navbar navbar-default plugins" role="navigation">
 
-  <ul class="nav navbar-nav navbar-left">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Incoming/BaseSessionCommand.html">
-         <span class="glyphicon glyphicon-arrow-left"></span>
-         BaseSessionCommand.md
-       </a>
-    </li>
-  </ul>
-
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
@@ -521,7 +507,7 @@ ript>
 
 <div class="abstract">
 <h2>Copy the physical address space to an AFF4 file.</h2>
-<p>NOTE: This plugin does not required a working profile - unless the user also
+<p>NOTE: This plugin does not require a working profile - unless the user also
 wants to copy the pagefile or mapped files. In that case we must analyze the
 live memory to gather the required files.</p>
 </div>
@@ -531,10 +517,13 @@ live memory to gather the required files.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>also_files</p></td><td><p>Also get mapped or opened files (requires a profile) (type: Boolean)</p>
+<tr><td><p>also_mapped_files</p></td><td><p>Also get mapped or opened files (requires a profile) (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>also_pagefile</p></td><td><p>Also get the pagefile/swap partition (requires a profile) (type: Boolean)</p>
+</ul></td></tr><tr><td><p>also_memory</p></td><td><p>Also acquire physical memory. If not specified we acquire physical memory only when no other operation is specified. (type: Boolean)</p></td></tr><tr><td><p>also_pagefile</p></td><td><p>Also get the pagefile/swap partition (requires a profile) (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>append</p></td><td><p>Append to the current volume.. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
 </ul></td></tr><tr><td><p>compression</p></td><td><p>The compression to use.</p>
@@ -548,6 +537,9 @@ live memory to gather the required files.</p>
 </ul></td></tr><tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.aff4 in current directory.</p>
 <ul>
 <li>Default: output.aff4</li>
+</ul></td></tr><tr><td><p>files</p></td><td><p>Also acquire files matching the following globs. (type: ArrayStringParser)</p>
+<ul>
+<li>Default: </li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -559,15 +551,6 @@ live memory to gather the required files.</p>
 <p>
 
 <nav class="navbar navbar-default plugins" role="navigation">
-
-  <ul class="nav navbar-nav navbar-left">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Incoming/BaseSessionCommand.html">
-         <span class="glyphicon glyphicon-arrow-left"></span>
-         BaseSessionCommand.md
-       </a>
-    </li>
-  </ul>
 
 
   <ul class="nav navbar-nav navbar-right">

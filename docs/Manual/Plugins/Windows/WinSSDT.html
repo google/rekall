@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -648,45 +643,45 @@ and one for the GUI subsystem (win32k driver).</p>
 <p>An intalled ssdt hook will appear as a function in a different module (or an
 unknown module).</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win7.elf 15:35:25&gt; ssdt
-************ Table 0 @ 0xf80002691b00 ************
-    Entry          Target     Symbol
--------------- -------------- ------
-           0x0 0xf80002aa2190 nt!NtMapUserPhysicalPagesScatter
-           0x1 0xf80002988a00 nt!NtWaitForSingleObject
-           0x2 0xf80002688dd0 nt!NtCallbackReturn
-           0x3 0xf800029abb10 nt!NtReadFile
-           0x4 0xf800029a9bb0 nt!NtDeviceIoControlFile
-           0x5 0xf800029a4ee0 nt!NtWriteFile
-           0x6 0xf8000294adc0 nt!NtRemoveIoCompletion
-           0x7 0xf80002947f10 nt!NtReleaseSemaphore
-           0x8 0xf8000299fda0 nt!NtReplyWaitReceivePort
-           0x9 0xf80002a71e20 nt!NtReplyPort
-...
-         0x18c 0xf8000297a92c nt!NtWaitForKeyedEvent
-         0x18d 0xf800026a1010 nt!NtWaitForWorkViaWorkerFactory
-         0x18e 0xf80002ab0b00 nt!NtWaitHighEventPair
-         0x18f 0xf80002ab0b90 nt!NtWaitLowEventPair
-         0x190 0xf80002678fc4 nt!NtWorkerFactoryWorkerReady
-************ Table 1 @ 0xf960001a1c00 ************
-    Entry          Target     Symbol
--------------- -------------- ------
-           0x0 0xf96000195580 win32k!NtUserGetThreadState
-           0x1 0xf96000192630 win32k!NtUserPeekMessage
-           0x2 0xf960001a3c6c win32k!NtUserCallOneParam
-           0x3 0xf960001b1dd0 win32k!NtUserGetKeyState
-           0x4 0xf960001ab1ac win32k!NtUserInvalidateRect
-           0x5 0xf960001a3e70 win32k!NtUserCallNoParam
-           0x6 0xf9600019b5a0 win32k!NtUserGetMessage
-           0x7 0xf9600017fbec win32k!NtUserMessageCall
-...
-         0x334 0xf96000153b80 win32k!NtUserValidateHandleSecure
-         0x335 0xf960001acd9c win32k!NtUserWaitForInputIdle
-         0x336 0xf960001a6304 win32k!NtUserWaitForMsgAndEvent
-         0x337 0xf960001acef0 win32k!NtUserWindowFromPhysicalPoint
-         0x338 0xf960001ae06c win32k!NtUserYieldTask
-         0x339 0xf960001a6b84 win32k!NtUserSetClassLongPtr
-         0x33a 0xf96000181ca0 win32k!NtUserSetWindowLongPtr
+<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">15</span><span class="o">:</span><span class="mi">35</span><span class="o">:</span><span class="mi">25</span><span class="o">&gt;</span> <span class="n">ssdt</span>
+<span class="o">************</span> <span class="n">Table</span> <span class="mi">0</span> <span class="err">@</span> <span class="mh">0xf80002691b00</span> <span class="o">************</span>
+    <span class="n">Entry</span>          <span class="n">Target</span>     <span class="n">Symbol</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">------</span>
+           <span class="mh">0x0</span> <span class="mh">0xf80002aa2190</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtMapUserPhysicalPagesScatter</span>
+           <span class="mh">0x1</span> <span class="mh">0xf80002988a00</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWaitForSingleObject</span>
+           <span class="mh">0x2</span> <span class="mh">0xf80002688dd0</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtCallbackReturn</span>
+           <span class="mh">0x3</span> <span class="mh">0xf800029abb10</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtReadFile</span>
+           <span class="mh">0x4</span> <span class="mh">0xf800029a9bb0</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtDeviceIoControlFile</span>
+           <span class="mh">0x5</span> <span class="mh">0xf800029a4ee0</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWriteFile</span>
+           <span class="mh">0x6</span> <span class="mh">0xf8000294adc0</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtRemoveIoCompletion</span>
+           <span class="mh">0x7</span> <span class="mh">0xf80002947f10</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtReleaseSemaphore</span>
+           <span class="mh">0x8</span> <span class="mh">0xf8000299fda0</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtReplyWaitReceivePort</span>
+           <span class="mh">0x9</span> <span class="mh">0xf80002a71e20</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtReplyPort</span>
+<span class="p">...</span>
+         <span class="mh">0x18c</span> <span class="mh">0xf8000297a92c</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWaitForKeyedEvent</span>
+         <span class="mh">0x18d</span> <span class="mh">0xf800026a1010</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWaitForWorkViaWorkerFactory</span>
+         <span class="mh">0x18e</span> <span class="mh">0xf80002ab0b00</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWaitHighEventPair</span>
+         <span class="mh">0x18f</span> <span class="mh">0xf80002ab0b90</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWaitLowEventPair</span>
+         <span class="mh">0x190</span> <span class="mh">0xf80002678fc4</span> <span class="n">nt</span><span class="o">!</span><span class="n">NtWorkerFactoryWorkerReady</span>
+<span class="o">************</span> <span class="n">Table</span> <span class="mi">1</span> <span class="err">@</span> <span class="mh">0xf960001a1c00</span> <span class="o">************</span>
+    <span class="n">Entry</span>          <span class="n">Target</span>     <span class="n">Symbol</span>
+<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">------</span>
+           <span class="mh">0x0</span> <span class="mh">0xf96000195580</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserGetThreadState</span>
+           <span class="mh">0x1</span> <span class="mh">0xf96000192630</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserPeekMessage</span>
+           <span class="mh">0x2</span> <span class="mh">0xf960001a3c6c</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserCallOneParam</span>
+           <span class="mh">0x3</span> <span class="mh">0xf960001b1dd0</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserGetKeyState</span>
+           <span class="mh">0x4</span> <span class="mh">0xf960001ab1ac</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserInvalidateRect</span>
+           <span class="mh">0x5</span> <span class="mh">0xf960001a3e70</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserCallNoParam</span>
+           <span class="mh">0x6</span> <span class="mh">0xf9600019b5a0</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserGetMessage</span>
+           <span class="mh">0x7</span> <span class="mh">0xf9600017fbec</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserMessageCall</span>
+<span class="p">...</span>
+         <span class="mh">0x334</span> <span class="mh">0xf96000153b80</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserValidateHandleSecure</span>
+         <span class="mh">0x335</span> <span class="mh">0xf960001acd9c</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserWaitForInputIdle</span>
+         <span class="mh">0x336</span> <span class="mh">0xf960001a6304</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserWaitForMsgAndEvent</span>
+         <span class="mh">0x337</span> <span class="mh">0xf960001acef0</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserWindowFromPhysicalPoint</span>
+         <span class="mh">0x338</span> <span class="mh">0xf960001ae06c</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserYieldTask</span>
+         <span class="mh">0x339</span> <span class="mh">0xf960001a6b84</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserSetClassLongPtr</span>
+         <span class="mh">0x33a</span> <span class="mh">0xf96000181ca0</span> <span class="n">win32k</span><span class="o">!</span><span class="n">NtUserSetWindowLongPtr</span>
 </pre></div>
 
 <p>

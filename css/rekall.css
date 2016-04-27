@@ -282,7 +282,9 @@ h3 {
 
 .rekall-side-nav {
     height: 100%;
+    padding-top: 10px;
     padding-left: 5px;
+    padding-bottom: 200px;
     max-width: 9%;
 }
 

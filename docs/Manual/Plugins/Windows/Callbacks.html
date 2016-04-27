@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -643,7 +638,64 @@ name but much expanded using new information.</p>
 
 
 
+<p>The Windows kernel has a facility to register callbacks for certain events. This
+is often misused by malware in order to gain persistence. The <code>callbacks</code> plugin
+enumerates these callbacks.</p>
+<p>Since Rekall has an address resolver, we can often say more about what exists at
+each of the callback locations. Normally Rekall only tracks the profile for
+certain binaries (such as the kernel).</p>
+<p>In the below example the callbacks plugins resolves the address of kernel
+symbols precisely since it has the kernel profile loaded. Other symbols are give
+approximately as their distance from the module&rsquo;s export table.</p>
+<p>Suppose we want to verify what is the callback in the &ldquo;wdf01000&rdquo; driver. We can
+instruct the address resolver to download the profile from the Microsoft symbol
+server. Once the profile is downloaded, Rekall can determine the exact function
+name registered (wdf01000!FxpBugCheckCallback).</p>
+<div class="highlight"><pre>[1] win7.elf 00:59:59&gt; callbacks
+---------------------&gt; callbacks()
+                Type                     Offset        Callback                          Symbol                       Details
+------------------------------------ -------------- -------------- -------------------------------------------------- -------
+nt!PspLoadImageNotifyRoutine         0xf8000283e4a0 0xf800029acb68 nt!EtwpTraceLoadImage
+nt!PspCreateProcessNotifyRoutine     0xf8000283e720 0xf8000265af28 nt!ViCreateProcessCallback
+nt!PspCreateProcessNotifyRoutine     0xf8000283e728 0xf88001211330 ksecdd!AcceptSecurityContext+0x230
+nt!PspCreateProcessNotifyRoutine     0xf8000283e730 0xf8800112b910 cng!SystemPrng+0x6a0
+nt!PspCreateProcessNotifyRoutine     0xf8000283e738 0xf8800164c390 tcpip!CreateProcessNotifyRoutineEx
+nt!PspCreateProcessNotifyRoutine     0xf8000283e740 0xf88000d01b94 ci!CiFreePolicyInfo+0xce84
+nt!KeBugCheckCallbackListHead        0xfa80019c3ea0 0xf880014548f0 ndis!NdisGetSharedDataAlignment+0x10               Ndis min
+nt!KeBugCheckCallbackListHead        0xfa80019a4ea0 0xf880014548f0 ndis!NdisGetSharedDataAlignment+0x10               Ndis min
+nt!KeBugCheckCallbackListHead        0xfa80019a1ea0 0xf880014548f0 ndis!NdisGetSharedDataAlignment+0x10               Ndis min
+nt!KeBugCheckCallbackListHead        0xf80002c25400 0xf80002c0eef4 hal!HalQueryMaximumProcessorCount+0x54c            ACPI x64
+nt!KeBugCheckReasonCallbackListHead  0xfa80026549f8 0xf88000efd054 wdf01000+0x7a054                                   PEAUTH
+nt!KeBugCheckReasonCallbackListHead  0xfa8000927f88 0xf88000efd054 wdf01000+0x7a054                                   monitor
 
+[1] win7.elf 02:04:35&gt; address_resolver &quot;wdf01000&quot;
+---------------------&gt; address_resolver(&quot;wdf01000&quot;) |
+ Trying to fetch http://msdl.microsoft.com/download/symbols/wdf01000.pdb/99521C1B360441A9A1EAECC9E5087A251/wdf01000.pd_
+ Trying to fetch http://msdl.microsoft.com/download/symbols/wdf01000.pdb/99521C1B360441A9A1EAECC9E5087A251/wdf01000.pd_
+Extracting cabinet: /tmp/tmpnOmJvR/wdf01000.pd_
+  extracting Wdf01000.pdb
+
+All done, no errors.
+                Out&lt;1&gt; Plugin: address_resolver
+
+1] win7.elf 02:05:08&gt; callbacks
+---------------------&gt; callbacks()
+                Type                     Offset        Callback                          Symbol                       Details
+------------------------------------ -------------- -------------- -------------------------------------------------- -------
+nt!PspLoadImageNotifyRoutine         0xf8000283e4a0 0xf800029acb68 nt!EtwpTraceLoadImage
+nt!PspCreateProcessNotifyRoutine     0xf8000283e720 0xf8000265af28 nt!ViCreateProcessCallback
+nt!PspCreateProcessNotifyRoutine     0xf8000283e728 0xf88001211330 ksecdd!AcceptSecurityContext+0x230
+nt!PspCreateProcessNotifyRoutine     0xf8000283e730 0xf8800112b910 cng!SystemPrng+0x6a0
+nt!PspCreateProcessNotifyRoutine     0xf8000283e738 0xf8800164c390 tcpip!CreateProcessNotifyRoutineEx
+nt!PspCreateProcessNotifyRoutine     0xf8000283e740 0xf88000d01b94 ci!CiFreePolicyInfo+0xce84
+nt!KeBugCheckCallbackListHead        0xfa80019c3ea0 0xf880014548f0 ndis!NdisGetSharedDataAlignment+0x10               Ndis min
+nt!KeBugCheckCallbackListHead        0xfa80019a4ea0 0xf880014548f0 ndis!NdisGetSharedDataAlignment+0x10               Ndis min
+nt!KeBugCheckCallbackListHead        0xfa80019a1ea0 0xf880014548f0 ndis!NdisGetSharedDataAlignment+0x10               Ndis min
+nt!KeBugCheckCallbackListHead        0xf80002c25400 0xf80002c0eef4 hal!HalQueryMaximumProcessorCount+0x54c            ACPI x64
+nt!KeBugCheckReasonCallbackListHead  0xfa80026549f8 0xf88000efd054 wdf01000!FxpBugCheckCallback                       PEAUTH
+nt!KeBugCheckReasonCallbackListHead  0xfa8000927f88 0xf88000efd054 wdf01000!FxpBugCheckCallback                       monitor
+nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40                                      mouhid
+</pre></div>
 
 <p>
 

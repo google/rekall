@@ -186,16 +186,6 @@ ript>
           </a>
         </li>
         <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        <li>
           <a href='#analyze_struct' class="category-link">
             analyze_struct
           </a>
@@ -595,6 +585,11 @@ ript>
             win32k_autodetect
           </a>
         </li>
+        <li>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -640,19 +635,19 @@ ript>
 <p>Windows maintains per-processor information for each physical CPU in the
 system. This plugin displays this infomation.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre>win8.1.raw 21:15:09&gt; kpcr
--------------------&gt; kpcr()
-**************************************************
-Property                       Value
------------------------------- -----
-Offset (V)                     0xf802d3307000
-KdVersionBlock                 Pointer to -
-IDT                            0xf802d4a43080
-GDT                            0xf802d4a43000
-CurrentThread                 : 0xe00001254440 TID 3420 (winpmem_1.5.2.:2628)
-IdleThread                    : 0xf802d335fa80 TID 0 (System:0)
-Details                       : CPU 0 (GenuineIntel @ 2517 MHz)
-CR3/DTB                       : 0x1a7000
+<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">21</span><span class="o">:</span><span class="mi">15</span><span class="o">:</span><span class="mi">09</span><span class="o">&gt;</span> <span class="n">kpcr</span>
+<span class="o">-------------------&gt;</span> <span class="n">kpcr</span><span class="p">()</span>
+<span class="o">**************************************************</span>
+<span class="n">Property</span>                       <span class="n">Value</span>
+<span class="o">------------------------------</span> <span class="o">-----</span>
+<span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>                     <span class="mh">0xf802d3307000</span>
+<span class="n">KdVersionBlock</span>                 <span class="n">Pointer</span> <span class="n">to</span> <span class="o">-</span>
+<span class="n">IDT</span>                            <span class="mh">0xf802d4a43080</span>
+<span class="n">GDT</span>                            <span class="mh">0xf802d4a43000</span>
+<span class="n">CurrentThread</span>                 <span class="o">:</span> <span class="mh">0xe00001254440</span> <span class="n">TID</span> <span class="mi">3420</span> <span class="p">(</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="o">:</span><span class="mi">2628</span><span class="p">)</span>
+<span class="n">IdleThread</span>                    <span class="o">:</span> <span class="mh">0xf802d335fa80</span> <span class="n">TID</span> <span class="mi">0</span> <span class="p">(</span><span class="n">System</span><span class="o">:</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">Details</span>                       <span class="o">:</span> <span class="n">CPU</span> <span class="mi">0</span> <span class="p">(</span><span class="n">GenuineIntel</span> <span class="err">@</span> <span class="mi">2517</span> <span class="n">MHz</span><span class="p">)</span>
+<span class="n">CR3</span><span class="o">/</span><span class="n">DTB</span>                       <span class="o">:</span> <span class="mh">0x1a7000</span>
 </pre></div>
 
 <p>
