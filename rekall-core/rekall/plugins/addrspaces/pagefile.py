@@ -47,12 +47,11 @@ class PagefilePhysicalAddressSpace(addrspace.RunBasedAddressSpace):
         self.as_assert(pagefile_names, "Pagefile not specified")
         self.as_assert(self.base.__class__ is not self.__class__)
 
-        length = vaddr = 0
         # Copy the base's runs to our runs and pass them through.
         for run in self.base.get_mappings():
             self.add_run(run.start, run.start, run.length, self.base)
 
-        vaddr += length + 0x10000
+        vaddr = self.base.end() + 0x10000
 
         # FIXME: Properly support multiple pagefiles.
         load_as = self.session.plugins.load_as(session=session.Session())

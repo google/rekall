@@ -397,31 +397,34 @@ class WindowsKernelImageDetector(WindowsRSDSDetector):
     def Offsets(self):
         return [0]
 
-    KERNEL_PATH = r"C:\Windows\System32\ntoskrnl.exe"
+    KERNEL_PATHS = [r"C:\Windows\SysNative\ntoskrnl.exe",
+                    r"C:\Windows\System32\ntoskrnl.exe"]
 
     def DetectFromHit(self, hit, _, address_space):
-        # Try to make the kernel image into the address_space.
-        image_offset = address_space.get_mapped_offset(
-            self.KERNEL_PATH, 0)
+        for potential_path in self.KERNEL_PATHS:
+            # Try to make the kernel image into the address_space.
+            image_offset = address_space.get_mapped_offset(potential_path, 0)
 
-        if image_offset is not None:
-            file_as = addrspace.RunBasedAddressSpace(
-                base=address_space, session=self.session)
-            file_as.add_run(0, image_offset, 2**63)
+            if image_offset is not None:
+                file_as = addrspace.RunBasedAddressSpace(
+                    base=address_space, session=self.session)
+                file_as.add_run(0, image_offset, 2**63)
 
-            pe_file_as = pe_vtypes.PEFileAddressSpace(
-                base=file_as, session=self.session)
+                pe_file_as = pe_vtypes.PEFileAddressSpace(
+                    base=file_as, session=self.session)
 
-            pe_helper = pe_vtypes.PE(
-                session=self.session,
-                address_space=pe_file_as,
-                image_base=pe_file_as.image_base)
+                pe_helper = pe_vtypes.PE(
+                    session=self.session,
+                    address_space=pe_file_as,
+                    image_base=pe_file_as.image_base)
 
-            rsds = pe_helper.RSDS
-            self.session.logging.info(
-                "Found RSDS in kernel image: %s (%s)",
-                rsds.GUID_AGE, rsds.Filename)
-            return self._test_rsds(rsds)
+                rsds = pe_helper.RSDS
+                self.session.logging.info(
+                    "Found RSDS in kernel image: %s (%s)",
+                    rsds.GUID_AGE, rsds.Filename)
+                result = self._test_rsds(rsds)
+                if result:
+                    return result
 
 
 class LinuxIndexDetector(DetectionMethod):
@@ -499,7 +502,7 @@ class LinuxIndexDetector(DetectionMethod):
         kallsyms_as = self._OpenLiveSymbolsFile(address_space)
 
         if not kallsyms_as:
-          return
+            return
 
         data = kallsyms_as.read(0, kallsyms_as.end())
         if not data:

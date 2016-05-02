@@ -147,7 +147,11 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             else:
                 continue
 
-            owner = tcpentry.Owner.dereference(vm=self.kernel_address_space)
+            # Switch profiles to the kernel profile.
+            owner = tcpentry.Owner.dereference_as(
+                vm=self.kernel_address_space, profile=self.session.profile)
+
+            # Switch to the kernel's address space.
             local_addr = tcpentry.LocalAddress(vm=self.kernel_address_space)
             remote_addr = tcpentry.RemoteAddress(vm=self.kernel_address_space)
 
@@ -199,7 +203,8 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
             lendpoint = "{0}:{1}".format(laddr, lport)
             rendpoint = "{0}:{1}".format(raddr, rport)
 
-            owner = net_object.Owner.dereference(vm=self.kernel_address_space)
+            owner = net_object.Owner.dereference_as(
+                vm=self.kernel_address_space, profile=self.session.profile)
 
             renderer.table_row(
                 net_object.obj_offset, proto, lendpoint,

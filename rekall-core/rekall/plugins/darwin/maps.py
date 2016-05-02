@@ -33,7 +33,7 @@ class DarwinVADMap(pfn.VADMapMixin, common.DarwinProcessFilter):
 
     def _CreateMetadata(self, collection):
         metadata = {}
-        for descriptor_cls, args, kwargs in reversed(collection.descriptors):
+        for descriptor_cls, _, kwargs in reversed(collection.descriptors):
             if issubclass(descriptor_cls, intel.PhysicalAddressDescriptor):
                 metadata["offset"] = kwargs["address"]
                 metadata.setdefault("type", "Valid")
@@ -47,7 +47,7 @@ class DarwinVADMap(pfn.VADMapMixin, common.DarwinProcessFilter):
         address_space = self.session.GetParameter("default_address_space")
 
         for map in proc.task.map.hdr.walk_list(
-            "links.next", include_current=False):
+                "links.next", include_current=False):
 
             start = map.links.start
             end = map.links.end

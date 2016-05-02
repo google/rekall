@@ -400,7 +400,7 @@ class VADMap(pfn.VADMapMixin, common.WinProcessFilter):
         address_space = self.session.GetParameter("default_address_space")
 
         offset = vad.Start
-        end = vad.End
+        end = min(vad.End, self.end)
 
         while offset < end:
             if self.start <= offset <= self.end:

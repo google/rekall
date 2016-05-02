@@ -150,7 +150,7 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
             "--out_fd", dest="SUPPRESS",
             help="A file like object to write the output.")
 
-    def __init__(self, out_fd=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Dump a process from memory into an executable.
 
         In windows PE files are mapped into memory in sections. Each section is
@@ -189,11 +189,12 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
 
           out_fd: Alternatively, a filelike object can be provided directly.
         """
+        out_fd = kwargs.pop("out_fd", None)
         # If a fd was not provided, the dump_dir must be specified.
         if out_fd is None:
             self.dump_dir_optional = False
 
-        super(ProcExeDump, self).__init__(**kwargs)
+        super(ProcExeDump, self).__init__(*args, **kwargs)
         self.fd = out_fd
         self.pedump = PEDump(session=self.session)
 

@@ -721,6 +721,15 @@ class PagefileHook(common.AbstractWindowsParameterHook):
                 )
             )
 
+        # In windows 10, the pagefiles are stored in an AVL Tree.
+        if pagingfiles == None:
+            mistate = self.session.address_resolver.get_constant_object(
+                "nt!MiState", "_MI_SYSTEM_INFORMATION")
+
+            root = mistate.PagingIo.PageFileHead.Root
+            pagingfiles = root.traverse_as_type(
+                "_MMPAGING_FILE", "FileObjectNode")
+
         for pf in pagingfiles:
             if pf:
                 result[pf.PageFileNumber.v()] = (

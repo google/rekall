@@ -24,6 +24,21 @@ win10_overlays = {
         'ImageIterator': lambda x: x.ImageTree.Root.traverse(
             type="_IMAGE_ENTRY_IN_SESSION")
     }],
+
+    "_UNLOADED_DRIVERS": [None, {
+        "CurrentTime": [None, ["WinFileTime"]],
+    }],
+
+    "_MI_HARDWARE_STATE": [None, {
+        "SystemNodeInformation": [None, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                target="_MI_SYSTEM_NODE_INFORMATION",
+                count=lambda x: x.obj_profile.get_constant_object(
+                    "KeNumberNodes", "unsigned int").v(),
+            )
+        )]],
+    }],
 }
 
 
@@ -36,3 +51,19 @@ def InitializeWindows10Profile(profile):
         profile.add_overlay(win10_undocumented_amd64)
     else:
         profile.add_overlay(win10_undocumented_i386)
+
+    # Older Win10 releases include SystemNodeInformation inside
+    # _MI_SYSTEM_INFORMATION
+    if not profile.has_type("_MI_HARDWARE_STATE"):
+        profile.add_overlay({
+            "_MI_SYSTEM_INFORMATION": [None, {
+                "SystemNodeInformation": [None, ["Pointer", dict(
+                    target="Array",
+                    target_args=dict(
+                        target="_MI_SYSTEM_NODE_INFORMATION",
+                        count=lambda x: x.obj_profile.get_constant_object(
+                            "KeNumberNodes", "unsigned int").v(),
+                    )
+                )]],
+            }],
+        })

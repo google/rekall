@@ -19,8 +19,11 @@
 #
 
 from rekall.plugins import yarascanner
+from rekall.plugins.common import scanners
 from rekall.plugins.linux import common
 
 
-class LinYaraScan(yarascanner.YaraScanMixin, common.LinProcessFilter):
+class LinYaraScan(yarascanner.YaraScanMixin,
+                  scanners.BaseScannerPlugin,
+                  common.LinProcessFilter):
     """Scan using yara signatures."""

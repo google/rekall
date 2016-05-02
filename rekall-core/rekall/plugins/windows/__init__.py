@@ -28,6 +28,7 @@ from rekall.plugins.windows import network
 from rekall.plugins.windows import pagefile
 from rekall.plugins.windows import pas2kas
 from rekall.plugins.windows import pfn
+from rekall.plugins.windows import pool
 from rekall.plugins.windows import privileges
 from rekall.plugins.windows import procdump
 from rekall.plugins.windows import procinfo

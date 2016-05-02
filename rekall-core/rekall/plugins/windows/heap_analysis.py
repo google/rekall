@@ -322,7 +322,7 @@ class ShowAllocation(common.WindowsCommandPlugin):
             self.session.SetCache(cache_key, self.allocations)
 
     def GetAllocationForAddress(self, address):
-        return self.allocations.get_range(address)
+        return self.allocations.get_containing_range(address)
 
     def CreateAllocationMap(self, start, length, alloc_start, alloc_type):
         address_map = core.AddressMap()
@@ -335,10 +335,10 @@ class ShowAllocation(common.WindowsCommandPlugin):
         for pointer in self.profile.Array(
                 offset=start, count=count, target="Pointer"):
             name = None
-            allocation = self.allocations.get_range(pointer.v())
-            if allocation:
-                alloc_start, alloc_length, _ = allocation
+            alloc_start, alloc_length, alloc_type = (
+                self.allocations.get_containing_range(pointer.v()))
 
+            if alloc_type is not None:
                 # First check if the pointer points inside this allocation.
                 if alloc_start == start + 16:
                     name = "+%#x(%#x)" % (pointer.v() - start, pointer.v())
@@ -369,8 +369,10 @@ class ShowAllocation(common.WindowsCommandPlugin):
             if len(self.addresses) > 1:
                 self.offset = None
 
-            allocation = self.allocations.get_range(address)
-            if not allocation:
+            alloc_start, alloc_length, alloc_type = (
+                self.allocations.get_containing_range(address))
+
+            if not alloc_type:
                 renderer.format("Allocation not found for address "
                                 "{0:style=address} in any heap.\n", address)
                 alloc_start = address
@@ -378,8 +380,6 @@ class ShowAllocation(common.WindowsCommandPlugin):
                 alloc_type = None
 
             else:
-                alloc_start, alloc_length, alloc_type = allocation
-
                 renderer.format(
                     "Address {0:style=address} is {1} bytes into "
                     "{2} allocation of size {3} "

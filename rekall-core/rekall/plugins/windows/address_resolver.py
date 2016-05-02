@@ -229,7 +229,7 @@ class KernelModule(PEModule):
     """A Windows kernel module."""
     def __init__(self, ldr_module=None, session=None):
         self.ldr_module = ldr_module
-        self.filename = ldr_module.filename
+        self.filename = ldr_module.filename or ldr_module.name
         name = WindowsAddressResolver.NormalizeModuleName(self.filename)
         super(KernelModule, self).__init__(
             name=name,
@@ -253,7 +253,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
         super(WindowsAddressResolver, self).__init__(**kwargs)
         self.download_profile = download_profile
 
-    def render(self, renderer):
+    def render(self, _):
         if self.download_profile:
             self.session.address_resolver.GetModuleByName(
                 self.download_profile).load_profile(force=True)
@@ -268,7 +268,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         # The kernel is treated specially - just like windbg.
         if result in ["ntoskrnl", "ntkrnlpa", "ntkrnlmp"]:
-            result = "nt"
+            result = u"nt"
 
         return result.lower()
 
@@ -347,7 +347,7 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
 
         # The kernel is treated specially - just like windbg.
         if result in ["ntoskrnl.pdb", "ntkrnlpa.pdb", "ntkrnlmp.pdb"]:
-            result = "nt"
+            result = u"nt"
 
         return result
 

@@ -19,7 +19,6 @@
 """The module implements an OSX specific address resolution plugin."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import re
 
 from rekall.plugins.common import address_resolver
 from rekall.plugins.darwin import common
@@ -43,6 +42,10 @@ class KModModule(address_resolver.Module):
             self.profile = self.session.profile
 
 
+class MapModule(address_resolver.Module):
+    """A module representing a memory mapping."""
+
+
 class DarwinAddressResolver(address_resolver.AddressResolverMixin,
                             common.AbstractDarwinCommand):
     """A Darwin specific address resolver plugin."""
@@ -54,5 +57,15 @@ class DarwinAddressResolver(address_resolver.AddressResolverMixin,
         # Add kernel modules.
         for kmod in self.session.plugins.lsmod().get_module_list():
             self.AddModule(KModModule(kmod, session=self.session))
+
+        process_context = self.session.GetParameter("process_context")
+        for map in process_context.task.map.hdr.walk_list(
+                "links.next", include_current=False):
+            start = map.links.start
+            end = map.links.end
+
+            self.AddModule(MapModule(
+                name="map_%#x" % start,
+                start=start, end=end, session=self.session))
 
         self._initialized = True

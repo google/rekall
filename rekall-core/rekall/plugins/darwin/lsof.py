@@ -38,7 +38,7 @@ class DarwinHandles(common.ProcessFilterMixin, common.AbstractDarwinProducer):
                 yield [fileproc]
 
 
-class DarwinLsof(common.AbstractDarwinTypedCommand):
+class DarwinLsof(common.AbstractDarwinCommand):
     """Walks open files of each proc in order and prints PID, FD and the handle.
 
     Each process has an array of pointers to fileproc structs - the offset into

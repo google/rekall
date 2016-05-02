@@ -21,6 +21,7 @@ import socket
 from rekall import kb
 from rekall import obj
 from rekall import utils
+from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import pe_vtypes
 
 
@@ -310,6 +311,40 @@ tcpip_vtypes_vista = {
         'InetAF' : [0x14, ['pointer', ['_INETAF']]],
         'Port' : [0x48, ['unsigned be short']],
     }],
+
+    # Reversed from tcpip.sys!TcpStartPartitionModule
+    "PARTITION_TABLE": [None, {
+        "Partitions": [4, ["Array", dict(
+            target="Pointer",
+
+            count=lambda x: x.obj_profile.get_constant_object(
+                "PartitionCount", "unsigned int"),
+
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    count=4,
+                    target="FIRST_LEVEL_DIR",
+                    profile=lambda x: x.session.profile,
+                    )
+                )
+            )]],
+        }],
+    # ntoskrnl.exe!RtlCreateHashTable
+    "FIRST_LEVEL_DIR": [0x24, {
+        "SizeOfSecondLevel": [0x8, ["unsigned int"]],
+
+        "Mask": [0x10, ["unsigned int"]],
+
+        # Reversed from ntoskrnl.exe!RtlpAllocateSecondLevelDir
+        "SecondLevel": [0x20, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: x.SizeOfSecondLevel,
+                target="_LIST_ENTRY"
+                )
+            )]],
+        }],
 }
 
 # Structures for netscan on x86 Windows 7 (all service packs).
@@ -344,6 +379,7 @@ tcpip_vtypes_7 = {
         'RemoteAddress' : [0x30, ['pointer', ['_IN_ADDR']]],
         'CreateTime' : [0, ['WinFileTime', {}]],
     }],
+    "_LIST_ENTRY": basic.common_overlay["LIST_ENTRY32"],
 }
 
 # Structures for netscan on x64 Vista SP0 and 2008 SP0
@@ -410,7 +446,43 @@ tcpip_vtypes_vista_64 = {
         'InetAF' : [0x20, ['pointer', ['_INETAF']]],
         'Port' : [0x80, ['unsigned be short']],
     }],
-    }
+
+    # Reversed from tcpip.sys!TcpStartPartitionModule
+    "PARTITION_TABLE": [None, {
+        "Partitions": [8, ["Array", dict(
+            target="Pointer",
+
+            count=lambda x: x.obj_profile.get_constant_object(
+                "PartitionCount", "unsigned int"),
+
+            target_args=dict(
+                target="Array",
+                target_args=dict(
+                    count=4,
+                    target="FIRST_LEVEL_DIR",
+                ),
+            ),
+        )]],
+    }],
+
+    # ntoskrnl.exe!RtlCreateHashTable (PoolTag:HTab)
+    "FIRST_LEVEL_DIR": [0x24, {
+        "SizeOfSecondLevel": [0x8, ["unsigned int"]],
+
+        "Mask": [0x10, ["unsigned int"]],
+
+        # Reversed from ntoskrnl.exe!RtlpAllocateSecondLevelDir
+        "SecondLevel": [0x20, ["Pointer", dict(
+            target="Array",
+            # Actual hash table (PoolTag:HTab)
+            target_args=dict(
+                count=lambda x: x.SizeOfSecondLevel,
+                target="_LIST_ENTRY"
+            )
+        )]],
+    }],
+    "_LIST_ENTRY": basic.common_overlay["LIST_ENTRY64"],
+}
 
 
 tcpip_vtypes_win7_64 = {

@@ -380,6 +380,9 @@ AFF4Status WinPmemImager::ImagePhysicalMemory() {
   if (inputs.size() == 0) {
     LOG(INFO) << "Adding default file collections.";
     inputs.push_back("C:\\Windows\\SysNative\\drivers\\*.sys");
+
+    // Used to bootstrap kernel GUID detection.
+    inputs.push_back("C:\\Windows\\SysNative\\ntoskrnl.exe");
   }
 
   res = process_input();

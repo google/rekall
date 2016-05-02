@@ -18,6 +18,7 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
+
 import hashlib
 import re
 
@@ -201,7 +202,7 @@ class ImageInfo(common.WindowsCommandPlugin):
 
     def render(self, renderer):
         renderer.table_header([("Fact", "key", "20"),
-                               ("Value", "value", "30")])
+                               ("Value", "value", "")])
 
         renderer.table_row(
             "Kernel DTB", "%#x" % self.kernel_address_space.dtb)
@@ -300,163 +301,6 @@ class WinImageFingerprint(common.AbstractWindowsParameterHook):
             tests=result)
 
 
-class Pools(common.WindowsCommandPlugin):
-    """Prints information about system pools.
-
-    Ref:
-    http://illmatics.com/Windows%208%20Heap%20Internals.pdf
-    https://media.blackhat.com/bh-dc-11/Mandt/BlackHat_DC_2011_Mandt_kernelpool-wp.pdf
-    https://immunityinc.com/infiltrate/archives/kernelpool_infiltrate2011.pdf
-    http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/ex/pool.c
-    """
-
-    name = "pools"
-
-    def find_all_pool_descriptors(self):
-        """Finds all unique pool descriptors."""
-        descriptors = set()
-
-        vector_pool = self.profile.get_constant_object(
-            "PoolVector",
-            target="Array",
-            target_args=dict(
-                count=2,
-                target="Pointer",
-                )
-            )
-
-        # Non paged pool.
-        for desc in vector_pool[0].dereference_as(
-                "Array",
-                target_args=dict(
-                    count=self.profile.get_constant_object(
-                        "ExpNumberOfNonPagedPools", "unsigned int").v(),
-                    target="_POOL_DESCRIPTOR",
-                    )
-            ):
-            desc.PoolStart = self.profile.get_constant_object(
-                "MmNonPagedPoolStart", "Pointer")
-            desc.PoolEnd = (
-                desc.PoolStart.v() +
-                self.profile.get_constant_object(
-                    "MmMaximumNonPagedPoolInBytes", "unsigned int"))
-            descriptors.add(desc)
-
-        # Paged pool.
-        paged_pool_start = self.profile.get_constant_object(
-            "MmPagedPoolStart", "unsigned int").v()
-
-        comment = ""
-        if not paged_pool_start:
-            if self.profile.metadata("arch") == "I386":
-                # On Win7x86 the paged pool is distributed (see virt_map
-                # plugin).
-                comment = "Fragmented (See virt_map plugin)"
-                paged_pool_start = paged_pool_end = None
-            else:
-                # Hard coded on Windows 7. http://www.codemachine.com/article_x64kvas.html
-                # http://www.reactos.org/wiki/Techwiki:Memory_Layout
-                paged_pool_start = obj.Pointer.integer_to_address(
-                    0xFFFFF8A000000000)
-                paged_pool_end = obj.Pointer.integer_to_address(
-                    0xFFFFF8CFFFFFFFFF)
-        else:
-            paged_pool_end = (
-                paged_pool_start + self.profile.get_constant_object(
-                    "MmSizeOfPagedPoolInBytes", "address").v())
-
-        for desc in vector_pool[1].dereference_as(
-                "Array",
-                target_args=dict(
-                    count=self.profile.get_constant_object(
-                        "ExpNumberOfPagedPools", "unsigned int").v() + 1,
-                    target="_POOL_DESCRIPTOR",
-                )
-            ):
-            # Hard coded for 64 bit OS.
-            desc.PoolStart = paged_pool_start
-            desc.PoolEnd = paged_pool_end
-            desc.Comment = comment
-            descriptors.add(desc)
-
-        # Add session pools.
-        for task in self.session.plugins.pslist().list_eprocess():
-            desc = task.Session.PagedPool
-            if desc:
-                desc.PoolStart = task.Session.PagedPoolStart
-                desc.PoolEnd = task.Session.PagedPoolEnd
-                descriptors.add(desc)
-
-                desc.Comment = "Session ID %s" % task.Session.SessionId
-
-        return descriptors
-
-    def render(self, renderer):
-        descriptors = self.find_all_pool_descriptors()
-        renderer.table_header([
-            ("Type", "type", "20"),
-            ("Index", "index", "5"),
-            ("Size", "total_bytes", ">10"),
-            ("Start", "start", "[addrpad]"),
-            ("End", "end", "[addrpad]"),
-            ("Comment", "comment", "s")])
-
-        for desc in sorted(descriptors):
-            renderer.table_row(
-                desc.PoolType,
-                desc.PoolIndex,
-                desc.m("TotalBytes") or desc.TotalPages * 0x1000,
-                desc.PoolStart,
-                desc.PoolEnd,
-                getattr(desc, "Comment", ""))
-
-
-class PoolTracker(common.WindowsCommandPlugin):
-    """Enumerate pool tag usage statistics."""
-
-    name = "pool_tracker"
-
-    def render(self, renderer):
-        table = self.profile.get_constant_object(
-            "PoolTrackTable",
-            target="Pointer",
-            target_args=dict(
-                target="Array",
-                target_args=dict(
-                    count=self.profile.get_constant_object(
-                        "PoolTrackTableSize", "unsigned int").v(),
-                    target="_POOL_TRACKER_TABLE",
-                    )
-                )
-            )
-
-        renderer.table_header(
-            columns=[("Tag", "tag", "4"),
-                     ("NP Alloc", "nonpaged", ">20"),
-                     ("NP Bytes", "nonpaged_bytes", ">10"),
-                     ("P Alloc", "nonpaged", ">20"),
-                     ("P Bytes", "nonpaged_bytes", ">10"),
-                    ],
-            sort=("tag",)
-            )
-
-        for item in table:
-            if item.Key == 0:
-                continue
-
-            self.session.report_progress()
-            renderer.table_row(
-                # Show the pool tag as ascii.
-                item.Key.cast("String", length=4),
-                "%s (%s)" % (item.NonPagedAllocs,
-                             item.NonPagedAllocs - item.NonPagedFrees),
-                item.NonPagedBytes,
-                "%s (%s)" % (item.PagedAllocs,
-                             item.PagedAllocs - item.PagedFrees),
-                item.PagedBytes,
-                )
-
-
 class ObjectTree(common.WindowsCommandPlugin):
     """Visualize the kernel object tree.
 
@@ -494,16 +338,16 @@ class ObjectTree(common.WindowsCommandPlugin):
         try:
             path = self.ResolveSymlinks(path)
 
+            for prefix, drive_letter in self.session.GetParameter(
+                    "drive_letter_device_map").iteritems():
+                prefix = self.ResolveSymlinks(prefix)
+                if path.startswith(prefix):
+                    return drive_letter + path[len(prefix):]
+
         # This will be triggered if the path does not resolve to anything in the
         # object tree.
         except KeyError:
             return path
-
-        for prefix, drive_letter in self.session.GetParameter(
-                "drive_letter_device_map").iteritems():
-            prefix = self.ResolveSymlinks(prefix)
-            if path.startswith(prefix):
-                return drive_letter + path[len(prefix):]
 
     def ResolveSymlinks(self, path):
         """Takes a path and resolves any intermediate symlinks in it.

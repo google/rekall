@@ -410,22 +410,23 @@ class BaseAddressSpace(object):
 # transparent support for a string buffer so types can be
 # instantiated off the buffer.
 class BufferAddressSpace(BaseAddressSpace):
-    __abstract = True
+    """An address space that wraps a buffer in memory.
+
+    This address space is used internally and does not represent an actual
+    image.
+    """
+    __image = False
 
     @utils.safe_property
     def writable(self):
         """Buffer AS is always writable, no matter what the session says."""
         return True
 
-    def __init__(self, base_offset=0, data='', metadata=None, **kwargs):
+    def __init__(self, base_offset=0, data='', **kwargs):
         super(BufferAddressSpace, self).__init__(**kwargs)
         self.fname = "Buffer"
         self.data = data
         self.base_offset = base_offset
-        self._metadata = metadata or {}
-
-    def metadata(self, key):
-        return self._metadata.get(key)
 
     def assign_buffer(self, data, base_offset=0):
         self.base_offset = base_offset

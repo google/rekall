@@ -38,41 +38,6 @@ class BaseYaraASScanner(scan.BaseScanner):
         self.hits = []
         self.base_offset = None
 
-    def _match_rules(self, buffer_as):
-        """Compatibility for yara modules.
-
-        Unfortunately there are two different implementations of the yara python
-        bindings:
-
-        # The original upstream source.
-        http://plusvic.github.io/yara/
-
-        # The version which is installed using pip install.
-        https://github.com/mjdorma/yara-ctypes
-
-        These do not work the same and so we need to support both.
-
-        Yields:
-          a tuple of (offset, rule_name, name, value)
-        """
-        matches = self.rules.match(data=buffer_as.data)
-        # yara-cpython bindings from pip.
-        if type(matches) is dict:
-            for _, matches in matches.items():
-                for match in matches:
-                    for string in match["strings"]:
-                        hit_offset = string["offset"] + buffer_as.base_offset
-
-                        yield (match["rule"], hit_offset,
-                               string["identifier"], string["data"])
-
-        else:
-            # native bindings from http://plusvic.github.io/yara/
-            for match in matches:
-                for buffer_offset, name, value in match.strings:
-                    hit_offset = buffer_offset + buffer_as.base_offset
-                    yield (match.rule, hit_offset, name, value)
-
     def check_addr(self, scan_offset, buffer_as=None):
         # The buffer was changed - we scan the entire buffer and record the
         # hits - then we can feed it to the Rekall scan framework.
@@ -80,8 +45,12 @@ class BaseYaraASScanner(scan.BaseScanner):
             self.base_offset = buffer_as.base_offset
             self.hits = []
 
-            for rule, offset, name, value in self._match_rules(buffer_as):
-                self.hits.append((rule, offset, name, value))
+            matches = self.rules.match(data=buffer_as.data)
+            for match in matches:
+                for buffer_offset, name, value in match.strings:
+                    hit_offset = buffer_offset + buffer_as.base_offset
+                    self.hits.append(
+                        (match.rule, hit_offset, name, value))
 
         if self.hits and scan_offset == self.hits[0][1]:
             return self.hits.pop(0)
@@ -95,93 +64,78 @@ class BaseYaraASScanner(scan.BaseScanner):
         return next_hit - offset
 
 
-class YaraScanMixin(plugin.TypedProfileCommand):
+class YaraScanMixin(object):
     """A common implementation of yara scanner.
 
-    This should be mixed with the process filter.
+    This should be mixed with the OS specific Scanner (e.g. WinScanner) and
+    plugin.TypedProfileCommand.
     """
 
     name = "yarascan"
 
     table_header = plugin.PluginHeader(
-        dict(name="Owner"),
+        dict(name="Owner", width=20),
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
         dict(name="HexDump", style="hexdump", hex_width=16),
         dict(name="Symbol"),
     )
 
-    @classmethod
-    def args(cls, parser):
-        super(YaraScanMixin, cls).args(parser)
+    __args = [
+        plugin.CommandOption("hits", default=10, type="IntParser",
+                             help="Quit after finding this many hits."),
 
-        parser.add_argument("--hits", default=1E8, type="IntParser",
-                            help="Quit after finding this many hits.")
+        plugin.CommandOption("string", default=None,
+                             help="A verbatim string to search for."),
 
+        plugin.CommandOption("binary_string", default=None,
+                             help="A binary string (encoded as hex) to search "
+                             "for. e.g. 000102[1-200]0506"),
 
-        parser.add_argument("--string", default=None,
-                            help="A verbatim string to search for.")
+        plugin.CommandOption("yara_file", default=None,
+                             help="The yara signature file to read."),
 
-        parser.add_argument("--binary_string", default=None,
-                            help="A binary string (encoded as hex) to search "
-                            "for. e.g. 000102[1-200]0506")
+        plugin.CommandOption("yara_expression", default=None,
+                             help="If provided we scan for this yara "
+                             "expression."),
 
-        parser.add_argument("--yara_file", default=None,
-                            help="The yara signature file to read.")
+        plugin.CommandOption("context", default=0x40, type="IntParser",
+                             help="Context to print after the hit."),
 
-        parser.add_argument("--yara_expression", default=None,
-                            help="If provided we scan for this yara "
-                            "expression.")
+        plugin.CommandOption("pre_context", default=0, type="IntParser",
+                             help="Context to print before the hit."),
 
-        parser.add_argument(
-            "--scan_physical", default=False, type="Boolean",
-            help="If specified we scan the physcial address space. Note that "
-            "by default we scan the address space of the specified processes "
-            "(or if no process selectors are specified, the default AS).")
+    ]
 
-        parser.add_argument("--start", default=0, type="IntParser",
-                            help="Start searching from this offset.")
+    scanner_defaults = dict(
+        scan_physical=True
+    )
 
-        parser.add_argument("--context", default=0x40, type="IntParser",
-                            help="Context to print after the hit.")
-
-        parser.add_argument("--pre_context", default=0, type="IntParser",
-                            help="Context to print before the hit.")
-
-        parser.add_argument("--limit", default=2**64,
-                            help="The length of data to search.")
-
-    def __init__(self, string=None, scan_physical=False,
-                 yara_file=None, yara_expression=None, binary_string=None,
-                 hits=10, context=0x40, start=0, limit=2**64, pre_context=0,
-                 **kwargs):
+    def __init__(self, **kwargs):
         """Scan using yara signatures."""
         super(YaraScanMixin, self).__init__(**kwargs)
-        self.context = context
-        self.pre_context = pre_context
-        self.start = self.session.address_resolver.get_address_by_name(start)
-        self.end = self.start + limit
-        self.hits = hits
-        if yara_expression:
-            self.rules_source = yara_expression
+
+        # Compile the yara rules in advance.
+        if self.plugin_args.yara_expression:
+            self.rules_source = self.plugin_args.yara_expression
             self.rules = yara.compile(source=self.rules_source)
 
-        elif binary_string:
+        elif self.plugin_args.binary_string:
             self.compile_rule(
-                'rule r1 {strings: $a = {%s} condition: $a}' % binary_string
-                )
-        elif string:
-            self.compile_rule(
-                'rule r1 {strings: $a = "%s" condition: $a}' % string
-                )
+                'rule r1 {strings: $a = {%s} condition: $a}' %
+                self.plugin_args.binary_string)
 
-        elif yara_file:
-            self.compile_rule(open(yara_file).read())
+        elif self.plugin_args.string:
+            self.compile_rule(
+                'rule r1 {strings: $a = "%s" condition: $a}' %
+                self.plugin_args.string)
+
+        elif self.plugin_args.yara_file:
+            self.compile_rule(open(self.plugin_args.yara_file).read())
+
         else:
             raise plugin.PluginError("You must specify a yara rule file or "
                                      "string to match.")
-
-        self.scan_physical = scan_physical
 
     def compile_rule(self, rule):
         self.rules_source = rule
@@ -191,79 +145,82 @@ class YaraScanMixin(plugin.TypedProfileCommand):
             raise plugin.PluginError(
                 "Failed to compile yara expression: %s" % e)
 
-    def generate_hits(self, address_space, end=None):
-        count = 0
+    def generate_hits(self, run):
         scanner = BaseYaraASScanner(
             profile=self.profile, session=self.session,
-            address_space=address_space,
+            address_space=run.address_space,
             rules=self.rules)
 
-        for hit in scanner.scan(offset=self.start, maxlen=end):
+        for hit in scanner.scan(offset=run.start, maxlen=run.length):
             yield hit
-
-            count += 1
-            if count >= self.hits:
-                break
-
-    def collect_scan_physical(self):
-        """This method scans the physical memory."""
-        for rule, address, _, _ in self.generate_hits(
-                self.physical_address_space):
-            if address > self.end:
-                return
-
-            yield (None, rule, address, utils.HexDumpedString(
-                self.physical_address_space.read(
-                    address - self.pre_context,
-                    self.context + self.pre_context)))
-
-    def collect_kernel_scan(self):
-        for rule, address, _, _ in self.generate_hits(
-                self.session.default_address_space):
-            if address > self.end:
-                return
-
-            symbol = self.session.address_resolver.format_address(address)
-            yield (None, rule, address, utils.HexDumpedString(
-                self.session.default_address_space.read(
-                    address - self.pre_context,
-                    self.context + self.pre_context)), symbol)
-
-    def collect_task_scan(self, task):
-        """Scan a task's address space."""
-        end = min(self.session.GetParameter("highest_usermode_address"),
-                  self.end)
-        task_as = task.get_process_address_space()
-
-        for rule, address, _, _ in self.generate_hits(task_as, end=end):
-            if address > self.end:
-                return
-
-            symbol = self.session.address_resolver.format_address(address)
-            yield (task, rule, address, utils.HexDumpedString(
-                task_as.read(
-                    address - self.pre_context,
-                    self.context + self.pre_context)), symbol)
 
     def collect(self):
         """Render output."""
-        cc = self.session.plugins.cc()
-        with cc:
-            if self.scan_physical:
-                for row in self.collect_scan_physical():
-                    yield row
+        count = 0
+        for run in self.generate_memory_ranges():
+            for rule, address, _, _ in self.generate_hits(run):
+                count += 1
+                if count >= self.plugin_args.hits:
+                    break
 
-            elif self.filtering_requested:
-                for task in self.filter_processes():
-                    cc.SwitchProcessContext(task)
+                symbol = self.session.address_resolver.format_address(address)
 
-                    for row in self.collect_task_scan(task):
-                        yield row
+                yield (run.data.get("task") or run.data.get("type"),
+                       rule, address,
+                       utils.HexDumpedString(
+                           run.address_space.read(
+                               address - self.plugin_args.pre_context,
+                               self.plugin_args.context +
+                               self.plugin_args.pre_context)),
+                       symbol)
 
-            # We are searching the kernel address space
-            else:
-                for row in self.collect_kernel_scan():
-                    yield row
+
+class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
+                     plugin.PhysicalASMixin, plugin.ProfileCommand):
+    """A Simple plugin which only yarascans the physical Address Space.
+
+    This plugin should not trigger profile autodetection and therefore should be
+    usable on any file at all.
+    """
+
+    name = "simple_yarascan"
+    __args = [
+        plugin.CommandOption("start", default=0, type="IntParser",
+                             help="Start searching from this offset."),
+
+        plugin.CommandOption("limit", default=2**64, type="IntParser",
+                             help="The length of data to search."),
+    ]
+
+    table_header = plugin.PluginHeader(
+        dict(name="Rule", width=10),
+        dict(name="Offset", style="address"),
+        dict(name="HexDump", style="hexdump", hex_width=16),
+    )
+
+    PROFILE_REQUIRED = False
+
+    def collect(self):
+        """Render output."""
+        count = 0
+        scanner = BaseYaraASScanner(
+            session=self.session,
+            address_space=self.session.physical_address_space,
+            rules=self.rules)
+
+        for rule, address, _, _ in scanner.scan(
+                offset=self.plugin_args.start, maxlen=self.plugin_args.limit):
+            count += 1
+            if count >= self.plugin_args.hits:
+                break
+
+            yield (rule, address,
+                   utils.HexDumpedString(
+                       self.session.physical_address_space.read(
+                           address - self.plugin_args.pre_context,
+                           self.plugin_args.context +
+                           self.plugin_args.pre_context)))
+
 
 
 class TestYara(testlib.SimpleTestCase):

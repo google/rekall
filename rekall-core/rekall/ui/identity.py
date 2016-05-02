@@ -30,9 +30,10 @@ class IdentityRenderer(renderer_module.BaseRenderer):
     plugin_name = None
     rows = None
 
-    def __init__(self, *_, **__):
-        super(IdentityRenderer, self).__init__()
+    def __init__(self, *_, **kwargs):
+        super(IdentityRenderer, self).__init__(session=kwargs.get("session"))
         self.rows = []
+        self.delegated_renderer = self.session.GetRenderer()
 
     def __enter__(self):
         return self
@@ -40,7 +41,14 @@ class IdentityRenderer(renderer_module.BaseRenderer):
     def __exit__(self, *_):
         pass
 
+    def format(self, *args):
+        self.delegated_renderer.format(*args)
+
+    def flush(self):
+        self.delegated_renderer.flush()
+
     def start(self, plugin_name=None, **_):
+        super(IdentityRenderer, self).start(plugin_name=plugin_name, **_)
         self.plugin_name = plugin_name
         return self
 
@@ -71,3 +79,6 @@ class IdentityRenderer(renderer_module.BaseRenderer):
             row[cname] = value
 
         self.rows.append(row)
+
+    def open(self, **kwargs):
+        return self.delegated_renderer.open(**kwargs)

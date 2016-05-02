@@ -58,7 +58,7 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
             "PartitionTable",
             target="Pointer",
             target_args=dict(
-                target="PARTITION_TABLE"
+                target="PARTITION_TABLE",
                 )
             )
 

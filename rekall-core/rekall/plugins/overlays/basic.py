@@ -112,7 +112,7 @@ class String(obj.StringProxyMixIn, obj.NativeType):
         return (str(self),)
 
     def __getitem__(self, *args):
-        return unicode(self).__getitem__(*args)
+        return self.v().__getitem__(*args)
 
     def __add__(self, other):
         """Set up mappings for concat"""
@@ -178,6 +178,9 @@ class UnicodeString(String):
 
     def __unicode__(self):
         return self.v().split("\x00")[0] or u""
+
+    def __getitem__(self, *args):
+        return unicode(self).__getitem__(*args)
 
     def __len__(self):
         return len(unicode(self))
@@ -766,7 +769,8 @@ common_overlay = {
     'LIST_ENTRY64': [0x10, {
         'Flink': [0x0, ['pointer', ['LIST_ENTRY64']]],
         'Blink': [0x8, ['pointer', ['LIST_ENTRY64']]],
-    }]}
+    }]
+}
 
 
 class BasicClasses(obj.Profile):

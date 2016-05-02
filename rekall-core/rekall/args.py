@@ -343,7 +343,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         elif arg_type == "Float":
             kwargs["type"] = float
 
-        elif arg_type == "Boolean":
+        elif arg_type == "Boolean" or arg_type == "Bool":
             # Argparse will assume default False for flags and not return
             # None, which is required by ApplyDefaults to recognize an unset
             # argument. To solve this issue, we just pass the default on.

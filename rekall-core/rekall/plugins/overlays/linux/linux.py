@@ -1116,44 +1116,7 @@ class Linux(basic.RelativeOffsetMixin, basic.BasicClasses):
 
     def GetPageOffset(self):
         """Gets the page offset."""
-        page_offset = self.session.GetParameter("linux_page_offset")
-        if not page_offset:
-            self.session.logging.debug("Calculating page offset...")
-            if self.metadata("arch") == "I386":
-                page_offset = (self.get_constant("_text", False) -
-                               self.get_constant("phys_startup_32", False))
-
-            elif self.metadata("arch") == "AMD64":
-                # We use the symbol phys_startup_64. If it's not present in the
-                # profile and it's different than the default, we should be able
-                # to autodetect the difference via kernel_slide.
-                phys_startup_64 = (
-                    self.get_constant("phys_startup_64", False) or 0x1000000)
-                page_offset = (
-                    self.get_constant("_text", False) - phys_startup_64)
-
-            elif self.metadata("arch") == "MIPS":
-                page_offset = 0x80000000
-
-            elif self.metadata("arch") == "ARM":
-                # This might not be always the same. According to arm/Kconfig,
-                # this only seems to be accurate with the default split in linux
-                # (VMSPLIT_3G). See arm/Kconfig. TODO: Use the VMSPLIT_3G config
-                # variable here.
-
-                # 1563 config PAGE_OFFSET
-                # 1564         hex
-                # 1565         default PHYS_OFFSET if !MMU
-                # 1566         default 0x40000000 if VMSPLIT_1G
-                # 1567         default 0x80000000 if VMSPLIT_2G
-                # 1568         default 0xC0000000
-
-                page_offset = 0xc0000000
-
-            else:
-                raise RuntimeError("No profile architecture set.")
-            self.session.SetParameter("linux_page_offset", page_offset)
-        return page_offset
+        return self.session.GetParameter("linux_page_offset")
 
     def nsec_to_clock_t(self, x):
         """Convers nanoseconds to a clock_t. Introduced in 3.17.

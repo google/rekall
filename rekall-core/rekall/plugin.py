@@ -47,6 +47,63 @@ class Abort(Error):
     """Signal aborting of the plugin."""
 
 
+class CommandOption(object):
+    """An option specification."""
+
+    def __init__(self, name=None, default=None, type="String", choices=None,
+                 help=""):
+        self.name = name
+        self.default = default
+        self.type = type
+        self.help = help
+        self.choices = choices
+
+    def add_argument(self, parser):
+        """Add ourselves to the parser."""
+        parser.add_argument("--" + self.name, default=self.default,
+                            type=self.type, help=self.help)
+
+    def parse(self, value, session):
+        """Parse the value as passed."""
+        if value is None:
+            return self.default
+
+        # Validate the parsed type. We only support a small set of types right
+        # now, so this is good enough.
+
+        # Handle addresses specifically though the address resolver.
+        if self.type == "Address":
+            value = session.address_resolver.get_address_by_name(value)
+
+        elif self.type == "IntParser":
+            if isinstance(value, basestring):
+                value = int(value, 0)
+            else:
+                value = int(value)
+
+        elif self.type == "Choices":
+            if value not in self.choices:
+                raise TypeError("Arg %s must be one of %s" % (
+                    self.name, self.choices))
+
+        elif self.type == "ChoiceArray":
+            for item in value:
+                if item not in self.choices:
+                    raise TypeError("Arg %s must be one of %s" % (
+                        self.name, self.choices))
+
+        elif self.type == "ArrayString":
+            if not isinstance(value, (list, tuple)):
+                raise TypeError("Arg %s must be a list of strings" % self.name)
+
+            for item in value:
+                if not isinstance(item, basestring):
+                    raise TypeError("Arg %s must be a list of strings" %
+                                    self.name)
+
+        return value
+
+
 class Command(object):
     """A command can be run from the rekall command line.
 
@@ -347,7 +404,12 @@ class PluginHeader(object):
     def dictify(self, row):
         result = {}
         for idx, value in enumerate(row):
-            result[self.header[idx]["cname"]] = value
+            try:
+                column_name = self.header[idx]["cname"]
+            except KeyError:
+                column_name = self.header[idx]["name"]
+
+            result[column_name] = value
 
         return result
 
@@ -365,6 +427,56 @@ class TypedProfileCommand(object):
 
     # Subclasses must override. Has to be an instance of PluginHeader.
     table_header = None
+
+    # Each plugin mixin should define a list of CommandOption instances with
+    # this name (__args). The constructor will collect these definitions into a
+    # self.args parameter available for the plugins at runtime.
+    __args = []
+
+    # This will contain the parsed constructor args after the plugin is
+    # instantiated.
+    plugin_args = None
+
+    def __init__(self, **kwargs):
+        if self.plugin_args is None:
+            self.plugin_args = utils.AttributeDict()
+
+        # Collect all the declared args and parse them. Keep track of their
+        # source in case we need to explode.
+        sources = {}
+        for name in dir(self):
+            if name.endswith("__args"):
+                for definition in getattr(self, name):
+                    # Definitions can be just simple dicts.
+                    if isinstance(definition, dict):
+                        definition = CommandOption(**definition)
+
+                    # We have seen this arg before.
+                    if definition.name in self.plugin_args:
+                        raise RuntimeError(
+                            "Multiply defined arg (%s). In %s and %s." % (
+                                definition.name, name, sources[definition.name])
+                        )
+
+                    sources[definition.name] = name
+                    self.plugin_args[definition.name] = definition.parse(
+                        kwargs.pop(definition.name, None),
+                        session=kwargs["session"])
+
+        super(TypedProfileCommand, self).__init__(**kwargs)
+
+    @classmethod
+    def args(cls, parser):
+        super(TypedProfileCommand, cls).args(parser)
+
+        # Collect all the declared args and add them to the parser.
+        for name in dir(cls):
+            if name.endswith("__args"):
+                for definition in getattr(cls, name):
+                    if isinstance(definition, dict):
+                        definition = CommandOption(**definition)
+
+                    definition.add_argument(parser)
 
     def collect(self):
         """Collect data that will be passed to renderer.table_row."""

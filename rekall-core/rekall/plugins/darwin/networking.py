@@ -55,7 +55,7 @@ class DarwinSocketsFromHandles(common.AbstractDarwinProducer):
                 yield [fileproc.autocast_fg_data()]
 
 
-class DarwinNetstat(common.AbstractDarwinTypedCommand):
+class DarwinNetstat(common.AbstractDarwinCommand):
     """Prints all open sockets we know about, from any source.
 
     Netstat will display even connections that lsof doesn't know about, because

@@ -34,6 +34,7 @@ from rekall import plugin
 from rekall import utils
 
 from rekall.plugins import core
+from rekall.plugins.common import scanners
 
 # Windows kernel pdb filenames.
 KERNEL_NAMES = set(
@@ -45,6 +46,7 @@ KERNEL_NAMES = set(
 # AbstractWindowsCommandPlugins.
 
 class AbstractWindowsCommandPlugin(plugin.PhysicalASMixin,
+                                   plugin.TypedProfileCommand,
                                    plugin.ProfileCommand):
     """A base class for all windows based plugins.
 
@@ -593,6 +595,96 @@ class WinProcessFilter(WindowsCommandPlugin):
         "Sessions",
         "Handles",
         ]
+
+
+class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
+    """Windows specific scanner implementation."""
+
+    __abstract = True
+
+    __args = [
+        dict(name="scan_kernel_paged_pool", default=False, type="Boolean",
+             help="Scan the kernel paged pool."),
+
+        dict(name="scan_kernel_nonpaged_pool", default=False, type="Boolean",
+             help="Scan the kernel non-paged pool."),
+
+        dict(name="scan_kernel_code", default=False, type="Boolean",
+             help="Scan the kernel image and loaded drivers."),
+
+        dict(name="scan_kernel_session_pools", default=False, type="Boolean",
+             help="Scan session pools for all processes."),
+    ]
+
+    def generate_memory_ranges(self):
+        for run in super(WinScanner, self).generate_memory_ranges():
+            yield run
+
+        # If the user did not just ask to scan the entire kernel space, support
+        # dividing the kernel space into subregions.
+        if not self.plugin_args.scan_kernel:
+            pool_plugin = self.session.plugins.pools()
+
+            # Scan session pools in each process.
+            if self.plugin_args.scan_kernel_session_pools:
+                for pool in pool_plugin.find_session_pool_descriptors():
+                    comment = "%s" % pool.PoolType
+                    if pool.Comment:
+                        comment += " (%s)" % pool.Comment
+
+                    self.session.logging.info(
+                        "Scanning in: %s. [%#x-%#x]" % (
+                            comment, pool.PoolStart, pool.PoolEnd))
+
+                    yield addrspace.Run(
+                        start=pool.PoolStart, end=pool.PoolEnd,
+                        address_space=pool.obj_vm,
+                        data=dict(type=comment, pool=pool))
+
+            # Non paged pool selection.
+            if self.plugin_args.scan_kernel_nonpaged_pool:
+                for pool in pool_plugin.find_non_paged_pool():
+                    comment = "Pool %s" % pool.PoolType
+                    if pool.Comment:
+                        comment += " (%s)" % pool.Comment
+
+                    self.session.logging.info(
+                        "Scanning in: %s. [%#x-%#x]" % (
+                            comment, pool.PoolStart, pool.PoolEnd))
+
+                    yield addrspace.Run(
+                        start=pool.PoolStart, end=pool.PoolEnd,
+                        address_space=pool.obj_vm,
+                        data=dict(type=comment, pool=pool))
+
+            if self.plugin_args.scan_kernel_paged_pool:
+                for pool in pool_plugin.find_paged_pool():
+                    comment = "Pool %s" % pool.PoolType
+                    if pool.Comment:
+                        comment += " (%s)" % pool.Comment
+
+                    self.session.logging.info("Scanning in: %s" % comment)
+
+                    yield addrspace.Run(
+                        start=pool.PoolStart, end=pool.PoolEnd,
+                        address_space=pool.obj_vm,
+                        data=dict(type=comment, pool=pool))
+
+            if self.plugin_args.scan_kernel_code:
+                cc = self.session.plugins.cc()
+                with cc:
+                    cc.SwitchProcessContext(None)
+                    for module in self.session.address_resolver.GetAllModules():
+                        comment = "Module %s" % module.name
+
+                        self.session.logging.info(
+                            "Scanning in: %s [%#x-%#x]" % (
+                                comment, module.start, module.end))
+
+                        yield addrspace.Run(
+                            start=module.start, end=module.end,
+                            address_space=self.session.kernel_address_space,
+                            data=dict(type=comment, module=module))
 
 
 class PsListPsActiveProcessHeadHook(AbstractWindowsParameterHook):

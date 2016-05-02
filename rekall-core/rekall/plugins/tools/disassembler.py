@@ -459,6 +459,10 @@ class Disassemble(plugin.Command):
         The mode is '32bit' or '64bit'. If not supplied, the disassembler
         mode is taken from the profile.
         """
+        if self.offset == None:
+            renderer.format("Error: {0}\n", self.offset.reason)
+            return
+
         if self.canonical:
             return self.render_canonical(renderer)
 
@@ -480,6 +484,7 @@ class Disassemble(plugin.Command):
         self._visited.clear()
         self._visited_count = 0
 
+        offset = None
         for depth, instruction in self.disassemble(self.offset):
             offset = instruction.address
 

@@ -287,7 +287,7 @@ class Configuration(utils.AttributeDict):
         """
         # Clear all profile caches in address resolver contexts.
         for context in self.session.context_cache.values():
-            context.Reset()
+            context.reset()
 
         return set(tracked)
 
@@ -558,6 +558,8 @@ class Session(object):
         # Hooks that will be called when we get flushed.
         self._flush_hooks = []
 
+        self.renderers = []
+
     @utils.safe_property
     def logging(self):
         if self.logger is not None:
@@ -798,6 +800,8 @@ class Session(object):
         if ui_renderer is None:
             ui_renderer = self.GetRenderer(output=output)
 
+        self.renderers.append(ui_renderer)
+
         # Set the renderer so we can transport log messages.
         self._log_handler.SetRenderer(ui_renderer)
 
@@ -826,6 +830,9 @@ class Session(object):
                 self.last = plugin_obj
             except (Exception, KeyboardInterrupt) as e:
                 self._HandleRunPluginException(ui_renderer, e)
+
+            finally:
+                self.renderers.pop(-1)
 
         # At this point, the ui_renderer will have flushed all data.
         # Further logging will be lost.
@@ -971,8 +978,13 @@ class Session(object):
     def GetRenderer(self, output=None):
         """Get a renderer for this session.
 
-        We instantiate the renderer specified in self.GetParameter("format").
+        If a renderer is currently active we just reuse it, otherwise we
+        instantiate the renderer specified in self.GetParameter("format").
         """
+        # Reuse the current renderer.
+        if self.renderers and output is None:
+            return self.renderers[-1]
+
         ui_renderer = self.GetParameter("format", "text")
         if isinstance(ui_renderer, basestring):
             ui_renderer_cls = renderer.BaseRenderer.ImplementationByName(

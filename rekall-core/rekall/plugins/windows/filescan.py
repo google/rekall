@@ -150,7 +150,8 @@ class DriverScan(FileScan):
                 extension_obj = self.profile._DRIVER_EXTENSION(
                     driver_obj.obj_end, vm=self.address_space)
 
-                yield (pool_obj, object_obj, driver_obj, extension_obj, object_name)
+                yield (pool_obj, object_obj, driver_obj, extension_obj,
+                       object_name)
 
 
     def render(self, renderer):
@@ -270,8 +271,8 @@ class MutantScan(plugin.VerbosityMixIn, FileScan):
                 object_name = object_obj.NameInfo.Name.v(
                     vm=self.kernel_address_space)
 
-                # By default we suppress non-named mutants because they are not very
-                # interesting.
+                # By default we suppress non-named mutants because they are not
+                # very interesting.
                 if self.verbosity < 5 and not object_name:
                     continue
 
@@ -370,7 +371,7 @@ class PoolScanProcess(common.PoolScanner):
                 yield pool_obj, eprocess
 
 
-class PSScan(common.PoolScannerPlugin):
+class PSScan(common.WinScanner):
     """Scan Physical memory for _EPROCESS pool allocations.
 
     Status flags:
@@ -378,18 +379,25 @@ class PSScan(common.PoolScannerPlugin):
       P: A known pid from pslist.
     """
 
-    __name = "psscan"
+    name = "psscan"
 
-    def scan_processes(self):
-        """Generate possible hits."""
-        # Just grab the AS and scan it using our scanner
-        scanner = PoolScanProcess(session=self.session,
-                                  profile=self.profile,
-                                  address_space=self.address_space)
+    table_header = plugin.PluginHeader(
+        dict(name=' ', cname='allocated', width=1),
+        dict(name='_EPROCESS (P)', cname="offset_p", type="_EPROCESS"),
+        dict(name='Offset(V)', cname="offset_v", style="address"),
+        dict(name='PPID', cname="ppid", width=6, align="r"),
+        dict(name='PDB', cname="pdb", style="address"),
+        dict(name='Stat', cname='stat', width=4),
+        dict(name='Time created', cname="process_create_time", width=24),
+        dict(name='Time exited', cname="process_exit_time", width=24),
+    )
 
-        return scanner.scan()
+    # Only bother to scan non paged pool by default.
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True
+    )
 
-    def render(self, renderer):
+    def collect(self):
         """Render results in a table."""
         # Try to do a regular process listing so we can compare if the process
         # is known.
@@ -402,34 +410,34 @@ class PSScan(common.PoolScannerPlugin):
             known_eprocess.add(task)
             known_pids.add(task.UniqueProcessId)
 
-        renderer.table_header([
-            (' ', 'allocated', '1'),
-            dict(name='_EPROCESS (P)', cname="offset_p", type="_EPROCESS"),
-            ('Offset(V)', "offset_v", '[addrpad]'),
-            ('PPID', "ppid", '>6'),
-            ('PDB', "pdb", '[addrpad]'),
-            ('Stat', 'stat', "4"),
-            ('Time created', "process_create_time", '24'),
-            ('Time exited', "process_exit_time", '24')])
+        # Scan each requested run in turn.
+        for run in self.generate_memory_ranges():
+            # Just grab the AS and scan it using our scanner
+            scanner = PoolScanProcess(session=self.session,
+                                      profile=self.profile,
+                                      address_space=run.address_space)
 
-        for pool_obj, eprocess in self.scan_processes():
-            # Switch address space from physical to virtual.
-            virtual_eprocess = pslist.virtual_process_from_physical_offset(
-                eprocess)
+            for pool_obj, eprocess in scanner.scan(
+                    offset=run.start, maxlen=run.length):
+                if run.data["type"] == "PhysicalAS":
+                    # Switch address space from physical to virtual.
+                    virtual_eprocess = (
+                        pslist.virtual_process_from_physical_offset(eprocess))
+                else:
+                    virtual_eprocess = eprocess
 
-            known = ""
-            if virtual_eprocess in known_eprocess:
-                known += "E"
+                known = ""
+                if virtual_eprocess in known_eprocess:
+                    known += "E"
 
-            if eprocess.UniqueProcessId in known_pids:
-                known += "P"
+                if eprocess.UniqueProcessId in known_pids:
+                    known += "P"
 
-            renderer.table_row(
-                'F' if pool_obj.FreePool else "",
-                eprocess,
-                virtual_eprocess.obj_offset,
-                eprocess.InheritedFromUniqueProcessId,
-                eprocess.Pcb.DirectoryTableBase,
-                known,
-                eprocess.CreateTime or '',
-                eprocess.ExitTime or '')
+                yield('F' if pool_obj.FreePool else "",
+                      eprocess,
+                      virtual_eprocess.obj_offset,
+                      eprocess.InheritedFromUniqueProcessId,
+                      eprocess.Pcb.DirectoryTableBase,
+                      known,
+                      eprocess.CreateTime or '',
+                      eprocess.ExitTime or '')

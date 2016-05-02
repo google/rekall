@@ -111,11 +111,13 @@ class FindPlugins(plugin.ProfileCommand):
             if not issubclass(plugin_cls, pertinent_cls):
                 continue
 
-            for t in plugin_cls.table_header.types_in_output:
-                if isinstance(t, type) and self.type_name == t.__name__:
-                    yield plugin_cls(session=self.session)
-                elif self.type_name == t:
-                    yield plugin_cls(session=self.session)
+            table_header = plugin_cls.table_header
+            if table_header:
+                for t in table_header.types_in_output:
+                    if isinstance(t, type) and self.type_name == t.__name__:
+                        yield plugin_cls(session=self.session)
+                    elif self.type_name == t:
+                        yield plugin_cls(session=self.session)
 
     def render(self, renderer):
         renderer.table_header([
@@ -242,16 +244,17 @@ class CommandWrapper(object):
             self._applied_args = (args, kwargs)
         else:
             if self._applied_args != (args, kwargs):
-                raise ValueError("%r was previously called with %r but is now "
-                        "being called with %r." % (
-                            self, self._applied_args, (args, kwargs)))
+                raise ValueError(
+                    "%r was previously called with %r but is now "
+                    "being called with %r." % (
+                        self, self._applied_args, (args, kwargs)))
             else:
                 # Results already cached.
                 return self
 
-        if issubclass(self.plugin_cls, plugin.TypedProfileCommand):
+        self.table_header = getattr(self.plugin_cls, "table_header", None)
+        if self.table_header:
             # We have access to table header and rows without running render.
-            self.table_header = self.plugin_cls.table_header
             plugin_curry = getattr(self.session.plugins, self.plugin_cls.name)
             command = plugin_curry(session=self.session, *args, **kwargs)
             self.rows = list(command.collect_as_dicts())
@@ -262,10 +265,10 @@ class CommandWrapper(object):
             # and headers.
 
             # The identity renderer will capture rendered rows.
-            renderer = identity_renderer.IdentityRenderer()
-
-            self.session.RunPlugin(self.plugin_cls.name, format=renderer,
-                                   *args, **kwargs)
+            renderer = identity_renderer.IdentityRenderer(session=self.session)
+            with renderer.start():
+                self.session.RunPlugin(self.plugin_cls.name, format=renderer,
+                                       *args, **kwargs)
 
             self.rows = renderer.rows
             self.columns = renderer.columns
@@ -536,12 +539,15 @@ class Search(EfilterPlugin):
 
     def _render_plugin_output(self, renderer, table_header, *rows):
         """Used to render search results if they come from a plugin."""
-        try:
-            columns = [column["cname"] for column in table_header]
-        except KeyError:
-            raise ValueError(
-                "Column spec %r is missing a cname. Full header was: %r." %
-                (column, table_header))
+        columns = []
+        for column in table_header or []:
+            column_name = column.get("cname") or column.get("name")
+            columns.append(column_name)
+
+            if column_name is None:
+                raise ValueError(
+                    "Column spec %r is missing a cname. Full header was: %r." %
+                    (column, table_header))
 
         for row in rows:
             renderer.table_row(*[row[key] for key in columns])
@@ -589,7 +595,7 @@ class Search(EfilterPlugin):
 
         # If the output type is a TypeProfileCommand subclass then we can just
         # interrogate its header.
-        if isinstance(t, plugin.TypedProfileCommand):
+        if getattr(t, "table_header", None):
             renderer.table_header(t.table_header)
             return self._render_plugin_output(renderer, t.table_header,
                                               *rows)
@@ -757,7 +763,7 @@ class Explain(EfilterPlugin):
                     subtype = repr(subtype)
 
                 renderer.table_row(subq, subtype, depth=2)
-        except (NotImplementedError, TypeError):
+        except (NotImplementedError, TypeError, AttributeError):
             pass
 
     def render_query_analysis(self, renderer):

@@ -62,8 +62,7 @@ class PrivilegesHook(common.AbstractWindowsParameterHook):
         return result
 
 
-class Privileges(plugin.VerbosityMixIn, plugin.TypedProfileCommand,
-                 common.WinProcessFilter):
+class Privileges(plugin.VerbosityMixIn, common.WinProcessFilter):
     """Prints process privileges."""
 
     name = "privileges"

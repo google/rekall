@@ -35,6 +35,10 @@ class LKMModule(address_resolver.Module):
             **kwargs)
 
 
+class MapModule(address_resolver.Module):
+    """A module representing a memory mapping."""
+
+
 class KernelModule(address_resolver.Module):
     """A Fake object which makes the kernel look like a module.
 
@@ -67,5 +71,14 @@ class LinuxAddressResolver(address_resolver.AddressResolverMixin,
         # Add LKMs.
         for kmod in self.session.plugins.lsmod().get_module_list():
             self.AddModule(LKMModule(kmod, session=self.session))
+
+        task = self.session.GetParameter("process_context")
+
+        for vma in task.mm.mmap.walk_list("vm_next"):
+            start = vma.vm_start
+            end = vma.vm_end
+            self.AddModule(MapModule(
+                name="map_%#x" % start,
+                start=start, end=end, session=self.session))
 
         self._initialized = True

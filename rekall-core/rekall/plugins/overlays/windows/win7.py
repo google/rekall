@@ -346,8 +346,7 @@ class _POOL_HEADER(common._POOL_HEADER):
         start = self.obj_end
         cached_data = self.obj_vm.read(start, allocation_size)
         cached_vm = addrspace.BufferAddressSpace(
-            base_offset=start, data=cached_data, session=self.obj_session,
-            metadata=dict(image=self.obj_vm.metadata("image")))
+            base_offset=start, data=cached_data, session=self.obj_session)
 
         # We search for the _OBJECT_HEADER.InfoMask in close proximity to our
         # object. We build a lookup table between the values in the InfoMask and

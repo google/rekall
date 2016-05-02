@@ -105,15 +105,12 @@ class AbstractDarwinParameterHook(DarwinOnlyMixin, kb.ParameterHook):
     __abstract = True
 
 
-class AbstractDarwinCommand(DarwinOnlyMixin, plugin.KernelASMixin,
-                            plugin.PhysicalASMixin, plugin.ProfileCommand):
+class AbstractDarwinCommand(DarwinOnlyMixin,
+                            plugin.KernelASMixin,
+                            plugin.PhysicalASMixin,
+                            plugin.TypedProfileCommand,
+                            plugin.ProfileCommand):
     """Base class for Darwin profile commands."""
-    __abstract = True
-
-
-class AbstractDarwinTypedCommand(plugin.TypedProfileCommand,
-                                 AbstractDarwinCommand):
-    """Base class for Darwin commands with typed output."""
     __abstract = True
 
 

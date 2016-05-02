@@ -284,8 +284,10 @@ class BaseScanner(object):
         Yields:
           offsets where all the constrainst are satisfied.
         """
-        maxlen = maxlen or 2**64
-        end = offset + maxlen
+        if maxlen is None:
+            maxlen = 2**64
+
+        end = int(offset) + int(maxlen)
         overlap = ""
 
         # Record the last reported hit to prevent multiple reporting of the same

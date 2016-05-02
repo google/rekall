@@ -189,7 +189,7 @@ class BashHistory(common.LinProcessFilter):
             hits = sorted(scanner.scan(), key=lambda x: x.timestamp.deref())
             for hit in hits:
                 timestamp = self.profile.UnixTimeStamp(
-                    value=int(hit.timestamp.deref()[1:]))
+                    value=int(unicode(hit.timestamp.deref())[1:]))
 
                 renderer.table_row(
                     task.pid, task.comm, timestamp, hit.line.deref())

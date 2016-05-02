@@ -23,6 +23,7 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 import re
 
 from rekall import config
+from rekall import plugin
 from rekall import obj
 from rekall import utils
 
@@ -89,6 +90,16 @@ class AddressResolverMixin(object):
        resolve to the address of the pointer's target.
 
     """
+
+    __args = [
+        dict(name="symbol", type="ArrayString", default=[],
+             help="List of symbols to lookup"),
+    ]
+
+    table_header = plugin.PluginHeader(
+        dict(name="Symbol", width=20),
+        dict(name="Offset", width=20, style="address"),
+    )
 
     # The name of the plugin.
     name = "address_resolver"
@@ -194,6 +205,10 @@ class AddressResolverMixin(object):
     def GetModuleByName(self, name):
         self._EnsureInitialized()
         return self._modules_by_name.get(self.NormalizeModuleName(name))
+
+    def GetAllModules(self):
+        self._EnsureInitialized()
+        return self._modules_by_name.values()
 
     def get_constant_object(self, name, target, **kwargs):
         """Instantiate the named constant with these args.
@@ -317,7 +332,7 @@ class AddressResolverMixin(object):
             offset, symbols = module.profile.get_nearest_constant_by_address(
                 address)
 
-        # Symbols not found at all
+        # Symbols not found at all, use module name.
         if not symbols:
             if address - module.start > max_distance:
                 return (-1, [])
@@ -335,8 +350,53 @@ class AddressResolverMixin(object):
         if offset == address:
             return (offset, ["%s!%s" % (module.name, x) for x in symbols])
 
+        # Approximate symbol found, check if the profile knows its type.
+        for x in symbols:
+            if x in module.profile.constant_types:
+                type_name = self._format_type(module, x, address)
+                if type_name is not None:
+                    return (offset, ["%s!%s" % (module.name, type_name)])
+
         return (offset, ["%s!%s+%#x" % (module.name, x, address - offset)
                          for x in symbols])
+
+    def _format_type(self, module, symbol, offset):
+        """Use the type information to format the address within the struct."""
+        result = symbol
+        member_obj = module.profile.get_constant_object(symbol)
+
+        while offset > member_obj.obj_offset:
+            if isinstance(member_obj, obj.Struct):
+                members = [
+                    getattr(member_obj, x, None) for x in member_obj.members]
+                member_collection = utils.SortedCollection(
+                    (x.obj_offset, x) for x in members)
+
+                member_offset, member_below = (
+                    member_collection.get_value_smaller_than(offset))
+
+                # No member below this offset?
+                if member_offset is None:
+                    result += "+%s" % (offset - member_obj.obj_offset)
+                    break
+
+                result += ".%s" % member_below.obj_name
+                member_obj = member_below
+
+            elif isinstance(member_obj, obj.Array):
+                # Next lowest index is a whole number of items.
+                item = member_obj[0]
+                next_lowest_index = (
+                    offset - member_obj.obj_offset) / item.obj_size
+                result += "[%s]" % next_lowest_index
+
+                member_obj = member_obj[next_lowest_index]
+
+            else:
+                result += "+%s" % (offset - member_obj.obj_offset)
+                break
+
+        return result
 
     def search_symbol(self, pattern):
         """Searches symbols for the pattern.
@@ -365,3 +425,7 @@ class AddressResolverMixin(object):
                         result.append("%s!%s" % (module_name, constant))
 
         return result
+
+    def collect(self):
+        for symbol in self.plugin_args.symbol:
+            yield symbol, self.get_address_by_name(symbol)

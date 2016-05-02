@@ -205,6 +205,19 @@ class UnloadedModules(common.WindowsCommandPlugin):
                 )
             )
 
+        # In Windows 10 this has moved to the MiState.
+        if unloaded_table == None:
+            mistate = self.profile.get_constant_object(
+                "MiState", target="_MI_SYSTEM_INFORMATION")
+
+            unloaded_table = mistate.UnloadedDrivers.dereference_as(
+                "Array",
+                target_args=dict(
+                    target="_UNLOADED_DRIVERS",
+                    count=mistate.LastUnloadedDriver)
+            )
+
+
         renderer.table_header([("Name", "name", "20"),
                                ("Start", "start", "[addrpad]"),
                                ("End", "end", "[addrpad]"),

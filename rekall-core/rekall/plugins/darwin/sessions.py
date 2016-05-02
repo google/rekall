@@ -53,7 +53,7 @@ class DarwinSessions(common.AbstractDarwinProducer):
                 yield [session]
 
 
-class DarwinTerminals(common.AbstractDarwinTypedCommand):
+class DarwinTerminals(common.AbstractDarwinCommand):
     """Lists open ttys."""
 
     name = "terminals"

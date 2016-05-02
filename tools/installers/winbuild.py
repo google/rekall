@@ -112,8 +112,11 @@ def rm(fileglob):
 
 
 def touch(path):
-    with open(path, "wb") as fd:
-        fd.write("")
+    try:
+        with open(path, "wb") as fd:
+            fd.write("")
+    except (IOError, OSError):
+        pass
 
 
 def main():

@@ -1316,7 +1316,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
 
         fields = []
         # Print all the fields sorted by offset within the struct.
-        for k in self.members:
+        for k in set(self.members).union(self.callable_members):
             width_name = max(width_name, len(k))
             obj = getattr(self, k)
             if obj == None:
@@ -1530,6 +1530,14 @@ class ConstantProfileSectionLoader(ProfileSectionLoader):
         return profile
 
 
+class ConstantTypeProfileSectionLoader(ProfileSectionLoader):
+    name = "$CONSTANT_TYPES"
+
+    def LoadIntoProfile(self, session, profile, constant_types):
+        profile.constant_types.update(constant_types)
+        return profile
+
+
 class FunctionsProfileSectionLoader(ConstantProfileSectionLoader):
     name = "$FUNCTIONS"
 
@@ -1709,6 +1717,10 @@ class Profile(object):
         self.overlays = []
         self.vtypes = {}
         self.constants = {}
+
+        # A map from symbol names to the types at that symbol. Key: Symbol name,
+        # Value: (target, target_args).
+        self.constant_types = {}
         self.constant_addresses = utils.SortedCollection(key=lambda x: x[0])
         self.enums = {}
         self.reverse_enums = {}
@@ -2299,6 +2311,12 @@ class Profile(object):
         if vm is None:
             vm = self.session.GetParameter("default_address_space")
 
+        if target is None:
+            if constant not in self.constant_types:
+                raise TypeError("Unknown constant type for %s" % constant)
+
+            target, target_args = self.constant_types[constant]
+
         kwargs.update(target_args or {})
         offset = self.get_constant(constant, is_address=True)
         if not offset:
@@ -2442,8 +2460,8 @@ class Profile(object):
             if isinstance(result, Struct):
                 # This should not normally happen.
                 self.session.logging.error(
-                    "Instantiating a Struct class without an overlay. "
-                    "Please ensure an overlay is defined.")
+                    "Instantiating a Struct class %s without an overlay. "
+                    "Please ensure an overlay is defined.", type_name)
 
             return result
 

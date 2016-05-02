@@ -78,7 +78,7 @@ class AbstractZoneElementFinder(common.AbstractDarwinParameterHook):
         return results
 
 
-class DarwinDumpZone(common.AbstractDarwinTypedCommand):
+class DarwinDumpZone(common.AbstractDarwinCommand):
     """Dumps an allocation zone's contents."""
 
     name = "dump_zone"

@@ -31,7 +31,7 @@ from rekall.plugins.common import memmap
 
 
 class DarwinPslist(common.ProcessFilterMixin,
-                   common.AbstractDarwinTypedCommand):
+                   common.AbstractDarwinCommand):
     name = "pslist"
 
     table_header = plugin.PluginHeader(
@@ -58,7 +58,7 @@ class DarwinPslist(common.ProcessFilterMixin,
 
 
 class DarwinPsxView(common.ProcessFilterMixin,
-                    common.AbstractDarwinTypedCommand):
+                    common.AbstractDarwinCommand):
     name = "psxview"
 
     # pylint: disable=no-self-argument
@@ -82,7 +82,7 @@ class DarwinPsxView(common.ProcessFilterMixin,
             yield row
 
 
-class DarwinPsTree(common.AbstractDarwinTypedCommand):
+class DarwinPsTree(common.AbstractDarwinCommand):
     name = "pstree"
 
     table_header = plugin.PluginHeader(

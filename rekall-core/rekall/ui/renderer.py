@@ -341,7 +341,7 @@ class BaseTable(object):
 
         # For now support the legacy column specification and normalized to a
         # column_spec dict.
-        for column in columns:
+        for column in columns or []:
             # Old style column specification are a tuple. The new way is a dict
             # which is more expressive but more verbose.
             if isinstance(column, (tuple, list)):

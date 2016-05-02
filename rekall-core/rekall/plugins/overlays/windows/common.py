@@ -73,8 +73,18 @@ windows_overlay = {
         'Buffer': [None, ['Pointer', dict(
             target='UnicodeString',
             target_args=dict(length=lambda x: x.Length)
-            )]],
-        }],
+        )]],
+    }],
+    # Documented at http://www.osronline.com/article.cfm?id=523
+    '_RTL_BITMAP': [None, {
+        "Buffer": [None, ["Pointer", dict(
+            target="String",
+            target_args=dict(
+                term=None,
+                length=lambda x: x.SizeOfBitMap / 8 + 1
+            )
+        )]],
+    }],
     '_UNICODE_STRING32': [8, {
         "Buffer": [4, ['Pointer32', dict(
             target='UnicodeString',
@@ -563,6 +573,8 @@ windows_overlay = {
         }]]
     }]
 }
+
+windows_overlay["_RTL_BITMAP_EX"] = windows_overlay["_RTL_BITMAP"]
 
 
 class _LDR_DATA_TABLE_ENTRY(obj.Struct):
@@ -1355,6 +1367,14 @@ class VadTraverser(obj.Struct):
     left = "LeftChild"
     right = "RightChild"
 
+    def traverse_as_type(self, type=None, member=None):
+        """Traverse an AVL tree - similar to _LIST_ENTRY.list_as_type()."""
+        relative_offset = self.obj_profile.get_obj_offset(type, member)
+
+        for node in self.traverse(type="_RTL_BALANCED_NODE"):
+            yield self.obj_profile.Object(
+                type, node.obj_offset - relative_offset)
+
     def traverse(self, visited=None, depth=0, type=None):
         """Traverse the VAD tree.
 
@@ -1462,9 +1482,25 @@ class _SHARED_CACHE_MAP(obj.Struct):
         return result
 
 
+class _RTL_BITMAP(obj.Struct):
+
+    def __getitem__(self, index):
+        char = ord(self.Buffer[index / 8])
+        return bool(char & 2 ** (index % 8))
+
+    def __len__(self):
+        return int(self.SizeOfBitMap)
+
+    def __iter__(self):
+        for i in xrange(len(self)):
+            yield self[i]
+
+
 def InitializeWindowsProfile(profile):
     """Install the basic windows overlays."""
     profile.add_classes({
+        '_RTL_BITMAP': _RTL_BITMAP,
+        '_RTL_BITMAP_EX': _RTL_BITMAP,
         '_UNICODE_STRING': _UNICODE_STRING,
         '_UNICODE_STRING32': _UNICODE_STRING,
         '_EPROCESS': _EPROCESS,
