@@ -20,6 +20,7 @@
 // limitations under the License.
 
 #include "meta.h"
+#include "cpu.h"
 #include "logging.h"
 #include "MacPmem.h"
 #include "iokit_pci.h"
@@ -34,6 +35,7 @@
 #include <libkern/version.h>
 #include <kern/task.h>
 #include <libkern/OSAtomic.h>
+#include <i386/proc_reg.h>
 
 
 static const char * const pmem_meta_fmt = \
@@ -43,6 +45,9 @@ static const char * const pmem_meta_fmt = \
     "  pmem_api_version: %d\n"
     "  cr3: %llu\n"
     "  dtb_off: %llu\n"
+    "  msr_ia32_sysenter_eip: %llu\n"
+    "  msr_ia32_gs_base: %llu\n"
+    "  cpuid_vendorstring: %.*s\n"
     "  phys_mem_size: %llu\n"
     "  pci_config_space_base: %llu\n"
     "  mmap_poffset: %u\n"
@@ -476,6 +481,27 @@ kern_return_t pmem_fillmeta(pmem_meta_t **metaret, int flags) {
         meta->version_poffset = paddr;
     }
 
+    if (flags & PMEM_INFO_MSRS) {
+        struct pmem_fast_syscall_info sep_info = pmem_get_fast_syscall_info();
+        if (sep_info.sysenter_supported) {
+            meta->msr_ia32_sysenter_eip = sep_info.sysenter_eip;
+        }
+
+        // We don't have wrappers around this, because they're simple enough
+        // and will always exist.
+        meta->msr_ia32_gs_base = rdmsr64(MSR_IA32_GS_BASE);
+    }
+
+    if (flags & PMEM_INFO_CPUID) {
+        error = pmem_get_cpu_vendorstring(meta->cpuid_vendor_string);
+
+        if (error != KERN_SUCCESS) {
+            pmem_error("Could not get CPUID vendorstring.");
+            return error;
+        }
+
+    }
+
     *metaret = meta;
     return KERN_SUCCESS;
 }
@@ -606,6 +632,10 @@ kern_return_t pmem_formatmeta(pmem_OSBuffer *buffer, const pmem_meta_t *meta) {
                        meta->pmem_api_version,
                        meta->cr3,
                        meta->dtb_poffset,
+                       meta->msr_ia32_sysenter_eip,
+                       meta->msr_ia32_gs_base,
+                       12, // Number of bytes in EBX, ECX + EDX.
+                       meta->cpuid_vendor_string,
                        meta->phys_mem_size,
                        meta->pci_config_space_base,
                        meta->mmap_poffset,

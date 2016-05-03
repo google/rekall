@@ -33,7 +33,7 @@
 #define PMEM_NAMESIZE 40
 
 #define PMEM_IOCTL_BASE 'p'
-#define PMEM_API_VERSION ((char) 2)
+#define PMEM_API_VERSION ((char) 3)
 
 #ifdef __LP64__
 #define PMEM_PTRARG uint64_t
@@ -108,7 +108,7 @@ static const char *pmem_efi_type_names[] = {
 // invention. Now bear with me, because the number of options can get a little
 // crazy.
 typedef enum {
-    pmem_PCIWiredMemory, // Conventional RAM backs this.
+    pmem_PCIWiredMemory,  // Conventional RAM backs this.
     pmem_PCIDeviceMemory, // Wired to the device.
     pmem_PCIUnknownMemory // Unknown to me, that is.
 } pmem_pci_mem_type_t;
@@ -156,6 +156,9 @@ typedef struct {
 } pmem_generic_range_t;
 
 
+// Represents any type of thing pmem may want to communicate more than one
+// instance of. Currently, they are memory ranges, but other objects may be
+// returned in the future.
 typedef struct {
     pmem_meta_record_type_t type;
 
@@ -178,7 +181,7 @@ typedef struct {
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef struct {
-    // Always set. Yes, reserved is also set (to zeroes).
+    // Always set. Reserved is zeroed.
     unsigned int size; // Size of this struct, including the ranges array.
     unsigned int pmem_api_version     : 8;
     unsigned int reserved             : 24;
@@ -202,6 +205,21 @@ typedef struct {
     // time you dump it, and yet still valid (magic).
     unsigned long long cr3; // The value of the CR3 register, such as it was.
     unsigned long long dtb_poffset; // The physical address of a (some) DTB.
+
+    // Model-specific registers.
+    unsigned long long msr_ia32_sysenter_eip;
+    unsigned long long msr_ia32_gs_base;
+
+    // Reserved so we don't need to up the API version every time we add an MSR.
+    unsigned long long msr_reserved[6];
+
+    // CPUID information.
+    //
+    // 'cpuid' is not a privileged instruction, but the information it returns
+    // in ring 0 can be subtly different from ring 3. For example, some VMs
+    // return different version strings (e.g. VMWare lies to userland about
+    // being an Intel CPU).
+    char cpuid_vendor_string[12]; // Not null-termed!
 
     // Copied from the kernel version banner.
     char kernel_version[PMEM_OSVERSIZE];
@@ -232,6 +250,8 @@ typedef struct {
 #define PMEM_INFO_LIST_PCI         0x8  // Get PCI memory ranges.
 #define PMEM_INFO_LIST_PHYSMAP     0x10 // Get the physical map ranges from EFI.
 #define PMEM_INFO_LIST_SYMBOLS     0x20 // List select symbols' offsets.
+#define PMEM_INFO_MSRS             0x40 // Dump model-specific registers.
+#define PMEM_INFO_CPUID            0x80 // Dump CPUID information. (See above.)
 
 #define PMEM_INFO_ALL 0xFFFFFFFF // Every flag, even some that don't exist yet.
 

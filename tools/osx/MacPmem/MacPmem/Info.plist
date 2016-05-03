@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.google.$(PRODUCT_NAME:rfc1034identifier)</string>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4.1</string>
+	<string>1.5.0dev</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -26,6 +26,8 @@
 	<dict>
 		<key>com.apple.kpi.bsd</key>
 		<string>10.4</string>
+		<key>com.apple.kpi.dsep</key>
+		<string>10.4</string>
 		<key>com.apple.kpi.iokit</key>
 		<string>10.4</string>
 		<key>com.apple.kpi.libkern</key>
@@ -33,8 +35,6 @@
 		<key>com.apple.kpi.mach</key>
 		<string>10.4</string>
 		<key>com.apple.kpi.unsupported</key>
-		<string>10.4</string>
-		<key>com.apple.kpi.dsep</key>
 		<string>10.4</string>
 	</dict>
 </dict>

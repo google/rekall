@@ -29,6 +29,8 @@
 		49CCE1541AD54B660034A6E3 /* notifiers.h in Headers */ = {isa = PBXBuildFile; fileRef = 49CCE1521AD54B660034A6E3 /* notifiers.h */; };
 		49D0DFE61A8B9DC200C833E8 /* MacPmem.c in Sources */ = {isa = PBXBuildFile; fileRef = 49D0DFE51A8B9DC200C833E8 /* MacPmem.c */; };
 		49D0DFED1A8B9F1400C833E8 /* MacPmem.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D0DFEC1A8B9F1400C833E8 /* MacPmem.h */; };
+		49D2C6EC1C859F26001CE18F /* cpu.c in Sources */ = {isa = PBXBuildFile; fileRef = 49D2C6EA1C859F26001CE18F /* cpu.c */; };
+		49D2C6ED1C859F26001CE18F /* cpu.h in Headers */ = {isa = PBXBuildFile; fileRef = 49D2C6EB1C859F26001CE18F /* cpu.h */; };
 		49DD6A821AA510C40055543B /* iokit_pci.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 49DD6A801AA510C40055543B /* iokit_pci.cpp */; };
 		49DD6A831AA510C40055543B /* iokit_pci.h in Headers */ = {isa = PBXBuildFile; fileRef = 49DD6A811AA510C40055543B /* iokit_pci.h */; };
 		49E076E81B3C292800DF9D2C /* i386_ptable_log.c in Sources */ = {isa = PBXBuildFile; fileRef = 49E076E61B3C292800DF9D2C /* i386_ptable_log.c */; };
@@ -75,6 +77,8 @@
 		49D0DFE41A8B9DC200C833E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		49D0DFE51A8B9DC200C833E8 /* MacPmem.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MacPmem.c; sourceTree = "<group>"; };
 		49D0DFEC1A8B9F1400C833E8 /* MacPmem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacPmem.h; sourceTree = "<group>"; };
+		49D2C6EA1C859F26001CE18F /* cpu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cpu.c; sourceTree = "<group>"; };
+		49D2C6EB1C859F26001CE18F /* cpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpu.h; sourceTree = "<group>"; };
 		49DD6A801AA510C40055543B /* iokit_pci.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iokit_pci.cpp; sourceTree = "<group>"; };
 		49DD6A811AA510C40055543B /* iokit_pci.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iokit_pci.h; sourceTree = "<group>"; };
 		49DD6A881AA688AE0055543B /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
@@ -164,6 +168,8 @@
 				49610BAA1A8E50940060030E /* meta.h */,
 				497AF3491ACD66E20037A066 /* util.c */,
 				49DD6A881AA688AE0055543B /* util.h */,
+				49D2C6EA1C859F26001CE18F /* cpu.c */,
+				49D2C6EB1C859F26001CE18F /* cpu.h */,
 				49CCE1511AD54B660034A6E3 /* notifiers.cpp */,
 				49CCE1521AD54B660034A6E3 /* notifiers.h */,
 			);
@@ -192,6 +198,7 @@
 				49BBB3221B5291BB001533DC /* safety.h in Headers */,
 				49D0DFED1A8B9F1400C833E8 /* MacPmem.h in Headers */,
 				492135771B51483A00685B7B /* rangemap.h in Headers */,
+				49D2C6ED1C859F26001CE18F /* cpu.h in Headers */,
 				49BBB3191B514AB0001533DC /* alloc.h in Headers */,
 				49E076E91B3C292800DF9D2C /* i386_ptable_log.h in Headers */,
 				490D41481ABA06FA0027DBE9 /* pte_mmap.h in Headers */,
@@ -242,7 +249,7 @@
 		49D0DFD71A8B9DC200C833E8 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
+				LastUpgradeCheck = 0720;
 				ORGANIZATIONNAME = Google;
 				TargetAttributes = {
 					497AF3401ACBFCC80037A066 = {
@@ -308,6 +315,7 @@
 				490D41471ABA06FA0027DBE9 /* pte_mmap.cpp in Sources */,
 				496AEA391A8CACFD00E39D3F /* logging.cpp in Sources */,
 				49BBB31B1B514C0C001533DC /* rangemap.c in Sources */,
+				49D2C6EC1C859F26001CE18F /* cpu.c in Sources */,
 				497AF34A1ACD66E20037A066 /* util.c in Sources */,
 				49BBB3211B5291BB001533DC /* safety.c in Sources */,
 			);
@@ -366,6 +374,7 @@
 				MODULE_START = com_google_MacPmem_start;
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.4.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.google.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;
@@ -450,6 +459,7 @@
 				MODULE_START = com_google_MacPmem_start;
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.4.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.google.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;
@@ -483,6 +493,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -556,6 +567,7 @@
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.4.1;
 				"OTHER_CODE_SIGN_FLAGS[sdk=macosx*]" = "--timestamp=none";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.google.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;
@@ -575,6 +587,7 @@
 				MODULE_START = com_google_MacPmem_start;
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.4.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.google.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;
@@ -631,6 +644,7 @@
 				MODULE_START = com_google_MacPmem_start;
 				MODULE_STOP = com_google_MacPmem_stop;
 				MODULE_VERSION = 1.4.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.google.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = kext;

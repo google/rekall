@@ -406,14 +406,11 @@ class BaseAddressSpace(object):
         pass
 
 
-# This is a specialised AS for use internally - Its used to provide
-# transparent support for a string buffer so types can be
-# instantiated off the buffer.
 class BufferAddressSpace(BaseAddressSpace):
-    """An address space that wraps a buffer in memory.
+    """Specialized address space for internal use.
 
-    This address space is used internally and does not represent an actual
-    image.
+    Provides transparent reads through to a string buffer, so that profile
+    types can be instantiated on top of strings.
     """
     __image = False
 
@@ -444,8 +441,8 @@ class BufferAddressSpace(BaseAddressSpace):
     def write(self, addr, data):
         if addr > len(self.data):
             raise ValueError(
-                "Cannot write to offset %d of buffer with size %d.",
-                addr, len(self.data))
+                "Cannot write to offset %d of buffer with size %d." %
+                (addr, len(self.data)))
         self.data = self.data[:addr] + data + self.data[addr + len(data):]
         return len(data)
 

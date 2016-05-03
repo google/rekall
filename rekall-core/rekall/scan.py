@@ -29,10 +29,10 @@ from rekall import registry
 
 
 class ScannerCheck(object):
-    """ A scanner check is a special class which is invoked on an AS to check
+    """A scanner check is a special class which is invoked on an AS to check
     for a specific condition.
 
-    The main method is def check(self, offset):
+    The main method is def check(self, buffer_as, offset):
     This will return True if the condition is true or False otherwise.
 
     This class is the base class for all checks.
@@ -43,7 +43,7 @@ class ScannerCheck(object):
 
     def __init__(self, profile=None, address_space=None, session=None,
                  **_kwargs):
-        """The profile that this scanner check should use."""
+        # The profile that this scanner check should use.
         self.profile = profile
         self.address_space = address_space
         self.session = session
@@ -52,6 +52,13 @@ class ScannerCheck(object):
         return offset
 
     def check(self, buffer_as, offset):
+        """Is the needle found at 'offset'?
+
+        Arguments:
+          buffer_as: An address space object with a chunk of data that can be
+            checked for the needle.
+        offset: The offset in the address space to check.
+        """
         _ = offset
         _ = buffer_as
         return False
@@ -72,7 +79,7 @@ class ScannerCheck(object):
           offset: The offset in the address space to check.
 
         Returns:
-          number of bytes to be skipped.
+          Number of bytes to be skipped.
         """
         _ = buffer_as
         _ = offset
@@ -153,20 +160,23 @@ class MultiStringFinderCheck(ScannerCheck):
 class StringCheck(ScannerCheck):
     """Checks for a single string."""
     maxlen = 100
+    needle = None
+    needle_offset = None
 
-    def __init__(self, needle=None, **kwargs):
+    def __init__(self, needle=None, needle_offset=0, **kwargs):
         super(StringCheck, self).__init__(**kwargs)
         self.needle = needle
+        self.needle_offset = needle_offset
 
     def check(self, buffer_as, offset):
         # Just check the buffer without needing to copy it on slice.
-        buffer_offset = buffer_as.get_buffer_offset(offset)
+        buffer_offset = buffer_as.get_buffer_offset(offset) + self.needle_offset
         if buffer_as.data.startswith(self.needle, buffer_offset):
             return self.needle
 
     def skip(self, buffer_as, offset):
         # Search the rest of the buffer for the needle.
-        buffer_offset = buffer_as.get_buffer_offset(offset)
+        buffer_offset = buffer_as.get_buffer_offset(offset) + self.needle_offset
         dindex = buffer_as.data.find(self.needle, buffer_offset + 1)
         if dindex > -1:
             return dindex - buffer_offset
@@ -197,7 +207,7 @@ class BaseScanner(object):
 
     progress_message = "Scanning 0x%(offset)08X with %(name)s"
 
-    checks = []
+    checks = ()
 
     def __init__(self, profile=None, address_space=None, window_size=8,
                  session=None, checks=None):
@@ -368,6 +378,51 @@ class BaseScanner(object):
                                        self.skip(buffer_as, scan_offset))
 
                 chunk_offset = scan_offset
+
+
+class FastStructScanner(BaseScanner):
+    """This scanner looks for a struct in memory.
+
+    Arguments:
+        expected_values:
+            Provide a list/tuple of dicts mapping member names to their
+            expected values. Each dict in the list you provide will correspond
+            to a struct at the same index in an array. If you're only looking
+            for a single struct, pass a list with only one dict in it.
+        type_name: Name of the type to scan for.
+    """
+
+    type_name = None
+    prototype = None
+    expected_values = None
+
+    def __init__(self, type_name=None, expected_values=None, *args, **kwargs):
+        super(FastStructScanner, self).__init__(*args, **kwargs)
+        self.type_name = type_name
+        self.expected_values = expected_values
+        self.prototype = self.profile.Object(
+            type_name=type_name, vm=addrspace.BufferAddressSpace(
+                session=self.session,
+                data="\x00" * self.profile.get_obj_size(type_name)))
+
+        if not self.checks:
+            self.checks = []
+        elif isinstance(self.checks, tuple):
+            # We need the checks array to be mutable.
+            self.checks = list(self.checks)
+
+        for array_idx, struct_members in enumerate(self.expected_values):
+            self.checks.extend(self.build_checks(array_idx, struct_members))
+
+    def build_checks(self, array_idx, struct_members):
+        array_offset = array_idx * self.prototype.obj_size
+        for member, expected_value in struct_members.iteritems():
+            self.prototype.SetMember(member, expected_value)
+            member_obj = self.prototype.m(member)
+            expected_bytes = member_obj.GetData()
+            rel_offset = member_obj.obj_offset
+            yield ("StringCheck", dict(needle=expected_bytes,
+                                       needle_offset=rel_offset + array_offset))
 
 
 class MultiStringScanner(BaseScanner):

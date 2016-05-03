@@ -21,8 +21,55 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 
 from rekall import obj
+from rekall import scan
 from rekall import utils
 from rekall.plugins.darwin import common
+
+
+class DarwinFindSysent(common.AbstractDarwinParameterHook):
+    """Find sysent by scanning around nsysent.
+
+    The production kernel no longer ships with the 'sysent' symbol,
+    which is the address of the syscall switch table. However, because
+    sysent and nsysent are initialized around the same time it works out that
+    they are always near each other.
+
+    This is an old technique, documented around the internet, for example here:
+    https://reverse.put.as/2010/11/27/a-semi-automated-way-to-find-sysent/
+    """
+
+    name = "sysent_scan"
+
+    # Start looking 2560 pages below nsysent.
+    SYSENT_REL_OFFSET = -0x1000 * 0x1000
+
+    # Scan at most 2560 pages below and above.
+    LIMIT = 0x2000 * 0x1000
+
+    def scan(self, start, limit):
+        scanner = scan.FastStructScanner(
+            session=self.session,
+            profile=self.session.profile,
+            type_name="sysent",
+            expected_values=[
+                {"sy_arg_bytes": 0, "sy_narg": 0},
+                {"sy_arg_bytes": 4, "sy_narg": 1},
+                {"sy_arg_bytes": 0, "sy_narg": 0},
+                {"sy_arg_bytes": 12, "sy_narg": 3}],
+            address_space=self.session.default_address_space)
+
+        for hit in scanner.scan(offset=start, maxlen=limit):
+            return hit
+
+    def calculate(self):
+        nsysent_off = self.session.profile.get_constant(
+            "_nsysent", is_address=True)
+
+        if not nsysent_off:
+            return
+
+        return self.scan(start=nsysent_off + self.SYSENT_REL_OFFSET,
+                         limit=self.LIMIT)
 
 
 class DarwinCheckSysCalls(common.AbstractDarwinCommand):
