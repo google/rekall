@@ -540,8 +540,8 @@ class LinuxIndexDetector(DetectionMethod):
         self.session.logging.debug(
             "LinuxIndexDetector:DetectFromHit(%x) = %s", offset, hit)
 
-        # We create a dictionary of symbol: offset. Skip exported modules
-        # symbols.
+        # We create a dictionary of symbol:offset skipping symbols from
+        # exported modules.
         symbol_dict = dict([(s[1], s[0])
                             for s in self.ObtainSymbols(address_space)
                             if not s[3]])
@@ -562,30 +562,29 @@ class LinuxIndexDetector(DetectionMethod):
                 profile_id,
                 matching_profiles[0][1],
                 len(self.index.traits[profile_id]))
-            # Now calculate the KASLR slide
-            profile = self.session.LoadProfile(profile_id)
-            if not profile:
-                return
 
-            # At this point we also know the kernel slide.
-            kallsyms_proc_banner = symbol_dict["linux_proc_banner"]
-            profile_proc_banner = profile.get_constant("linux_proc_banner",
-                                                       is_address=False)
-            kernel_slide = kallsyms_proc_banner - profile_proc_banner
-            self.session.logging.info("Found slide 0x%x", kernel_slide)
-            self.session.SetCache("kernel_slide", kernel_slide)
-            verified_profile = self.VerifyProfile(profile)
-            if not verified_profile:
-                # If we found a profile via the index, but it didn't actually
-                # verify it's unlikely we'll find the correct one by scanning
-                # so we easy the pain on users by not scanning the entire
-                # physical memory.
-                self.session.SetCache("kernel_slide", None)
-                self.session.SetParameter("autodetect_scan_length",
-                                          1024*1024*1024)
-            return verified_profile
-        else:
-            self.session.logging.warn("LinuxIndexDetector found no matches.")
+            profile = self.session.LoadProfile(profile_id)
+            if profile:
+                # At this point we also know the kernel slide.
+                kallsyms_proc_banner = symbol_dict["linux_proc_banner"]
+                profile_proc_banner = profile.get_constant("linux_proc_banner",
+                                                           is_address=False)
+                kernel_slide = kallsyms_proc_banner - profile_proc_banner
+                self.session.logging.info("Found slide 0x%x", kernel_slide)
+                self.session.SetCache("kernel_slide", kernel_slide)
+
+                verified_profile = self.VerifyProfile(profile)
+                if verified_profile:
+                    return verified_profile
+                else:
+                    self.session.SetCache("kernel_slide", None)
+        # If we were unable to find a matching Linux profile, we limit the scan
+        # length to prevent Rekall from spinning for a long time.
+        self.session.logging.warn("LinuxIndexDetector found no matches.")
+        self._LimitScanLength()
+
+    def _LimitScanLength(self):
+        self.session.SetParameter("autodetect_scan_length", 1024*1024*1024)
 
 
 class LinuxBannerDetector(DetectionMethod):
@@ -709,8 +708,6 @@ class ProfileHook(kb.ParameterHook):
         needle_lookup = {}
 
         method_names = self.session.GetParameter("autodetect")
-        autodetect_scan_length = self.session.GetParameter(
-            "autodetect_scan_length")
 
         self.session.logging.debug(
             "Will detect profile using these Detectors: %s" % ",".join(
@@ -739,6 +736,9 @@ class ProfileHook(kb.ParameterHook):
                         "Detection method %s yielded profile %s",
                         method.name, profile)
                     return profile
+
+        autodetect_scan_length = self.session.GetParameter(
+            "autodetect_scan_length")
 
         # Build and configure the scanner.
         scanner = scan.MultiStringScanner(
