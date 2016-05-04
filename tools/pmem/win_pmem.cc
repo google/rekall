@@ -187,6 +187,35 @@ static string DumpMemoryInfoToYaml(const PmemMemoryInfo &info) {
   return out.c_str();
 }
 
+// A private helper class to read from a pipe.
+class _PipedReaderStream: public AFF4Stream {
+ protected:
+  HANDLE stdout_rd;
+
+ public:
+  explicit _PipedReaderStream(DataStore *resolver, HANDLE stdout_rd):
+      AFF4Stream(resolver),
+      stdout_rd(stdout_rd)
+  {}
+
+  string Read(size_t length) {
+    string buffer(length, 0);
+    DWORD bytes_read = buffer.size();
+
+    if (!ReadFile(stdout_rd, &buffer[0], bytes_read, &bytes_read, NULL)) {
+      return "";
+    }
+
+    readptr += bytes_read;
+    return buffer;
+  }
+
+  virtual ~_PipedReaderStream() {
+    CloseHandle(stdout_rd);
+  }
+};
+
+
 AFF4Status WinPmemImager::ImagePageFile() {
   int pagefile_number = 0;
 
@@ -243,9 +272,6 @@ AFF4Status WinPmemImager::ImagePageFile() {
 
     std::cout << "Preparing to run " << command_line.c_str() << "\n";
     string buffer(BUFF_SIZE, 0);
-    int count = 0;
-    int total_mb_read = 0;
-
     URN volume_urn;
     AFF4Status res = GetOutputVolumeURN(volume_urn);
     if (res != STATUS_OK)
@@ -267,26 +293,12 @@ AFF4Status WinPmemImager::ImagePageFile() {
     resolver.Set(pagefile_urn, AFF4_MEMORY_PAGEFILE_NUM,
                  new XSDInteger(pagefile_number));
 
-    while (1) {
-      DWORD bytes_read = buffer.size();
 
-      if (!ReadFile(stdout_rd, &buffer[0], bytes_read, &bytes_read, NULL)) {
-        break;
-      }
-
-      count += bytes_read;
-      if (count > 1024 * 1024) {
-        count -= 1024*1024;
-        if (total_mb_read % 50 == 0) {
-          std::cout << "\n" << total_mb_read << "Mb ";
-        }
-
-        total_mb_read += 1;
-        std::cout << ".";
-      }
-
-      output_stream->Write(buffer.data(), bytes_read);
-    }
+    DefaultProgress progress;
+    _PipedReaderStream reader_stream(&resolver, stdout_rd);
+    res = output_stream->WriteStream(&reader_stream, &progress);
+    if (res != STATUS_OK)
+      return res;
   }
 
   actions_run.insert("pagefile");

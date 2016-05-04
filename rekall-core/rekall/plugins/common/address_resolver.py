@@ -210,7 +210,7 @@ class AddressResolverMixin(object):
         self._EnsureInitialized()
         return self._modules_by_name.values()
 
-    def get_constant_object(self, name, target, **kwargs):
+    def get_constant_object(self, name, target=None, **kwargs):
         """Instantiate the named constant with these args.
 
         This method is the main entry point for instantiating constants. It is

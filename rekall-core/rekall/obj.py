@@ -2314,7 +2314,11 @@ class Profile(object):
             if constant not in self.constant_types:
                 raise TypeError("Unknown constant type for %s" % constant)
 
-            target, target_args = self.constant_types[constant]
+            # target_args are optional in the profile specification.
+            try:
+                target, target_args = self.constant_types[constant]
+            except ValueError:
+                target = self.constant_types[constant][0]
 
         kwargs.update(target_args or {})
         offset = self.get_constant(constant, is_address=True)

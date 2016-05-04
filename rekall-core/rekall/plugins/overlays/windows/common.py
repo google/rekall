@@ -1218,7 +1218,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
     def file_name_with_device(self):
         """Return the name of the file, prefixed with the name
         of the device object to which the file belongs"""
-        name = ""
+        name = u""
         if self.DeviceObject:
             device_name = self.DeviceObject.ObjectHeader.NameInfo.Name
             if device_name:
@@ -1236,7 +1236,7 @@ class _FILE_OBJECT(ObjectMixin, obj.Struct):
         letter to the mounted device. The result of this function should be
         usable by file system APIs to open the file on a live system.
         """
-        name = ""
+        name = u""
         drive_letter_device_map = self.obj_session.GetParameter(
             "drive_letter_device_map")
 
@@ -1515,6 +1515,7 @@ def InitializeWindowsProfile(profile):
         '_EX_FAST_REF': _EX_FAST_REF,
         '_CM_KEY_BODY': _CM_KEY_BODY,
         '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
+        '_LDR_DATA_TABLE_ENTRY32': _LDR_DATA_TABLE_ENTRY,
         "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
         "_LUID": _LUID,
         "_SID": _SID,
