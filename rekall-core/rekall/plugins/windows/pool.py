@@ -124,9 +124,13 @@ class Pools(common.WindowsCommandPlugin):
         paged_pool_start = self.profile.get_constant_object(
             "MmPagedPoolStart", "Pointer").v()
 
+        if paged_pool_start == None:
+            paged_pool_start = self.profile.get_constant_object(
+                "MiPagedPoolStart", "Pointer").v()
+
         paged_pool_end = (
             paged_pool_start + self.profile.get_constant_object(
-                "MmSizeOfPagedPoolInBytes", "unsigned long"))
+                "MmSizeOfPagedPoolInBytes", "address"))
 
         if paged_pool_start == None:
             # Windows 7 stores the end of the pool only

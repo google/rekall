@@ -69,6 +69,29 @@ class VMemAddressSpace(addrspace.RunBasedAddressSpace):
 
 
 class VMSSAddressSpace(addrspace.RunBasedAddressSpace):
+    """Support ESX .vmsn file format.
+
+    The VMSN file format contains a set of metadata in the form of tags, grouped
+    by groups at the header. There is a lot of metadata but the most interesting
+    metadata for us is the metadata in the "memory" group.
+
+    The file includes a "memory.Memory" data blob which contains the entire
+    memory snapshot of the running machine. The memory blob is serialized into
+    the file as a single large blob but contains physical memory runs stored
+    back to back inside it.
+
+    The following tags are used:
+
+    - memory.regionsCount: Stores the total number of regions.
+
+    - memory.regionPPN: In an array of physical addresses for each physical
+      memory regions in the virtual machine (in pages).
+
+    - memory.regionSize: Is the size of each physical memory region (in pages).
+
+    - memory.regionPageNum: Is the offset into the memory.Memory blob for each
+      region (in pages). This may be omitted if there is only one region.
+    """
     __image = True
 
     def __init__(self, base=None, **kwargs):
@@ -83,22 +106,26 @@ class VMSSAddressSpace(addrspace.RunBasedAddressSpace):
                 0xbed2bed0, 0xbad1bad1, 0xbed2bed2, 0xbed3bed3],
             "Invalid VMware signature: {0:#x}".format(self.header.Magic))
 
-        region_count = self.header.GetTags("memory", "regionsCount")
+        region_count = self.header.GetTagsData("memory", "regionsCount")[0]
 
         # Fill in the runs list from the header.
-        virtual_offsets = self.header.GetTags("memory", "regionPPN")
-        lengths = self.header.GetTags("memory", "regionSize")
-        mem_regions = self.header.GetTags("memory", "Memory")
+        virtual_offsets = self.header.GetTagsData("memory", "regionPPN")
+        lengths = self.header.GetTagsData("memory", "regionSize")
 
-        # Single region case.
-        if region_count and region_count[0] == 0:
-            if not mem_regions:
-                raise IOError("Unable to locate mem region tag in VMSS file.")
+        # This represents a single memory blob stored in the output file. The
+        # regions are marked relative to this single blob.
+        memory = self.header.GetTagsData("memory", "Memory")[0]
+        mem_regions = self.header.GetTagsData("memory", "regionPageNum") or [0]
 
-            self.add_run(0, mem_regions[0].obj_offset, mem_regions[0].length)
-        else:
-            for v, l, m in zip(virtual_offsets, lengths, mem_regions):
-                self.add_run(v * 0x1000, m.obj_offset, l * 0x1000)
+        for v, l, m in zip(virtual_offsets, lengths, mem_regions):
+            self.add_run(
+                v * 0x1000, m * 0x1000 + memory.obj_offset, l * 0x1000)
+
+        # We should have enough regions here.
+        if region_count != len(list(self.runs)):
+            self.session.logging.error(
+                "VMSN file has incorrect number of runs %s, "
+                "should be %s", region_count, len(list(self.runs)))
 
 
 class _VMWARE_HEADER(obj.Struct):
@@ -107,6 +134,11 @@ class _VMWARE_HEADER(obj.Struct):
     def __init__(self, **kwargs):
         super(_VMWARE_HEADER, self).__init__(**kwargs)
         self.obj_context["version"] = self.Version
+
+    def PrintAllTags(self):
+        for group in self.Groups:
+            for tag in group.Tags:
+                print "%s.%s: %r" % (group.Name, tag.Name, tag.Data)
 
     def GetTags(self, group_name, tag_name):
         result = []
@@ -118,9 +150,12 @@ class _VMWARE_HEADER(obj.Struct):
                 if tag.Name != tag_name:
                     continue
 
-                result.append(tag.Data)
+                result.append(tag)
 
         return result
+
+    def GetTagsData(self, group_name, tag_name):
+        return [x.Data for x in self.GetTags(group_name, tag_name)]
 
 
 class _VMWARE_GROUP(obj.Struct):
