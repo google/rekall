@@ -108,9 +108,9 @@ static const char *pmem_efi_type_names[] = {
 // invention. Now bear with me, because the number of options can get a little
 // crazy.
 typedef enum {
-    pmem_PCIWiredMemory,  // Conventional RAM backs this.
-    pmem_PCIDeviceMemory, // Wired to the device.
-    pmem_PCIUnknownMemory // Unknown to me, that is.
+    pmem_PCIWiredMemory,   // Conventional RAM backs this.
+    pmem_PCIDeviceMemory,  // Wired to the device.
+    pmem_PCIUnknownMemory  // Unknown to me, that is.
 } pmem_pci_mem_type_t;
 
 
@@ -206,6 +206,19 @@ typedef struct {
     unsigned long long cr3; // The value of the CR3 register, such as it was.
     unsigned long long dtb_poffset; // The physical address of a (some) DTB.
 
+    // Copied from the kernel version banner.
+    char kernel_version[PMEM_OSVERSIZE];
+
+    // Chosen symbol offsets, so analysis tools don't have to scan for them.
+    unsigned long long version_poffset; // The physical offset of the version.
+
+    // The records array holds all kinds of things, such as PCI and EFI memory
+    // ranges.
+    unsigned int record_count;
+
+    // Used size of the records array (allocated may be more).
+    unsigned int records_end;
+
     // Model-specific registers.
     unsigned long long msr_ia32_sysenter_eip;
     unsigned long long msr_ia32_gs_base;
@@ -220,19 +233,6 @@ typedef struct {
     // return different version strings (e.g. VMWare lies to userland about
     // being an Intel CPU).
     char cpuid_vendor_string[12]; // Not null-termed!
-
-    // Copied from the kernel version banner.
-    char kernel_version[PMEM_OSVERSIZE];
-
-    // Chosen symbol offsets, so analysis tools don't have to scan for them.
-    unsigned long long version_poffset; // The physical offset of the version.
-
-    // The records array holds all kinds of things, such as PCI and EFI memory
-    // ranges.
-    unsigned int record_count;
-
-    // Used size of the records array (allocated may be more).
-    unsigned int records_end;
 
     // Records are variable length, so naive users just see a byte array.
     char records[];

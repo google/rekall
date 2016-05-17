@@ -62,5 +62,8 @@ all-local: osxpmem
 	cp README.md osxpmem osxpmem.app/
 	rm -f osxpmem
 	cp -a resources/MacPmem.kext osxpmem.app/
+	chown -R root:wheel osxpmem.app/
+	chmod -R o-wx osxpmem.app/
 	zip -r osxpmem.zip osxpmem.app/
 endif
+

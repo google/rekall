@@ -21,10 +21,14 @@ specific language governing permissions and limitations under the License.
 #include "MacPmem/Common/pmem_common.h"
 #include <stdint.h>
 
+#define MINIMUM_PMEM_API_VERSION 2
+
+
 class OSXPmemImager: public PmemImager {
  private:
   string device_name;
   string sysctl_name;
+  string driver_path;
   URN device_urn;   /**< The URN of the pmem device. */
   URN driver_urn;
   bool driver_installed_ = false;

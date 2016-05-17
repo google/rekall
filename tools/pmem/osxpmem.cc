@@ -14,14 +14,22 @@ specific language governing permissions and limitations under the License.
 */
 
 #include "osxpmem.h"
+#include <stdlib.h>
+#include <libgen.h>
 #include <sys/sysctl.h>
-
+#include <mach-o/dyld.h>
 
 AFF4Status OSXPmemImager::ImagePhysicalMemory() {
-    std::cout << "Imaging memory\n";
+  std::cout << "Imaging memory\n";
+
+  AFF4Status res;
+
+  res = InstallDriver();
+  if (res != STATUS_OK)
+    return res;
 
   URN output_urn;
-  AFF4Status res = GetOutputVolumeURN(output_volume_urn);
+  res = GetOutputVolumeURN(output_volume_urn);
   if (res != STATUS_OK)
     return res;
 
@@ -107,8 +115,10 @@ AFF4Status OSXPmemImager::CreateMap_(AFF4Map *map, aff4_off_t *length) {
 
   pmem_meta_record_t *record;
 
-  if (meta->pmem_api_version != PMEM_API_VERSION) {
-    LOG(ERROR) << "Pmem driver version incompatible.";
+  if (meta->pmem_api_version != MINIMUM_PMEM_API_VERSION) {
+    LOG(ERROR) << "Pmem driver version incompatible. Reported " <<
+        meta->pmem_api_version << " required: " <<
+        static_cast<int>(MINIMUM_PMEM_API_VERSION) << "\n";
     return IO_ERROR;
   }
 
@@ -163,6 +173,14 @@ AFF4Status OSXPmemImager::ProcessArgs() {
 }
 
 AFF4Status OSXPmemImager::UninstallDriver() {
+  std::cout << "Uninstalling driver" << driver_path << "\n";
+  string argv = aff4_sprintf("/sbin/kextunload %s", driver_path.c_str());
+  if (system(argv.c_str()) != 0) {
+    LOG(ERROR) << "Unable to unload driver at " << driver_path.c_str();
+    return IO_ERROR;
+  }
+  driver_installed_ = false;
+
   return STATUS_OK;
 }
 
@@ -172,9 +190,22 @@ AFF4Status OSXPmemImager::InstallDriver() {
     <FileBackedObject>(device_urn);
 
   if (!device_stream) {
-    LOG(ERROR) << "Device " << device_name <<
-      " does not yet exist, please load driver first using "
-      "'kextload MacPmem.kext'.";
+    // Device does not exist, try to load it ourselves.
+    char path[1024 * 4];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) != 0) {
+      LOG(ERROR) << "Executable path too long.";
+      return IO_ERROR;
+    }
+
+    driver_path = aff4_sprintf("%s/MacPmem.kext", dirname(path));
+    string argv = aff4_sprintf("/sbin/kextload %s", driver_path.c_str());
+    if (system(argv.c_str()) != 0) {
+      LOG(ERROR) << "Unable to load driver at " << driver_path.c_str();
+      return IO_ERROR;
+    }
+    std::cout << "Installed driver from " << driver_path << "\n";
+    driver_installed_ = true;
   }
 
   return STATUS_OK;
