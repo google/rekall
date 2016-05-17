@@ -313,7 +313,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
 
         short_opt = kwargs.pop("short_opt", None)
 
-        # A positional arg is allows to be specified without a flag.
+        # A positional arg is allowed to be specified without a flag.
         if kwargs.pop("positional", None):
             positional_args.append(name)
 

@@ -113,11 +113,19 @@ class FindPlugins(plugin.ProfileCommand):
 
             table_header = plugin_cls.table_header
             if table_header:
-                for t in table_header.types_in_output:
-                    if isinstance(t, type) and self.type_name == t.__name__:
-                        yield plugin_cls(session=self.session)
-                    elif self.type_name == t:
-                        yield plugin_cls(session=self.session)
+                if isinstance(table_header, list):
+                    table_header = plugin.PluginHeader(*table_header)
+
+                try:
+                    for t in table_header.types_in_output:
+                        if isinstance(t, type) and self.type_name == t.__name__:
+                            yield plugin_cls(session=self.session)
+                        elif self.type_name == t:
+                            yield plugin_cls(session=self.session)
+                except plugin.Error:
+                    # We were unable to instantiate this plugin to figure out
+                    # what it wants to emit. We did our best so move on.
+                    continue
 
     def render(self, renderer):
         renderer.table_header([

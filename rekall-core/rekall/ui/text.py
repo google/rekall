@@ -400,6 +400,9 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         return Cell(utils.SmartUnicode(target), **options)
 
     def render_address(self, target, width=None, **options):
+        if target is None:
+            return Cell(width=width)
+
         return Cell(
             self.format_address(int(target), **options),
             width=width)
@@ -1054,8 +1057,11 @@ class TextColumn(object):
                 target=target, type=merged_opts.get("type"),
                 target_renderer="TextRenderer", **options)
 
-        result = object_renderer.render_row(target, **merged_opts)
-        result.colorizer = self.renderer.colorizer
+        if target is None:
+            result = Cell(width=merged_opts.get("width"))
+        else:
+            result = object_renderer.render_row(target, **merged_opts)
+            result.colorizer = self.renderer.colorizer
 
         # If we should not wrap we are done.
         if merged_opts.get("nowrap"):
@@ -1487,10 +1493,10 @@ class WideTextRenderer(TextRenderer):
 
     def __enter__(self):
         self.delegate_renderer.__enter__()
-        self.delegate_renderer.table_header(
-            [("Key", "key", "[wrap:15]"),
-             ("Value", "Value", "[wrap:80]")],
-        )
+        self.delegate_renderer.table_header([
+            dict(name="Key", width=15),
+            dict(name="Value")
+        ], suppress_headers=True)
 
         return super(WideTextRenderer, self).__enter__()
 
@@ -1507,10 +1513,15 @@ class WideTextRenderer(TextRenderer):
         self.section()
         values = [c.render_row(x) for c, x in zip(self.table.columns, row)]
 
-        for c, item in zip(self.table.columns, values):
+        for c, cell in zip(self.table.columns, values):
             column_name = (getattr(c.object_renderer, "name", None) or
                            c.options.get("name"))
-            self.delegate_renderer.table_row(column_name, item, **options)
+
+            # Skip empty columns.
+            if not cell.lines:
+                continue
+
+            self.delegate_renderer.table_row(column_name, cell, **options)
 
 
 class TreeNodeObjectRenderer(TextObjectRenderer):

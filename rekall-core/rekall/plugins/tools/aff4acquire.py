@@ -690,7 +690,7 @@ class AFF4Ls(plugin.VerbosityMixIn, plugin.Command):
             raise plugin.PluginError("No Volume specified.")
 
         with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
-            if self.verbosity > 1:
+            if self.plugin_args.verbosity > 1:
                 self.render_verbose(renderer, volume)
             elif self.long:
                 self.render_long(renderer, volume)

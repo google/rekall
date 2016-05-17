@@ -1341,7 +1341,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         """
         return self.obj_offset
 
-    def m(self, attr):
+    def m(self, attr, allow_callable_attributes=False):
         """Fetch the member named by attr.
 
         NOTE: When the member does not exist in this struct, we return a
@@ -1350,6 +1350,11 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         struct.m("Field1") or struct.m("Field2") struct.m("Field2")
 
         To access a field which has been renamed in different OS versions.
+
+        By default this method does not allow callable methods specified in
+        overlays. This is to enable overriding of normal struct members by
+        callable properties (otherwise infinite recursion might occur). If you
+        really want to call overlays, specify allow_callable_attributes as True.
         """
         # Enable to log struct access.
         # ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, attr)
@@ -1361,7 +1366,13 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         if "." in attr:
             result = self
             for sub_attr in attr.split("."):
-                result = result.m(sub_attr)
+                if allow_callable_attributes:
+                    result = getattr(result, sub_attr, None)
+                    if result is None:
+                        result = NoneObject("Attribute %s not found in %s",
+                                            sub_attr, self.obj_type)
+                else:
+                    result = result.m(sub_attr)
             self._cache[attr] = result
             return result
 
@@ -1394,7 +1405,7 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         self._cache[attr] = result
         return result
 
-    def multi_m(self, *args):
+    def multi_m(self, *args, **opts):
         """Retrieve a set of fields in order.
 
         If a field is not found, then try the next field in the list until one
@@ -1402,8 +1413,10 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         for an attribute to support renaming of struct fields in different
         versions.
         """
+        allow_callable_attributes = opts.pop("allow_callable_attributes", True)
         for field in args:
-            result = self.m(field)
+            result = self.m(
+                field, allow_callable_attributes=allow_callable_attributes)
             if result != None:
                 return result
 
@@ -1769,6 +1782,7 @@ class Profile(object):
         result.enums = self.enums.copy()
         result.reverse_enums = self.reverse_enums.copy()
         result.constants = self.constants.copy()
+        result.constant_types = self.constant_types.copy()
         result.constant_addresses = self.constant_addresses.copy()
 
         # Object classes are shallow dicts.
@@ -1846,6 +1860,10 @@ class Profile(object):
 
         self.object_classes.update(kwargs)
         self.known_types.update(kwargs)
+
+    def add_constant_type(self, constant, target, target_args):
+        self.flush_cache()
+        self.constant_types[constant] = (target, target_args)
 
     def add_constants(self, constants=None, constants_are_addresses=False, **_):
         """Add the kwargs as constants for this profile."""
@@ -2479,6 +2497,10 @@ class Profile(object):
 
     def __repr__(self):
         return unicode(self)
+
+    def integer_to_address(self, virtual_address):
+        return virtual_address & self.constants.get(
+            "MaxPointer", 0xffffffffffff)
 
 
 class TestProfile(Profile):

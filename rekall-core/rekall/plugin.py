@@ -21,7 +21,7 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
-
+import re
 import StringIO
 
 from rekall import config
@@ -51,17 +51,21 @@ class CommandOption(object):
     """An option specification."""
 
     def __init__(self, name=None, default=None, type="String", choices=None,
-                 help=""):
+                 help="", positional=False, required=False):
         self.name = name
         self.default = default
         self.type = type
         self.help = help
         self.choices = choices
+        self.required = required
+        self.positional = positional
 
     def add_argument(self, parser):
         """Add ourselves to the parser."""
-        parser.add_argument("--" + self.name, default=self.default,
-                            type=self.type, help=self.help)
+        prefix = "" if self.positional else "--"
+        parser.add_argument(prefix + self.name, default=self.default,
+                            type=self.type, help=self.help,
+                            required=self.required, choices=self.choices)
 
     def parse(self, value, session):
         """Parse the value as passed."""
@@ -100,6 +104,15 @@ class CommandOption(object):
                 if not isinstance(item, basestring):
                     raise TypeError("Arg %s must be a list of strings" %
                                     self.name)
+
+        elif self.type == "RegEx":
+            value = re.compile(value, re.I)
+
+        elif self.type == "ArrayIntParser":
+            try:
+                value = [int(value)]  # pylint: disable=redefined-variable-type
+            except ValueError:
+                value = [int(x) for x in value]
 
         return value
 
@@ -437,31 +450,62 @@ class TypedProfileCommand(object):
     # instantiated.
     plugin_args = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, *pos_args, **kwargs):
         if self.plugin_args is None:
             self.plugin_args = utils.AttributeDict()
 
+        # Collect args in the declared order (basically follow the mro
+        # backwards).
+        definitions = []
+        definitions_classes = {}
+        for cls in self.__class__.__mro__:
+            args_definition = getattr(cls, "_%s__args" % cls.__name__, [])
+            for definition in args_definition:
+                # Definitions can be just simple dicts.
+                if isinstance(definition, dict):
+                    definition = CommandOption(**definition)
+
+                # We have seen this arg before.
+                if definition.name in definitions_classes:
+                    raise RuntimeError(
+                        "Multiply defined arg (%s). In %s and %s." % (
+                            definition.name, cls,
+                            definitions_classes[definition.name])
+                    )
+
+                definitions_classes[definition.name] = cls
+                definitions.append(definition)
+
+        # Handle positional args by consuming them off the pos_args array in
+        # definition order. This allows positional args to be specified either
+        # by position, or by keyword.
+        def _get_positional_args():
+            for definition in definitions:
+                if definition.positional:
+                    yield definition
+
+        for pos_arg, definition in zip(pos_args, _get_positional_args()):
+            # If the positional arg is also defined as a keyword arg this is a
+            # bug.
+            if definition.name in kwargs:
+                raise TypeError(
+                    "Positional Args %s is also supplied as a keyword arg." %
+                    definition.name)
+
+            kwargs[definition.name] = pos_arg
+
         # Collect all the declared args and parse them. Keep track of their
         # source in case we need to explode.
-        sources = {}
-        for name in dir(self):
-            if name.endswith("__args"):
-                for definition in getattr(self, name):
-                    # Definitions can be just simple dicts.
-                    if isinstance(definition, dict):
-                        definition = CommandOption(**definition)
+        for definition in definitions:
+            value = kwargs.pop(definition.name, None)
+            if value is None and definition.required:
+                raise InvalidArgs("%s is required." % definition.name)
 
-                    # We have seen this arg before.
-                    if definition.name in self.plugin_args:
-                        raise RuntimeError(
-                            "Multiply defined arg (%s). In %s and %s." % (
-                                definition.name, name, sources[definition.name])
-                        )
+            self.plugin_args[definition.name] = definition.parse(
+                value, session=kwargs["session"])
 
-                    sources[definition.name] = name
-                    self.plugin_args[definition.name] = definition.parse(
-                        kwargs.pop(definition.name, None),
-                        session=kwargs["session"])
+        if isinstance(self.table_header, (list, tuple)):
+            self.table_header = PluginHeader(*self.table_header)
 
         super(TypedProfileCommand, self).__init__(**kwargs)
 
@@ -489,7 +533,16 @@ class TypedProfileCommand(object):
     def render(self, renderer):
         renderer.table_header(self.table_header)
         for row in self.collect():
-            renderer.table_row(*row)
+            if isinstance(row, (list, tuple)):
+                renderer.table_row(*row)
+            else:
+                new_row = []
+                for column in self.table_header:
+                    new_row.append(
+                        row.pop(column.get("cname", column.get("name")), None)
+                    )
+
+                renderer.table_row(*new_row, **row)
 
     def reflect(self, member):
         column = self.table_header.by_cname.get(member)
@@ -577,27 +630,25 @@ class KernelASMixin(object):
     This class ensures a valid kernel AS exists or an exception is raised.
     """
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(KernelASMixin, cls).args(parser)
+    __args = [
+        dict(name="dtb", type="IntParser", default=None,
+             help="The DTB physical address.")
+    ]
 
-        parser.add_argument("--dtb", type="IntParser",
-                            help="The DTB physical address.")
-
-    def __init__(self, dtb=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         """A mixin for plugins which require a valid kernel address space.
 
         Args:
           dtb: A potential dtb to be used.
         """
-        super(KernelASMixin, self).__init__(**kwargs)
+        super(KernelASMixin, self).__init__(*args, **kwargs)
 
         # If the dtb is specified use that as the kernel address space.
-        if dtb is not None:
+        if self.plugin_args.dtb is not None:
             self.kernel_address_space = (
                 self.session.kernel_address_space.__class__(
-                    base=self.physical_address_space, dtb=dtb))
+                    base=self.physical_address_space,
+                    dtb=self.plugin_args.dtb))
         else:
             # Try to load the AS from the session if possible.
             self.kernel_address_space = self.session.kernel_address_space
@@ -625,7 +676,7 @@ class PhysicalASMixin(object):
         super(PhysicalASMixin, cls).args(metadata)
         metadata.add_requirement("physical_address_space")
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """A mixin for those plugins requiring a physical address space.
 
         Args:
@@ -639,7 +690,7 @@ class PhysicalASMixin(object):
             3) Use session.kernel_address_space.base.
 
         """
-        super(PhysicalASMixin, self).__init__(**kwargs)
+        super(PhysicalASMixin, self).__init__(*args, **kwargs)
         self.physical_address_space = self.session.physical_address_space
 
         if not self.physical_address_space:
@@ -664,19 +715,11 @@ class PrivilegedMixIn(object):
 class VerbosityMixIn(object):
     """Use this mixin to provide a --verbosity option to a plugin."""
 
-    @classmethod
-    def args(cls, parser):
-        super(VerbosityMixIn, cls).args(parser)
-
-        parser.add_argument(
-            "-V", "--verbosity", default=1, type="IntParser",
-            help="An integer reflecting the amount of desired output: "
-            "0 = quiet, 10 = noisy.")
-
-    def __init__(self, *args, **kwargs):
-        # Do not interfere with positional args, since this is a mixin.
-        self.verbosity = kwargs.pop("verbosity", 1)
-        super(VerbosityMixIn, self).__init__(*args, **kwargs)
+    __args = [
+        dict(name="verbosity", default=1, type="IntParser",
+             help="An integer reflecting the amount of desired output: "
+             "0 = quiet, 10 = noisy."),
+    ]
 
 
 class DataInterfaceMixin(object):

@@ -19,8 +19,45 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
+# pylint: disable=protected-access
+
 from rekall import obj
+from rekall import utils
 from rekall.plugins.windows import common
+
+
+# Some pool related utility functions.
+def find_pool_alloc_before(session, offset, pool_tag):
+    """Searches address_space for a pool allocation containing offset."""
+    # This method is only effective for small allocations right now because we
+    # need to find a pool tag (so allocation size is limited to one page).
+    # TODO: Extend this to big page pools.
+    base_offset = offset & ~0xFFF
+    data = session.kernel_address_space.read(base_offset, offset & 0xFFF)
+    buffer_offset = offset % 0x1000
+    pool_header_prototype = session.profile._POOL_HEADER()
+
+    while 1:
+        buffer_offset = data.rfind(pool_tag, 0, buffer_offset)
+        if buffer_offset == -1:
+            break
+
+        result = session.profile._POOL_HEADER(
+            (base_offset + buffer_offset -
+             pool_header_prototype.PoolTag.obj_offset),
+            vm=session.kernel_address_space)
+
+        end_of_allocation = result.obj_offset + result.size
+
+        # Allocation encompasses the required offset.
+        if end_of_allocation > offset:
+            yield result.obj_end
+
+    # After searching in small allocation, assume this is an allocation from
+    # Big Pool and go back several pages.
+    while base_offset > offset - 0x10000:
+        yield base_offset
+        base_offset -= 0x1000
 
 
 class Pools(common.WindowsCommandPlugin):
@@ -34,6 +71,8 @@ class Pools(common.WindowsCommandPlugin):
     """
 
     name = "pools"
+
+    _pool_lookup = None
 
     def find_non_paged_pool(self):
         vector_pool = self.profile.get_constant_object(
@@ -218,6 +257,16 @@ class Pools(common.WindowsCommandPlugin):
         descriptors.update(self.find_paged_pool())
         descriptors.update(self.find_session_pool_descriptors())
         return descriptors
+
+    def is_address_in_pool(self, address):
+        if self._pool_lookup is None:
+            self._pool_lookup = utils.RangedCollection()
+            for descriptor in self.find_all_pool_descriptors():
+                self._pool_lookup.insert(descriptor.PoolStart,
+                                         descriptor.PoolEnd,
+                                         descriptor)
+
+        return self._pool_lookup.get_containing_range(address)
 
     def render(self, renderer):
         descriptors = self.find_all_pool_descriptors()

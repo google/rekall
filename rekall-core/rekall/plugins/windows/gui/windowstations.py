@@ -161,7 +161,7 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
                     )
 
                 # Print heap allocations.
-                if self.verbosity > 1:
+                if self.plugin_args.verbosity > 1:
                     for entry in desktop.pheapDesktop.Entries:
                         renderer.format(
                             "   Alloc: {0:addr}, Size: {1:addr} "

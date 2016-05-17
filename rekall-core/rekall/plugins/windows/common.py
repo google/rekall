@@ -24,11 +24,8 @@
 
 # pylint: disable=protected-access
 
-import re
-
 from rekall import addrspace
 from rekall import scan
-from rekall import obj
 from rekall import kb
 from rekall import plugin
 from rekall import utils
@@ -437,93 +434,38 @@ class WinProcessFilter(WindowsCommandPlugin):
 
     __abstract = True
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(WinProcessFilter, cls).args(parser)
+    # Maintain the order of methods.
+    METHODS = [
+        "PsActiveProcessHead",
+        "CSRSS",
+        "PspCidTable",
+        "Sessions",
+        "Handles",
+        ]
 
-        parser.add_argument("--eprocess",
-                            type="ArrayIntParser",
-                            help="Kernel addresses of eprocess structs.")
+    __args = [
+        dict(name="eprocess", type="ArrayIntParser", default=[],
+             help="Kernel addresses of eprocess structs."),
 
-        parser.add_argument("--phys_eprocess",
-                            type="ArrayIntParser",
-                            help="Physical addresses of eprocess structs.")
+        dict(name="pids", positional=True, type="ArrayIntParser", default=[],
+             help="One or more pids of processes to select."),
 
-        parser.add_argument("--pid",
-                            type="ArrayIntParser",
-                            help="One or more pids of processes to select.")
+        dict(name="proc_regex", default=None, type="RegEx",
+             help="A regex to select a process by name."),
 
-        parser.add_argument("--proc_regex", default=None, type="RegEx",
-                            help="A regex to select a process by name.")
+        dict(name="method", choices=METHODS, type="ChoiceArray",
+             default=METHODS, help="Method to list processes."),
+    ]
 
-        parser.add_argument(
-            "--method", choices=cls.METHODS, type="ChoiceArray",
-            default=cls.METHODS,
-            help="Method to list processes.")
-
-    def __init__(self, pid=None, eprocess=None, phys_eprocess=None,
-                 proc_regex=None, method=None, **kwargs):
-        """Filters processes by parameters.
-
-        Args:
-           physical_eprocess: One or more EPROCESS structs or offsets defined in
-              the physical AS.
-
-           pid: A single pid.
-
-           proc_regex: A regular expression for filtering process name (using
-             _EPROCESS.ImageFileName).
-
-           method: Methods to use for process listing.
-        """
-        super(WinProcessFilter, self).__init__(**kwargs)
-        self.methods = method or self.METHODS
-
-        if isinstance(phys_eprocess, (int, long)):
-            phys_eprocess = [phys_eprocess]
-        elif phys_eprocess is None:
-            phys_eprocess = []
-
-        if isinstance(eprocess, (int, long)):
-            eprocess = [eprocess]
-        elif isinstance(eprocess, obj.Struct):
-            eprocess = [eprocess.obj_offset]
-        elif eprocess is None:
-            eprocess = []
-
-        # Convert the physical eprocess offsets to virtual addresses.
-        for phys_offset in phys_eprocess:
-            virtual_offset = self.virtual_process_from_physical_offset(
-                phys_offset)
-            if virtual_offset:
-                eprocess.append(virtual_offset)
-
-        self.eprocess = eprocess
-
-        pids = []
-        if isinstance(pid, list):
-            pids.extend(pid)
-
-        elif isinstance(pid, (int, long)):
-            pids.append(pid)
-
-        self.pids = pids
-
-        self.proc_regex_text = proc_regex
-        if isinstance(proc_regex, basestring):
-            proc_regex = re.compile(proc_regex, re.I)
-
-        self.proc_regex = proc_regex
-
-        # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_requested = bool(self.pids or self.proc_regex or
-                                        self.eprocess)
+    @utils.safe_property
+    def filtering_requested(self):
+        return (self.plugin_args.pids or self.plugin_args.proc_regex or
+                self.plugin_args.eprocess)
 
     def filter_processes(self):
-        """Filters eprocess list using phys_eprocess and pids lists."""
+        """Filters eprocess list using pids lists."""
         # If eprocess are given specifically only use those.
-        if self.eprocess:
+        if self.plugin_args.eprocess:
             for task in self.list_from_eprocess():
                 yield task
 
@@ -533,11 +475,12 @@ class WinProcessFilter(WindowsCommandPlugin):
                     yield proc
 
                 else:
-                    if int(proc.pid) in self.pids:
+                    if int(proc.pid) in self.plugin_args.pids:
                         yield proc
 
-                    elif self.proc_regex and self.proc_regex.match(
-                            utils.SmartUnicode(proc.name)):
+                    elif (self.plugin_args.proc_regex and
+                          self.plugin_args.proc_regex.match(
+                              utils.SmartUnicode(proc.name))):
                         yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
@@ -560,7 +503,7 @@ class WinProcessFilter(WindowsCommandPlugin):
                 "_EPROCESS", "ThreadListHead")
 
     def list_from_eprocess(self):
-        for eprocess_offset in self.eprocess:
+        for eprocess_offset in self.plugin_args.eprocess:
             eprocess = self.profile._EPROCESS(
                 offset=eprocess_offset, vm=self.kernel_address_space)
 
@@ -574,27 +517,16 @@ class WinProcessFilter(WindowsCommandPlugin):
         for proc in self.list_from_eprocess():
             seen.add(proc.obj_offset)
 
-        for method in self.METHODS:
-            if method in self.methods:
-                for proc in self.session.GetParameter("pslist_%s" % method):
-                    seen.add(proc)
+        for method in self.plugin_args.method:
+            for proc in self.session.GetParameter("pslist_%s" % method):
+                seen.add(proc)
 
-        # Sort by pid so that the output ordering remains stable.
         result = []
         for x in seen:
             result.append(self.profile._EPROCESS(
                 x, vm=self.session.kernel_address_space))
 
         return sorted(result, key=lambda x: x.pid)
-
-    # Maintain the order of methods.
-    METHODS = [
-        "PsActiveProcessHead",
-        "CSRSS",
-        "PspCidTable",
-        "Sessions",
-        "Handles",
-        ]
 
 
 class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):

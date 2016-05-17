@@ -139,7 +139,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
 
 
         # Export/Import directory only if verbosity is higher than 1.
-        if self.verbosity >= 1:
+        if self.plugin_args.verbosity >= 1:
             renderer.format("\nImport Directory (Original):\n")
             renderer.table_header([('Name', 'name', '<50'),
                                    ('Mapped Function', 'function', '60'),
@@ -159,7 +159,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
                     resolver.format_address(func.v()),
                     ordinal)
 
-            if self.verbosity >= 2:
+            if self.plugin_args.verbosity >= 2:
                 renderer.format("\nImport Address Table:\n")
                 renderer.table_header(
                     [('Name', 'name', '<20'),

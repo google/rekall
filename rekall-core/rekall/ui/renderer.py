@@ -91,6 +91,7 @@ import logging
 import time
 
 from rekall import config
+from rekall import constants
 from rekall import registry
 from rekall import utils
 
@@ -116,6 +117,11 @@ config.DeclareOption(
     "--logging_level", type="Choices", default="WARNING",
     choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     help="The default logging level.")
+
+config.DeclareOption(
+    "--log_domain", type="ChoiceArray", default=[],
+    choices=constants.LOG_DOMAINS,
+    help="Add debug logging to these components.")
 
 
 # A cache to map a tuple (mro, renderer) to the corresponding object renderer.

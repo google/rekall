@@ -626,6 +626,20 @@ class UnixTimeStamp(obj.NativeType):
         return self.as_arrow().datetime
 
 
+class ValueEnumeration(Enumeration):
+    """An enumeration which receives its value from a callable."""
+
+    def __init__(self, value=None, parent=None, **kwargs):
+        super(ValueEnumeration, self).__init__(parent=parent, **kwargs)
+        if callable(value):
+            value = value(parent)
+
+        self.value = value
+
+    def v(self, vm=None):
+        return self.value
+
+
 class timeval(UnixTimeStamp, obj.Struct):
 
     def v(self, vm=None):
@@ -796,6 +810,7 @@ class BasicClasses(obj.Profile):
             'ThreadCreateTimeStamp': ThreadCreateTimeStamp,
             'UnixTimeStamp': UnixTimeStamp, 'timeval': timeval,
             "IndexedArray": IndexedArray,
+            "ValueEnumeration": ValueEnumeration,
         })
         profile.add_constants(dict(default_text_encoding="utf-16-le"))
         profile.add_overlay(common_overlay)

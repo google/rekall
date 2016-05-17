@@ -78,7 +78,7 @@ class YaraScanMixin(object):
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
         dict(name="HexDump", style="hexdump", hex_width=16),
-        dict(name="Symbol"),
+        dict(name="Context"),
     )
 
     __args = [
@@ -163,7 +163,14 @@ class YaraScanMixin(object):
                 if count >= self.plugin_args.hits:
                     break
 
-                symbol = self.session.address_resolver.format_address(address)
+                # Result hit the physical memory - Get some context on this hit.
+                if run.data.get("type") == "PhysicalAS":
+                    rammap_plugin = self.session.plugins.rammap(
+                        start=address, end=address+1)
+                    symbol = rammap_plugin.summary()[0]
+                else:
+                    symbol = self.session.address_resolver.format_address(
+                        address)
 
                 yield (run.data.get("task") or run.data.get("type"),
                        rule, address,

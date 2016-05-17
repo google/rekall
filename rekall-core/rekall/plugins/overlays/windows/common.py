@@ -211,6 +211,28 @@ windows_overlay = {
             )]],
         }],
 
+    '_MMPFN': [None, {
+        # Field moved around from XP and Win10.
+        "IsPrototype": lambda x: x.multi_m(
+            "u4.PrototypePte", "u3.e1.PrototypePte"),
+
+        # XP has no priority.
+        "Priority": lambda x: x.m("u3.e1.Priority"),
+
+        "Type": [0, ["ValueEnumeration", dict(
+            value=lambda x: x.u3.e1.PageLocation,
+            choices={
+                0: 'Zeroed',
+                1: 'Free',
+                2: 'Standby',
+                3: 'Modified',
+                4: 'ModifiedNoWrite',
+                5: 'Bad',
+                6: 'Active',
+                7: 'Transition'
+            }
+        )]],
+    }],
     "_GUID": [16, {
         "Data4": [8, ["String", dict(length=8, term=None)]],
         "AsString": lambda x: ("%08x-%04x-%04x-%s" % (
@@ -433,6 +455,10 @@ windows_overlay = {
         }],
 
     # Memory manager enums.
+    '_MMPTE': [None, {
+        "Long": lambda x: x.multi_m("u.VolatileLong", "u.Long").v(),
+    }],
+
     '_MMPTE_SOFTWARE': [None, {
         "Protection": lambda x: x.cast(
             "Enumeration",
@@ -991,6 +1017,10 @@ class _POOL_HEADER(obj.Struct):
     def PagedPool(self):
         return str(self.PoolType).startswith("PagedPool")
 
+    def Body(self, type):
+        return self.obj_profile.Object(type, offset=self.obj_end,
+                                       vm=self.obj_vm)
+
 
 class _TOKEN(obj.Struct):
     """A class for Tokens"""
@@ -1141,7 +1171,6 @@ class _OBJECT_HEADER(obj.Struct):
         Thread="_ETHREAD",
         Token="_TOKEN",
         )
-
 
     optional_headers = [
         ('NameInfo', '_OBJECT_HEADER_NAME_INFO', 'NameInfoOffset'),
@@ -1386,13 +1415,14 @@ class VadTraverser(obj.Struct):
         pool tag from the tag_map.
 
         """
+        if visited == None:
+            visited = set()
+
         if depth > 100:
             self.obj_session.logging.error(
                 "Vad tree too deep - something went wrong!")
+            visited.add(self.obj_offset)
             return
-
-        if visited == None:
-            visited = set()
 
         ## We try to prevent loops here
         if self.obj_offset in visited:
@@ -1527,6 +1557,14 @@ def InitializeWindowsProfile(profile):
         })
 
     profile.add_overlay(windows_overlay)
+    profile.add_constant_type(
+        "MmPfnDatabase", "Pointer", dict(
+            target="Array",
+            target_args=dict(
+                target="_MMPFN"
+            )
+        )
+    )
 
     # Pooltags for common objects (These are different in Win8).
     profile.add_constants(dict(

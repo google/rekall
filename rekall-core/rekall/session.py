@@ -322,6 +322,16 @@ class Configuration(utils.AttributeDict):
             # Also set the root logging level, to reflect it in the console.
             logging.getLogger().setLevel(int(level))
 
+        # Create subloggers and suppress their logging level.
+        for log_domain in constants.LOG_DOMAINS:
+            logger = self.session.logging.getChild(log_domain)
+            logger.setLevel(logging.WARNING)
+
+    def _set_log_domain(self, domains, _):
+        for domain in domains:
+            logger = self.session.logging.getChild(domain)
+            logger.setLevel(logging.DEBUG)
+
     def _set_logging_format(self, logging_format, _):
         formatter = logging.Formatter(fmt=logging_format)
 

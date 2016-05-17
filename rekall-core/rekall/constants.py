@@ -35,6 +35,9 @@ OLD_DEPRECATED_URLS = [
     "https://raw.githubusercontent.com/google/rekall-profiles/master"
 ]
 
+# Log domain subsystems. Various components will send log messages to these
+# subsystems. These are useful for targeted debugging.
+LOG_DOMAINS = ["PageTranslation"]
 
 # The supported profile repository version we will use. This version needs to be
 # consistent with the profile json file's data layout version. We automatically

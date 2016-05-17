@@ -400,10 +400,10 @@ class VADMap(pfn.VADMapMixin, common.WinProcessFilter):
         address_space = self.session.GetParameter("default_address_space")
 
         offset = vad.Start
-        end = min(vad.End, self.end)
+        end = min(vad.End, self.plugin_args.end)
 
         while offset < end:
-            if self.start <= offset <= self.end:
+            if self.plugin_args.start <= offset <= self.plugin_args.end:
                 yield offset, self._CreateMetadata(
                     address_space.describe_vtop(offset))
 

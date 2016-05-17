@@ -260,7 +260,7 @@ class EvtLogs(plugin.VerbosityMixIn, registry.RegistryPlugin):
             sid_cache[sid] = "(Service: %s)" % service_name
 
     def render(self, renderer):
-        if self.verbosity > 5:
+        if self.plugin_args.verbosity > 5:
             self.PrecacheSids()
 
         renderer.table_header([("TimeWritten", "timestamp", ""),

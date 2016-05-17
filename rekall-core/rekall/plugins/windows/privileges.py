@@ -80,7 +80,7 @@ class Privileges(plugin.VerbosityMixIn, common.WinProcessFilter):
         for task in self.filter_processes():
             for value, flags in task.Token.GetPrivileges():
                 # By default skip the privileges that are not present.
-                if self.verbosity <= 1 and "Present" not in flags:
+                if self.plugin_args.verbosity <= 1 and "Present" not in flags:
                     continue
 
                 yield (task,

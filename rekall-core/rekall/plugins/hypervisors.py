@@ -706,7 +706,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                 continue
             self.render_vm(renderer, vm, indent_level=0)
 
-        if self.verbosity > 2:
+        if self.plugin_args.verbosity > 2:
             for vm in virtual_machines:
                 for vmcs in vm.vmcss:
                     if not self._show_all and not vm.is_valid_vmcs(vmcs):
@@ -731,7 +731,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                 self.session, session_module.InteractiveSession):
             self.session.session_list.append(vm.GetSession())
 
-        if self.verbosity > 1:
+        if self.plugin_args.verbosity > 1:
             for vmcs in sorted(vm.vmcss,
                                key=lambda x: x.m("VPID")):
                 if not self._show_all and not vm.is_valid_vmcs(vmcs):

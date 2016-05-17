@@ -71,11 +71,16 @@ and returns it. This is essentially a noop for any of the other descriptors and
 therefore maintains the same speed benefits.
 
 """
+import StringIO
 import struct
 
 from rekall import addrspace
 from rekall import config
+from rekall import obj
 from rekall import utils
+from rekall.ui import text as text_renderer
+
+
 
 config.DeclareOption(
     "dtb", group="Autodetection Overrides",
@@ -91,9 +96,13 @@ class AddressTranslationDescriptor(object):
     This is a class because there may be OS specific steps in the address
     translation.
     """
+    object_name = None
+
     def __init__(self, object_name=None, object_value=None, object_address=None,
                  session=None):
-        self.object_name = object_name
+        if object_name:
+            self.object_name = object_name
+
         self.object_value = object_value
         self.object_address = object_address
         self.session = session
@@ -147,6 +156,39 @@ class DescriptorCollection(object):
             kwargs["session"] = self.session
             yield cls(*args, **kwargs)
 
+    def __getitem__(self, item):
+        """Get a particular descriptor.
+
+        Descriptors can be requested by name (e.g. VirtualAddressDescriptor) or
+        index (e.g. -1).
+        """
+        if isinstance(item, basestring):
+            for descriptor_cls, args, kwargs in self.descriptors:
+                if descriptor_cls.__name__ == item:
+                    kwargs["session"] = self.session
+                    return descriptor_cls(*args, **kwargs)
+
+            return obj.NoneObject("No descriptor found.")
+        try:
+            cls, args, kwargs = self.descriptors[item]
+            kwargs["session"] = self.session
+            return cls(*args, **kwargs)
+        except KeyError:
+            return obj.NoneObject("No descriptor found.")
+
+    def __unicode__(self):
+        """Render ourselves into a string."""
+        fd = StringIO.StringIO()
+        ui_renderer = text_renderer.TextRenderer(
+            session=self.session, fd=fd)
+
+        with ui_renderer.start():
+            for descriptor in self:
+                descriptor.render(ui_renderer)
+
+        return fd.getvalue()
+
+
 
 class PhysicalAddressDescriptorCollector(DescriptorCollection):
     """A descriptor collector which only cares about PhysicalAddressDescriptor.
@@ -163,7 +205,6 @@ class PhysicalAddressDescriptorCollector(DescriptorCollection):
 
 
 class PhysicalAddressDescriptor(AddressTranslationDescriptor):
-
     """A descriptor to mark the final physical address resolution."""
 
     def __init__(self, address=0, session=None):
@@ -174,6 +215,20 @@ class PhysicalAddressDescriptor(AddressTranslationDescriptor):
         renderer.format(
             "Physical Address {0}\n",
             self.session.physical_address_space.describe(self.address))
+
+
+class VirtualAddressDescriptor(AddressTranslationDescriptor):
+    """Mark a virtual address."""
+
+    def __init__(self, address=0, dtb=0, session=None):
+        super(VirtualAddressDescriptor, self).__init__(session=session)
+        self.dtb = dtb
+        self.address = address
+
+    def render(self, renderer):
+        renderer.format(
+            "Virtual Address {0:style=address} (DTB {1:style=address})\n",
+            self.address, self.dtb)
 
 
 class IA32PagedMemory(addrspace.PagedReader):
@@ -316,11 +371,11 @@ class IA32PagedMemory(addrspace.PagedReader):
         # Bits 11:2 are bits 21:12 of the linear address
         pte_addr = (pde_value & 0xfffff000) | ((vaddr & 0x3ff000) >> 10)
         pte_value = self.read_pte(pte_addr, collection=collection)
-        self._describe_pte(collection, pte_addr, pte_value, vaddr)
+        self.describe_pte(collection, pte_addr, pte_value, vaddr)
 
         return collection
 
-    def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
+    def describe_pte(self, collection, pte_addr, pte_value, vaddr):
         collection.add(AddressTranslationDescriptor,
                        object_name="pte", object_value=pte_value,
                        object_address=pte_addr)
@@ -496,9 +551,9 @@ class IA32PagedMemoryPae(IA32PagedMemory):
             pte_addr = (pde_value & 0xffffffffff000) | ((vaddr & 0x1ff000) >> 9)
             pte_value = self.read_pte(pte_addr)
 
-            self._describe_pte(collection, pte_addr, pte_value, vaddr)
+            self.describe_pte(collection, pte_addr, pte_value, vaddr)
 
-    def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
+    def describe_pte(self, collection, pte_addr, pte_value, vaddr):
         collection.add(AddressTranslationDescriptor,
                        object_name="pte", object_value=pte_value,
                        object_address=pte_addr)

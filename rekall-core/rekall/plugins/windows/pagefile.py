@@ -75,7 +75,7 @@ class WindowsPTEDescriptor(intel.AddressTranslationDescriptor):
     object_name = "pte"
 
     def __init__(self, pte_type=None, pte_value=None, pte_addr=None,
-                 session=None):
+                 object_name=None, session=None):
         """Define a windows PTE object.
 
         Valid PTE types are all the members inside the _MMPTE
@@ -85,6 +85,8 @@ class WindowsPTEDescriptor(intel.AddressTranslationDescriptor):
             object_name=self.object_name, object_value=pte_value,
             object_address=pte_addr, session=session)
         self.pte_type = pte_type or self.default_pte_type
+        if object_name is not None:
+            self.object_name = object_name
 
     def render(self, renderer):
         super(WindowsPTEDescriptor, self).render(renderer)
@@ -143,6 +145,97 @@ class WindowsPagefileDescriptor(intel.AddressTranslationDescriptor):
     def render(self, renderer):
         renderer.format("Pagefile ({0}) @ {1:addr}\n",
                         self.pagefile_number, self.address)
+
+
+class WindowsFileMappingDescriptor(intel.AddressTranslationDescriptor):
+    """Describe a file mapping."""
+
+    def __init__(self, pte_address=None, page_offset=0,
+                 original_pte=None, **kwargs):
+        super(WindowsFileMappingDescriptor, self).__init__(
+            object_address=pte_address, **kwargs)
+        self.pte_address = pte_address
+        self.page_offset = page_offset
+        self.original_pte = original_pte
+
+    def get_subsection(self):
+        """Find the right subsection object for this pte."""
+        # Try to find the subsection by looking it up from the list of known
+        # subsections.
+        subsection_lookup = self.session.GetParameter(
+            "prototype_pte_array_subsection_lookup")
+
+        start, _, subsection_offset = subsection_lookup.get_containing_range(
+            self.pte_address)
+
+        if start:
+            return self.session.profile._SUBSECTION(subsection_offset)
+
+        if self.original_pte is not None:
+            return self.original_pte.u.Subsect.Subsection
+
+    def filename_and_offset(self, subsection=None):
+        """Return the filename of the file mapped (if it is a file mapping)."""
+        if subsection is None:
+            subsection = self.get_subsection()
+
+        if subsection:
+            # File mapping.
+            ca = subsection.ControlArea
+
+            # First PTE in subsection.
+            start = subsection.SubsectionBase.v()
+
+            if ca.u.Flags.File:
+                size_of_pte = self.session.profile.get_obj_size("_MMPTE")
+                mapped_offset_in_file = 0x1000 * (
+                    self.pte_address - start) / size_of_pte + (
+                        subsection.StartingSector * 512)
+
+                return (ca.FilePointer.file_name_with_drive(),
+                        mapped_offset_in_file + self.page_offset)
+
+        return None, None
+
+    def get_owners(self, subsection=None):
+        """Returns a list of _EPROCESS, virtual offsets for owners."""
+        result = []
+        if subsection is None:
+            subsection = self.get_subsection()
+
+        for details in self.session.GetParameter("subsections").get(
+                subsection.obj_offset, []):
+            task = self.session.profile._EPROCESS(details["task"])
+            vad = self.session.profile.Object(offset=details["vad"],
+                                              type_name=details["type"])
+
+            # Find the virtual address.
+            size_of_pte = self.session.profile.get_obj_size("_MMPTE")
+            relative_offset = (
+                self.pte_address - vad.FirstPrototypePte.v()) / size_of_pte
+
+            virtual_address = (
+                relative_offset * 0x1000 + vad.Start + self.page_offset)
+
+            result.append((task, virtual_address))
+
+        return result
+
+    def render(self, renderer):
+        subsection = self.get_subsection()
+        filename, offset = self.filename_and_offset(subsection)
+        if filename:
+            renderer.format("File Mapping ({0} @ {1:#x} \n", filename, offset)
+
+        # Private mapping.
+        else:
+            renderer.format(
+                "Private Mapping by {0}\n",
+                subsection.ControlArea.Segment.u1.CreatingProcess.deref())
+
+        for task, virtual_address in self.get_owners(subsection=subsection):
+            renderer.format(
+                "Mapped in {0} @ {1:#x}\n", task, virtual_address)
 
 
 class WindowsSubsectionPTEDescriptor(WindowsPTEDescriptor):
@@ -225,7 +318,35 @@ class VadPteDescriptor(WindowsPTEDescriptor):
             renderer.format("Demand Zero page\n")
 
 
+class WindowsDTBDescriptor(intel.AddressTranslationDescriptor):
+    """A descriptor for DTB values.
+
+    On windows the DTB holds a reference to the _EPROCESS that owns it. This
+    descriptor prints this information too.
+    """
+    object_name = "DTB"
+
+    def __init__(self, dtb, **kwargs):
+        super(WindowsDTBDescriptor, self).__init__(object_value=dtb, **kwargs)
+        self.dtb = dtb
+
+    def owner(self):
+        pfn_database = self.session.profile.get_constant_object("MmPfnDatabase")
+        pfn_obj = pfn_database[self.dtb >> 12]
+        return pfn_obj.u1.Flink.cast("Pointer", target="_EPROCESS").deref()
+
+    def render(self, renderer):
+        renderer.format("DTB {0:#x} ", self.dtb)
+        owning_process = self.owner()
+
+        if owning_process != None:
+            renderer.format("Owning process: {0}", owning_process)
+
+        renderer.format("\n")
+
+
 class WindowsPagedMemoryMixin(object):
+
     """A mixin to implement windows specific paged memory address spaces.
 
     This mixin allows us to share code between 32 and 64 bit implementations.
@@ -341,7 +462,7 @@ class WindowsPagedMemoryMixin(object):
     def _get_phys_addr_from_pte(self, vaddr, pte_value):
         """Gets the final physical address from the PTE value."""
         collection = intel.PhysicalAddressDescriptorCollector(self.session)
-        self._describe_pte(collection, None, pte_value, vaddr)
+        self.describe_pte(collection, None, pte_value, vaddr)
         return collection.physical_address
 
     def _describe_pde(self, collection, pde_addr, vaddr):
@@ -372,7 +493,7 @@ class WindowsPagedMemoryMixin(object):
                 pte_addr = ((pde_value & 0xffffffffff000) |
                             ((vaddr & 0x1ff000) >> 9))
                 pte_value = self.read_pte(pte_addr)
-                self._describe_pte(collection, pte_addr, pte_value, vaddr)
+                self.describe_pte(collection, pte_addr, pte_value, vaddr)
 
         # PDE is paged out into a valid pagefile address.
         elif pde_value & self.soft_pagefilehigh_mask:
@@ -402,7 +523,7 @@ class WindowsPagedMemoryMixin(object):
 
                 if pte_addr is not None:
                     pte_value = self.read_pte(pte_addr)
-                    self._describe_pte(collection, pte_addr, pte_value, vaddr)
+                    self.describe_pte(collection, pte_addr, pte_value, vaddr)
 
         else:
             collection.add(DemandZeroDescriptor)
@@ -479,7 +600,7 @@ class WindowsPagedMemoryMixin(object):
                                    pte_value=pte_value, pte_addr=pte_addr,
                                    virtual_address=vaddr)
 
-                    self._describe_proto_pte(
+                    self.describe_proto_pte(
                         collection, pte.obj_offset, pte.u.Long.v(), vaddr)
 
                     return
@@ -493,11 +614,11 @@ class WindowsPagedMemoryMixin(object):
 
     def ResolveProtoPTE(self, pte_value, vaddr):
         collection = intel.PhysicalAddressDescriptorCollector(self.session)
-        self._describe_proto_pte(collection, 0, pte_value, vaddr)
+        self.describe_proto_pte(collection, 0, pte_value, vaddr)
 
         return collection.physical_address
 
-    def _describe_proto_pte(self, collection, pte_addr, pte_value, vaddr):
+    def describe_proto_pte(self, collection, pte_addr, pte_value, vaddr):
         """Describe the analysis of the prototype PTE.
 
         This essentially explains how we utilize the flow chart presented in [1]
@@ -561,7 +682,7 @@ class WindowsPagedMemoryMixin(object):
         else:
             collection.add(DemandZeroDescriptor)
 
-    def _describe_pte(self, collection, pte_addr, pte_value, vaddr):
+    def describe_pte(self, collection, pte_addr, pte_value, vaddr):
         """Describe the initial analysis of the PTE.
 
         This essentially explains how we utilize the flow chart presented in [1]
@@ -598,7 +719,7 @@ class WindowsPagedMemoryMixin(object):
                 pte_addr = pte_value >> self.proto_protoaddress_start
                 pte_value = struct.unpack("<Q", self.read(pte_addr, 8))[0]
 
-                self._describe_proto_pte(collection, pte_addr, pte_value, vaddr)
+                self.describe_proto_pte(collection, pte_addr, pte_value, vaddr)
 
         # Case 2 of consult VAD: pte.u.Soft.PageFileHigh == 0.
         elif pte_value & self.soft_pagefilehigh_mask == 0:

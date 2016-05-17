@@ -302,11 +302,16 @@ class JsonRangedCollectionObjectRenderer(
     def EncodeToJsonSafe(self, item, **_):
         # Optimized this since we know we do not need to escape any item since
         # this is a simple list of integers.
-        return dict(data=list(item.collection),
-                    mro="RangedCollection")
+        encoded = []
+        for start, end, data in item:
+            encoded.append((start, end, self._encode_value(data)))
 
-    def DecodeFromJsonSafe(self, state, _):
+        return dict(data=encoded, mro="RangedCollection")
+
+    def DecodeFromJsonSafe(self, state, options):
         result = utils.RangedCollection()
-        result.collection = utils.SortedCollection(state["data"])
+        for start, end, encoded_data in state["data"]:
+            result.insert(
+                start, end, self._decode_value(encoded_data, options))
 
         return result

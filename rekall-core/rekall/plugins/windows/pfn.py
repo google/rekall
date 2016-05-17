@@ -25,67 +25,18 @@
 # http://www.reactos.org/wiki/Techwiki:Memory_management_in_the_Windows_XP_kernel#MmPfnDatabase
 
 # pylint: disable=protected-access
+import re
+import StringIO
 
+from rekall import kb
 from rekall import testlib
-from rekall import obj
 from rekall import plugin
+from rekall import utils
+from rekall.ui import text
 from rekall.plugins import core
+from rekall.plugins.addrspaces import intel
 from rekall.plugins.windows import common
-from rekall.plugins.overlays import basic
-
-class ValueEnumeration(basic.Enumeration):
-    """An enumeration which receives its value from a callable."""
-
-    def __init__(self, value=None, parent=None, **kwargs):
-        super(ValueEnumeration, self).__init__(parent=parent, **kwargs)
-        if callable(value):
-            value = value(parent)
-
-        self.value = value
-
-    def v(self, vm=None):
-        return self.value
-
-
-class PFNModification(obj.ProfileModification):
-    """Installs types specific to the PFN database."""
-
-    @classmethod
-    def modify(cls, profile):
-        # Some shortcuts to the most important information.
-        profile.add_overlay({
-            '_MMPTE': [None, {
-                'Valid': lambda x: x.u.Hard.Valid,
-                'PFN': lambda x: x.u.Hard.PageFrameNumber,
-                }],
-            '_MMPFN': [None, {
-                "Type": [0, ["ValueEnumeration", dict(
-                    value=lambda x: x.u3.e1.PageLocation,
-                    choices={
-                        0: 'ZeroedPageList',
-                        1: 'FreePageList',
-                        2: 'StandbyPageList',
-                        3: 'ModifiedPageList',
-                        4: 'ModifiedNoWritePageList',
-                        5: 'BadPageList',
-                        6: 'ActiveAndValid',
-                        7: 'TransitionPage'
-                        }
-                    )]],
-                }],
-            '_KDDEBUGGER_DATA64': [None, {
-                # This is the pointer to the PFN database.
-                'MmPfnDatabase': [None, ['Pointer', dict(
-                    target="Pointer",
-                    target_args=dict(
-                        target="Array",
-                        target_args=dict(target="_MMPFN"),
-                        ))]],
-                }],
-            })
-        profile.add_classes({
-            "ValueEnumeration": ValueEnumeration,
-            })
+from rekall.plugins.windows import pagefile
 
 
 class VtoP(core.VtoPMixin, common.WinProcessFilter):
@@ -101,94 +52,81 @@ class PFNInfo(common.WindowsCommandPlugin):
     PAGE_SIZE = 0x1000
     PAGE_BITS = 12
 
-    @classmethod
-    def args(cls, parser):
-        super(PFNInfo, cls).args(parser)
-        parser.add_argument("pfn", type="IntParser",
-                            help="The PFN to examine.")
+    __args = [
+        dict(name="pfn", type="IntParser", positional=True, required=True,
+             help="The PFN to examine.")
+    ]
 
-    def __init__(self, pfn=None, physical_address=None, **kwargs):
-        """Prints information about the physical PFN entry.
+    table_header = [
+        dict(name="-", cname="fact", width=25),
+        dict(name="Address", style="address"),
+        dict(name="Value"),
+    ]
 
-        Args:
-          pfn: A page file number to display.
-          physical_address: The physical address to print information about.
-        """
-        super(PFNInfo, self).__init__(**kwargs)
 
-        self.profile = PFNModification(self.profile)
+    def collect(self):
+        pfn_obj = self.profile.get_constant_object("MmPfnDatabase")[
+            self.plugin_args.pfn]
 
-        # A reference to the pfn database.
-        self.pfn_database = self.profile.get_constant_object(
-            "MmPfnDatabase",
-            target="Pointer",
-            target_args=dict(
-                target="Array",
-                target_args=dict(
-                    target="_MMPFN",
-                    )
-                )
-            )
+        yield "PFN", self.plugin_args.pfn
+        yield "PFN Record VA", pfn_obj.obj_offset
 
-        self.pfn = pfn
-        self.physical_address = physical_address
+        yield "Type", None, pfn_obj.Type
 
-    def pfn_record(self, pfn=None, physical_address=None):
-        """Returns the pfn record for a pfn or a virtual address."""
-        if physical_address is not None:
-            pfn = int(physical_address) / self.PAGE_SIZE
+        # In these states the other fields are meaningless.
+        if pfn_obj.Type in ("Zeroed", "Freed", "Bad"):
+            yield "Flink", pfn_obj.u1.Flink
+            yield "Blink", pfn_obj.u2.Blink
 
-        if pfn is None:
-            raise RuntimeError("PFN not provided.")
-
-        # Return the pfn record.
-        return self.pfn_database.deref()[pfn]
-
-    def render(self, renderer):
-        pfn = self.pfn
-        if pfn is None:
-            raise plugin.PluginError("PFN not provided.")
-
-        if self.physical_address is not None:
-            pfn = int(self.physical_address) / self.PAGE_SIZE
-
-        pfn_obj = self.pfn_record(pfn)
-
-        renderer.format("    PFN {0:style=address} at "
-                        "kernel address {1:addrpad}\n",
-                        pfn, pfn_obj.obj_offset)
+            return
 
         # The flags we are going to print.
-        flags = {"M": "Modified",
-                 "P": "ParityError",
-                 "R": "ReadInProgress",
-                 "W": "WriteInProgress"}
-
-        short_flags_string = "".join(
-            [k for k, v in flags.items() if pfn_obj.u3.e1.m(v) == 0])
+        flags = ["Modified",
+                 "ParityError",
+                 "ReadInProgress",
+                 "WriteInProgress"]
 
         long_flags_string = " ".join(
-            [v for k, v in flags.items() if pfn_obj.u3.e1.m(v) == 0])
+            [v for v in flags if pfn_obj.u3.e1.m(v) == 0])
+
+        yield "Flags", None, long_flags_string
 
         containing_page = int(pfn_obj.u4.PteFrame)
         pte_physical_address = ((containing_page << self.PAGE_BITS) |
                                 (int(pfn_obj.PteAddress) & 0xFFF))
 
-        renderer.format("""    flink  {0:addr}  blink / share count {1:addr}
-    pteaddress (VAS) {2:addrpad}  (Phys AS) {3:addr}
-    reference count {4:addr}   color {5}
-    containing page        {6:addr}  {7}     {8}
-    {9}
-    """, pfn_obj.u1.Flink, pfn_obj.u2.Blink,
-                        pfn_obj.PteAddress,
-                        pte_physical_address,
-                        pfn_obj.u3.e2.ReferenceCount,
-                        pfn_obj.u3.e1.m("PageColor") or
-                        pfn_obj.u4.m("PageColor"),
-                        containing_page,
-                        pfn_obj.Type,
-                        short_flags_string,
-                        long_flags_string)
+        yield "Reference", None, pfn_obj.u3.e2.ReferenceCount
+        yield "Color", None, pfn_obj.multi_m("u3.e1.PageColor", "u4.PageColor")
+
+        yield "Controlling PTE (VA)", pfn_obj.PteAddress
+        yield "Controlling PTE (PA)", pte_physical_address
+        if pfn_obj.IsPrototype:
+            yield "Controlling PTE Type", None, "Prototype"
+        else:
+            yield "Controlling PTE Type", None, "Hardware"
+
+        # PFN is actually a DTB.
+        if containing_page == self.plugin_args.pfn:
+            owning_process = pfn_obj.u1.Flink.cast(
+                "Pointer", target="_EPROCESS")
+
+            yield "Owning process", owning_process
+
+        # Now describe the PTE and Prototype PTE pointed to by this PFN entry.
+        collection = intel.DescriptorCollection(self.session)
+        self.session.kernel_address_space.describe_pte(
+            collection, pfn_obj.PteAddress,
+            pfn_obj.PteAddress.Long, 0)
+
+        yield "Controlling PTE", None, collection
+
+        if pfn_obj.OriginalPte:
+            collection = intel.DescriptorCollection(self.session)
+            self.session.kernel_address_space.describe_proto_pte(
+                collection, pfn_obj.OriginalPte.v(),
+                pfn_obj.OriginalPte.Long, 0)
+
+            yield "Original PTE", None, collection
 
 
 class PtoV(common.WinProcessFilter):
@@ -199,272 +137,279 @@ class PtoV(common.WinProcessFilter):
     PAGE_SIZE = 0x1000
     PAGE_BITS = 12
 
-    @classmethod
-    def args(cls, parser):
-        super(PtoV, cls).args(parser)
-        parser.add_argument("physical_address", type="IntParser",
-                            help="The Virtual Address to examine.")
+    __args = [
+        dict(name="physical_address", type="IntParser", positional=True,
+             help="The Virtual Address to examine.")
+    ]
 
-    def __init__(self, physical_address=None, **kwargs):
-        """Converts a physical address to a virtual address."""
-        super(PtoV, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(PtoV, self).__init__(*args, **kwargs)
 
-        # Get a handle to the pfninfo plugin
-        self.pfn_plugin = self.session.plugins.pfn(session=self.session)
-        self.physical_address = physical_address
-
-    def _ptov_x86(self, physical_address):
-        """An implementation of ptov for x86."""
-        result = physical_address & 0xFFF
-
-        # Get the pte for this physical_address using the pfn database.
-        pfn_obj = self.pfn_plugin.pfn_record(physical_address >> self.PAGE_BITS)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PTE invalid."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pte_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pte_address << 10) & 0x3FF000
-
-        # Get the PDE now:
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PDE invalid (Is this a large page?)."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pde_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pde_address << 20) & 0xffc00000
-
-        # Now get the DTB.
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        dtb_address = containing_page << self.PAGE_BITS
-
-        return result, (("DTB", dtb_address),
-                        ("PDE", pde_address),
-                        ("PTE", pte_address))
-
-    def _ptov_x86_pae(self, physical_address):
-        """An implementation of ptov for x86 pae."""
-        result = physical_address & 0xFFF
-        # Get the pte for this physical_address using the pfn database.
-        pfn_obj = self.pfn_plugin.pfn_record(physical_address >> self.PAGE_BITS)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PTE invalid."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pte_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pte_address << 9) & 0x1FF000
-
-        # Get the PDE now:
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PDE invalid (Is this a large page?)."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pde_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pde_address << 18) & 0x3fe00000
-
-        # Get the PDPTE now:
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject(
-                "PDPTE invalid (Is this a one gig page?)."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pdpte_address = ((containing_page << self.PAGE_BITS) |
-                         (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pdpte_address << 27) & 0x7FC0000000
-
-        # Now get the DTB.
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        dtb_address = containing_page << self.PAGE_BITS
-
-        return result, (("DTB", dtb_address),
-                        ("PDPTE", pdpte_address),
-                        ("PDE", pde_address),
-                        ("PTE", pte_address))
-
-    def _ptov_x64(self, physical_address):
-        """An implementation of ptov for x64."""
-        result = physical_address & 0xFFF
-
-        # Get the pte for this physical_address using the pfn database.
-        pfn_obj = self.pfn_plugin.pfn_record(physical_address >> self.PAGE_BITS)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PTE invalid."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pte_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pte_address << 9) & 0x1FF000
-
-        # Get the PDE now:
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PDE invalid (Is this a large page?)."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pde_address = ((containing_page << self.PAGE_BITS) |
-                       (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pde_address << 18) & 0x3fe00000
-
-        # Get the PDPTE now:
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject(
-                "PDPTE invalid (Is this a one gig page?)."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pdpte_address = ((containing_page << self.PAGE_BITS) |
-                         (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pdpte_address << 27) & 0x7FC0000000
-
-        # Get the PML4E now:
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        if pfn_obj.Type != "ActiveAndValid":
-            return obj.NoneObject("PML4E invalid."), []
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        pml4e_address = ((containing_page << self.PAGE_BITS) |
-                         (int(pfn_obj.PteAddress) & 0xFFF))
-
-        result |= (pml4e_address << 36) & 0xff8000000000
-
-        # Now get the DTB.
-        pfn_obj = self.pfn_plugin.pfn_record(containing_page)
-
-        containing_page = int(pfn_obj.u4.PteFrame)
-        dtb_address = containing_page << self.PAGE_BITS
-
-        return result, (("DTB", dtb_address),
-                        ("PML4E", pml4e_address),
-                        ("PDPTE", pdpte_address),
-                        ("PDE", pde_address),
-                        ("PTE", pte_address))
-
-    def ptov(self, physical_address):
-        """Convert the physical address to a virtual address.
-
-        Returns:
-          a tuple (_EPROCESS of owning process, virtual address in process AS).
-        """
         if self.profile.metadata("arch") == "I386":
             if self.profile.metadata("pae"):
-                return self._ptov_x86_pae(physical_address)
-            else:
-                return self._ptov_x86(physical_address)
-        elif self.profile.metadata("arch") == "AMD64":
-            return self._ptov_x64(physical_address)
+                self.table_names = ["Phys", "PTE", "PDE", "DTB"]
+                self.bit_divisions = [12, 9, 9, 2]
 
-        return obj.NoneObject("Memory model not supported."), []
+            else:
+                self.table_names = ["Phys", "PTE", "PDE", "DTB"]
+                self.bit_divisions = [12, 10, 10]
+
+        elif self.profile.metadata("arch") == "AMD64":
+            self.table_names = ["Phys", "PTE", "PDE", "PDPTE", "PML4E", "DTB"]
+            self.bit_divisions = [12, 9, 9, 9, 9, 4]
+
+        else:
+            raise plugin.PluginError("Memory model not supported.")
+
+    def ptov(self, collection, physical_address):
+        pfn_obj = self.profile.get_constant_object("MmPfnDatabase")[
+            physical_address >> self.PAGE_BITS]
+
+        # The PFN points at a prototype PTE.
+        if pfn_obj.IsPrototype:
+            collection.add(pagefile.WindowsFileMappingDescriptor,
+                           pte_address=pfn_obj.PteAddress.v(),
+                           page_offset=physical_address & 0xFFF,
+                           original_pte=pfn_obj.OriginalPte)
+
+        else:
+            # PTE is a system PTE, we can directly resolve the virtual address.
+            self._ptov_x64_hardware_PTE(collection, physical_address)
+
+    def _ptov_x64_hardware_PTE(self, collection, physical_address):
+        """An implementation of ptov for x64."""
+        pfn_database = self.session.profile.get_constant_object("MmPfnDatabase")
+
+        # A list of PTEs and their physical addresses.
+        physical_addresses = dict(Phys=physical_address)
+
+        # The physical and virtual address of the pte that controls the named
+        # member.
+        phys_addresses_of_pte = {}
+        ptes = {}
+        p_addr = physical_address
+        pfns = {}
+
+        # Starting with the physical address climb the PFN database in reverse
+        # to reach the DTB. At each page table entry we store the its physical
+        # offset. Then below we traverse the page tables in the forward order
+        # and add the bits into the virtual address.
+        for i, name in enumerate(self.table_names):
+            pfn = p_addr >> self.PAGE_BITS
+            pfns[name] = pfn_obj = pfn_database[pfn]
+
+            # The PTE which controls this pfn.
+            pte = pfn_obj.PteAddress
+
+            # PTE is not valid - this may be a large page. We dont currently
+            # know how to handle large pages.
+            #if not pte.u.Hard.Valid:
+            #    return
+
+            if i > 0:
+                physical_addresses[name] = ptes[
+                    self.table_names[i-1]].obj_offset
+
+            # The physical address of the PTE.
+            p_addr = ((pfn_obj.u4.PteFrame << self.PAGE_BITS) |
+                      (pte.v() & 0xFFF))
+
+            phys_addresses_of_pte[name] = p_addr
+
+            # Hold on to the PTE in the physical AS. This is important as it
+            # ensures we can always access the correct PTE no matter the process
+            # context.
+            ptes[name] = self.session.profile._MMPTE(
+                p_addr, vm=self.session.physical_address_space)
+
+            self.session.logging.getChild("PageTranslation").debug(
+                "%s %#x is controlled by pte %#x (PFN %#x)",
+                name, physical_addresses[name], ptes[name], pfns[name])
+
+        # The DTB must be page aligned.
+        dtb = p_addr & ~0xFFF
+
+        # Now we construct the virtual address by locating the offset in each
+        # page table where the PTE is and deducing the bits covered within that
+        # range.
+        virtual_address = 0
+        start_of_page_table = dtb
+        size_of_pte = self.session.profile._MMPTE().obj_size
+
+        for name, bit_division in reversed(zip(
+                self.table_names, self.bit_divisions)):
+            pte = ptes[name]
+            virtual_address += (
+                ptes[name].obj_offset - start_of_page_table) / size_of_pte
+
+            virtual_address <<= bit_division
+
+            # The physical address where the page table begins. The next
+            # iteration will find the offset of the next higher up page table
+            # level in this table.
+            start_of_page_table = pte.u.Hard.PageFrameNumber << self.PAGE_BITS
+
+            if name == "Phys":
+                collection.add(intel.PhysicalAddressDescriptor,
+                               address=physical_address)
+
+            elif name == "DTB":
+                # The DTB must be page aligned.
+                collection.add(pagefile.WindowsDTBDescriptor,
+                               dtb=physical_addresses["DTB"] & ~0xFFF)
+
+            else:
+                collection.add(pagefile.WindowsPTEDescriptor,
+                               object_name=name, pte_value=pte.Long,
+                               pte_addr=pte.obj_offset, session=self.session)
+
+        virtual_address = self.session.profile.integer_to_address(
+            virtual_address)
+        virtual_address += physical_address & 0xFFF
+
+        collection.add(intel.VirtualAddressDescriptor, dtb=dtb,
+                       address=virtual_address)
 
     def render(self, renderer):
-        if self.physical_address is None:
+        if self.plugin_args.physical_address is None:
             return
 
-        result, structures = self.ptov(self.physical_address)
-        if result:
-            renderer.format("Physical Address {0:#x} => "
-                            "Virtual Address {1:#x}\n",
-                            self.physical_address, result)
+        descriptors = intel.DescriptorCollection(self.session)
+        self.ptov(descriptors, self.plugin_args.physical_address)
 
-            for type, phys_addr in structures:
-                renderer.format("{0} @ {1:#x}\n", type, phys_addr)
-        else:
-            renderer.format("Error converting Physical Address {0:#x}: "
-                            "{1}\n", self.physical_address, result)
+        for descriptor in descriptors:
+            descriptor.render(renderer)
 
 
-class DTBScan2(common.WindowsCommandPlugin):
-    """A Fast scanner for hidden DTBs.
+class WinRammap(plugin.VerbosityMixIn, common.WindowsCommandPlugin):
+    """Scan all physical memory and report page owners."""
 
-    This scanner uses the fact that the virtual address of the DTB is always the
-    same. We walk over all the physical pages, assume each page is a DTB and try
-    to resolve the constant to a physical address.
+    name = "rammap"
 
-    This plugin was written based on ideas and discussion with thomasdullien.
-    """
+    __args = [
+        dict(name="start", type="IntParser", default=0, positional=True,
+             help="Physical memory address to start displaying."),
+        dict(name="end", type="IntParser",
+             help="Physical memory address to end displaying."),
+    ]
 
-    name = "dtbscan2"
+    table_header = [
+        dict(name="Phys Address", cname="phys_offset", max_depth=1,
+             type="TreeNode", child=dict(style="address", align="l"),
+             width=16),
+        dict(name="List", width=10),
+        dict(name="Use", width=15),
+        dict(name="Pr", width=2),
+        dict(name="Process", type="_EPROCESS"),
+        dict(name="VA", style="address"),
+        dict(name="Offset", style="address"),
+        dict(name="Filename"),
+    ]
 
-    def TestVAddr(self, test_as, vaddr, symbol_checks):
-        for vaddr, paddr in symbol_checks:
-            if test_as.vtop(vaddr) != paddr:
-                return False
-        return True
+    def __init__(self, start=None, end=None, **kwargs):
+        super(WinRammap, self).__init__(start=start, end=end, **kwargs)
+        self.plugin_args.start &= ~0xFFF
+        self.ptov_plugin = self.session.plugins.ptov()
+        self.pfn_database = self.session.profile.get_constant_object(
+            "MmPfnDatabase")
+        self.pools = self.session.plugins.pools()
 
-    def render(self, renderer):
-        dtb_map = {}
-        pslist_plugin = self.session.plugins.pslist()
-        for task in pslist_plugin.filter_processes():
-            dtb = task.Pcb.DirectoryTableBase.v()
-            dtb_map[dtb] = task
+    def describe_phys_addr(self, phys_off):
+        pfn_obj = self.pfn_database[phys_off >> 12]
 
-        symbols = ["nt", "nt!MmGetPhysicalMemoryRanges"]
-        if self.session.profile.metadata("arch") == "AMD64":
-            dtb_step = 0x1000
-            # Add _KUSER_SHARED_DATA
-            symbols.append(0xFFFFF78000000000)
-        else:
-            dtb_step = 0x20
-            symbols.append(0xFFDF0000)
+        collection = intel.DescriptorCollection(self.session)
+        self.ptov_plugin.ptov(collection, phys_off)
+        result = dict(phys_offset=phys_off,
+                      List=pfn_obj.Type,
+                      Pr=pfn_obj.Priority)
 
-        symbol_checks = []
-        for symbol in symbols:
-            vaddr = self.session.address_resolver.get_address_by_name(symbol)
-            paddr = self.session.kernel_address_space.vtop(vaddr)
-            symbol_checks.append((vaddr, paddr))
+       # Go through different kinds of use and display them in the table.
+        descriptor = collection["VirtualAddressDescriptor"]
+        if descriptor:
+            dtb_descriptor = collection["WindowsDTBDescriptor"]
+            # Address is in kernel space.
+            if descriptor.address > self.session.GetParameter(
+                    "highest_usermode_address"):
+                _, _, pool = self.pools.is_address_in_pool(descriptor.address)
+                if pool:
+                    yield dict(Use=pool.PoolType,
+                               VA=descriptor.address, **result)
+                else:
+                    yield dict(Use="Kernel",
+                               VA=descriptor.address, **result)
+            else:
+                yield dict(Use="Private",
+                           Process=dtb_descriptor.owner(),
+                           VA=descriptor.address, **result)
 
-        renderer.table_header([("DTB", "dtb", "[addrpad]"),
-                               dict(name="Process", type="_EPROCESS"),
-                              ])
+            return
 
-        descriptor = self.profile.get_constant_object(
-            "MmPhysicalMemoryBlock",
-            target="Pointer",
-            target_args=dict(
-                target="_PHYSICAL_MEMORY_DESCRIPTOR",
-                ))
+        descriptor = collection["WindowsFileMappingDescriptor"]
+        if descriptor:
+            subsection = descriptor.get_subsection()
+            filename, file_offset = descriptor.filename_and_offset(
+                subsection=subsection)
 
-        for memory_range in descriptor.Run:
-            start = memory_range.BasePage * 0x1000
-            length = memory_range.PageCount * 0x1000
+            # First show the owner that mapped the file.
+            virtual_address = None
 
-            for page in range(start, start+length, dtb_step):
-                self.session.report_progress("Checking %#x", page)
-                test_as = self.session.kernel_address_space.__class__(
-                    dtb=page, base=self.physical_address_space)
+            depth = 0
+            # A real mapped file.
+            for process, virtual_address in descriptor.get_owners(
+                    subsection=subsection):
 
-                if self.TestVAddr(test_as, vaddr, symbol_checks):
-                    renderer.table_row(
-                        page,
-                        dtb_map.get(page, obj.NoneObject("Unknown"))
-                    )
+                yield dict(Use="Mapped File",
+                           Filename=filename,
+                           Offset=file_offset,
+                           depth=depth,
+                           Process=process,
+                           VA=virtual_address, **result)
+
+                if self.plugin_args.verbosity <= 1:
+                    return
+
+                # If the user wants more, also show the other processes which
+                # map this file.
+                depth = 1
+
+            # We could not find a process owner so we just omit it.
+            if depth == 0:
+                yield dict(Use="Mapped File",
+                           Filename=filename,
+                           Offset=file_offset,
+                           **result)
+                return
+
+        if pfn_obj.u3.e2.ReferenceCount == 0:
+            result["Use"] = "Unused"
+            yield result
+            return
+
+        yield result
+
+    def collect(self):
+        phys_off = self.plugin_args.start
+
+        end = self.plugin_args.end
+        if end is None or end < phys_off:
+            end = phys_off + 10 * 0x1000
+
+        for phys_off in utils.xrange(self.plugin_args.start, end, 0x1000):
+            for result in self.describe_phys_addr(phys_off):
+                yield result
+
+        # Re-run from here next invocation.
+        self.plugin_args.start = phys_off
+
+    def summary(self):
+        """Return a multistring summary of the result."""
+        # We just use the WideTextRenderer to render the records.
+        fd = StringIO.StringIO()
+        with text.WideTextRenderer(session=self.session, fd=fd) as renderer:
+            self.render(renderer)
+
+        return filter(None,
+                      re.split(r"(^|\n)\*+\n", fd.getvalue(), re.S | re.M))
 
 
 class DTBScan(common.WinProcessFilter):
@@ -476,30 +421,27 @@ class DTBScan(common.WinProcessFilter):
 
     __name = "dtbscan"
 
-    @classmethod
-    def args(cls, parser):
-        super(DTBScan, cls).args(parser)
-        parser.add_argument("--limit", type="IntParser", default=0,
-                            help="Stop scanning after this many mb.")
+    __args = [
+        dict(name="limit", type="IntParser", default=2**64,
+             help="Stop scanning after this many mb.")
+    ]
 
-    def __init__(self, limit=None, **kwargs):
-        super(DTBScan, self).__init__(**kwargs)
-        self.limit = limit
+    table_header = [
+        dict(name="DTB", style="address"),
+        dict(name="VA", style="address"),
+        dict(name="Owner", type="_EPROCESS"),
+        dict(name="Known", type="Bool"),
+    ]
 
-    def render(self, renderer):
+    def collect(self):
         ptov = self.session.plugins.ptov(session=self.session)
         pslist = self.session.plugins.pslist(session=self.session)
-        pfn_plugin = self.session.plugins.pfn(session=self.session)
+        pfn_database = self.session.profile.get_constant_object("MmPfnDatabase")
 
         # Known tasks:
         known_tasks = set()
         for task in pslist.list_eprocess():
             known_tasks.add(task.obj_offset)
-
-        renderer.table_header([("DTB", "dtb", "[addrpad]"),
-                               ("VAddr", "vaddr", "[addrpad]"),
-                               dict(type="_EPROCESS"),
-                               ("Known", "known", "")])
 
         seen_dtbs = set()
 
@@ -510,26 +452,77 @@ class DTBScan(common.WinProcessFilter):
                     page, page/1024/1024))
 
                 # Quit early if requested to.
-                if self.limit and page > self.limit:
+                if page > self.plugin_args.limit:
                     return
 
-                virtual_address, results = ptov.ptov(page)
-                if virtual_address:
-                    dtb = results[0][1]
+                collection = intel.DescriptorCollection(self.session)
+                ptov.ptov(collection, page)
+                dtb_descriptor = collection["WindowsDTBDescriptor"]
+
+                if dtb_descriptor:
+                    dtb = dtb_descriptor.dtb
                     if dtb not in seen_dtbs:
                         seen_dtbs.add(dtb)
 
-                        # The _EPROCESS address is stored as the
-                        # KernelStackOwner for the pfn of this dtb.
-                        task = pfn_plugin.pfn_record(
-                            dtb >> 12).u1.Flink.cast(
-                                "Pointer", target="_EPROCESS").deref()
+                        pfn_obj = pfn_database[dtb >> 12]
 
-                        va, _ = ptov.ptov(dtb)
-                        renderer.table_row(dtb, va, task,
-                                           task.obj_offset in known_tasks)
+                        # Report the VA of the DTB (Since DTBs contains
+                        # themselves this will equal to the VA of the DTB.
+                        va = pfn_obj.PteAddress.v()
+                        task = dtb_descriptor.owner()
+
+                        yield (dtb, va, task,
+                               task.obj_offset in known_tasks)
+
 
 class TestDTBScan(testlib.SimpleTestCase):
     PARAMETERS = dict(
         commandline="dtbscan --limit 10mb",
         )
+
+
+class WinSubsectionProducer(kb.ParameterHook):
+    """Produce all the subsection objects we know about.
+
+    Returns a dict keyed with subsection offsets with values being a details
+    dict. The details include the vad and the _EPROCESS address for this
+    process.
+    """
+    name = "subsections"
+
+    def calculate(self):
+        result = {}
+        for task in self.session.plugins.pslist().filter_processes():
+            self.session.report_progress("Inspecting VAD for %s", task.name)
+            for vad in task.RealVadRoot.traverse():
+                subsection_list = vad.multi_m(
+                    "Subsection", "ControlArea.FirstSubsection")
+                for subsection in subsection_list.walk_list(
+                        "NextSubsection", include_current=True):
+                    record = result.setdefault(subsection.obj_offset, [])
+                    record.append(dict(task=task.obj_offset,
+                                       vad=vad.obj_offset,
+                                       type=vad.obj_type))
+        return result
+
+
+class WinPrototypePTEArray(kb.ParameterHook):
+    """A ranged collection for Prototype PTE arrays."""
+
+    name = "prototype_pte_array_subsection_lookup"
+
+    def calculate(self):
+        result = utils.RangedCollection()
+        for subsection_offset in self.session.GetParameter("subsections"):
+            subsection = self.session.profile._SUBSECTION(subsection_offset)
+            start = subsection.SubsectionBase.v()
+
+            # Pte Arrays are always allocated from kernel pools.
+            if start < self.session.GetParameter("highest_usermode_address"):
+                continue
+
+            end = start + (subsection.PtesInSubsection *
+                           subsection.SubsectionBase[0].obj_size)
+            result.insert(start, end, subsection_offset)
+
+        return result

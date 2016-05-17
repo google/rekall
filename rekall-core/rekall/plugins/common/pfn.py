@@ -25,21 +25,13 @@ class VADMapMixin(plugin.VerbosityMixIn):
 
     name = "vadmap"
 
-    @classmethod
-    def args(cls, parser):
-        super(VADMapMixin, cls).args(parser)
-        parser.add_argument(
-            "--start", default=0, type="IntParser",
-            help="Start reading from this page.")
+    __args = [
+        dict(name="start", default=0, type="IntParser",
+             help="Start reading from this page."),
 
-        parser.add_argument(
-            "--end", default=2**63, type="IntParser",
-            help="Stop reading at this offset.")
-
-    def __init__(self, *args, **kwargs):
-        self.start = kwargs.pop("start", 0)
-        self.end = kwargs.pop("end", 2**64)
-        super(VADMapMixin, self).__init__(*args, **kwargs)
+        dict(name="end", default=2**63, type="IntParser",
+             help="Stop reading at this offset."),
+    ]
 
     def FormatMetadata(self, type, metadata, offset=None):
         result = ""
@@ -72,7 +64,7 @@ class VADMapMixin(plugin.VerbosityMixIn):
                         offset, length, old_offset):
         comment = self.FormatMetadata(
             type, old_metadata, offset=old_offset)
-        if self.verbosity < 5:
+        if self.plugin_args.verbosity < 5:
             renderer.table_row(old_vaddr, length, type, comment)
         else:
             renderer.table_row(old_vaddr, old_offset, length, type, comment)
@@ -89,7 +81,7 @@ class VADMapMixin(plugin.VerbosityMixIn):
                 ('Type', 'type', '20s'),
                 ('Comments', 'comments', "")]
 
-            if self.verbosity < 5:
+            if self.plugin_args.verbosity < 5:
                 headers.pop(1)
 
             renderer.table_header(headers)
@@ -108,7 +100,7 @@ class VADMapMixin(plugin.VerbosityMixIn):
 
                     # Coalesce similar rows.
                     if ((offset is None or old_offset is None or
-                         self.verbosity < 5 or
+                         self.plugin_args.verbosity < 5 or
                          offset == old_offset + length) and
                             metadata == old_metadata and
                             vaddr == old_vaddr + length):

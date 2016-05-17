@@ -73,7 +73,7 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
                     task.ObjectTable.m("HandleCount"),
                     task.CreateTime, depth=pad, parent=pid)
 
-                if self.verbosity > 1:
+                if self.plugin_args.verbosity > 1:
                     try:
                         process_params = task.Peb.ProcessParameters
                         renderer.format(u"{0}    cmd: {1}\n",
