@@ -24,7 +24,8 @@ from rekall.plugins.common import pfn
 from rekall.plugins.darwin import common
 
 
-class DarwinVADMap(pfn.VADMapMixin, common.DarwinProcessFilter):
+class DarwinVADMap(pfn.VADMapMixin, common.ProcessFilterMixin,
+                   common.AbstractDarwinCommand):
     """Inspect each page in the VAD and report its status.
 
     This allows us to see the address translation status of each page in the
@@ -53,14 +54,14 @@ class DarwinVADMap(pfn.VADMapMixin, common.DarwinProcessFilter):
             end = map.links.end
 
             # Skip the entire region.
-            if end < self.start:
+            if end < self.plugin_args.start:
                 continue
 
             # Done.
-            if start > self.end:
+            if start > self.plugin_args.end:
                 break
 
             for vaddr in utils.xrange(start, end, 0x1000):
-                if self.start <= vaddr <= self.end:
+                if self.plugin_args.start <= vaddr <= self.plugin_args.end:
                     yield vaddr, self._CreateMetadata(
                         address_space.describe_vtop(vaddr))

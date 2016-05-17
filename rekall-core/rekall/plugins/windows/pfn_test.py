@@ -27,7 +27,7 @@ class TestVtoP(testlib.SimpleTestCase):
     # Create a test case by running the vadmap plugin and selecting at least one
     # virtual address from each type.
     PARAMETERS = dict(
-        commandline="vtop --pid %(pid)s - %(vaddr)s",
+        commandline="vtop %(pids)s --virtual_address %(vaddr)s",
         vaddr="0x00010000 0x00036000"
     )
 

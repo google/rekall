@@ -417,7 +417,7 @@ class RunListAddressSpace(addrspace.RunBasedAddressSpace):
                 # Identify a compressed range if the current range is sparse and
                 # the last range's length is smaller than a compression unit.
                 try:
-                    start, end, run = self.runs[-1]
+                    run = self.runs[-1][2]
                     if run.length < self.compression_unit_size:
                         run.data["compression"] = True
 
@@ -1008,7 +1008,8 @@ class NTFS(object):
         return directory
 
 
-class NTFSPlugins(plugin.PhysicalASMixin, plugin.ProfileCommand):
+class NTFSPlugins(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
+                  plugin.ProfileCommand):
     """Base class for ntfs plugins."""
     __abstract = True
 
@@ -1016,8 +1017,8 @@ class NTFSPlugins(plugin.PhysicalASMixin, plugin.ProfileCommand):
     def is_active(cls, session):
         return isinstance(session.profile, NTFSProfile)
 
-    def __init__(self, **kwargs):
-        super(NTFSPlugins, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(NTFSPlugins, self).__init__(*args, **kwargs)
         self.ntfs = self.session.GetParameter("ntfs")
         if self.ntfs == None:
             self.ntfs = NTFS(self.session.physical_address_space,
@@ -1030,37 +1031,26 @@ class FileBaseCommandMixin(object):
     """Mixin for commands which take filenames- delegate to inode commands."""
     delegate = ""
 
-    @classmethod
-    def args(cls, parser):
-        super(FileBaseCommandMixin, cls).args(parser)
-        parser.add_argument("path", default="/", required=False,
-                            help="Path to print stats for.")
-
-    def __init__(self, path="", **kwargs):
-        super(FileBaseCommandMixin, self).__init__(**kwargs)
-        self.path = utils.SmartUnicode(path)
+    __args = [
+        dict(name="path", default="/", positional=True,
+             help="Path to print stats for."),
+    ]
 
     def render(self, renderer):
-        mft = self.ntfs.MFTEntryByName(self.path)
-        delegate = getattr(self.session.plugins, self.delegate)(mft.mft_entry)
+        mft = self.ntfs.MFTEntryByName(self.plugin_args.path)
+        delegate = getattr(self.session.plugins, self.delegate)(
+            mfts=[mft.mft_entry])
         delegate.render(renderer)
 
 
 class MFTPluginsMixin(object):
     """A mixin for plugins which work on mft entries."""
-    @classmethod
-    def args(cls, parser):
-        super(MFTPluginsMixin, cls).args(parser)
-        parser.add_argument("mfts", type="ArrayIntParser", default=[5],
-                            required=False,
-                            help="MFT entries to list.")
 
-    def __init__(self, mfts=5, **kwargs):
-        super(MFTPluginsMixin, self).__init__(**kwargs)
-        if isinstance(mfts, (int, long)):
-            mfts = [mfts]
-
-        self.mfts = mfts
+    __args = [
+        dict(name="mfts", type="ArrayIntParser", default=[5],
+             required=False, positional=True,
+             help="MFT entries to list.")
+    ]
 
 
 class FStat(FileBaseCommandMixin, NTFSPlugins):
@@ -1158,7 +1148,7 @@ class IStat(MFTPluginsMixin, NTFSPlugins):
                     file_record.name)
 
     def render(self, renderer):
-        for mft in self.mfts:
+        for mft in self.plugin_args.mfts:
             mft_entry = self.ntfs.mft[mft]
 
             renderer.format("MFT Entry Header Values:\n")
@@ -1204,7 +1194,7 @@ class ILS(MFTPluginsMixin, NTFSPlugins):
     name = "ils"
 
     def render(self, renderer):
-        for mft in self.mfts:
+        for mft in self.plugin_args.mfts:
             directory = self.ntfs.mft[mft]
 
             # List all files inside this directory.
@@ -1237,31 +1227,27 @@ class IDump(NTFSPlugins):
     """Dump a part of an MFT file."""
     name = "idump"
 
-    @classmethod
-    def args(cls, parser):
-        super(IDump, cls).args(parser)
-        parser.add_argument("mft", type="IntParser", default=5,
-                            required=True,
-                            help="MFT entry to dump.")
+    __args = [
+        dict(name="mft", type="IntParser", default=5,
+             required=True, positional=True,
+             help="MFT entry to dump."),
 
-        parser.add_argument("type", type="IntParser", default=128,
-                            required=False,
-                            help="Attribute type to dump.")
+        dict(name="type", type="IntParser", default=128,
+             required=False, positional=True,
+             help="Attribute type to dump."),
 
-        parser.add_argument("id", type="IntParser", default=None,
-                            required=False,
-                            help="Id of attribute to dump.")
+        dict(name="id", type="IntParser", default=None,
+             required=False, positional=True,
+             help="Id of attribute to dump."),
+    ]
 
-    def __init__(self, mft=5, type=128, id=None, **kwargs):
-        super(IDump, self).__init__(**kwargs)
-        self.mft = int(mft)
-        self.type = int(type)
-        self.id = id
-        self.offset = 0
+    # Dump offset within the file.
+    offset = 0
 
     def render(self, renderer):
-        mft_entry = self.ntfs.mft[self.mft]
-        attribute = mft_entry.get_attribute(self.type, self.id)
+        mft_entry = self.ntfs.mft[self.plugin_args.mft]
+        attribute = mft_entry.get_attribute(
+            self.plugin_args.type, self.plugin_args.id)
         data = attribute.data
 
         if data:
@@ -1281,14 +1267,16 @@ class IExport(core.DirectoryDumperMixin, IDump):
     name = "iexport"
 
     def render(self, renderer):
-        mft_entry = self.ntfs.mft[self.mft]
-        filename = mft_entry.full_path or ("MFT_%s" % self.mft)
-        attribute = mft_entry.get_attribute(self.type, self.id)
+        mft_entry = self.ntfs.mft[self.plugin_args.mft]
+        filename = mft_entry.full_path or ("MFT_%s" % self.plugin_args.mft)
+        attribute = mft_entry.get_attribute(self.plugin_args.type,
+                                            self.plugin_args.id)
 
         in_as = attribute.data
         if in_as:
             renderer.format(
-                "Writing MFT Entry {0} as {1}\n", self.mft, filename)
+                "Writing MFT Entry {0} as {1}\n",
+                self.plugin_args.mft, filename)
 
             with renderer.open(directory=self.dump_dir,
                                filename=filename, mode="wb") as out_fd:

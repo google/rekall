@@ -26,7 +26,8 @@ from rekall.plugins.common import pas2kas
 from rekall.plugins.darwin import common
 
 
-class DarwinPas2Vas(pas2kas.Pas2VasMixin, common.DarwinProcessFilter):
+class DarwinPas2Vas(pas2kas.Pas2VasMixin, common.ProcessFilterMixin,
+                    common.AbstractDarwinCommand):
     """Resolves a physical address to a virtual addrress in a process."""
 
 

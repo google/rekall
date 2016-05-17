@@ -96,14 +96,13 @@ class PFNInfo(common.WindowsCommandPlugin):
                                 (int(pfn_obj.PteAddress) & 0xFFF))
 
         yield "Reference", None, pfn_obj.u3.e2.ReferenceCount
+        yield "ShareCount", None, pfn_obj.u2.ShareCount
         yield "Color", None, pfn_obj.multi_m("u3.e1.PageColor", "u4.PageColor")
 
         yield "Controlling PTE (VA)", pfn_obj.PteAddress
         yield "Controlling PTE (PA)", pte_physical_address
-        if pfn_obj.IsPrototype:
-            yield "Controlling PTE Type", None, "Prototype"
-        else:
-            yield "Controlling PTE Type", None, "Hardware"
+        yield ("Controlling PTE Type", None,
+               "Prototype" if pfn_obj.IsPrototype else "Hardware")
 
         # PFN is actually a DTB.
         if containing_page == self.plugin_args.pfn:
@@ -410,6 +409,13 @@ class WinRammap(plugin.VerbosityMixIn, common.WindowsCommandPlugin):
 
         return filter(None,
                       re.split(r"(^|\n)\*+\n", fd.getvalue(), re.S | re.M))
+
+
+class TestWinRammap(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="rammap %(start)s",
+        start=0x4d7000,
+    )
 
 
 class DTBScan(common.WinProcessFilter):

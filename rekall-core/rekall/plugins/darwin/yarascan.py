@@ -5,5 +5,6 @@ from rekall.plugins.darwin import common
 
 class DarwinYaraScan(yarascanner.YaraScanMixin,
                      scanners.BaseScannerPlugin,
-                     common.DarwinProcessFilter):
+                     common.ProcessFilterMixin,
+                     common.AbstractDarwinCommand):
     """Scan using yara signatures."""

@@ -23,10 +23,8 @@ __author__ = "Michael Cohen <scudette@google.com>"
 # Disabled because pylint is wrong about it pretty much all the time.
 # pylint: disable=abstract-method
 
-import re
 
 from rekall import kb
-from rekall import obj
 from rekall import plugin
 from rekall import scan
 from rekall import utils
@@ -448,22 +446,16 @@ class DarwinFindDTB(DarwinKASLRMixin, DarwinOnlyMixin, core.FindDTB):
 class ProcessFilterMixin(object):
     """Adds methods and arguments that enable easy fitlering by process."""
 
-    @classmethod
-    def args(cls, parser):
-        super(ProcessFilterMixin, cls).args(parser)
-        parser.add_argument("--pid",
-                            type="ArrayIntParser",
-                            help="One or more pids of processes to select.")
+    __args = [
+        dict(name="pids", type="ArrayIntParser", positional=True,
+             help="One or more pids of processes to select."),
 
-        parser.add_argument("--proc_regex", default=None,
-                            help="A regex to select a process by name.")
+        dict(name="proc_regex", type="RegEx",
+             help="A regex to select a process by name."),
 
-        parser.add_argument("--phys_proc",
-                            type="ArrayIntParser",
-                            help="Physical addresses of proc structs.")
-
-        parser.add_argument("--proc", type="ArrayIntParser",
-                            help="Kernel addresses of proc structs.")
+        dict(name="proc", type="ArrayIntParser",
+             help="Kernel addresses of proc structs."),
+    ]
 
     @classmethod
     def methods(cls):
@@ -479,53 +471,10 @@ class ProcessFilterMixin(object):
 
         return methods
 
-    def __init__(self, pid=None, proc_regex=None, phys_proc=None, proc=None,
-                 **kwargs):
-        """Filters processes by parameters.
-
-        Args:
-           phys_proc_struct: One or more proc structs or offsets defined in
-              the physical AS.
-
-           pid: A single pid.
-        """
-        super(ProcessFilterMixin, self).__init__(**kwargs)
-
-        if isinstance(phys_proc, (int, long)):
-            phys_proc = [phys_proc]
-        elif phys_proc is None:
-            phys_proc = []
-
-        if isinstance(proc, (int, long)):
-            proc = [proc]
-        elif isinstance(proc, obj.Struct):
-            proc = [proc.obj_offset]
-        elif proc is None:
-            proc = []
-
-        self.phys_proc = phys_proc
-        self.proc = proc
-
-        pids = []
-        if isinstance(pid, list):
-            pids.extend(pid)
-
-        elif isinstance(pid, (int, long)):
-            pids.append(pid)
-
-        if self.session.pid and not pid:
-            pids.append(self.session.pid)
-
-        self.pids = pids
-        self.proc_regex_text = proc_regex
-        if isinstance(proc_regex, basestring):
-            proc_regex = re.compile(proc_regex, re.I)
-
-        self.proc_regex = proc_regex
-
-        # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_requested = (self.pids or self.proc_regex or
-                                    self.phys_proc or self.proc)
+    @utils.safe_property
+    def filtering_requested(self):
+        return (self.plugin_args.pids or self.plugin_args.proc_regex or
+                self.plugin_args.eprocess)
 
     def filter_processes(self):
         """Filters proc list using phys_proc and pids lists."""
@@ -537,21 +486,18 @@ class ProcessFilterMixin(object):
             for proc in procs:
                 yield proc
         else:
-            # We need to filter by phys_proc
-            for offset in self.phys_proc:
-                yield self.virtual_process_from_physical_offset(offset)
-
-            for offset in self.proc:
+            for offset in self.plugin_args.proc:
                 yield self.profile.proc(vm=self.kernel_address_space,
                                         offset=int(offset))
 
             # We need to filter by pids
             for proc in procs:
-                if int(proc.p_pid) in self.pids:
+                if int(proc.p_pid) in self.plugin_args.pids:
                     yield proc
 
-                elif self.proc_regex and self.proc_regex.match(
-                        utils.SmartUnicode(proc.p_comm)):
+                elif (self.plugin_args.proc_regex and
+                      self.plugin_args.proc_regex.match(
+                          utils.SmartUnicode(proc.p_comm))):
                     yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
@@ -576,166 +522,6 @@ class ProcessFilterMixin(object):
 
         # Now we get the proc_struct object from the list entry.
         return our_list_entry.dereference_as("proc_struct", "procs")
-
-
-class DarwinProcessFilter(AbstractDarwinCommand):
-    """DEPRECATED: A class for filtering processes.
-
-    This class will be removed soon. Use ProcessFilterMixin.
-    """
-
-    __abstract = True
-
-    @classmethod
-    def args(cls, parser):
-        super(DarwinProcessFilter, cls).args(parser)
-        parser.add_argument("--pid",
-                            type="ArrayIntParser",
-                            help="One or more pids of processes to select.")
-
-        parser.add_argument("--proc_regex", default=None,
-                            help="A regex to select a process by name.")
-
-        parser.add_argument("--phys_proc",
-                            type="ArrayIntParser",
-                            help="Physical addresses of proc structs.")
-
-        parser.add_argument("--proc", type="ArrayIntParser",
-                            help="Kernel addresses of proc structs.")
-
-        parser.add_argument(
-            "--method", choices=list(cls.METHODS), nargs="+",
-            help="Method to list processes (Default uses all methods).")
-
-    def __init__(self, pid=None, proc_regex=None, phys_proc=None, proc=None,
-                 method=None, **kwargs):
-        """Filters processes by parameters.
-
-        Args:
-           phys_proc_struct: One or more proc structs or offsets defined in
-              the physical AS.
-
-           pids: A list of pids.
-           pid: A single pid.
-        """
-        super(DarwinProcessFilter, self).__init__(**kwargs)
-
-        # Per-method cache of procs discovered.
-        self.cache = {}
-
-        self.methods = method or self.METHODS
-
-        if isinstance(phys_proc, (int, long)):
-            phys_proc = [phys_proc]
-        elif phys_proc is None:
-            phys_proc = []
-
-        if isinstance(proc, (int, long)):
-            proc = [proc]
-        elif isinstance(proc, obj.Struct):
-            proc = [proc.obj_offset]
-        elif proc is None:
-            proc = []
-
-        self.phys_proc = phys_proc
-        self.proc = proc
-
-        pids = []
-        if isinstance(pid, list):
-            pids.extend(pid)
-
-        elif isinstance(pid, (int, long)):
-            pids.append(pid)
-
-        if self.session.pid and not pid:
-            pids.append(self.session.pid)
-
-        self.pids = pids
-        self.proc_regex_text = proc_regex
-        if isinstance(proc_regex, basestring):
-            proc_regex = re.compile(proc_regex, re.I)
-
-        self.proc_regex = proc_regex
-
-        # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_requested = (self.pids or self.proc_regex or
-                                    self.phys_proc or self.proc)
-
-    def list_procs(self, sort=True):
-        """Uses a few methods to list the procs."""
-        seen = set()
-
-        for method in self.METHODS:
-            if method not in self.methods:
-                continue
-
-            procs = self.session.GetParameter(method, [])
-            self.session.logging.debug("Listed %d processes using %s",
-                                       len(procs), method)
-
-            procs = [self.session.profile.proc(x) for x in procs]
-
-            seen.update(procs)
-
-        if sort:
-            return sorted(seen, key=lambda proc: proc.p_pid)
-
-        return seen
-
-    def filter_processes(self):
-        """Filters proc list using phys_proc and pids lists."""
-        # No filtering required:
-        if not self.filtering_requested:
-            for proc in self.list_procs():
-                yield proc
-        else:
-            # We need to filter by phys_proc
-            for offset in self.phys_proc:
-                yield self.virtual_process_from_physical_offset(offset)
-
-            for offset in self.proc:
-                yield self.profile.proc(vm=self.kernel_address_space,
-                                        offset=int(offset))
-
-            # We need to filter by pids
-            for proc in self.list_procs():
-                if int(proc.p_pid) in self.pids:
-                    yield proc
-
-                elif self.proc_regex and self.proc_regex.match(
-                        utils.SmartUnicode(proc.p_comm)):
-                    yield proc
-
-    def virtual_process_from_physical_offset(self, physical_offset):
-        """Tries to return an proc in virtual space from a physical offset.
-
-        We do this by reflecting off the list elements.
-
-        Args:
-           physical_offset: The physcial offset of the process.
-
-        Returns:
-           an _PROC object or a NoneObject on failure.
-        """
-        physical_proc = self.profile.eprocess(offset=int(physical_offset),
-                                              vm=self.kernel_address_space.base)
-
-        # We cast our list entry in the kernel AS by following Flink into the
-        # kernel AS and then the Blink. Note the address space switch upon
-        # dereferencing the pointer.
-        our_list_entry = physical_proc.procs.next.dereference(
-            vm=self.kernel_address_space).prev.dereference()
-
-        # Now we get the proc_struct object from the list entry.
-        return our_list_entry.dereference_as("proc_struct", "procs")
-
-    METHODS = [
-        "allproc",
-        "dead_procs",
-        "tasks",
-        "pidhash",
-        "pgrphash",
-    ]
 
 
 class KernelAddressCheckerMixIn(object):

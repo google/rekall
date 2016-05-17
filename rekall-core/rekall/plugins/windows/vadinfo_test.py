@@ -29,7 +29,7 @@ class TestVadInfo(testlib.SimpleTestCase):
     """Test the vadinfo module."""
 
     PARAMETERS = dict(
-        commandline="vadinfo --pid %(pid)s",
+        commandline="vadinfo  %(pids)s",
         )
 
 
@@ -37,7 +37,7 @@ class TestVADWalk(testlib.SimpleTestCase):
     """Test the vadwalk module."""
 
     PARAMETERS = dict(
-        commandline="vadwalk --pid %(pid)s",
+        commandline="vadwalk %(pids)s",
         )
 
 
@@ -45,19 +45,19 @@ class TestVADMap(testlib.SimpleTestCase):
     """Test VADMap."""
 
     PARAMETERS = dict(
-        commandline="vadmap --pid %(pid)s"
+        commandline="vadmap %(pids)s"
         )
 
 
 class TestVad(testlib.SimpleTestCase):
     """Test the vad module."""
 
-    PARAMETERS = dict(commandline="vad --pid %(pid)s")
+    PARAMETERS = dict(commandline="vad %(pids)s")
 
 
 class TestVADDump(testlib.SimpleTestCase):
     """Test the vad module."""
 
     PARAMETERS = dict(
-        commandline="vaddump --pid %(pid)s --dump_dir %(tempdir)s"
+        commandline="vaddump %(pids)s --dump_dir %(tempdir)s"
     )

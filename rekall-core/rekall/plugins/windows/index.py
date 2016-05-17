@@ -44,26 +44,19 @@ class GuessGUID(common.WindowsCommandPlugin):
 
     name = "guess_guid"
 
-    @classmethod
-    def args(cls, parser):
-        super(GuessGUID, cls).args(parser)
-        parser.add_argument("module_name", default=None,
-                            help="The name of the module to guess.")
+    __args = [
+        dict(name="module", positional=True,
+             help="The name of the module to guess."),
 
-        parser.add_argument(
-            "--minimal_match", default=1,
-            help="The minimal number of comparison points to be considered. "
-            "Sometimes not all comparison points can be used since they may "
-            "not be mapped.")
-
-    def __init__(self, module_name=None, minimal_match=1, **kwargs):
-        super(GuessGUID, self).__init__(**kwargs)
-        self.module = module_name
-        self.minimal_match = minimal_match
+        dict(name="minimal_match", default=1, type="IntParser",
+             help="The minimal number of comparison points to be considered. "
+             "Sometimes not all comparison points can be used since they may "
+             "not be mapped."),
+    ]
 
     def ScanProfile(self):
         """Scan for module using version_scan for RSDS scanning."""
-        module_name = self.module.split(".")[0]
+        module_name = self.plugin_args.module.split(".")[0]
         for _, guid in self.session.plugins.version_scan(
                 name_regex="^%s.pdb" % module_name).ScanVersions():
             yield obj.NoneObject(), "%s/GUID/%s" % (module_name, guid)
@@ -71,7 +64,8 @@ class GuessGUID(common.WindowsCommandPlugin):
     def LookupIndex(self):
         """Loookup the profile from an index."""
         try:
-            index = self.session.LoadProfile("%s/index" % self.module)
+            index = self.session.LoadProfile(
+                "%s/index" % self.plugin_args.module)
         except ValueError:
             return
 
@@ -84,10 +78,10 @@ class GuessGUID(common.WindowsCommandPlugin):
 
                 # Get the image base of the win32k module.
                 image_base = self.session.address_resolver.get_address_by_name(
-                    self.module)
+                    self.plugin_args.module)
 
                 for profile, _ in index.LookupIndex(
-                        image_base, minimal_match=self.minimal_match):
+                        image_base, minimal_match=self.plugin_args.minimal_match):
                     yield self.session.GetParameter("process_context"), profile
 
     def GuessProfiles(self):

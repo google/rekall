@@ -22,11 +22,9 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-import re
 
 from rekall import addrspace
 from rekall import kb
-from rekall import obj
 from rekall import plugin
 from rekall import utils
 
@@ -147,149 +145,73 @@ class LinProcessFilter(LinuxPlugin):
 
     __abstract = True
 
-    @classmethod
-    def args(cls, parser):
-        super(LinProcessFilter, cls).args(parser)
-        parser.add_argument("--pid", type="ArrayIntParser",
-                            help="One or more pids of processes to select.")
+    METHODS = [
+        "InitTask"
+    ]
 
-        parser.add_argument("--proc_regex", default=None,
-                            help="A regex to select a process by name.")
+    __args = [
+        dict(name="pids", type="ArrayIntParser", positional=True,
+             help="One or more pids of processes to select."),
 
-        parser.add_argument("--phys_task", type="ArrayIntParser",
-                            help="Physical addresses of task structs.")
+        dict(name="proc_regex", type="RegEx",
+             help="A regex to select a process by name."),
 
-        parser.add_argument(
-            "--task", type="ArrayIntParser",
-            help="Kernel addresses of task structs.")
+        dict(name="task", type="ArrayIntParser",
+             help="Kernel addresses of task structs."),
 
-        parser.add_argument("--task_head", type="IntParser",
-                            help="Use this as the first task to follow "
-                            "the list.")
+        dict(name="method", choices=METHODS, type="ChoiceArray",
+             default=METHODS,
+             help="Method to list processes (Default uses all methods)."),
+    ]
 
-        parser.add_argument(
-            "--method", choices=list(cls.METHODS), type="ChoiceArray",
-            default=list(cls.METHODS),
-            help="Method to list processes (Default uses all methods).")
-
-    def __init__(self, pid=None, proc_regex=None, phys_task=None, task=None,
-                 task_head=None, method=None, **kwargs):
-        """Filters processes by parameters.
-
-        Args:
-           phys_task_struct: One or more task structs or offsets defined in
-              the physical AS.
-
-           pids: A list of pids.
-           pid: A single pid.
-        """
-        super(LinProcessFilter, self).__init__(**kwargs)
-
-        self.methods = method or sorted(self.METHODS)
-
-        if isinstance(phys_task, (int, long)):
-            phys_task = [phys_task]
-        elif phys_task is None:
-            phys_task = []
-
-        if isinstance(task, (int, long)):
-            task = [task]
-        elif isinstance(task, obj.Struct):
-            task = [task.obj_offset]
-        elif task is None:
-            task = []
-
-        self.phys_task = phys_task
-        self.task = task
-
-        pids = []
-        if isinstance(pid, list):
-            pids.extend(pid)
-
-        elif isinstance(pid, (int, long)):
-            pids.append(pid)
-
-        if self.session.pid and not pid:
-            pids.append(self.session.pid)
-
-        self.pids = pids
-        self.proc_regex_text = proc_regex
-        if isinstance(proc_regex, basestring):
-            proc_regex = re.compile(proc_regex, re.I)
-
-        self.proc_regex = proc_regex
-
-        self.task_head = task_head
-
-        # Sometimes its important to know if any filtering is specified at all.
-        self.filtering_requested = (self.pids or self.proc_regex or
-                                    self.phys_task or self.task)
-
+    @utils.safe_property
+    def filtering_requested(self):
+        return (self.plugin_args.pids or self.plugin_args.proc_regex or
+                self.plugin_args.eprocess)
 
     def list_from_task_head(self):
-        task = self.profile.task_struct(
-            offset=self.task_head, vm=self.kernel_address_space)
+        for task_offset in self.plugin_args.task:
+            task = self.profile.task_struct(
+                offset=task_offset, vm=self.kernel_address_space)
 
-        return iter(task.tasks)
-
-    def list_from_init_task(self, seen=None):
-        task_head = self.profile.get_constant_object(
-            "init_task", "task_struct", vm=self.kernel_address_space)
-
-        for task in task_head.tasks:
-            if task.obj_offset not in seen:
-                seen.add(task.obj_offset)
-                yield task
+            yield task
 
     def list_tasks(self):
-        self.cache = self.session.GetParameter("pslist_cache")
-        if not self.cache:
-            self.cache = {}
-            self.session.SetCache("pslist_cache", self.cache)
-
         seen = set()
         for proc in self.list_from_task_head():
             seen.add(proc.obj_offset)
 
-        for k, handler in self.METHODS.items():
-            if k in self.methods:
-                if k not in self.cache:
-                    self.cache[k] = set()
-                    for proc in handler(self, seen=seen):
-                        self.cache[k].add(proc.obj_offset)
+        for method in self.plugin_args.method:
+            for proc in self.session.GetParameter("pslist_%s" % method):
+                seen.add(proc)
 
-                self.session.logging.debug("Listed %s processes using %s",
-                                           len(self.cache[k]), k)
-                seen.update(self.cache[k])
+        result = []
+        for x in seen:
+            result.append(self.profile.task_struct(
+                x, vm=self.session.kernel_address_space))
 
-        # Sort by pid so that the output ordering remains stable.
-        return sorted([self.profile.task_struct(x) for x in seen],
-                      key=lambda x: x.pid)
-
+        return sorted(result, key=lambda x: x.pid)
 
     def filter_processes(self):
-        """Filters task list using phys_task and pids lists."""
-        # No filtering required:
-        if not self.filtering_requested:
-            for task in self.list_tasks():
+        """Filters eprocess list using pids lists."""
+        # If eprocess are given specifically only use those.
+        if self.plugin_args.task:
+            for task in self.list_from_task_head():
                 yield task
+
         else:
-            # We need to filter by phys_task
-            for offset in self.phys_task:
-                yield self.virtual_process_from_physical_offset(offset)
+            for proc in self.list_tasks():
+                if not self.filtering_requested:
+                    yield proc
 
-            for offset in self.task:
-                yield self.profile.task_struct(vm=self.kernel_address_space,
-                                               offset=int(offset))
+                else:
+                    if int(proc.pid) in self.plugin_args.pids:
+                        yield proc
 
-            # We need to filter by pids
-            for task in self.list_tasks():
-                if int(task.pid) in self.pids:
-                    yield task
-                elif self.proc_regex and self.proc_regex.match(
-                        utils.SmartUnicode(task.comm)):
-                    yield task
-
+                    elif (self.plugin_args.proc_regex and
+                          self.plugin_args.proc_regex.match(
+                              utils.SmartUnicode(proc.name))):
+                        yield proc
 
     def virtual_process_from_physical_offset(self, physical_offset):
         """Tries to return an task in virtual space from a physical offset.
@@ -313,10 +235,6 @@ class LinProcessFilter(LinuxPlugin):
 
         # Now we get the task_struct object from the list entry.
         return our_list_entry.dereference_as("task_struct", "tasks")
-
-    METHODS = {
-        "InitTask": list_from_init_task,
-    }
 
 
 class HeapScannerMixIn(object):
@@ -388,3 +306,18 @@ class LinuxPageOffset(AbstractLinuxParameterHook):
     def calculate(self):
         """Returns PAGE_OFFSET."""
         return self.session.profile.GetPageOffset()
+
+
+class LinuxInitTaskHook(AbstractLinuxParameterHook):
+    name = "pslist_InitTask"
+
+    def calculate(self):
+        seen = set()
+        task_head = self.session.profile.get_constant_object(
+            "init_task", "task_struct")
+
+        for task in task_head.tasks:
+            if task.obj_offset not in seen:
+                seen.add(task.obj_offset)
+
+        return seen

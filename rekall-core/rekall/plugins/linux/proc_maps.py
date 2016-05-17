@@ -155,14 +155,14 @@ class LinuxVADMap(pfn.VADMapMixin, common.LinProcessFilter):
             end = vma.vm_end
 
             # Skip the entire region.
-            if end < self.start:
+            if end < self.plugin_args.start:
                 continue
 
             # Done.
-            if start > self.end:
+            if start > self.plugin_args.end:
                 break
 
             for vaddr in utils.xrange(start, end, 0x1000):
-                if self.start <= vaddr <= self.end:
+                if self.plugin_args.start <= vaddr <= self.plugin_args.end:
                     yield vaddr, self._CreateMetadata(
                         address_space.describe_vtop(vaddr))

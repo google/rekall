@@ -323,7 +323,7 @@ class OSXConverter(LinuxConverter):
         raise RuntimeError("Unknown profile format.")
 
 
-class ConvertProfile(core.OutputFileMixin, plugin.Command):
+class ConvertProfile(plugin.TypedProfileCommand, plugin.Command):
     """Convert a profile from another program to the Rekall format.
 
     The Rekall profile format is optimized for loading at runtime. This plugin
@@ -335,30 +335,21 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
 
     __name = "convert_profile"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        parser.add_argument(
-            "--profile_class", default=None,
-            help="The name of the profile implementation to specify. "
-            "If not specified, we autodetect.")
+    __args = [
+        dict(name="profile_class",
+             help="The name of the profile implementation to specify. "
+             "If not specified, we autodetect."),
 
-        parser.add_argument(
-            "--converter", default=None,
-            help="The name of the converter to use. "
-            "If not specified autoguess.")
+        dict(name="converter",
+             help="The name of the converter to use. "
+             "If not specified autoguess."),
 
-        parser.add_argument("source",
-                            help="Filename of profile to read.")
+        dict(name="source", positional=True, required=True,
+             help="Filename of profile to read."),
 
-        super(ConvertProfile, cls).args(parser)
-
-    def __init__(self, source=None, out_file=None,
-                 profile_class=None, converter=None, **kwargs):
-        super(ConvertProfile, self).__init__(out_file=out_file, **kwargs)
-        self.profile_class = profile_class
-        self.converter = converter
-        self.source = source
+        dict(name="out_file", positional=True, required=True,
+             help="Path for output file."),
+    ]
 
     def ConvertProfile(self, input):
         """Converts the input profile to a new standard profile in output."""
@@ -374,28 +365,29 @@ class ConvertProfile(core.OutputFileMixin, plugin.Command):
             "No suitable converter found - profile not recognized.")
 
     def render(self, renderer):
-        if self.converter:
-            cls = ProfileConverter.classes.get(self.converter)
+        if self.plugin_args.converter:
+            cls = ProfileConverter.classes.get(self.plugin_args.converter)
             if not cls:
-                raise IOError("Unknown converter %s" % self.converter)
+                raise IOError(
+                    "Unknown converter %s" % self.plugin_args.converter)
 
-            return cls(self.source,
-                       profile_class=self.profile_class).Convert()
+            return cls(self.plugin_args.source,
+                       profile_class=self.plugin_args.profile_class).Convert()
 
         try:
-            input = io_manager.Factory(self.source, session=self.session,
-                                       mode="r")
+            input = io_manager.Factory(
+                self.plugin_args.source, session=self.session, mode="r")
         except IOError:
             self.session.logging.critical(
                 "Input profile file %s could not be opened.",
-                self.source)
+                self.plugin_args.source)
             return
 
         with input:
             profile = self.ConvertProfile(input)
             if profile:
                 with renderer.open(
-                    filename=self.out_file, mode="wb") as output:
+                    filename=self.plugin_args.out_file, mode="wb") as output:
                     output.write(utils.PPrint(profile))
                     self.session.logging.info("Converted %s to %s",
                                               input, output.name)

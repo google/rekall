@@ -522,22 +522,6 @@ class LoadAddressSpace(plugin.Command):
             self.GetVirtualAddressSpace()
 
 
-class OutputFileMixin(object):
-    """A mixin for plugins that want to dump a single user controlled output."""
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(OutputFileMixin, cls).args(parser)
-        parser.add_argument("out_file",
-                            help="Path for output file.")
-
-    def __init__(self, out_file=None, **kwargs):
-        super(OutputFileMixin, self).__init__(**kwargs)
-        self.out_file = out_file
-        if out_file is None:
-            raise RuntimeError("An output must be provided.")
-
-
 class DirectoryDumperMixin(object):
     """A mixin for plugins that want to dump files to a directory."""
 
@@ -671,7 +655,7 @@ class Lister(Printer):
             self.session.plugins.p(target=item).render(renderer)
 
 
-class DT(plugin.ProfileCommand):
+class DT(plugin.TypedProfileCommand, plugin.ProfileCommand):
     """Print a struct or other symbol.
 
     Really just a convenience function for instantiating the object and printing
@@ -680,44 +664,26 @@ class DT(plugin.ProfileCommand):
 
     __name = "dt"
 
-    @classmethod
-    def args(cls, parser):
-        super(DT, cls).args(parser)
-        parser.add_argument("target",
-                            help="Name of a struct definition.")
+    __args = [
+        dict(name="target", positional=True, required=True,
+             help="Name of a struct definition."),
 
-        parser.add_argument("offset", type="IntParser", default=0,
-                            required=False, help="Name of a struct definition.")
+        dict(name="offset", type="IntParser", default=0,
+             required=False, help="Name of a struct definition."),
 
-        parser.add_argument("-a", "--address-space", default=None,
-                            help="The address space to use.")
+        dict(name="address_space", type="AddressSpace",
+             help="The address space to use."),
 
-        parser.add_argument("--member_offset", default=None, type="IntParser",
-                            help="If specified we only show the member at this "
-                            "offset.")
-
-    def __init__(self, target=None, offset=0, address_space=None,
-                 member_offset=None, **kwargs):
-        """Prints an object to the screen."""
-        super(DT, self).__init__(**kwargs)
-        self.member_offset = member_offset
-        self.offset = offset
-        self.target = target
-        if target is None:
-            raise plugin.PluginError("You must specify something to print.")
-
-        load_as = self.session.plugins.load_as(session=self.session)
-        self.address_space = load_as.ResolveAddressSpace(address_space)
-
-        if isinstance(target, basestring):
-            self.target = self.profile.Object(
-                target, offset=self.offset, vm=self.address_space)
+        dict(name="member_offset", type="IntParser",
+             help="If specified we only show the member at this "
+             "offset.")
+    ]
 
     def render_Struct(self, renderer, struct):
         renderer.format(
             "[{0} {1}] @ {2:addrpad} \n",
             struct.obj_type, struct.obj_name or '',
-            self.offset or struct.obj_offset)
+            self.plugin_args.offset or struct.obj_offset)
 
         end_address = struct.obj_size + struct.obj_offset
         width = int(math.ceil(math.log(end_address + 1, 16)))
@@ -744,8 +710,8 @@ class DT(plugin.ProfileCommand):
             fields.append((offset, k, member))
 
         for offset, k, v in sorted(fields):
-            if self.member_offset is not None:
-                if offset == self.member_offset:
+            if self.plugin_args.member_offset is not None:
+                if offset == self.plugin_args.member_offset:
                     renderer.table_row(offset, k, v, depth=depth)
             else:
                 renderer.table_row(offset, k, v, depth=depth)
@@ -754,7 +720,13 @@ class DT(plugin.ProfileCommand):
                 self._render_Struct(renderer, v, depth=depth + 1)
 
     def render(self, renderer):
-        item = self.target
+        if isinstance(self.plugin_args.target, basestring):
+            self.plugin_args.target = self.profile.Object(
+                type_name=self.plugin_args.target,
+                offset=self.plugin_args.offset,
+                vm=self.plugin_args.address_space)
+
+        item = self.plugin_args.target
 
         if isinstance(item, obj.Pointer):
             item = item.deref()
@@ -842,36 +814,11 @@ class AddressMap(object):
         return utils.AttributedString(result, highlights=highlights)
 
 
-class Dump(plugin.Command):
-    """Hexdump an object or memory location."""
+class Dump(plugin.TypedProfileCommand, plugin.Command):
+    """Hexdump an object or memory location.
 
-    __name = "dump"
-
-    @classmethod
-    def args(cls, parser):
-        super(Dump, cls).args(parser)
-        parser.add_argument("offset", type="SymbolAddress",
-                            help="An offset to hexdump.")
-
-        parser.add_argument("-a", "--address_space", default=None,
-                            help="The address space to use.")
-
-        parser.add_argument("--data", default=None,
-                            help="Dump this string instead.")
-
-        parser.add_argument("--length", default=None, type="IntParser",
-                            help="Maximum length to dump.")
-
-        parser.add_argument("--suppress_headers", default=False, type="Boolean",
-                            help="Should headers be suppressed?.")
-
-    def __init__(self, offset=0, address_space=None, data=None, length=None,
-                 width=None, rows=None, suppress_headers=False,
-                 address_map=None, **kwargs):
-        """Hexdump an object or memory location.
-
-        You can use this plugin repeateadely to keep dumping more data using the
-        "p _" (print last result) operation:
+    You can use this plugin repeateadely to keep dumping more data using the
+     "p _" (print last result) operation:
 
     In [2]: dump 0x814b13b0, address_space="K"
     ------> dump(0x814b13b0, address_space="K")
@@ -888,81 +835,65 @@ class Dump(plugin.Command):
     0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00 00  p9..T.......2Y..
     0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0 0f 06  l<..............
     0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00 00 00 00  ..?.dw....!.....
+    """
 
-        Args:
-          offset: The offset to start dumping from.
+    __name = "dump"
 
-          address_space: The address_space to dump from. If omitted we use the
-            default address space.
+    __args = [
+        dict(name="offset", type="SymbolAddress", positional=True,
+             help="An offset to hexdump."),
 
-          data: If provided we dump the string provided in data rather than use
-            an address_space.
+        dict(name="address_space", type="AddressSpace",
+             help="The address space to use."),
 
-          length: If provided we stop dumping at the specified length.
+        dict(name="data",
+             help="Dump this string instead."),
 
-          width: How many Hex character per line.
+        dict(name="length", type="IntParser",
+             help="Maximum length to dump."),
 
-          rows: How many rows to dump.
+        dict(name="width", type="IntParser",
+             help="Number of bytes per row"),
 
-          suppress_headers: If set we do not write the headers.
+        dict(name="rows", type="IntParser",
+             help="Number of bytes per row"),
+    ]
 
-        """
-        super(Dump, self).__init__(**kwargs)
+    table_header = [
+        dict(name="Offset", cname="offset", style="address"),
+        dict(name="Data", cname="hexdump", style="hexdump", width=65),
+        dict(name="Comment", cname="comment", width=40)
+    ]
 
-        # Allow offset to be symbol name.
-        if isinstance(offset, basestring):
-            self.offset = self.session.address_resolver.get_address_by_name(
-                offset)
-
-        elif isinstance(offset, obj.BaseObject):
-            self.offset = offset.obj_offset
-            address_space = offset.obj_vm
-            length = offset.obj_size
-        else:
-            self.offset = obj.Pointer.integer_to_address(offset)
-
-        self.length = length
+    def __init__(self, *args, **kwargs):
+        address_map = kwargs.pop("address_map", None)
+        super(Dump, self).__init__(*args, **kwargs)
+        self.offset = self.plugin_args.offset
 
         # default width can be set in the session.
-        if width is None:
-            width = self.session.GetParameter("hexdump_width", 16)
+        self.width = (self.plugin_args.width or
+                      self.session.GetParameter("hexdump_width", 16))
 
-        self.width = int(width)
-        if rows is None:
-            rows = self.session.GetParameter("paging_limit") or 30
 
-        self.rows = int(rows)
-        self.suppress_headers = suppress_headers
+        self.rows = (self.plugin_args.rows or
+                     self.session.GetParameter("paging_limit", 30))
+
         self.address_map = address_map or AddressMap()
 
-        if data is not None:
-            address_space = addrspace.BufferAddressSpace(
-                data=data, session=self.session)
+        if self.plugin_args.data:
+            self.plugin_args.address_space = addrspace.BufferAddressSpace(
+                data=self.plugin_args.data, session=self.session)
 
-            if self.length is None:
-                self.length = len(data)
+            if self.plugin_args.length is None:
+                self.plugin_args.length = len(self.plugin_args.data)
 
-        # Resolve the correct address space. This allows the address space to be
-        # specified from the command line (e.g.
-        load_as = self.session.plugins.load_as()
-        self.address_space = load_as.ResolveAddressSpace(address_space)
+    def collect(self):
+        to_read = min(
+            self.width * self.rows,
+            self.plugin_args.address_space.end() - self.plugin_args.offset)
 
-    def render(self, renderer):
-        if self.offset == None:
-            renderer.format("Error: {0}\n", self.offset.reason)
-            return
-
-        to_read = min(self.width * self.rows,
-                      self.address_space.end() - self.offset)
-
-        if self.length is not None:
-            to_read = min(to_read, self.length)
-
-        renderer.table_header(
-            [("Offset", "offset", "[addr]"),
-             dict(name="Data", style="hexdump", hex_width=self.width),
-             ("Comment", "comment", "40")],
-            suppress_headers=self.suppress_headers)
+        if self.plugin_args.length is not None:
+            to_read = min(to_read, self.plugin_args.length)
 
         resolver = self.session.address_resolver
         for offset in range(self.offset, self.offset + to_read):
@@ -971,76 +902,59 @@ class Dump(plugin.Command):
                 self.address_map.AddRange(offset, offset + 1, ",".join(comment))
 
         offset = self.offset
-        for offset in range(self.offset, self.offset + to_read, self.width):
+        for offset in range(self.offset, self.offset + to_read,
+                            self.width):
             # Add a symbol name for the start of each row.
             hex_data = utils.HexDumpedString(
-                self.address_space.read(offset, self.width),
+                self.plugin_args.address_space.read(offset, self.width),
                 highlights=self.address_map.HighlightRange(
                     offset, offset + self.width, relative=True))
 
             comment = self.address_map.GetComment(offset, offset + self.width)
 
-            renderer.table_row(offset, hex_data, comment, nowrap=True)
+            yield dict(offset=offset, hexdump=hex_data, comment=comment,
+                       nowrap=True, hex_width=self.width)
 
         # Advance the offset so we can continue from this offset next time we
         # get called.
         self.offset = offset
 
 
-class Grep(plugin.ProfileCommand):
+class Grep(plugin.TypedProfileCommand, plugin.ProfileCommand):
     """Search an address space for keywords."""
 
     __name = "grep"
 
     PROFILE_REQUIRED = False
 
-    @classmethod
-    def args(cls, parser):
-        super(Grep, cls).args(parser)
-        parser.add_argument("keyword", default=None, type="ArrayStringParser",
-                            help="The binary strings to find.")
+    __args = [
+        dict(name="keyword", type="ArrayString", positional=True,
+             help="The binary strings to find."),
 
-        parser.add_argument("--offset", default=0, type="IntParser",
-                            help="Start searching from this offset.")
+        dict(name="offset", default=0, type="IntParser",
+             help="Start searching from this offset."),
 
-        parser.add_argument("--address_space", default=None,
-                            help="Name of the address_space to search.")
+        dict(name="address_space", type="AddressSpace",
+             help="Name of the address_space to search."),
 
-        parser.add_argument("--context", default=20, type="IntParser",
-                            help="Context to print around the hit.")
-        parser.add_argument("--limit", default=2**64,
-                            help="The length of data to search.")
+        dict(name="context", default=20, type="IntParser",
+             help="Context to print around the hit."),
 
-    def __init__(self, keyword=None, offset=0, address_space=None,
-                 context=20, limit=2**64, **kwargs):
-        """Search an address space for keywords.
-
-        Args:
-          address_space: Name of the address_space to search.
-          offset: Start searching from this offset.
-          keyword: The binary string to find.
-          limit: The length of data to search.
-        """
-        super(Grep, self).__init__(**kwargs)
-        if isinstance(keyword, basestring):
-            keyword = [keyword]
-
-        self.keyword = keyword
-        self.context = context
-        self.offset = offset
-        self.limit = limit
-        load_as = self.session.plugins.load_as(session=self.session)
-        self.address_space = load_as.ResolveAddressSpace(address_space)
+        dict(name="limit", default=2**64,
+             help="The length of data to search."),
+    ]
 
     def render(self, renderer):
         scanner = scan.MultiStringScanner(
-            needles=self.keyword, address_space=self.address_space,
+            needles=self.plugin_args.keyword,
+            address_space=self.plugin_args.address_space,
             session=self.session)
 
-        for hit, _ in scanner.scan(offset=self.offset, maxlen=self.limit):
+        for hit, _ in scanner.scan(offset=self.plugin_args.offset,
+                                   maxlen=self.plugin_args.limit):
             hexdumper = self.session.plugins.dump(
-                offset=hit - 16, length=self.context + 16,
-                address_space=self.address_space)
+                offset=hit - 16, length=self.plugin_args.context + 16,
+                address_space=self.plugin_args.address_space)
 
             hexdumper.render(renderer)
 

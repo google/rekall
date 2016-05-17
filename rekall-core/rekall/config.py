@@ -33,10 +33,10 @@ __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import collections
 import logging
-import yaml
 import os
 import sys
 import tempfile
+import yaml
 
 from rekall import constants
 
@@ -95,7 +95,7 @@ class CommandMetadata(object):
             raise RuntimeError("Type must be a string.")
 
         # Is this a positional arg?
-        positional = options.pop("positional", True)
+        positional = options.pop("positional", False)
 
         # For now we support option names with leading --.
         if long_opt is None:

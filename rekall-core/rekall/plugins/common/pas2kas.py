@@ -23,7 +23,6 @@
 # pylint: disable=protected-access
 
 import bisect
-import collections
 
 from rekall import testlib
 from rekall.ui import json_renderer
@@ -137,40 +136,10 @@ class Pas2VasMixin(object):
 
     name = "pas2vas"
 
-    @classmethod
-    def args(cls, parser):
-        super(Pas2VasMixin, cls).args(parser)
-        parser.add_argument(
-            "offsets", type="ArrayIntParser",
-            help="A list of physical offsets to resolve.")
-
-    def __init__(self, offsets=None, **kwargs):
-        """Resolves a physical address to a vertial address.
-
-        Often a user might want to see which process maps a particular physical
-        offset. In reality the same physical memory can be mapped into multiple
-        processes (and the kernel) at the same time. Usually since the kernel
-        memory is mapped into each process's address space, a single physical
-        offset which is mapped into the kernel will also be mapped into each
-        process.
-
-        The only way to tell if a physical page is mapped into a process is to
-        enumerate all process maps and then search them for the physical
-        offset. This takes a fair bit of memory and effort to build so by
-        default we store the maps in the session for quick reuse.
-        """
-        super(Pas2VasMixin, self).__init__(**kwargs)
-
-        # Now we build the tables for each process. We do this simply by listing
-        # all the tasks using pslist, and then for each task we get its address
-        # space, and enumerate available pages.
-        if offsets is None:
-            self.physical_address = []
-
-        elif isinstance(offsets, collections.Iterable):
-            self.physical_address = list(offsets)
-        else:
-            self.physical_address = [offsets]
+    __args = [
+        dict(name="offsets", type="ArrayIntParser",
+             help="A list of physical offsets to resolve."),
+    ]
 
     def get_virtual_address(self, physical_address, tasks=None):
         resolver = self.session.GetParameter("physical_address_resolver")
@@ -200,7 +169,7 @@ class Pas2VasMixin(object):
                                ('Name', 'name', '')])
 
         tasks = list(self.filter_processes())
-        for physical_address in self.physical_address:
+        for physical_address in self.plugin_args.offsets:
             for virtual_address, task in self.get_virtual_address(
                     physical_address, tasks):
                 if task is 'Kernel':
@@ -242,6 +211,6 @@ class Pas2VasResolverJsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
 class TestPas2Vas(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="pas2vas %(offset)s --pid %(pid)s ",
+        commandline="pas2vas --offsets %(offset)s - %(pids)s ",
         pid=0,
     )

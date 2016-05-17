@@ -313,6 +313,7 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
 
 class PECommandPlugin(plugin.KernelASMixin, plugin.PhysicalASMixin,
+                      plugin.TypedProfileCommand,
                       plugin.ProfileCommand):
     """A command that is active when inspecting a PE file."""
     __abstract = True
@@ -332,8 +333,8 @@ class PEAddressResolver(address_resolver.AddressResolverMixin,
                         PECommandPlugin):
     """A simple address resolver for PE files."""
 
-    def __init__(self, **kwargs):
-        super(PEAddressResolver, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(PEAddressResolver, self).__init__(*args, **kwargs)
         self.image_base = self.kernel_address_space.image_base
         self.pe_helper = pe_vtypes.PE(
             address_space=self.session.kernel_address_space,

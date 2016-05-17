@@ -103,19 +103,28 @@ class RekallObjectInspector(oinspect.Inspector):
     plugin.
     """
 
-    def format_parameters(self, plugin_class):
+    def _format_parameter(self, displayfields, arg):
+        desc = arg["help"]
+        try:
+            desc += " (type: %s)" % arg["type"]
+        except KeyError:
+            pass
+
+        displayfields.append(("  " + arg["name"], desc))
+
+    def format_parameters(self, plugin_class, positional=True):
         displayfields = []
         command_metadata = config.CommandMetadata(plugin_class).Metadata()
+
+        # First format positionals:
         for arg in command_metadata["arguments"]:
-            desc = arg["help"]
-            try:
-                desc += " (type: %s)" % arg["type"]
-            except KeyError:
-                pass
+            if arg.get("positional", False) == positional:
+                self._format_parameter(displayfields, arg)
 
-            displayfields.append(("  " + arg["name"], desc))
+        if displayfields:
+            return self._format_fields(displayfields)
 
-        return self._format_fields(displayfields)
+        return ""
 
     def plugin_pinfo(self, runner, detail_level=0):
         """Generate info dict for a plugin from a plugin runner."""
@@ -125,7 +134,10 @@ class RekallObjectInspector(oinspect.Inspector):
         display_fields = [
             ("file", oinspect.find_file(plugin_class)),
             ("Plugin", "%s (%s)" % (plugin_class.__name__, plugin_class.name)),
-            ("Parameters", self.format_parameters(plugin_class)),
+            ("Positional Args",
+             self.format_parameters(plugin_class, True)),
+            ("Keyword Args",
+             self.format_parameters(plugin_class, False)),
             ("Docstring", oinspect.getdoc(plugin_class) or ""),
             ("Link", (
                 "http://www.rekall-forensic.com/epydocs/%s.%s-class.html" % (

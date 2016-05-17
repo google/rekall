@@ -33,7 +33,6 @@ supported operating systems.
 """
 from rekall import plugin
 
-from rekall.plugins.addrspaces import elfcore
 from rekall.plugins.addrspaces import standard
 
 
@@ -46,10 +45,14 @@ class Live(plugin.ProfileCommand):
 
     def live(self):
         try:
+            # Stack the address spaces by hand.
+            load_as = self.session.plugins.load_as(session=self.session)
             base_as = standard.FileAddressSpace(session=self.session,
                                                 filename="/proc/kcore")
-            self.session.physical_address_space = elfcore.KCoreAddressSpace(
-                base=base_as)
+
+            self.session.physical_address_space = load_as.GuessAddressSpace(
+                base_as=base_as)
+
         except IOError as e:
             self.session.logging.debug("%s", e)
             raise plugin.PluginError("%s. Are you root?" % e)

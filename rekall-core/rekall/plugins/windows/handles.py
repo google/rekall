@@ -126,4 +126,4 @@ class Handles(common.WinProcessFilter):
 class TestHandles(testlib.SimpleTestCase):
     """Test the Handler module."""
 
-    PARAMETERS = dict(commandline="handles --pid %(pid)s")
+    PARAMETERS = dict(commandline="handles %(pids)s")

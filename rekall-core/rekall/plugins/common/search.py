@@ -20,14 +20,6 @@
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
-
-from rekall import obj
-from rekall import plugin
-from rekall import testlib
-from rekall import utils
-
-from rekall.ui import identity as identity_renderer
-
 from efilter import ast
 from efilter import errors
 from efilter import protocol
@@ -41,6 +33,13 @@ from efilter.protocols import applicative
 from efilter.protocols import associative
 from efilter.protocols import repeated
 from efilter.protocols import structured
+
+from rekall import obj
+from rekall import plugin
+from rekall import testlib
+from rekall import utils
+
+from rekall.ui import identity as identity_renderer
 
 
 class TestWhichPlugin(testlib.SimpleTestCase):
@@ -75,7 +74,7 @@ class TestSearch(testlib.SimpleTestCase):
     )
 
 
-class FindPlugins(plugin.ProfileCommand):
+class FindPlugins(plugin.TypedProfileCommand, plugin.ProfileCommand):
     """Find which plugin(s) are available to produce the desired output."""
 
     name = "which_plugin"
@@ -83,23 +82,18 @@ class FindPlugins(plugin.ProfileCommand):
     type_name = None
     producers_only = False
 
-    @classmethod
-    def args(cls, parser):
-        super(FindPlugins, cls).args(parser)
-        parser.add_argument("type_name", required=True,
-                            help="The name of the type we're looking for. "
-                                 "E.g.: 'proc' will find psxview, pslist, etc.")
-        parser.add_argument("producers_only", required=False, default=False,
-                            help="Only include producers: plugins that output "
-                                 "only this struct and have no side effects.")
+    __args = [
+        dict(name="type_name", required=True, positional=True,
+             help="The name of the type we're looking for. "
+             "E.g.: 'proc' will find psxview, pslist, etc."),
 
-    def __init__(self, type_name=None, producers_only=False, **kwargs):
-        super(FindPlugins, self).__init__(**kwargs)
-        self.type_name = type_name
-        self.producers_only = producers_only
+        dict(name="producers_only", required=False, type="Boolean",
+             help="Only include producers: plugins that output "
+             "only this struct and have no side effects.")
+    ]
 
     def collect(self):
-        if self.producers_only:
+        if self.plugin_args.producers_only:
             pertinent_cls = plugin.Producer
         else:
             pertinent_cls = plugin.TypedProfileCommand
@@ -118,9 +112,10 @@ class FindPlugins(plugin.ProfileCommand):
 
                 try:
                     for t in table_header.types_in_output:
-                        if isinstance(t, type) and self.type_name == t.__name__:
+                        if (isinstance(t, type) and
+                                self.plugin_args.type_name == t.__name__):
                             yield plugin_cls(session=self.session)
-                        elif self.type_name == t:
+                        elif self.plugin_args.type_name == t:
                             yield plugin_cls(session=self.session)
                 except plugin.Error:
                     # We were unable to instantiate this plugin to figure out
@@ -137,7 +132,7 @@ class FindPlugins(plugin.ProfileCommand):
             renderer.table_row(command)
 
 
-class Collect(plugin.ProfileCommand):
+class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
     """Collect instances of struct of type 'type_name'.
 
     This plugin will find all other plugins that produce 'type_name' and merge
@@ -152,24 +147,20 @@ class Collect(plugin.ProfileCommand):
 
     type_name = None
 
-    @classmethod
-    def args(cls, parser):
-        super(Collect, cls).args(parser)
-        parser.add_argument("type_name", required=True,
-                            help="The type (struct) to collect.")
+    __args = [
+        dict(name="type_name", required=True, positional=True,
+             help="The type (struct) to collect.")
+    ]
 
     @classmethod
     def GetPrototype(cls, session):
         """Instantiate with suitable default arguments."""
         return cls(None, session=session)
 
-    def __init__(self, type_name, **kwargs):
-        super(Collect, self).__init__(**kwargs)
-        self.type_name = type_name
-
     def collect(self):
-        which = self.session.plugins.which_plugin(type_name=self.type_name,
-                                                  producers_only=True)
+        which = self.session.plugins.which_plugin(
+            type_name=self.plugin_args.type_name,
+            producers_only=True)
 
         results = {}
         for producer in which.collect():
@@ -187,8 +178,9 @@ class Collect(plugin.ProfileCommand):
 
     def render(self, renderer):
         renderer.table_header([
-            dict(name=self.type_name, cname=self.type_name,
-                 type=self.type_name),
+            dict(name=self.plugin_args.type_name,
+                 cname=self.plugin_args.type_name,
+                 type=self.plugin_args.type_name),
             dict(name="Producers", cname="producers")
         ])
 
@@ -314,7 +306,7 @@ repeated.IRepeated.implicit_static(CommandWrapper)
 applicative.IApplicative.implicit_static(CommandWrapper)
 
 
-class EfilterPlugin(plugin.ProfileCommand):
+class EfilterPlugin(plugin.TypedProfileCommand, plugin.ProfileCommand):
     """Abstract base class for plugins that do something with queries.
 
     Provides implementations of the basic EFILTER protocols for selecting and
@@ -332,30 +324,20 @@ class EfilterPlugin(plugin.ProfileCommand):
 
     # Plugin lifecycle:
 
-    @classmethod
-    def args(cls, parser):
-        super(EfilterPlugin, cls).args(parser)
-        parser.add_argument(
-            "query",
-            required=True,
-            help="The dotty/EFILTER query to run.")
+    __args = [
+        dict(name="query", required=True, positional=True,
+             help="The dotty/EFILTER query to run."),
 
-        parser.add_argument(
-            "query_parameters",
-            default=[],
-            type="ArrayStringParser",
-            help="Positional parameters for parametrized queries.")
+        dict(name="query_parameters", type="ArrayString",
+             help="Positional parameters for parametrized queries."),
+    ]
 
-    def __init__(self, query=None, query_parameters=None, **kwargs):
-        super(EfilterPlugin, self).__init__(**kwargs)
-
-        if not query:
-            raise ValueError("You must supply a query (got %r)." % (query,))
-
-        self.query_source = query
+    def __init__(self, *args, **kwargs):
+        super(EfilterPlugin, self).__init__(*args, **kwargs)
 
         try:
-            self.query = q.Query(query, params=query_parameters)
+            self.query = q.Query(self.plugin_args.query,
+                                 params=self.plugin_args.query_parameters)
         except errors.EfilterError as error:
             self.query_error = error
             self.query = None
@@ -365,9 +347,9 @@ class EfilterPlugin(plugin.ProfileCommand):
             # error, but we might get a non-EfilterError exception if the user
             # gets creative (e.g. passing a custom object as query, instead of a
             # string).
-            raise ValueError("Could not parse your query %r." % (query,))
+            raise ValueError("Could not parse your query %r." % (
+                self.plugin_args.query,))
 
-        self.query_parameters = query_parameters
         self._cached_command_wrappers = dict()
 
     # IStructured implementation for EFILTER:
@@ -490,17 +472,10 @@ class Search(EfilterPlugin):
 
     name = "search"
 
-    @classmethod
-    def args(cls, parser):
-        super(Search, cls).args(parser)
-        parser.add_argument(
-            "silent",
-            default=False,
-            help="Queries should fail silently.")
-
-    def __init__(self, *args, **kwargs):
-        self.silent = kwargs.pop("silent", None)
-        super(Search, self).__init__(*args, **kwargs)
+    __args = [
+        dict(name="silent", default=False, type="Boolean",
+             help="Queries should fail silently."),
+    ]
 
     def collect(self):
         """Return the search results without displaying them.
@@ -515,7 +490,7 @@ class Search(EfilterPlugin):
             result = self.solve()
             return repeated.getvalues(result)
         except errors.EfilterError:
-            if self.silent:
+            if self.plugin_args.silent:
                 return None
 
             raise

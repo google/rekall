@@ -51,7 +51,7 @@ class CommandOption(object):
     """An option specification."""
 
     def __init__(self, name=None, default=None, type="String", choices=None,
-                 help="", positional=False, required=False):
+                 help="", positional=False, required=False, override=False):
         self.name = name
         self.default = default
         self.type = type
@@ -59,24 +59,36 @@ class CommandOption(object):
         self.choices = choices
         self.required = required
         self.positional = positional
+        self.override = override
 
     def add_argument(self, parser):
         """Add ourselves to the parser."""
         prefix = "" if self.positional else "--"
         parser.add_argument(prefix + self.name, default=self.default,
                             type=self.type, help=self.help,
+                            positional=self.positional,
                             required=self.required, choices=self.choices)
 
     def parse(self, value, session):
         """Parse the value as passed."""
         if value is None:
+            # Default values for various types.
+            if self.type == "AddressSpace":
+                return session.GetParameter("default_address_space")
+
+            if self.type in ["ArrayString", "ArrayIntParser"]:
+                return []
+
+            if self.type in ["Bool", "Boolean"]:
+                return False
+
             return self.default
 
         # Validate the parsed type. We only support a small set of types right
         # now, so this is good enough.
 
         # Handle addresses specifically though the address resolver.
-        if self.type == "Address":
+        if self.type == "Address" or self.type == "SymbolAddress":
             value = session.address_resolver.get_address_by_name(value)
 
         elif self.type == "IntParser":
@@ -91,12 +103,18 @@ class CommandOption(object):
                     self.name, self.choices))
 
         elif self.type == "ChoiceArray":
+            if isinstance(value, basestring):
+                value = [value]  # pylint: disable=redefined-variable-type
+
             for item in value:
                 if item not in self.choices:
                     raise TypeError("Arg %s must be one of %s" % (
                         self.name, self.choices))
 
         elif self.type == "ArrayString":
+            if isinstance(value, basestring):
+                value = [value]
+
             if not isinstance(value, (list, tuple)):
                 raise TypeError("Arg %s must be a list of strings" % self.name)
 
@@ -111,8 +129,13 @@ class CommandOption(object):
         elif self.type == "ArrayIntParser":
             try:
                 value = [int(value)]  # pylint: disable=redefined-variable-type
-            except ValueError:
+            except (ValueError, TypeError):
                 value = [int(x) for x in value]
+
+        # Allow address space to be specified.
+        elif self.type == "AddressSpace":
+            load_as = session.plugins.load_as(session=session)
+            value = load_as.ResolveAddressSpace(value)
 
         return value
 
@@ -377,9 +400,10 @@ class PluginHeader(object):
                 cname = column.get("name")
 
             if not cname:
-                raise ValueError("Plugins declaring table headers ahead of "
-                                 "time MUST specify 'cname' for each column. "
-                                 "Table header %r is invalid." % (columns,))
+                raise ValueError(
+                    "Plugins declaring table headers ahead of "
+                    "time MUST specify 'cname' or 'name' for each column. "
+                    "Table header %r is invalid." % (columns,))
 
             if self.by_cname.get(cname):
                 raise ValueError("Duplicate cname %r! Table header %r is "
@@ -466,12 +490,12 @@ class TypedProfileCommand(object):
                     definition = CommandOption(**definition)
 
                 # We have seen this arg before.
-                if definition.name in definitions_classes:
-                    raise RuntimeError(
-                        "Multiply defined arg (%s). In %s and %s." % (
-                            definition.name, cls,
-                            definitions_classes[definition.name])
-                    )
+                previous_definition = definitions_classes.get(definition.name)
+                if previous_definition:
+                    # Since we traverse the definition in reverse MRO order,
+                    # later definitions should be masked by earlier (more
+                    # derived) definitions.
+                    continue
 
                 definitions_classes[definition.name] = cls
                 definitions.append(definition)
@@ -479,12 +503,11 @@ class TypedProfileCommand(object):
         # Handle positional args by consuming them off the pos_args array in
         # definition order. This allows positional args to be specified either
         # by position, or by keyword.
-        def _get_positional_args():
-            for definition in definitions:
-                if definition.positional:
-                    yield definition
+        positional_args = [x for x in definitions if x.positional]
+        if len(positional_args) < len(pos_args):
+            raise TypeError("Too many positional args provided.")
 
-        for pos_arg, definition in zip(pos_args, _get_positional_args()):
+        for pos_arg, definition in zip(pos_args, positional_args):
             # If the positional arg is also defined as a keyword arg this is a
             # bug.
             if definition.name in kwargs:
@@ -494,8 +517,7 @@ class TypedProfileCommand(object):
 
             kwargs[definition.name] = pos_arg
 
-        # Collect all the declared args and parse them. Keep track of their
-        # source in case we need to explode.
+        # Collect all the declared args and parse them.
         for definition in definitions:
             value = kwargs.pop(definition.name, None)
             if value is None and definition.required:
@@ -530,8 +552,8 @@ class TypedProfileCommand(object):
         for row in self.collect():
             yield self.table_header.dictify(row)
 
-    def render(self, renderer):
-        renderer.table_header(self.table_header)
+    def render(self, renderer, **options):
+        renderer.table_header(self.table_header, **options)
         for row in self.collect():
             if isinstance(row, (list, tuple)):
                 renderer.table_row(*row)

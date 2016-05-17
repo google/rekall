@@ -468,27 +468,23 @@ class DWARFParser(object):
         return result
 
 
-class DwarfParser(plugin.Command):
+class DwarfParser(plugin.TypedProfileCommand, plugin.Command):
     """Parse the dwarf file and dump a vtype structure from it."""
     __name = "dwarfparser"
 
-    @classmethod
-    def args(cls, parser):
-        super(DwarfParser, cls).args(parser)
+    __args = [
+        dict(name="dwarf_filename", positional=True, required=True,
+             help="The filename of the PDB file."),
 
-        parser.add_argument(
-            "dwarf_filename", default=None,
-            help="The filename of the PDB file.")
+        dict(name="profile_class", default="Linux64",
+             help="The name of the profile implementation. "),
+    ]
 
-        parser.add_argument(
-            "--profile_class", default="Linux64",
-            help="The name of the profile implementation. ")
+    def __init__(self, *args, **kwargs):
+        super(DwarfParser, self).__init__(*args, **kwargs)
 
-    def __init__(self, dwarf_filename=None, profile_class=None, **kwargs):
-        super(DwarfParser, self).__init__(**kwargs)
-
-        self.parser = DWARFParser(open(dwarf_filename, "rb"), self.session)
-        self.profile_class = profile_class
+        self.parser = DWARFParser(
+            open(self.plugin_args.dwarf_filename, "rb"), self.session)
 
     def render(self, renderer):
         vtypes = self.parser.VType()
@@ -497,7 +493,7 @@ class DwarfParser(plugin.Command):
                 Type="Profile",
 
                 # This should probably be changed for something more specific.
-                ProfileClass=self.profile_class),
+                ProfileClass=self.plugin_args.profile_class),
             "$STRUCTS": vtypes,
             "$ENUMS": vtypes.pop("$ENUMS", {}),
             "$REVENUMS": vtypes.pop("$REVENUMS", {}),

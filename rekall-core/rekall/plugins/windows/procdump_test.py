@@ -28,7 +28,7 @@ class TestProcdump(testlib.HashChecker):
     """Test the Procdump module."""
 
     PARAMETERS = dict(
-        commandline="procdump --pid %(pid)s --dump_dir %(tempdir)s",
+        commandline="procdump %(pids)s --dump_dir %(tempdir)s",
         pid=2536
         )
 
@@ -44,7 +44,7 @@ class TestDLLDump(testlib.HashChecker):
     """Test the dlldump module."""
 
     PARAMETERS = dict(
-        commandline="dlldump --pid %(pid)s --dump_dir %(tempdir)s",
+        commandline="dlldump %(pids)s --dump_dir %(tempdir)s",
         )
 
 

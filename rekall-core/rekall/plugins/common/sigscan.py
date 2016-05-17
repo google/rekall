@@ -224,21 +224,24 @@ class SigScanMixIn(object):
 class TestSigScanPhysical(testlib.SimpleTestCase):
     """Runs sigscan against physical memory."""
 
-    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_physical",
-                      signature="")
+    PARAMETERS = dict(
+        commandline="sigscan --signature %(signature)s --scan_physical",
+        signature="")
 
 
 class TestSigScanKernel(testlib.SimpleTestCase):
     """Runs sigscan against the kernel."""
 
-    PARAMETERS = dict(commandline="sigscan %(signature)s --scan_kernel",
-                      signature="")
+    PARAMETERS = dict(
+        commandline="sigscan --signature %(signature)s --scan_kernel",
+        signature="")
 
 
 class TestSigScanProcess(testlib.SimpleTestCase):
     """Runs sigscan against processes."""
 
     PARAMETERS = dict(
-        commandline="sigscan %(signature)s --proc_regex %(proc_regex)s",
+        commandline=("sigscan --signature %(signature)s "
+                     "--proc_regex %(proc_regex)s"),
         signature="",
         proc_regex=".")

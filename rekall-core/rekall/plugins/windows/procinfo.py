@@ -31,26 +31,24 @@ from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
 
 
-class PEInfo(plugin.VerbosityMixIn, plugin.Command):
+class PEInfo(plugin.VerbosityMixIn, plugin.TypedProfileCommand, plugin.Command):
     """Print information about a PE binary."""
 
     __name = "peinfo"
 
-    @classmethod
-    def args(cls, parser):
-        super(PEInfo, cls).args(parser)
-        parser.add_argument("--image-base", default=None, type="SymbolAddress",
-                            help="The base of the image.")
+    __args = [
+        dict(name="image_base", type="SymbolAddress", positional=True,
+             help="The base of the image."),
 
-        parser.add_argument("executable", default=None, nargs='?',
-                            help="If provided we create an address space "
-                            "from this file.")
+        dict(name="executable", positional=True, required=False,
+             help="If provided we create an address space "
+             "from this file."),
 
-        parser.add_argument("-a", "--address-space", default=None,
-                            help="The address space to use.")
+        dict(name="address_space", default=None,
+             help="The address space to use.")
+    ]
 
-    def __init__(self, image_base=None, executable=None, address_space=None,
-                 **kwargs):
+    def __init__(self, *args, **kwargs):
         """Dump a PE binary from memory.
 
         Status is shown for each exported function:
@@ -66,24 +64,23 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
 
           filename: If provided we create an address space from this file.
         """
-        super(PEInfo, self).__init__(**kwargs)
-        if executable is None and address_space is None:
+        super(PEInfo, self).__init__(*args, **kwargs)
+        if (self.plugin_args.executable is None and
+                self.plugin_args.address_space is None):
             # Resolve the correct address space. This allows the address space
             # to be specified from the command line (e.g. "P")
             load_as = self.session.plugins.load_as(session=self.session)
-            address_space = load_as.ResolveAddressSpace(address_space)
+            self.plugin_args.address_space = load_as.ResolveAddressSpace(
+                self.plugin_args.address_space)
 
-        if image_base is None:
-            image_base = self.session.GetParameter("default_image_base", 0)
-
-        # Allow the image base to be given as a name (e.g. "nt").
-        resolver = self.session.address_resolver
-        if resolver:
-            image_base = resolver.get_address_by_name(image_base)
+        if self.plugin_args.image_base is None:
+            self.plugin_args.image_base = self.session.GetParameter(
+                "default_image_base", 0)
 
         self.pe_helper = pe_vtypes.PE(
-            address_space=address_space, session=self.session,
-            filename=executable, image_base=image_base)
+            address_space=self.plugin_args.address_space, session=self.session,
+            filename=self.plugin_args.executable,
+            image_base=self.plugin_args.image_base)
 
         self.disassembler = self.session.plugins.dis(
             address_space=self.pe_helper.vm,
@@ -210,7 +207,7 @@ class PEInfo(plugin.VerbosityMixIn, plugin.Command):
 
 class TestPEInfo(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="peinfo --image-base nt"
+        commandline="peinfo nt"
         )
 
 
@@ -250,5 +247,5 @@ class ProcInfo(common.WinProcessFilter):
 
 class TestProcInfo(testlib.SimpleTestCase):
     PARAMETERS = dict(
-        commandline="procinfo --pid=%(pid)s"
+        commandline="procinfo %(pids)s"
         )

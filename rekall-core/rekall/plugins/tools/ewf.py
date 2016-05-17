@@ -511,30 +511,23 @@ class EWFFileWriter(object):
         self.AddNewSection(done_section)
 
 
-class EWFAcquire(plugin.PhysicalASMixin, plugin.Command):
+class EWFAcquire(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
+                 plugin.Command):
     """Copy the physical address space to an EWF file."""
 
     name = "ewfacquire"
 
-    @classmethod
-    def args(cls, parser):
-        super(EWFAcquire, cls).args(parser)
-
-        parser.add_argument(
-            "destination", default=None, required=False,
-            help="The destination file to create. "
-            "If not specified we write output.E01 in current directory.")
-
-    def __init__(self, destination=None, **kwargs):
-        super(EWFAcquire, self).__init__(**kwargs)
-
-        self.destination = destination
+    __args = [
+        dict(name="destination", positional=True, required=False,
+             help="The destination file to create. "
+             "If not specified we write output.E01 in current directory.")
+    ]
 
     def render(self, renderer):
-        if self.destination is None:
+        if self.plugin_args.destination is None:
             out_fd = renderer.open(filename="output.E01", mode="w+b")
         else:
-            directory, filename = os.path.split(self.destination)
+            directory, filename = os.path.split(self.plugin_args.destination)
             out_fd = renderer.open(filename=filename, directory=directory,
                                    mode="w+b")
 

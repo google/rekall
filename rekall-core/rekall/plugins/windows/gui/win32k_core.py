@@ -951,5 +951,5 @@ class Win32kHook(kb.ParameterHook):
     def calculate(self):
         # Require at least 3 comparison points to be matched.
         for _, guess in self.session.plugins.guess_guid(
-                module_name="win32k", minimal_match=3).GuessProfiles():
+                module="win32k", minimal_match=3).GuessProfiles():
             return guess

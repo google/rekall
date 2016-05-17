@@ -194,11 +194,13 @@ class DarwinBootParameters(common.AbstractDarwinCommand):
 
 
 class DarwinSetProcessContext(core.SetProcessContextMixin,
-                              common.DarwinProcessFilter):
+                              common.ProcessFilterMixin,
+                              common.AbstractDarwinCommand):
     """A cc plugin for windows."""
 
 
-class DarwinVtoP(core.VtoPMixin, common.DarwinProcessFilter):
+class DarwinVtoP(core.VtoPMixin, common.ProcessFilterMixin,
+                 common.AbstractDarwinCommand):
     """Describe virtual to physical translation on darwin platforms."""
 
 

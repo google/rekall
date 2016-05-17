@@ -349,6 +349,7 @@ class Configuration(utils.AttributeDict):
 
     def _set_ept(self, ept, _):
         self.session.Reset()
+        self["ept"] = ept
         return ept
 
     def _set_session_name(self, name, _):

@@ -232,16 +232,20 @@ class VoidTextRenderer(PointerTextRenderer):
 class FunctionTextRenderer(BaseObjectTextRenderer):
     renders_type = "Function"
 
-    def render_full(self, target, **_):
-        if target.mode == "AMD64":
-            format_string = "%0#14x  %s"
-        else:
-            format_string = "%0#10x  %s"
+    def render_full(self, target, width=None, **_):
+        table = text.TextTable(
+            columns=[
+                dict(name="Address", style="address"),
+                dict(name="OpCode", width=16),
+                dict(name="Op", width=width)
+            ],
+            renderer=self.renderer,
+            session=self.session)
 
         result = []
         for instruction in target.disassemble():
-            result.append(format_string % (instruction.address,
-                                           instruction.text))
+            result.append(unicode(table.get_row(
+                instruction.address, instruction.hexbytes, instruction.text)))
 
         return text.Cell("\n".join(result))
 

@@ -29,12 +29,15 @@ class LinuxPsxView(common.LinProcessFilter):
 
     __name = "psxview"
 
-    def list_from_pidhashtable(self, seen=None):
-        pidhashtable_plugin = self.session.plugins.pidhashtable()
-        for task in pidhashtable_plugin.filter_processes():
-            if task.obj_offset not in seen:
-                seen.add(task.obj_offset)
-                yield task
+    METHODS = common.LinProcessFilter.METHODS + [
+        "PidHashTable",
+    ]
+
+    __args = [
+        dict(name="method", choices=METHODS, type="ChoiceArray",
+             default=METHODS, help="Method to list processes.",
+             override=True),
+    ]
 
     def render(self, renderer):
         headers = [('Offset(V)', 'virtual_offset', '[addrpad]'),
@@ -42,7 +45,7 @@ class LinuxPsxView(common.LinProcessFilter):
                    ('PID', 'pid', '>12'),
                   ]
 
-        for method in self.methods:
+        for method in self.plugin_args.method:
             headers.append((method, method, "%s" % len(method)))
 
         renderer.table_header(headers)
@@ -50,10 +53,21 @@ class LinuxPsxView(common.LinProcessFilter):
         for process in self.filter_processes():
             row = [process.obj_offset, process.comm, process.pid]
 
-            for method in self.methods:
-                row.append(process.obj_offset in self.cache[method])
+            for method in self.plugin_args.method:
+                row.append(process.obj_offset in
+                           self.session.GetParameter("pslist_%s" % method))
 
             renderer.table_row(*row)
 
-    METHODS = common.LinProcessFilter.METHODS.copy()
-    METHODS["PidHashTable"] = list_from_pidhashtable
+
+class PidHashTableHook(common.AbstractLinuxParameterHook):
+    name = "pslist_PidHashTable"
+
+    def calculate(self):
+        seen = set()
+        pidhashtable_plugin = self.session.plugins.pidhashtable()
+        for task in pidhashtable_plugin.filter_processes():
+            if task.obj_offset not in seen:
+                seen.add(task.obj_offset)
+
+        return seen

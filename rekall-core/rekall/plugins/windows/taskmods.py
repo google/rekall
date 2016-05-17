@@ -171,7 +171,7 @@ class TestWinMemDump(testlib.HashChecker):
     """Test the pslist module."""
 
     PARAMETERS = dict(
-        commandline="memdump --pid=%(pid)s --dump_dir %(tempdir)s",
+        commandline="memdump %(pids)s --dump_dir %(tempdir)s",
         pid=2624)
 
 
@@ -179,12 +179,12 @@ class TestMemmap(testlib.SimpleTestCase):
     """Test the pslist module."""
 
     PARAMETERS = dict(
-        commandline="memmap --pid=%(pid)s",
+        commandline="memmap %(pids)s",
         pid=2624)
 
 
 class TestMemmapCoalesce(testlib.SimpleTestCase):
     """Make sure that memmaps are coalesced properly."""
 
-    PARAMETERS = dict(commandline="memmap --pid=%(pid)s --coalesce",
+    PARAMETERS = dict(commandline="memmap %(pids)s --coalesce",
                       pid=2624)

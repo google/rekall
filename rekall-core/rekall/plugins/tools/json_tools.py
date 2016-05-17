@@ -38,7 +38,7 @@ from rekall import testlib
 from rekall.ui import json_renderer
 
 
-class JSONParser(plugin.Command):
+class JSONParser(plugin.TypedProfileCommand, plugin.Command):
     """Renders a json rendering file, as produced by the JsonRenderer.
 
     The output of any plugin can be stored to a JSON file using:
@@ -54,22 +54,10 @@ class JSONParser(plugin.Command):
 
     name = "json_render"
 
-
-    @classmethod
-    def args(cls, parser):
-        super(JSONParser, cls).args(parser)
-
-        parser.add_argument("file", default=None,
-                            help="The filename to parse.")
-
-    def __init__(self, file=None, fd=None, **kwargs):
-        super(JSONParser, self).__init__(**kwargs)
-
-        # Make a json renderer to decode the json stream with.
-        self.json_renderer = json_renderer.JsonRenderer(session=self.session)
-
-        self.file = file
-        self.fd = fd
+    __args = [
+        dict(name="file", positional=True, required=True,
+             help="The filename to parse.")
+    ]
 
     def RenderStatement(self, statement, renderer):
         """Renders one json decoded data command at a time."""
@@ -107,12 +95,10 @@ class JSONParser(plugin.Command):
         To decode the json file we replay the statements into the renderer after
         decompressing them.
         """
-        if self.file:
-            self.fd = renderer.open(filename=self.file, mode="rb")
+        # Make a json renderer to decode the json stream with.
+        self.json_renderer = json_renderer.JsonRenderer(session=self.session)
 
-        if self.fd is None:
-            raise ValueError("Need a filename or a file descriptor.")
-
+        self.fd = renderer.open(filename=self.plugin_args.file, mode="rb")
         data = json.load(self.fd)
 
         for statement in data:

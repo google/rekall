@@ -290,90 +290,68 @@ class Capstone(Disassembler):
                                       address_space=self.address_space)
 
 
-class Disassemble(plugin.Command):
+class Disassemble(plugin.TypedProfileCommand, plugin.Command):
     """Disassemble the given offset."""
 
     __name = "dis"
 
-    @classmethod
-    def args(cls, parser):
-        super(Disassemble, cls).args(parser)
-        parser.add_argument(
-            "offset", type="SymbolAddress",
-            help="An offset to disassemble. This can also be the name of "
-            "a symbol with an optional offset. For example: "
-            "tcpip!TcpCovetNetBufferList.")
+    __args = [
+        dict(name="offset", type="SymbolAddress", positional=True,
+             help="An offset to disassemble. This can also be the name of "
+             "a symbol with an optional offset. For example: "
+             "tcpip!TcpCovetNetBufferList."),
 
-        parser.add_argument("-a", "--address_space", default=None,
-                            help="The address space to use.")
+        dict(name="address_space", type="AddressSpace",
+             help="The address space to use."),
 
-        parser.add_argument(
-            "-l", "--length", type="IntParser",
-            help="The number of instructions (lines) to disassemble.")
+        dict(name="length", type="IntParser",
+             help="The number of instructions (lines) to disassemble."),
 
-        parser.add_argument(
-            "-e", "--end", default=None, type="IntParser",
-            help="The end address to disassemble up to.")
+        dict(name="end", type="IntParser",
+             help="The end address to disassemble up to."),
 
-        parser.add_argument(
-            "--mode", default="auto", choices=["auto", "I386", "AMD64", "MIPS"],
-            type="Choices",
-            help="Disassemble Mode (AMD64 or I386). Defaults to 'auto'.")
+        dict(name="mode", default=None,
+             choices=["I386", "AMD64", "MIPS"], type="Choices",
+             help="Disassemble Mode (AMD64 or I386). Defaults to 'auto'."),
 
-        parser.add_argument(
-            "--suppress_headers", default=False, type="Boolean",
-            help="If set we do not write table headers.")
+        dict(name="branch", default=False, type="Boolean",
+             help="If set we follow all branches to cover all code."),
 
-        parser.add_argument(
-            "--branch", default=False, type="Boolean",
-            help="If set we follow all branches to cover all code.")
+        dict(name="canonical", default=False, type="Boolean",
+             help="If set emit canonical instructions. These can be used to "
+             "develop signatures."),
+    ]
 
-        parser.add_argument(
-            "--canonical", default=False, type="Boolean",
-            help="If set emit canonical instructions. These can be used to "
-            "develop signatures.")
+    table_header = [
+        dict(type="TreeNode", name="Address", cname="cmd_address",
+             width=20, child=dict(style="address")),
+        dict(name='Rel', cname="relative_address", style="address", width=5),
+        dict(name='Op Codes', cname="opcode", width=20),
+        dict(name='Instruction', cname="instruction", width=40),
+        dict(name='Comment', cname="comment"),
+    ]
 
-    def __init__(self, offset=0, address_space=None, length=None,
-                 end=None, mode="auto", suppress_headers=False, branch=False,
-                 canonical=False, **kwargs):
-        super(Disassemble, self).__init__(**kwargs)
-
-        load_as = self.session.plugins.load_as(session=self.session)
-        self.address_space = load_as.ResolveAddressSpace(address_space)
-        self.canonical = canonical
-
-        resolver = self.session.address_resolver
-        offset = resolver.get_address_by_name(offset)
-        if end:
-            end = resolver.get_address_by_name(end)
-
-        # Normalize the offset to an address.
-        offset = obj.Pointer.integer_to_address(offset)
-
-        self.offset = offset
-        self.length = length
-        self.end = end
+    def __init__(self, *args, **kwargs):
+        super(Disassemble, self).__init__(*args, **kwargs)
 
         # If length is not specified only disassemble one pager of output.
+        self.length = self.plugin_args.length
         if self.length is None:
             self.length = self.session.GetParameter("paging_limit", 50)
 
         # If end is specified, keep going until we hit the end.
-        if self.end is not None:
+        if self.plugin_args.end is not None:
+            self.length = 2**62
+
+        # If we are doing branch analysis we can not suspend this plugin. We
+        # must do everything all the time.
+        if self.plugin_args.branch:
             self.length = 2**62
 
         # All the visited addresses (for branch analysis).
         self._visited = set()
-        self._visited_count = 0
 
-        self.follow_branches = branch
-        self.suppress_headers = suppress_headers
-        if mode == "auto":
-            mode = None
-
-        self.mode = mode
-        self.func = Function(offset=offset, vm=self.address_space,
-                             session=self.session, mode=self.mode)
+        self.offset = self.plugin_args.offset
 
     def disassemble(self, offset, depth=0):
         """Disassemble the number of instructions required.
@@ -382,8 +360,8 @@ class Disassemble(plugin.Command):
           A tuple of (Address, Opcode, Instructions).
         """
         # Disassemble the data one page at the time.
-        func = Function(offset=offset, vm=self.address_space,
-                        session=self.session, mode=self.mode)
+        func = Function(offset=offset, vm=self.plugin_args.address_space,
+                        session=self.session, mode=self.plugin_args.mode)
 
         for instruction in func.disassemble(self.length):
             offset = instruction.address
@@ -391,27 +369,24 @@ class Disassemble(plugin.Command):
             if offset in self._visited:
                 return
 
-            self._visited_count += 1
-
             # Exit condition can be specified by length.
             if (self.length is not None and
-                    self._visited_count > self.length):
+                    len(self._visited) > self.length):
                 return
 
             # Exit condition can be specified by end address.
-            if self.end and offset > self.end:
+            if self.plugin_args.end and offset > self.plugin_args.end:
                 return
 
             # Yield this data.
             yield depth, instruction
 
-            if self.follow_branches:
-                self._visited.add(offset)
-
             # If the user asked for full branch analysis we follow all
             # branches. This gives us full code coverage for a function - we
             # just disassemble until the function exists from all branches.
-            if self.follow_branches:
+            if self.plugin_args.branch:
+                self._visited.add(offset)
+
                 # A return stops this branch.
                 if instruction.is_return():
                     return
@@ -437,7 +412,7 @@ class Disassemble(plugin.Command):
         instruction which can be used to write disassembler signatures.
         """
         # If length nor end are specified only disassemble one pager output.
-        if self.end is None and self.length is None:
+        if self.plugin_args.end is None and self.plugin_args.length is None:
             self.length = self.session.GetParameter("paging_limit") - 5
 
         renderer.table_header([
@@ -447,7 +422,7 @@ class Disassemble(plugin.Command):
         for _, instruction in self.disassemble(self.offset):
             renderer.table_row(instruction.GetCanonical())
 
-    def render(self, renderer):
+    def render(self, renderer, **options):
         """Disassemble code at a given address.
 
         Disassembles code starting at address for a number of bytes
@@ -459,30 +434,13 @@ class Disassemble(plugin.Command):
         The mode is '32bit' or '64bit'. If not supplied, the disassembler
         mode is taken from the profile.
         """
-        if self.offset == None:
-            renderer.format("Error: {0}\n", self.offset.reason)
-            return
+        if self.plugin_args.canonical:
+            return self.render_canonical(renderer, **options)
 
-        if self.canonical:
-            return self.render_canonical(renderer)
+        return super(Disassemble, self).render(renderer, **options)
 
-        # If we are doing branch analysis we can not suspend this plugin. We
-        # must do everything all the time.
-        if self.follow_branches:
-            self.length = self.end = None
-
-        renderer.table_header(
-            [dict(type="TreeNode", name="Address", cname="cmd_address",
-                  child=dict(style="address")),
-             dict(name='Rel', cname="relative_address", style="address",
-                  width=5),
-             ('Op Codes', "opcode", '<20'),
-             ('Instruction', "instruction", '<40'),
-             ('Comment', "comment", "")],
-            suppress_headers=self.suppress_headers)
-
+    def collect(self):
         self._visited.clear()
-        self._visited_count = 0
 
         offset = None
         for depth, instruction in self.disassemble(self.offset):
@@ -499,15 +457,18 @@ class Disassemble(plugin.Command):
                     "Disassembled %s: 0x%x", f_name, offset)
 
                 if offset - f_offset == 0:
-                    renderer.table_row("------ %s ------\n" % f_name,
-                                       annotation=True)
+                    yield dict(
+                        cmd_address="------ %s ------\n" % f_name,
+                        annotation=True)
 
                 if offset - f_offset < 0x1000:
                     relative = offset - f_offset
 
-            renderer.table_row(
-                instruction.address, relative, instruction.hexbytes,
-                instruction.op_str, instruction.comment, depth=depth)
+            yield dict(cmd_address=instruction.address,
+                       relative_address=relative,
+                       opcode=instruction.hexbytes,
+                       instruction=instruction.op_str,
+                       comment=instruction.comment, depth=depth)
 
         # Continue from where we left off when the user calls us again with the
         # v() plugin.
@@ -518,7 +479,7 @@ class TestDisassemble(testlib.SimpleTestCase):
     PARAMETERS = dict(
         # We want to test symbol discovery via export table detection so turn it
         # on.
-        commandline=("dis -l %(length)s %(func)s "
+        commandline=("dis --length %(length)s %(func)s "
                      "--name_resolution_strategies Export"),
         func=0x805031be,
         length=20

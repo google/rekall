@@ -523,7 +523,8 @@ class VirtualMachine(object):
             self.host_rip, self.ept)
 
 
-class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
+class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn,
+             plugin.TypedProfileCommand, plugin.Command):
     """Scan the physical memory attempting to find hypervisors.
 
     Once EPT values are found, you can use them to inspect virtual machines
@@ -546,42 +547,30 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
     """
     __name = "vmscan"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we accept."""
-        super(VmScan, cls).args(parser)
-        parser.add_argument(
-            "--quick", default=False, type="Boolean",
-            help="Perform quick VM detection.")
-        parser.add_argument(
-            "--no_nested", default=False, type="Boolean",
-            help="Don't do nested VM detection.")
-        parser.add_argument(
-            "--offset", type="IntParser", default=0,
-            help="Offset in the physical image to start the scan.")
+    __args = [
+        dict(name="quick", type="Boolean",
+             help="Perform quick VM detection."),
 
-        parser.add_argument(
-            "--show_all", default=False, type="Boolean",
-            help="Also show VMs that failed validation.")
+        dict(name="no_nested", type="Boolean",
+             help="Don't do nested VM detection."),
 
-        parser.add_argument(
-            "--image_is_guest", default=False, type="Boolean",
-            help="The image is for a guest VM, not the host.")
-        parser.add_argument(
-            "--no_validation", default=False, type="Boolean",
-            help=("[DEBUG SETTING] Disable validation of VMs."))
+        dict(name="offset", type="IntParser", default=0,
+             help="Offset in the physical image to start the scan."),
 
-    def __init__(self, offset=0, show_all=False, image_is_guest=False,
-                 no_validation=False, quick=False, no_nested=False, **kwargs):
-        super(VmScan, self).__init__(**kwargs)
-        self._offset = offset
-        self._validate = not no_validation
-        self._show_all = show_all
-        self._image_is_guest = image_is_guest
-        self._quick = quick
-        self._no_nested = no_nested
-        if not self._validate:
-            self._show_all = True
+        dict(name="show_all", default=False, type="Boolean",
+             help="Also show VMs that failed validation."),
+
+        dict(name="image_is_guest", default=False, type="Boolean",
+             help="The image is for a guest VM, not the host."),
+
+        dict(name="no_validation", default=False, type="Boolean",
+             help="[DEBUG SETTING] Disable validation of VMs.")
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(VmScan, self).__init__(*args, **kwargs)
+        if self.plugin_args.no_validate:
+            self.plugin_args.show_all = True
 
     def get_vms(self):
         """Finds virtual machines in physical memory and returns a list of them.
@@ -590,7 +579,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         all_vmcs = VMCSScanner(
             address_space=self.physical_address_space,
             session=self.session,
-            profile=obj.NoneObject).scan(offset=self._offset)
+            profile=obj.NoneObject).scan(offset=self.plugin_args.offset)
 
         host_vms = []
         nested_vms = []
@@ -623,17 +612,21 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                         # physical AS is a VTxPagedMemory when you specify the
                         # --ept parameter on the command line.
                         if vmcs.IS_NESTED:
-                            if (self._image_is_guest or
+                            if (self.plugin_args.image_is_guest or
                                     self.physical_address_space.metadata(
                                         "ept")):
-                                vm.add_vmcs(vmcs, validate=self._validate)
+                                vm.add_vmcs(
+                                    vmcs,
+                                    validate=not self.plugin_args.no_validate)
                             else:
                                 vm.add_vmcs(vmcs, validate=False)
                         else:
-                            vm.add_vmcs(vmcs, validate=self._validate)
+                            vm.add_vmcs(
+                                vmcs,
+                                validate=not self.plugin_args.no_validate)
 
                         if vm.is_valid_vmcs(vmcs):
-                            if self._quick:
+                            if self.plugin_args.quick:
                                 break
                     except UnrelatedVmcsError:
                         # This may happen when we analyze live memory. When
@@ -661,7 +654,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                 else:
                     host_vms.append(vm)
 
-        if self._no_nested:
+        if self.plugin_args.no_nested:
             return host_vms
 
         # == NESTED VM validation
@@ -671,7 +664,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # https://www.usenix.org/event/osdi10/tech/full_papers/Ben-Yehuda.pdf
         #
         # These should show up as another valid VM.
-        if self._validate:
+        if not self.plugin_args.no_validate:
             candidate_hosts = [vm for vm in host_vms if vm.is_valid]
         else:
             candidate_hosts = []
@@ -680,7 +673,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # against all candidate hosts.
         for candidate_host_vm in candidate_hosts:
             candidate_host_vm.add_nested_vms(
-                nested_vms, validate_all=not self._quick)
+                nested_vms, validate_all=not self.plugin_args.quick)
 
         # Add all remaining VMs that we weren't able to guess the hierarchy of
         # to the output vm list.
@@ -691,7 +684,8 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
     def render(self, renderer=None):
         renderer.table_header([
             dict(name="Description", type="TreeNode", max_depth=5, child=dict(
-                type="VirtualizationNode", style="light", quick=self._quick)),
+                type="VirtualizationNode", style="light",
+                quick=self.plugin_args.quick)),
             ("Type", "type", ">20s"),
             ("Valid", "valid", ">8s"),
             ("EPT", "ept", "s")
@@ -702,14 +696,15 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         # At this point the hierarchy has been discovered.
         for vm in virtual_machines:
             # Skip invalid VMs.
-            if not self._show_all and not vm.is_valid:
+            if not self.plugin_args.show_all and not vm.is_valid:
                 continue
             self.render_vm(renderer, vm, indent_level=0)
 
         if self.plugin_args.verbosity > 2:
             for vm in virtual_machines:
                 for vmcs in vm.vmcss:
-                    if not self._show_all and not vm.is_valid_vmcs(vmcs):
+                    if (not self.plugin_args.show_all and
+                        not vm.is_valid_vmcs(vmcs)):
                         continue
                     renderer.section("VMCS @ %#x" % vmcs.obj_offset)
                     renderer.table_header([("Details", "details", "s")])
@@ -717,7 +712,8 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
 
                 for nested_vm in vm.virtual_machines:
                     for vmcs in nested_vm.vmcss:
-                        if not self._show_all and not vm.is_valid_vmcs(vmcs):
+                        if (not self.plugin_args.show_all and
+                            not vm.is_valid_vmcs(vmcs)):
                             continue
                         renderer.section("VMCS @ %#x" % vmcs.obj_offset)
                         renderer.table_header([("Details", "details", "s")])
@@ -734,7 +730,7 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
         if self.plugin_args.verbosity > 1:
             for vmcs in sorted(vm.vmcss,
                                key=lambda x: x.m("VPID")):
-                if not self._show_all and not vm.is_valid_vmcs(vmcs):
+                if not self.plugin_args.show_all and not vm.is_valid_vmcs(vmcs):
                     continue
 
                 valid = vm.is_valid_vmcs(vmcs)
@@ -743,6 +739,6 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn, plugin.Command):
                     vmcs.obj_name, valid, '', depth=indent_level+1)
 
         for nested_vm in vm.virtual_machines:
-            if not self._show_all and not nested_vm.is_valid:
+            if not self.plugin_args.show_all and not nested_vm.is_valid:
                 continue
             self.render_vm(renderer, nested_vm, indent_level=indent_level+1)

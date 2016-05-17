@@ -33,30 +33,20 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
     """A plugin to analyze a memory location."""
     name = "analyze_struct"
 
-    @classmethod
-    def args(cls, parser):
-        super(AnalyzeStruct, cls).args(parser)
+    __args = [
+        dict(name="offset", positional=True, type="SymbolAddress",
+             help="A virtual address to analyze."),
 
-        parser.add_argument("offset",
-                            help="A virtual address to analyze.")
+        dict(name="search", type="IntParser", default=0x100,
+             help="How far back to search for pool tag."),
 
-        parser.add_argument("--search", type="IntParser", default=0x100,
-                            help="How far back to search for pool tag.")
-
-        parser.add_argument("--size", type="IntParser", default=0x100,
-                            help="How many elements to identify.")
-
-    def __init__(self, offset=0, search=0x100, size=0x100, **kwargs):
-        super(AnalyzeStruct, self).__init__(**kwargs)
-        self.offset = self.session.address_resolver.get_address_by_name(offset)
-        self.search = search
-        self.size = size
-        self.highest_user_address = self.profile.get_constant_object(
-            "MmHighestUserAddress", "unsigned long long")
+        dict(name="size", type="IntParser", default=0x100,
+             help="How many elements to identify."),
+    ]
 
     def SearchForPoolHeader(self, offset, search=0x100):
         """Search backwards from offset for a pool header."""
-        pool_alignment = self.profile.get_constant("PoolAlignment")
+        pool_alignment = self.session.profile.get_constant("PoolAlignment")
         offset = int(offset) - offset % pool_alignment
 
         # Cant use xrange() on windows since it must fit into a long.
@@ -64,7 +54,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
             if o < offset-search:
                 break
 
-            pool_header = self.profile._POOL_HEADER(o)
+            pool_header = self.session.profile._POOL_HEADER(o)
 
             # If this is the pool header for this allocation it must be big
             # enough to contain it.
@@ -76,14 +66,14 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
 
             # Verify it.
             if pool_header.PreviousSize > 0:
-                previous_pool_header = self.profile._POOL_HEADER(
+                previous_pool_header = self.session.profile._POOL_HEADER(
                     o - pool_alignment * pool_header.PreviousSize)
 
                 if previous_pool_header.BlockSize == pool_header.PreviousSize:
                     return pool_header
 
             # Check the next allocation.
-            next_pool_header = self.profile._POOL_HEADER(
+            next_pool_header = self.session.profile._POOL_HEADER(
                 o + pool_alignment * pool_header.BlockSize)
 
             if next_pool_header.PreviousSize == pool_header.BlockSize:
@@ -96,8 +86,8 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         resolver = self.session.address_resolver
         result = []
 
-        for member in self.profile.Array(offset, target="Pointer",
-                                         count=size/8):
+        for member in self.session.profile.Array(offset, target="Pointer",
+                                                 count=size/8):
             address_info = ["Data:%#x" % member.v()]
             relative_offset = member.obj_offset - offset
             result.append((relative_offset, address_info))
@@ -139,7 +129,8 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         return result
 
     def render(self, renderer):
-        pool_header = self.SearchForPoolHeader(self.offset, search=self.search)
+        pool_header = self.SearchForPoolHeader(
+            self.plugin_args.offset, search=self.plugin_args.search)
 
         if pool_header:
             name = (pool_header.m("ProcessBilled").name or
@@ -148,12 +139,13 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
             renderer.format(
                 "{0:#x} is inside pool allocation with tag '{1}' ({2:#x}) "
                 " and size {3:#x}\n",
-                self.offset, name, pool_header, pool_header.size)
+                self.plugin_args.offset, name, pool_header, pool_header.size)
 
         renderer.table_header([("Offset", "offset", "[addr]"),
                                ("Content", "content", "")])
 
         for relative_offset, info in self.GuessMembers(
-                self.offset, size=self.size, search=self.search):
+                self.plugin_args.offset, size=self.plugin_args.size,
+                search=self.plugin_args.search):
             renderer.table_row(relative_offset, " ".join(
                 [utils.SmartStr(x).encode("string-escape") for x in info]))

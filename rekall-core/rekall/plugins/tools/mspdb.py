@@ -105,7 +105,8 @@ from rekall.plugins.overlays import basic
 from rekall.plugins.overlays.windows import pe_vtypes
 
 
-class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
+class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
+               plugin.Command):
     """Fetch the PDB file for an executable from the Microsoft PDB server."""
 
     __name = "fetch_pdb"
@@ -113,28 +114,19 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
     SYM_URLS = ['http://msdl.microsoft.com/download/symbols']
     USER_AGENT = "Microsoft-Symbol-Server/6.6.0007.5"
 
-    @classmethod
-    def args(cls, parser):
-        parser.add_argument(
-            "--pdb_filename", default=None,
-            help="The filename of the executable to get the PDB file for.")
+    __args = [
+        dict(name="pdb_filename", required=True, positional=True,
+             help="The filename of the executable to get the PDB file for."),
 
-        parser.add_argument(
-            "--guid", default=None,
-            help="The GUID of the pdb file. If provided, the pdb filename must."
-            "be provided in the --pdb_filename parameter.")
-
-        super(FetchPDB, cls).args(parser)
-
-    def __init__(self, pdb_filename=None, guid=None, **kwargs):
-        super(FetchPDB, self).__init__(**kwargs)
-        self.filename = pdb_filename
-        self.guid = guid
+        dict(name="guid", positional=True,
+             help="The GUID of the pdb file. If provided, the pdb filename must"
+             " be provided in the --pdb_filename parameter.")
+    ]
 
     def render(self, renderer):
         # The filename is an executable
-        if self.guid is None and self.filename:
-            self.pe = pe_vtypes.PE(filename=self.filename,
+        if self.plugin_args.guid is None and self.plugin_args.pdb_filename:
+            self.pe = pe_vtypes.PE(filename=self.plugin_args.pdb_filename,
                                    session=self.session)
             data_directory = self.pe.nt_header.OptionalHeader.DataDirectory[
                 "IMAGE_DIRECTORY_ENTRY_DEBUG"].VirtualAddress.dereference_as(
@@ -149,21 +141,21 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.Command):
                                            debug.Signature)
                 return
 
-            self.pdb_filename = ntpath.basename(str(debug.Filename))
-            self.guid = self.pe.RSDS.GUID_AGE
+            self.plugin_args.pdb_filename = ntpath.basename(str(debug.Filename))
+            self.plugin_args.guid = self.pe.RSDS.GUID_AGE
 
-        elif self.filename is None:
+        elif self.plugin_args.pdb_filename is None:
             raise RuntimeError(
                 "Filename must be provided when GUID is specified.")
 
         else:
-            self.pdb_filename = self.filename
             self.guid = self.guid.upper()
 
         # Write the file data to the renderer.
-        pdb_file_data = self.FetchPDBFile(self.pdb_filename, self.guid)
-        with renderer.open(filename=self.pdb_filename,
-                           directory=self.dump_dir,
+        pdb_file_data = self.FetchPDBFile(
+            self.plugin_args.pdb_filename, self.plugin_args.guid)
+        with renderer.open(filename=self.plugin_args.pdb_filename,
+                           directory=self.plugin_args.dump_dir,
                            mode="wb") as fd:
             fd.write(pdb_file_data)
 
@@ -1117,62 +1109,52 @@ class PDBParser(object):
         self.address_space.close()
 
 
-class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
+class ParsePDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
+               plugin.Command):
     """Parse the PDB streams."""
 
     __name = "parse_pdb"
 
-    @classmethod
-    def args(cls, parser):
-        super(ParsePDB, cls).args(parser)
+    __args = [
+        dict(name="pdb_filename", required=True, positional=True,
+             help="The filename of the PDB file."),
 
-        parser.add_argument(
-            "pdb_filename", default=None, required=True,
-            help="The filename of the PDB file.")
+        dict(name="profile_class",
+             help="The name of the profile implementation. "
+             "Default name is derived from the pdb filename."),
 
-        parser.add_argument(
-            "--profile_class",
-            help="The name of the profile implementation. "
-            "Default name is derived from the pdb filename.")
+        dict(name="output_filename",
+             help="The name of the file to store this profile. "),
 
-        parser.add_argument(
-            "--output_filename",
-            help="The name of the file to store this profile. ")
+        dict(name="windows_version",
+             help="The windows version (major.minor.revision) "
+             "corresponding with this PDB. For example, Windows 7 "
+             "should be given as 6.1"),
 
-        parser.add_argument(
-            "--windows_version", default=None,
-            help="The windows version (major.minor.revision) "
-            "corresponding with this PDB. For example, Windows 7 "
-            "should be given as 6.1")
+        dict(name="concise", type="Boolean",
+             help="Specify this to emit less detailed information."),
+    ]
 
-        parser.add_argument(
-            "--concise", default=False, type="Boolean",
-            help="Specify this to emit less detailed information.")
+    def __init__(self, *args, **kwargs):
+        self.metadata = kwargs.pop("metadata", {})
+        super(ParsePDB, self).__init__(*args, **kwargs)
 
-    def __init__(self, pdb_filename=None, profile_class=None,
-                 windows_version=None, metadata=None, concise=False,
-                 output_filename=None, **kwargs):
-        super(ParsePDB, self).__init__(**kwargs)
-        self.filename = pdb_filename
-        self.metadata = metadata or {}
-        self.concise = concise
-        self.output_filename = output_filename
-
-        profile_class = self.metadata.get("ProfileClass", profile_class)
+        profile_class = self.metadata.get(
+            "ProfileClass", self.plugin_args.profile_class)
 
         # By default select the class with the same name as the pdb file.
         if profile_class is None:
             profile_class = os.path.splitext(
-                os.path.basename(self.filename))[0].capitalize()
+                os.path.basename(self.plugin_args.pdb_filename))[0].capitalize()
 
             if profile_class not in obj.Profile.classes:
                 profile_class = "BasicPEProfile"
 
-        self.profile_class = profile_class
+        self.plugin_args.profile_class = profile_class
 
         versions = []
-        if windows_version is not None:
-            versions = windows_version.split(".", 2)
+        if self.plugin_args.windows_version is not None:
+            versions = self.plugin_args.windows_version.split(".", 2)
 
             for i, metadata in enumerate(["major", "minor", "rev"]):
                 try:
@@ -1180,7 +1162,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
                 except IndexError:
                     break
 
-        self.tpi = PDBParser(self.filename, self.session)
+        self.tpi = PDBParser(self.plugin_args.pdb_filename, self.session)
 
     NATIVE_TYPE_SIZE = {
         "unsigned char": 1,
@@ -1250,9 +1232,9 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
                 vtypes[struct_name] = definition
 
             self.metadata.update(dict(
-                ProfileClass=self.profile_class,
+                ProfileClass=self.plugin_args.profile_class,
                 Type="Profile",
-                PDBFile=os.path.basename(self.filename),
+                PDBFile=os.path.basename(self.plugin_args.pdb_filename),
             ))
 
             self.metadata.update(self.tpi.metadata)
@@ -1275,7 +1257,7 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
                 "$ENUMS": self.tpi.enums,
             }
 
-            if not self.concise:
+            if not self.plugin_args.concise:
                 result["$REVENUMS"] = self.tpi.rev_enums
                 result["$CONSTANTS"] = constants
                 result["$FUNCTIONS"] = functions
@@ -1285,9 +1267,9 @@ class ParsePDB(core.DirectoryDumperMixin, plugin.Command):
     def render(self, renderer):
         result = self.parse_pdb()
 
-        if self.output_filename:
-            with renderer.open(filename=self.output_filename,
-                               directory=self.dump_dir,
+        if self.plugin_args.output_filename:
+            with renderer.open(filename=self.plugin_args.output_filename,
+                               directory=self.plugin_args.dump_dir,
                                mode="wb") as fd:
                 fd.write(utils.PPrint(result))
         else:

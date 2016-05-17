@@ -27,21 +27,23 @@ from rekall import plugin
 
 class MemoryTranslation(plugin.KernelASMixin,
                         plugin.PhysicalASMixin,
+                        plugin.TypedProfileCommand,
                         plugin.Command):
     """Inspect the mapping of a virtual address."""
 
     name = "inspect_vaddr"
 
-    @classmethod
-    def args(cls, metadata):
-        metadata.add_argument(
-            "address", required=True, type="SymbolAddress",
-            help="Virtual address to inspect.")
+    __args = [
+        dict(name="address", required=True, type="SymbolAddress",
+             positional=True, help="Virtual address to inspect.")
+    ]
 
-    def __init__(self, address=None, **kwargs):
-        super(MemoryTranslation, self).__init__(**kwargs)
-        self.address = self.session.address_resolver.get_address_by_name(
-            address)
+    table_header = [
+        dict(name="Address Space", width=30),
+        dict(name="Offset", style="address", padding="0"),
+        dict(name="Base AS", width=30),
+        dict(name="Base AS Offset", style="address", padding="0"),
+    ]
 
     def _GetASName(self, address_space):
         if address_space is None:
@@ -51,16 +53,9 @@ class MemoryTranslation(plugin.KernelASMixin,
             return address_space.name
         return address_space.__class__.__name__
 
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name="Address Space", width=30),
-            dict(name="Offset", style="address", padding="0"),
-            dict(name="Base AS", width=30),
-            dict(name="Base AS Offset", style="address", padding="0"),
-        ])
-
+    def collect(self):
         address_space = self.session.GetParameter("default_address_space")
-        address = self.address
+        address = self.plugin_args.address
 
         # Traverse the address space stack and report each address space.
         while address_space is not None:
@@ -69,12 +64,10 @@ class MemoryTranslation(plugin.KernelASMixin,
             if address_space == run.address_space:
                 break
 
-            renderer.table_row(
-                self._GetASName(address_space),
-                address,
-                self._GetASName(run.address_space),
-                run.file_offset,
-            )
+            yield (self._GetASName(address_space),
+                   address,
+                   self._GetASName(run.address_space),
+                   run.file_offset)
 
             address_space = run.address_space
             address = run.file_offset

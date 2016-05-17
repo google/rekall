@@ -19,7 +19,6 @@
 
 from rekall import testlib
 
-from rekall.plugins import core
 from rekall.plugins.linux import common
 from rekall.plugins.overlays.linux import vfs
 
@@ -76,20 +75,12 @@ class Mfind(common.LinuxPlugin):
 
     __name = "mfind"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we accept."""
-        parser.add_argument(
-            "path", default="/", help="Path to the file.")
-        parser.add_argument(
-            "--device", default=None,
-            help="Name of the device to match.")
-        super(Mfind, cls).args(parser)
-
-    def __init__(self, path="/", device=None, **kwargs):
-        super(Mfind, self).__init__(**kwargs)
-        self.path = path
-        self.device = device
+    __args = [
+        dict(name="path", default="/", positional=True,
+             help="Path to the file."),
+        dict(name="device",
+             help="Name of the device to match.")
+    ]
 
     def find(self, path, device=None, mountpoint=None):
         """Yields a list of files matching the path on the given mountpoint.
@@ -148,8 +139,8 @@ class Mfind(common.LinuxPlugin):
         mountpoints = mount_plugin.get_mount_points()
 
         for mountpoint in mountpoints:
-            files = list(self.find(self.path,
-                                   device=self.device,
+            files = list(self.find(self.plugin_args.path,
+                                   device=self.plugin_args.device,
                                    mountpoint=mountpoint))
 
             if files:
@@ -194,25 +185,17 @@ class Mls(Mfind):
 
     __name = "mls"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we accept."""
-        super(Mls, cls).args(parser)
-        parser.add_argument(
-            "-r", "--recursive", default=False, type="Boolean",
-            help="Recursive listing")
-        parser.add_argument(
-            "-u", "--unallocated", default=False, type="Boolean",
-            help="Show files that have no inode information.")
-
-    def __init__(self, recursive=False, unallocated=False, **kwargs):
-        super(Mls, self).__init__(**kwargs)
-        self.recursive = recursive
-        self.unallocated = unallocated
+    __args = [
+        dict(name="recursive", type="Boolean",
+             help="Recursive listing"),
+        dict(name="unallocated", type="Boolean",
+             help="Show files that have no inode information."),
+    ]
 
     def render(self, renderer):
         mfind_plugin = self.session.plugins.mfind(session=self.session)
-        for entry in mfind_plugin.find(path=self.path, device=self.device):
+        for entry in mfind_plugin.find(path=self.plugin_args.path,
+                                       device=self.plugin_args.device):
             renderer.format("Files on device %s mounted at %s.\n" % (
                 entry.mountpoint.device, entry.mountpoint.name))
 
@@ -221,13 +204,14 @@ class Mls(Mfind):
             if not entry.is_directory():
                 self.render_file(renderer, entry)
             else:
-                for file_ in entry.walk(recursive=self.recursive,
-                                        unallocated=self.unallocated):
+                for file_ in entry.walk(
+                        recursive=self.plugin_args.recursive,
+                        unallocated=self.plugin_args.unallocated):
                     self.render_file(renderer, file_)
             renderer.section()
 
 
-class Mcat(core.OutputFileMixin, Mfind):
+class Mcat(Mfind):
     """Returns the contents available in memory for a given file.
 
     Ranges of the file that are not present in memory are returned blank.
@@ -235,9 +219,15 @@ class Mcat(core.OutputFileMixin, Mfind):
 
     __name = "mcat"
 
+    __args = [
+        dict(name="out_file", required=True,
+             help="Path for output file."),
+    ]
+
     def render(self, renderer):
         mfind_plugin = self.session.plugins.mfind(session=self.session)
-        files = list(mfind_plugin.find(path=self.path, device=self.device))
+        files = list(mfind_plugin.find(path=self.plugin_args.path,
+                                       device=self.plugin_args.device))
 
         if not files:
             renderer.format("ERROR: No files found.")
@@ -262,7 +252,7 @@ class Mcat(core.OutputFileMixin, Mfind):
             file_ = files[0]
 
             # Write buffered output as a sparse file.
-            with renderer.open(filename=self.out_file,
+            with renderer.open(filename=self.plugin_args.out_file,
                                mode="wb") as fd:
                 for range_start, range_end in file_.extents:
                     renderer.table_row(range_start, range_end)
@@ -302,5 +292,5 @@ class TestMls(testlib.HashChecker):
 
 class TestMcat(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="mcat %(file)s %(tempdir)s/mcat"
+        commandline="mcat %(file)s --out_file %(tempdir)s/mcat"
         )
