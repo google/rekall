@@ -100,6 +100,21 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
 
     __name = "netscan"
 
+    table_header = [
+        dict(name="Offsetdict(P)", cname="offset", style="address"),
+        dict(name="Proto", cname="protocol", width=8),
+        dict(name="Local Address", cname="local_addr", width=20),
+        dict(name="Remote Address", cname="remote_addr", width=30),
+        dict(name="State", cname="state", width=16),
+        dict(name="Pid", cname="pid", width=5, align="r"),
+        dict(name="Owner", cname="owner", width=14),
+        dict(name="Created", cname="created")
+    ]
+
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True
+    )
+
     @classmethod
     def is_active(cls, session):
         # This plugin works with the _TCP_ENDPOINT interfaces. This interface
@@ -107,15 +122,15 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
         return (super(WinNetscan, cls).is_active(session) and
                 session.profile.get_constant('RtlEnumerateEntryHashTable'))
 
-    def generate_hits(self):
+    def generate_hits(self, run):
         scanner = PoolScanTcpListener(
             profile=self.tcpip_profile, session=self.session,
-            address_space=self.address_space)
+            address_space=run.address_space)
 
-        for pool_obj in scanner.scan():
+        for pool_obj in scanner.scan(run.start, run.length):
             pool_header_end = pool_obj.obj_offset + pool_obj.obj_size
             tcpentry = self.tcpip_profile._TCP_LISTENER(
-                vm=self.address_space, offset=pool_header_end)
+                vm=run.address_space, offset=pool_header_end)
 
             # Only accept IPv4 or IPv6
             af_inet = tcpentry.InetAF.dereference(vm=self.kernel_address_space)
@@ -132,12 +147,12 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
         # Scan for TCP endpoints also known as connections
         scanner = PoolScanTcpEndpoint(
             profile=self.tcpip_profile, session=self.session,
-            address_space=self.address_space)
+            address_space=run.address_space)
 
-        for pool_obj in scanner.scan():
+        for pool_obj in scanner.scan(run.start, run.length):
             pool_header_end = pool_obj.obj_offset + pool_obj.obj_size
             tcpentry = self.tcpip_profile._TCP_ENDPOINT(
-                vm=self.address_space, offset=pool_header_end)
+                vm=run.address_space, offset=pool_header_end)
 
             af_inet = tcpentry.InetAF.dereference(vm=self.kernel_address_space)
             if af_inet.AddressFamily == AF_INET:
@@ -168,12 +183,12 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
         # Scan for UDP endpoints
         scanner = PoolScanUdpEndpoint(
             profile=self.tcpip_profile, session=self.session,
-            address_space=self.address_space)
+            address_space=run.address_space)
 
-        for pool_obj in scanner.scan():
+        for pool_obj in scanner.scan(run.start, run.length):
             pool_header_end = pool_obj.obj_offset + pool_obj.obj_size
             udpentry = self.tcpip_profile._UDP_ENDPOINT(
-                vm=self.address_space, offset=pool_header_end)
+                vm=run.address_space, offset=pool_header_end)
 
             af_inet = udpentry.InetAF.dereference(vm=self.kernel_address_space)
 
@@ -188,27 +203,18 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
                 yield (udpentry, "UDP" + ver, laddr, udpentry.Port,
                        "*", "*", "")
 
-    def render(self, renderer):
-        renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
-                               ("Proto", "protocol", "<8"),
-                               ("Local Address", "local_addr", "<20"),
-                               ("Remote Address", "remote_addr", "30"),
-                               ("State", "state", "<16"),
-                               ("Pid", "pid", ">5"),
-                               ("Owner", "owner", "<14"),
-                               ("Created", "created", "")])
+    def collect(self):
+        for run in self.generate_memory_ranges():
+            for (net_object, proto, laddr, lport, raddr, rport,
+                 state) in self.generate_hits(run):
+                lendpoint = "{0}:{1}".format(laddr, lport)
+                rendpoint = "{0}:{1}".format(raddr, rport)
 
-        for (net_object, proto, laddr, lport, raddr, rport,
-             state) in self.generate_hits():
-            lendpoint = "{0}:{1}".format(laddr, lport)
-            rendpoint = "{0}:{1}".format(raddr, rport)
+                owner = net_object.Owner.dereference_as(
+                    vm=self.kernel_address_space, profile=self.session.profile)
 
-            owner = net_object.Owner.dereference_as(
-                vm=self.kernel_address_space, profile=self.session.profile)
-
-            renderer.table_row(
-                net_object.obj_offset, proto, lendpoint,
-                rendpoint, state,
-                owner.UniqueProcessId,
-                owner.ImageFileName,
-                net_object.CreateTime)
+                yield (net_object.obj_offset, proto, lendpoint,
+                       rendpoint, state,
+                       owner.UniqueProcessId,
+                       owner.ImageFileName,
+                       net_object.CreateTime)

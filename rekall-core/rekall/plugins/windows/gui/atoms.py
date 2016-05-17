@@ -47,85 +47,79 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
 
     __name = "atomscan"
 
-    @classmethod
-    def args(cls, parser):
-        super(AtomScan, cls).args(parser)
-        parser.add_argument(
-            "-S", "--sort-by",
-            choices=["atom", "refcount", "offset"], default="offset",
-            help="Sort by [offset | atom | refcount]")
+    __args = [
+        dict(name="sort_by", choices=["atom", "refcount", "offset"],
+             default="offset", help="Sort by [offset | atom | refcount]")
+    ]
 
-    def __init__(self, sort_by=None, **kwargs):
-        super(AtomScan, self).__init__(**kwargs)
-        self.sort_by = sort_by
+    table_header = [
+        dict(name="TableOfs(P)", cname="physical_offset", style="address"),
+        dict(name="AtomOfs(V)", cname="virtual_offset", style="address"),
+        dict(name="Atom", cname="atom", style="address"),
+        dict(name="Refs", cname="refs", width=6),
+        dict(name="Pinned", cname="pinned", width=6),
+        dict(name="Name", cname="name"),
+    ]
 
-    def generate_hits(self):
-        scanner = PoolScanAtom(
-            profile=self.win32k_profile, session=self.session,
-            address_space=self.address_space)
+    scanner_defaults = dict(
+        scan_physical=True
+    )
 
-        for pool_header in scanner.scan():
-            # Note: all OS after XP, there are an extra 8 bytes (for 32-bit) or
-            # 16 bytes (for 64-bit) between the _POOL_HEADER and
-            # _RTL_ATOM_TABLE.  This is variable length structure, so we can't
-            # use the bottom-up approach as we do with other object scanners -
-            # because the size of an _RTL_ATOM_TABLE differs depending on the
-            # number of hash buckets.
+    def collect(self):
+        for run in self.generate_memory_ranges():
+            scanner = PoolScanAtom(
+                profile=self.win32k_profile, session=self.session,
+                address_space=run.address_space)
 
-            version = self.profile.metadata('version')
-            fixup = 0
+            for pool_header in scanner.scan(run.start, run.length):
+                # Note: all OS after XP, there are an extra 8 bytes (for 32-bit)
+                # or 16 bytes (for 64-bit) between the _POOL_HEADER and
+                # _RTL_ATOM_TABLE.  This is variable length structure, so we
+                # can't use the bottom-up approach as we do with other object
+                # scanners - because the size of an _RTL_ATOM_TABLE differs
+                # depending on the number of hash buckets.
 
-            if self.profile.metadata('arch') == 'I386':
-                if version > 5.1:
-                    fixup = 8
-            else:
-                if version > 5.1:
-                    fixup = 16
+                version = self.profile.metadata('version')
+                fixup = 0
 
-            atom_table = self.win32k_profile._RTL_ATOM_TABLE(
-                offset=pool_header.obj_end + fixup,
-                vm=pool_header.obj_vm)
+                if self.profile.metadata('arch') == 'I386':
+                    if version > 5.1:
+                        fixup = 8
+                else:
+                    if version > 5.1:
+                        fixup = 16
 
-            # There's no way to tell which session or window station
-            # owns an atom table by *just* looking at the atom table,
-            # so we have to instantiate it from the default kernel AS.
-            if atom_table.is_valid():
-                yield atom_table
+                atom_table = self.win32k_profile._RTL_ATOM_TABLE(
+                    offset=pool_header.obj_end + fixup,
+                    vm=pool_header.obj_vm)
 
-    def render(self, renderer):
+                # There's no way to tell which session or window station
+                # owns an atom table by *just* looking at the atom table,
+                # so we have to instantiate it from the default kernel AS.
+                if not atom_table.is_valid():
+                    continue
 
-        renderer.table_header(
-            [("TableOfs(P)", "physical_offset", "[addr]"),
-             ("AtomOfs(V)", "virtual_offset", "[addrpad]"),
-             ("Atom", "atom", "[addr]"),
-             ("Refs", "refs", "6"),
-             ("Pinned", "pinned", "6"),
-             ("Name", "name", ""),
-             ])
+                # This defeats the purpose of having a generator, but
+                # its required if we want to be able to sort. We also
+                # filter string atoms here.
+                atoms = []
+                for atom in atom_table.atoms(vm=self.kernel_address_space):
+                    if atom.is_string_atom():
+                        atoms.append(atom)
 
-        for atom_table in self.generate_hits():
-            # This defeats the purpose of having a generator, but
-            # its required if we want to be able to sort. We also
-            # filter string atoms here.
-            atoms = []
-            for atom in atom_table.atoms(vm=self.kernel_address_space):
-                if atom.is_string_atom():
-                    atoms.append(atom)
+                if self.plugin_args.sort_by == "atom":
+                    attr = "Atom"
+                elif self.plugin_args.sort_by == "refcount":
+                    attr = "ReferenceCount"
+                else:
+                    attr = "obj_offset"
 
-            if self.sort_by == "atom":
-                attr = "Atom"
-            elif self.sort_by == "refcount":
-                attr = "ReferenceCount"
-            else:
-                attr = "obj_offset"
-
-            for atom in sorted(atoms, key=lambda x: getattr(x, attr)):
-                renderer.table_row(atom_table.obj_offset,
-                                   atom.obj_offset,
-                                   atom.Atom, atom.ReferenceCount,
-                                   atom.Pinned,
-                                   atom.Name)
-
+                for atom in sorted(atoms, key=lambda x: getattr(x, attr)):
+                    yield (atom_table.obj_offset,
+                           atom.obj_offset,
+                           atom.Atom, atom.ReferenceCount,
+                           atom.Pinned,
+                           atom.Name)
 
 
 class Atoms(win32k_core.Win32kPluginMixin,

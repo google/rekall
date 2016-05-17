@@ -54,61 +54,61 @@ class FileScan(common.PoolScannerPlugin):
     """
     __name = "filescan"
 
-    def generate_hits(self):
+    table_header = [
+        dict(name=' ', cname='allocated', width=1),
+        dict(name='Offset', cname="offset_p", style="address"),
+        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
+        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
+        dict(name='Access', cname="access", width=6),
+        dict(name='Owner', type="_EPROCESS"),
+        dict(name='Name', cname="path")
+    ]
+
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True
+    )
+
+    def collect(self):
         """Generate possible hits."""
-        scanner = PoolScanFile(profile=self.profile, session=self.session,
-                               address_space=self.address_space)
+        for run in self.generate_memory_ranges():
+            scanner = PoolScanFile(profile=self.profile, session=self.session,
+                                   address_space=run.address_space)
 
-        for pool_obj in scanner.scan():
-            for object_obj in pool_obj.IterObject("File", freed=True):
-                ## If the string is not reachable we skip it
-                file_obj = self.session.profile._FILE_OBJECT(
-                    offset=object_obj.obj_end, vm=self.address_space)
+            for pool_obj in scanner.scan(run.start, run.length):
+                for object_obj in pool_obj.IterObject("File", freed=True):
+                    ## If the string is not reachable we skip it
+                    file_obj = self.session.profile._FILE_OBJECT(
+                        offset=object_obj.obj_end, vm=run.address_space)
 
-                if not file_obj.FileName.v(vm=self.kernel_address_space):
-                    continue
+                    if not file_obj.FileName.v(vm=self.kernel_address_space):
+                        continue
 
-                # Real file objects have valid DeviceObject types.
-                device_obj = file_obj.DeviceObject.deref(
-                    vm=self.session.kernel_address_space)
+                    # Real file objects have valid DeviceObject types.
+                    device_obj = file_obj.DeviceObject.deref(
+                        vm=self.session.kernel_address_space)
 
-                if not device_obj.DeviceType.is_valid():
-                    continue
+                    if not device_obj.DeviceType.is_valid():
+                        continue
 
-                yield (pool_obj, object_obj, file_obj)
+                    # The Process member in the HandleInfo sometimes points at
+                    # the _EPROCESS owning the handle.
+                    owner_process = (
+                        object_obj.HandleInfo.SingleEntry.Process.deref(
+                            vm=self.kernel_address_space))
 
-    def render(self, renderer):
-        """Print the output in a table."""
+                    filename = file_obj.file_name_with_drive(
+                        vm=self.kernel_address_space)
 
-        renderer.table_header([(' ', 'allocated', '1'),
-                               ('Offset', "offset_p", '[addrpad]'),
-                               ('#Ptr', "ptr_count", '>6'),
-                               ('#Hnd', "hnd_count", '>3'),
-                               ('Access', "access", '6'),
-                               dict(name='Owner', type="_EPROCESS"),
-                               ('Name', "path", '')
-                              ])
-
-        for pool_obj, object_obj, file_obj in self.generate_hits():
-            # The Process member in the HandleInfo sometimes points at the
-            # _EPROCESS owning the handle.
-            owner_process = object_obj.HandleInfo.SingleEntry.Process.deref(
-                vm=self.kernel_address_space)
-
-            filename = file_obj.file_name_with_drive(
-                vm=self.kernel_address_space)
-
-            renderer.table_row(
-                'F' if pool_obj.FreePool else "",
-                file_obj.obj_offset,
-                object_obj.PointerCount,
-                object_obj.HandleCount,
-                file_obj.AccessString,
-                owner_process,
-                filename)
+                    yield ('F' if pool_obj.FreePool else "",
+                           file_obj.obj_offset,
+                           object_obj.PointerCount,
+                           object_obj.HandleCount,
+                           file_obj.AccessString,
+                           owner_process,
+                           filename)
 
 
-class PoolScanDriver(PoolScanFile):
+class PoolScanDriver(common.PoolScanner):
     """ Scanner for _DRIVER_OBJECT """
 
     def __init__(self, **kwargs):
@@ -128,60 +128,60 @@ class PoolScanDriver(PoolScanFile):
             ('CheckPoolIndex', dict(value=0)),
             ]
 
-class DriverScan(FileScan):
+
+class DriverScan(common.PoolScannerPlugin):
     "Scan for driver objects _DRIVER_OBJECT "
 
     __name = "driverscan"
 
-    def generate_hits(self):
+    table_header = [
+        dict(name=' ', cname='allocated', width=1),
+        dict(name='Offset', cname="offset_p", style="address"),
+        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
+        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
+        dict(name='Start', cname="driver_start", style="address"),
+        dict(name='Size', cname="driver_size", style="address"),
+        dict(name='Service Key', cname="driver_servicekey", width=20),
+        dict(name='Name', cname="driver_name", width=12),
+        dict(name='Driver Name', cname="path")
+    ]
+
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True
+    )
+
+    def collect(self):
         """Generate possible hits."""
-        scanner = PoolScanDriver(session=self.session,
-                                 profile=self.profile,
-                                 address_space=self.address_space)
+        for run in self.generate_memory_ranges():
+            scanner = PoolScanDriver(session=self.session,
+                                     profile=self.profile,
+                                     address_space=run.address_space)
 
-        for pool_obj in scanner.scan():
-            for object_obj in pool_obj.IterObject("Driver", freed=True):
-                object_name = object_obj.NameInfo.Name.v(
-                    vm=self.kernel_address_space)
+            for pool_obj in scanner.scan(run.start, run.length):
+                for object_obj in pool_obj.IterObject("Driver", freed=True):
+                    object_name = object_obj.NameInfo.Name.v(
+                        vm=self.kernel_address_space)
 
-                driver_obj = self.profile._DRIVER_OBJECT(
-                    object_obj.obj_end, vm=self.address_space)
+                    driver_obj = self.profile._DRIVER_OBJECT(
+                        object_obj.obj_end, vm=run.address_space)
 
-                extension_obj = self.profile._DRIVER_EXTENSION(
-                    driver_obj.obj_end, vm=self.address_space)
+                    extension_obj = self.profile._DRIVER_EXTENSION(
+                        driver_obj.obj_end, vm=run.address_space)
 
-                yield (pool_obj, object_obj, driver_obj, extension_obj,
-                       object_name)
-
-
-    def render(self, renderer):
-        """Renders the text-based output"""
-        renderer.table_header([(' ', 'allocated', '1'),
-                               ('Offset(P)', "offset_p", '[addrpad]'),
-                               ('#Ptr', "ptr_count", '>4'),
-                               ('#Hnd', "hnd_count", '>4'),
-                               ('Start', "driver_start", '[addrpad]'),
-                               ('Size', "driver_size", '[addr]'),
-                               ('Service Key', "driver_servicekey", '20'),
-                               ('Name', "driver_name", '12'),
-                               ('Driver Name', "path", '')
-                              ])
-
-        for _ in self.generate_hits():
-            pool_obj, object_obj, driver_obj, extension_obj, object_name = _
-            renderer.table_row(
-                'F' if pool_obj.FreePool else "",
-                driver_obj.obj_offset,
-                object_obj.PointerCount,
-                object_obj.HandleCount,
-                driver_obj.DriverStart,
-                driver_obj.DriverSize,
-                extension_obj.ServiceKeyName.v(vm=self.kernel_address_space),
-                object_name,
-                driver_obj.DriverName.v(vm=self.kernel_address_space))
+                    yield ('F' if pool_obj.FreePool else "",
+                           driver_obj.obj_offset,
+                           object_obj.PointerCount,
+                           object_obj.HandleCount,
+                           driver_obj.DriverStart,
+                           driver_obj.DriverSize,
+                           extension_obj.ServiceKeyName.v(
+                               vm=self.kernel_address_space),
+                           object_name,
+                           driver_obj.DriverName.v(
+                               vm=self.kernel_address_space))
 
 
-class PoolScanSymlink(PoolScanFile):
+class PoolScanSymlink(common.PoolScanner):
     """ Scanner for symbolic link objects """
     def __init__(self, **kwargs):
         super(PoolScanSymlink, self).__init__(**kwargs)
@@ -197,46 +197,48 @@ class PoolScanSymlink(PoolScanFile):
             ]
 
 
-class SymLinkScan(FileScan):
+class SymLinkScan(common.PoolScannerPlugin):
     "Scan for symbolic link objects "
 
     __name = "symlinkscan"
 
-    def generate_hits(self):
+    table_header = [
+        dict(name=' ', cname='allocated', width=1),
+        dict(name='Offset', cname="offset_p", style="address"),
+        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
+        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
+        dict(name='Creation time', cname="symlink_creation_time", width=24),
+        dict(name='From', cname="symlink_from"),
+        dict(name='To', cname="symlink_to", width=60),
+    ]
+
+    scanner_defaults = dict(
+        # According to pool_tracker plugin this always comes from paged pool.
+        scan_kernel_paged_pool=True
+    )
+
+    def collect(self):
         """Generate possible hits."""
-        scanner = PoolScanSymlink(profile=self.profile, session=self.session,
-                                  address_space=self.address_space)
-        for pool_obj in scanner.scan():
-            for object_obj in pool_obj.IterObject("SymbolicLink", freed=True):
-                object_name = object_obj.NameInfo.Name.v(
-                    vm=self.kernel_address_space)
+        for run in self.generate_memory_ranges():
+            scanner = PoolScanSymlink(profile=self.profile,
+                                      session=self.session,
+                                      address_space=run.address_space)
+            for pool_obj in scanner.scan(run.start, run.length):
+                for object_obj in pool_obj.IterObject(
+                        "SymbolicLink", freed=True):
+                    object_name = object_obj.NameInfo.Name.v(
+                        vm=self.kernel_address_space)
 
-                link_obj = self.profile._OBJECT_SYMBOLIC_LINK(
-                    object_obj.obj_end, vm=self.address_space)
+                    link_obj = self.profile._OBJECT_SYMBOLIC_LINK(
+                        object_obj.obj_end, vm=run.address_space)
 
-                yield pool_obj, object_obj, link_obj, object_name
-
-    def render(self, renderer):
-        """ Renders text-based output """
-        renderer.table_header([(' ', 'allocated', '1'),
-                               ('Offset(P)', "offset_p", '[addrpad]'),
-                               ('#Ptr', "ptr_count", '>6'),
-                               ('#Hnd', "hnd_count", '>6'),
-                               ('Creation time', "symlink_creation_time", '24'),
-                               ('From', "symlink_from", ''),
-                               ('To', "symlink_to", '60'),
-                              ])
-
-
-        for pool_obj, o, link, name in self.generate_hits():
-            renderer.table_row(
-                'F' if pool_obj.FreePool else "",
-                link.obj_offset,
-                o.PointerCount,
-                o.HandleCount,
-                link.CreationTime or '',
-                name,
-                link.LinkTarget.v(vm=self.kernel_address_space))
+                    yield ('F' if pool_obj.FreePool else "",
+                           link_obj.obj_offset,
+                           object_obj.PointerCount,
+                           object_obj.HandleCount,
+                           link_obj.CreationTime or '',
+                           object_name,
+                           link_obj.LinkTarget.v(vm=self.kernel_address_space))
 
 
 class PoolScanMutant(PoolScanDriver):
@@ -257,62 +259,63 @@ class PoolScanMutant(PoolScanDriver):
             ]
 
 
-class MutantScan(plugin.VerbosityMixIn, FileScan):
+class MutantScan(plugin.VerbosityMixIn, common.PoolScannerPlugin):
     "Scan for mutant objects _KMUTANT "
 
     __name = "mutantscan"
 
-    def generate_hits(self):
-        scanner = PoolScanMutant(profile=self.profile, session=self.session,
-                                 address_space=self.address_space)
+    table_header = [
+        dict(name=' ', cname='allocated', width=1),
+        dict(name='Offset', cname="offset_p", style="address"),
+        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
+        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
+        dict(name='Signal', cname="mutant_signal", width=6),
+        dict(name='Thread', cname="mutant_thread", style="address"),
+        dict(name='CID', cname="cid", width=9, align="r"),
+        dict(name='Name', cname="mutant_name")
+    ]
 
-        for pool_obj in scanner.scan():
-            for object_obj in pool_obj.IterObject("Mutant", freed=True):
-                object_name = object_obj.NameInfo.Name.v(
-                    vm=self.kernel_address_space)
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True,
+    )
 
-                # By default we suppress non-named mutants because they are not
-                # very interesting.
-                if self.plugin_args.verbosity < 5 and not object_name:
-                    continue
+    def collect(self):
+        for run in self.generate_memory_ranges():
+            scanner = PoolScanMutant(profile=self.profile, session=self.session,
+                                     address_space=run.address_space)
 
-                mutant = self.profile._KMUTANT(
-                    object_obj.obj_end, vm=self.address_space)
+            for pool_obj in scanner.scan(run.start, run.length):
+                for object_obj in pool_obj.IterObject("Mutant", freed=True):
+                    object_name = object_obj.NameInfo.Name.v(
+                        vm=self.kernel_address_space)
 
-                yield (pool_obj, object_obj, mutant, object_name)
+                    # By default we suppress non-named mutants because they are
+                    # not very interesting.
+                    if self.verbosity < 5 and not object_name:
+                        continue
 
-    def render(self, renderer):
-        """Renders the output"""
+                    mutant = self.profile._KMUTANT(
+                        object_obj.obj_end, vm=run.address_space)
 
-        renderer.table_header([(' ', 'allocated', '1'),
-                               ('Offset(P)', "offset_p", '[addrpad]'),
-                               ('#Ptr', "ptr_count", '>6'),
-                               ('#Hnd', "hnd_count", '>4'),
-                               ('Signal', "mutant_signal", '6'),
-                               ('Thread', "mutant_thread", '[addrpad]'),
-                               ('CID', "cid", '>9'),
-                               ('Name', "mutant_name", '')
-                              ])
+                    if mutant.OwnerThread > 0x80000000:
+                        thread = self.profile._ETHREAD(
+                            offset=mutant.OwnerThread,
+                            vm=self.kernel_address_space)
 
-        for pool_obj, object_obj, mutant, _ in self.generate_hits():
-            if mutant.OwnerThread > 0x80000000:
-                thread = self.profile._ETHREAD(
-                    offset=mutant.OwnerThread, vm=self.kernel_address_space)
+                        CID = "{0}:{1}".format(thread.Cid.UniqueProcess,
+                                               thread.Cid.UniqueThread)
+                    else:
+                        CID = ""
 
-                CID = "{0}:{1}".format(thread.Cid.UniqueProcess,
-                                       thread.Cid.UniqueThread)
-            else:
-                CID = ""
-
-            renderer.table_row(
-                'F' if pool_obj.FreePool else "",
-                mutant.obj_offset,
-                object_obj.PointerCount,
-                object_obj.HandleCount,
-                mutant.Header.SignalState,
-                mutant.OwnerThread,
-                CID,
-                object_obj.NameInfo.Name.v(vm=self.kernel_address_space))
+                    yield ('F' if pool_obj.FreePool else "",
+                           mutant.obj_offset,
+                           object_obj.PointerCount,
+                           object_obj.HandleCount,
+                           mutant.Header.SignalState,
+                           mutant.OwnerThread,
+                           CID,
+                           object_obj.NameInfo.Name.v(
+                               vm=self.kernel_address_space))
 
 
 class PoolScanProcess(common.PoolScanner):

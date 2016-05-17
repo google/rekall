@@ -48,21 +48,21 @@ def find_data_files(source):
 install_requires = [
     "PyAFF4 >= 0.23, < 0.30",
     "PyYAML == 3.11",
-    "acora == 1.9",
-    "argparse == 1.2.1",
+    "acora == 2.0",
+    "argparse == 1.4.0",
     "arrow == 0.7.0",
     "efilter == 1453815385",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.23",
-    "pytz == 2015.7",
+    "pytz == 2016.4",
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
     "sortedcontainers == 1.4.4",
 
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
-    "python-dateutil == 2.4.2",
+    "python-dateutil == 2.5.3",
 ]
 
 
@@ -94,9 +94,12 @@ class PIPUpgrade(Command):
 
         result = []
         for package in required:
-            result.append(
-                [x for x in output.splitlines()
-                 if package in x][0])
+            try:
+                result.append(
+                    [x for x in output.splitlines()
+                     if package in x][0])
+            except IndexError:
+                pass
 
         print "\n".join(sorted(result))
 

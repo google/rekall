@@ -30,7 +30,6 @@ This module implements the fast module scanning
 # pylint: disable=protected-access
 
 from rekall.plugins.windows import common
-from rekall.plugins.windows import filescan
 
 
 class PoolScanModuleFast(common.PoolScanner):
@@ -55,46 +54,49 @@ class PoolScanModuleFast(common.PoolScanner):
             ]
 
 
-class ModScan(filescan.FileScan):
+class ModScan(common.PoolScannerPlugin):
     """Scan Physical memory for _LDR_DATA_TABLE_ENTRY objects."""
 
     __name = "modscan"
 
-    def generate_hits(self):
-        scanner = PoolScanModuleFast(profile=self.profile, session=self.session,
-                                     address_space=self.address_space)
+    table_header = [
+        dict(name="Offsetdict(P)", cname="offset", style="address"),
+        dict(name="Name", cname="name", width=20),
+        dict(name="Base", cname="base", style="address"),
+        dict(name="Size", cname="size", style="address"),
+        dict(name="File", cname="file")
+    ]
 
-        for pool_obj in scanner.scan():
-            if not pool_obj:
-                continue
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True
+    )
 
-            ldr_entry = self.profile._LDR_DATA_TABLE_ENTRY(
-                vm=self.address_space, offset=pool_obj.obj_end)
+    def collect(self):
+        for run in self.generate_memory_ranges():
+            scanner = PoolScanModuleFast(profile=self.profile,
+                                         session=self.session,
+                                         address_space=run.address_space)
 
-            # Must have a non zero size.
-            if ldr_entry.SizeOfImage == 0:
-                continue
+            for pool_obj in scanner.scan(run.start, run.length):
+                if not pool_obj:
+                    continue
 
-            # Must be page aligned.
-            if ldr_entry.DllBase & 0xFFF:
-                continue
+                ldr_entry = self.profile._LDR_DATA_TABLE_ENTRY(
+                    vm=self.address_space, offset=pool_obj.obj_end)
 
-            yield ldr_entry
+                # Must have a non zero size.
+                if ldr_entry.SizeOfImage == 0:
+                    continue
 
-    def render(self, renderer):
-        renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
-                               ('Name', "name", "20"),
-                               ('Base', "base", "[addrpad]"),
-                               ('Size', "size", "[addr]"),
-                               ('File', "file", "")
-                              ])
-        for ldr_entry in self.generate_hits():
-            renderer.table_row(
-                ldr_entry.obj_offset,
-                ldr_entry.BaseDllName.v(vm=self.kernel_address_space),
-                ldr_entry.DllBase,
-                ldr_entry.SizeOfImage,
-                ldr_entry.FullDllName.v(vm=self.kernel_address_space))
+                # Must be page aligned.
+                if ldr_entry.DllBase & 0xFFF:
+                    continue
+
+                yield (ldr_entry.obj_offset,
+                       ldr_entry.BaseDllName.v(vm=self.kernel_address_space),
+                       ldr_entry.DllBase,
+                       ldr_entry.SizeOfImage,
+                       ldr_entry.FullDllName.v(vm=self.kernel_address_space))
 
 
 class PoolScanThreadFast(common.PoolScanner):
@@ -115,67 +117,75 @@ class PoolScanThreadFast(common.PoolScanner):
             ]
 
 
-class ThrdScan(ModScan):
+class ThrdScan(common.PoolScannerPlugin):
     """Scan physical memory for _ETHREAD objects"""
 
     __name = "thrdscan"
 
-    def generate_hits(self):
-        scanner = PoolScanThreadFast(profile=self.profile, session=self.session,
-                                     address_space=self.address_space)
+    table_header = [
+        dict(name="Offsetdict(P)", cname="offset", style="address"),
+        dict(name="PID", cname="pid", width=6, align="r"),
+        dict(name="TID", cname="tid", width=6, align="r"),
+        dict(name="Start Address", cname="start", style="address"),
+        dict(name="Create Time", cname="create_time", width=24),
+        dict(name="Exit Time", cname="exit_time", width=24),
+        dict(name="Process", cname="name", width=16),
+        dict(name="Symbol", cname="symbol"),
+    ]
 
-        for pool_obj in scanner.scan():
-            thread = pool_obj.GetObject("Thread").Body.cast("_ETHREAD")
-            if not thread:
-                continue
-
-            if (thread.Cid.UniqueProcess.v() != 0 and
-                    thread.StartAddress == 0):
-                continue
-
-            try:
-                # Check the Semaphore Type.
-                if thread.Tcb.SuspendSemaphore.Header.Type != 0x05:
-                    continue
-
-                if thread.KeyedWaitSemaphore.Header.Type != 0x05:
-                    continue
-            except AttributeError:
-                pass
-
-            yield thread
+    scanner_defaults = dict(
+        scan_kernel_nonpaged_pool=True
+    )
 
 
-    def render(self, renderer):
-        renderer.table_header([("Offset(P)", "offset", "[addrpad]"),
-                               ("PID", "pid", ">6"),
-                               ("TID", "tid", ">6"),
-                               ("Start Address", "start", "[addr]"),
-                               ("Create Time", "create_time", "24"),
-                               ("Exit Time", "exit_time", "24"),
-                               ("Process", "name", "16"),
-                               ("Symbol", "symbol", ""),
-                              ])
-
+    def collect(self):
         with self.session.plugins.cc() as cc:
-            for thread in self.generate_hits():
-                # Resolve the thread back to an owning process if possible.
-                task = thread.Tcb.ApcState.Process.dereference_as(
-                    "_EPROCESS", vm=self.session.kernel_address_space)
+            for run in self.generate_memory_ranges():
+                scanner = PoolScanThreadFast(
+                    profile=self.profile, session=self.session,
+                    address_space=run.address_space)
 
-                try:
-                    cc.SwitchProcessContext(task)
-                except KeyError:
-                    cc.SwitchProcessContext()
+                for pool_obj in scanner.scan(run.start, run.length):
+                    thread = pool_obj.GetObject("Thread").Body.cast("_ETHREAD")
+                    if not thread:
+                        continue
 
-                renderer.table_row(thread.obj_offset,
-                                   thread.Cid.UniqueProcess,
-                                   thread.Cid.UniqueThread,
-                                   thread.Win32StartAddress.v(),
-                                   thread.CreateTime,
-                                   thread.ExitTime,
-                                   task.ImageFileName,
-                                   self.session.address_resolver.format_address(
-                                       thread.Win32StartAddress.v(),
-                                       max_distance=1e6),
-                                  )
+                    if (thread.Cid.UniqueProcess.v() != 0 and
+                            thread.StartAddress == 0):
+                        continue
+
+                    try:
+                        # Check the Semaphore Type.
+                        if thread.Tcb.SuspendSemaphore.Header.Type != 0x05:
+                            continue
+
+                        if thread.KeyedWaitSemaphore.Header.Type != 0x05:
+                            continue
+                    except AttributeError:
+                        pass
+
+                    # Resolve the thread back to an owning process if possible.
+                    task = thread.Tcb.ApcState.Process.dereference_as(
+                        "_EPROCESS", vm=self.session.kernel_address_space)
+
+                    # Try to switch to the tasks address space in order to
+                    # resolve symbols.
+                    start_address = thread.Win32StartAddress.v()
+                    if start_address < self.session.GetParameter(
+                            "highest_usermode_address"):
+                        if task != self.session.GetParameter("process_context"):
+                            cc.SwitchProcessContext(task)
+
+                    else:
+                        cc.SwitchProcessContext()
+
+                    yield (thread.obj_offset,
+                           thread.Cid.UniqueProcess,
+                           thread.Cid.UniqueThread,
+                           thread.Win32StartAddress.v(),
+                           thread.CreateTime,
+                           thread.ExitTime,
+                           task.ImageFileName,
+                           self.session.address_resolver.format_address(
+                               start_address,
+                               max_distance=1e6))

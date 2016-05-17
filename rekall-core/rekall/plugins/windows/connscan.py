@@ -28,7 +28,7 @@ This module implements the fast connection scanning
 """
 
 # pylint: disable=protected-access
-
+from rekall import plugin
 from rekall.plugins.overlays.windows import tcpip_vtypes
 from rekall.plugins.windows import common
 
@@ -37,15 +37,29 @@ class PoolScanConnFast(common.PoolScanner):
     checks = [('PoolTagCheck', dict(tag="TCPT")),
               ('CheckPoolSize', dict(condition=lambda x: x >= 0x198)),
               ('CheckPoolType', dict(non_paged=True, paged=True, free=True)),
-              ('CheckPoolIndex', dict(value=0)),
-              ]
+              ('CheckPoolIndex', dict(value=0))]
+
 
 class ConnScan(tcpip_vtypes.TcpipPluginMixin,
-               common.PoolScannerPlugin):
+               common.WinScanner,
+               common.AbstractWindowsCommandPlugin):
     """ Scan Physical memory for _TCPT_OBJECT objects (tcp connections)
     """
 
     __name = "connscan"
+
+    table_header = plugin.PluginHeader(
+        dict(name="Offset(P)", cname="offset_p", style="address"),
+        dict(name="Local Address", cname="local_net_address",
+             align="l", width=25),
+        dict(name="Remote Address", cname="remote_net_address",
+             align="l", width=25),
+        dict(name="Pid", cname="pid", width=10, align="r")
+    )
+
+    scanner_defaults = dict(
+        scan_physical=True
+    )
 
     @classmethod
     def is_active(cls, session):
@@ -53,36 +67,30 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
         return (super(ConnScan, cls).is_active(session) and
                 session.profile.metadata("major") == 5)
 
-    def generate_hits(self):
+    def collect(self):
         """Search the physical address space for _TCPT_OBJECTs.
 
         Yields:
           _TCPT_OBJECT instantiated on the physical address space.
         """
-        # The pool is managed by the kernel so we need to use the kernel's
-        # profile here.
-        scanner = PoolScanConnFast(
-            session=self.session, profile=self.profile,
-            address_space=self.address_space)
+        for run in self.generate_memory_ranges():
+            # The pool is managed by the kernel so we need to use the kernel's
+            # profile here.
+            scanner = PoolScanConnFast(
+                session=self.session, profile=self.profile,
+                address_space=run.address_space)
 
-        for pool_obj in scanner.scan():
-            # The struct is allocated out of the pool (i.e. its not an object).
-            yield self.tcpip_profile._TCPT_OBJECT(
-                vm=self.address_space,
-                offset=pool_obj.obj_offset + pool_obj.obj_size)
+            for pool_obj in scanner.scan(run.start, maxlen=run.length):
+                # The struct is allocated out of the pool (i.e. its not an
+                # object).
+                tcp_obj = self.tcpip_profile._TCPT_OBJECT(
+                    vm=run.address_space,
+                    offset=pool_obj.obj_offset + pool_obj.obj_size)
 
-    def render(self, renderer):
-        renderer.table_header([("Offset(P)", "offset_p", "[addrpad]"),
-                               ("Local Address", "local_net_address", "<25"),
-                               ("Remote Address", "remote_net_address", "<25"),
-                               ("Pid", "pid", ">10")])
+                local = "{0}:{1}".format(tcp_obj.LocalIpAddress,
+                                         tcp_obj.LocalPort)
 
-        ## We make a new scanner
-        for tcp_obj in self.generate_hits():
-            local = "{0}:{1}".format(tcp_obj.LocalIpAddress,
-                                     tcp_obj.LocalPort)
+                remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress,
+                                          tcp_obj.RemotePort)
 
-            remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress,
-                                      tcp_obj.RemotePort)
-
-            renderer.table_row(tcp_obj.obj_offset, local, remote, tcp_obj.Pid)
+                yield tcp_obj.obj_offset, local, remote, tcp_obj.Pid

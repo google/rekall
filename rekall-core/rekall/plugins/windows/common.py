@@ -342,34 +342,6 @@ class PoolScanner(scan.BaseScanner):
                 vm=self.address_space, offset=hit)
 
 
-class PoolScannerPlugin(plugin.KernelASMixin, AbstractWindowsCommandPlugin):
-    """A base class for all pool scanner plugins."""
-    __abstract = True
-
-    @classmethod
-    def args(cls, parser):
-        super(PoolScannerPlugin, cls).args(parser)
-        parser.add_argument(
-            "--scan_in_kernel", default=False, type="Boolean",
-            help="Scan in the kernel address space")
-
-    def __init__(self, address_space=None, scan_in_kernel=False, **kwargs):
-        """Scan the address space for pool allocations.
-
-        Args:
-          address_space: If provided we scan this address space, else we use the
-          physical_address_space.
-
-          scan_in_kernel: Scan in the kernel address space.
-        """
-        super(PoolScannerPlugin, self).__init__(**kwargs)
-        scan_in_kernel = scan_in_kernel or self.session.scan_in_kernel
-        if scan_in_kernel:
-            self.address_space = address_space or self.kernel_address_space
-        else:
-            self.address_space = address_space or self.physical_address_space
-
-
 class KDBGHook(AbstractWindowsParameterHook):
     """A Hook to calculate the KDBG when needed."""
 
@@ -552,6 +524,8 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
         for run in super(WinScanner, self).generate_memory_ranges():
             yield run
 
+        pools_seen = set()
+
         # If the user did not just ask to scan the entire kernel space, support
         # dividing the kernel space into subregions.
         if not self.plugin_args.scan_kernel:
@@ -560,6 +534,11 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
             # Scan session pools in each process.
             if self.plugin_args.scan_kernel_session_pools:
                 for pool in pool_plugin.find_session_pool_descriptors():
+                    if pool.PoolStart in pools_seen:
+                        continue
+
+                    pools_seen.add(pool.PoolStart)
+
                     comment = "%s" % pool.PoolType
                     if pool.Comment:
                         comment += " (%s)" % pool.Comment
@@ -576,6 +555,10 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
             # Non paged pool selection.
             if self.plugin_args.scan_kernel_nonpaged_pool:
                 for pool in pool_plugin.find_non_paged_pool():
+                    if pool.PoolStart in pools_seen:
+                        continue
+
+                    pools_seen.add(pool.PoolStart)
                     comment = "Pool %s" % pool.PoolType
                     if pool.Comment:
                         comment += " (%s)" % pool.Comment
@@ -591,11 +574,17 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
 
             if self.plugin_args.scan_kernel_paged_pool:
                 for pool in pool_plugin.find_paged_pool():
+                    if pool.PoolStart in pools_seen:
+                        continue
+
+                    pools_seen.add(pool.PoolStart)
+
                     comment = "Pool %s" % pool.PoolType
                     if pool.Comment:
                         comment += " (%s)" % pool.Comment
 
-                    self.session.logging.info("Scanning in: %s" % comment)
+                    self.session.logging.info("Scanning in: %s [%#x-%#x]" % (
+                        comment, pool.PoolStart, pool.PoolEnd))
 
                     yield addrspace.Run(
                         start=pool.PoolStart, end=pool.PoolEnd,
@@ -617,6 +606,10 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                             start=module.start, end=module.end,
                             address_space=self.session.kernel_address_space,
                             data=dict(type=comment, module=module))
+
+
+class PoolScannerPlugin(WinScanner, AbstractWindowsCommandPlugin):
+    pass
 
 
 class PsListPsActiveProcessHeadHook(AbstractWindowsParameterHook):
