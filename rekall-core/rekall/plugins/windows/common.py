@@ -609,7 +609,7 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
 
 
 class PoolScannerPlugin(WinScanner, AbstractWindowsCommandPlugin):
-    pass
+    __abstract = True
 
 
 class PsListPsActiveProcessHeadHook(AbstractWindowsParameterHook):

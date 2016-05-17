@@ -291,7 +291,7 @@ class MutantScan(plugin.VerbosityMixIn, common.PoolScannerPlugin):
 
                     # By default we suppress non-named mutants because they are
                     # not very interesting.
-                    if self.verbosity < 5 and not object_name:
+                    if self.plugin_args.verbosity < 5 and not object_name:
                         continue
 
                     mutant = self.profile._KMUTANT(

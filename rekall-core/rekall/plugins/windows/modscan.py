@@ -82,7 +82,7 @@ class ModScan(common.PoolScannerPlugin):
                     continue
 
                 ldr_entry = self.profile._LDR_DATA_TABLE_ENTRY(
-                    vm=self.address_space, offset=pool_obj.obj_end)
+                    vm=run.address_space, offset=pool_obj.obj_end)
 
                 # Must have a non zero size.
                 if ldr_entry.SizeOfImage == 0:
