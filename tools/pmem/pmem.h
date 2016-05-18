@@ -75,7 +75,7 @@ class PmemImager: public BasicImager {
         "", "format", "Specify the output format of memory streams:\n"
         "  map: An AFF4Map object (Supports compression and sparse).\n"
         "  elf: An ELF stream. (Supports sparse image).\n"
-        "  raw: A raw padded stream. (No compression or padding).\n"
+        "  raw: A raw padded stream. (Padded with no compression).\n"
         "If this option is used together with the --export option it "
         "specifies the output format of the exported stream.",
         false, "map", "map, elf, raw"));

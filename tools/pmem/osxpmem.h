@@ -24,14 +24,41 @@ specific language governing permissions and limitations under the License.
 #define MINIMUM_PMEM_API_VERSION 2
 
 
+class PmemMetadata {
+protected:
+  vector<uint8_t> buf_;
+
+public:
+  explicit PmemMetadata() {}
+
+  AFF4Status LoadMetadata(string sysctl_name);
+  pmem_meta_t *get_meta();
+  size_t get_meta_size();
+  vector<pmem_meta_record_t> get_records();
+
+  bool efi_readable(EFI_MEMORY_TYPE type) {
+    return (type == EfiLoaderCode ||
+	    type == EfiLoaderData ||
+	    type == EfiBootServicesCode ||
+	    type == EfiBootServicesData ||
+	    type == EfiRuntimeServicesCode ||
+	    type == EfiRuntimeServicesData ||
+	    type == EfiConventionalMemory ||
+	    type == EfiACPIReclaimMemory ||
+	    type == EfiACPIMemoryNVS ||
+	    type == EfiPalCode);
+  }
+};
+
+
 class OSXPmemImager: public PmemImager {
  private:
   string device_name;
   string sysctl_name;
-  string driver_path;
   URN device_urn;   /**< The URN of the pmem device. */
   URN driver_urn;
   bool driver_installed_ = false;
+  PmemMetadata metadata;
   
  protected:
   virtual string GetName() {
@@ -62,7 +89,16 @@ class OSXPmemImager: public PmemImager {
    */
   AFF4Status UninstallDriver();
 
+  // Get the path to the embedded driver.
+  string get_driver_path();
+  
   virtual AFF4Status RegisterArgs() {
+    AddArg(new TCLAP::SwitchArg(
+        "l", "load-driver", "Load the driver and exit", false));
+
+    AddArg(new TCLAP::SwitchArg(
+        "u", "unload-driver", "Unload the driver and exit", false));
+
     AddArg(new TCLAP::ValueArg<string>(
         "", "driver", "Path to driver to load. "
         "This is usually set to the driver included in the package.",
@@ -80,6 +116,9 @@ class OSXPmemImager: public PmemImager {
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
 
+  // Write the memory information.yaml file.
+  virtual string DumpMemoryInfoToYaml();
+  
  public:
   virtual ~OSXPmemImager();
 };

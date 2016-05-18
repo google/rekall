@@ -53,7 +53,7 @@ bin_PROGRAMS = osxpmem
 osxpmem_LDFLAGS = $(STATIC_LINKERLDFLAGS)
 osxpmem_CXXFLAGS = -std=c++11 -g -Wall -O0
 osxpmem_SOURCES = pmem_imager.cc osxpmem.cc
-osxpmem_LDADD = -laff4 -lglog
+osxpmem_LDADD = -laff4 -lglog -lyaml-cpp
 
 all-local: osxpmem
 	@echo Creating deployable bundle.

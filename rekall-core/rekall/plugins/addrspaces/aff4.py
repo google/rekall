@@ -99,7 +99,6 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
     def __init__(self, filename=None, **kwargs):
         super(AFF4AddressSpace, self).__init__(**kwargs)
-
         self.as_assert(self.base == None,
                        "Must stack on another address space")
 
@@ -123,8 +122,9 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             try:
                 self._AutoLoadAFF4Volume(volume_path)
                 return
-            except IOError:
-                raise addrspace.ASAssertionError("Unable to open AFF4 volume")
+            except IOError as e:
+                raise addrspace.ASAssertionError(
+                    "Unable to open AFF4 volume: %s" % e)
 
         # If the user asked for a specific stream just load that one. Note that
         # you can still load the pagefile manually using the --pagefile
@@ -132,9 +132,10 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         try:
             image_urn = volume_path.Append(stream_path)
             self._LoadMemoryImage(image_urn)
-        except IOError:
+        except IOError as e:
             raise addrspace.ASAssertionError(
-                "Unable to open AFF4 stream %s" % image_urn)
+                "Unable to open AFF4 stream %s: %s" % (
+                    stream_path, e))
 
     def _LocateAFF4Volume(self, filename):
         stream_name = []
@@ -294,21 +295,33 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         if mapped_offset > 0:
             return mapped_offset + file_offset
 
+    _parameter = [
+        ("dtb", "Registers.CR3"),
+        ("kernel_base", "KernBase"),
+        ("vm_kernel_slide", "kaslr_slide")
+    ]
+        
     def _parse_physical_memory_metadata(self, session, image_urn):
         try:
             with self.resolver.AFF4FactoryOpen(
                     image_urn.Append("information.yaml")) as fd:
-                metadata = yaml_utils.decode(fd.read(10e6))
-                # Allow the user to override the AFF4 file.
-                if not session.HasParameter("dtb"):
-                    session.SetCache(
-                        "dtb", metadata.get("Registers", {}).get("CR3"),
-                        volatile=False)
+                metadata = yaml_utils.decode(fd.read(10000000))
+                for session_param, info_para in self._parameter:
+                    # Allow the user to override the AFF4 file.
+                    if session.HasParameter(session_param):
+                        continue
 
-                if not session.HasParameter("kernel_base"):
-                    session.SetCache(
-                        "kernel_base", metadata.get("KernBase"),
-                        volatile=False)
+                    tmp = metadata
+                    value = None
+                    for key in info_para.split("."):
+                        value = tmp.get(key)
+                        if value is None:
+                            break
+
+                        tmp = value
+
+                    if value is not None:
+                        session.SetCache(session_param, value, volatile=False)
         except IOError:
             session.logging.info(
                 "AFF4 volume does not contain %s/information.yaml" % image_urn)
