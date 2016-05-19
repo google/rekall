@@ -253,6 +253,9 @@ class CommandWrapper(object):
                 return self
 
         self.table_header = getattr(self.plugin_cls, "table_header", None)
+        if isinstance(self.table_header, (list, tuple)):
+            self.table_header = plugin.PluginHeader(*self.table_header)
+
         if self.table_header:
             # We have access to table header and rows without running render.
             plugin_curry = getattr(self.session.plugins, self.plugin_cls.name)

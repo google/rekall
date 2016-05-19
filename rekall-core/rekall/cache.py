@@ -53,8 +53,11 @@ class PicklingDirectoryIOManager(io_manager.DirectoryIOManager):
 
 
 class Cache(object):
-    def __init__(self):
+    def __init__(self, session):
         self.data = {}
+        self.session = session
+        if session == None:
+            raise RuntimeError("Session must be set")
 
     def Get(self, item, default=None):
         return self.data.get(item, default)
@@ -93,7 +96,11 @@ class TimedCache(Cache):
 
     This is useful for live analysis to ensure that information is not stale.
     """
-    expire_time = 5
+
+    @utils.safe_property
+    def expire_time(self):
+        # Change this via the session.SetParameter("cache_expiry_time", XXX)
+        return self.data.get("cache_expiry_time", 600)
 
     def Get(self, item, default=None):
         now = time.time()
@@ -150,12 +157,8 @@ class FileCache(Cache):
     """
 
     def __init__(self, session):
-        super(FileCache, self).__init__()
+        super(FileCache, self).__init__(session)
         self._io_manager = None
-        if session == None:
-            raise RuntimeError("Session must be set")
-
-        self.session = session
         self.fingerprint = None
         self.name = None
 
@@ -323,12 +326,12 @@ def GetCacheDir(session):
 def Factory(session, cache_type):
     """Instantiate the most appropriate cache for this session."""
     if cache_type == "memory":
-        return Cache()
+        return Cache(session)
 
     if cache_type == "timed":
-        return TimedCache()
+        return TimedCache(session)
 
     if cache_type == "file":
         return FileCache(session)
 
-    return Cache()
+    return Cache(session)

@@ -852,7 +852,8 @@ class Session(object):
     def _HandleRunPluginException(self, ui_renderer, e):
         """Handle exceptions thrown while trying to run a plugin."""
         _ = ui_renderer, e
-        raise
+        # This method is called from exception handlers.
+        raise  # pylint: disable=misplaced-bare-raise
 
     def _GetPluginName(self, plugin_obj):
         """Extract the name from the plugin object."""
@@ -1268,7 +1269,9 @@ class InteractiveSession(Session):
             if self.GetParameter("debug"):
                 pdb.post_mortem(sys.exc_info()[2])
 
-            raise
+            # This method is called from the exception handler - this bare raise
+            # will preserve backtraces.
+            raise  # pylint: disable=misplaced-bare-raise
 
     def v(self):
         """Re-execute the previous command."""

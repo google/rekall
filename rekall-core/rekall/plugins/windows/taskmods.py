@@ -24,6 +24,7 @@
 # pylint: disable=protected-access
 
 from rekall import testlib
+from rekall import utils
 
 from rekall.plugins.common import memmap
 from rekall.plugins.windows import common
@@ -36,56 +37,33 @@ class WinPsList(common.WinProcessFilter):
 
     eprocess = None
 
-    @classmethod
-    def args(cls, metadata):
-        super(WinPsList, cls).args(metadata)
-        metadata.set_description("""
-        Lists the processes by following the _EPROCESS.PsActiveList.
+    table_header = [
+        dict(type="_EPROCESS", cname="_EPROCESS"),
+        dict(name="PPID", cname="ppid", width=6, align="r"),
+        dict(name="Thds", cname="thread_count", width=6, align="r"),
+        dict(name="Hnds", cname="handle_count", width=8, align="r"),
+        dict(name="Sess", cname="session_id", width=6, align="r"),
+        dict(name="Wow64", cname="wow64", width=6),
+        dict(name="Start", cname="process_create_time", width=24),
+        dict(name="Exit", cname="process_exit_time", width=24)
+    ]
 
-        In the windows operating system, processes are linked together through a
-        doubly linked list. This plugin follows the list around, printing
-        information about each process.
-
-        To begin, we need to find any element on the list. This can be done by:
-
-        1) Obtaining the _KDDEBUGGER_DATA64.PsActiveProcessHead - debug
-           information.
-
-        2) Finding any _EPROCESS in memory (e.g. through psscan) and following
-           its list.
-
-        This plugin supports both approaches.
-        """)
-
-    def render(self, renderer):
-
-        renderer.table_header([
-            dict(type="_EPROCESS", cname="_EPROCESS"),
-            dict(name="PPID", cname="ppid", width=6, align="r"),
-            dict(name="Thds", cname="thread_count", width=6, align="r"),
-            dict(name="Hnds", cname="handle_count", width=8, align="r"),
-            dict(name="Sess", cname="session_id", width=6, align="r"),
-            dict(name="Wow64", cname="wow64", width=6),
-            dict(name="Start", cname="process_create_time", width=24),
-            dict(name="Exit", cname="process_exit_time", width=24)])
-
+    def collect(self):
         for task in self.filter_processes():
-            renderer.table_row(task,
-                               task.InheritedFromUniqueProcessId,
-                               task.ActiveThreads,
-                               task.ObjectTable.m("HandleCount"),
-                               task.SessionId,
-                               task.IsWow64,
-                               task.CreateTime,
-                               task.ExitTime,
-                               )
+            yield (task,
+                   task.InheritedFromUniqueProcessId,
+                   task.ActiveThreads,
+                   task.ObjectTable.m("HandleCount"),
+                   task.SessionId,
+                   task.IsWow64,
+                   task.CreateTime,
+                   task.ExitTime)
 
 
 class WinDllList(common.WinProcessFilter):
     """Prints a list of dll modules mapped into each process."""
 
     __name = "dlllist"
-
 
     def render(self, renderer):
         for task in self.filter_processes():
@@ -121,23 +99,22 @@ class WinMemMap(memmap.MemmapMixIn, common.WinProcessFilter):
             "MmHighestUserAddress", "Pointer").v()
 
 
-
-
 class Threads(common.WinProcessFilter):
     """Enumerate threads."""
     name = "threads"
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("_ETHREAD", "offset", "[addrpad]"),
-             ("PID", "pid", ">6"),
-             ("TID", "tid", ">6"),
-             ("Start Address", "start", "[addrpad]"),
-             dict(name="Start Symbol", width=30),
-             ("Process", "name", "16"),
-             ("Win32 Start", "start", "[addrpad]"),
-             dict(name="Win32 Symbol")])
+    table_header = [
+        dict(name="_ETHREAD", cname="offset", style="address"),
+        dict(name="PID", cname="pid", align="r", width=6),
+        dict(name="TID", cname="tid", align="r", width=6),
+        dict(name="Start Address", cname="start", style="address"),
+        dict(name="Start Symbol", width=30),
+        dict(name="Process", cname="name", width=16),
+        dict(name="Win32 Start", cname="win32_start", style="address"),
+        dict(name="Win32 Symbol")
+    ]
 
+    def collect(self):
         cc = self.session.plugins.cc()
         with cc:
             for task in self.filter_processes():
@@ -147,20 +124,16 @@ class Threads(common.WinProcessFilter):
                 for thread in task.ThreadListHead.list_of_type(
                         "_ETHREAD", "ThreadListEntry"):
 
-                    renderer.table_row(
-                        thread,
-                        thread.Cid.UniqueProcess,
-                        thread.Cid.UniqueThread,
-                        thread.StartAddress,
-                        self.session.address_resolver.format_address(
-                            thread.StartAddress,
-                            max_distance=0xffffffff),
-                        task.ImageFileName,
-                        thread.Win32StartAddress,
-                        self.session.address_resolver.format_address(
-                            thread.Win32StartAddress,
-                            max_distance=0xffffffff),
-                    )
+                    yield (thread,
+                           thread.Cid.UniqueProcess,
+                           thread.Cid.UniqueThread,
+                           thread.StartAddress,
+                           utils.FormattedAddress(self.session.address_resolver,
+                                                  thread.StartAddress),
+                           task.ImageFileName,
+                           thread.Win32StartAddress,
+                           utils.FormattedAddress(self.session.address_resolver,
+                                                  thread.Win32StartAddress))
 
 
 class WinMemDump(memmap.MemDumpMixin, common.WinProcessFilter):

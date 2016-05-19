@@ -475,7 +475,34 @@ class HexDumpedString(AttributedString):
     """A string which should be hex dumped."""
 
 
+class FormattedAddress(object):
+    """A container for an address that should be formatted.
+
+    Addresses are usually formatted with the address resolver, but this can be
+    expensive as the address resolver needs to work out what modules exist in
+    the address space and build profiles for them. Although this is necessary
+    for actually formatting the address, sometimes plugins want to return a
+    formatted address, but this might be filtered away - in which case the
+    formatting effort is wasted.
+
+    This container object encapsulates the resolver and the address and then
+    uses an ObjectRenderer to do the actual formatting at rendering time. If the
+    address is discarded, no formatting is done and we save some cycles.
+    """
+
+    def __init__(self, resolver, address, max_distance=1e6):
+        self.resolver = resolver
+        self.address = address
+        self.max_distance = max_distance
+
+    def __str__(self):
+        return ", ".join(self.resolver.format_address(
+            self.address, max_distance=self.max_distance))
+
+
+
 class AttributeDict(dict):
+
     """A dict that can be accessed via attributes."""
     dirty = False
 

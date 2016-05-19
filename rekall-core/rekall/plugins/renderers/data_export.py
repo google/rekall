@@ -50,6 +50,7 @@ renderer.CopyObjectRenderers((
     json_storage.BaseAddressSpaceObjectRenderer,
     json_renderer.StringRenderer,
     json_storage.FileAddressSpaceObjectRenderer,
+    json_storage.JsonFormattedAddress,
     json_storage.IA32PagedMemoryObjectRenderer,
     json_storage.JsonAttributedStringRenderer,
     json_storage.JsonEnumerationRenderer,

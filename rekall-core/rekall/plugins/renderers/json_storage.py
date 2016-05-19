@@ -294,6 +294,17 @@ class JsonEnumerationRenderer(json_renderer.StateBasedObjectRenderer):
         return item.get("enum", "")
 
 
+class JsonFormattedAddress(json_renderer.StateBasedObjectRenderer):
+    renders_type = ["FormattedAddress"]
+
+    def GetState(self, item, **_):
+        return dict(address=item.address,
+                    symbol=utils.SmartStr(item))
+
+    def Summary(self, item, **_):
+        return utils.SmartStr(item)
+
+
 class JsonRangedCollectionObjectRenderer(
         json_renderer.StateBasedObjectRenderer):
     """Serialize RangedCollection objects."""

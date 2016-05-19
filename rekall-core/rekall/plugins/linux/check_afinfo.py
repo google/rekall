@@ -54,22 +54,22 @@ class CheckAFInfo(common.LinuxPlugin):
             dict(name="tcp",
                  constant_type="tcp_seq_afinfo",
                  global_vars=[
-                    "tcp6_seq_afinfo",
-                    "tcp4_seq_afinfo"
-                    ],
+                     "tcp6_seq_afinfo",
+                     "tcp4_seq_afinfo"
+                 ],
                  members=members,
-                 ),
+                ),
 
             dict(name="udp",
                  constant_type="udp_seq_afinfo",
                  global_vars=[
-                    "udplite6_seq_afinfo",
-                    "udp6_seq_afinfo",
-                    "udplite4_seq_afinfo",
-                    "udp4_seq_afinfo"
-                    ],
+                     "udplite6_seq_afinfo",
+                     "udp6_seq_afinfo",
+                     "udplite4_seq_afinfo",
+                     "udp4_seq_afinfo"
+                 ],
                  members=members,
-                 ),
+                ),
             ]
 
     def check_members(self, struct, members):
@@ -94,7 +94,7 @@ class CheckAFInfo(common.LinuxPlugin):
                     vm=self.kernel_address_space)
 
                 for member, func in self.check_members(
-                    var_ptr, check["members"]):
+                        var_ptr, check["members"]):
                     yield variable, member, func
 
     def render(self, renderer):

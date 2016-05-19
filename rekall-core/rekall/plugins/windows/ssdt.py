@@ -24,6 +24,7 @@
 # much simpler, since all the information we need is taken directly from the
 # profile.
 
+from rekall import utils
 from rekall.plugins.windows import common
 
 
@@ -52,9 +53,7 @@ class WinSSDT(common.WindowsCommandPlugin):
             function_address = table.v() + (entry >> 4)
             renderer.table_row(
                 j, function_address,
-                resolver.format_address(
-                    function_address,
-                    max_distance=0xFFFFFFFFFFFF) or "Unknown")
+                utils.FormattedAddress(resolver, function_address))
 
     def _render_x86_table(self, table, renderer):
         resolver = self.session.address_resolver
@@ -62,9 +61,7 @@ class WinSSDT(common.WindowsCommandPlugin):
         for j, function_address in enumerate(table):
             renderer.table_row(
                 j, function_address,
-                resolver.format_address(
-                    function_address,
-                    max_distance=0xFFFFFFFFFFFF) or "Unknown")
+                utils.FormattedAddress(resolver, function_address))
 
     def render(self, renderer):
         # Directly get the SSDT.

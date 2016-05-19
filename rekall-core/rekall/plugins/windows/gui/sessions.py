@@ -24,7 +24,7 @@
 # http://volatility-labs.blogspot.ch/2012/09/movp-11-logon-sessions-processes-and.html
 # Windows Internals 5th Edition. Chapter 9.
 
-
+from rekall import utils
 from rekall import obj
 from rekall.plugins.windows import common
 
@@ -107,8 +107,8 @@ class Sessions(common.WinProcessFilter):
             # Follow the undocumented _IMAGE_ENTRY_IN_SESSION list to find the
             # kernel modules loaded in this session.
             for image in session.ImageIterator:
-                symbol = self.session.address_resolver.format_address(
-                    image.ImageBase)
+                symbol = utils.FormattedAddress(
+                    self.session.address_resolver, image.ImageBase)
 
                 renderer.format(
                     " Image: {0:addrpad}, Address {1:addrpad}, Name: {2}\n",

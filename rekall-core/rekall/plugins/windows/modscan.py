@@ -28,7 +28,7 @@ This module implements the fast module scanning
 @organization: Volatile Systems
 """
 # pylint: disable=protected-access
-
+from rekall import utils
 from rekall.plugins.windows import common
 
 
@@ -186,6 +186,5 @@ class ThrdScan(common.PoolScannerPlugin):
                            thread.CreateTime,
                            thread.ExitTime,
                            task.ImageFileName,
-                           self.session.address_resolver.format_address(
-                               start_address,
-                               max_distance=1e6))
+                           utils.FormattedAddress(
+                               self.session.address_resolver, start_address))
