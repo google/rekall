@@ -335,6 +335,10 @@ darwin_overlay = {
         "bootArgs": [None, ["Pointer", dict(target="boot_args")]],
     }],
 
+    "boot_args": [None, {
+        "CommandLine": [None, ["String"]]
+    }],
+
     "EfiMemoryRange": [None, {
         # xnu-1699.26.8/pexpert/pexpert/i386/boot.h: 46
         "Type": [None, ["Enumeration", dict(

@@ -22,6 +22,7 @@ import hashlib
 import re
 
 from rekall import obj
+from rekall import plugin
 from rekall.plugins import core
 from rekall.plugins.darwin import common
 from rekall.plugins.renderers import visual_aides
@@ -184,13 +185,17 @@ class DarwinPhysicalMap(common.AbstractDarwinCommand):
 class DarwinBootParameters(common.AbstractDarwinCommand):
     """Prints the kernel command line."""
 
-    __name = "boot_cmdline"
+    name = "boot_cmdline"
 
-    def render(self, renderer):
-        boot_params = self.profile.get_constant_object(
+    table_header = plugin.PluginHeader(
+        dict(name="Command Line", cname="cmdline", type="str"),
+    )
+
+    def collect(self):
+        boot_args = self.profile.get_constant_object(
             "_PE_state", "PE_state").bootArgs
 
-        renderer.format("{0}", boot_params.CommandLine.cast("String"))
+        yield [boot_args.CommandLine.cast("String")]
 
 
 class DarwinSetProcessContext(core.SetProcessContextMixin,

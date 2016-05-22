@@ -20,6 +20,15 @@
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
+import itertools
+
+from rekall import obj
+from rekall import plugin
+from rekall import testlib
+from rekall import utils
+
+from rekall.ui import identity as identity_renderer
+
 from efilter import ast
 from efilter import errors
 from efilter import protocol
@@ -33,13 +42,6 @@ from efilter.protocols import applicative
 from efilter.protocols import associative
 from efilter.protocols import repeated
 from efilter.protocols import structured
-
-from rekall import obj
-from rekall import plugin
-from rekall import testlib
-from rekall import utils
-
-from rekall.ui import identity as identity_renderer
 
 
 class TestWhichPlugin(testlib.SimpleTestCase):
@@ -62,7 +64,7 @@ class TestExplain(testlib.SimpleTestCase):
     PLUGIN = "explain"
     PARAMETERS = dict(
         commandline="explain %(query)r",
-        query="select * from pslist where (proc.pid == 1)"
+        query="select * from pslist() where (proc.pid == 1)"
     )
 
 
@@ -70,7 +72,16 @@ class TestSearch(testlib.SimpleTestCase):
     PLUGIN = "search"
     PARAMETERS = dict(
         commandline="search %(query)r",
-        query="select * from pslist where (proc.pid == 1)"
+        query="select * from pslist() where (proc.pid == 1)"
+    )
+
+
+class TestLookup(testlib.SimpleTestCase):
+    PLUGIN = "lookup"
+    PARAMETERS = dict(
+        commandline="lookup %(constant)r %(type_name)r",
+        constant="_PE_state",
+        type_name="PE_state"
     )
 
 
@@ -140,7 +151,6 @@ class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
     rudimentary psxview.
 
     This plugin is mostly used by other plugins, like netstat and psxview.
-
     """
 
     name = "collect"
@@ -188,6 +198,36 @@ class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
             renderer.table_row(result, result.obj_producers)
 
 
+class Lookup(plugin.TypedProfileCommand, plugin.ProfileCommand):
+    """Lookup a global in the profile.
+
+    This plugin lets the user ask for a specific global constant in the
+    active profile.
+    """
+
+    name = "lookup"
+
+    __args = [
+        dict(name="constant", required=True, positional=True,
+             help="The constant to look up in the profile."),
+        dict(name="type_name", required=True, positional=True,
+             help="The type of the constant.")
+    ]
+
+    def collect(self):
+        yield [self.profile.get_constant_object(self.plugin_args.constant,
+                                                self.plugin_args.type_name)]
+
+    def render(self, renderer):
+        renderer.table_header([
+            dict(name=self.plugin_args.type_name, cname="result",
+                 type=self.plugin_args.type_name)
+        ])
+
+        for row in self.collect():
+            renderer.table_row(*row)
+
+
 class CommandWrapper(object):
     """Wraps a plugin and its output for the purpose of EFILTER searches.
 
@@ -203,9 +243,11 @@ class CommandWrapper(object):
             will contain its table header once applied.
     """
     plugin_cls = None
+    plugin_obj = None
+
     rows = None
     columns = None
-    table_header = None
+
     session = None
 
     # Once the CommandWrapper is run, this will be set to the arguments that
@@ -217,95 +259,83 @@ class CommandWrapper(object):
         self.plugin_cls = plugin_cls
         self.session = session
 
-    def __iter__(self):
-        if self._applied_args is None:
-            self.apply((), {})
-
-        return iter(self.rows)
-
-    def __getitem__(self, idx):
-        if self._applied_args is None:
-            self.apply((), {})
-
-        return self.rows[idx]
+    def __repr__(self):
+        return "<CommandWrapper: %r>" % (self.plugin_cls.__name__)
 
     # IApplicative
 
     def apply(self, args, kwargs):
         """Instantiate the plugin with given args and run it.
 
-        Note: Apply will only run once per instance - once we have rows it will
-        not rerun, even if the arguments change!
+        This caches the output of the plugin. Subsequently, table_header,
+        rows and columns will be populated.
+
+        The CommmandWrapper must not be applied twice with different
+        arguments - each instance represents a unique application.
 
         Arguments:
             args, kwargs: Arguments to the plugin.
         """
-        if self._applied_args is None:
-            self._applied_args = (args, kwargs)
-        else:
+        if self._applied_args is not None:
+            # Called before. Return what we cached.
             if self._applied_args != (args, kwargs):
                 raise ValueError(
-                    "%r was previously called with %r but is now "
-                    "being called with %r." % (
-                        self, self._applied_args, (args, kwargs)))
-            else:
-                # Results already cached.
-                return self
+                    "%r was previously called with %r but is now being called"
+                    " with %r. This should never happen."
+                    % (self, self._applied_args, (args, kwargs)))
 
-        self.table_header = getattr(self.plugin_cls, "table_header", None)
-        if isinstance(self.table_header, (list, tuple)):
-            self.table_header = plugin.PluginHeader(*self.table_header)
+            return self.rows
 
-        if self.table_header:
-            # We have access to table header and rows without running render.
-            plugin_curry = getattr(self.session.plugins, self.plugin_cls.name)
-            command = plugin_curry(session=self.session, *args, **kwargs)
-            self.rows = list(command.collect_as_dicts())
-            self.columns = self.table_header.header
+        self._applied_args = (args, kwargs)
+
+        # First time - instantiate the plugin with arguments.
+        plugin_curry = getattr(self.session.plugins, self.plugin_cls.name)
+        self.plugin_obj = plugin_curry(session=self.session,
+                                       *args, **kwargs)
+
+        output_header = getattr(self.plugin_cls, "table_header", None)
+        collector = getattr(self.plugin_obj, "collect_as_dicts", None)
+
+        if callable(collector) and output_header is not None:
+            # The plugin supports the collect API and declares its output ahead
+            # of time. This is the ideal case.
+            self.columns = output_header
+            self.rows = repeated.lazy(collector)
         else:
-            # We do not have a table header declaration, so we need to run
-            # the plugin and use an identity renderer to capture its output
-            # and headers.
-
-            # The identity renderer will capture rendered rows.
+            # We don't know enough about the plugin to do the easy thing. We
+            # need to create a shim renderer that will cache the plugin output
+            # and then use that.
             renderer = identity_renderer.IdentityRenderer(session=self.session)
             with renderer.start():
                 self.session.RunPlugin(self.plugin_cls.name, format=renderer,
                                        *args, **kwargs)
 
-            self.rows = renderer.rows
+            # The identity renderer will now contain the plugin output and
+            # columns.
             self.columns = renderer.columns
+            self.rows = repeated.repeated(*list(renderer.rows))
 
-        return self
+        return self.rows
 
-    # IRepeated
+    def reflect_runtime_return(self):
+        """Return the return type* of this CommandWrapper.
 
-    def getvalues(self):
-        """Pretend the plugin is an IRepeated instead of a function."""
-        # If we're being used as a repeated value (not a function) then we could
-        # get here without apply already having been called.
-        if self._applied_args is None:
-            self.apply((), {})
-
-        # Just return self, which is iterable.
-        return self
-
-    def value_eq(self, other):
-        """This is required by the IRepeated protocol, but not actually used."""
-        return self.getvalues() == repeated.getvalues(other)
-
-    def value_apply(self, f):
-        """This is required by the IRepeated protocol, but not actually used."""
-        return repeated.meld(*[f(r) for r in self.rows])
-
-    def value_type(self):
-        """This is required by the IRepeated protocol, but not actually used."""
-        return self.plugin_cls
+        This actually returns a dummy instance (prototype) of the plugin this
+        CommandWrapper wraps. EFILTER allows use of stand-in objects for type
+        inference. We make heavy use of prototypes to represent Rekall's
+        profile-dependent type system.
+        """
+        # Does this plugin implement the reflection helper?
+        try:
+            return self.plugin_cls.GetPrototype(session=self.session)
+        except NotImplementedError:
+            # GetPrototype is not overriden and the default implementation
+            # didn't work.
+            return None
 
 
-# Implement the relevant EFILTER protocols using methods already on the
-# CommandWrapper class.
-repeated.IRepeated.implicit_static(CommandWrapper)
+# Implementing the IApplicative protocol will let EFILTER call the
+# CommandWrapper as though it were a function.
 applicative.IApplicative.implicit_static(CommandWrapper)
 
 
@@ -392,18 +422,13 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.ProfileCommand):
     def reflect_runtime_member(self, name):
         """Find the type* of 'name', which is a plugin.
 
-        * This returns the plugin instance, not its class, because the entire
-        reflection API requires information only available to Rekall at runtime.
+        * This returns a CommandWrapper which allows plugins to be called from
+        EFILTER queries as functions. EFILTER allows the use of stand-in objects
+        as proxies for actual types, so we make heavy use of plugin and struct
+        prototypes to represent Rekall's profile-dependent type system.
         """
         cls = self.session.plugins.plugin_db.GetActivePlugin(name).plugin_cls
-
-        # Does this plugin implement the reflection helper?
-        try:
-            return cls.GetPrototype(session=self.session)
-        except NotImplementedError:
-            # GetPrototype is not overriden and the default implementation
-            # didn't work.
-            return None
+        return CommandWrapper(cls, self.session)
 
     # Plugin methods:
 
@@ -523,7 +548,7 @@ class Search(EfilterPlugin):
         except (TypeError, ValueError):
             return None
 
-    def _render_plugin_output(self, renderer, table_header, *rows):
+    def _render_plugin_output(self, renderer, table_header, rows):
         """Used to render search results if they come from a plugin."""
         columns = []
         for column in table_header or []:
@@ -535,18 +560,37 @@ class Search(EfilterPlugin):
                     "Column spec %r is missing a cname. Full header was: %r." %
                     (column, table_header))
 
-        for row in rows:
-            renderer.table_row(*[row[key] for key in columns])
+        try:
+            for row in rows:
+                renderer.table_row(*[row[key] for key in columns])
+        except errors.EfilterError as error:
+            # Because 'rows' could be a lazy iterator it's possible that an
+            # exception will get raised while output is already being rendered.
+            self.query_error = error
+            return self.render_error(renderer)
 
-    def _render_dicts(self, renderer, *rows):
+    def _render_dicts(self, renderer, rows):
         """Used to render search results if they are basic dicts."""
-        for row in rows:
-            renderer.table_row(*row.itervalues())
+        try:
+            for row in rows:
+                renderer.table_row(*row.itervalues())
+        except errors.EfilterError as error:
+            self.query_error = error
+            return self.render_error(renderer)
 
-    def _render_whatever_i_guess(self, renderer, *rows):
+    def _render_whatever_i_guess(self, renderer, rows):
         """Used to render search results if we don't know WTF they are."""
-        for row in rows:
-            renderer.table_row(row)
+        try:
+            for row in rows:
+                if isinstance(row, CommandWrapper):
+                    raise ValueError(
+                        "%(plugin)r is a Rekall plugin and must be called as a"
+                        " function. Try '%(name)s()'' instead of '%(name)s'."
+                        % dict(plugin=row.plugin_cls, name=row.plugin_cls.name))
+                renderer.table_row(row)
+        except errors.EfilterError as error:
+            self.query_error = error
+            return self.render_error(renderer)
 
     def _find_matching_header(self, keys):
         sorted_keys = sorted(keys)
@@ -558,7 +602,6 @@ class Search(EfilterPlugin):
                             for c in cached_wrapper.columns]
             if sorted(column_names) == sorted_keys:
                 return cached_wrapper.columns
-
 
     def render(self, renderer):
         # Do we have a query?
@@ -572,6 +615,12 @@ class Search(EfilterPlugin):
         except Exception:
             t = None
 
+        if isinstance(t, CommandWrapper):
+            raise RuntimeError(
+                "%r is a plugin and must be called as a function. Try '%s()'"
+                " instead of '%s'"
+                % (t.plugin_cls, t.plugin_cls.name, t.plugin_cls.name))
+
         # Get the data we're rendering.
         try:
             rows = self.collect() or []
@@ -579,59 +628,60 @@ class Search(EfilterPlugin):
             self.query_error = error
             return self.render_error(renderer)
 
-        # If the output type is a TypeProfileCommand subclass then we can just
-        # interrogate its header.
-        if getattr(t, "table_header", None):
-            renderer.table_header(t.table_header)
-            return self._render_plugin_output(renderer, t.table_header,
-                                              *rows)
-
-        # If the output type is a regular plugin then we must've run it at some
-        # point and should be able to retrieve a cached copy of the wrapper,
-        # which will have preserved the output columns.
+        # If the query returns the output of a plugin then we have to render
+        # the same columns as the plugin. If the plugin declares its columns
+        # then that's easy. Otherwise we have to try and get the columns from
+        # cache.
         if isinstance(t, plugin.Command):
-            cached_wrapper = self._cached_command_wrappers.get(t.name)
-            if not cached_wrapper:
-                raise RuntimeError("Command of type %r is the output of an "
-                                   "EFILTER query but no such command was "
-                                   "executed." % (t,))
+            output_header = getattr(t, "table_header", None)
 
-            if not cached_wrapper._applied_args:
-                cached_wrapper.apply((), {})
+            if output_header is None:
+                cached_wrapper = self._cached_command_wrappers.get(t.name)
+                if not cached_wrapper:
+                    raise RuntimeError(
+                        "EFILTER query %r seems to return the output of the "
+                        "Rekall plugin named %r, but no such plugin was "
+                        "executed during evaluation. This should not happen."
+                        % (self.query, t.name))
 
-            renderer.table_header(cached_wrapper.columns)
-            return self._render_plugin_output(renderer, cached_wrapper.columns,
-                                              *rows)
+                output_header = cached_wrapper.columns
 
-        # If we got no rows in the output the just say so.
-        rows = iter(rows)
+            renderer.table_header(output_header)
+            return self._render_plugin_output(renderer, output_header, rows)
+
+        # In the past, if there were no results, the renderer would output
+        # a special column to indicate status. That provided a strong cue to the
+        # interactive user that there were no results but confused tools that
+        # process Rekall output automatically. If there are no rows in the
+        # output and we don't know the output header then we return right away.
+        # To provide a visual cue we use unstructured output.
+        remaining_rows = iter(rows)
         try:
-            first_row = next(rows)
+            first_row = next(remaining_rows)
         except StopIteration:
-            renderer.table_header([("No Results", "no_results", "20")])
+            renderer.format("No results.")
             return
 
-        # As last ditch, try to guess the header based on the data in the
-        # first row.
+        all_rows = itertools.chain((first_row,), remaining_rows)
+
+        # If we have some output but don't know what it is we can try to use
+        # dict keys as columns.
         if isinstance(first_row, dict):
             # Maybe we have a plugin with matching columns in its output?
             columns = self._find_matching_header(first_row.keys())
             if columns:
                 renderer.table_header(columns)
-                return self._render_plugin_output(renderer,
-                                                  columns,
-                                                  first_row,
-                                                  *rows)
+                return self._render_plugin_output(renderer, columns, all_rows)
 
             renderer.table_header(
                 [dict(name=unicode(k), cname=unicode(k))
                  for k in first_row.iterkeys()])
 
-            return self._render_dicts(renderer, first_row, *rows)
+            return self._render_dicts(renderer, all_rows)
 
         # Sigh. Give up, and render whatever you got, I guess.
         renderer.table_header([dict(name="Result", cname="result")])
-        return self._render_whatever_i_guess(renderer, first_row, *rows)
+        return self._render_whatever_i_guess(renderer, all_rows)
 
 
 class Explain(EfilterPlugin):
