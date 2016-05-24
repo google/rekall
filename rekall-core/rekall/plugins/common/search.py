@@ -176,6 +176,8 @@ class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
         for producer in which.collect():
             # We know the producer plugin implements 'produce' because
             # 'which_plugin' guarantees it.
+            self.session.logging.debug("Producing %s from producer %r",
+                                       self.type_name, producer)
             for result in producer.produce():
                 previous = results.get(result.indices)
                 if previous:

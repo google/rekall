@@ -20,12 +20,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import bisect
 import re
 
-from rekall import obj
 from rekall import plugin
 from rekall import scan
+from rekall import utils
 from rekall.plugins.windows import common
 
 
@@ -34,25 +33,29 @@ class Modules(common.WindowsCommandPlugin):
 
     __name = "modules"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(Modules, cls).args(parser)
-        parser.add_argument("--name_regex",
-                            help="Filter module names by this regex.")
+    __args = [
+        dict(name="name_regex", type="RegEx",
+             help="Filter module names by this regex.")
+    ]
 
-    def __init__(self, name_regex=None, **kwargs):
-        """List kernel modules by walking the PsLoadedModuleList."""
-        super(Modules, self).__init__(**kwargs)
-        self.name_regex = re.compile(name_regex or ".", re.I)
+    table_header = [
+        dict(name="_LDR_DATA_TABLE_ENTRY", cname="offset_v", style="address"),
+        dict(name="Name", cname="file_name", width=20),
+        dict(name='Base', cname="module_base", style="address"),
+        dict(name='Size', cname="module_size", style="address"),
+        dict(name='File', cname="path")
+    ]
 
     def lsmod(self):
         """ A Generator for modules (uses _KPCR symbols) """
-        for module in self.session.GetParameter("PsLoadedModuleList").list_of_type(
-                "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
+        for module in self.session.GetParameter(
+                "PsLoadedModuleList").list_of_type(
+                    "_LDR_DATA_TABLE_ENTRY", "InLoadOrderLinks"):
 
             # Skip modules which do not match.
-            if not self.name_regex.search(str(module.FullDllName)):
+            if (self.plugin_args.name_regex and
+                    not self.plugin_args.name_regex.search(
+                        utils.SmartUnicode(module.FullDllName))):
                 continue
 
             yield module
@@ -61,24 +64,15 @@ class Modules(common.WindowsCommandPlugin):
         """Returns a list of module addresses."""
         return sorted(self.mod_lookup.keys())
 
-    def render(self, renderer):
+    def collect(self):
         object_tree_plugin = self.session.plugins.object_tree()
 
-        renderer.table_header(
-            [("_LDR_DATA_TABLE_ENTRY", "offset_v", "[addrpad]"),
-             ("Name", "file_name", "20"),
-             ('Base', "module_base", "[addrpad]"),
-             ('Size', "module_size", "[addr]"),
-             ('File', "path", "")
-            ])
-
         for module in self.lsmod():
-            renderer.table_row(
-                module.obj_offset,
-                module.BaseDllName,
-                module.DllBase,
-                module.SizeOfImage,
-                object_tree_plugin.FileNameWithDrive(module.FullDllName.v()))
+            yield (module,
+                   module.BaseDllName,
+                   module.DllBase,
+                   module.SizeOfImage,
+                   object_tree_plugin.FileNameWithDrive(module.FullDllName.v()))
 
 
 class RSDSScanner(scan.BaseScanner):
@@ -94,6 +88,13 @@ class ModVersions(Modules):
 
     __name = "version_modules"
 
+    table_header = [
+        dict(name="Offset (V)", cname="offset_v", style="address"),
+        dict(name="Name", cname="file_name", width=20),
+        dict(name='GUID/Version', cname="guid", width=33),
+        dict(name="PDB", cname="pdb")
+    ]
+
     def ScanVersions(self):
         pe_profile = self.session.LoadProfile("pe")
         scanner = RSDSScanner(address_space=self.kernel_address_space,
@@ -108,19 +109,12 @@ class ModVersions(Modules):
                 guid = "%s%x" % (rsds.GUID.AsString, rsds.Age)
                 yield module, rsds, guid
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("Offset (V)", "offset_v", "[addrpad]"),
-             ("Name", "file_name", "20"),
-             ('GUID/Version', "guid", "33"),
-             ("PDB", "pdb", "")])
-
+    def collect(self):
         for module, rsds, guid in self.ScanVersions():
-            renderer.table_row(
-                rsds,
-                module.BaseDllName,
-                guid,
-                rsds.Filename)
+            yield (rsds,
+                   module.BaseDllName,
+                   guid,
+                   rsds.Filename)
 
 
 class VersionScan(plugin.PhysicalASMixin, plugin.Command):
@@ -191,7 +185,14 @@ class UnloadedModules(common.WindowsCommandPlugin):
 
     name = "unloaded_modules"
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="Name", cname="name", width=20),
+        dict(name="Start", cname="start", style="address"),
+        dict(name="End", cname="end", style="address"),
+        dict(name="Time", cname="time")
+    ]
+
+    def collect(self):
         unloaded_table = self.profile.get_constant_object(
             "MmUnloadedDrivers",
             target="Pointer",
@@ -210,21 +211,18 @@ class UnloadedModules(common.WindowsCommandPlugin):
             mistate = self.profile.get_constant_object(
                 "MiState", target="_MI_SYSTEM_INFORMATION")
 
-            unloaded_table = mistate.UnloadedDrivers.dereference_as(
+            unloaded_table = mistate.multi_m(
+                "UnloadedDrivers",
+                "Vs.UnloadedDrivers"
+            ).dereference_as(
                 "Array",
                 target_args=dict(
                     target="_UNLOADED_DRIVERS",
                     count=mistate.LastUnloadedDriver)
             )
 
-
-        renderer.table_header([("Name", "name", "20"),
-                               ("Start", "start", "[addrpad]"),
-                               ("End", "end", "[addrpad]"),
-                               ("Time", "time", "")])
-
         for driver in unloaded_table:
-            renderer.table_row(driver.Name,
-                               driver.StartAddress.v(),
-                               driver.EndAddress.v(),
-                               driver.CurrentTime)
+            yield (driver.Name,
+                   driver.StartAddress.v(),
+                   driver.EndAddress.v(),
+                   driver.CurrentTime)

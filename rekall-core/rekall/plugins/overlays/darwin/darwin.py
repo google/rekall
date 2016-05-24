@@ -628,9 +628,9 @@ class queue_entry(basic.ListMixIn, obj.Struct):
             yield item
             if item.obj_offset in seen:
                 return
-
+            seen.add(item.obj_offset)
             item = item.m(member).next.dereference_as(type)
-
+            
 
 class sockaddr_dl(obj.Struct):
     def __unicode__(self):

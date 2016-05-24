@@ -30,41 +30,33 @@ class Handles(common.WinProcessFilter):
 
     __name = "handles"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(Handles, cls).args(parser)
-        parser.add_argument(
-            "-t", "--object_types", type="ArrayStringParser",
-            help="Types of objects to show.")
-        parser.add_argument(
-            "--named_only", type="Boolean",
-            help="Output only handles with a name .")
+    __args = [
+        dict(name="object_types", type="ArrayStringParser",
+             help="Types of objects to show."),
+        dict(name="named_only", type="Boolean",
+             help="Output only handles with a name ."),
+    ]
 
-    def __init__(self, *args, **kwargs):
-        """Lists the handles for processes.
-
-        Args:
-          object_types: Show these object types (An array of Object Types -
-                        for example: object_types=["Process", "File"]).
-          silent: Suppress less meaningful results
-        """
-        self.object_list = kwargs.pop("object_types", None)
-        self.silent = kwargs.pop("silent", False)
-        self.named_only = kwargs.pop("named_only", False)
-
-        super(Handles, self).__init__(*args, **kwargs)
+    table_header = [
+        dict(name="_OBJECT_HEADER", cname="offset_v", style="address"),
+        dict(name="_EPROCESS", type="_EPROCESS", cname="_EPROCESS"),
+        dict(name="Handle", cname="handle", style="address"),
+        dict(name="Access", cname="access", style="address"),
+        dict(name="Type", cname="obj_type", width=16),
+        dict(name="Details", cname="details")
+    ]
 
     def enumerate_handles(self, task):
         if task.ObjectTable.HandleTableList:
             for handle in task.ObjectTable.handles():
-                name = ""
+                name = u""
                 object_type = handle.get_object_type(self.kernel_address_space)
 
                 if object_type == None:
                     continue
 
-                if self.object_list and object_type not in self.object_list:
+                if (self.plugin_args.object_types and
+                        object_type not in self.plugin_args.object_types):
                     continue
 
                 elif object_type == "File":
@@ -86,24 +78,16 @@ class Handles(common.WinProcessFilter):
                         thrd_obj.Cid.UniqueProcess)
 
                 elif handle.NameInfo.Name == None:
-                    name = ""
+                    name = u""
                 else:
                     name = handle.NameInfo.Name
 
-                if not name and self.named_only:
+                if not name and self.plugin_args.named_only:
                     continue
 
                 yield handle, object_type, name
 
-    def render(self, renderer):
-        renderer.table_header([("_OBJECT_HEADER", "offset_v", "[addrpad]"),
-                               dict(name="_EPROCESS", type="_EPROCESS",
-                                    cname="_EPROCESS"),
-                               ("Handle", "handle", "[addr]"),
-                               ("Access", "access", "[addr]"),
-                               ("Type", "obj_type", "16"),
-                               ("Details", "details", "")])
-
+    def collect(self):
         for task in self.filter_processes():
             for count, (handle, object_type, name) in enumerate(
                     self.enumerate_handles(task)):
@@ -111,16 +95,11 @@ class Handles(common.WinProcessFilter):
                 self.session.report_progress("%s: %s handles" % (
                     task.ImageFileName, count))
 
-                if self.silent:
-                    if len(utils.SmartUnicode(name).replace("'", "")) == 0:
-                        continue
-
-                renderer.table_row(
-                    handle,
-                    task,
-                    handle.HandleValue,
-                    handle.GrantedAccess,
-                    object_type, name)
+                yield (handle,
+                       task,
+                       handle.HandleValue,
+                       handle.GrantedAccess,
+                       object_type, utils.SmartUnicode(name))
 
 
 class TestHandles(testlib.SimpleTestCase):

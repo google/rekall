@@ -1022,7 +1022,7 @@ class Array(BaseObject):
         if not self.obj_vm.is_valid_address(self.obj_offset):
             return
 
-        for position in xrange(0, self.count):
+        for position in utils.xrange(0, self.count):
             # Since we often calculate array counts it is possible to
             # calculate huge arrays. This will then spin here
             # uncontrollably. We use max_count as a safety to break out
