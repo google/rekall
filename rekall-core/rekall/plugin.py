@@ -550,7 +550,11 @@ class TypedProfileCommand(object):
 
     def collect_as_dicts(self):
         for row in self.collect():
-            yield self.table_header.dictify(row)
+            # Its already a dict.
+            if isinstance(row, dict):
+                yield row
+            else:
+                yield self.table_header.dictify(row)
 
     def render(self, renderer, **options):
         renderer.table_header(self.table_header, **options)

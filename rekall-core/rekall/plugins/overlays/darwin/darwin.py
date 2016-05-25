@@ -1398,7 +1398,8 @@ class zone(obj.Struct):
         # use_page_list.
         page_lists = {"all_free", "all_used", "intermediate"}
 
-        if self.use_page_list:
+        # Field not present on OSX 10.7
+        if self.m("use_page_list"):
             for page_list in page_lists:
                 for page_start in self.m(page_list).walk_list("next"):
                     if page_start in seen_pages:

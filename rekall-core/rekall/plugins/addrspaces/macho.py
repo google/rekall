@@ -36,7 +36,8 @@ class MACHOCoreDump(addrspace.RunBasedAddressSpace):
         self.check_file()
 
         # Try to parse the file now.
-        macho_profile = macho.MachoProfile(session=self.session)
+        macho_profile = self.session.LoadProfile("OSX/macho")
+        macho.MachoProfile(session=self.session)
         self.header = macho_profile.mach_header_64(
             vm=self.base, offset=0)
 

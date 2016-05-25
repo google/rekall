@@ -212,13 +212,17 @@ class Lookup(plugin.TypedProfileCommand, plugin.ProfileCommand):
     __args = [
         dict(name="constant", required=True, positional=True,
              help="The constant to look up in the profile."),
-        dict(name="type_name", required=True, positional=True,
-             help="The type of the constant.")
+        dict(name="target", positional=True, default=None,
+             help="The type of the constant."),
+        dict(name="target_args", positional=True, default=None,
+             help="The target args"),
     ]
 
     def collect(self):
-        yield [self.profile.get_constant_object(self.plugin_args.constant,
-                                                self.plugin_args.type_name)]
+        yield [self.session.address_resolver.get_constant_object(
+            self.plugin_args.constant,
+            target=self.plugin_args.target,
+            target_args=self.plugin_args.target_args)]
 
     def render(self, renderer):
         renderer.table_header([

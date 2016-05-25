@@ -74,7 +74,7 @@ macho_vtypes = {
             'MH_BINDATLOAD': 0x8,
             'MH_PREBOUND': 0x10,
         })]],
-        'segments': [None, ['Array', dict(
+        'segments': [lambda x: x.obj_size, ['Array', dict(
             target="segment_command_64",
             count=lambda x: x.ncmds)]],
     }],
@@ -134,4 +134,4 @@ class MachoProfile(basic.ProfileLP64, basic.BasicClasses):
     @classmethod
     def Initialize(cls, profile):
         super(MachoProfile, cls).Initialize(profile)
-        profile.add_types(macho_vtypes)
+        profile.add_overlay(macho_vtypes)

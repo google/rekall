@@ -355,6 +355,7 @@ class LinuxProfile(RepositoryPlugin):
         """Linux profile location"""
         convert_profile = self.session.plugins.convert_profile(
             session=self.session,
+            source="/dev/null",
             out_file="dummy file")  # We don't really output the profile.
 
         changed_files = False
