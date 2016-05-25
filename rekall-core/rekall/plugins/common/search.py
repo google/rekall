@@ -226,8 +226,8 @@ class Lookup(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
     def render(self, renderer):
         renderer.table_header([
-            dict(name=self.plugin_args.type_name, cname="result",
-                 type=self.plugin_args.type_name)
+            dict(name=self.plugin_args.constant, cname="result",
+                 type=self.plugin_args.target)
         ])
 
         for row in self.collect():
