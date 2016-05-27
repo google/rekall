@@ -176,6 +176,7 @@ class Live(plugin.ProfileCommand):
                 raise plugin.PluginError("%s" % e)
 
         self.session.physical_address_space = phys_as
+        self.session.GetParameter("live", True)
 
     def remove_service(self, also_close_as=True):
         self.session.logging.debug("Removing service %s", self.name)

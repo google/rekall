@@ -222,6 +222,9 @@ class BaseScanner(object):
         self.address_space = address_space or self.session.default_address_space
         self.window_size = window_size
         self.constraints = None
+        if profile is None and self.session.HasParameter("profile"):
+            profile = self.session.profile
+
         self.profile = profile
         self.max_length = None
         self.base_offset = None

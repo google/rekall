@@ -53,6 +53,7 @@ class Live(plugin.ProfileCommand):
             self.session.physical_address_space = load_as.GuessAddressSpace(
                 base_as=base_as)
 
+            self.session.GetParameter("live", True)
         except IOError as e:
             self.session.logging.debug("%s", e)
             raise plugin.PluginError("%s. Are you root?" % e)

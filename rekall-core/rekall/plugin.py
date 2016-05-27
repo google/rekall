@@ -21,6 +21,7 @@
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
+import collections
 import re
 import StringIO
 
@@ -76,7 +77,7 @@ class CommandOption(object):
             if self.type == "AddressSpace":
                 return session.GetParameter("default_address_space")
 
-            if self.type in ["ArrayString", "ArrayIntParser"]:
+            if self.type in ["ArrayString", "ArrayIntParser", "Array"]:
                 return []
 
             if self.type in ["Bool", "Boolean"]:
@@ -115,13 +116,20 @@ class CommandOption(object):
             if isinstance(value, basestring):
                 value = [value]
 
-            if not isinstance(value, (list, tuple)):
+            if not isinstance(value, collections.Iterable):
                 raise TypeError("Arg %s must be a list of strings" % self.name)
 
             for item in value:
                 if not isinstance(item, basestring):
                     raise TypeError("Arg %s must be a list of strings" %
                                     self.name)
+
+        elif self.type == "Array":
+            if isinstance(value, basestring):
+                value = [value]
+
+            if not isinstance(value, collections.Iterable):
+                raise TypeError("Arg %s must be a list of strings" % self.name)
 
         elif self.type == "RegEx":
             value = re.compile(value, re.I)
@@ -202,7 +210,7 @@ class Command(object):
             And instance of this Command with suitable default arguments.
         """
         try:
-            return cls(session=session)
+            return cls(session=session, ignore_required=True)
         except (TypeError, ValueError):
             raise NotImplementedError("Subclasses must override GetPrototype "
                                       "if they require arguments.")
@@ -211,7 +219,7 @@ class Command(object):
     def name(cls):  # pylint: disable=no-self-argument
         return getattr(cls, "_%s__name" % cls.__name__, None)
 
-    def __init__(self, **kwargs):
+    def __init__(self, ignore_required=False, **kwargs):
         """The constructor for this command.
 
         Commands can take arbitrary named args and have access to the running
@@ -221,6 +229,10 @@ class Command(object):
           session: The session we will use. Many options are taken from the
             session by default, if not provided. This allows users to omit
             specifying many options.
+
+          ignore_required: If this is true plugin constructors must allow the
+            plugin to be instantiated with no parameters. All parameter
+            validation shall be disabled and construction must succeed.
         """
         session = kwargs.pop("session", None)
         if kwargs:
@@ -232,6 +244,7 @@ class Command(object):
             raise InvalidArgs("A session must be provided.")
 
         self.session = session
+        self.ignore_required = ignore_required
 
     def get_plugin(self, name, **kwargs):
         """Returns an instance of the named plugin.
@@ -475,6 +488,11 @@ class TypedProfileCommand(object):
     plugin_args = None
 
     def __init__(self, *pos_args, **kwargs):
+        self.ignore_required = kwargs.get("ignore_required", False)
+
+        # If this is set we do not enforce required args. This is useful when
+        # callers want to instantiate a plugin in order to use its methods as a
+        # utility.
         if self.plugin_args is None:
             self.plugin_args = utils.AttributeDict()
 
@@ -520,7 +538,8 @@ class TypedProfileCommand(object):
         # Collect all the declared args and parse them.
         for definition in definitions:
             value = kwargs.pop(definition.name, None)
-            if value is None and definition.required:
+            if (value is None and definition.required and
+                    not self.ignore_required):
                 raise InvalidArgs("%s is required." % definition.name)
 
             self.plugin_args[definition.name] = definition.parse(

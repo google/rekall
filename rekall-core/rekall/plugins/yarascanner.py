@@ -111,9 +111,9 @@ class YaraScanMixin(object):
         scan_physical=True
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Scan using yara signatures."""
-        super(YaraScanMixin, self).__init__(**kwargs)
+        super(YaraScanMixin, self).__init__(*args, **kwargs)
 
         # Compile the yara rules in advance.
         if self.plugin_args.yara_expression:
@@ -133,7 +133,7 @@ class YaraScanMixin(object):
         elif self.plugin_args.yara_file:
             self.compile_rule(open(self.plugin_args.yara_file).read())
 
-        else:
+        elif not self.ignore_required:
             raise plugin.PluginError("You must specify a yara rule file or "
                                      "string to match.")
 
@@ -147,7 +147,7 @@ class YaraScanMixin(object):
 
     def generate_hits(self, run):
         scanner = BaseYaraASScanner(
-            profile=self.profile, session=self.session,
+            session=self.session,
             address_space=run.address_space,
             rules=self.rules)
 

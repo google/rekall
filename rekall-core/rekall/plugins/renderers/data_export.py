@@ -53,6 +53,7 @@ renderer.CopyObjectRenderers((
     json_storage.JsonFormattedAddress,
     json_storage.IA32PagedMemoryObjectRenderer,
     json_storage.JsonAttributedStringRenderer,
+    json_storage.AttributeDictObjectRenderer,
     json_storage.JsonEnumerationRenderer,
     json_storage.JsonHexdumpRenderer,
     json_storage.JsonInstructionRenderer,

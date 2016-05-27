@@ -129,6 +129,7 @@ class Live(plugin.ProfileCommand):
                             raise plugin.PluginError("%s. Are you root?" % e)
 
         self.session.physical_address_space = base_as
+        self.session.GetParameter("live", True)
 
     def close(self):
         if self.unload or self.we_started_driver:

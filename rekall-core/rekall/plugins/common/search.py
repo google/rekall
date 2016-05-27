@@ -345,7 +345,7 @@ class CommandWrapper(object):
 applicative.IApplicative.implicit_static(CommandWrapper)
 
 
-class EfilterPlugin(plugin.TypedProfileCommand, plugin.ProfileCommand):
+class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
     """Abstract base class for plugins that do something with queries.
 
     Provides implementations of the basic EFILTER protocols for selecting and
@@ -395,30 +395,19 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
     def resolve(self, name):
         """Find and return a CommandWrapper for the plugin 'name'."""
-        if name in self.getmembers_runtime():
-            return self._build_plugin_wrapper(name)
+        meta = self.session.plugins.plugin_db.GetActivePlugin(name)
+        if meta != None:
+            wrapper = CommandWrapper(meta.plugin_cls, self.session)
+
+            # We build the cache but don't retrieve wrappers from it. We need to
+            # build a new wrapper every time a plugin is resolved from the query
+            # because plugins are functions and might be called with different
+            # args every time.
+            self._cached_command_wrappers[name] = wrapper
+
+            return wrapper
 
         raise KeyError("No plugin named %r." % name)
-
-    def _build_plugin_wrapper(self, name):
-        """Get a wrapper around the plugin called 'name'.
-
-        Arguments:
-            name: Plugin name to find.
-
-        Returns:
-            Instance of CommandWrapper.
-        """
-        meta = self.session.plugins.plugin_db.GetActivePlugin(name)
-        wrapper = CommandWrapper(meta.plugin_cls, self.session)
-
-        # We build the cache but don't retrieve wrappers from it. We need to
-        # build a new wrapper every time a plugin is resolved from the query
-        # because plugins are functions and might be called with different args
-        # every time.
-        self._cached_command_wrappers[name] = wrapper
-
-        return wrapper
 
     def getmembers_runtime(self):
         """Get all available plugins."""
