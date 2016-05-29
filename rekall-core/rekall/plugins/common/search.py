@@ -22,17 +22,12 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import itertools
 
-from rekall import obj
-from rekall import plugin
-from rekall import testlib
-from rekall import utils
-
-from rekall.ui import identity as identity_renderer
-
 from efilter import ast
 from efilter import errors
 from efilter import protocol
 from efilter import query as q
+
+from efilter.ext import row_tuple
 
 from efilter.transforms import asdottysql
 from efilter.transforms import solve
@@ -42,6 +37,13 @@ from efilter.protocols import applicative
 from efilter.protocols import associative
 from efilter.protocols import repeated
 from efilter.protocols import structured
+
+from rekall import obj
+from rekall import plugin
+from rekall import testlib
+from rekall import utils
+
+from rekall.ui import identity as identity_renderer
 
 
 class TestWhichPlugin(testlib.SimpleTestCase):
@@ -674,6 +676,12 @@ class Search(EfilterPlugin):
 
             return self._render_dicts(renderer, all_rows)
 
+        elif isinstance(first_row, row_tuple.RowTuple):
+            columns = [dict(name=x)
+                       for x in first_row.getmembers_runtime()]
+            renderer.table_header(columns, auto_widths=True)
+            return self._render_plugin_output(renderer, columns, all_rows)
+
         # Sigh. Give up, and render whatever you got, I guess.
         renderer.table_header([dict(name="Result", cname="result")])
         return self._render_whatever_i_guess(renderer, all_rows)
@@ -919,11 +927,11 @@ structured.IStructured.implement(
 
 def select_Pointer(ptr, key):
     """Delegate to target of the pointer, if any."""
-    obj = ptr.deref()
-    if not obj:
+    target_obj = ptr.deref()
+    if not target_obj:
         ptr.session.logging.warn(
             "Attempting to access key %r of a void pointer %r.", key, ptr)
-    if obj:
+    if target_obj:
         return associative.select(obj, key)
 
 
@@ -938,11 +946,11 @@ associative.IAssociative.implement(
 
 def resolve_Pointer(ptr, member):
     """Delegate to target of the pointer, if any."""
-    obj = ptr.deref()
-    if not obj:
+    target_obj = ptr.deref()
+    if not target_obj:
         ptr.session.logging.warn(
             "Attempting to access member %r of a void pointer %r.", member, ptr)
-    if obj:
+    if target_obj:
         return structured.resolve(obj, member)
 
 

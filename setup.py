@@ -110,5 +110,9 @@ setup(
         ':sys_platform=="win32"': [
             "pyreadline >= 2.0",
         ],
+        ':sys_platform!="win32"': [
+            "readline",
+        ],
+
     }
 )

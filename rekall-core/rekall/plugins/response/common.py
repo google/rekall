@@ -30,12 +30,16 @@ from efilter.protocols import associative
 from efilter.protocols import structured
 
 from rekall import obj
+from rekall import registry
 from rekall import utils
 from rekall import plugin
+from rekall.plugins.overlays import basic
 
 
 class FileSpec(object):
     """Specification of a file path."""
+
+    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     def __init__(self, filename, filesystem="API"):
         self.filesystem = filesystem
@@ -53,46 +57,91 @@ class FileSpec(object):
         return self.name
 
 
+class User(utils.AttributeDict):
+    """A class to represent a user."""
+
+    @classmethod
+    @registry.memoize
+    def from_uid(cls, uid):
+        result = cls()
+
+        # Only available on Linux.
+        try:
+            import pwd
+
+            record = pwd.getpwuid(uid)
+            result.uid = uid
+            result.username = record.pw_name
+            result.homedir = record.pw_dir
+            result.shell = record.pw_shell
+        except (KeyError, ImportError):
+            pass
+
+        return result
+
+
+class Group(utils.AttributeDict):
+    """A class to represent a user."""
+
+    @classmethod
+    @registry.memoize
+    def from_gid(cls, gid):
+        result = cls()
+
+        # Only available on Linux.
+        try:
+            import grp
+
+            record = grp.getgrgid(gid)
+            result.gid = gid
+            result.group_name = record.gr_name
+        except (KeyError, ImportError):
+            pass
+
+        return result
+
+
 class FileInformation(utils.AttributeDict):
     """An object representing a file on disk.
 
     This FileInformation uses the API to read data about the file.
     """
 
-    def __init__(self, filename=None, **kwargs):
+    def __init__(self, session=None, filename=None, **kwargs):
         super(FileInformation, self).__init__(**kwargs)
         # Ensure the filename is a filespec.
         self.filename = FileSpec(filename)
-
-    _st_mode = 0
+        self.session = session
 
     @classmethod
-    def from_stat(cls, filename):
+    def from_stat(cls, filename, session=None):
         filename = FileSpec(filename)
         if filename.filesystem != "API":
             raise RuntimeError("Unsupported file spec type %s" %
                                filename.filesystem)
 
-        result = cls(filename)
+        result = cls(filename=filename, session=session)
 
         try:
-            stat_result = os.stat(result.filename.name)
+            s = os.stat(result.filename.name)
         except (IOError, OSError) as e:
             return obj.NoneObject("Unable to stat %s", e)
 
-        for attr in dir(stat_result):
-            if attr.startswith("st_"):
-                setattr(result, attr, getattr(stat_result, attr))
+        result.st_mode = Permissions(s.st_mode)
+        result.st_ino = s.st_ino
+        result.st_size = s.st_size
+        result.st_dev = s.st_dev
+        result.st_nlink = s.st_nlink
+        result.st_uid = User.from_uid(s.st_uid)
+        result.st_gid = Group.from_gid(s.st_gid)
+        result.st_mtime = basic.UnixTimeStamp(
+            name="st_mtime", value=s.st_mtime, session=session)
+        result.st_atime = basic.UnixTimeStamp(
+            name="st_atime", value=s.st_atime, session=session)
+        result.st_ctime = basic.UnixTimeStamp(
+            name="st_ctime", value=s.st_ctime, session=session)
 
         return result
-
-    @utils.safe_property
-    def st_mode(self):
-        return self.get("st_mode")
-
-    @st_mode.setter
-    def st_mode(self, value):
-        self["st_mode"] = Permissions(int(value))
 
     def open(self):
         try:
@@ -107,13 +156,15 @@ class FileInformation(utils.AttributeDict):
 
         for name in os.listdir(self.filename.name):
             full_path = os.path.join(self.filename.name, name)
-            item = self.from_stat(full_path)
+            item = self.from_stat(full_path, session=self.session)
             if item:
                 yield item
 
 
 class Permissions(object):
     """An object to represent permissions."""
+    __metaclass__ = registry.UniqueObjectIdMetaclass
+
     # Taken from Python3.3's stat.filemode.
     _filemode_table = (
         ((stat.S_IFLNK, "l"),
@@ -187,7 +238,7 @@ class AbstractIRCommandPlugin(plugin.PhysicalASMixin,
 
 
 
-def FileFactory(filename):
+def FileFactory(filename, session=None):
     """Return the correct FileInformation class from the filename.
 
     Currently we only support OS API accessible files, but in the future we will
@@ -200,7 +251,7 @@ def FileFactory(filename):
         raise RuntimeError("Unsupported file spec type %s" %
                            filename.filesystem)
 
-    return FileInformation.from_stat(filename)
+    return FileInformation.from_stat(filename, session=session)
 
 
 # Efilter Glue code.

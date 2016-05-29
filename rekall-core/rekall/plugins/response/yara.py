@@ -42,7 +42,7 @@ class FileYaraScanner(yarascanner.YaraScanMixin,
         count = 0
 
         for path in self.plugin_args.paths:
-            file_info = common.FileFactory(path)
+            file_info = common.FileFactory(path, session=self.session)
             run = addrspace.Run(start=0, end=file_info.st_size,
                                 file_offset=0,
                                 address_space=standard.FDAddressSpace(

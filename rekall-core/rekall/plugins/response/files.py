@@ -307,7 +307,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
             for component in self.convert_glob_into_path_components(glob):
                 node = node.setdefault(component, {})
 
-        root = common.FileFactory(self.plugin_args.root)
+        root = common.FileFactory(self.plugin_args.root, session=self.session)
         for item in self._filter(component_tree, root):
             yield item
 

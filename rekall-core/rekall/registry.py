@@ -76,6 +76,10 @@ class UniqueObjectIdMetaclass(type):
         return res
 
 
+class UniqueObjectIdMixin(object):
+    __metaclass__ = UniqueObjectIdMetaclass
+
+
 class MetaclassRegistry(UniqueObjectIdMetaclass):
     """Automatic Plugin Registration through metaclasses."""
 

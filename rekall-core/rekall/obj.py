@@ -349,7 +349,7 @@ class BaseObject(object):
         if profile is None:
             profile = session.profile
 
-        self.obj_type = type_name
+        self.obj_type = type_name or self.__class__.__name__
 
         # 64 bit addresses are always sign extended, so we need to clear the top
         # bits.

@@ -31,13 +31,18 @@ import ntpath
 import re
 import shutil
 import socket
-import sortedcontainers
+
 import sys
 import tempfile
 import threading
 import traceback
 import time
 import weakref
+
+import sortedcontainers
+
+from rekall import registry
+
 
 
 def SmartStr(string, encoding="utf8"):
@@ -456,6 +461,8 @@ class AttributedString(object):
     """This is just a container for a string and some metadata."""
     highlights = None
 
+    __metaclass__ = registry.UniqueObjectIdMetaclass
+
     def __init__(self, value, highlights=None):
         self.highlights = highlights
         self.value = value
@@ -505,6 +512,9 @@ class AttributeDict(dict):
 
     """A dict that can be accessed via attributes."""
     dirty = False
+
+    _object_id = None
+    __metaclass__ = registry.UniqueObjectIdMetaclass
 
     def __setattr__(self, attr, value):
         try:

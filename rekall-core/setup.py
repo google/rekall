@@ -24,13 +24,13 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
 import subprocess
+import setuptools
 
 from setuptools import find_packages, setup, Command
 
 rekall_description = "Rekall Memory Forensic Framework"
 
 current_directory = os.path.dirname(__file__)
-
 
 ENV = {"__file__": __file__}
 exec open("rekall/_version.py").read() in ENV
@@ -53,7 +53,6 @@ install_requires = [
     "PyAFF4 >= 0.23, < 0.30",
     "PyYAML == 3.11",
     "acora == 2.0",
-    "argparse == 1.4.0",
     "arrow == 0.7.0",
     "efilter == 1!1.3",
     "intervaltree == 2.1.0",
@@ -76,6 +75,11 @@ if "VIRTUAL_ENV" not in os.environ:
     print "  environment. This configuration is not supported!!!"
     print "  Expect breakage."
     print "*****************************************************"
+
+
+if int(setuptools.__version__.split(".")[0]) < 8:
+    raise RuntimeError("Rekall requires at least setuptool version 8.0. "
+                       "Please upgrade with 'pip install --upgrade setuptools'")
 
 
 class PIPUpgrade(Command):

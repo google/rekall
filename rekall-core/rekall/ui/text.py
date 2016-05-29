@@ -378,7 +378,7 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         Return:
           A Cell instance containing the formatted Column header.
         """
-        header_cell = Cell(name, width=options.get("width", None))
+        header_cell = Cell(unicode(name), width=options.get("width", None))
 
         if style == "address" and header_cell.width < self.address_size:
             header_cell.rewrap(width=self.address_size, align="c")
@@ -826,7 +826,6 @@ class Cell(BaseCell):
     def __init__(self, value="", highlights=None, colorizer=None,
                  padding=0, **kwargs):
         super(Cell, self).__init__(**kwargs)
-
         self.paragraphs = value.splitlines()
         self.colorizer = colorizer
         self.highlights = highlights or []
@@ -1034,7 +1033,7 @@ class TextColumn(object):
 
         header.rewrap(
             align="c",
-            width=max(header.width, len(self.options.get("name", ""))))
+            width=max(header.width, len(unicode(self.options.get("name", "")))))
 
         self.header_width = header.width
 
@@ -1090,7 +1089,7 @@ class TextTable(renderer_module.BaseTable):
     column_class = TextColumn
     deferred_rows = None
 
-    def __init__(self, **options):
+    def __init__(self, auto_widths=False, **options):
         super(TextTable, self).__init__(**options)
 
         # Respect the renderer's table separator preference.
@@ -1106,7 +1105,10 @@ class TextTable(renderer_module.BaseTable):
 
         self.sort_key_func = self._build_sort_key_function(options.get("sort"))
 
-        if self.sort_key_func:
+        # Auto-widths mean we calculate the optimal width for each column.
+        self.auto_widths = auto_widths
+
+        if self.sort_key_func or auto_widths:
             self.deferred_rows = []
 
     def _build_sort_key_function(self, sort_cnames):
@@ -1171,7 +1173,37 @@ class TextTable(renderer_module.BaseTable):
             self.deferred_rows.append((row, options))
 
     def flush(self):
-        if self.deferred_rows:
+        if self.deferred_rows is not None:
+            # Calculate the optimal widths.
+            if self.auto_widths:
+                total_width = self.renderer.GetColumns() - 10
+
+                max_widths = []
+                for i, column in enumerate(self.columns):
+                    length = 1
+                    for row in self.deferred_rows:
+                        length = max(length, len(column.render_row(
+                            row[0][i], nowrap=1).lines[0]))
+
+                    max_widths.append(length)
+
+                # Now we have the maximum widths of each column. The problem is
+                # about dividing the total_width into the best width so as much
+                # fits.
+                sum_of_widths = sum(max_widths)
+                for column, max_width in zip(self.columns, max_widths):
+                    width = min(
+                        max_width * total_width / sum_of_widths,
+                        max_width + 1)
+
+                    width = max(width, len(column.name))
+                    column.options["width"] = width
+
+            # Render the headers now.
+            if not self.options.get("suppress_headers"):
+                for line in self.render_header():
+                    self.renderer.write(line + "\n")
+
             self.session.report_progress("TextRenderer: sorting %(spinner)s")
             self.deferred_rows.sort(key=self.sort_key_func)
 
@@ -1372,9 +1404,14 @@ class TextRenderer(renderer_module.BaseRenderer):
         options["tablesep"] = self.tablesep
         super(TextRenderer, self).table_header(*args, **options)
 
+        # Skip the headers if there are deferred_rows.
+        if (self.table.deferred_rows is None or
+                self.table.options.get("suppress_headers") or
+                self.table.auto_widths):
+            return
+
         for line in self.table.render_header():
-            if not self.table.options.get("suppress_headers"):
-                self.write(line + "\n")
+            self.write(line + "\n")
 
     def table_row(self, *args, **kwargs):
         """Outputs a single row of a table.
@@ -1386,7 +1423,7 @@ class TextRenderer(renderer_module.BaseRenderer):
         super(TextRenderer, self).table_row(*args, **kwargs)
         self.RenderProgress(message=None)
 
-    def _GetColumns(self):
+    def GetColumns(self):
         if curses:
             return curses.tigetnum('cols')
 
@@ -1419,7 +1456,7 @@ class TextRenderer(renderer_module.BaseRenderer):
             message = " " + message + "\r"
 
             # Truncate the message to the terminal width to avoid wrapping.
-            message = message[:self._GetColumns()]
+            message = message[:self.GetColumns()]
 
             self.last_message_len = len(message)
 

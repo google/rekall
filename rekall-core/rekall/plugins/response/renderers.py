@@ -26,7 +26,6 @@ from rekall.plugins.renderers import data_export
 
 class FileSpec_Text(text.TextObjectRenderer):
     renders_type = "FileSpec"
-    renderers = ["TextRenderer", "TestRenderer", "WideTextRenderer"]
 
     def render_row(self, target, width=None, **_):
         if target.filesystem == "API":
@@ -39,12 +38,20 @@ class FileSpec_Text(text.TextObjectRenderer):
 
 class FileInformation_TextObjectRenderer(text.TextObjectRenderer):
     renders_type = "FileInformation"
-    renderers = ["TextRenderer", "TestRenderer"]
 
     def render_row(self, target, **options):
         return FileSpec_Text(
             renderer=self.renderer, session=self.session).render_row(
                 target.filename, **options)
+
+
+class UserTextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "User"
+
+    def render_row(self, item, **_):
+        if item.username:
+            return text.Cell(u"%s (%s)" % (item.username, item.uid))
+        return text.Cell(unicode(item.uid))
 
 
 class DataExportFileSpecObjectRenderer(
