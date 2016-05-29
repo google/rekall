@@ -23,25 +23,19 @@
 """Meta-script for pulling in all Rekall components."""
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-import platform
 import os
 import sys
 import subprocess
-import versioneer
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
+from setuptools import setup
 from setuptools.command.install import install as _install
 from setuptools.command.develop import develop as _develop
 
+ENV = {"__file__": __file__}
+exec open("rekall-core/rekall/_version.py").read() in ENV
+VERSION = ENV["get_versions"]()
 
 rekall_description = "Rekall Memory Forensic Framework"
-
-MY_VERSION = versioneer.get_version()
-
 
 # This is a metapackage which pulls in the dependencies. There are two main
 # installation scenarios:
@@ -82,13 +76,14 @@ class develop(_develop):
 
         _develop.run(self)
 
-commands = versioneer.get_cmdclass()
-commands["install"] = install
-commands["develop"] = develop
+commands = dict(
+    install=install,
+    develop=develop
+)
 
 setup(
     name="rekall",
-    version=MY_VERSION,
+    version=VERSION["pep440"],
     cmdclass=commands,
     description=rekall_description,
     long_description=open("README.md").read(),

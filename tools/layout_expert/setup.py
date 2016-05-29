@@ -22,14 +22,13 @@
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
-import versioneer
 
-try:
-    from setuptools import find_packages, setup, Command
-except ImportError:
-    from distutils.core import find_packages, setup
-
+from setuptools import find_packages, setup, Command
 from setuptools.command.test import test as TestCommand
+
+ENV = {"__file__": __file__}
+exec open("layout_expert/_version.py").read() in ENV
+VERSION = ENV["get_versions"]()
 
 
 current_directory = os.path.dirname(__file__)
@@ -70,14 +69,14 @@ class NoseTestCommand(TestCommand):
         nose.run_exit(argv=['nosetests'])
 
 
-commands = versioneer.get_cmdclass()
+commands = {}
 commands["clean"] = CleanCommand
 commands["test"] = NoseTestCommand
 
 
 args = dict(
     name="rekall-layout-expert",
-    version=versioneer.get_version(),
+    version=VERSION["pep440"],
     cmdclass=commands,
     description="Rekall Layout Expert",
     long_description=open(os.path.join(current_directory, "README.md")).read(),

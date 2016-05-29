@@ -128,8 +128,9 @@ import sys
 import tempfile
 import threading
 import time
-import yaml
 import unittest
+
+import yaml
 
 from rekall import config as rekall_config
 from rekall import plugin

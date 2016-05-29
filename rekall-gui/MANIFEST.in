@@ -3,7 +3,5 @@ recursive-exclude build *
 include README.md
 recursive-include manuskript/static *
 recursive-include rekall_gui/plugins/webconsole/static *
-include versioneer.py
-include _version.py
 exclude .gitignore
 exclude *.pyc

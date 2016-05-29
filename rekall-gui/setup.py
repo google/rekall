@@ -23,9 +23,12 @@
 """Installation and deployment script."""
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
-import versioneer
 
 from setuptools import find_packages, setup, Command
+
+VERSION_ENV = {}
+exec open("rekall_gui/_version.py").read() in VERSION_ENV
+VERSION = VERSION_ENV["get_versions"]()
 
 rekall_description = "Rekall Memory Forensic Framework"
 
@@ -36,15 +39,6 @@ def find_data_files_directory(source):
         result.append((directory, files))
 
     return result
-
-
-MY_VERSION = versioneer.get_version()
-if "unknown" in MY_VERSION:
-    try:
-        import rekall
-        MY_VERSION = rekall.__version__
-    except ImportError:
-        pass
 
 install_requires = [
     "rekall-core >= 1.5.0, < 1.6",
@@ -76,13 +70,12 @@ class CleanCommand(Command):
         os.system('rm -rf ./build ./dist')
 
 
-commands = versioneer.get_cmdclass()
+commands = {}
 commands["clean"] = CleanCommand
-
 
 setup(
     name="rekall_gui",
-    version=MY_VERSION,
+    version=VERSION["pep440"],
     cmdclass=commands,
     description=rekall_description,
     long_description="This is the GUI component of the Rekall framework.",

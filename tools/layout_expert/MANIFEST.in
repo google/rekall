@@ -1,4 +1,1 @@
 include README.md
-
-include versioneer.py
-include _version.py

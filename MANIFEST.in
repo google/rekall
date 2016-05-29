@@ -1,5 +1,5 @@
-include versioneer.py
-include _version.py
+include version.py
+include version.yaml
 include README.md
 recursive-include resources *
 recursive-include src *.c *.h *.py

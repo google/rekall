@@ -19,8 +19,8 @@
 import time
 from rekall import _version
 
-VERSION = _version.get_versions()["version"]
-CODENAME = "Furka"   # https://en.wikipedia.org/wiki/Furka_Pass
+VERSION = _version.get_versions()["pep440"]
+CODENAME = _version.get_versions()["codename"]
 SCAN_BLOCKSIZE = 1024 * 1024 * 10
 
 # Official profile repository locations. We create the initial .rekallrc from

@@ -5,12 +5,9 @@ recursive-exclude build *
 #recursive-include contrib *
 recursive-exclude rekall *.pyc
 recursive-exclude tools *.a *.la *.lo *.o
-include versioneer.py
-include _version.py
 
 exclude .gitignore
 exclude *.pyc
-include rekall/_version.py
 
 # Drivers for OSX and windows.
 recursive-include resources *

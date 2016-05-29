@@ -24,13 +24,17 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import os
 import subprocess
-import versioneer
 
 from setuptools import find_packages, setup, Command
 
 rekall_description = "Rekall Memory Forensic Framework"
 
 current_directory = os.path.dirname(__file__)
+
+
+ENV = {"__file__": __file__}
+exec open("rekall/_version.py").read() in ENV
+VERSION = ENV["get_versions"]()
 
 
 def find_data_files(source):
@@ -51,7 +55,7 @@ install_requires = [
     "acora == 2.0",
     "argparse == 1.4.0",
     "arrow == 0.7.0",
-    "efilter == 1!1.2",
+    "efilter == 1!1.3",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.23",
@@ -118,14 +122,13 @@ class CleanCommand(Command):
 
         os.system('rm -rf ./build ./dist')
 
-commands = versioneer.get_cmdclass()
+commands = {}
 commands["pip_upgrade"] = PIPUpgrade
 commands["clean"] = CleanCommand
 
-
 setup(
     name="rekall-core",
-    version=versioneer.get_version(),
+    version=VERSION["pep440"],
     cmdclass=commands,
     description=rekall_description,
     long_description=open(os.path.join(current_directory, "README.rst")).read(),
