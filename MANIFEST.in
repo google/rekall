@@ -1,6 +1,8 @@
 include version.py
 include version.yaml
 include README.md
+include _version.py
+
 recursive-include resources *
 recursive-include src *.c *.h *.py
 recursive-include test_data *

@@ -35,7 +35,7 @@ def get_version_file_path(version_file="version.yaml"):
     try:
         return os.path.join(subprocess.check_output(
             ["git", "rev-parse", "--show-toplevel"], stderr=subprocess.PIPE,
-             cwd=MY_DIR,
+            cwd=MY_DIR,
         ).strip(), version_file)
     except (OSError, subprocess.CalledProcessError):
         return None
@@ -76,12 +76,15 @@ def tag_version_data(version_data, version_path="version.yaml"):
         version_data["revisionid"] = current_hash
         version_data["dirty"] = is_tree_dirty()
         version_data["dev"] = number_of_commit_since(
-           get_version_file_path(version_path))
+            get_version_file_path(version_path))
 
     # Format the version according to pep440:
     pep440 = version_data["version"]
-    if version_data.get("post"):
+    if int(version_data.get("post", 0)) > 0:
         pep440 += ".post" + version_data["post"]
+
+    elif int(version_data.get("rc", 0)) > 0:
+        pep440 += ".rc" + version_data["rc"]
 
     if version_data.get("dev", 0):
         pep440 += ".dev" + str(version_data["dev"])
@@ -135,6 +138,7 @@ def escape_string(instr):
 def update(args):
     if (args.version is None and
             args.post is None and
+            args.rc is None and
             args.codename is None):
         raise AttributeError("You must set something in this release.")
 
@@ -145,6 +149,9 @@ def update(args):
 
     if args.post:
         version_data["post"] = args.post
+
+    if args.rc:
+        version_data["rc"] = args.rc
 
     if args.codename:
         version_data["codename"] = args.codename
@@ -183,6 +190,9 @@ def main():
 
     update_parser.add_argument(
         "--post", help="Set to this new post release.")
+
+    update_parser.add_argument(
+        "--rc", help="Set to this new release candidate.")
 
     update_parser.add_argument(
         "--codename", help="Set to this new codename.")

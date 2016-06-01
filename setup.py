@@ -31,9 +31,8 @@ from setuptools import setup
 from setuptools.command.install import install as _install
 from setuptools.command.develop import develop as _develop
 
-ENV = {"__file__": __file__}
-exec open("rekall-core/rekall/_version.py").read() in ENV
-VERSION = ENV["get_versions"]()
+import _version
+VERSION = _version.get_versions()
 
 rekall_description = "Rekall Memory Forensic Framework"
 
