@@ -341,8 +341,8 @@ class Raw2Dump(common.WindowsCommandPlugin):
             "KeNumberProcessors", "unsigned int")
 
         # Copy some stuff from _KUSER_SHARED_DATA.
-        kuser_shared = self.profile._KUSER_SHARED_DATA(
-            self.profile.get_constant("KI_USER_SHARED_DATA"))
+        kuser_shared = self.profile.get_constant_object(
+            "KI_USER_SHARED_DATA", "_KUSER_SHARED_DATA")
         header.SystemTime = kuser_shared.SystemTime.as_windows_timestamp()
         header.SystemUpTime = (
             kuser_shared.InterruptTime.LowPart +

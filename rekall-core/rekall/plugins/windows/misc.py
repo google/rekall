@@ -217,8 +217,8 @@ class ImageInfo(common.WindowsCommandPlugin):
                 desc, self.profile.get_constant_object(name, target=type))
 
         # Print kuser_shared things.
-        kuser_shared = self.profile._KUSER_SHARED_DATA(
-            self.profile.get_constant("KI_USER_SHARED_DATA"))
+        kuser_shared = self.profile.get_constant_object(
+            "KI_USER_SHARED_DATA", "_KUSER_SHARED_DATA")
 
         renderer.table_row("Time (UTC)", kuser_shared.SystemTime)
 
@@ -274,8 +274,8 @@ class WinImageFingerprint(common.AbstractWindowsParameterHook):
         label = profile.get_constant_object("NtBuildLabEx", "String")
         result.append((address_space.vtop(label.obj_offset), label.v()))
 
-        kuser_shared = profile._KUSER_SHARED_DATA(
-            profile.get_constant("KI_USER_SHARED_DATA"))
+        kuser_shared = profile.get_constant_object(
+            "KI_USER_SHARED_DATA", "_KUSER_SHARED_DATA")
 
         system_time_offset = address_space.vtop(
             kuser_shared.SystemTime.obj_offset)

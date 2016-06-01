@@ -54,7 +54,7 @@ class IRFind(common.AbstractIRCommandPlugin):
         for root, dirs, files in os.walk(self.plugin_args.root):
             for d in dirs + files:
                 full_path = os.path.join(root, d)
-                result = common.FileFactory(full_path)
+                result = common.FileFactory(full_path, session=self.session)
                 if result:
                     yield (result.st_mode, result.st_size, result)
 

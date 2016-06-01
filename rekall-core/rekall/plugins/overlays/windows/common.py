@@ -1581,7 +1581,19 @@ def InitializeWindowsProfile(profile):
     if profile.metadata("arch") == "AMD64":
         # Ref:
         # reactos/include/xdk/amd64/ke.h:17
-        profile.add_constants(dict(KI_USER_SHARED_DATA=0xFFFFF78000000000))
+        ki_shared_data_address = 0xFFFFF78000000000
     else:
         # reactos/include/xdk/x86/ke.h:19
-        profile.add_constants(dict(KI_USER_SHARED_DATA=0xffdf0000))
+        ki_shared_data_address = 0xffdf0000
+
+    ki_shared_data_address = profile.integer_to_address(ki_shared_data_address)
+
+    def func(profile=profile):
+        return (profile.get_constant("KI_USER_SHARED_DATA_RAW") -
+                profile.GetImageBase())
+
+    profile.add_constants(
+        dict(KI_USER_SHARED_DATA_RAW=ki_shared_data_address,
+             KI_USER_SHARED_DATA=func
+         )
+    )
