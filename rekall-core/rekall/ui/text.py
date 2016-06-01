@@ -1405,7 +1405,7 @@ class TextRenderer(renderer_module.BaseRenderer):
         super(TextRenderer, self).table_header(*args, **options)
 
         # Skip the headers if there are deferred_rows.
-        if (self.table.deferred_rows is None or
+        if (self.table.deferred_rows is not None or
                 self.table.options.get("suppress_headers") or
                 self.table.auto_widths):
             return

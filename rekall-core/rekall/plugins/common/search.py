@@ -932,7 +932,7 @@ def select_Pointer(ptr, key):
         ptr.session.logging.warn(
             "Attempting to access key %r of a void pointer %r.", key, ptr)
     if target_obj:
-        return associative.select(obj, key)
+        return associative.select(target_obj, key)
 
 
 # Pointer[key] is implemented as Pointer.dereference()[key].
@@ -951,7 +951,7 @@ def resolve_Pointer(ptr, member):
         ptr.session.logging.warn(
             "Attempting to access member %r of a void pointer %r.", member, ptr)
     if target_obj:
-        return structured.resolve(obj, member)
+        return structured.resolve(target_obj, member)
 
 
 # Pointer.member is implemented as Pointer.dereference().member.
