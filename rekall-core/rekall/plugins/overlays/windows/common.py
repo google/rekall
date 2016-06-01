@@ -620,7 +620,7 @@ class _LDR_DATA_TABLE_ENTRY(obj.Struct):
     @utils.safe_property
     def filename(self):
         object_tree_plugin = self.obj_session.plugins.object_tree()
-        return object_tree_plugin.FileNameWithDrive(self.FullDllName.v())
+        return object_tree_plugin.FileNameWithDrive(unicode(self.FullDllName))
 
     @utils.safe_property
     def end(self):
@@ -655,7 +655,7 @@ class _UNICODE_STRING(obj.Struct):
                 vm=vm)
             return data.v()
         else:
-            return ''
+            return u''
 
     def __nonzero__(self):
         ## Unicode strings are valid if they point at a valid memory

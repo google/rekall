@@ -325,3 +325,27 @@ class StructTextRenderer(text.TextObjectRenderer):
     def render_repr(self, target, **_):
         """Explicitly just render the repr."""
         return text.Cell(repr(target))
+
+
+class AttributeDictTextRenderer(text.TextObjectRenderer):
+    renders_type = "dict"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def __init__(self, *args, **kwargs):
+        """We make a sub table for key, values."""
+        super(AttributeDictTextRenderer, self).__init__(*args, **kwargs)
+        self.table = text.TextTable(
+            columns=[
+                dict(name="Key"),
+                dict(name="Value"),
+            ],
+            auto_widths=True,
+            renderer=self.renderer,
+            session=self.session)
+
+    def render_row(self, item, **options):
+        result = []
+        for key, value in item.iteritems():
+            result.append(self.table.get_row(key, value))
+
+        return text.StackedCell(*result)

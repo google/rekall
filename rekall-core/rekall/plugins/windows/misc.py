@@ -18,7 +18,6 @@
 """Miscelaneous information gathering plugins."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
-
 import hashlib
 import re
 
@@ -26,6 +25,7 @@ import re
 from rekall import obj
 from rekall import utils
 from rekall.plugins import core
+from rekall.plugins.overlays import basic
 from rekall.plugins.windows import common
 
 
@@ -337,7 +337,6 @@ class ObjectTree(common.WindowsCommandPlugin):
         # First normalize the path.
         try:
             path = self.ResolveSymlinks(path)
-
             for prefix, drive_letter in self.session.GetParameter(
                     "drive_letter_device_map").iteritems():
                 prefix = self.ResolveSymlinks(prefix)
@@ -431,3 +430,28 @@ class ObjectTree(common.WindowsCommandPlugin):
 
         seen = set()
         self._render_directory(root, renderer, seen)
+
+
+class WindowsTimes(common.WindowsCommandPlugin):
+    """Return current time, as known to the kernel."""
+
+    name = "times"
+
+    table_header = [
+        dict(name="Times"),
+    ]
+
+    def collect(self):
+        kuser_shared = self.session.address_resolver.get_constant_object(
+            "nt!KI_USER_SHARED_DATA", "_KUSER_SHARED_DATA")
+
+        seconds_since_boot = self.session.plugins.imageinfo().GetBootTime(
+            kuser_shared)
+
+        kernel_time = kuser_shared.SystemTime
+        boot_timestamp = basic.UnixTimeStamp(
+            value=kernel_time - seconds_since_boot,
+            session=self.session)
+
+        yield [utils.AttributeDict(now=kernel_time, boot=boot_timestamp,
+                                   uptime=seconds_since_boot)]
