@@ -174,3 +174,10 @@ class Live(plugin.ProfileCommand):
             shell.render(renderer)
         finally:
             self.close()
+
+    def __enter__(self):
+        self.live()
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.close()

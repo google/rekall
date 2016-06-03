@@ -264,12 +264,7 @@ class JsonHexdumpRenderer(json_renderer.StateBasedObjectRenderer):
 
     def GetState(self, item, **options):
         state = super(JsonHexdumpRenderer, self).GetState(item, **options)
-        state["value"] = " ".join(
-            [unicode(x.encode("hex")) for x in item.value])
-
-        state["translated"] = u".".join([
-            x if ord(x) < 127 and ord(x) > 32 else "." for x in item.value])
-
+        state["value"] = unicode(item.value.encode("hex"))
         state["highlights"] = item.highlights
 
         return state

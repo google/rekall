@@ -66,6 +66,13 @@ class Live(plugin.ProfileCommand):
         # shell!
         return "Live Plugin"
 
+    def __enter__(self):
+        self.live()
+        return self
+
+    def __exit__(self, exc_type, exc_value, trace):
+        self.close()
+
     def render(self, renderer):
         renderer.format("Launching live memory analysis\n")
         self.live()
