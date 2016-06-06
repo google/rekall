@@ -50,10 +50,10 @@ class ObjectTreeHook(common.AbstractWindowsParameterHook):
             # This prevents circular references to parent objects. They should
             # never happen but some possibly corrupt images may contain links to
             # parent objects.
-            if x.obj_offset in seen():
+            if x.obj_offset in seen:
                 continue
 
-            self.seen.add(x.obj_offset)
+            seen.add(x.obj_offset)
 
             name = x.NameInfo.Name.v()
             if name == None:
