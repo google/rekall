@@ -45,8 +45,16 @@ class ObjectTreeHook(common.AbstractWindowsParameterHook):
 
     name = "object_tree"
 
-    def BuildTree(self, result, root):
+    def BuildTree(self, result, root, seen):
         for x in root:
+            # This prevents circular references to parent objects. They should
+            # never happen but some possibly corrupt images may contain links to
+            # parent objects.
+            if x.obj_offset in seen():
+                continue
+
+            self.seen.add(x.obj_offset)
+
             name = x.NameInfo.Name.v()
             if name == None:
                 continue
@@ -62,10 +70,12 @@ class ObjectTreeHook(common.AbstractWindowsParameterHook):
 
             if object_type == "Directory":
                 children = entry["Children"] = {}
-                self.BuildTree(children, x.Object)
+                self.BuildTree(children, x.Object, seen)
 
     @core.MethodWithAddressSpace()
     def calculate(self):
+        seen = set()
+
         root = self.session.profile.get_constant_object(
             "ObpRootDirectoryObject",
             target="Pointer",
@@ -80,7 +90,7 @@ class ObjectTreeHook(common.AbstractWindowsParameterHook):
             offset=root.deref().obj_offset,
             Children={})
 
-        self.BuildTree(result["Children"], root)
+        self.BuildTree(result["Children"], root, seen)
         return result
 
 
