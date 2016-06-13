@@ -30,6 +30,25 @@ import glob
 import os
 import re
 import stat
+import tempfile
+
+from pyaff4 import aff4
+from pyaff4 import data_store
+
+try:
+    # Cloud support is optional.
+    from pyaff4 import aff4_cloud
+except ImportError:
+    aff4_cloud = None
+
+from pyaff4 import aff4_directory
+from pyaff4 import aff4_image
+from pyaff4 import aff4_map
+from pyaff4 import zip
+from pyaff4 import lexicon
+from pyaff4 import rdfvalue
+
+from pyaff4 import plugins  # pylint: disable=unused-import
 
 from rekall import constants
 from rekall import plugin
@@ -38,15 +57,35 @@ from rekall import utils
 from rekall import yaml_utils
 from rekall.plugins import core
 
-from pyaff4 import aff4
-from pyaff4 import data_store
-from pyaff4 import aff4_image
-from pyaff4 import aff4_map
-from pyaff4 import zip
-from pyaff4 import lexicon
-from pyaff4 import rdfvalue
 
-from pyaff4 import plugins  # pylint: disable=unused-import
+class AFF4ProgressReporter(aff4.ProgressContext):
+    def __init__(self, session, **kwargs):
+        super(AFF4ProgressReporter, self).__init__(**kwargs)
+        self.session = session
+
+    def Report(self, readptr):
+        """This will be called periodically to report the progress.
+
+        Note that readptr is specified relative to the start of the range
+        operation (WriteStream and CopyToStream)
+        """
+        readptr = readptr + self.start
+
+        # Rate in MB/s.
+        rate = ((readptr - self.last_offset) /
+                (self.now() - self.last_time) * 1000000 / 1024/1024)
+
+        self.session.report_progress(
+            " Reading %sMiB / %sMiB  %s MiB/s     ",
+            readptr/1024/1024,
+            self.length/1024/1024,
+            rate)
+
+        self.last_time = self.now()
+        self.last_offset = readptr
+
+        if aff4.aff4_abort_signaled:
+            raise RuntimeError("Aborted")
 
 
 class AddressSpaceWrapper(aff4.AFF4Stream):
@@ -60,7 +99,92 @@ class AddressSpaceWrapper(aff4.AFF4Stream):
         return res
 
 
-class AFF4Acquire(plugin.ProfileCommand):
+class CredentialManager(object):
+    """Manage GCE default credentials through the environment."""
+
+    def __init__(self, session=None, gce_credentials_path=None,
+                 gce_credentials=None):
+        self.gce_credentials_path = gce_credentials_path
+        self.gce_credentials = gce_credentials
+        self.session = session
+
+    def __enter__(self):
+        self.old_env = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        self.fd = None
+
+        if self.gce_credentials_path:
+            self.session.logging.debug("Setting GCS credentials to %s",
+                                       self.gce_credentials_path)
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+                self.gce_credentials_path)
+
+        # Credentials are given inline,
+        elif self.gce_credentials:
+            with tempfile.NamedTemporaryFile(delete=False) as self.fd:
+                self.session.logging.debug("Setting GCS credentials to %s",
+                                           self.fd.name)
+
+                self.fd.write(self.gce_credentials)
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.fd.name
+
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        if self.fd:
+            os.unlink(self.fd.name)
+
+        # Restore the previous setting.
+        if self.old_env is None:
+            os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
+        else:
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.old_env
+
+
+class AbstractAFF4Plugin(plugin.TypedProfileCommand, plugin.Command):
+    """The base class for all AFF4 plugins."""
+    __abstract = True
+
+    __args = [
+        dict(name="gce_credentials",
+             help="The GCE service account credentials to use."),
+
+        dict(name="gce_credentials_path",
+             help="A path to the GCE service account credentials to use."),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(AbstractAFF4Plugin, self).__init__(*args, **kwargs)
+        self.credential_manager = CredentialManager(
+            self.session,
+            self.plugin_args.gce_credentials_path,
+            self.plugin_args.gce_credentials)
+
+    def _get_aff4_volume(self, resolver, output_urn, action="Writing"):
+        urn_parts = output_urn.Parse()
+        if urn_parts.scheme == "file":
+            if urn_parts.path.endswith("/"):
+                self.session.logging.info(
+                    "%s a directory volume on %s", action, output_urn)
+                return aff4_directory.AFF4Directory.NewAFF4Directory(
+                    resolver, output_urn)
+
+            self.session.logging.info(
+                "%s a ZipFile volume on %s", action, output_urn)
+
+            return zip.ZipFile.NewZipFile(resolver, output_urn)
+
+        elif urn_parts.scheme == "gs" and aff4_cloud:
+            self.session.logging.info(
+                "%s a cloud volume on %s", action, output_urn)
+
+            return aff4_cloud.AFF4GStore.NewAFF4GStore(
+                resolver, output_urn)
+
+        else:
+            raise plugin.PluginError(
+                "URL Scheme: %s not supported for destination: %s" %(
+                    urn_parts.scheme, output_urn))
+
+
+class AFF4Acquire(AbstractAFF4Plugin):
     """Copy the physical address space to an AFF4 file.
 
 
@@ -78,83 +202,68 @@ class AFF4Acquire(plugin.ProfileCommand):
 
     PROFILE_REQUIRED = False
 
-    @classmethod
-    def args(cls, parser):
-        super(AFF4Acquire, cls).args(parser)
-
-        parser.add_argument(
-            "destination", default="output.aff4", required=False,
-            help="The destination file to create. "
-            "If not specified we write output.aff4 in current directory.")
-
-        parser.add_argument(
-            "-c", "--compression", default=None, required=False,
-            choices=["snappy", "stored", "zlib"],
-            help="The compression to use.")
-
-        parser.add_argument(
-            "--append", default=False, type="Boolean",
-            help="Append to the current volume..")
-
-        parser.add_argument(
-            "--also_memory", default=None, type="Boolean",
-            help="Also acquire physical memory. If not specified we acquire "
-            "physical memory only when no other operation is specified.")
-
-        parser.add_argument(
-            "--also_mapped_files", default=False, type="Boolean",
-            help="Also get mapped or opened files (requires a profile)")
-
-        parser.add_argument(
-            "--also_pagefile", default=False, type="Boolean",
-            help="Also get the pagefile/swap partition (requires a profile)")
-
-        parser.add_argument(
-            "files", default=[], type="ArrayStringParser", required=False,
-            help="Also acquire files matching the following globs.")
-
-    def __init__(self, destination=None, compression=None,
-                 append=False, also_memory=None,
-                 also_mapped_files=False, also_pagefile=False,
-                 max_file_size=100*1024*1024, files=None,
-                 **kwargs):
-        super(AFF4Acquire, self).__init__(**kwargs)
+    __args = [
+        dict(name="destination", positional=True, required=True,
+             help="The destination file to create. "),
 
         # If compression is not specified we prefer snappy but if that is not
         # available we use zlib which should always be there.
-        if compression is None:
-            if aff4_image.snappy:
-                compression = "snappy"
-            else:
-                compression = "zlib"
+        dict(name="compression",
+             default="snappy" if aff4_image.snappy else "zlib",
+             required=False,
+             choices=["snappy", "stored", "zlib"],
+             help="The compression to use."),
 
-        self.destination = destination or "output.aff4"
-        if compression == "snappy":
-            compression = lexicon.AFF4_IMAGE_COMPRESSION_SNAPPY
-        elif compression == "stored":
-            compression = lexicon.AFF4_IMAGE_COMPRESSION_STORED
-        elif compression == "zlib":
-            compression = lexicon.AFF4_IMAGE_COMPRESSION_ZLIB
-        else:
-            raise plugin.PluginError(
-                "Compression scheme not supported.")
+        dict(name="append", type="Boolean", default=False,
+             help="Append to the current volume."),
 
-        self.compression = compression
-        self.append = append
+        dict(name="also_memory", type="Boolean", default="auto",
+             help="Also acquire physical memory. If not specified we acquire "
+             "physical memory only when no other operation is specified."),
+
+        dict(name="also_mapped_files", type="Boolean",
+             help="Also get mapped or opened files (requires a profile)"),
+
+        dict(name="also_pagefile", type="Boolean",
+             help="Also get the pagefile/swap partition (requires a profile)"),
+
+        dict(name="files", type="ArrayStringParser", required=False,
+             help="Also acquire files matching the following globs."),
+
+        dict(name="max_file_size", type="IntParser", default=100*1024*1024,
+             help="Maximum file size to acquire.")
+    ]
+
+    table_header = [
+        dict(name="Message")
+    ]
+
+    table_options = dict(
+        suppress_headers=True
+    )
+
+    def column_types(self):
+        return dict(Message=str)
+
+    def __init__(self, *args, **kwargs):
+        super(AFF4Acquire, self).__init__(*args, **kwargs)
+
+        if self.plugin_args.compression == "snappy":
+            self.compression = lexicon.AFF4_IMAGE_COMPRESSION_SNAPPY
+        elif self.plugin_args.compression == "stored":
+            self.compression = lexicon.AFF4_IMAGE_COMPRESSION_STORED
+        elif self.plugin_args.compression == "zlib":
+            self.compression = lexicon.AFF4_IMAGE_COMPRESSION_ZLIB
 
         # Do not acquire memory if we are told to do something else as well,
         # unless specifically asked to.
-        if also_memory is None:
-            if any((also_mapped_files, also_pagefile, files)):
-                also_memory = False
+        if self.plugin_args.also_memory == "auto":
+            if any((self.plugin_args.also_mapped_files,
+                    self.plugin_args.also_pagefile,
+                    self.plugin_args.files)):
+                self.plugin_args.also_memory = False
             else:
-                also_memory = True
-
-        self.also_memory = also_memory
-        self.also_mapped_files = also_mapped_files
-        self.also_pagefile = also_pagefile
-        self.max_file_size = max_file_size
-        self.files = files or []
+                self.plugin_args.also_memory = True
 
     def _default_file_globs(self):
         if platform.system() == "Windows":
@@ -168,7 +277,7 @@ class AFF4Acquire(plugin.ProfileCommand):
 
         return []
 
-    def copy_physical_address_space(self, renderer, resolver, volume):
+    def copy_physical_address_space(self, resolver, volume):
         """Copies the physical address space to the output volume.
 
         The result is a map object.
@@ -180,23 +289,26 @@ class AFF4Acquire(plugin.ProfileCommand):
         resolver.Set(image_urn, lexicon.AFF4_CATEGORY,
                      rdfvalue.URN(lexicon.AFF4_MEMORY_PHYSICAL))
 
-        if self.compression:
-            storage_urn = image_urn.Append("data")
-            resolver.Set(storage_urn, lexicon.AFF4_IMAGE_COMPRESSION,
-                         rdfvalue.URN(self.compression))
-
         with volume.CreateMember(
                 image_urn.Append("information.yaml")) as metadata_fd:
             metadata_fd.Write(
                 yaml_utils.encode(self.create_metadata(source)))
 
-        renderer.format("Imaging Physical Memory:\n")
+        yield ("Imaging Physical Memory:\n",)
+
+        # Use an AFF4Image for the actual storage.
+        map_data = image_urn.Append("data")
+
+        # Set the compression type on the storage stream.
+        resolver.Set(map_data, lexicon.AFF4_IMAGE_COMPRESSION,
+                     rdfvalue.URN(self.compression))
+
         with aff4_map.AFF4Map.NewAFF4Map(
                 resolver, image_urn, volume.urn) as image_stream:
             total_length = self._WriteToTarget(resolver, source, image_stream)
 
-        renderer.format("Wrote {0} mb of Physical Memory to {1}\n",
-                        total_length/1024/1024, image_stream.urn)
+        yield ("Wrote {0} mb of Physical Memory to {1}\n".format(
+            total_length/1024/1024, image_stream.urn),)
 
     def _WriteToTarget(self, resolver, source_as, image_stream):
         # Prepare a temporary map to control physical memory acquisition.
@@ -213,32 +325,33 @@ class AFF4Acquire(plugin.ProfileCommand):
                     run.start, run.start, run.length,
                     source_aff4.urn)
 
-            progress = aff4.ProgressContext(length=total_length)
+            progress = AFF4ProgressReporter(session=self.session,
+                                            length=total_length)
             image_stream.WriteStream(helper_map, progress=progress)
 
         return total_length
 
-    def _copy_address_space_to_image(self, renderer, resolver, volume,
+    def _copy_address_space_to_image(self, resolver, volume,
                                      image_urn, source):
         """Copy address space into a linear image, padding if needed."""
-        if self.compression:
-            resolver.Set(image_urn, lexicon.AFF4_IMAGE_COMPRESSION,
-                         rdfvalue.URN(self.compression))
+        resolver.Set(image_urn, lexicon.AFF4_IMAGE_COMPRESSION,
+                     rdfvalue.URN(self.compression))
 
         with aff4_image.AFF4Image.NewAFF4Image(
                 resolver, image_urn, volume.urn) as image_stream:
             total_length = self._WriteToTarget(resolver, source, image_stream)
 
-        renderer.format("Wrote {0} ({1} mb)\n", source.name,
-                        total_length/1024/1024)
+        yield ("Wrote {0} ({1} mb)".format(source.name,
+                                           total_length/1024/1024),)
 
-    def linux_copy_mapped_files(self, renderer, resolver, volume):
+    def linux_copy_mapped_files(self, resolver, volume):
         """Copy all the mapped or opened files to the volume."""
         # Build a set of all files.
         vma_files = set()
         filenames = set()
 
-        self._copy_file_to_image(renderer, resolver, volume, "/proc/kallsyms")
+        for x in self._copy_file_to_image(resolver, volume, "/proc/kallsyms"):
+            yield x
 
         for task in self.session.plugins.pslist().filter_processes():
             for vma in task.mm.mmap.walk_list("vm_next"):
@@ -259,19 +372,20 @@ class AFF4Acquire(plugin.ProfileCommand):
 
                 mode = stat_entry.st_mode
                 if stat.S_ISREG(mode):
-                    if stat_entry.st_size <= self.max_file_size:
+                    if stat_entry.st_size <= self.plugin_args.max_file_size:
                         filenames.add(filename)
                         vma_files.add(vm_file_offset)
 
-                        self._copy_file_to_image(
-                            renderer, resolver, volume, filename, stat_entry)
+                        for x in self._copy_file_to_image(
+                                resolver, volume, filename, stat_entry):
+                            yield x
                     else:
                         self.session.logging.info(
                             "Skipping %s: Size larger than %s",
-                            filename, self.max_file_size)
+                            filename, self.plugin_args.max_file_size)
 
 
-    def _copy_file_to_image(self, renderer, resolver, volume, filename,
+    def _copy_file_to_image(self, resolver, volume, filename,
                             stat_entry=None):
         if stat_entry is None:
             try:
@@ -283,12 +397,14 @@ class AFF4Acquire(plugin.ProfileCommand):
         out_fd = None
         try:
             with open(filename, "rb") as in_fd:
-                renderer.format("Adding file {0}\n", filename)
+                yield ("Adding file {0}".format(filename),)
                 resolver.Set(
                     image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
                     rdfvalue.XSDString(os.path.abspath(filename)))
 
-                progress = aff4.ProgressContext(length=stat_entry.st_size)
+                progress = AFF4ProgressReporter(
+                    session=self.session,
+                    length=stat_entry.st_size)
 
                 if stat_entry.st_size < self.MAX_SIZE_FOR_SEGMENT:
                     with volume.CreateMember(image_urn) as out_fd:
@@ -314,7 +430,7 @@ class AFF4Acquire(plugin.ProfileCommand):
 
                     # We can not just read this file, parse it from the NTFS.
                     self._copy_raw_file_to_image(
-                        renderer, resolver, volume, filename)
+                        resolver, volume, filename)
             except IOError:
                 self.session.logging.warn(
                     "Unable to read %s. Skipping.", filename)
@@ -324,7 +440,7 @@ class AFF4Acquire(plugin.ProfileCommand):
             if out_fd:
                 resolver.Close(out_fd)
 
-    def _copy_raw_file_to_image(self, renderer, resolver, volume, filename):
+    def _copy_raw_file_to_image(self, resolver, volume, filename):
         image_urn = volume.urn.Append(utils.SmartStr(filename))
 
         drive, base_filename = os.path.splitdrive(filename)
@@ -341,13 +457,13 @@ class AFF4Acquire(plugin.ProfileCommand):
         mft_entry = ntfs.MFTEntryByName(base_filename)
         data_as = mft_entry.open_file()
 
-        self._copy_address_space_to_image(renderer, resolver, volume, image_urn,
+        self._copy_address_space_to_image(resolver, volume, image_urn,
                                           data_as)
 
         resolver.Set(image_urn, lexicon.AFF4_STREAM_ORIGINAL_FILENAME,
                      rdfvalue.XSDString(os.path.abspath(filename)))
 
-    def windows_copy_mapped_files(self, renderer, resolver, volume):
+    def windows_copy_mapped_files(self, resolver, volume):
         filenames = set()
 
         for task in self.session.plugins.pslist().filter_processes():
@@ -365,7 +481,8 @@ class AFF4Acquire(plugin.ProfileCommand):
                     continue
 
                 filenames.add(file_name)
-                self._copy_file_to_image(renderer, resolver, volume, file_name)
+                for x in self._copy_file_to_image(resolver, volume, file_name):
+                    yield x
 
         object_tree_plugin = self.session.plugins.object_tree()
         for module in self.session.plugins.modules().lsmod():
@@ -373,35 +490,39 @@ class AFF4Acquire(plugin.ProfileCommand):
                 path = object_tree_plugin.FileNameWithDrive(
                     module.FullDllName.v())
 
-                self._copy_file_to_image(renderer, resolver, volume, path)
+                for x in self._copy_file_to_image(resolver, volume, path):
+                    yield x
             except IOError:
                 self.session.logging.debug(
                     "Unable to read %s. Skipping.", path)
 
 
-    def copy_mapped_files(self, renderer, resolver, volume):
+    def copy_mapped_files(self, resolver, volume):
         # Forces profile autodetection if needed.
         profile = self.session.profile
 
         os_name = profile.metadata("os")
         if os_name == "windows":
-            self.windows_copy_mapped_files(renderer, resolver, volume)
+            for  x in self.windows_copy_mapped_files(resolver, volume):
+                yield x
         elif os_name == "linux":
-            self.linux_copy_mapped_files(renderer, resolver, volume)
+            for x in self.linux_copy_mapped_files(resolver, volume):
+                yield x
 
-    def copy_files(self, renderer, resolver, volume, globs):
+    def copy_files(self, resolver, volume, globs):
         """Copy all the globs into the volume."""
         for glob_expression in globs:
             for path in glob.glob(glob_expression):
                 path = os.path.abspath(path)
-                self._copy_file_to_image(renderer, resolver, volume, path)
+                for x in self._copy_file_to_image(resolver, volume, path):
+                    yield x
 
-    def copy_page_file(self, renderer, resolver, volume):
+    def copy_page_file(self, resolver, volume):
         pagefiles = self.session.GetParameter("pagefiles")
         for filename, _ in pagefiles.values():
-            renderer.format("Imaging pagefile {0}\n", filename)
-            self._copy_raw_file_to_image(
-                renderer, resolver, volume, filename)
+            yield ("Imaging pagefile {0}\n".format(filename),)
+            for x in self._copy_raw_file_to_image(resolver, volume, filename):
+                yield x
 
     def create_metadata(self, source):
         """Returns a dict with a standard metadata format.
@@ -424,91 +545,110 @@ class AFF4Acquire(plugin.ProfileCommand):
 
         return result
 
-    def render(self, renderer):
+    def collect(self):
         if self.compression:
-            renderer.format("Will use compression: {0}\n", self.compression)
+            yield ("Will use compression: {0}\n".format(self.compression),)
 
         # Did the user select any actions which require access to memory?
         self.memory_access_options = any(
-            (self.also_memory, self.also_pagefile, self.also_mapped_files))
+            (self.plugin_args.also_memory, self.plugin_args.also_pagefile,
+             self.plugin_args.also_mapped_files))
 
         # Do we need to access memory?
         if self.memory_access_options:
             # If no address space is specified we try to operate in live mode.
             if self.session.plugins.load_as().GetPhysicalAddressSpace() == None:
-                renderer.format(
-                    "Will load physical address space from live plugin.")
+                yield ("Will load physical address space from live plugin.",)
 
-                live = self.session.plugins.live()
-                try:
-                    live.live()
-                    self.render_acquisition(renderer)
-                finally:
-                    live.close()
-            else:
-                self.render_acquisition(renderer)
+                with self.session.plugins.live():
+                    for x in self.collect_acquisition():
+                        yield x
+                    return
 
-    def render_acquisition(self, renderer):
+        for x in self.collect_acquisition():
+            yield x
+
+    def collect_acquisition(self):
         """Do the actual acquisition."""
-        with renderer.open(filename=self.destination, mode="a+b") as out_fd:
-            with data_store.MemoryDataStore() as resolver:
+        # If destination looks like a URN, just let the AFF4 library handle it.
+        output_urn = rdfvalue.URN(self.plugin_args.destination)
+        if (output_urn.Parse().scheme == "file" and
+                not self.plugin_args.destination.endswith("/")):
+            # Destination looks like a filename - go through the renderer to
+            # create the file.
+            with self.session.GetRenderer().open(
+                    filename=self.plugin_args.destination,
+                    mode="a+b") as out_fd:
                 output_urn = rdfvalue.URN.FromFileName(out_fd.name)
-                mode = "truncate"
-                if self.append:
-                    mode = "append"
-                    # Appending means we read the volume first, then add new
-                    # members to it.
+                for x in self._collect_acquisition(output_urn=output_urn):
+                    yield x
+        else:
+            # Just pass the URL to the AFF4 library.
+            for x in self._collect_acquisition(output_urn=output_urn):
+                yield x
 
-                resolver.Set(output_urn, lexicon.AFF4_STREAM_WRITE_MODE,
-                             rdfvalue.XSDString(mode))
+    def _collect_acquisition(self, output_urn):
+        with data_store.MemoryDataStore() as resolver:
+            mode = "truncate"
+            if self.plugin_args.append:
+                mode = "append"
+                # Appending means we read the volume first, then add new
+                # members to it.
 
-                phys_as = self.session.physical_address_space
-                with zip.ZipFile.NewZipFile(resolver, output_urn) as volume:
-                    # We allow acquiring memory from a non volatile physical
-                    # address space as a way of converting an image from another
-                    # format to AFF4.
-                    if phys_as:
-                        if self.also_memory:
-                            # Get the physical memory.
-                            self.copy_physical_address_space(
-                                renderer, resolver, volume)
+            resolver.Set(output_urn, lexicon.AFF4_STREAM_WRITE_MODE,
+                         rdfvalue.XSDString(mode))
 
-                        # We only copy files if we are running on a raw device
-                        # and we're not targetting a VM.
-                        if phys_as.volatile and not phys_as.virtualized:
-                            if self.also_pagefile:
-                                self.copy_page_file(
-                                    renderer, resolver, volume)
+            phys_as = self.session.physical_address_space
+            with self.credential_manager, self._get_aff4_volume(
+                    resolver, output_urn) as volume:
+                # We allow acquiring memory from a non volatile physical
+                # address space as a way of converting an image from another
+                # format to AFF4.
+                if phys_as:
+                    if self.plugin_args.also_memory:
+                        # Get the physical memory.
+                        for x in self.copy_physical_address_space(
+                                resolver, volume):
+                            yield x
 
-                            if self.also_mapped_files:
-                                self.copy_mapped_files(
-                                    renderer, resolver, volume)
+                    # We only copy files if we are running on a raw device
+                    # and we're not targetting a VM.
+                    if phys_as.volatile and not phys_as.virtualized:
+                        if self.plugin_args.also_pagefile:
+                            for x in self.copy_page_file(resolver, volume):
+                                yield x
 
-                            # If a physical_address_space is specified, then
-                            # we only allow copying files if it is volatile.
-                            if self.files:
-                                self.copy_files(renderer, resolver, volume,
-                                                self.files)
-                        elif any([self.also_pagefile, self.also_mapped_files,
-                                  self.files]):
-                            raise RuntimeError(
-                                "Imaging options require access to live memory "
-                                "but the physical address space is not "
-                                "volatile. Did you mean to specify the --live "
-                                "option?")
+                        if self.plugin_args.also_mapped_files:
+                            for x in self.copy_mapped_files(resolver, volume):
+                                yield x
 
-                    elif self.memory_access_options:
+                        # If a physical_address_space is specified, then
+                        # we only allow copying files if it is volatile.
+                        if self.plugin_args.files:
+                            for x in self.copy_files(
+                                    resolver, volume, self.plugin_args.files):
+                                yield x
+
+                    elif any([self.plugin_args.also_pagefile,
+                              self.plugin_args.also_mapped_files,
+                              self.plugin_args.files]):
                         raise RuntimeError(
-                            "Imaging options require access to memory but no "
-                            "suitable address space was defined. Did you mean "
-                            "to specify the --live option?")
+                            "Imaging options require access to live memory "
+                            "but the physical address space is not "
+                            "volatile. Did you mean to specify the --live "
+                            "option?")
 
+                elif self.memory_access_options:
+                    raise RuntimeError(
+                        "Imaging options require access to memory but no "
+                        "suitable address space was defined. Did you mean "
+                        "to specify the --live option?")
 
-                    # User can request to just acquire regular files but only if
-                    # no physical_address_space is also specified.
-                    elif self.files:
-                        self.copy_files(renderer, resolver, volume,
-                                        self.files)
+                # User can request to just acquire regular files but only if
+                # no physical_address_space is also specified.
+                elif self.plugin_args.files:
+                    for x in self.copy_files(resolver, volume, self.files):
+                        yield x
 
 
 # We can not check the file hash because AFF4 files contain UUID which will
@@ -535,40 +675,41 @@ class TestAFF4Acquire(testlib.SimpleTestCase):
         self.assertEqual(previous, current)
 
 
-class AFF4Ls(plugin.VerbosityMixIn, plugin.Command):
+class AFF4Ls(plugin.VerbosityMixIn, AbstractAFF4Plugin):
     """List the content of an AFF4 file."""
 
     name = "aff4ls"
 
-    @classmethod
-    def args(cls, parser):
-        super(AFF4Ls, cls).args(parser)
+    __args = [
+        dict(name="long", type="Boolean",
+             help="Include additional information about each stream."),
 
-        parser.add_argument(
-            "-l", "--long", default=False, type="Boolean",
-            help="Include additional information about each stream.")
+        dict(name="regex", default=".", type="RegEx",
+             help="Regex of filenames to dump."),
 
-        parser.add_argument(
-            "--regex", default=".",
-            help="Regex of filenames to dump.")
+        dict(name="volume", required=True, positional=True,
+             help="Volume to list."),
+    ]
 
-        parser.add_argument(
-            "volume", default=None, required=False,
-            help="Volume to list.")
+    namespaces = {
+        lexicon.AFF4_NAMESPACE: "aff4:",
+        lexicon.XSD_NAMESPACE: "xsd:",
+        lexicon.RDF_NAMESPACE: "rdf:",
+        lexicon.AFF4_MEMORY_NAMESPACE: "memory:",
+        lexicon.AFF4_DISK_NAMESPACE: "disk:",
+        "http://www.google.com#": "google:",
+    }
 
-    def __init__(self, long=False, regex=".", volume=None, **kwargs):
-        super(AFF4Ls, self).__init__(**kwargs)
-        self.long = long
-        self.volume_path = volume
+    table_header = [
+        dict(name="Size", width=10, align="r"),
+        dict(name="Type", width=15),
+        dict(name="Original Name", width=50),
+        dict(name="URN"),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(AFF4Ls, self).__init__(*args, **kwargs)
         self.resolver = data_store.MemoryDataStore()
-        self.regex = re.compile(regex)
-        self.namespaces = {
-            lexicon.AFF4_NAMESPACE: "aff4:",
-            lexicon.XSD_NAMESPACE: "xsd:",
-            lexicon.RDF_NAMESPACE: "rdf:",
-            lexicon.AFF4_MEMORY_NAMESPACE: "memory:",
-            lexicon.AFF4_DISK_NAMESPACE: "disk:"
-        }
 
     def _shorten_URN(self, urn):
         if not isinstance(urn, rdfvalue.URN):
@@ -582,57 +723,40 @@ class AFF4Ls(plugin.VerbosityMixIn, plugin.Command):
 
         return urn
 
-    def render_long(self, renderer, volume):
+    def collect(self):
         """Render a detailed description of the contents of an AFF4 volume."""
-        renderer.table_header([
-            dict(name="Size", width=10, align="r"),
-            dict(name="Type", width=15),
-            dict(name="Original Name", width=50),
-            dict(name="URN"),
-        ])
+        volume_urn = rdfvalue.URN(self.plugin_args.volume)
 
-        for subject in sorted(self.resolver.QuerySubject(self.regex)):
-            urn = unicode(subject)
-            filename = None
-            if (self.resolver.Get(subject, lexicon.AFF4_CATEGORY) ==
-                    lexicon.AFF4_MEMORY_PHYSICAL):
-                filename = "Physical Memory"
+        with self.credential_manager, self._get_aff4_volume(
+                self.resolver, volume_urn, "Reading") as volume:
+            if self.plugin_args.long:
+                subjects = self.resolver.QuerySubject(self.plugin_args.regex)
             else:
-                filename = self.resolver.Get(
-                    subject, lexicon.AFF4_STREAM_ORIGINAL_FILENAME)
+                subjects = self.interesting_streams(volume)
 
-            if not filename:
-                filename = volume.urn.RelativePath(urn)
+            for subject in sorted(subjects):
+                urn = unicode(subject)
+                filename = None
+                if (self.resolver.Get(subject, lexicon.AFF4_CATEGORY) ==
+                        lexicon.AFF4_MEMORY_PHYSICAL):
+                    filename = "Physical Memory"
+                else:
+                    filename = self.resolver.Get(
+                        subject, lexicon.AFF4_STREAM_ORIGINAL_FILENAME)
 
-            type = str(self.resolver.Get(
-                subject, lexicon.AFF4_TYPE)).split("#")[-1]
+                if not filename:
+                    filename = volume.urn.RelativePath(urn)
 
-            size = self.resolver.Get(subject, lexicon.AFF4_STREAM_SIZE)
-            if size is None and filename == "Physical Memory":
-                with self.resolver.AFF4FactoryOpen(urn) as fd:
-                    last_range = fd.GetRanges()[-1]
-                    size = last_range.map_offset + last_range.length
+                type = str(self.resolver.Get(
+                    subject, lexicon.AFF4_TYPE)).split("#")[-1]
 
-            renderer.table_row(size, type, filename, urn)
+                size = self.resolver.Get(subject, lexicon.AFF4_STREAM_SIZE)
+                if size is None and filename == "Physical Memory":
+                    with self.resolver.AFF4FactoryOpen(urn) as fd:
+                        last_range = fd.GetRanges()[-1]
+                        size = last_range.map_offset + last_range.length
 
-    def render_verbose(self, renderer, volume):
-        """Render a detailed description of the contents of an AFF4 volume."""
-        renderer.table_header([
-            dict(name="URN", width=60),
-            dict(name="Attribute", width=30),
-            dict(name="Value"),
-        ])
-
-        if self.long:
-            subjects = self.resolver.QuerySubject(self.regex)
-        else:
-            subjects = self.interesting_streams(volume)
-
-        for subject in sorted(subjects):
-            for pred, value in self.resolver.QueryPredicatesBySubject(subject):
-                renderer.table_row(volume.urn.RelativePath(subject),
-                                   self._shorten_URN(rdfvalue.URN(pred)),
-                                   self._shorten_URN(value))
+                yield (size, type, filename, urn)
 
     AFF4IMAGE_FILTER_REGEX = re.compile("/[0-9a-f]+8(/index)?$")
 
@@ -660,45 +784,37 @@ class AFF4Ls(plugin.VerbosityMixIn, plugin.Command):
 
         return urns
 
-    def render_short(self, renderer, volume):
-        """Render a concise description of the contents of an AFF4 volume."""
-        renderer.table_header([
-            dict(name="Size", width=10, align="r"),
-            dict(name="Original Name", width=50),
-            dict(name="URN"),
-        ])
+class AFF4Dump(AFF4Ls):
+    """Dump the entire resolver contents for an AFF4 volume."""
 
-        for urn, filename in sorted(
-                self.interesting_streams(volume).iteritems()):
-            if not self.regex.match(urn):
-                continue
+    name = "aff4dump"
 
-            size = self.resolver.Get(urn, lexicon.AFF4_STREAM_SIZE)
-            if size is None and filename == "Physical Memory":
-                with self.resolver.AFF4FactoryOpen(urn) as fd:
-                    last_range = fd.GetRanges()[-1]
-                    size = last_range.map_offset + last_range.length
+    table_header = [
+        dict(name="URN", width=60),
+        dict(name="Attribute", width=30),
+        dict(name="Value"),
+    ]
 
-            renderer.table_row(size, filename, urn)
-
-    def render(self, renderer):
-        if self.volume_path is None:
-            self.volume_path = self.session.GetParameter("filename")
-
-        volume_urn = rdfvalue.URN().FromFileName(self.volume_path)
-        if not volume_urn:
-            raise plugin.PluginError("No Volume specified.")
-
-        with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
-            if self.plugin_args.verbosity > 1:
-                self.render_verbose(renderer, volume)
-            elif self.long:
-                self.render_long(renderer, volume)
+    def collect(self):
+        """Render a detailed description of the contents of an AFF4 volume."""
+        volume_urn = rdfvalue.URN(self.plugin_args.volume)
+        with self.credential_manager, self._get_aff4_volume(
+                self.resolver, volume_urn, "Reading") as volume:
+            if self.plugin_args.long:
+                subjects = self.resolver.QuerySubject(self.plugin_args.regex)
             else:
-                self.render_short(renderer, volume)
+                subjects = self.interesting_streams(volume)
+
+            for subject in sorted(subjects):
+                for pred, value in self.resolver.QueryPredicatesBySubject(
+                        subject):
+
+                    yield (volume.urn.RelativePath(subject),
+                           self._shorten_URN(rdfvalue.URN(pred)),
+                           self._shorten_URN(value))
 
 
-class AFF4Export(core.DirectoryDumperMixin, plugin.Command):
+class AFF4Export(core.DirectoryDumperMixin, AbstractAFF4Plugin):
     """Exports all the streams in an AFF4 Volume."""
     dump_dir_optional = False
     default_dump_dir = None

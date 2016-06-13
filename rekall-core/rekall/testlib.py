@@ -56,12 +56,45 @@ import os
 import shutil
 import sys
 import tempfile
+import time
+import threading
 import unittest
 
 from rekall import config
 from rekall import plugin
 from rekall import registry
 from rekall import session as rekall_session
+
+
+class Tail(threading.Thread):
+    """Tail a file and write to stdout."""
+
+    def __init__(self, filename, *args, **kwargs):
+        super(Tail, self).__init__(*args, **kwargs)
+        self.fd = open(filename, "rb")
+        self.running = False
+        self.daemon = True
+
+    def start(self):
+        self.running = True
+        super(Tail, self).start()
+
+    def stop(self):
+        if self.running:
+            self.running = False
+            self.join()
+
+    def run(self):
+        while self.running:
+            time.sleep(0.1)
+
+            while True:
+                data = self.fd.read(1000)
+                if not data:
+                    break
+
+                sys.stdout.write(data)
+                sys.stdout.flush()
 
 
 class RekallBaseUnitTestCase(unittest.TestCase):
@@ -127,6 +160,7 @@ class RekallBaseUnitTestCase(unittest.TestCase):
           A baseline data structure which contains meta data from running
           rekall over the test case.
         """
+        config_options = config_options.copy()
         tmp_filename = os.path.join(self.temp_directory,
                                     "." + self.__class__.__name__)
         error_filename = tmp_filename + ".stderr"
@@ -172,8 +206,21 @@ class RekallBaseUnitTestCase(unittest.TestCase):
 
             config_options["executed_command"] = cmdline
 
-            with open(tmp_filename, "wb") as output_fd:
-                with open(error_filename, "wb") as error_fd:
+            # Make sure the subprocess does not buffer so we can catch its
+            # output in a timely manner.
+            os.environ["PYTHONUNBUFFERED"] = "1"
+
+            with open(tmp_filename, "wb", buffering=1) as output_fd:
+                with open(error_filename, "wb", buffering=1) as error_fd:
+                    stdout_copier = Tail(tmp_filename)
+                    stderr_copier = Tail(error_filename)
+                    # Specifying --debug should allow the subprocess to print
+                    # messages directly to stdout. This is useful in order to
+                    # attach a breakpoint (e.g. in an inline test).
+                    if config_options.get("debug"):
+                        stderr_copier.start()
+                        stdout_copier.start()
+
                     pipe = subprocess.Popen(cmdline, shell=True,
                                             stdout=output_fd, stderr=error_fd)
 
@@ -183,6 +230,8 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                     # file.
                     output_fd.flush()
                     error_fd.flush()
+                    stdout_copier.stop()
+                    stderr_copier.stop()
 
                     output = open(tmp_filename).read(10 * 1024 * 1024)
                     output = output.decode("utf8", "ignore")
@@ -303,9 +352,18 @@ class SimpleTestCase(RekallBaseUnitTestCase):
 
 
 class InlineTest(SimpleTestCase):
+    # Override this to make this script run in the interactive shell in a
+    # subprocess.
+    script = "print 1"
 
     def LaunchExecutable(self, config_options):
-        config_options["script"] = self.script
+        tmp_script = os.path.join(self.temp_directory, "script.py")
+        with open(tmp_script, "w") as fd:
+            fd.write("tempdir = %r\n" % self.temp_directory)
+            fd.write(self.script)
+
+        config_options["commandline"] = "run --run %s" % tmp_script
+        config_options["script"] = self.script.splitlines()
         return super(InlineTest, self).LaunchExecutable(config_options)
 
 

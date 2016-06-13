@@ -73,15 +73,20 @@ class CommandOption(object):
     def parse(self, value, session):
         """Parse the value as passed."""
         if value is None:
-            # Default values for various types.
-            if self.type == "AddressSpace":
-                return session.GetParameter("default_address_space")
+            if self.default is None:
+                # Default values for various types.
+                if self.type == "AddressSpace":
+                    return session.GetParameter("default_address_space")
 
-            if self.type in ["ArrayString", "ArrayIntParser", "Array"]:
-                return []
+                if self.type in ["ArrayString", "ArrayIntParser", "Array"]:
+                    return []
 
-            if self.type in ["Bool", "Boolean"]:
-                return False
+                if self.type in ["Bool", "Boolean"]:
+                    return False
+
+            elif self.type == "RegEx":
+                if isinstance(self.default, basestring):
+                    return re.compile(self.default)
 
             return self.default
 
@@ -132,7 +137,8 @@ class CommandOption(object):
                 raise TypeError("Arg %s must be a list of strings" % self.name)
 
         elif self.type == "RegEx":
-            value = re.compile(value, re.I)
+            if isinstance(value, basestring):
+                value = re.compile(value, re.I)
 
         elif self.type == "ArrayIntParser":
             try:
@@ -477,6 +483,7 @@ class TypedProfileCommand(object):
 
     # Subclasses must override. Has to be an instance of PluginHeader.
     table_header = None
+    table_options = {}
 
     # Each plugin mixin should define a list of CommandOption instances with
     # this name (__args). The constructor will collect these definitions into a
@@ -576,7 +583,9 @@ class TypedProfileCommand(object):
                 yield self.table_header.dictify(row)
 
     def render(self, renderer, **options):
-        renderer.table_header(self.table_header, **options)
+        table_options = self.table_options.copy()
+        table_options.update(options)
+        renderer.table_header(self.table_header, **table_options)
         for row in self.collect():
             if isinstance(row, (list, tuple)):
                 renderer.table_row(*row)

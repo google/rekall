@@ -214,7 +214,7 @@ class ListRenderer(text.TextObjectRenderer):
 
             options["wrap"] = False
             cell = object_renderer.render_row(item, **options)
-            result.append("\\n".join(cell.lines))
+            result.append("\\n".join(cell.lines).strip())
 
         return text.Cell(", ".join(result), width=width)
 

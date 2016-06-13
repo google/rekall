@@ -118,6 +118,7 @@ pid = 2536
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import argparse
+import copy
 import logging
 import json
 import subprocess
@@ -339,18 +340,14 @@ exit 0
     def GenerateInlineTests(self, config):
         """Builds tests defined inline in the config file."""
         result = []
+        config = copy.deepcopy(config)
 
         for k, v in config.get("InlineTests", {}).items():
-            tempdir = config["DEFAULT"]["tempdir"]
-            script_file = os.path.join(tempdir, "%s.script" % k)
-            with open(script_file, "w") as fd:
-                fd.write(v)
-
             config["DEFAULT"]["script"] = v
             result.append(type(
                 k, (testlib.InlineTest,),
-                dict(script=v, PARAMETERS=dict(
-                    commandline="run --run %s" % script_file))))
+                dict(script=v)
+            ))
 
         return result
 
@@ -451,6 +448,7 @@ exit 0
             config_options.update(config.DEFAULT)
 
             config_options["test_class"] = plugin_cls.__name__
+            config_options["debug"] = self.FLAGS.debug
 
             if plugin_cls.__name__ in config:
                 config_options.update(config.Get(plugin_cls.__name__))

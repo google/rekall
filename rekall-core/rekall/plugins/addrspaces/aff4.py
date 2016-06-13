@@ -35,11 +35,17 @@ import re
 import os
 
 from rekall import addrspace
+from rekall import cache
 from rekall import yaml_utils
 from rekall import utils
 from rekall.plugins.addrspaces import standard
 
 from pyaff4 import data_store
+try:
+    from pyaff4 import aff4_cloud
+except ImportError:
+    aff4_cloud = None
+
 from pyaff4 import aff4_directory
 from pyaff4 import zip
 from pyaff4 import lexicon
@@ -108,12 +114,21 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.image = None
         self.resolver = data_store.MemoryDataStore()
 
+        # If we have a cache directory, configure AFF4 to use it.
+        cache_dir = cache.GetCacheDir(self.session)
+        if cache_dir:
+            self.resolver.Set(lexicon.AFF4_CONFIG_CACHE_DIR,
+                              lexicon.AFF4_FILE_NAME,
+                              rdfvalue.XSDString(
+                                  os.path.join(cache_dir, "aff4_cache")))
+
         # A map between the filename and the offset it is mapped into the
         # address space.
         self.mapped_files = {}
         try:
             volume_path, stream_path = self._LocateAFF4Volume(path)
-        except IOError:
+        except IOError as e:
+            self.session.logging.debug("Unable to open AFF4 image %s", e)
             raise addrspace.ASAssertionError("Unable to open AFF4 volume")
 
         # filename is a volume, and there is no stream specified, just autoload
@@ -142,18 +157,28 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         path_components = list(filename.split(os.sep))
         while path_components:
             volume_path = os.sep.join(path_components)
-            volume_urn = rdfvalue.URN.FromFileName(volume_path)
+            volume_urn = rdfvalue.URN(volume_path)
+            volume_urn_parts = volume_urn.Parse()
 
-            if os.path.isfile(volume_path):
-                with zip.ZipFile.NewZipFile(
-                        self.resolver, volume_path) as volume:
-                    if stream_name:
-                        return volume.urn, os.sep.join(stream_name)
+            if volume_urn_parts.scheme == "file":
+                if os.path.isfile(volume_path):
+                    with zip.ZipFile.NewZipFile(
+                            self.resolver, volume_path) as volume:
+                        if stream_name:
+                            return volume.urn, os.sep.join(stream_name)
 
-                    return volume.urn, None
+                        return volume.urn, None
 
-            elif os.path.isdir(volume_path):
-                with aff4_directory.AFF4Directory.NewAFF4Directory(
+                elif os.path.isdir(volume_path):
+                    with aff4_directory.AFF4Directory.NewAFF4Directory(
+                            self.resolver, volume_urn) as volume:
+                        if stream_name:
+                            return volume.urn, os.sep.join(stream_name)
+
+                        return volume.urn, None
+
+            elif volume_urn_parts.scheme == "gs" and aff4_cloud:
+                with aff4_cloud.AFF4GStore.NewAFF4GStore(
                         self.resolver, volume_urn) as volume:
                     if stream_name:
                         return volume.urn, os.sep.join(stream_name)
@@ -300,7 +325,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         ("kernel_base", "KernBase"),
         ("vm_kernel_slide", "kaslr_slide")
     ]
-        
+
     def _parse_physical_memory_metadata(self, session, image_urn):
         try:
             with self.resolver.AFF4FactoryOpen(
@@ -342,7 +367,7 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
 
 
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import, wrong-import-order
 # Add these so that pyinstaller builds these dependencies in.
 import rdflib.plugins.memory
 import rdflib.plugins.parsers.hturtle
