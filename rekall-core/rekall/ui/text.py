@@ -1071,7 +1071,7 @@ class TextColumn(object):
             # Also wrap to pad if the result is actually narrower than the
             # header, otherwise it messes up the columns to the right.
             result.rewrap(width=self.header_width,
-                          align=merged_opts.get("align", "l"))
+                          align=merged_opts.get("align", result.align))
 
         return result
 
@@ -1103,27 +1103,12 @@ class TextTable(renderer_module.BaseTable):
                                        renderer=self.renderer, **column_specs)
             self.columns.append(column)
 
-        self.sort_key_func = self._build_sort_key_function(options.get("sort"))
-
         # Auto-widths mean we calculate the optimal width for each column.
         self.auto_widths = auto_widths
 
-        if self.sort_key_func or auto_widths:
+        # If we want to autoscale each column we must defer rendering.
+        if auto_widths:
             self.deferred_rows = []
-
-    def _build_sort_key_function(self, sort_cnames):
-        """Builds a function that takes a row and returns keys to sort on."""
-        if not sort_cnames:
-            return None
-
-        cnames_to_indices = {}
-        for idx, column_spec in enumerate(self.column_specs):
-            cnames_to_indices[column_spec["cname"]] = idx
-
-        sort_indices = [cnames_to_indices[x] for x in sort_cnames]
-
-        # Row is a tuple of (values, kwargs) - hence row[0][index].
-        return lambda row: [row[0][index] for index in sort_indices]
 
     def write_row(self, *cells, **kwargs):
         """Writes a row of the table.
@@ -1142,11 +1127,18 @@ class TextTable(renderer_module.BaseTable):
                 self.renderer.colorizer.Render(
                     line, foreground=foreground, background=background) + "\n")
 
-    def render_header(self):
+    def render_header(self, **options):
         """Returns a Cell formed by joining all the column headers."""
         # Get each column to write its own header and then we join them all up.
-        return JoinedCell(*[c.render_header() for c in self.columns],
-                          tablesep=self.options.get("tablesep", " "))
+        result = []
+        for c in self.columns:
+            merged_opts = c.options.copy()
+            merged_opts.update(options)
+            if not merged_opts.get("hidden"):
+                result.append(c.render_header())
+
+        return JoinedCell(
+            *result, tablesep=self.options.get("tablesep", " "))
 
     def get_row(self, *row, **options):
         """Format the row into a single Cell spanning all output columns.
@@ -1158,9 +1150,15 @@ class TextTable(renderer_module.BaseTable):
         Returns:
           A single Cell object spanning the entire row.
         """
+        result = []
+        for c, x in zip(self.columns, row):
+            merged_opts = c.options.copy()
+            merged_opts.update(options)
+            if not merged_opts.get("hidden"):
+                result.append(c.render_row(x, **options))
+
         return JoinedCell(
-            *[c.render_row(x, **options) for c, x in zip(self.columns, row)],
-            tablesep=self.options.get("tablesep", " "))
+            *result, tablesep=self.options.get("tablesep", " "))
 
     def render_row(self, row=None, highlight=None, annotation=False, **options):
         """Write the row to the output."""
@@ -1182,8 +1180,16 @@ class TextTable(renderer_module.BaseTable):
                 for i, column in enumerate(self.columns):
                     length = 1
                     for row in self.deferred_rows:
-                        length = max(length, len(column.render_row(
-                            row[0][i], nowrap=1).lines[0]))
+                        # Render everything on the same line
+                        rendered_lines = column.render_row(
+                            row[0][i], nowrap=1).lines
+
+                        if rendered_lines:
+                            rendered_line = rendered_lines[0]
+                        else:
+                            rendered_line = ""
+
+                        length = max(length, len(rendered_line))
 
                     max_widths.append(length)
 
@@ -1205,8 +1211,6 @@ class TextTable(renderer_module.BaseTable):
                     self.renderer.write(line + "\n")
 
             self.session.report_progress("TextRenderer: sorting %(spinner)s")
-            self.deferred_rows.sort(key=self.sort_key_func)
-
             for row, options in self.deferred_rows:
                 self.write_row(self.get_row(*row, **options))
 
@@ -1410,7 +1414,7 @@ class TextRenderer(renderer_module.BaseRenderer):
                 self.table.auto_widths):
             return
 
-        for line in self.table.render_header():
+        for line in self.table.render_header(**options):
             self.write(line + "\n")
 
     def table_row(self, *args, **kwargs):
@@ -1608,3 +1612,48 @@ class TreeNodeObjectRenderer(TextObjectRenderer):
         result = JoinedCell(padding, child_cell)
 
         return result
+
+
+class DividerObjectRenderer(TextObjectRenderer):
+    renders_type = "Divider"
+
+    def __init__(self, renderer=None, session=None, **options):
+        child_spec = options.pop("child", None)
+        if child_spec:
+            child_type = child_spec.get("type", "object")
+            self.child = self.ByName(child_type, renderer)(
+                renderer, session=session, **child_spec)
+
+            if not self.child:
+                raise AttributeError("Child %s of Divider was not found." %
+                                     child_type)
+        else:
+            self.child = None
+
+        super(DividerObjectRenderer, self).__init__(
+            renderer, session=session, **options)
+
+    def render_row(self, target, child=None, **options):
+        last_row = self.renderer.table.options.get("last_row")
+        if last_row == target:
+            return Cell("")
+
+        self.renderer.table.options["last_row"] = target
+
+        if not child:
+            child = dict(wrap=False)
+
+        if self.child:
+            child_renderer = self.child
+        else:
+            child_renderer = self.ForTarget(target, renderer=self.renderer)(
+                session=self.session, renderer=self.renderer)
+
+        child_cell = child_renderer.render_row(target, **child)
+        child_cell.colorizer = self.renderer.colorizer
+
+        return StackedCell(
+            Cell("-" * child_cell.width),
+            child_cell,
+            Cell("-" * child_cell.width),
+            table_align=False)

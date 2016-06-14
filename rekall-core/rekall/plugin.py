@@ -144,7 +144,20 @@ class CommandOption(object):
             try:
                 value = [int(value)]  # pylint: disable=redefined-variable-type
             except (ValueError, TypeError):
-                value = [int(x) for x in value]
+                result = []
+                for x in value:
+                    # RowTuple are treated especially in order to simplify
+                    # Efilter syntax.
+                    if x.__class__.__name__ == "RowTuple":
+                        if len(x) != 1:
+                            raise PluginError(
+                                "Subselect must only select a single row when "
+                                "expanding into a list.")
+                        x = int(x[0])
+                    else:
+                        x = int(x)
+                    result.append(x)
+                value = result
 
         # Allow address space to be specified.
         elif self.type == "AddressSpace":
@@ -459,13 +472,16 @@ class PluginHeader(object):
 
     def dictify(self, row):
         result = {}
-        for idx, value in enumerate(row):
+        for idx, header in enumerate(self.header):
             try:
-                column_name = self.header[idx]["cname"]
+                column_name = header["cname"]
             except KeyError:
-                column_name = self.header[idx]["name"]
+                column_name = header["name"]
 
-            result[column_name] = value
+            try:
+                result[column_name] = row[idx]
+            except IndexError:
+                result[column_name] = None
 
         return result
 
@@ -481,7 +497,8 @@ class PluginHeader(object):
 class TypedProfileCommand(object):
     """Mixin that provides the plugin with standardized table output."""
 
-    # Subclasses must override. Has to be an instance of PluginHeader.
+    # Subclasses must override. Has to be a list of column specifications
+    # (i.e. list of dicts specifying the columns).
     table_header = None
     table_options = {}
 
@@ -570,6 +587,51 @@ class TypedProfileCommand(object):
 
                     definition.add_argument(parser)
 
+    def column_types(self):
+        """Returns instances for each column definition.
+
+        The actual objects that are returned when the plugin runs are often
+        determined at run time because they depend on the profile loaded.
+
+        This method is used in order to introspect the types of each column
+        without actually running the plugin. A plugin must provide an instance
+        for each column without running any code. This allows interospectors to
+        learn about the output format before running the actual plugin.
+
+        Note that this method should almost always be overloaded. We try to do
+        our best here but it is not ideal. Ultimately all plugins will override
+        this method and just declare a column_types() method.
+        """
+        self.session.logging.warn(
+            "FIXME: Plugin %s (%s) does not produce typed output. "
+            "Please define a column_types() method.",
+            self.name, self.__class__.__name__)
+
+        result = {}
+        try:
+            for row_count, row in enumerate(self.collect()):
+                if isinstance(row, dict):
+                    row.update(result)
+                    result = row
+
+                elif isinstance(row, (tuple, list)):
+                    for item, column in zip(row, self.table_header):
+                        column_name = column.get(
+                            "cname", column.get("name"))
+                        if result.get(column_name) is None:
+                            result[column_name] = item
+
+                # One row is sometimes sufficient to figure out types, but
+                # sometimes a plugin will send None as some of its columns
+                # so we try a few more rows.
+                if None not in result.values() or row_count > 5:
+                    break
+
+        except (NotImplementedError, TypeError):
+            pass
+
+        return result
+
     def collect(self):
         """Collect data that will be passed to renderer.table_row."""
         raise NotImplementedError()
@@ -585,10 +647,15 @@ class TypedProfileCommand(object):
     def render(self, renderer, **options):
         table_options = self.table_options.copy()
         table_options.update(options)
+
+        output_style = self.session.GetParameter("output_style")
+        if output_style == "full":
+            table_options["hidden"] = False
+
         renderer.table_header(self.table_header, **table_options)
         for row in self.collect():
             if isinstance(row, (list, tuple)):
-                renderer.table_row(*row)
+                renderer.table_row(*row, **options)
             else:
                 new_row = []
                 for column in self.table_header:

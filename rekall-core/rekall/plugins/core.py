@@ -841,6 +841,7 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
 
     __args = [
         dict(name="offset", type="SymbolAddress", positional=True,
+             required=True, default=0,
              help="An offset to hexdump."),
 
         dict(name="address_space", type="AddressSpace",
@@ -864,6 +865,11 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
         dict(name="Data", cname="hexdump", style="hexdump", width=65),
         dict(name="Comment", cname="comment", width=40)
     ]
+
+    def column_types(self):
+        return dict(offset=int,
+                    hexdump=utils.HexDumpedString(""),
+                    comment=utils.AttributedString(""))
 
     def __init__(self, *args, **kwargs):
         address_map = kwargs.pop("address_map", None)

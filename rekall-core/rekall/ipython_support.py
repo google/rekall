@@ -23,14 +23,9 @@
 # pylint: disable=protected-access
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
-
 import logging
 import re
 import readline
-
-from rekall import constants
-from rekall import config
-from rekall import session as session_module
 
 import IPython
 from IPython.core import page
@@ -42,6 +37,10 @@ try:
     from traitlets.config.loader import Config
 except ImportError:
     from IPython.config.loader import Config
+
+from rekall import constants
+from rekall import config
+from rekall import session as session_module
 
 
 def RekallCompleter(self, text):
@@ -133,7 +132,12 @@ class RekallObjectInspector(oinspect.Inspector):
 
         display_fields = [
             ("file", oinspect.find_file(plugin_class)),
-            ("Plugin", "%s (%s)" % (plugin_class.__name__, plugin_class.name)),
+            ("Plugin", "%s (%s)" % (plugin_class.__name__, plugin_class.name))]
+        if getattr(plugin_class, "table_header", None):
+            display_fields.append(
+                ("", "This is a Typed Plugin."))
+
+        display_fields += [
             ("Positional Args",
              self.format_parameters(plugin_class, True)),
             ("Keyword Args",
@@ -190,6 +194,9 @@ class RekallShell(embed.InteractiveShellEmbed):
                 ipython_version)
 
 
+REGISTERED_MAGICS = []
+
+
 def Shell(user_session):
     # This should bring back the old autocall behaviour. e.g.:
     # In [1]: pslist
@@ -225,6 +232,9 @@ def Shell(user_session):
     # Set known delimeters for the completer. This varies by OS so we need to
     # set it to ensure consistency.
     readline.set_completer_delims(' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?')
+
+    for magic in REGISTERED_MAGICS:
+        shell.register_magics(magic)
 
     shell(global_ns=user_session.locals)
 

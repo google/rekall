@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
+# pylint: disable=protected-access
 from rekall import testlib
 
 from rekall import utils
@@ -45,6 +46,15 @@ class Handles(common.WinProcessFilter):
         dict(name="Type", cname="obj_type", width=16),
         dict(name="Details", cname="details")
     ]
+
+    def column_types(self):
+        return dict(
+            offset_v=self.session.profile._OBJECT_HEADER(),
+            _EPROCESS=self.session.profile._EPROCESS(),
+            handle=utils.HexInteger(0),
+            access=utils.HexInteger(0),
+            obj_type="",
+            details="")
 
     def enumerate_handles(self, task):
         if task.ObjectTable.HandleTableList:
@@ -97,8 +107,8 @@ class Handles(common.WinProcessFilter):
 
                 yield (handle,
                        task,
-                       handle.HandleValue,
-                       handle.GrantedAccess,
+                       utils.HexInteger(handle.HandleValue),
+                       utils.HexInteger(handle.GrantedAccess),
                        object_type, utils.SmartUnicode(name))
 
 

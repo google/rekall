@@ -463,9 +463,10 @@ class AttributedString(object):
 
     __metaclass__ = registry.UniqueObjectIdMetaclass
 
-    def __init__(self, value, highlights=None):
+    def __init__(self, value, highlights=None, **options):
         self.highlights = highlights
         self.value = value
+        self.options = options
 
     def __unicode__(self):
         return unicode(self.value)
@@ -480,6 +481,10 @@ class AttributedString(object):
 
 class HexDumpedString(AttributedString):
     """A string which should be hex dumped."""
+
+
+class HexInteger(int):
+    """An int which should be rendered as a hex digit."""
 
 
 class FormattedAddress(object):

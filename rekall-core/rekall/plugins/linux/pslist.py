@@ -23,6 +23,7 @@
 @organization: Digital Forensics Solutions
 """
 
+from rekall import utils
 from rekall import testlib
 from rekall.plugins.common import memmap
 from rekall.plugins.linux import common
@@ -36,25 +37,37 @@ class LinuxPsList(common.LinProcessFilter):
     """
     __name = "pslist"
 
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name="Task", cname="proc", width=40, type="task_struct"),
-            ("PPID", "ppid", ">6"),
-            ("UID", "uid", ">6"),
-            ("GID", "gid", ">6"),
-            ("DTB", "dtb", "[addrpad]"),
-            ("Start Time", "start_time", ">24"),
-            dict(name="Binary", cname="binary", wrap=False)])
+    table_header = [
+        dict(name="Task", cname="proc", width=40, type="task_struct"),
+        dict(name="PPID", cname="ppid", align="r", width=6),
+        dict(name="UID", cname="uid", align="r", width=6),
+        dict(name="GID", cname="gid", align="r", width=6),
+        dict(name="DTB", cname="dtb", style="address"),
+        dict(name="Start Time", cname="start_time", align="r", width=24),
+        dict(name="Binary", cname="binary")
+    ]
 
+    def column_types(self):
+        task = self.session.profile.task_struct()
+        return dict(
+            proc=task,
+            ppid=0,
+            uid=utils.HexInteger(0),
+            gid=utils.HexInteger(0),
+            dtb=utils.HexInteger(0),
+            start_time=task.task_start_time,
+            name="")
+
+    def collect(self):
         for task in self.filter_processes():
             dtb = self.kernel_address_space.vtop(task.mm.pgd)
             path = task.get_path(task.mm.m("exe_file"))
-            renderer.table_row(task,
-                               task.parent.pid,
-                               task.uid,
-                               task.gid,
-                               dtb, task.task_start_time,
-                               path)
+            yield (task,
+                   task.parent.pid,
+                   task.uid,
+                   task.gid,
+                   dtb, task.task_start_time,
+                   path)
 
 
 class LinMemMap(memmap.MemmapMixIn, common.LinProcessFilter):

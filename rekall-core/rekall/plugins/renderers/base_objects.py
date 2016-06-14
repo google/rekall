@@ -349,3 +349,11 @@ class AttributeDictTextRenderer(text.TextObjectRenderer):
             result.append(self.table.get_row(key, value))
 
         return text.StackedCell(*result)
+
+
+class HexIntegerTextRenderer(text.TextObjectRenderer):
+    renders_type = "HexInteger"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_row(self, item, **options):
+        return text.Cell(hex(item), align="r")

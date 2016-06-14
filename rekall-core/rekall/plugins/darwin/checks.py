@@ -213,20 +213,26 @@ class DarwinSysctl(common.AbstractDarwinCommand):
             else:
                 yield oid
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("Name", "name", "45"),
-             ("MIB", "mib", "16"),
-             ("Perms", "perms", "6"),
-             ("Handler", "handler", "[addrpad]"),
-             ("Symbol", "symbol", "40"),
-             ("Value", "value", "")])
+    table_header = [
+        dict(name="Name", cname="name", width=45),
+        dict(name="MIB", cname="mib", width=16),
+        dict(name="Perms", cname="perms", width=6),
+        dict(name="Handler", cname="handler", style="address"),
+        dict(name="Symbol", cname="symbol", width=40),
+        dict(name="Value", cname="value")
+    ]
 
-        resolver = self.session.address_resolver
+    def column_types(self):
+        return dict(name="",
+                    mib="101.101.104",
+                    perms="RWL",
+                    handler=self.session.profile.Pointer(),
+                    symbol=utils.FormattedAddress(
+                        self.session.address_resolver, 0),
+                    value="")
 
+    def collect(self):
         for oid in self.CheckSysctl():
-            handler = resolver.format_address(oid.oidp.oid_handler)
-
             # Format the value nicely.
             value = oid.arg
             if isinstance(value, obj.Pointer):
@@ -239,12 +245,14 @@ class DarwinSysctl(common.AbstractDarwinCommand):
                 except (ValueError, AttributeError):
                     pass
 
-            renderer.table_row(oid.name,
-                               oid.number,
-                               oid.perms,
-                               oid.oidp.oid_handler,
-                               handler,
-                               value)
+            yield (oid.name,
+                   oid.number,
+                   oid.perms,
+                   oid.oidp.oid_handler,
+                   utils.FormattedAddress(
+                       self.session.address_resolver,
+                       oid.oidp.oid_handler),
+                   value)
 
 
 class CheckTrapTable(common.AbstractDarwinCommand):

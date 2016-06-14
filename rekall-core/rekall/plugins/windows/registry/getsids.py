@@ -30,9 +30,11 @@
 @contact:      awalters@volatilesystems.com,bdolangavitt@wesleyan.edu
 @organization: Volatile Systems
 """
+# pylint: disable=protected-access
 
-from rekall.plugins.windows import common
 import re
+from rekall.plugins.windows import common
+
 
 class GetSIDs(common.WinProcessFilter):
     """Print the SIDs owning each process token."""
@@ -134,24 +136,29 @@ class GetSIDs(common.WinProcessFilter):
       'S-1-16-28672': 'Secure Process Mandatory Level',
     }
 
+    table_header = [
+        dict(name="Process", width=40),
+        dict(name="Sid", width=50),
+        dict(name="Comment")
+    ]
+
+    def column_types(self):
+        return dict(
+            Process=self.session.profile._EPROCESS(),
+            Pid=0,
+            Sid="",
+            Comment="")
+
     def find_sid_re(self, sid_string):
         for reg, name in self.well_known_sid_re:
             if reg.search(sid_string):
                 return name
 
-    def render(self, renderer):
-        """Renders the sids as text"""
+    def collect(self):
         # First enumerate all the users on this system.
         users = {}
         for _, v, f in self.session.plugins.users().GenerateUsers():
             users[f.Rid] = v.UserName.Value
-
-        renderer.table_header([
-            ("Process", "process", "16"),
-            ("Pid", "pid", "5"),
-            ("Sid", "sid", "50"),
-            ("Comment", "comment", "")
-            ])
 
         for task in self.filter_processes():
             for sa in task.Token.UserAndGroups:
@@ -170,6 +177,4 @@ class GetSIDs(common.WinProcessFilter):
                     if sid_name_re:
                         sid_name = sid_name_re
 
-                renderer.table_row(
-                    task.ImageFileName, task.UniqueProcessId,
-                    sid_string, sid_name)
+                yield(task, sid_string, sid_name)

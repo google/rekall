@@ -22,6 +22,7 @@ __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import itertools
 
+from efilter import api
 from efilter import ast
 from efilter import errors
 from efilter import protocol
@@ -359,12 +360,6 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
     query_source = None  # The source of the query, passed by the user.
     query_error = None  # An exception, if any, caused when parsing the query.
 
-    # We cache CommandWrapper instances because they end up containing header
-    # information for untyped plugins.
-    _cached_command_wrappers = None
-
-    # Plugin lifecycle:
-
     __args = [
         dict(name="query", required=True, positional=True,
              help="The dotty/EFILTER query to run."),
@@ -388,33 +383,47 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             # error, but we might get a non-EfilterError exception if the user
             # gets creative (e.g. passing a custom object as query, instead of a
             # string).
-            raise ValueError("Could not parse your query %r." % (
+            raise plugin.PluginError("Could not parse your query %r." % (
                 self.plugin_args.query,))
 
-        self._cached_command_wrappers = dict()
+        self._EXPORTED_EFILTER_FUNCTIONS = self._prepare_efilter_scopes()
+
+    def _prepare_efilter_scopes(self):
+        """Create the callables which can be used in the efilter scopes."""
+
+        # Exported EFilter functions. These can be used within efilter
+        # queries. For example select hex(cmd_address) from dis(0xfa8000895a32).
+        def hex_function(value):
+            """A Function to format the output as a hex string."""
+            return "%#x" % value
+
+        return dict(
+            hex=api.user_func(
+                hex_function, arg_types=[int], return_type=[str]),
+        )
+
 
     # IStructured implementation for EFILTER:
 
     def resolve(self, name):
         """Find and return a CommandWrapper for the plugin 'name'."""
+        function = self._EXPORTED_EFILTER_FUNCTIONS.get(name)
+        if function:
+            return function
+
         meta = self.session.plugins.plugin_db.GetActivePlugin(name)
         if meta != None:
             wrapper = CommandWrapper(meta.plugin_cls, self.session)
-
-            # We build the cache but don't retrieve wrappers from it. We need to
-            # build a new wrapper every time a plugin is resolved from the query
-            # because plugins are functions and might be called with different
-            # args every time.
-            self._cached_command_wrappers[name] = wrapper
-
             return wrapper
 
         raise KeyError("No plugin named %r." % name)
 
     def getmembers_runtime(self):
         """Get all available plugins."""
-        return frozenset(
-            [c.name for c in plugin.Command.GetActiveClasses(self.session)])
+        result = dir(self.session.plugins)
+        result += self._EXPORTED_EFILTER_FUNCTIONS.keys()
+
+        return frozenset(result)
 
     def reflect_runtime_member(self, name):
         """Find the type* of 'name', which is a plugin.
@@ -462,6 +471,8 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         raise NotImplementedError()
 
 
+
+
 structured.IStructured.implicit_dynamic(EfilterPlugin)
 
 
@@ -476,14 +487,14 @@ class Search(EfilterPlugin):
     ==================================
 
     # Find the process with pid 1:
-    search("select * pslist where proc.pid == 1")
+    search("select * pslist() where proc.pid == 1")
 
     # Sort lsof output by file descriptor:
-    search("sort(lsof, fd)") # or:
-    search("select * from lsof order by fd)")
+    search("sort(lsof(), fd)") # or:
+    search("select * from lsof() order by fd)")
 
     # Filter and sort through lsof in one step:
-    search("select * from lsof where proc.pid == 1 order by fd)
+    search("select * from lsof() where proc.pid == 1 order by fd)
 
     # Is there any proc with PID 1, that has a TCPv6 connection and isn't a
     # dead process?
@@ -554,12 +565,12 @@ class Search(EfilterPlugin):
 
             if column_name is None:
                 raise ValueError(
-                    "Column spec %r is missing a cname. Full header was: %r." %
+                    "Column spec %r is missing a name. Full header was: %r." %
                     (column, table_header))
 
         try:
             for row in rows:
-                renderer.table_row(*[row[key] for key in columns])
+                renderer.table_row(*[row.get(key) for key in columns])
         except errors.EfilterError as error:
             # Because 'rows' could be a lazy iterator it's possible that an
             # exception will get raised while output is already being rendered.
@@ -588,17 +599,6 @@ class Search(EfilterPlugin):
         except errors.EfilterError as error:
             self.query_error = error
             return self.render_error(renderer)
-
-    def _find_matching_header(self, keys):
-        sorted_keys = sorted(keys)
-        for cached_wrapper in self._cached_command_wrappers.itervalues():
-            if not cached_wrapper.columns:
-                continue
-
-            column_names = [c.get("cname", c.get("name"))
-                            for c in cached_wrapper.columns]
-            if sorted(column_names) == sorted_keys:
-                return cached_wrapper.columns
 
     def render(self, renderer):
         # Do we have a query?
@@ -631,17 +631,9 @@ class Search(EfilterPlugin):
         # cache.
         if isinstance(t, plugin.Command):
             output_header = getattr(t, "table_header", None)
-
             if output_header is None:
-                cached_wrapper = self._cached_command_wrappers.get(t.name)
-                if not cached_wrapper:
-                    raise RuntimeError(
-                        "EFILTER query %r seems to return the output of the "
-                        "Rekall plugin named %r, but no such plugin was "
-                        "executed during evaluation. This should not happen."
-                        % (self.query, t.name))
-
-                output_header = cached_wrapper.columns
+                raise plugin.PluginError(
+                    "Query is using plugin %s which is not typed." % t.name)
 
             renderer.table_header(output_header)
             return self._render_plugin_output(renderer, output_header, rows)
@@ -663,22 +655,9 @@ class Search(EfilterPlugin):
 
         # If we have some output but don't know what it is we can try to use
         # dict keys as columns.
-        if isinstance(first_row, dict):
-            # Maybe we have a plugin with matching columns in its output?
-            columns = self._find_matching_header(first_row.keys())
-            if columns:
-                renderer.table_header(columns)
-                return self._render_plugin_output(renderer, columns, all_rows)
-
-            renderer.table_header(
-                [dict(name=unicode(k), cname=unicode(k))
-                 for k in first_row.iterkeys()])
-
-            return self._render_dicts(renderer, all_rows)
-
-        elif isinstance(first_row, row_tuple.RowTuple):
+        if isinstance(first_row, row_tuple.RowTuple):
             columns = [dict(name=x)
-                       for x in first_row.getmembers_runtime()]
+                       for x in structured.getmembers(first_row)]
             renderer.table_header(columns, auto_widths=True)
             return self._render_plugin_output(renderer, columns, all_rows)
 
@@ -894,6 +873,12 @@ associative.IAssociative.implement(
 )
 
 
+def Struct_getmembers_runtime(item):
+    result = set((name for name, _ in item.getproperties()))
+    result.update(["obj_offset", "obj_type", "obj_name"])
+    return result
+
+
 # This lets us do struct.member.
 structured.IStructured.implement(
     for_type=obj.Struct,
@@ -901,8 +886,7 @@ structured.IStructured.implement(
         structured.resolve: getattr,
         structured.reflect_runtime_member:
             lambda s, m: type(getattr(s, m, None)),
-        structured.getmembers_runtime:
-            lambda s: set((name for name, _ in s.getproperties()))
+        structured.getmembers_runtime: Struct_getmembers_runtime,
     }
 )
 

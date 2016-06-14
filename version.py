@@ -18,7 +18,7 @@ import subprocess
 
 try:
     # We are looking for the git repo which contains this file.
-    MY_DIR = os.path.dirname(__file__)
+    MY_DIR = os.path.dirname(os.path.abspath(__file__))
 except:
     MY_DIR = None
 
@@ -120,7 +120,8 @@ def raw_versions():
 """
 
 def get_config_file(version_file="version.yaml"):
-    version_path = os.path.join(os.path.dirname(__file__), version_file)
+    version_path = os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), version_file)
 
     return yaml.load(open(version_path).read()), version_path
 
@@ -167,7 +168,8 @@ def update(args):
 
     # Now copy the static version files to all locations.
     for path in data["dependent_versions"]:
-        current_dir = os.path.abspath(os.path.dirname(__file__))
+        current_dir = os.path.abspath(os.path.dirname(
+            os.path.abspath(__file__)))
         version_path = os.path.abspath(os.path.join(current_dir, path))
         if not os.path.relpath(version_path, current_dir):
             raise TypeError("Dependent version path is outside tree.")

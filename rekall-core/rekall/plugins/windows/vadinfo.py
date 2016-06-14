@@ -221,24 +221,45 @@ class VAD(common.WinProcessFilter):
 
     __name = "vad"
 
-    @classmethod
-    def args(cls, parser):
-        super(VAD, cls).args(parser)
-        parser.add_argument(
-            "--regex", default=None,
-            help="A regular expression to filter VAD filenames.")
+    __args = [
+        dict(name="regex", type="RegEx",
+             help="A regular expression to filter VAD filenames."),
 
-        parser.add_argument(
-            "--offset", default=None, type="IntParser",
-            help="Only print the vad corresponding to this offset.")
+        dict(name="offset", type="IntParser",
+             help="Only print the vad corresponding to this offset.")
+    ]
+
+    table_header = [
+        dict(name='_EPROCESS', type="_EPROCESS", hidden=True),
+        dict(name='', cname="divider", type="Divider"),
+        dict(name='VAD', cname='offset', style="address"),
+        dict(name='lev', cname='level', width=3, align="r"),
+        dict(name='Start Addr', cname='start_pfn', style="address"),
+        dict(name='End Addr', cname='end_pfn', style="address"),
+        dict(name='com', width=6, align="r"),
+        dict(name='', cname='type', width=7),
+        dict(name='', cname='executable', width=6),
+        dict(name='Protect', cname='protection', width=20),
+        dict(name='Filename', cname='filename')
+    ]
 
     def __init__(self, *args, **kwargs):
-        self.regex = kwargs.pop("regex", None)
-        self.offset = kwargs.pop("offset", None)
+        super(VAD, self).__init__(*args, **kwargs)
         self._cache = {}
 
-        # Pass positional args to the WinProcessFilter constructor.
-        super(VAD, self).__init__(*args, **kwargs)
+    def column_types(self):
+        return dict(
+            _EPROCESS=self.session.profile._EPROCESS(),
+            divider=self.session.profile._EPROCESS(),
+            offset=self.session.profile._MMVAD(),
+            level=int,
+            start_pfn=self.session.profile.Pointer(),
+            end_pfn=self.session.profile.Pointer(),
+            com=int,
+            type=str,
+            executable=str,
+            protection=self.session.profile.Enumeration(),
+            filename=str)
 
     def find_file(self, addr):
         """Finds the file mapped at this address."""
@@ -248,7 +269,7 @@ class VAD(common.WinProcessFilter):
     def find_file_in_task(self, addr, task):
         resolver = self.GetVadsForProcess(task)
         if resolver:
-            start, end, data = resolver.get_containing_range(addr)
+            _, _, data = resolver.get_containing_range(addr)
             return data
 
     def _make_cache(self, task):
@@ -285,28 +306,18 @@ class VAD(common.WinProcessFilter):
 
         return unicode(filename)
 
-    def render_vadroot(self, renderer, vad_root, task):
-        renderer.table_header([('VAD', 'offset', '[addrpad]'),
-                               ('lev', 'level', '>3'),
-                               ('Start Addr', 'start_pfn', '[addrpad]'),
-                               ('End Addr', 'end_pfn', '[addrpad]'),
-                               dict(name='com', width=6, align="r"),
-                               ('', 'type', '7'),
-                               ('', 'executable', '6'),
-                               ('Protect', 'protection', '!20'),
-                               ('Filename', 'filename', '')])
-
+    def collect_vadroot(self, vad_root, task):
         task_as = task.get_process_address_space()
 
         result = []
         for vad in vad_root.traverse():
             # Apply filters if needed.
-            if self.regex and not re.search(
-                    self.regex, self._get_filename(vad)):
+            if self.plugin_args.regex and not re.search(
+                    self.plugin_args.regex, self._get_filename(vad)):
                 continue
 
-            if (self.offset is not None and
-                    not vad.Start <= self.offset <= vad.End):
+            if (self.plugin_args.offset is not None and
+                    not vad.Start <= self.plugin_args.offset <= vad.End):
                 continue
 
             exe = ""
@@ -327,16 +338,16 @@ class VAD(common.WinProcessFilter):
 
         # Sort by start range.
         result.sort(key=lambda x: x[2].v())
-        for row in result:
-            renderer.table_row(*row)
+        return result
 
-    def render(self, renderer):
+    def collect(self):
         for task in self.filter_processes():
-            renderer.section()
-            renderer.format("Pid: {0} {1}\n", task.UniqueProcessId,
-                            task.ImageFileName)
-            renderer.RenderProgress("Pid: %s" % task.UniqueProcessId)
-            self.render_vadroot(renderer, task.RealVadRoot, task)
+            yield [task, task]
+
+            for row in self.collect_vadroot(task.RealVadRoot, task):
+                result = [task, None]
+                result.extend(row)
+                yield result
 
 
 class VADMap(pfn.VADMapMixin, common.WinProcessFilter):

@@ -48,16 +48,26 @@ class WinPsList(common.WinProcessFilter):
         dict(name="Exit", cname="process_exit_time", width=24)
     ]
 
+    def column_types(self):
+        result = self._row(self.session.profile._EPROCESS())
+        result["handle_count"] = result["ppid"]
+        result["session_id"] = result["ppid"]
+
+        return result
+
+    def _row(self, task):
+        return dict(_EPROCESS=task,
+                    ppid=task.InheritedFromUniqueProcessId,
+                    thread_count=task.ActiveThreads,
+                    handle_count=task.ObjectTable.m("HandleCount"),
+                    session_id=task.SessionId,
+                    wow64=task.IsWow64,
+                    process_create_time=task.CreateTime,
+                    process_exit_time=task.ExitTime)
+
     def collect(self):
         for task in self.filter_processes():
-            yield (task,
-                   task.InheritedFromUniqueProcessId,
-                   task.ActiveThreads,
-                   task.ObjectTable.m("HandleCount"),
-                   task.SessionId,
-                   task.IsWow64,
-                   task.CreateTime,
-                   task.ExitTime)
+            yield self._row(task)
 
 
 class WinDllList(common.WinProcessFilter):
