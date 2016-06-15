@@ -151,7 +151,7 @@ windows_overlay = {
     # which is the value loaded into CR3. The second one, according to procobj.c
     # of the wrk-v1.2, contains the PTE that maps something called hyper space.
     '_KPROCESS' : [None, {
-        'DirectoryTableBase' : [None, ['unsigned long']],
+        'DirectoryTableBase' : [None, ['address']],
     }],
 
     '_HANDLE_TABLE_ENTRY' : [None, {
