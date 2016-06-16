@@ -1187,8 +1187,7 @@ class BuildProfileLocally(plugin.Command):
             # Store the PDB file somewhere.
             pdb_pathname = os.path.join(dump_dir, pdb_filename)
             with open(pdb_pathname, "wb") as outfd:
-                outfd.write(fetch_pdb_plugin.FetchPDBFile(
-                    module_name, guid))
+                outfd.write(fetch_pdb_plugin.FetchPDBFile())
 
             parse_pdb = self.session.plugins.parse_pdb(
                 pdb_filename=pdb_pathname,

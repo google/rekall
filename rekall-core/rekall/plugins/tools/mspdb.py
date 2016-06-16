@@ -152,15 +152,17 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
             self.guid = self.guid.upper()
 
         # Write the file data to the renderer.
-        pdb_file_data = self.FetchPDBFile(
-            self.plugin_args.pdb_filename, self.plugin_args.guid)
+        pdb_file_data = self.FetchPDBFile()
         with renderer.open(filename=self.plugin_args.pdb_filename,
                            directory=self.plugin_args.dump_dir,
                            mode="wb") as fd:
             fd.write(pdb_file_data)
 
-    def FetchPDBFile(self, pdb_filename, guid):
+    def FetchPDBFile(self):
         # Ensure the pdb filename has the correct extension.
+        pdb_filename = self.plugin_args.pdb_filename
+        guid = self.plugin_args.guid
+
         if not pdb_filename.endswith(".pdb"):
             pdb_filename += ".pdb"
 

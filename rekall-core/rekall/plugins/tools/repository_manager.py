@@ -147,8 +147,9 @@ class WindowsGUIDProfile(RepositoryPlugin):
 
     def FetchPDB(self, guid, pdb_filename):
         repository = self.args.repository
-        fetch_pdb = self.session.plugins.fetch_pdb()
-        data = fetch_pdb.FetchPDBFile(pdb_filename=pdb_filename, guid=guid)
+        fetch_pdb = self.session.plugins.fetch_pdb(
+            pdb_filename=pdb_filename, guid=guid)
+        data = fetch_pdb.FetchPDBFile()
         repository.StoreData("src/pdb/%s.pdb" % guid, data, raw=True)
 
     def ParsePDB(self, guid, original_pdb_filename):
@@ -432,11 +433,11 @@ class ManageRepository(plugin.Command):
 
         parser.add_argument(
             "build_target", type="StringParser", required=False,
-            help="A single target to build.")
+            positional=True, help="A single target to build.")
 
         parser.add_argument(
             "builder_args", type="ArrayStringParser", required=False,
-            help="Optional args for the builder.")
+            positional=True, help="Optional args for the builder.")
 
     def __init__(self, command=None, path_to_repository=None,
                  build_target=None, force_build_index=False,
@@ -479,6 +480,7 @@ class ManageRepository(plugin.Command):
                 profile_name=profile_name,
                 force_build_index=self.force_build_index,
                 **kwargs)
+
             handler.Build(renderer, *self.builder_args)
 
 
