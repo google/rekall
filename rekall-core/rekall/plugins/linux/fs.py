@@ -19,6 +19,7 @@
 
 from rekall import testlib
 
+from rekall.plugins import core
 from rekall.plugins.linux import common
 from rekall.plugins.overlays.linux import vfs
 
@@ -82,6 +83,22 @@ class Mfind(common.LinuxPlugin):
              help="Name of the device to match.")
     ]
 
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Device", cname="device", hidden=True),
+        dict(name="Mount Pt", cname="mount", hidden=True),
+        dict(name="Perms", cname="perms", width=11),
+        dict(name="uid", cname="uid", width=10, align="r"),
+        dict(name="gid", cname="gid", width=10, align="r"),
+        dict(name="size", cname="size", width=14, align="r"),
+        dict(name="mtime", cname="mtime", width=24),
+        dict(name="atime", cname="atime", width=24),
+        dict(name="ctime", cname="ctime", width=24),
+        dict(name="inode", cname="inode", width=10, align="r"),
+        dict(name="path", cname="path"),
+    ]
+
+
     def find(self, path, device=None, mountpoint=None):
         """Yields a list of files matching the path on the given mountpoint.
 
@@ -134,7 +151,7 @@ class Mfind(common.LinuxPlugin):
                 if found:
                     yield current_file
 
-    def render(self, renderer):
+    def collect(self):
         mount_plugin = self.session.plugins.mount(session=self.session)
         mountpoints = mount_plugin.get_mount_points()
 
@@ -144,40 +161,32 @@ class Mfind(common.LinuxPlugin):
                                    mountpoint=mountpoint))
 
             if files:
-                renderer.format("Files on device %s mounted at %s.\n" % (
-                    mountpoint.device, mountpoint.name))
+                divider = "Files on device %s mounted at %s.\n" % (
+                    mountpoint.device, mountpoint.name)
+                yield dict(divider=divider)
 
-                self.render_file_header(renderer)
                 for file_ in files:
-                    self.render_file(renderer, file_)
+                    yield self.collect_file(mountpoint, file_)
 
-    def render_file_header(self, renderer):
-        renderer.table_header([
-            ("Perms", "perms", "11"),
-            ("uid", "uid", ">10"),
-            ("gid", "gid", ">10"),
-            ("size", "size", ">14"),
-            ("mtime", "mtime", "24"),
-            ("atime", "atime", "24"),
-            ("ctime", "ctime", "24"),
-            ("inode", "inode", ">10"),
-            ("path", "path", "<60"),
-            ])
-
-    def render_file(self, renderer, file_):
+    def collect_file(self, mountpoint, file_):
         inode = file_.dentry.d_inode
         fullpath = file_.fullpath
-        atime_string = self.session.profile.UnixTimeStamp(
+        atime = self.session.profile.UnixTimeStamp(
             value=inode.i_atime.tv_sec)
-        mtime_string = self.session.profile.UnixTimeStamp(
+        mtime = self.session.profile.UnixTimeStamp(
             value=inode.i_mtime.tv_sec)
-        ctime_string = self.session.profile.UnixTimeStamp(
+        ctime = self.session.profile.UnixTimeStamp(
             value=inode.i_ctime.tv_sec)
 
-        renderer.table_row(InodeToPermissionString(inode),
-                           inode.i_uid, inode.i_gid,
-                           inode.i_size, mtime_string, atime_string,
-                           ctime_string, inode.i_ino, fullpath)
+        return dict(perms=InodeToPermissionString(inode),
+                    uid=inode.i_uid, gid=inode.i_gid,
+                    size=inode.i_size, mtime=mtime,
+                    atime=atime, ctime=ctime,
+                    inode=inode.i_ino,
+                    path=fullpath,
+                    device=mountpoint.device,
+                    file=file_,
+                    mount=mountpoint.name)
 
 
 class Mls(Mfind):
@@ -192,26 +201,24 @@ class Mls(Mfind):
              help="Show files that have no inode information."),
     ]
 
-    def render(self, renderer):
-        mfind_plugin = self.session.plugins.mfind(session=self.session)
-        for entry in mfind_plugin.find(path=self.plugin_args.path,
-                                       device=self.plugin_args.device):
-            renderer.format("Files on device %s mounted at %s.\n" % (
-                entry.mountpoint.device, entry.mountpoint.name))
+    def collect(self):
+        for file_info in super(Mls, self).collect():
+            entry = file_info.get("file")
+            if entry:
+                yield dict(
+                    divider="Files on device %s mounted at %s.\n" % (
+                        entry.mountpoint.device, entry.mountpoint.name))
 
-            self.render_file_header(renderer)
-
-            if not entry.is_directory():
-                self.render_file(renderer, entry)
-            else:
-                for file_ in entry.walk(
-                        recursive=self.plugin_args.recursive,
-                        unallocated=self.plugin_args.unallocated):
-                    self.render_file(renderer, file_)
-            renderer.section()
+                if not entry.is_directory():
+                    yield self.collect_file(entry.mountpoint, entry)
+                else:
+                    for file_ in entry.walk(
+                            recursive=self.plugin_args.recursive,
+                            unallocated=self.plugin_args.unallocated):
+                        yield self.collect_file(entry.mountpoint, file_)
 
 
-class Mcat(Mfind):
+class Mcat(core.DirectoryDumperMixin, Mfind):
     """Returns the contents available in memory for a given file.
 
     Ranges of the file that are not present in memory are returned blank.
@@ -219,49 +226,40 @@ class Mcat(Mfind):
 
     __name = "mcat"
 
-    __args = [
-        dict(name="out_file", required=True,
-             help="Path for output file."),
+    table_header = [
+        dict(name="Range start", cname="start", width=12),
+        dict(name="Range end", cname="end", width=12),
+        dict(name="path", width=80),
+        dict(name="Dumped As", cname="dump_name", width=80),
     ]
 
-    def render(self, renderer):
-        mfind_plugin = self.session.plugins.mfind(session=self.session)
-        files = list(mfind_plugin.find(path=self.plugin_args.path,
-                                       device=self.plugin_args.device))
-
-        if not files:
-            renderer.format("ERROR: No files found.")
-
-        elif len(files) > 1:
-            self.session.logging.error(
-                "%d files found. Please specify the device to target a single "
-                "file.", len(files))
-            self.render_file_header(renderer)
-            for file in files:
-                self.render_file(renderer, file)
-
-        else:
-            renderer.table_header(
-                [("Range start", "start", ">12"),
-                 ("Range end", "end", ">12"),
-                ])
+    def collect(self):
+        renderer = self.session.GetRenderer()
+        for file_info in super(Mcat, self).collect():
+            file_obj = file_info.get("file")
+            if not file_obj:
+                continue
 
             page_size = self.session.kernel_address_space.PAGE_SIZE
             buffer_size = 1024*1024
             buffer = ""
-            file_ = files[0]
 
             # Write buffered output as a sparse file.
-            with renderer.open(filename=self.plugin_args.out_file,
-                               mode="wb") as fd:
-                for range_start, range_end in file_.extents:
-                    renderer.table_row(range_start, range_end)
+            path = file_info["path"]
+            with renderer.open(
+                    filename=path,
+                    directory=self.plugin_args.dump_dir,
+                    mode="wb") as fd:
+
+                for range_start, range_end in file_obj.extents:
+                    yield dict(start=range_start, end=range_end,
+                               path=path, dump_name=fd.name)
 
                     fd.seek(range_start)
                     for offset in range(range_start, range_end, page_size):
                         page_index = offset / page_size
-                        to_write = min(page_size, file_.size - offset)
-                        data = file_.GetPage(page_index)
+                        to_write = min(page_size, file_obj.size - offset)
+                        data = file_obj.GetPage(page_index)
                         if data != None:
                             buffer += data[:to_write]
                         else:
@@ -292,5 +290,5 @@ class TestMls(testlib.HashChecker):
 
 class TestMcat(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="mcat %(file)s --out_file %(tempdir)s/mcat"
+        commandline="mcat %(file)s --dump_dir %(tempdir)s"
         )

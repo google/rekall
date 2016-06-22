@@ -288,6 +288,13 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             "Plugin %s options" % command_metadata.plugin_cls.name)
 
     for name, options in command_metadata.args.iteritems():
+        # We need to modify options to feed into argparse.
+        options = options.copy()
+
+        # Skip this option since it is hidden.
+        if options.pop("hidden", None):
+            continue
+
         # Prevent None getting into the kwargs because it upsets argparser.
         kwargs = dict((k, v) for k, v in options.items() if v is not None)
         name = kwargs.pop("name", None) or name

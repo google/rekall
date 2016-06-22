@@ -31,6 +31,13 @@ class CheckAFInfo(common.LinuxPlugin):
 
     __name = "check_afinfo"
 
+    table_header = [
+        dict(name="Constant Name", cname="symbol", width=30),
+        dict(name="Member", cname="member", width=30),
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Module", cname="module")
+    ]
+
     def CreateChecks(self):
         """Builds the sequence of function checks we need to look at.
 
@@ -97,12 +104,7 @@ class CheckAFInfo(common.LinuxPlugin):
                         var_ptr, check["members"]):
                     yield variable, member, func
 
-    def render(self, renderer):
-        renderer.table_header([("Constant Name", "symbol", "30"),
-                               ("Member", "member", "30"),
-                               ("Address", "address", "[addrpad]"),
-                               ("Module", "module", "")])
-
+    def collect(self):
         checks = self.CreateChecks()
         for variable, member, func in self.check_functions(checks):
             location = ", ".join(
@@ -112,5 +114,5 @@ class CheckAFInfo(common.LinuxPlugin):
             # Point out suspicious constants.
             highlight = None if location else "important"
 
-            renderer.table_row(variable, member, func, location,
-                               highlight=highlight)
+            yield dict(symbol=variable, member=member, address=func,
+                       module=location, highlight=highlight)

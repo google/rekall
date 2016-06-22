@@ -529,19 +529,10 @@ class DirectoryDumperMixin(object):
     dump_dir_optional = True
     default_dump_dir = "."
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(DirectoryDumperMixin, cls).args(parser)
-        help = "Path suitable for dumping files."
-        if cls.dump_dir_optional:
-            help += " (Default: Use current directory)"
-        else:
-            help += " (Required)"
-
-        parser.add_argument("-D", "--dump_dir", default=None,
-                            required=not cls.dump_dir_optional,
-                            help=help)
+    __args = [
+        dict(name="dump_dir",
+             help="Path suitable for dumping files.")
+    ]
 
     def __init__(self, *args_, **kwargs):
         """Dump to a directory.
@@ -549,10 +540,9 @@ class DirectoryDumperMixin(object):
         Args:
           dump_dir: The directory where files should be dumped.
         """
-        dump_dir = kwargs.pop("dump_dir", None)
         super(DirectoryDumperMixin, self).__init__(*args_, **kwargs)
-
-        self.dump_dir = (dump_dir or self.default_dump_dir or
+        self.dump_dir = (self.plugin_args.dump_dir or
+                         self.default_dump_dir or
                          self.session.GetParameter("dump_dir"))
 
         self.check_dump_dir(self.dump_dir)
@@ -862,7 +852,7 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
 
     table_header = [
         dict(name="Offset", cname="offset", style="address"),
-        dict(name="Data", cname="hexdump", style="hexdump", width=65),
+        dict(name="Data", cname="hexdump", width=65),
         dict(name="Comment", cname="comment", width=40)
     ]
 
@@ -918,7 +908,9 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
 
             comment = self.address_map.GetComment(offset, offset + self.width)
 
-            yield dict(offset=offset, hexdump=hex_data, comment=comment,
+            yield dict(offset=offset,
+                       hexdump=hex_data,
+                       comment=comment,
                        nowrap=True, hex_width=self.width)
 
         # Advance the offset so we can continue from this offset next time we

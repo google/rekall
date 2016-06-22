@@ -86,19 +86,27 @@ class Raw2Dump(common.WindowsCommandPlugin):
 
     __name = "raw2dmp"
 
-    @classmethod
-    def args(cls, parser):
-        super(Raw2Dump, cls).args(parser)
-        parser.add_argument(
-            "--destination", default=None,
-            help="The destination path to write the crash dump.")
+    __args = [
+        dict(name="destination", positional=True, required=True,
+             help="The destination path to write the crash dump."),
 
-        parser.add_argument(
-            "--rebuild", default=False, type="Boolean",
-            help="Rebuild the KDBG data block.")
+        dict(name="rebuild", type="Boolean",
+             help="Rebuild the KDBG data block."),
+    ]
 
-    def __init__(self, destination=None, rebuild=False, **kwargs):
-        super(Raw2Dump, self).__init__(**kwargs)
+    table_header = [
+        dict(name="Message")
+    ]
+
+    table_options = dict(
+        suppress_headers=True
+    )
+
+    def column_types(self):
+        return dict(Message="")
+
+    def __init__(self, *args, **kwargs):
+        super(Raw2Dump, self).__init__(*args, **kwargs)
         if self.session.profile.metadata("arch") == "I386":
             self.profile = crashdump.CrashDump32Profile.Initialize(
                 self.profile.copy())
@@ -110,11 +118,6 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 "Unable to write crashdump for this architecture.")
 
         self.buffer_size = 10 * 1024 * 1024
-        self.rebuild = rebuild
-        self.destination = destination
-        if not destination:
-            raise plugin.PluginError(
-                "A destination filename must be provided.")
 
     def _pointer_to_int(self, ptr):
         if self.profile.metadata("arch") == "I386":
@@ -272,12 +275,12 @@ class Raw2Dump(common.WindowsCommandPlugin):
         self._SetKDBG(kdbg, "PsLoadedModuleList")
         self._SetKDBG(kdbg, "PspCidTable")
 
-    def render(self, renderer):
+    def collect(self):
         PAGE_SIZE = 0x1000
 
         # We write the image to the destination using the WritableAddressSpace.
         out_as = standard.WritableAddressSpace(
-            filename=self.destination, session=self.session,
+            filename=self.plugin_args.destination, session=self.session,
             mode="w+b")
 
         # Pad the header area with PAGE pattern:
@@ -378,8 +381,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
             start = run.start / PAGE_SIZE
             length = run.length / PAGE_SIZE
 
-            renderer.write("\nRun [0x%08X, 0x%08X] \n" % (
-                start, length))
+            yield ("\nRun [0x%08X, 0x%08X] \n" % (start, length),)
             data_length = length * PAGE_SIZE
             start_offset = start * PAGE_SIZE
             offset = 0
@@ -393,7 +395,7 @@ class Raw2Dump(common.WindowsCommandPlugin):
                 output_offset += len(data)
                 offset += len(data)
                 data_length -= len(data)
-                renderer.RenderProgress(
+                self.session.render_progress(
                     "Wrote %sMB.", (start_offset + offset) / 1024 / 1024)
 
         # Rebuild the KDBG data block if needed. According to the
@@ -406,13 +408,13 @@ class Raw2Dump(common.WindowsCommandPlugin):
         # MOV RDX, RCX
         # JZ 0xf8000291e6a7              nt!KdCopyDataBlock + 0x57
 
-        if self.rebuild or self.profile.get_constant_object(
+        if self.plugin_args.rebuild or self.profile.get_constant_object(
                 "KdpDataBlockEncoded", "byte") > 0:
-            renderer.format("Rebuilding KDBG data block.\n")
+            yield ("Rebuilding KDBG data block.\n",)
             self.RebuildKDBG(out_as)
 
 
 class TestRaw2Dump(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="raw2dmp --rebuild --destination %(tempdir)s/output.dmp "
+        commandline="raw2dmp --rebuild %(tempdir)s/output.dmp "
     )

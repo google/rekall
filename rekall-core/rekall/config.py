@@ -141,8 +141,11 @@ class CommandMetadata(object):
                 continue
 
             name = name.replace("-", "_")
-            if args[name] is None:
-                args[name] = options.get("default")
+            try:
+                if args[name] is None:
+                    args[name] = options.get("default")
+            except KeyError:
+                pass
 
         return args
 

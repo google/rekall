@@ -30,6 +30,13 @@ class Mount(common.LinuxPlugin):
     """Lists the mount points."""
     __name = "mount"
 
+    table_header = [
+        dict(name="Device", cname="virtual", width=50),
+        dict(name="Path", cname="path", width=50),
+        dict(name="Type", cname="type", width=14),
+        dict(name="flags", cname="flags", width=20),
+    ]
+
     def get_mount_points(self):
         if self.profile.get_constant("set_mphash_entries"):
             # Kernel 3.14 starts using an hlist_head instead of a list_head
@@ -138,14 +145,7 @@ class Mount(common.LinuxPlugin):
                                      flags=vfsmount.mnt_flags,
                                      session=self.session)
 
-    def render(self, renderer):
-        renderer.table_header([("Device", "virtual", "<50"),
-                               ("Path", "path", "<50"),
-                               ("Type", "type", "<14"),
-                               ("flags", "flags", "<20"),
-                              ])
-
-
+    def collect(self):
         for mountpoint in self.get_mount_points():
             flags_string = str(mountpoint.flags)
 
@@ -157,5 +157,5 @@ class Mount(common.LinuxPlugin):
                     additional_flag = "rw"
                 flags_string = ', '.join([additional_flag, flags_string])
 
-            renderer.table_row(mountpoint.device, mountpoint.name,
-                               mountpoint.fstype, flags_string)
+            yield (mountpoint.device, mountpoint.name,
+                   mountpoint.fstype, flags_string)

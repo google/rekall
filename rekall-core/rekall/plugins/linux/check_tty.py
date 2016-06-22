@@ -36,6 +36,11 @@ class CheckTTY(common.LinuxPlugin):
     """
     __name = "check_ttys"
 
+    table_header = [
+        dict(name="Name", cname="name", width=16),
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Symbol", cname="symbol", width=30)
+    ]
 
     @classmethod
     def is_active(cls, session):
@@ -59,12 +64,8 @@ class CheckTTY(common.LinuxPlugin):
 
                 yield tty.name, recv_buf, resolver.format_address(recv_buf)
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Name", "name", "<16"),
-            ("Address", "address", "[addrpad]"),
-            ("Symbol", "symbol", "<30")])
-
+    def collect(self):
         for name, call_addr, sym_name in self.CheckTTYs():
-            renderer.table_row(name, call_addr, sym_name or "Unknown",
-                               highlight=None if sym_name else "important")
+            yield dict(name=name, address=call_addr,
+                       symbol=sym_name or "Unknown",
+                       highlight=None if sym_name else "important")

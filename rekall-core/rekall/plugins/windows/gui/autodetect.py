@@ -32,7 +32,15 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
 
     name = "win32k_autodetect"
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="field", cname="field", width=20),
+        dict(name="offset", cname="offset", style="address"),
+        dict(name="Definition", cname="definition")
+    ]
+
+
+    def collect(self):
         win32k_module = self.session.address_resolver.GetModuleByName(
             "win32k")
         win32k_profile = win32k_module.profile
@@ -40,14 +48,12 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
         overlay = self.GetWin32kOverlay(win32k_profile)
 
         for struct, definition in overlay.items():
-            renderer.section("Struct %s" % struct)
-            renderer.table_header([("field", "field", "20"),
-                                   ("offset", "offset", "[addr]"),
-                                   ("Definition", "definition", "")])
+            yield dict(divider="Struct %s" % struct)
 
             for field, (offset, field_def) in sorted(definition[1].items(),
                                                      key=lambda x: x[1]):
-                renderer.table_row(field, offset, str(field_def))
+                yield dict(field=field, offset=offset,
+                           definition=str(field_def))
 
     def GetWin32kOverlay(self, win32k_profile):
         # Make a temporary profile to work with.

@@ -29,6 +29,13 @@ class IOmem(common.LinuxPlugin):
 
     __name = "iomem"
 
+    table_header = [
+        dict(name="Resource", cname="resource", style="address"),
+        dict(name="Start", cname="start", style="address"),
+        dict(name="End", cname="end", style="address"),
+        dict(name="Name", cname="name", type="TreeNode"),
+    ]
+
     def GetResources(self):
         # Resources are organized in a tree structure.
         resource_tree_root = self.profile.get_constant_object(
@@ -56,15 +63,11 @@ class IOmem(common.LinuxPlugin):
                 yield x
 
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Resource", "resource", "[addrpad]"),
-            ("Start", "start", "[addrpad]"),
-            ("End", "end", "[addrpad]"),
-            dict(name="Name", type="TreeNode"),
-            ])
-
+    def collect(self):
         for node, depth in self.GetResources():
-            renderer.table_row(
-                node, node.start, node.end, node.name.deref(), depth=depth)
-
+            yield dict(
+                resource=node,
+                start=node.start,
+                end=node.end,
+                name=node.name.deref(),
+                depth=depth)

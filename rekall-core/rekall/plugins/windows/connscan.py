@@ -61,6 +61,13 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
         scan_physical=True
     )
 
+    def column_types(self):
+        tcp_obj = self.tcpip_profile._TCPT_OBJECT()
+        return dict(offset_p=tcp_obj,
+                    local_net_address="172.16.176.143:1034",
+                    remote_net_address="131.107.115.254:80",
+                    pid=tcp_obj.Pid)
+
     @classmethod
     def is_active(cls, session):
         # These only work for XP.
@@ -93,4 +100,4 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
                 remote = "{0}:{1}".format(tcp_obj.RemoteIpAddress,
                                           tcp_obj.RemotePort)
 
-                yield tcp_obj.obj_offset, local, remote, tcp_obj.Pid
+                yield tcp_obj, local, remote, tcp_obj.Pid

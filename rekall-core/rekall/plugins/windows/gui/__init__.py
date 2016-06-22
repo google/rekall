@@ -31,7 +31,7 @@ http://volatility-labs.blogspot.de/2012/09/movp-13-desktops-heaps-and-ransomware
 
 from rekall.plugins.windows.gui import atoms
 from rekall.plugins.windows.gui import autodetect
-#from rekall.plugins.windows.gui import clipboard
+from rekall.plugins.windows.gui import clipboard
 from rekall.plugins.windows.gui import windowstations
 from rekall.plugins.windows.gui import sessions
 from rekall.plugins.windows.gui import userhandles

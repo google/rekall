@@ -32,6 +32,11 @@ class CheckCreds(common.LinProcessFilter):
 
     __name = "check_creds"
 
+    table_header = [
+        dict(name="task", cname="task", width=40),
+        dict(name="Cred", cname="cred", style="address"),
+    ]
+
     @classmethod
     def is_active(cls, config):
         if super(CheckCreds, cls).is_active(config):
@@ -43,12 +48,7 @@ class CheckCreds(common.LinProcessFilter):
             except KeyError:
                 return False
 
-    def render(self, renderer):
-        renderer.table_header([
-                ("Cred", "cred", "[addrpad]"),
-                ("PID", "pid", "<8"),
-                ("Command", "command", "<20")])
-
+    def collect(self):
         creds = {}
         for task in self.filter_processes():
             creds.setdefault(task.cred, []).append(task)
@@ -59,7 +59,5 @@ class CheckCreds(common.LinProcessFilter):
                 highlight = "important"
 
             for task in tasks:
-                renderer.table_row(cred, task.pid, task.comm, highlight=highlight)
-
-
-
+                yield dict(cred=cred, task=task,
+                           highlight=highlight)

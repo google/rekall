@@ -18,29 +18,29 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 from rekall import obj
+from rekall import plugin
 from rekall.plugins.windows import common
-from rekall.plugins.windows.gui import sessions
-from rekall.plugins.windows.gui import windowstations
 from rekall.plugins.windows.gui import win32k_core
 from rekall.plugins.windows.gui import constants
 
 
 
-class Clipboard(common.WinProcessFilter):
+class Clipboard(plugin.VerbosityMixIn,
+                win32k_core.Win32kPluginMixin,
+                common.WinProcessFilter):
     """Extract the contents of the windows clipboard"""
 
     __name = "clipboard"
 
-    @classmethod
-    def args(cls, parser):
-        parser.add_argument("-v", "--verbose", default=False,
-                            type="Boolean",
-                            help="Dump more information")
-
-    def __init__(self, verbose=False, **kwargs):
-        super(Clipboard, self).__init__(**kwargs)
-        self.verbose = verbose
-        self.profile = win32k_core.Win32GUIProfile(self.profile)
+    table_header = [
+        dict(name="Session", cname="session", width=10),
+        dict(name="WindowStation", cname="window_station", width=12),
+        dict(name="Format", cname="format", width=18),
+        dict(name="Handle", cname="handle", style="address"),
+        dict(name="Object", cname="object", style="address"),
+        dict(name="Data", cname="data", width=50),
+        dict(name="HexDump", cname="hexdump", hidden=True),
+    ]
 
     def calculate(self):
         session_plugin = self.session.plugins.sessions()
@@ -58,20 +58,22 @@ class Clipboard(common.WinProcessFilter):
         e1 = obj.NoneObject("Unknown tagWINDOWSTATION")
         e2 = obj.NoneObject("Unknown tagCLIP")
 
-        # Handle type filter
-        filters = [lambda x : str(x.bType) == "TYPE_CLIPDATA"]
-
         # Load tagCLIPDATA handles from all sessions
-        import pdb; pdb.set_trace()
         for sid, session in sessions.items():
             handles = {}
-            shared_info = session.find_shared_info()
+            shared_info = self.win32k_profile.get_constant_object(
+                "gSharedInfo",
+                target="tagSHAREDINFO",
+                vm=session.obj_vm)
             if not shared_info:
                 self.session.logging.debug(
                     "No shared info for session {0}".format(sid))
-
                 continue
-            for handle in shared_info.handles(filters):
+
+            for handle in shared_info.aheList:
+                if handle.bType != "TYPE_CLIPDATA":
+                    continue
+
                 handles[int(handle.phead.h)] = handle
 
             session_handles[sid] = handles
@@ -116,15 +118,7 @@ class Clipboard(common.WinProcessFilter):
             for handle in handles.values():
                 yield sessions[sid], e1, e2, handle
 
-    def render(self, renderer):
-        renderer.table_header([("Session", "session", "10"),
-                               ("WindowStation", "window_station", "12"),
-                               ("Format", "format", "18"),
-                               ("Handle", "handle", "[addr]"),
-                               ("Object", "object", "[addrpad]"),
-                               ("Data", "data", "50"),
-                               ])
-
+    def collect(self):
         for session, wndsta, clip, handle in self.calculate():
             # If no tagCLIP is provided, we do not know the format
             if not clip:
@@ -146,14 +140,12 @@ class Clipboard(common.WinProcessFilter):
             if handle and "TEXT" in fmt:
                 clip_data = handle.reference_object().as_string(fmt)
 
-            renderer.table_row(session.SessionId,
-                               wndsta.Name,
-                               fmt,
-                               handle_value,
-                               handle.phead.v(),
-                               clip_data)
+            print handle
 
-            # Print an additional hexdump if --verbose is specified
-            if self.verbose and handle:
-                hex_dump = handle.reference_object().as_hex()
-                outfd.write("{0}".format(hex_dump))
+            yield dict(session=session.SessionId,
+                       window_station=wndsta.Name,
+                       format=fmt,
+                       handle=handle_value,
+                       object=handle.phead.v(),
+                       data=clip_data,
+                       hexdump=handle.reference_object().as_hex())

@@ -23,6 +23,7 @@ Collectors and plugins that deal with Darwin zone allocator.
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 from rekall import plugin
+from rekall import utils
 
 from rekall.plugins.darwin import common
 
@@ -85,7 +86,7 @@ class DarwinDumpZone(common.AbstractDarwinCommand):
 
     table_header = plugin.PluginHeader(
         dict(name="Offset", cname="offset", style="address"),
-        dict(name="Data", cname="data", style="hexdump", width=34)
+        dict(name="Data", cname="data", width=34)
     )
 
     @classmethod
@@ -108,7 +109,9 @@ class DarwinDumpZone(common.AbstractDarwinCommand):
             raise ValueError("No such zone %r." % self.zone_name)
 
         for offset in zone.known_offsets:
-            yield [offset, zone.obj_vm.read(offset, zone.elem_size)]
+            yield (offset,
+                   utils.HexDumpedString(
+                       zone.obj_vm.read(offset, zone.elem_size)))
 
 
 # All plugins below dump and validate elements from specific zones.

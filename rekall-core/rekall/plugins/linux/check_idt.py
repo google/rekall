@@ -34,6 +34,14 @@ class CheckIdt(common.LinuxPlugin):
 
     __name = "check_idt"
 
+    table_header = [
+        dict(name="Index", cname="index", style="address"),
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Type", cname="type", width=18, align="r"),
+        dict(name="Present", cname="present", width=7, align="r"),
+        dict(name="DPL", cname="dpl", width=3, align="r"),
+        dict(name="Symbol", cname="symbol")
+    ]
 
     def CheckTable(self, table, check_indexes=None):
         """Given an IDT table yields information about all its entries.
@@ -78,14 +86,7 @@ class CheckIdt(common.LinuxPlugin):
 
         return self.CheckTable(idt_table)
 
-    def render(self, renderer):
-        renderer.table_header([("Index", "index", "#5x"),
-                               ("Address", "address", "[addrpad]"),
-                               ("Type", "type", ">18"),
-                               ("Present", "present", ">7"),
-                               ("DPL", "dpl", ">3"),
-                               ("Symbol", "symbol", "")])
-
+    def collect(self):
         for (i, entry) in self.CheckIDTTables():
             symbol = ", ".join(
                 self.session.address_resolver.format_address(
@@ -94,9 +95,9 @@ class CheckIdt(common.LinuxPlugin):
             # Point out suspicious constants.
             highlight = None if symbol.startswith("linux") else "important"
 
-            renderer.table_row(i, entry.address, entry.gate_type,
-                               entry.present, entry.dpl, symbol,
-                               highlight=highlight)
+            yield dict(index=i, address=entry.address, type=entry.gate_type,
+                       present=entry.present, dpl=entry.dpl, symbol=symbol,
+                       highlight=highlight)
 
 
 class TestCheckIdt(testlib.SimpleTestCase):

@@ -114,28 +114,34 @@ class EnumerateVacbs(common.WindowsCommandPlugin):
 
         return self.GetVACBs_Win7()
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("_VACB", "vacb", "[addrpad]"),
-            ("Present", 'valid', '7'),
-            ("Base", "base", "[addrpad]"),
-            ("Offset", "offset", "[addr]"),
-            ("Filename", "filename", ""),
-        ])
+    table_header = [
+        dict(name="_VACB", cname="vacb", style="address"),
+        dict(name="Present", cname='valid', width=7),
+        dict(name="Base", cname="base", style="address"),
+        dict(name="Offset", cname="offset", style="address"),
+        dict(name="Filename", cname="filename"),
+    ]
 
+    def column_types(self):
+        return dict(vacb=self.session.profile._VACB(),
+                    valid=True,
+                    base=0,
+                    offset=0,
+                    filename="")
+
+    def collect(self):
         for vacb in self.GetVACBs():
             filename = vacb.SharedCacheMap.FileObject.file_name_with_drive()
             if filename:
-                renderer.table_row(
-                    vacb,
-                    bool(self.kernel_address_space.vtop(
-                        vacb.BaseAddress.v()
-                    )),
-                    vacb.BaseAddress.v(),
+                yield (vacb,
+                       bool(self.kernel_address_space.vtop(
+                           vacb.BaseAddress.v()
+                       )),
+                       vacb.BaseAddress.v(),
 
-                    vacb.Overlay.FileOffset.QuadPart,
-                    filename,
-                )
+                       vacb.Overlay.FileOffset.QuadPart,
+                       filename,
+                   )
 
 
 class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
@@ -146,20 +152,10 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
     """
     name = "dumpfiles"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(DumpFiles, cls).args(parser)
-
-        parser.add_argument(
-            "--file_objects",
-            type="ArrayIntParser", default=[],
-            help="Kernel addresses of _FILE_OBJECT structs.")
-
-    def __init__(self, *args, **kwargs):
-        self.file_objects = kwargs.pop("file_objects", [])
-
-        super(DumpFiles, self).__init__(*args, **kwargs)
+    __args = [
+        dict(name="file_objects", type="ArrayIntParser",
+             help="Kernel addresses of _FILE_OBJECT structs.")
+    ]
 
     def CollectFileObject(self):
         """Collect all known file objects."""
@@ -235,16 +231,27 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                 out_fd.write(self.physical_address_space.read(
                     phys_address, file_sectors_mapped_in_page * 512))
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Type", "type", "20"),
-            ("Phys Offset", "POffset", "[addrpad]"),
-            ("File Offset", "FOffset", "[addrpad]"),
-            ("File Length", "Flength", ">#05x"),
-            ("Filename", "filename", "")
-            ])
+    table_header = [
+        dict(name="Type", cname="type", width=20),
+        dict(name="Phys Offset", cname="p_offset", style="address"),
+        dict(name="File Offset", cname="f_offset", style="address"),
+        dict(name="File Length", cname="f_length", style="address"),
+        dict(name="Filename", cname="filename")
+    ]
 
-        self.CollectFileObject()
+    def column_types(self):
+        return dict(type="VACB", p_offset=0, f_offset=0,
+                    f_length=0x1000, filename="")
+
+    def collect(self):
+        renderer = self.session.GetRenderer()
+        if not self.plugin_args.file_objects:
+            self.CollectFileObject()
+        else:
+            self.file_objects = set(
+                [self.session.profile._FILE_OBJECT(int(x))
+                 for x in self.plugin_args.file_objects])
+
         seen_filenames = set()
         for file_object in self.file_objects:
             filename = unicode(
@@ -258,7 +265,6 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
             self.session.report_progress(" Dumping %s", filename)
             with renderer.open(directory=self.dump_dir,
                                filename=filename, mode="w") as out_fd:
-
                 filename = out_fd.name
 
                 # Sometimes we get both subsections.
@@ -285,9 +291,8 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                             base_address + offset)
 
                         if phys_address:
-                            renderer.table_row(
-                                "VACB", phys_address, file_offset+offset,
-                                0x1000, filename)
+                            yield ("VACB", phys_address, file_offset+offset,
+                                   0x1000, filename)
 
                             # This writes a sparse file.
                             out_fd.seek(file_offset + offset)
@@ -310,8 +315,8 @@ class MftDump(common.WindowsCommandPlugin):
     """Enumerate MFT entries from the cache manager."""
     name = "mftdump"
 
-    def __init__(self, **kwargs):
-        super(MftDump, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(MftDump, self).__init__(*args, **kwargs)
         self.ntfs_profile = self.session.LoadProfile("ntfs")
         self.mft_size = 0x400
         self.vacb_size = 0x40000
@@ -341,7 +346,7 @@ class MftDump(common.WindowsCommandPlugin):
 
             self.dir_tree[parent_id].add(mft_id)
 
-    def render_tree(self, renderer, root, seen, depth=0):
+    def collect_tree(self, root, seen, depth=0):
         if root not in self.mfts or root in seen:
             return
 
@@ -349,38 +354,52 @@ class MftDump(common.WindowsCommandPlugin):
         standard_info = mft.get_attribute(
             "$STANDARD_INFORMATION").DecodeAttribute()
 
-        renderer.table_row(
-            root,
-            standard_info.file_altered_time,
-            standard_info.mft_altered_time,
-            standard_info.file_accessed_time,
-            standard_info.create_time,
-            self.mfts[root].filename.name, depth=depth)
+        yield dict(MFT=root,
+                   mft_entry=mft,
+                   file_modified=standard_info.file_altered_time,
+                   mft_modified=standard_info.mft_altered_time,
+                   access=standard_info.file_accessed_time,
+                   create_time=standard_info.create_time,
+                   Name=self.mfts[root].filename.name,
+                   depth=depth)
         seen.add(root)
 
         for child in sorted(self.dir_tree.get(root, [])):
             if child not in seen:
-                self.render_tree(renderer, child, seen, depth=depth+1)
+                for x in self.collect_tree(child, seen, depth=depth+1):
+                    yield x
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="MFT", width=5, align="r"),
+        dict(name="mft_entry", hidden=True),
+        dict(name="file_modified", width=25),
+        dict(name="mft_modified", width=25),
+        dict(name="access", width=25),
+        dict(name="create_time", width=25),
+        dict(name="Name", type="TreeNode", max_depth=15, width=100),
+    ]
+
+    def column_types(self):
+        wft = self.session.profile.WinFileTime()
+        return dict(MFT=int,
+                    mft_entry=self.ntfs_profile.MFT_ENTRY(),
+                    file_modified=wft,
+                    mft_modified=wft,
+                    access=wft,
+                    create_time=wft,
+                    Name=self.session.profile.UnicodeString())
+
+    def collect(self):
         for vacb in self.session.plugins.vacbs().GetVACBs():
             filename = vacb.SharedCacheMap.FileObject.FileName
             if filename == r"\$Mft":
                 self.extract_mft_entries_from_vacb(vacb)
 
-        renderer.table_header([
-            dict(name="MFT", width=5, align="r"),
-            dict(name="file_modified", width=25),
-            dict(name="mft_modified", width=25),
-            dict(name="access", width=25),
-            dict(name="create_time", width=25),
-            dict(name="Name", type="TreeNode", max_depth=15, width=100),
-        ])
-
         # Avoid loops.
         seen = set()
         for mft_id in self.dir_tree:
-            self.render_tree(renderer, mft_id, seen, depth=0)
+            for x in self.collect_tree(mft_id, seen, depth=0):
+                yield x
 
 
 class TestMftDump(testlib.SortedComparison):

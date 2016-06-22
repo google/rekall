@@ -357,3 +357,31 @@ class HexIntegerTextRenderer(text.TextObjectRenderer):
 
     def render_row(self, item, **options):
         return text.Cell(hex(item), align="r")
+
+
+class TextHexdumpRenderer(text.TextObjectRenderer):
+    renders_type = "HexDumpedString"
+    renderers = ["TextRenderer", "TestRenderer"]
+
+    def render_row(self, item, hex_width=None, **options):
+        if hex_width is None:
+            hex_width = self.session.GetParameter("hexdump_width", 8)
+
+        data = item.value
+        highlights = item.highlights or []
+        hex_highlights = []
+        for x, y, f, b in highlights:
+            hex_highlights.append((3 * x, 3 * y, f, b))
+
+        hexcell = text.Cell(
+            width=hex_width * 3, highlights=hex_highlights,
+            colorizer=self.renderer.colorizer)
+        datacell = text.Cell(
+            width=hex_width, highlights=highlights,
+            colorizer=self.renderer.colorizer)
+
+        for _, hexdata, translated_data in utils.Hexdump(data, width=hex_width):
+            hexcell.append_line(hexdata)
+            datacell.append_line("".join(translated_data))
+
+        return text.JoinedCell(hexcell, datacell)

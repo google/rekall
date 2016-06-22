@@ -74,7 +74,7 @@ class Clist_TextObjectRenderer(base_objects.StructTextRenderer):
     COLUMNS = [
         dict(name="Clist", cname="obj_offset", style="address"),
         dict(name="Recovered Contents", cname="recovered_contents",
-             width=34, style="hexdump")
+             width=34)
     ]
 
 
@@ -87,12 +87,10 @@ class Tty_TextObjectRenderer(base_objects.StructTextRenderer):
         dict(name="Input Buffer", type="clist", cname="input_buffer",
              columns=[dict(name="Recovered Input",
                            cname="recovered_contents",
-                           style="hexdump",
                            width=34)]),
         dict(name="Output Buffer", type="clist", cname="output_buffer",
              columns=[dict(name="Recovered Output",
                            cname="recovered_contents",
-                           style="hexdump",
                            width=34)])
     ]
 

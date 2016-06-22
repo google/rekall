@@ -225,16 +225,16 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
         as_class = addrspace.BaseAddressSpace.classes[impl]
         return as_class
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("_EPROCESS (P)", "physical_eprocess", "[addrpad]"),
-             ("DTB", "dtv", "[addrpad]"),
-             ("Valid", "valid", "10")])
+    table_header = [
+        dict(name="_EPROCESS (P)", style="address"),
+        dict(name="DTB", cname="dtv", style="address"),
+        dict(name="Valid", cname="valid", width=10)
+    ]
 
+    def collect(self):
         for dtb, eprocess in self.dtb_eprocess_hits():
-            renderer.table_row(
-                eprocess.obj_offset, dtb,
-                self.VerifyHit(dtb) is not None)
+            yield (eprocess.obj_offset, dtb,
+                   self.VerifyHit(dtb) is not None)
 
 
 ## The following are checks for pool scanners.

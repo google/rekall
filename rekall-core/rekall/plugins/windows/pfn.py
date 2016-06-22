@@ -305,8 +305,8 @@ class WinRammap(plugin.VerbosityMixIn, common.WindowsCommandPlugin):
         dict(name="Filename"),
     ]
 
-    def __init__(self, start=None, end=None, **kwargs):
-        super(WinRammap, self).__init__(start=start, end=end, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(WinRammap, self).__init__(*args, **kwargs)
         self.plugin_args.start &= ~0xFFF
         self.ptov_plugin = self.session.plugins.ptov()
         self.pfn_database = self.session.profile.get_constant_object(

@@ -32,6 +32,14 @@ class Ifconfig(common.LinuxPlugin):
 
     __name = "ifconfig"
 
+    table_header = [
+        dict(name="Interface", cname="interface", width=16),
+        dict(name="Ipv4Address", cname="ipv4", width=20),
+        dict(name="MAC", cname="mac", width=18),
+        dict(name="Flags", cname="flags", width=20)
+    ]
+
+
     def enumerate_devices(self):
         """A generator over devices.
 
@@ -64,12 +72,7 @@ class Ifconfig(common.LinuxPlugin):
                                                           "dev_list"):
                 yield net_dev
 
-    def render(self, renderer):
-        renderer.table_header([("Interface", "interface", "<16"),
-                               ("Ipv4Address", "ipv4", "<20"),
-                               ("MAC", "mac", "18"),
-                               ("Flags", "flags", "<20")])
-
+    def collect(self):
         for net_dev in self.enumerate_devices():
             for name, ipv4, mac, flags in self.gather_net_dev_info(net_dev):
-                renderer.table_row(name, ipv4, mac, flags)
+                yield (name, ipv4, mac, flags)

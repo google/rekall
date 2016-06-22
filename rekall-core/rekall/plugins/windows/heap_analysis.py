@@ -43,14 +43,13 @@ class InspectHeap(common.WinProcessFilter):
 
     name = "inspect_heap"
 
-    @classmethod
-    def args(cls, parser):
-        super(InspectHeap, cls).args(parser)
-        parser.add_argument("--free", type="Boolean", default=False,
-                            help="Also show freed chunks.")
+    __args = [
+        dict(name="free", type="Boolean",
+             help="Also show freed chunks."),
 
-        parser.add_argument("--heaps", type="ArrayIntParser", default=None,
-                            help="Only show these heaps (default show all)")
+        dict(name="heaps", type="ArrayIntParser",
+             help="Only show these heaps (default show all)")
+    ]
 
     @classmethod
     def is_active(cls, session):
@@ -58,10 +57,7 @@ class InspectHeap(common.WinProcessFilter):
                 session.profile.metadata("arch") == 'AMD64')
 
     def __init__(self, *args, **kwargs):
-        self.heaps = kwargs.pop("heaps", None)
-        self.free = kwargs.pop("free", False)
         super(InspectHeap, self).__init__(*args, **kwargs)
-
         self.segments = utils.SortedCollection()
 
     def enumerate_lfh_heap_allocations(self, heap, skip_freed=False):
@@ -171,7 +167,7 @@ class InspectHeap(common.WinProcessFilter):
             dict(name="Entry", style="address"),
             ("Alloc", "allocation_length", "4"),
             ("Length", "length", ">4"),
-            dict(name="Data", style="hexdump"),
+            dict(name="Data"),
         ])
 
         # Render the LFH allocations in increasing allocation sizes. Collect
@@ -189,11 +185,12 @@ class InspectHeap(common.WinProcessFilter):
                     entry,
                     allocation_length,
                     entry.length,
-                    data,
+                    utils.HexDumpedString(data),
                     )
 
     def render_process_heap_info(self, heap, renderer):
-        if self.heaps and heap.ProcessHeapsListIndex not in self.heaps:
+        if (self.plugin_args.heaps and
+            heap.ProcessHeapsListIndex not in self.plugin_args.heaps):
             return
 
         if 1 <= heap.ProcessHeapsListIndex <= 64:
@@ -207,7 +204,7 @@ class InspectHeap(common.WinProcessFilter):
                      child=dict(style="address")),
                 ("End", "segment_end", "[addr]"),
                 ("Length", "length", "8"),
-                dict(name="Data", style="hexdump"),
+                dict(name="Data"),
             ])
 
             for seg in heap.Segments:
@@ -234,7 +231,7 @@ class InspectHeap(common.WinProcessFilter):
                     renderer.table_row(
                         entry,
                         end, end - start,
-                        data,
+                        utils.HexDumpedString(data),
                         depth=2)
 
 
@@ -247,20 +244,16 @@ class ShowAllocation(common.WindowsCommandPlugin):
 
     name = "show_allocation"
 
-    @classmethod
-    def args(cls, parser):
-        super(ShowAllocation, cls).args(parser)
-        parser.add_argument(
-            "address", type="ArrayIntParser",
-            help="The address to display")
+    __args = [
+        dict(name="address", type="ArrayIntParser", positional=True,
+             help="The address to display"),
 
-        parser.add_argument(
-            "--preamble", type="IntParser", default=32,
-            help="How many bytes prior to the address to display.")
+        dict(name="preamble", type="IntParser", default=32,
+             help="How many bytes prior to the address to display."),
 
-        parser.add_argument(
-            "--length", type="IntParser", default=50 * 16,
-            help="How many bytes after the address to display.")
+        dict(name="length", type="IntParser", default=50 * 16,
+             help="How many bytes after the address to display.")
+    ]
 
     def BuildAllocationMap(self):
         """Build a map of all allocations for fast looksup."""
@@ -299,16 +292,7 @@ class ShowAllocation(common.WindowsCommandPlugin):
         return allocations
 
     def __init__(self, *args, **kwargs):
-        addresses = kwargs.pop("addresses", args)
-        self.preamble = kwargs.pop("preamble", 16)
-        self.length = kwargs.pop("length", 50 * 16)
-
-        super(ShowAllocation, self).__init__(**kwargs)
-
-        if isinstance(addresses, int):
-            addresses = [addresses]
-
-        self.addresses = addresses
+        super(ShowAllocation, self).__init__(*args, **kwargs)
         self.offset = None
 
         # Get cached allocations for current process context.
@@ -348,8 +332,8 @@ class ShowAllocation(common.WindowsCommandPlugin):
 
             else:
                 # Maybe it is a resolvable address.
-                name = self.session.address_resolver.format_address(
-                    pointer.v(), max_distance=1024*1024)
+                name = ",".join(self.session.address_resolver.format_address(
+                    pointer.v(), max_distance=1024*1024))
 
 
             if name:
@@ -363,10 +347,10 @@ class ShowAllocation(common.WindowsCommandPlugin):
         return address_map
 
     def render(self, renderer):
-        for address in self.addresses:
+        for address in self.plugin_args.address:
             # If the user requested to view more than one address we do not
             # support plugin continuation (with v() plugin).
-            if len(self.addresses) > 1:
+            if len(self.plugin_args.address) > 1:
                 self.offset = None
 
             alloc_start, alloc_length, alloc_type = (
@@ -393,7 +377,7 @@ class ShowAllocation(common.WindowsCommandPlugin):
             if self.offset is None:
                 # Start dumping a little before the requested address, but do
                 # not go before the start of the allocation.
-                start = max(alloc_start, address - self.preamble)
+                start = max(alloc_start, address - self.plugin_args.preamble)
             else:
                 # Continue dumping from the last run.
                 start = self.offset
@@ -404,7 +388,7 @@ class ShowAllocation(common.WindowsCommandPlugin):
                 start -= 16
 
             length = min(alloc_start + alloc_length - start,
-                         self.length)
+                         self.plugin_args.length)
 
             dump = self.session.plugins.dump(
                 offset=start, length=length,
@@ -421,16 +405,10 @@ class FindReferenceAlloc(common.WindowsCommandPlugin):
 
     name = "show_referrer_alloc"
 
-    @classmethod
-    def args(cls, parser):
-        super(FindReferenceAlloc, cls).args(parser)
-        parser.add_argument(
-            "address", type="IntParser",
-            help="The address to display")
-
-    def __init__(self, address=None, **kwargs):
-        super(FindReferenceAlloc, self).__init__(**kwargs)
-        self.address = address
+    __args = [
+        dict(name="address", type="IntParser", positional=True, required=True,
+             help="The address to display")
+    ]
 
     def get_referrers(self, address, maxlen=None):
         addr = self.profile.address()

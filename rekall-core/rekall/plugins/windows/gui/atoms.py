@@ -145,6 +145,19 @@ class Atoms(win32k_core.Win32kPluginMixin,
 
     __name = "atoms"
 
+
+    table_header = [
+        dict(name="Offsetdict(name=P)", cname="physical_offset",
+             style="address"),
+        dict(name="Session", cname="session", width=10),
+        dict(name="WindowStation", cname="windows_station", width=18),
+        dict(name="Atom", cname="atom", style="address"),
+        dict(name="RefCount", cname="ref_count", width=10),
+        dict(name="HIndex", cname="hindex", width=10),
+        dict(name="Pinned", cname="pinned", width=10),
+        dict(name="Name", cname="name"),
+    ]
+
     def station_atoms(self, station):
         """Generate all the atoms in the windows station atom table."""
         table = station.pGlobalAtomTable
@@ -193,25 +206,13 @@ class Atoms(win32k_core.Win32kPluginMixin,
             for table, atom in self.session_atoms(session):
                 yield table, atom, obj.NoneObject(), session.SessionId
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("Offset(P)", "physical_offset", "[addrpad]"),
-             ("Session", "session", "10"),
-             ("WindowStation", "windows_station", "18"),
-             ("Atom", "atom", "[addr]"),
-             ("RefCount", "ref_count", "10"),
-             ("HIndex", "hindex", "10"),
-             ("Pinned", "pinned", "10"),
-             ("Name", "name", ""),
-             ])
-
+    def collect(self):
         for table, atom, window_station, session_id in self.find_atoms():
-            renderer.table_row(
-                table,
-                session_id,
-                window_station.Name,
-                atom.Atom,
-                atom.ReferenceCount,
-                atom.HandleIndex,
-                atom.Pinned,
-                atom.Name)
+            yield (table,
+                   session_id,
+                   window_station.Name,
+                   atom.Atom,
+                   atom.ReferenceCount,
+                   atom.HandleIndex,
+                   atom.Pinned,
+                   atom.Name)

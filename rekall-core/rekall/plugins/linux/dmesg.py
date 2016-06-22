@@ -31,7 +31,14 @@ class LinuxDmesg(common.LinuxPlugin):
 
     __name = "dmesg"
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="Timestamp", cname="timestamp", width=16),
+        dict(name="Facility", cname="facility", width=2),
+        dict(name="Level", cname="level", width=2),
+        dict(name="Message", cname="message", width=80)
+    ]
+
+    def collect(self):
         if self.profile.get_obj_size("log"):
             # Linux 3.x uses a log struct to keep log messages. In this case the
             # log is a pointer to a variable length array of log messages.
@@ -48,16 +55,9 @@ class LinuxDmesg(common.LinuxPlugin):
                     )
                 )
 
-            renderer.table_header([
-                    ("Timestamp", "timestamp", ">9.02f"),
-                    ("Facility", "facility", "<2"),
-                    ("Level", "level", "<2"),
-                    ("Message", "message", "<80")])
-
             for message in dmesg:
-                renderer.table_row(
-                    message.ts_nsec / 1e9, message.facility, message.level,
-                    message.message)
+                yield (message.ts_nsec / 1e9, message.facility, message.level,
+                       message.message)
 
         else:
             # Older kernels just use the area as a single unicode string.
@@ -74,7 +74,4 @@ class LinuxDmesg(common.LinuxPlugin):
                     )
                 )
 
-            renderer.table_header([
-                    ("Message", "message", "<80")])
-
-            renderer.table_row(dmesg.deref())
+            yield dict(message=dmesg.deref())

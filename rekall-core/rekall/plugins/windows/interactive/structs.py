@@ -44,6 +44,12 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
              help="How many elements to identify."),
     ]
 
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Offset", cname="offset", style="address"),
+        dict(name="Content", cname="content")
+    ]
+
     def SearchForPoolHeader(self, offset, search=0x100):
         """Search backwards from offset for a pool header."""
         pool_alignment = self.session.profile.get_constant("PoolAlignment")
@@ -128,7 +134,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
 
         return result
 
-    def render(self, renderer):
+    def collect(self):
         pool_header = self.SearchForPoolHeader(
             self.plugin_args.offset, search=self.plugin_args.search)
 
@@ -136,16 +142,13 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
             name = (pool_header.m("ProcessBilled").name or
                     str(pool_header.Tag).encode("string-escape"))
 
-            renderer.format(
-                "{0:#x} is inside pool allocation with tag '{1}' ({2:#x}) "
-                " and size {3:#x}\n",
-                self.plugin_args.offset, name, pool_header, pool_header.size)
-
-        renderer.table_header([("Offset", "offset", "[addr]"),
-                               ("Content", "content", "")])
+            yield dict(divider=("{0:#x} is inside pool allocation with "
+                                "tag '{1}' ({2:#x}) and size {3:#x}".format(
+                                    self.plugin_args.offset,
+                                    name, pool_header, pool_header.size)))
 
         for relative_offset, info in self.GuessMembers(
                 self.plugin_args.offset, size=self.plugin_args.size,
                 search=self.plugin_args.search):
-            renderer.table_row(relative_offset, " ".join(
+            yield dict(offset=relative_offset, content=" ".join(
                 [utils.SmartStr(x).encode("string-escape") for x in info]))

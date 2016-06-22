@@ -19,10 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
-from rekall import addrspace
 from rekall import plugin
-from rekall.plugins.overlays.windows import pe_vtypes
-
 from rekall.plugins.windows import common
 
 
@@ -39,24 +36,14 @@ class LoadWindowsProfile(common.AbstractWindowsCommandPlugin):
 
     interactive = True
 
-    @classmethod
-    def args(cls, parser):
-        super(LoadWindowsProfile, cls).args(parser)
-        parser.add_argument(
-            "module_name",
-            help="The name of the module (without the .pdb extensilon).",
-            required=True)
+    __args = [
+        dict(name="module_name", positional=True, required=True,
+             help="The name of the module (without the .pdb extensilon)."),
 
-        parser.add_argument(
-            "guid", help="The guid of the module.",
-            required=False)
+        dict(name="guid", help="The guid of the module.")
+    ]
 
-    def __init__(self, module_name=None, guid=None, **kwargs):
-        super(LoadWindowsProfile, self).__init__(**kwargs)
-        self.module_name = module_name
-        self.guid = guid
-
-    def render(self, renderer):
+    def collect(self):
         if self.guid is None:
             # Try to detect the GUID automatically.
             module = self.session.address_resolver.GetModuleByName(
@@ -83,3 +70,5 @@ class LoadWindowsProfile(common.AbstractWindowsCommandPlugin):
 
         if profile:
             module.profile = profile
+
+        return []

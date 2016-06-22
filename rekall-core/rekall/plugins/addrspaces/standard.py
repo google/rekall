@@ -139,7 +139,12 @@ class FileAddressSpace(FDAddressSpace):
                 "Unable to open a device without the win32file package "
                 "installed.")
 
-        fhandle = open(self.fname, self.mode)
+        try:
+            fhandle = open(self.fname, self.mode)
+        except (IOError, OSError):
+            raise addrspace.ASAssertionError(
+                "Filename does not exist or can not be opened.")
+
         self._closer = weakref.ref(self, lambda x: fhandle.close())
 
         super(FileAddressSpace, self).__init__(

@@ -796,6 +796,14 @@ class ProfileHook(kb.ParameterHook):
         if not self.session.physical_address_space:
             # Try to load the physical_address_space so we can scan it.
             if not self.session.plugins.load_as().GetPhysicalAddressSpace():
+                # If a filename was specified this should have worked, unless we
+                # could not open it.
+                filename = self.session.GetParameter("filename")
+                if filename:
+                    raise RuntimeError(
+                        "Unable to instantiate physical_address_space from "
+                        "filename %s." % filename)
+
                 # No physical address space - nothing to do here.
                 return obj.NoneObject("No Physical Address Space.")
 

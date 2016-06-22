@@ -24,6 +24,8 @@
 from rekall import obj
 from rekall import scan
 from rekall import plugin
+from rekall import utils
+
 from rekall.plugins.windows import common
 
 
@@ -97,19 +99,13 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
 
     __name = "kdbgscan"
 
-    @classmethod
-    def args(cls, parser):
-        super(KDBGScan, cls).args(parser)
-        parser.add_argument("--full_scan", default=False, type="Boolean",
-                            help="Scan the full address space.")
-
-
-    def __init__(self, full_scan=False, **kwargs):
-        super(KDBGScan, self).__init__(**kwargs)
-        self.full_scan = full_scan
+    __args = [
+        dict(name="full_scan", type="Boolean",
+             help="Scan the full address space.")
+    ]
 
     def hits(self):
-        if self.full_scan:
+        if self.plugin_args.full_scan:
             start, end = 0, 2**64
         else:
             # The kernel image is always loaded in the same range called the
@@ -131,38 +127,35 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
                 end - start):
             yield kdbg
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="Key", width=50),
+        dict(name="Value")
+    ]
+
+    table_options = dict(
+        suppress_headers=True
+    )
+
+    def collect(self):
         """Renders the KPCR values as text"""
 
         for kdbg in self.hits():
-            renderer.section()
-            renderer.format(
-                "Instantiating KDBG using: {0} {1} ({2})\n",
-                kdbg.obj_vm.name, kdbg.obj_profile.__class__.__name__,
-                kdbg.obj_profile.metadata('arch', "Unknown"),
-                )
-
-            renderer.format("{0:<30}: {1:#x}\n", "Offset (V)", kdbg.obj_offset)
-            renderer.format("{0:<30}: {1:#x}\n", "Offset (P)", kdbg.obj_vm.vtop(
+            yield "Offset (V)", utils.HexInteger(kdbg.obj_offset)
+            yield "Offset (P)", utils.HexInteger(kdbg.obj_vm.vtop(
                 kdbg.obj_offset))
 
             # These fields can be gathered without dereferencing
             # any pointers, thus they're available always
-            renderer.format("{0:<30}: {1}\n", "KDBG owner tag check",
-                            kdbg.is_valid())
+            yield "KDBG owner tag check", kdbg.is_valid()
 
             verinfo = kdbg.dbgkd_version64()
             if verinfo:
-                renderer.format(
-                    "{0:<30}: {1:#x} (Major: {2}, Minor: {3})\n",
-                    "Version64", verinfo.obj_offset, verinfo.MajorVersion,
+                yield "Version64", "{0:#x} (Major: {1}, Minor: {2})\n".format(
+                    verinfo.obj_offset, verinfo.MajorVersion,
                     verinfo.MinorVersion)
 
-            renderer.format("{0:<30}: {1}\n", "Service Pack (CmNtCSDVersion)",
-                            kdbg.ServicePack)
-
-            renderer.format("{0:<30}: {1}\n", "Build string (NtBuildLab)",
-                            kdbg.NtBuildLab.dereference())
+            yield "Service Pack (CmNtCSDVersion)", kdbg.ServicePack
+            yield "Build string (NtBuildLab)", kdbg.NtBuildLab.dereference()
 
             # Count the total number of tasks from PsActiveProcessHead.
             try:
@@ -179,17 +172,14 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
             except AttributeError:
                 num_modules = 0
 
-            renderer.format("{0:<30}: {1:#x} ({2} processes)\n",
-                            "PsActiveProcessHead",
-                            kdbg.PsActiveProcessHead, num_tasks)
+            yield "PsActiveProcessHead", "{0:#x} ({1} processes)".format(
+                kdbg.PsActiveProcessHead, num_tasks)
 
-            renderer.format("{0:<30}: {1:#x} ({2} modules)\n",
-                            "PsLoadedModuleList",
-                            kdbg.PsLoadedModuleList, num_modules)
+            yield "PsLoadedModuleList", "{0:#x} ({1} modules)".format(
+                kdbg.PsLoadedModuleList, num_modules)
 
-            renderer.format("{0:<30}: {1:#x} (Matches MZ: {2})\n",
-                            "KernelBase", kdbg.KernBase,
-                            kdbg.obj_vm.read(kdbg.KernBase, 2) == "MZ")
+            yield "KernelBase", "{0:#x} (Matches MZ: {1})".format(
+                kdbg.KernBase, kdbg.obj_vm.read(kdbg.KernBase, 2) == "MZ")
 
             # Parse the PE header of the kernel.
             pe_profile = self.session.LoadProfile("pe")
@@ -198,15 +188,13 @@ class KDBGScan(plugin.KernelASMixin, common.AbstractWindowsCommandPlugin):
                 offset=kdbg.KernBase, vm=kdbg.obj_vm)
             nt_header = dos_header.NTHeader
             if nt_header:
-                renderer.format(
-                    "{0:<30}: {1}\n", "Major (OptionalHeader)",
-                    nt_header.OptionalHeader.MajorOperatingSystemVersion)
-                renderer.format(
-                    "{0:<30}: {1}\n", "Minor (OptionalHeader)",
-                    nt_header.OptionalHeader.MinorOperatingSystemVersion)
+                yield ("Major (OptionalHeader)",
+                       nt_header.OptionalHeader.MajorOperatingSystemVersion)
+
+                yield("Minor (OptionalHeader)",
+                      nt_header.OptionalHeader.MinorOperatingSystemVersion)
 
             # The CPU block.
             for kpcr in kdbg.kpcrs():
-                renderer.format(
-                    "{0:<30}: {1:#x} (CPU {2})\n",
-                    "KPCR", kpcr.obj_offset, kpcr.ProcessorBlock.Number)
+                yield "KPCR", "{0:#x} (CPU {1})".format(
+                    kpcr.obj_offset, kpcr.ProcessorBlock.Number)

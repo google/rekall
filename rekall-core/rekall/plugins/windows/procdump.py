@@ -24,10 +24,10 @@
 # pylint: disable=protected-access
 
 import os
-import re
 
 from rekall.plugins.windows import common
 from rekall.plugins import core
+from rekall import plugin
 from rekall import utils
 
 
@@ -36,39 +36,23 @@ class PEDump(common.WindowsCommandPlugin):
 
     __name = "pedump"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(PEDump, cls).args(parser)
-        parser.add_argument(
-            "--image_base", default=0, type="IntParser",
-            help="The address of the image base (dos header).")
+    __args = [
+        dict(name="image_base", type="SymbolAddress", required=False,
+             positional=True,
+             help="The address of the image base (dos header)."),
 
-        parser.add_argument("--out_file", default=None,
-                            help="The file name to write.")
+        dict(name="out_file",
+             help="The file name to write."),
 
-        parser.add_argument("-a", "--address_space", default=None,
-                            help="The address space to use.")
+        dict(name="address_space", type="AddressSpace",
+             help="The address space to use."),
 
-        parser.add_argument(
-            "--out_fd", dest="SUPPRESS",
-            help="A file like object to write the output.")
+        dict(name="out_fd",
+             help="A file like object to write the output.")
+    ]
 
-    def __init__(self, image_base=0, out_fd=None, address_space=None,
-                 out_file=None, **kwargs):
-        super(PEDump, self).__init__(**kwargs)
-        self.address_space = address_space
-
-        # Allow the image base to be given as a name (e.g. "nt").
-        resolver = self.session.address_resolver
-        if resolver:
-            image_base = resolver.get_address_by_name(image_base)
-
-        self.image_base = image_base
-        self.out_fd = out_fd
-        self.out_file = out_file
-
-        # Get the pe profile.
+    def __init__(self, *args, **kwargs):
+        super(PEDump, self).__init__(*args, **kwargs)
         self.pe_profile = self.session.LoadProfile("pe")
 
     def WritePEFile(self, fd=None, address_space=None, image_base=None):
@@ -91,7 +75,7 @@ class PEDump(common.WindowsCommandPlugin):
 
         # First copy the PE file header, then copy the sections.
         data = dos_header.obj_vm.read(
-            image_base, min(1e6, nt_header.OptionalHeader.SizeOfHeaders))
+            image_base, min(1000000, nt_header.OptionalHeader.SizeOfHeaders))
 
         if not data:
             return
@@ -101,8 +85,8 @@ class PEDump(common.WindowsCommandPlugin):
 
         for section in nt_header.Sections:
             # Force some sensible maximum values here.
-            size_of_section = min(10e6, section.SizeOfRawData)
-            physical_offset = min(100e6, int(section.PointerToRawData))
+            size_of_section = min(10000000, section.SizeOfRawData)
+            physical_offset = min(100000000, int(section.PointerToRawData))
 
             data = section.obj_vm.read(
                 section.VirtualAddress + image_base, size_of_section)
@@ -110,29 +94,28 @@ class PEDump(common.WindowsCommandPlugin):
             fd.seek(physical_offset, 0)
             fd.write(data)
 
-    def render(self, renderer):
-        if self.out_file:
-            self.out_fd = renderer.open(filename=self.out_file, mode="wb")
+    def collect(self):
+        renderer = self.session.GetRenderer()
+        if self.plugin_args.out_file:
+            out_fd = renderer.open(
+                filename=self.plugin_args.out_file, mode="wb")
+        else:
+            out_fd = self.plugin_args.out_fd
 
-        if not self.out_fd:
+        if not out_fd:
             self.session.logging.error(
                 "No output filename or file handle specified.")
-            return
+            return []
 
-        # Default address space is the kernel if not specified.
-        if self.address_space is None:
-            self.address_space = self.session.GetParameter(
-                "default_address_space")
+        with out_fd:
+            self.session.logging.info(
+                "Dumping PE File at image_base %#x to %s",
+                self.plugin_args.image_base, out_fd.name)
 
-        with self.out_fd:
-            image_base = self.session.address_resolver.get_address_by_name(
-                self.image_base)
-            renderer.format("Dumping PE File at image_base {0:#x} to {1}\n",
-                            image_base, self.out_file)
+            self.WritePEFile(out_fd, self.plugin_args.address_space,
+                             self.plugin_args.image_base)
 
-            self.WritePEFile(self.out_fd, self.address_space, self.image_base)
-
-            renderer.format("Done!\n")
+            return []
 
 
 class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
@@ -142,13 +125,15 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
 
     dump_dir_optional = True
 
-    @classmethod
-    def args(cls, parser):
-        super(ProcExeDump, cls).args(parser)
+    __args = [
+        dict(name="out_fd",
+             help="A file like object to write the output.")
+    ]
 
-        parser.add_argument(
-            "--out_fd", dest="SUPPRESS",
-            help="A file like object to write the output.")
+    table_header = [
+        dict(name="_EPROCESS", width=50),
+        dict(name="Filename"),
+    ]
 
     def __init__(self, *args, **kwargs):
         """Dump a process from memory into an executable.
@@ -189,49 +174,39 @@ class ProcExeDump(core.DirectoryDumperMixin, common.WinProcessFilter):
 
           out_fd: Alternatively, a filelike object can be provided directly.
         """
-        out_fd = kwargs.pop("out_fd", None)
-        # If a fd was not provided, the dump_dir must be specified.
-        if out_fd is None:
-            self.dump_dir_optional = False
-
         super(ProcExeDump, self).__init__(*args, **kwargs)
-        self.fd = out_fd
         self.pedump = PEDump(session=self.session)
+        if self.dump_dir is None and not self.plugin_args.out_fd:
+            raise plugin.PluginError("Dump dir must be specified.")
 
-    def render(self, renderer):
+    def collect(self):
         """Renders the tasks to disk images, outputting progress as they go"""
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
             task_address_space = task.get_process_address_space()
             if not task_address_space:
-                renderer.format("Can not get task address space - skipping.")
+                self.session.logging.info(
+                    "Can not get task address space - skipping.")
                 continue
 
-            if self.fd:
+            if self.plugin_args.out_fd:
                 self.pedump.WritePEFile(
-                    self.fd, task_address_space, task.Peb.ImageBaseAddress)
-                renderer.section()
-
-                renderer.format("Dumping {0}, pid: {1:6} into user provided "
-                                "fd.\n", task.ImageFileName, pid)
+                    self.plugin_args.out_fd,
+                    task_address_space, task.Peb.ImageBaseAddress)
+                yield task, "User FD"
 
             # Create a new file.
             else:
-                sanitized_image_name = re.sub(
-                    "[^a-zA-Z0-9-_]", "_", utils.SmartStr(task.ImageFileName))
-
                 filename = u"executable.%s_%s.exe" % (
-                    sanitized_image_name, pid)
+                    utils.EscapeForFilesystem(task.name), pid)
 
-                renderer.section()
+                yield task, filename
 
-                renderer.format("Dumping {0}, pid: {1:6} output: {2}\n",
-                                task.ImageFileName, pid, filename)
-
-                with renderer.open(directory=self.dump_dir,
-                                   filename=filename,
-                                   mode="wb") as fd:
+                with self.session.GetRenderer().open(
+                        directory=self.dump_dir,
+                        filename=filename,
+                        mode="wb") as fd:
                     # The Process Environment Block contains the dos header:
                     self.pedump.WritePEFile(
                         fd, task_address_space, task.Peb.ImageBaseAddress)
@@ -242,30 +217,19 @@ class DLLDump(ProcExeDump):
 
     __name = "dlldump"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(DLLDump, cls).args(parser)
-        parser.add_argument(
-            "--regex", default=".+",
+    __args = [
+        dict(name="regex", default=".", type="RegEx",
             help="A Regular expression for selecting the dlls to dump.")
+    ]
 
-    def __init__(self, regex=".+", **kwargs):
-        """Dumps dlls from processes into files.
+    table_header = [
+        dict(name="_EPROCESS", cname="eprocess"),
+        dict(name="Base", cname="base", style="address"),
+        dict(name="Module", cname="module", width=20),
+        dict(name="Dump File", cname="filename")
+    ]
 
-        Args:
-          regex: A regular expression that is applied to the modules name.
-        """
-        super(DLLDump, self).__init__(**kwargs)
-        self.regex = re.compile(regex)
-
-    def render(self, renderer):
-        renderer.table_header([("_EPROCESS", "eprocess", "[addrpad]"),
-                               ("Name", "name", "16"),
-                               ("Base", "base", "[addrpad]"),
-                               ("Module", "module", "20s"),
-                               ("Dump File", "filename", "")])
-
+    def collect(self):
         for task in self.filter_processes():
             task_as = task.get_process_address_space()
 
@@ -275,7 +239,7 @@ class DLLDump(ProcExeDump):
                 if process_offset:
 
                     # Skip the modules which do not match the regex.
-                    if not self.regex.search(
+                    if not self.plugin_args.regex.search(
                             utils.SmartUnicode(module.BaseDllName)):
                         continue
 
@@ -284,22 +248,23 @@ class DLLDump(ProcExeDump):
 
                     dump_file = "module.{0}.{1:x}.{2:x}.{3}".format(
                         task.UniqueProcessId, process_offset, module.DllBase,
-                        base_name)
+                        utils.EscapeForFilesystem(base_name))
 
-                    renderer.table_row(
-                        task, task.name, module.DllBase, module.BaseDllName,
-                        dump_file)
+                    yield (task, module.DllBase, module.BaseDllName,
+                           dump_file)
 
                     # Use the procdump module to dump out the binary:
-                    with renderer.open(filename=dump_file,
-                                       directory=self.dump_dir,
-                                       mode="wb") as fd:
+                    with self.session.GetRenderer().open(
+                            filename=dump_file,
+                            directory=self.dump_dir,
+                            mode="wb") as fd:
                         self.pedump.WritePEFile(fd, task_as, module.DllBase)
 
                 else:
-                    renderer.format(
-                        "Cannot dump {0}@{1} at {2:8x}\n",
-                        task.ImageFileName, module.BaseDllName, module.DllBase)
+                    self.session.logging.error(
+                        "Cannot dump %s@%s at %#x\n",
+                        task.ImageFileName, module.BaseDllName,
+                        int(module.DllBase))
 
 
 class ModDump(DLLDump):
@@ -320,20 +285,28 @@ class ModDump(DLLDump):
             if address_space.is_valid_address(image_base):
                 return address_space
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="Name", width=30),
+        dict(name="Base", style="address"),
+        dict(name="Filename")
+    ]
+
+    def collect(self):
         modules_plugin = self.session.plugins.modules(session=self.session)
 
         for module in modules_plugin.lsmod():
-            if self.regex.search(utils.SmartUnicode(module.BaseDllName)):
+            if self.plugin_args.regex.search(
+                    utils.SmartUnicode(module.BaseDllName)):
                 address_space = self.find_space(module.DllBase)
                 if address_space:
-                    dump_file = "driver.{0:x}.sys".format(module.DllBase)
-                    renderer.format("Dumping {0}, Base: {1:8x} output: {2}\n",
-                                    module.BaseDllName, module.DllBase,
-                                    dump_file)
+                    dump_file = "driver.{0:x}.{1}".format(
+                        module.DllBase, utils.EscapeForFilesystem(
+                            module.BaseDllName))
+                    yield (module.BaseDllName, module.DllBase, dump_file)
 
-                    with renderer.open(filename=dump_file,
-                                       directory=self.dump_dir,
-                                       mode="wb") as fd:
+                    with self.session.GetRenderer().open(
+                            filename=dump_file,
+                            directory=self.dump_dir,
+                            mode="wb") as fd:
                         self.pedump.WritePEFile(
                             fd, address_space, module.DllBase)

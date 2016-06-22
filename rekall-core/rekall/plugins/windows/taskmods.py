@@ -75,29 +75,36 @@ class WinDllList(common.WinProcessFilter):
 
     __name = "dlllist"
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="_EPROCESS", cname="_EPROCESS", hidden=True),
+        dict(name="Base", cname="module_base", style="address"),
+        dict(name="Size", cname="module_size", style="address"),
+        dict(name="Load Reason/Count", cname="reason", width=30),
+        dict(name="Path", cname="loaded_dll_path"),
+    ]
+
+    def collect(self):
         for task in self.filter_processes():
             pid = task.UniqueProcessId
 
-            renderer.section()
-            renderer.format(u"{0} pid: {1:6}\n", task.ImageFileName, pid)
+            divider = "{0} pid: {1:6}\n".format(task.ImageFileName, pid)
 
             if task.Peb:
-                renderer.format(u"Command line : {0}\n",
-                                task.Peb.ProcessParameters.CommandLine)
+                divider += u"Command line : {0}\n".format(
+                    task.Peb.ProcessParameters.CommandLine)
 
-                renderer.format(u"{0}\n\n", task.Peb.CSDVersion)
-                renderer.table_header([("Base", "module_base", "[addrpad]"),
-                                       ("Size", "module_size", "[addr]"),
-                                       ("Load Reason/Count", "reason", "30"),
-                                       ("Path", "loaded_dll_path", ""),
-                                      ])
+                divider += u"{0}\n\n".format(task.Peb.CSDVersion)
+                yield dict(divider=divider)
 
                 for m in task.get_load_modules():
-                    renderer.table_row(m.DllBase, m.SizeOfImage,
-                                       m.LoadReason, m.FullDllName)
+                    yield dict(module_base=m.DllBase,
+                               module_size=m.SizeOfImage,
+                               reason=m.LoadReason,
+                               loaded_dll_path=m.FullDllName,
+                               _EPROCESS=task)
             else:
-                renderer.format("Unable to read PEB for task.\n")
+                yield dict(divider="Unable to read PEB for task.\n")
 
 
 class WinMemMap(memmap.MemmapMixIn, common.WinProcessFilter):

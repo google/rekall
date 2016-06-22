@@ -397,14 +397,30 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             """A Function to format the output as a hex string."""
             return "%#x" % value
 
+        def str_function(value):
+            if value == None:
+                return
+
+            return utils.SmartUnicode(value)
+
+        def int_function(value):
+            if value == None:
+                return
+
+            return int(value)
+
         return dict(
             hex=api.user_func(
                 hex_function, arg_types=[int], return_type=[str]),
+
+            str=api.user_func(
+                str_function, arg_types=[], return_type=[unicode]),
+
+            int=api.user_func(
+                int_function, arg_types=[], return_type=[int]),
         )
 
-
     # IStructured implementation for EFILTER:
-
     def resolve(self, name):
         """Find and return a CommandWrapper for the plugin 'name'."""
         function = self._EXPORTED_EFILTER_FUNCTIONS.get(name)
@@ -607,6 +623,9 @@ class Search(EfilterPlugin):
 
         # Figure out what the header should look like.
         # Can we infer the type?
+
+        # For example for select statements the type will be
+        # associative.IAssociative because they return a dict like result.
         try:
             t = infer_type.infer_type(self.query, self)
         except Exception:
@@ -629,6 +648,7 @@ class Search(EfilterPlugin):
         # the same columns as the plugin. If the plugin declares its columns
         # then that's easy. Otherwise we have to try and get the columns from
         # cache.
+        # e.g. select * from pslist()
         if isinstance(t, plugin.Command):
             output_header = getattr(t, "table_header", None)
             if output_header is None:
@@ -638,12 +658,14 @@ class Search(EfilterPlugin):
             renderer.table_header(output_header)
             return self._render_plugin_output(renderer, output_header, rows)
 
-        # In the past, if there were no results, the renderer would output
-        # a special column to indicate status. That provided a strong cue to the
-        # interactive user that there were no results but confused tools that
-        # process Rekall output automatically. If there are no rows in the
-        # output and we don't know the output header then we return right away.
-        # To provide a visual cue we use unstructured output.
+        # For queries which name a list of columns we need to get the first row
+        # to know which columns will be output. Surely efilter can provide this
+        # from the AST?  This seems like a hack because if the first row the
+        # plugin produces does not include all the columns we will miss them.
+        # If is also buggy because if the plugin does not produce any rows we
+        # can not know if the query is correct or not. For example "select XXXX
+        # from plugin()" can not raise an unknown column XXXX if the plugin does
+        # not produce at least one row.
         remaining_rows = iter(rows)
         try:
             first_row = next(remaining_rows)

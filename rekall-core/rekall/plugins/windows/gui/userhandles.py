@@ -39,7 +39,6 @@ http://mista.nu/research/mandt-win32k-paper.pdf
 http://volatility-labs.blogspot.de/2012/09/movp-31-detecting-malware-hooks-in.html
 """
 
-import re
 from rekall import obj
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import constants
@@ -52,22 +51,26 @@ class UserHandles(win32k_core.Win32kPluginMixin,
 
     name = "userhandles"
 
-    @classmethod
-    def args(cls, parser):
-        super(UserHandles, cls).args(parser)
-        parser.add_argument(
-            "--type", default=None,
-            help="Filter handle type by this Regular Expression.")
+    __args = [
+        dict(name="type", default=".", type="RegEx",
+             help="Filter handle type by this Regular Expression."),
 
-        parser.add_argument("--free", default=False, type="Boolean",
-                            help="Also include free handles.")
+        dict(name="free", type="Boolean",
+             help="Also include free handles.")
+    ]
 
-    def __init__(self, type=None, free=False, **kwargs):
-        super(UserHandles, self).__init__(**kwargs)
-        if type:
-            type = re.compile(type, re.I)
-        self.type = type
-        self.free = free
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="SessionId", hidden=True),
+        dict(name="SharedInfo", hidden=True),
+        dict(name="_HANDLEENTRY", cname="handle_entry", style="address"),
+        dict(name="_HEAD", cname="object", style="address"),
+        dict(name="Handle", cname="handle", style="address"),
+        dict(name="bType", cname="type", width=20),
+        dict(name="Flags", cname="flags", width=8, align="c"),
+        dict(name="Thread", cname="thread", width=8, align="c"),
+        dict(name="Process", cname="process"),
+    ]
 
     def handles(self):
         """A Generator of filtered handles."""
@@ -83,7 +86,7 @@ class UserHandles(win32k_core.Win32kPluginMixin,
 
             for handle in shared_info.aheList:
                 # Do not show free handles if requested.
-                if handle.bType == "TYPE_FREE" and not self.free:
+                if handle.bType == "TYPE_FREE" and not self.plugin_args.free:
                     continue
 
                 # Skip pids that do not match.
@@ -92,53 +95,43 @@ class UserHandles(win32k_core.Win32kPluginMixin,
                     continue
 
                 # Allow the user to match of handle type.
-                if self.type and not self.type.search(str(handle.bType)):
+                if not self.plugin_args.type.search(str(handle.bType)):
                     continue
 
                 yield session, shared_info, handle
 
-    def render(self, renderer):
+    def collect(self):
         current_session = None
-
         for session, shared_info, handle in self.handles():
             if current_session != session.SessionId:
                 current_session = session.SessionId
 
-                renderer.section()
-                renderer.format(
-                    "SharedInfo: {0:#x}, SessionId: {1} Shared delta: {2}\n",
-                    shared_info, session.SessionId,
-                    shared_info.ulSharedDelta,
-                )
+                divider = (
+                    "SharedInfo: {0:#x}, SessionId: {1} "
+                    "Shared delta: {2}\n".format(
+                        shared_info, session.SessionId,
+                        shared_info.ulSharedDelta))
 
-                renderer.format(
-                    "aheList: {0:#x}, Table size: {1:#x}, Entry size: {2:#x}\n",
-                    shared_info.aheList,
-                    shared_info.psi.cbHandleTable,
-                    shared_info.m("HeEntrySize") or
-                    shared_info.obj_vm.profile.get_obj_size("_HANDLEENTRY")
-                    )
+                divider += (
+                    "aheList: {0:#x}, Table size: {1:#x}, "
+                    "Entry size: {2:#x}".format(
+                        shared_info.aheList,
+                        shared_info.psi.cbHandleTable,
+                        shared_info.m("HeEntrySize") or
+                        shared_info.obj_vm.profile.get_obj_size("_HANDLEENTRY")
+                    ))
 
-                renderer.table_header(
-                    [("_HANDLEENTRY", "handle_entry", "[addrpad]"),
-                     ("_HEAD", "object", "[addrpad]"),
-                     ("Handle", "handle", "[addr]"),
-                     ("bType", "type", "20"),
-                     ("Flags", "flags", "^8"),
-                     ("Thread", "thread", "^8"),
-                     ("Process", "process", "5"),
-                     ("Process Name", "process_name", ""),
-                    ])
+                yield dict(divider=divider)
 
-            renderer.table_row(
-                handle,
-                handle.phead.deref(),
-                handle.phead.h or 0,
-                handle.bType,
-                handle.bFlags,
-                handle.Thread.Cid.UniqueThread,
-                handle.Process.pid,
-                handle.Process.name)
+            yield dict(SessionId=session.SessionId,
+                       SharedInfo=shared_info,
+                       handle_entry=handle,
+                       object=handle.phead.deref(),
+                       handle=handle.phead.h or 0,
+                       type=handle.bType,
+                       flags=handle.bFlags,
+                       thread=handle.Thread.Cid.UniqueThread,
+                       process=handle.Process)
 
 
 class WinEventHooks(win32k_core.Win32kPluginMixin,

@@ -29,20 +29,28 @@ class Banner(common.LinuxPlugin):
     """Prints the Linux banner information."""
 
     __name = "banner"
+    table_header = [
+        dict(name="Banner", cname="banner", width=80)
+    ]
 
-    def render(self, renderer):
-        renderer.table_header([("Banner", "banner", "<80")])
+    def collect(self):
 
         banner = self.profile.get_constant_object(
             "linux_banner", target="String", vm=self.kernel_address_space)
 
-        renderer.table_row(banner)
+        yield dict(banner=banner)
 
 
 class CpuInfo(common.LinuxPlugin):
     """Prints information about each active processor."""
 
     __name = "cpuinfo"
+
+    table_header = [
+        dict(name="CPU", cname="processor", width=4),
+        dict(name="Vendor", cname="vendor", width=20),
+        dict(name="Model", cname="model", width=80)
+    ]
 
     def online_cpus(self):
         """returns a list of online cpus (the processor numbers)"""
@@ -75,9 +83,9 @@ class CpuInfo(common.LinuxPlugin):
             raise AttributeError("Unable to get CPU info for memory capture")
 
     def get_info_single(self):
-        cpu = self.profile.Object("cpuinfo_x86",
-                                  offset=self.profile.get_constant("boot_cpu_data"),
-                                  vm=self.kernel_address_space)
+        cpu = self.profile.cpuinfo_x86(
+            self.profile.get_constant("boot_cpu_data"),
+            vm=self.kernel_address_space)
         yield 0, cpu
 
     # pulls the per_cpu cpu info
@@ -105,11 +113,6 @@ class CpuInfo(common.LinuxPlugin):
                                       vm=self.kernel_address_space)
             yield i, var
 
-    def render(self, renderer):
-        renderer.table_header([("CPU", "processor", "<4"),
-                               ("Vendor", "vendor", "<20"),
-                               ("Model", "model", "<80")
-                               ])
+    def collect(self):
         for processor, cpu in self.calculate():
-            renderer.table_row(processor, cpu.x86_vendor_id, cpu.x86_model_id)
-
+            yield (processor, cpu.x86_vendor_id, cpu.x86_model_id)

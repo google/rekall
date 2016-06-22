@@ -204,8 +204,6 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                        baseline_commandline)
             logging.debug("%s: Launching %s", self.__class__.__name__, cmdline)
 
-            config_options["executed_command"] = cmdline
-
             # Make sure the subprocess does not buffer so we can catch its
             # output in a timely manner.
             os.environ["PYTHONUNBUFFERED"] = "1"
@@ -233,17 +231,18 @@ class RekallBaseUnitTestCase(unittest.TestCase):
                     stdout_copier.stop()
                     stderr_copier.stop()
 
-                    output = open(tmp_filename).read(10 * 1024 * 1024)
-                    output = output.decode("utf8", "ignore")
+            output = open(tmp_filename).read(10 * 1024 * 1024)
+            output = output.decode("utf8", "ignore")
 
-                    error = open(error_filename).read(10 * 1024 * 1024)
-                    error = error.decode("utf8", "ignore")
+            error = open(error_filename).read(10 * 1024 * 1024)
+            error = error.decode("utf8", "ignore")
 
-                    baseline_data = dict(output=output.splitlines(),
-                                         logging=error.splitlines(),
-                                         return_code=pipe.returncode)
+            baseline_data = dict(output=output.splitlines(),
+                                 logging=error.splitlines(),
+                                 return_code=pipe.returncode,
+                                 executed_command=cmdline)
 
-                    return baseline_data
+            return baseline_data
 
         else:
             # No valid command line - this baseline is aborted.

@@ -34,12 +34,6 @@ import logging
 import re
 import os
 
-from rekall import addrspace
-from rekall import cache
-from rekall import yaml_utils
-from rekall import utils
-from rekall.plugins.addrspaces import standard
-
 from pyaff4 import data_store
 try:
     from pyaff4 import aff4_cloud
@@ -53,6 +47,11 @@ from pyaff4 import rdfvalue
 
 from pyaff4 import plugins  # pylint: disable=unused-import
 
+from rekall import addrspace
+from rekall import cache
+from rekall import yaml_utils
+from rekall import utils
+from rekall.plugins.addrspaces import standard
 
 # Control the logging level for the pyaff4 library logger.
 LOGGER = logging.getLogger("pyaff4")
@@ -176,6 +175,10 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
                             return volume.urn, os.sep.join(stream_name)
 
                         return volume.urn, None
+
+                else:
+                    # volume_path is not valid.
+                    return None, None
 
             elif volume_urn_parts.scheme == "gs" and aff4_cloud:
                 with aff4_cloud.AFF4GStore.NewAFF4GStore(

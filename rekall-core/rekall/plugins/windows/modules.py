@@ -117,32 +117,36 @@ class ModVersions(Modules):
                    rsds.Filename)
 
 
-class VersionScan(plugin.PhysicalASMixin, plugin.Command):
+class VersionScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
+                  plugin.Command):
     """Scan the physical address space for RSDS versions."""
 
     __name = "version_scan"
 
     PHYSICAL_AS_REQUIRED = False
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(VersionScan, cls).args(parser)
-        parser.add_argument("--name_regex",
-                            help="Filter module names by this regex.")
+    __args = [
+        dict(name="name_regex", type="RegEx", default=".",
+             help="Filter module names by this regex."),
 
-        parser.add_argument("scan_filename", required=False,
-                            help="Optional file to scan. If not specified "
-                            "we scan the physical address space.")
+        dict(name="scan_filename", required=False, positional=True,
+             help="Optional file to scan. If not specified "
+             "we scan the physical address space.")
+    ]
 
-    def __init__(self, name_regex=None, scan_filename=None, **kwargs):
+    table_header = [
+        dict(name="Offset (P)", cname="offset_p", style="address"),
+        dict(name='GUID/Version', cname="guid", width=33),
+        dict(name="PDB", cname="pdb", width=30)
+    ]
+
+    def __init__(self, *args, **kwargs):
         """List kernel modules by walking the PsLoadedModuleList."""
-        super(VersionScan, self).__init__(**kwargs)
-        self.name_regex = re.compile(name_regex or ".", re.I)
-        if scan_filename is not None:
+        super(VersionScan, self).__init__(*args, **kwargs)
+        if self.plugin_args.scan_filename is not None:
             load_as = self.session.plugins.load_as()
             self.physical_address_space = load_as.GuessAddressSpace(
-                filename=scan_filename)
+                filename=self.plugin_args.scan_filename)
 
     def ScanVersions(self):
         """Scans the physical AS for RSDS structures."""
@@ -163,17 +167,12 @@ class VersionScan(plugin.PhysicalASMixin, plugin.Command):
             if guid not in guids:
                 guids.add(guid)
 
-                if self.name_regex.search(unicode(rsds.Filename)):
+                if self.plugin_args.name_regex.search(unicode(rsds.Filename)):
                     yield rsds, guid
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("Offset (P)", "offset_p", "[addrpad]"),
-             ('GUID/Version', "guid", "33"),
-             ("PDB", "pdb", "30")])
-
+    def collect(self):
         for rsds, guid in self.ScanVersions():
-            renderer.table_row(rsds, guid, rsds.Filename)
+            yield (rsds, guid, rsds.Filename)
 
 
 class UnloadedModules(common.WindowsCommandPlugin):

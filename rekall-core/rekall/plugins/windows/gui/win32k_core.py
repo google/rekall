@@ -201,6 +201,13 @@ win32k_undocumented_AMD64 = {
                 'OCF_VARIABLESIZE': 7}
             )]],
         }],
+
+    'tagCLIPDATA' : [None, {
+        'cbData' : [0x08, ['unsigned int']],
+        'abData' : [0x0C, ['Array', dict(
+            count=lambda x: x.cbData,
+            target='unsigned char')]],
+    }],
 }
 
 win32k_undocumented_I386 = {
@@ -250,9 +257,15 @@ win32k_undocumented_I386 = {
                 'OCF_USEPOOLIFNODESKTOP': 5,
                 'OCF_SHAREDHEAP': 6,
                 'OCF_VARIABLESIZE': 7}
-            )]],
-        }],
-    }
+        )]],
+    }],
+    'tagCLIPDATA' : [None, {
+        'cbData' : [0x08, ['unsigned int']],
+        'abData' : [0x0C, ['Array', dict(
+            count=lambda x: x.cbData,
+            target='unsigned char')]],
+    }],
+}
 
 
 class _MM_SESSION_SPACE(obj.Struct):
@@ -413,10 +426,11 @@ class _HANDLEENTRY(obj.Struct):
                     Process.dereference())
 
         elif self.ThreadOwned:
-            return (self.m("pOwner.pEThread.ThreadsProcess") or
-                    self.pOwner.ppi.Process.dereference() or
-                    self.pOwner.pEThread.Tcb.Process.dereference_as(
-                        "_EPROCESS"))
+            return (
+                self.m("pOwner.pEThread.ThreadsProcess").deref() or
+                self.pOwner.ppi.Process.dereference() or
+                self.pOwner.pEThread.Tcb.Process.dereference_as(
+                    "_EPROCESS"))
 
         return obj.NoneObject("Cannot find process")
 

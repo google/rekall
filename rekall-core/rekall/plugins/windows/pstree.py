@@ -31,6 +31,18 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
 
     __name = "pstree"
 
+    table_header = [
+        dict(name="_EPROCESS", type="TreeNode", max_depth=5, child=dict(
+            type="_EPROCESS", style="light")),
+        dict(name="PPid", cname="ppid", width=6, align="r"),
+        dict(name="Thds", cname="thd_count", width=6, align="r"),
+        dict(name="Hnds", cname="hnd_count", width=6, align="r"),
+        dict(name="Time", cname="process_create_time", width=24),
+        dict(name="cmd", width=40, hidden=True),
+        dict(name="path", width=40, hidden=True),
+        dict(name="audit", width=40, hidden=True),
+    ]
+
     def _find_root(self, pid_dict, pid):
         # Prevent circular loops.
         seen = set()
@@ -49,15 +61,7 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
 
         return result
 
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name="Name", type="TreeNode", max_depth=5, child=dict(
-                type="_EPROCESS", style="light")),
-            ("PPid", "ppid", ">6"),
-            ("Thds", "thd_count", ">6"),
-            ("Hnds", "hnd_count", ">6"),
-            ("Time", "process_create_time", "24")])
-
+    def collect(self):
         process_dict = self._make_process_dict()
 
         def draw_children(pad, pid):
@@ -66,31 +70,25 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
                 if task.InheritedFromUniqueProcessId != pid:
                     continue
 
-                renderer.table_row(
-                    task,
-                    task.InheritedFromUniqueProcessId,
-                    task.ActiveThreads,
-                    task.ObjectTable.m("HandleCount"),
-                    task.CreateTime, depth=pad, parent=pid)
+                process_params = task.Peb.ProcessParameters
 
-                if self.plugin_args.verbosity > 1:
-                    try:
-                        process_params = task.Peb.ProcessParameters
-                        renderer.format(u"{0}    cmd: {1}\n",
-                                        ' ' * pad, process_params.CommandLine)
-                        renderer.format(u"{0}    path: {1}\n",
-                                        ' ' * pad, process_params.ImagePathName)
-                        renderer.format(
-                            u"{0}    audit: {1}\n", ' ' * pad,
-                            (task.SeAuditProcessCreationInfo.ImageFileName.Name
-                             or "UNKNOWN"))
-                    except KeyError:
-                        pass
+                yield dict(
+                    _EPROCESS=task,
+                    ppid=task.InheritedFromUniqueProcessId,
+                    thd_count=task.ActiveThreads,
+                    hnd_count=task.ObjectTable.m("HandleCount"),
+                    process_create_time=task.CreateTime,
+                    cmd=process_params.CommandLine,
+                    path=process_params.ImagePathName,
+                    audit=task.SeAuditProcessCreationInfo.ImageFileName.Name,
+                    depth=pad, parent=pid)
 
-                process_dict.pop(int(task.UniqueProcessId), None)
-                draw_children(pad + 1, task.UniqueProcessId)
+                process_dict.pop(task.pid, None)
+                for x in draw_children(pad + 1, task.pid):
+                    yield x
 
         while process_dict:
             keys = process_dict.keys()
             root = self._find_root(process_dict, keys[0])
-            draw_children(0, root)
+            for x in draw_children(0, root):
+                yield x

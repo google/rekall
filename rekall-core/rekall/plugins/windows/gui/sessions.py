@@ -24,8 +24,8 @@
 # http://volatility-labs.blogspot.ch/2012/09/movp-11-logon-sessions-processes-and.html
 # Windows Internals 5th Edition. Chapter 9.
 
-from rekall import utils
 from rekall import obj
+from rekall.ui import text
 from rekall.plugins.windows import common
 
 
@@ -40,6 +40,13 @@ class Sessions(common.WinProcessFilter):
     """
 
     __name = "sessions"
+
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="SessId", cname="session_id", hidden=True),
+        dict(name="Process", cname="process", width=40),
+        dict(name="Module Image In Session", cname="image"),
+    ]
 
     def session_spaces(self):
         """Generates unique _MM_SESSION_SPACE objects.
@@ -82,36 +89,40 @@ class Sessions(common.WinProcessFilter):
 
         return obj.NoneObject("Cannot locate a session %s", session_id)
 
-    def render(self, renderer):
+    def collect(self):
         for session in self.session_spaces():
-            renderer.section()
-
             processes = list(session.ProcessList.list_of_type(
                 "_EPROCESS", "SessionProcessLinks"))
 
-            renderer.format("Session(V): {0:addrpad} ID: {1} Processes: {2}\n",
-                            session.obj_offset,
-                            session.SessionId,
-                            len(processes))
-
-            renderer.format(
-                "PagedPoolStart: {0:addrpad} PagedPoolEnd {1:addrpad}\n",
-                session.PagedPoolStart,
-                session.PagedPoolEnd)
+            yield dict(divider=("_MM_SESSION_SPACE: {0:#x} ID: {1} "
+                                "Processes: {2}".format(
+                                    session.obj_offset,
+                                    session.SessionId,
+                                    len(processes))))
 
             for process in processes:
-                renderer.format(" Process: {0} @ {1}\n",
-                                process,
-                                process.CreateTime)
+                yield dict(session_id=session.SessionId,
+                           process=process)
 
             # Follow the undocumented _IMAGE_ENTRY_IN_SESSION list to find the
             # kernel modules loaded in this session.
             for image in session.ImageIterator:
-                symbol = utils.FormattedAddress(
-                    self.session.address_resolver, image.ImageBase)
 
-                renderer.format(
-                    " Image: {0:addrpad}, Address {1:addrpad}, Name: {2}\n",
-                    image.obj_offset,
-                    image.ImageBase,
-                    symbol)
+                yield dict(
+                    session_id=session.SessionId,
+                    image=image)
+
+
+class ImageInSessionTextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "_IMAGE_ENTRY_IN_SESSION"
+
+    def render_row(self, target, **options):
+        try:
+            module_name = self.session.address_resolver.format_address(
+                target.ImageBase)[0].split("!")[0]
+        except IndexError:
+            module_name = "?"
+
+        return text.Cell(u"%s (%#x-%#x)" % (
+            module_name,
+            target.ImageBase, target.LastAddress.v()))

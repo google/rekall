@@ -83,11 +83,11 @@ linux_overlay = {
 
     'kernel_param': [None, {
         'name' : [None, ['Pointer', dict(target='UnicodeString')]],
-        'getter_addr': lambda x: (x.m("get") or x.ops.get),
+        'getter_addr': lambda x: x.multi_m("get", "ops.get"),
         }],
 
     'kparam_array': [None, {
-        'getter_addr': lambda x: (x.m("get") or x.ops.get),
+        'getter_addr': lambda x: x.multi_m("get", "ops.get"),
         }],
 
     'super_block' : [None, {
@@ -177,8 +177,8 @@ http://lxr.free-electrons.com/source/include/linux/if.h?v=2.6.32#L31
         }],
 
     "file": [None, {
-        "dentry": lambda x: x.m("f_dentry") or x.f_path.dentry,
-        "vfsmnt": lambda x: x.m("f_vfsmnt") or x.f_path.mnt,
+        "dentry": lambda x: x.multi_m("f_dentry", "f_path.dentry"),
+        "vfsmnt": lambda x: x.multi_m("f_vfsmnt", "f_path.mnt"),
         }],
 
     'vm_area_struct' : [None, {
@@ -538,7 +538,7 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
     "radix_tree_node": [None, {
         "rcu_head": lambda x: x.m("rcu_head") or x.m("u1.rcu_head"),
         }],
-    "tk_core": [None,  {
+    "tk_core": [None, {
         "seq": [0, ["seqcount"]],
         "timekeeper": [8, ["timekeeper"]],
         }],

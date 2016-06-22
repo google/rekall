@@ -35,17 +35,23 @@ class CheckProcFops(common.LinuxPlugin):
     """Checks the proc filesystem for hooked f_ops."""
     __name = "check_proc_fops"
 
-    @classmethod
-    def args(cls, parser):
-        super(CheckProcFops, cls).args(parser)
-        parser.add_argument("--all", type="Boolean", default=False,
-                            help="Specify to see all the fops, even if they "
-                            "are known.")
+    __args = [
+        dict(name="all", type="Boolean",
+             help="Specify to see all the fops, even if they "
+             "are known."),
+    ]
 
-    def __init__(self, all=False, **kwargs):
-        super(CheckProcFops, self).__init__(**kwargs)
+    table_header = [
+        dict(name="DirEntry", cname="proc_dir_entry", style="address"),
+        dict(name="Path", cname="path", width=50),
+        dict(name="Member", cname="member", width=20),
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Module", cname="module")
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(CheckProcFops, self).__init__(*args, **kwargs)
         self.module_plugin = self.session.plugins.lsmod(session=self.session)
-        self.all = all
 
     def _check_members(self, struct, members):
         """Yields struct members and their containing module."""
@@ -123,14 +129,7 @@ class CheckProcFops(common.LinuxPlugin):
                 proc_dir_entry.proc_fops, f_op_members):
                 yield proc_dir_entry, full_path, member, func
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("DirEntry", "proc_dir_entry", "[addrpad]"),
-            ("Path", "path", "<50"),
-            ("Member", "member", "<20"),
-            ("Address", "address", "[addrpad]"),
-            ("Module", "module", "")])
-
+    def collect(self):
         for proc_dir_entry, path, member, func in itertools.chain(
             self.check_proc_fop(), self.check_fops()):
             location = ", ".join(
@@ -140,9 +139,10 @@ class CheckProcFops(common.LinuxPlugin):
             # Point out suspicious constants.
             highlight = None if location else "important"
 
-            if highlight or self.all:
-                renderer.table_row(proc_dir_entry, path, member, func,
-                                   location, highlight=highlight)
+            if highlight or self.plugin_args.all:
+                yield dict(proc_dir_entry=proc_dir_entry,
+                           path=path, member=member, address=func,
+                           module=location, highlight=highlight)
 
             self.session.report_progress(
                     "Checking proc f_ops for %(path)s", path=path)
@@ -159,6 +159,13 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
     """Check open files in tasks for f_ops modifications."""
     __name = "check_task_fops"
 
+    table_header = [
+        dict(name="Task", cname="task", width=30),
+        dict(name="Member", cname="member", width=30),
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Module", cname="module")
+    ]
+
     def check_fops(self):
         """Check the file ops for all the open file handles."""
         f_op_members = sorted(self.profile.file_operations().members.keys())
@@ -173,13 +180,7 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
                     file_struct.f_op, f_op_members):
                     yield task, member, func
 
-    def render(self, renderer):
-        renderer.table_header([("Pid", "pid", "6"),
-                               ("Command", "comm", "20"),
-                               ("Member", "member", "30"),
-                               ("Address", "address", "[addrpad]"),
-                               ("Module", "module", "<20")])
-
+    def collect(self):
         for task, member, func in self.check_fops():
             location = ", ".join(
                 self.session.address_resolver.format_address(
@@ -187,9 +188,9 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
 
             highlight = None if location else "important"
 
-            if highlight or self.all:
-                renderer.table_row(task.pid, task.comm, member, func,
-                                   location, highlight=highlight)
+            if highlight or self.plugin_args.all:
+                yield dict(task=task, member=member, address=func,
+                           module=location, highlight=highlight)
 
             self.session.report_progress(
                 "Checking task f_ops for %(comm)s (%(pid)s)",

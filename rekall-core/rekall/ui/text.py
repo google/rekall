@@ -69,7 +69,6 @@ StyleEnum = utils.AttributeDict(
     compact="compact",
     typed="typed",  # Also show type information.
     full="full",
-    hexdump="hexdump",
     cow="cow")
 
 
@@ -383,9 +382,6 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
         if style == "address" and header_cell.width < self.address_size:
             header_cell.rewrap(width=self.address_size, align="c")
 
-        elif style == "hexdump" and header_cell.width < hex_width * 4 + 1:
-            header_cell.rewrap(width=hex_width * 4 + 1, align="c")
-
         self.header_width = header_cell.width
 
         # Append a dashed line as a table header separator.
@@ -448,32 +444,6 @@ class TextObjectRenderer(renderer_module.ObjectRenderer):
             raise RuntimeError("Invalid cell renderer.")
 
         return cell
-
-    def render_hexdump(self, target, hex_width=None, highlights=(), **_):
-        if hex_width is None:
-            hex_width = self.session.GetParameter("hexdump_width", 8)
-
-        data = str(target)
-        if not highlights:
-            try:
-                highlights = target.highlights or ()
-            except AttributeError:
-                pass
-
-        hex_highlights = []
-        for x, y, f, b in highlights:
-            hex_highlights.append((3 * x, 3 * y, f, b))
-
-        hexcell = Cell(width=hex_width * 3, highlights=hex_highlights,
-                       colorizer=self.renderer.colorizer)
-        datacell = Cell(width=hex_width, highlights=highlights,
-                        colorizer=self.renderer.colorizer)
-
-        for _, hexdata, translated_data in utils.Hexdump(data, width=hex_width):
-            hexcell.append_line(hexdata)
-            datacell.append_line("".join(translated_data))
-
-        return JoinedCell(hexcell, datacell)
 
     def render_cow(self, *_, **__):
         """Renders Bessy the cow."""

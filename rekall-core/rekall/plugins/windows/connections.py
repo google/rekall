@@ -23,6 +23,7 @@
 from rekall.plugins.overlays.windows import tcpip_vtypes
 from rekall.plugins.windows import common
 
+# pylint: disable=protected-access
 
 class Connections(tcpip_vtypes.TcpipPluginMixin,
                   common.WindowsCommandPlugin):
@@ -49,14 +50,14 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
         return (super(Connections, cls).is_active(session) and
                 session.profile.metadata("major") == 5)
 
-    def render(self, renderer):
-        renderer.table_header(
-            [("Offset (V)", "offset_v", "[addrpad]"),
-             ("Local Address", "local_net_address", "25"),
-             ("Remote Address", "remote_net_address", "25"),
-             ("Pid", "pid", ">6")
-            ])
+    table_header = [
+        dict(name="Offset (V)", cname="offset_v", style="address"),
+        dict(name="Local Address", cname="local_net_address", width=25),
+        dict(name="Remote Address", cname="remote_net_address", width=25),
+        dict(name="Pid", cname="pid", width=6)
+    ]
 
+    def collect(self):
         # The _TCBTable is a pointer to the hash table.
         TCBTable = self.tcpip_profile.get_constant_object(
             "TCBTable",
@@ -82,7 +83,7 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
                 offset = conn.obj_offset
                 local = "{0}:{1}".format(conn.LocalIpAddress, conn.LocalPort)
                 remote = "{0}:{1}".format(conn.RemoteIpAddress, conn.RemotePort)
-                renderer.table_row(offset, local, remote, conn.Pid)
+                yield (offset, local, remote, conn.Pid)
 
 
 class Sockets(tcpip_vtypes.TcpipPluginMixin,
@@ -108,16 +109,27 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
         return (super(Sockets, cls).is_active(session) and
                 session.profile.metadata("major") == 5)
 
-    def render(self, renderer):
-        renderer.table_header([("Offset (V)", "offset_v", "[addrpad]"),
-                               ("PID", "pid", ">6"),
-                               ("Port", "port", ">6"),
-                               ("Proto", "protocol_number", ">6"),
-                               ("Protocol", "protocol", "10"),
-                               ("Address", "address", "15"),
-                               ("Create Time", "socket_create_time", "")
-                              ])
+    table_header = [
+        dict(name="Offset (V)", cname="offset_v", style="address"),
+        dict(name="PID", cname="pid", width=6, align="r"),
+        dict(name="Port", cname="port", width=6, align="r"),
+        dict(name="Proto", cname="protocol_number", width=6, align="r"),
+        dict(name="Protocol", cname="protocol", width=10),
+        dict(name="Address", cname="address", width=15),
+        dict(name="Create Time", cname="socket_create_time")
+    ]
 
+    def column_types(self):
+        sock = self.tcpip_profile._ADDRESS_OBJECT()
+        return dict(offset_v=sock,
+                           pid=sock.Pid,
+                           port=sock.LocalPort,
+                           protocol_number=int(sock.Protocol),
+                           protocol=sock.Protocol,
+                           address=sock.LocalIpAddress,
+                           socket_create_time=sock.CreateTime)
+
+    def collect(self):
         AddrObjTable = self.tcpip_profile.get_constant_object(
             "AddrObjTable",
             target="Pointer",
@@ -138,7 +150,10 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
 
         for slot in AddrObjTable.deref():
             for sock in slot.walk_list("Next"):
-                renderer.table_row(
-                    sock, sock.Pid, sock.LocalPort,
-                    int(sock.Protocol), sock.Protocol,
-                    sock.LocalIpAddress, sock.CreateTime)
+                yield dict(offset_v=sock,
+                           pid=sock.Pid,
+                           port=sock.LocalPort,
+                           protocol_number=int(sock.Protocol),
+                           protocol=sock.Protocol,
+                           address=sock.LocalIpAddress,
+                           socket_create_time=sock.CreateTime)

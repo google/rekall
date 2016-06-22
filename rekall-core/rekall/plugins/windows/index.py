@@ -54,6 +54,12 @@ class GuessGUID(common.WindowsCommandPlugin):
              "not be mapped."),
     ]
 
+    table_header = [
+        dict(name="PID", cname="pid", width=20),
+        dict(name="Session", cname="session", width=20),
+        dict(name="Profile", cname="profile"),
+    ]
+
     def ScanProfile(self):
         """Scan for module using version_scan for RSDS scanning."""
         module_name = self.plugin_args.module.split(".")[0]
@@ -97,15 +103,9 @@ class GuessGUID(common.WindowsCommandPlugin):
         for x in self.ScanProfile():
             yield x
 
-
-    def render(self, renderer):
-        renderer.table_header([
-            ("PID", "context", "20"),
-            ("Session", "context", "20"),
-            ("Profile", "profile", ""),
-            ])
+    def collect(self):
         for context, possibility in self.GuessProfiles():
-            renderer.table_row(context.pid, context.SessionId, possibility)
+            yield (context.pid, context.SessionId, possibility)
 
 
 class EProcessIndex(basic.ProfileLLP64):

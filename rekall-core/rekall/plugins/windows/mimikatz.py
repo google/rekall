@@ -482,8 +482,21 @@ class Mimikatz(common.WindowsCommandPlugin):
 
     name = 'mimikatz'
 
-    def __init__(self, **kwargs):
-        super(Mimikatz, self).__init__(**kwargs)
+    table_header = [
+        dict(name='LUID', width=20),
+        dict(name='Type', width=16),
+        dict(name='Sess', width=2),
+        dict(name='SID', width=20),
+        dict(name='Module', width=7),
+        dict(name='Info', width=7),
+        dict(name='Domain', width=16),
+        dict(name='User', width=16),
+        dict(name='SType', width=9),
+        dict(name='Secret', width=32)
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(Mimikatz, self).__init__(*args, **kwargs)
 
         # Track the following modules. If we do not have them in the profile
         # repository then try to get them directly from Microsoft.
@@ -496,19 +509,7 @@ class Mimikatz(common.WindowsCommandPlugin):
             with self.session as session:
                 session.SetParameter('autodetect_build_local_tracked', needed)
 
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name='LUID', width=20),
-            dict(name='Type', width=16),
-            dict(name='Sess', width=2),
-            dict(name='SID', width=20),
-            dict(name='Module', width=7),
-            dict(name='Info', width=7),
-            dict(name='Domain', width=16),
-            dict(name='User', width=16),
-            dict(name='SType', width=9),
-            dict(name='Secret', width=32)])
-
+    def collect(self):
         cc = self.session.plugins.cc()
         # Switch to the lsass process.
         for task in self.session.plugins.pslist(
@@ -529,7 +530,7 @@ class Mimikatz(common.WindowsCommandPlugin):
 
                     lsass_entry = lsass_logons.get(luid, obj.NoneObject())
                     # TODO: add timestamp field?
-                    row = (luid,
+                    yield (luid,
                            lsass_entry.LogonType,
                            lsass_entry.Session,
                            lsass_entry.pSid.deref(),
@@ -539,8 +540,6 @@ class Mimikatz(common.WindowsCommandPlugin):
                            user_name,
                            secret_type,
                            secret)
-
-                    renderer.table_row(*row)
 
             wdigest_module = self.session.address_resolver.GetModuleByName(
                 'wdigest')
@@ -556,7 +555,7 @@ class Mimikatz(common.WindowsCommandPlugin):
                         luid = entry.LocallyUniqueIdentifier.Text
                         lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
-                        row = (luid,
+                        yield (luid,
                                lsass_entry.LogonType,
                                lsass_entry.Session,
                                lsass_entry.pSid.deref(),
@@ -566,8 +565,6 @@ class Mimikatz(common.WindowsCommandPlugin):
                                entry.Cred.UserName.Value,
                                'password',
                                lsasrv.decrypt(entry.Cred.Password.RawMax))
-
-                        renderer.table_row(*row)
 
             livessp_module = self.session.address_resolver.GetModuleByName(
                 'livessp')
@@ -581,7 +578,7 @@ class Mimikatz(common.WindowsCommandPlugin):
                          enc_secret) in livessp.logons():
                         lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
-                        row = (luid,
+                        yield (luid,
                                lsass_entry.LogonType,
                                lsass_entry.Session,
                                lsass_entry.pSid.deref(),
@@ -592,14 +589,12 @@ class Mimikatz(common.WindowsCommandPlugin):
                                secret_type,
                                lsasrv.decrypt(enc_secret))
 
-                        renderer.table_row(*row)
-
             if lsasrv_module:
                 for (luid, info, domain, user_name, secret_type,
                      secret) in lsasrv.master_keys():
                     lsass_entry = lsass_logons.get(luid, obj.NoneObject())
 
-                    row = (luid,
+                    yield (luid,
                            lsass_entry.LogonType,
                            lsass_entry.Session,
                            lsass_entry.pSid.deref(),
@@ -609,5 +604,3 @@ class Mimikatz(common.WindowsCommandPlugin):
                            user_name,
                            secret_type,
                            secret)
-
-                    renderer.table_row(*row)

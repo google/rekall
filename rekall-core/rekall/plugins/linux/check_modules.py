@@ -4,20 +4,19 @@
 #
 # This file is part of Rekall Memory Forensics.
 #
-# Rekall Memory Forensics is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License Version 2 as
+# Rekall Memory Forensics is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License Version 2 as
 # published by the Free Software Foundation.  You may not use, modify or
-# distribute this program under any other version of the GNU General
-# Public License.
+# distribute this program under any other version of the GNU General Public
+# License.
 #
 # Rekall Memory Forensics is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
-#
+# You should have received a copy of the GNU General Public License along with
+# Rekall Memory Forensics.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 @author:       Andrew Case
@@ -26,7 +25,6 @@
 @organization:
 """
 
-from rekall import args
 from rekall.plugins.overlays import basic
 from rekall.plugins.linux import common
 
@@ -51,6 +49,13 @@ class CheckModules(common.LinuxPlugin):
 
     __name = "check_modules"
 
+    table_header = [
+        dict(name="Module", cname="module_addr", style="address"),
+        dict(name="Module Name", cname="module", width=30),
+        dict(name="Ref Count", cname="refcount", width=10, align="c"),
+        dict(name="Known", cname="known"),
+    ]
+
     @classmethod
     def is_active(cls, config):
         if super(CheckModules, cls).is_active(config):
@@ -64,13 +69,7 @@ class CheckModules(common.LinuxPlugin):
             if kobj.name:
                 yield kobj
 
-    def render(self, renderer):
-        renderer.table_header([
-                ("Module", "module_addr", "[addrpad]"),
-                ("Module Name", "module", "30"),
-                ("Ref Count", "refcount", "^10"),
-                ("Known", "known", ""),
-                ])
+    def collect(self):
         lsmod = self.session.plugins.lsmod(session=self.session)
 
         # We check the container module for membership so we do not get fulled
@@ -78,7 +77,6 @@ class CheckModules(common.LinuxPlugin):
         modules = set(lsmod.get_module_list())
 
         for kobj in self.get_kset_modules():
-            name = kobj.name.deref()
             ref_count = kobj.kref.refcount.counter
 
             # Real modules have at least 3 references in sysfs.
@@ -87,5 +85,5 @@ class CheckModules(common.LinuxPlugin):
 
             container_module = basic.container_of(kobj, "module", "mkobj")
 
-            renderer.table_row(container_module, container_module.name,
-                               ref_count, container_module in modules)
+            yield (container_module, container_module.name,
+                   ref_count, container_module in modules)

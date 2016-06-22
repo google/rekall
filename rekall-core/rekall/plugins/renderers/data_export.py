@@ -177,3 +177,14 @@ class DataExportRDFValueObjectRenderer(DataExportBaseObjectRenderer):
 
     def GetState(self, item, **options):
         return dict(str=item.SerializeToString())
+
+
+class DataExportPhysicalAddressContextObjectRenderer(
+        DataExportRDFValueObjectRenderer):
+    renders_type = "PhysicalAddressContext"
+
+    def Summary(self, item, **_):
+        return utils.SmartStr(item.get("str", ""))
+
+    def GetState(self, item, **options):
+        return item.summary()

@@ -74,6 +74,16 @@ class Pools(common.WindowsCommandPlugin):
 
     _pool_lookup = None
 
+    table_header = [
+        dict(name="Desc", cname="descriptor", width=20, style="address"),
+        dict(name="Type", cname="type", width=20),
+        dict(name="Index", cname="index", width=5),
+        dict(name="Size", cname="total_bytes", width=10, align="r"),
+        dict(name="Start", cname="start", style="address"),
+        dict(name="End", cname="end", style="address"),
+        dict(name="Comment", cname="comment")
+    ]
+
     def find_non_paged_pool(self):
         vector_pool = self.profile.get_constant_object(
             "PoolVector",
@@ -268,26 +278,16 @@ class Pools(common.WindowsCommandPlugin):
 
         return self._pool_lookup.get_containing_range(address)
 
-    def render(self, renderer):
+    def collect(self):
         descriptors = self.find_all_pool_descriptors()
-        renderer.table_header([
-            dict(name="Desc", cname="descriptor", width=20, style="address"),
-            ("Type", "type", "20"),
-            ("Index", "index", "5"),
-            ("Size", "total_bytes", ">10"),
-            ("Start", "start", "[addrpad]"),
-            ("End", "end", "[addrpad]"),
-            ("Comment", "comment", "s")])
-
         for desc in sorted(descriptors):
-            renderer.table_row(
-                desc,
-                desc.PoolType,
-                desc.PoolIndex,
-                desc.m("TotalBytes") or desc.TotalPages * 0x1000,
-                desc.PoolStart,
-                desc.PoolEnd,
-                getattr(desc, "Comment", ""))
+            yield (desc,
+                   desc.PoolType,
+                   desc.PoolIndex,
+                   desc.m("TotalBytes") or desc.TotalPages * 0x1000,
+                   desc.PoolStart,
+                   desc.PoolEnd,
+                   getattr(desc, "Comment", ""))
 
 
 class PoolTracker(common.WindowsCommandPlugin):
@@ -295,7 +295,15 @@ class PoolTracker(common.WindowsCommandPlugin):
 
     name = "pool_tracker"
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="Tag", cname="tag", width=4),
+        dict(name="NP Alloc", cname="nonpaged", width=20, align="r"),
+        dict(name="NP Bytes", cname="nonpaged_bytes", width=10, align="r"),
+        dict(name="P Alloc", cname="paged", width=20, align="r"),
+        dict(name="P Bytes", cname="paged_bytes", width=10, align="r"),
+    ]
+
+    def collect(self):
         table = self.profile.get_constant_object(
             "PoolTrackTable",
             target="Pointer",
@@ -309,23 +317,12 @@ class PoolTracker(common.WindowsCommandPlugin):
                 )
             )
 
-        renderer.table_header(
-            columns=[("Tag", "tag", "4"),
-                     ("NP Alloc", "nonpaged", ">20"),
-                     ("NP Bytes", "nonpaged_bytes", ">10"),
-                     ("P Alloc", "nonpaged", ">20"),
-                     ("P Bytes", "nonpaged_bytes", ">10"),
-                    ],
-            sort=("tag",)
-            )
-
         for item in table:
             if item.Key == 0:
                 continue
 
             self.session.report_progress()
-            renderer.table_row(
-                # Show the pool tag as ascii.
+            yield (# Show the pool tag as ascii.
                 item.Key.cast("String", length=4),
                 "%s (%s)" % (item.NonPagedAllocs,
                              item.NonPagedAllocs - item.NonPagedFrees),
@@ -333,4 +330,4 @@ class PoolTracker(common.WindowsCommandPlugin):
                 "%s (%s)" % (item.PagedAllocs,
                              item.PagedAllocs - item.PagedFrees),
                 item.PagedBytes,
-                )
+            )

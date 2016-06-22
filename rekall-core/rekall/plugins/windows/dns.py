@@ -129,19 +129,29 @@ class WinDNSCache(common.WindowsCommandPlugin):
                 session.profile.metadata("arch") == "AMD64" and
                 session.profile.metadata("major") >= 6)
 
-    @classmethod
-    def args(cls, parser):
-        super(WinDNSCache, cls).args(parser)
-        parser.add_argument("--hashtable", default=None,
-                            help="Optionally provide the hashtable")
+    __args = [
+        dict(name="hashtable",
+             help="Optionally provide the hashtable"),
 
-        parser.add_argument("--index", default=True, type="Boolean",
-                            help="Should we use the index")
+        dict(name="no_index", type="Boolean",
+             help="Should we not use the index"),
+    ]
 
-    def __init__(self, hashtable=None, index=True, **kwargs):
-        super(WinDNSCache, self).__init__(**kwargs)
-        self.hashtable = hashtable
-        self.index = index
+    table_header = [
+        dict(name="Name", type="TreeNode", width=45),
+        dict(name="Record", cname="record", style="address"),
+        dict(name="Type", cname="type", width=16),
+        dict(name="Data", cname="data"),
+    ]
+
+    def column_types(self):
+        profile = InitializedDNSTypes(self.profile)
+        return dict(
+            Name=self.profile.UnicodeString(),
+            record=profile.DNS_HASHTABLE_ENTRY(),
+            type="",
+            data="127.0.0.1"
+        )
 
     def _find_svchost_vad(self):
         """Returns the vad and _EPROCESS of the dnsrslvr.dll."""
@@ -172,7 +182,8 @@ class WinDNSCache(common.WindowsCommandPlugin):
         self.session.logging.debug("Verifying hash table at %#x",
                                    allocation.obj_offset)
 
-        if self.hashtable and allocation.obj_offset != self.hashtable:
+        if (self.plugin_args.hashtable and
+            allocation.obj_offset != self.plugin_args.hashtable):
             return False
 
         # Find all segments in this heap.
@@ -352,36 +363,33 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
         # First try to locate the hash table using the index, then fallback to
         # using scanning techniques:
-        if self.index:
+        if not self.plugin_args.no_index:
             hash_table = self._locate_heap_using_index(task)
             if hash_table:
                 return hash_table
 
         return self._locate_heap(task, vad)
 
-    def render(self, renderer):
+    def collect(self):
         self.cc = self.session.plugins.cc()
         with self.cc:
             cache_hash_table = self.locate_cache_hashtable()
             if cache_hash_table:
-                renderer.table_header([
-                    dict(name="Name", type="TreeNode", width=45),
-                    ("Record", "record", "[addrpad]"),
-                    ("Type", "type", "16"),
-                    ("Data", "data", ""),
-                ])
-
                 for bucket in cache_hash_table:
                     for entry in bucket.List.list_of_type_fast(
                             "DNS_HASHTABLE_ENTRY", "List",
                             include_current=True):
                         name = entry.Name.deref()
-                        renderer.table_row(
-                            name, entry, "HTABLE", depth=0)
+
+                        yield dict(Name=name,
+                                   record=entry,
+                                   type="HTABLE",
+                                   depth=0)
+
                         for record in entry.Record.walk_list("Next", True):
                             name = record.Name.deref() or name
-                            renderer.table_row(
-                                name,
-                                record,
-                                record.Type,
-                                record.Data, depth=1)
+                            yield dict(Name=name,
+                                       record=record,
+                                       type=record.Type,
+                                       data=record.Data,
+                                       depth=1)

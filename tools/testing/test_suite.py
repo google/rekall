@@ -543,7 +543,7 @@ exit 0
 
                 fd.write(self.BASELINE_TEMPLATE % dict(
                     src=fd.name, dest=baseline_filename,
-                    command=current_run["options"].get(
+                    command=current_run.get(
                         "executed_command",
                         # If command does not exists we launch the unittest.
                         "python -m unittest %s.%s" % (

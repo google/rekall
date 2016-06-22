@@ -59,6 +59,12 @@ class Arp(common.LinuxPlugin):
     # This plugin seems broken now.
     __name = "arp"
 
+    table_header = [
+        dict(name="IP Address", cname="ip", width=45, align="r"),
+        dict(name="MAC", cname="mac", width=20, align="r"),
+        dict(name="Device", cname="dev", width=15, align="r")
+    ]
+
     def __init__(self, **kwargs):
         super(Arp, self).__init__(**kwargs)
         self.profile = ArpModification(self.profile)
@@ -119,11 +125,6 @@ class Arp(common.LinuxPlugin):
             if not neighbour:
                 break
 
-    def render(self, renderer):
-        renderer.table_header([("IP Address", "ip", ">45"),
-                               ("MAC", "mac", ">20"),
-                               ("Device", "dev", ">15")
-                              ])
-
+    def collect(self):
         for ip, mac, devname in self.get_handle_tables():
-            renderer.table_row(ip, mac, devname)
+            yield (ip, mac, devname)

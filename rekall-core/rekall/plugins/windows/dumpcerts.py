@@ -23,8 +23,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-import os
-
 try:
     from M2Crypto import X509, RSA
 except ImportError:
@@ -36,6 +34,7 @@ from rekall import testlib
 from rekall import utils
 
 from rekall.plugins import core
+from rekall.plugins import yarascanner
 from rekall.plugins.windows import common
 from rekall.plugins.windows import vadinfo
 from rekall.plugins.overlays import basic
@@ -95,102 +94,141 @@ class CertScanner(scan.BaseScanner):
                 yield hit, "RSA", data, description
 
 
-class CertScan(core.DirectoryDumperMixin, plugin.PhysicalASMixin,
+class CertScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
                plugin.Command):
     """Dump RSA private and public SSL keys from the physical address space."""
-
-    __name = "certscan"
+    __name = "simple_certscan"
 
     # We can just display the certs instead of dumping them.
     dump_dir_optional = True
     default_dump_dir = None
 
-    def render(self, renderer):
-        headers = [("Address", "address", "[addrpad]"),
-                   ("Type", "type", "10"),
-                   ("Length", "length", "10")]
+    table_header = [
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Type", cname="type", width=10),
+        dict(name="Length", cname="length", width=10),
+        dict(name="Description", cname="description"),
+    ]
 
-        if self.dump_dir:
-            headers.append(("Filename", "filename", "20"))
-
-        headers.append(("Description", "description", ""))
-
-        renderer.table_header(headers)
-
+    def collect(self):
         scanner = CertScanner(
             address_space=self.physical_address_space,
             session=self.session,
             profile=basic.Profile32Bits(session=self.session))
 
         for hit, type, data, description in scanner.scan():
-            args = [hit, type, len(data)]
+            yield dict(address=hit,
+                       type=type,
+                       length=len(data),
+                       data=data,
+                       description=description)
 
+
+class CertDump(core.DirectoryDumperMixin, CertScan):
+    """Dump certs found by cert scan."""
+
+    name = "simple_certdump"
+
+    table_header = [
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Type", cname="type", width=10),
+        dict(name="Filename", width=30),
+        dict(name="Description", cname="description"),
+    ]
+
+    def collect(self):
+        renderer = self.session.GetRenderer()
+        for row in super(CertDump, self).collect():
             if self.dump_dir:
-                filename = "%s.%08X.der" % (type, hit)
-
+                row["Filename"] = "%s.%08X.der" % (row["type"], row["address"])
                 with renderer.open(directory=self.dump_dir,
-                                   filename=filename,
+                                   filename=row["Filename"],
                                    mode="wb") as fd:
-                    fd.write(data)
-                    args.append(filename)
-
-            args.append(description)
-            renderer.table_row(*args)
+                    fd.write(row["data"])
+                    yield row
 
 
-class TestCertScan(testlib.HashChecker):
+class TestCertDump(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline="certscan -D %(tempdir)s",
+        commandline="certdump -D %(tempdir)s",
         )
 
 
-class VadCertScanner(CertScanner, vadinfo.VadScanner):
-    """Scanner for certs in vads."""
+class CertYaraScan(yarascanner.YaraScanMixin, common.WinScanner):
+    """Scan certificates in windows memory regions."""
+    name = "certscan"
 
+    table_header = [
+        dict(name="Owner", width=20),
+        dict(name="Offset", style="address"),
+        dict(name="Type", cname="type", width=10),
+        dict(name="Description", cname="description", width=80),
+        dict(name="Context"),
+    ]
 
-class CertVadScan(core.DirectoryDumperMixin, common.WinProcessFilter):
-    """Scan certificates in process Vads."""
+    scanner_defaults = dict(
+        scan_physical=True
+    )
 
-    __name = "cert_vad_scan"
+    __args = [
+        dict(name="yara_file", default=None, hidden=True),
+        dict(name="yara_expression", hidden=True, default="""
+rule x509 {
+  strings: $a = {30 82 ?? ?? 30 82 ?? ??} condition: $a
+}
+rule pkcs {
+  strings: $a = {30 82 ?? ?? 02 01 00} condition: $a
+}
+"""),
+        dict(name="hits", default=1000000, type="IntParser",
+             help="Total number of hits to report."),
+    ]
 
-    # We can just display the certs instead of dumping them.
-    dump_dir_optional = True
-    default_dump_dir = None
+    def verify_hit(self, hit, address_space):
+        signature = address_space.read(hit + 4, 3)
+        size = self.profile.Object(
+            "unsigned be short", offset=hit+2, vm=address_space)
+        description = None
 
-    def render(self, renderer):
-        headers = [
-            ("Pid", "pid", "5"),
-            ("Command", "command", "10"),
-            ("Address", "address", "[addrpad]"),
-            ("Type", "type", "5"),
-            ("Length", "length", "5")]
+        if signature.startswith("\x30\x82"):
+            data = address_space.read(hit, size + 4)
+            if X509:
+                try:
+                    cert = X509.load_cert_der_string(data)
+                    description = utils.SmartStr(cert.get_subject())
+                except X509.X509Error:
+                    pass
 
-        if self.dump_dir:
-            headers.append(("Filename", "filename", "20"))
+            return "X509", data, description
 
-        headers.append(("Description", "description", ""))
+        elif signature.startswith("\x02\x01\x00"):
+            data = address_space.read(hit, size + 4)
+            if RSA:
+                try:
+                    pem = ("-----BEGIN RSA PRIVATE KEY-----\n" +
+                             data.encode("base64") +
+                             "-----END RSA PRIVATE KEY-----")
+                    key = RSA.load_key_string(pem)
+                    description = "Verified: %s" % key.check_key()
+                except Exception:
+                    pass
 
-        renderer.table_header(headers)
+            return "RSA", data, description
 
-        for task in self.filter_processes():
-            scanner = VadCertScanner(task=task)
+        return None, None, None
 
-            for hit, type, data, description in scanner.scan():
-                args = [task.UniqueProcessId, task.ImageFileName,
-                        hit, type, len(data)]
+    def collect(self):
+        for row in super(CertYaraScan, self).collect():
+            type, data, description = self.verify_hit(
+                row["Offset"], row["address_space"])
 
-                if self.dump_dir:
-                    filename = "%s.%s.%08X.der" % (
-                        task.UniqueProcessId, type, hit)
-                    with renderer.open(directory=self.dump_dir,
-                                       filename=filename,
-                                       mode="wb") as fd:
-                        fd.write(data)
-
-                        args.append(filename)
-
-                args.append(description)
-                renderer.table_row(*args)
+            if type is not None:
+                yield dict(Owner=row["Owner"],
+                           Offset=row["Offset"],
+                           type=type,
+                           description=description,
+                           Context=row["Context"],
+                           data=data)
 
 
 class TestCertVadScan(testlib.HashChecker):

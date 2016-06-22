@@ -810,18 +810,18 @@ class Pagefiles(common.WindowsCommandPlugin):
 
     name = "pagefiles"
 
-    def render(self, renderer):
-        renderer.table_header([
-            ('_MMPAGING_FILE', '', '[addrpad]'),
-            ('Number', 'number', '>3'),
-            ('Size (b)', 'size', '>10'),
-            ('Filename', 'filename', '20'),
-            ])
+    table_header = [
+        dict(name='_MMPAGING_FILE', style="address"),
+        dict(name='Number', cname='number', align="r", width=3),
+        dict(name='Size (b)', cname='size', align="r", width=10),
+        dict(name='Filename', cname='filename', width=20),
+    ]
 
+    def collect(self):
         for pf_num, (pf_name, pf) in self.session.GetParameter(
                 "pagefiles").items():
             pf = self.profile._MMPAGING_FILE(pf)
-            renderer.table_row(pf, pf_num, pf.Size * 0x1000, pf_name)
+            yield (pf, pf_num, pf.Size * 0x1000, pf_name)
 
 
 class PagefileHook(common.AbstractWindowsParameterHook):

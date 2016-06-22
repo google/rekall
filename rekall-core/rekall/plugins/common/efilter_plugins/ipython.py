@@ -7,7 +7,11 @@ from rekall import ipython_support
 class EfilterMagics(magic.Magics):
 
     def _RunPlugin(self, session, plugin_name, line):
-        return session.RunPlugin(plugin_name, line)
+        # Strip quotes.
+        while line[0] == line[-1] and line[0] in "'\"":
+            line = line[1:-1]
+
+        return session.RunPlugin(plugin_name, query=line)
 
     @magic.line_cell_magic
     def search(self, line, cell=None):

@@ -172,7 +172,7 @@ class NoneObject(object):
         if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
 
-    def get(self, key=None, default=None):
+    def XXXget(self, key=None, default=None):
         """Make a NoneObject accept a default like a dict."""
         _ = key
         if default is not None:
@@ -1243,7 +1243,8 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
     offset.
     """
 
-    def __init__(self, members=None, struct_size=0, **kwargs):
+    def __init__(self, members=None, struct_size=0, callable_members=None,
+                 **kwargs):
         """ This must be instantiated with a dict of members. The keys
         are the offsets, the values are Curried Object classes that
         will be instantiated when accessed.
@@ -1258,10 +1259,8 @@ class Struct(BaseAddressComparisonMixIn, BaseObject):
         super(Struct, self).__init__(**kwargs)
         ACCESS_LOG.LogFieldAccess(self.obj_profile.name, self.obj_type, None)
 
-        if not members:
-            members = {}
-
-        self.members = members
+        self.members = members or {}
+        self.callable_members = callable_members or {}
         self.struct_size = struct_size
         self._cache = {}
 
@@ -1751,6 +1750,10 @@ class Profile(object):
         class dummy(object):
             profile = self
             name = 'dummy'
+            volatile = False
+
+            def __init__(self, session):
+                self.session = session
 
             def is_valid_address(self, _offset):
                 return True
@@ -1759,7 +1762,7 @@ class Profile(object):
                 return "\x00" * length
 
         # A dummy address space used internally.
-        self._dummy = dummy()
+        self._dummy = dummy(self)
 
         # Call Initialize on demand.
         self._initialized = False
@@ -2063,7 +2066,8 @@ class Profile(object):
         derived_cls = type(str(type_name), (cls,), properties)
 
         return Curry(derived_cls,
-                     type_name=type_name, members=members, struct_size=size)
+                     type_name=type_name, members=members,
+                     callable_members=callable_members, struct_size=size)
 
     def legacy_field_descriptor(self, typeList):
         """Converts the list expression into a target, target_args notation.

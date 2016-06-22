@@ -33,6 +33,14 @@ class WinSSDT(common.WindowsCommandPlugin):
 
     name = "ssdt"
 
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Entry Object", cname="entry_obj", hidden=True),
+        dict(name="Entry", cname="entry", style="address"),
+        dict(name="Target", cname="target", style="address"),
+        dict(name="Symbol", cname="symbol")
+    ]
+
     def _find_process_context(self, table_ptr, cc):
         for proc in self.session.plugins.pslist(
                 proc_regex="csrss").filter_processes():
@@ -46,24 +54,24 @@ class WinSSDT(common.WindowsCommandPlugin):
 
         return table_ptr
 
-    def _render_x64_table(self, table, renderer):
+    def _render_x64_table(self, table):
         resolver = self.session.address_resolver
 
         for j, entry in enumerate(table):
             function_address = table.v() + (entry >> 4)
-            renderer.table_row(
-                j, function_address,
-                utils.FormattedAddress(resolver, function_address))
+            yield dict(
+                entry=j, target=function_address,
+                symbol=utils.FormattedAddress(resolver, function_address))
 
-    def _render_x86_table(self, table, renderer):
+    def _render_x86_table(self, table):
         resolver = self.session.address_resolver
 
         for j, function_address in enumerate(table):
-            renderer.table_row(
-                j, function_address,
-                utils.FormattedAddress(resolver, function_address))
+            yield dict(
+                entry=j, target=function_address,
+                symbol=utils.FormattedAddress(resolver, function_address))
 
-    def render(self, renderer):
+    def collect(self):
         # Directly get the SSDT.
         # http://en.wikipedia.org/wiki/System_Service_Dispatch_Table
         ssdt = self.session.address_resolver.get_constant_object(
@@ -80,14 +88,12 @@ class WinSSDT(common.WindowsCommandPlugin):
                 if table_ptr[0] == 0:
                     table_ptr = self._find_process_context(table_ptr, cc)
 
-                renderer.section(
-                    "Table %s @ %#x" % (i, table_ptr[0].obj_offset))
-
-                renderer.table_header([("Entry", "entry", "[addr]"),
-                                       ("Target", "target", "[addrpad]"),
-                                       ("Symbol", "symbol", "")])
+                yield dict(
+                    divider="Table %s @ %#x" % (i, table_ptr[0].obj_offset))
 
                 if self.profile.metadata("arch") == "AMD64":
-                    self._render_x64_table(table_ptr, renderer)
+                    for x in self._render_x64_table(table_ptr):
+                        yield x
                 else:
-                    self._render_x86_table(table_ptr, renderer)
+                    for x in self._render_x86_table(table_ptr):
+                        yield x

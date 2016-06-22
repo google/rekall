@@ -20,6 +20,28 @@
 from rekall import plugin
 
 
+class PhysicalAddressContext(object):
+    """A lazy evaluator for context information around physical addresses."""
+
+    def __init__(self, session, address):
+        self.session = session
+        self.address = address
+
+    def summary(self):
+        rammap_plugin = self.session.plugins.rammap(
+            start=self.address, end=self.address+1)
+        for row in rammap_plugin.collect():
+            return row
+
+    def __str__(self):
+        rammap_plugin = self.session.plugins.rammap(
+            start=self.address, end=self.address+1)
+        if rammap_plugin != None:
+            return rammap_plugin.summary()[0]
+
+        return "Phys: %#x" % self.address
+
+
 class VADMapMixin(plugin.VerbosityMixIn):
     """A plugin to display information about virtual address pages."""
 

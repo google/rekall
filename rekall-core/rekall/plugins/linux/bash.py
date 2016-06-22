@@ -119,25 +119,22 @@ class BashHistory(common.LinProcessFilter):
     """
     __name = "bash"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(BashHistory, cls).args(parser)
-        parser.add_argument(
-            "--scan_entire_address_space", default=False, type="Boolean",
-            help="Scan the entire process address space, not only the heap.")
+    __args = [
+        dict(name="scan_entire_address_space", type="Boolean",
+             help="Scan the entire process address space, not only the heap."),
+        dict(name="proc_regex", default="^bash$", type="RegEx",
+             help="The processes we should examine."),
+    ]
 
-    def __init__(self, scan_entire_address_space=None, **kwargs):
-        super(BashHistory, self).__init__(**kwargs)
+    table_header = [
+        dict(name="Pid", cname="pid", width=6, align="r"),
+        dict(name="Name", cname="name", width=20, align="r"),
+        dict(name="Timestamp", cname="time", width=24),
+        dict(name="Command", cname="command"),
+    ]
 
-        self.scan_entire_address_space = scan_entire_address_space
-
-        # If the user did not request any filtering operation we just look at
-        # processes which contain "bash".
-        if not self.filtering_requested:
-            kwargs["proc_regex"] = "bash"
-            super(BashHistory, self).__init__(**kwargs)
-
+    def __init__(self, *args, **kwargs):
+        super(BashHistory, self).__init__(*args, **kwargs)
         if self.profile.metadata("arch") == "AMD64":
             self.bash_profile = BashProfile64(session=self.session)
         else:
@@ -152,18 +149,12 @@ class BashHistory(common.LinProcessFilter):
 
         return results
 
-    def render(self, renderer):
-        renderer.table_header([("Pid", "pid", ">6"),
-                               ("Name", "name", "<20"),
-                               ("Timestamp", "time", "<24"),
-                               ("Command", "command", ""),
-                              ])
-
+    def collect(self):
         for task in self.filter_processes():
             process_as = task.get_process_address_space()
 
             # Choose the correct scanner to use depending on the flags.
-            if self.scan_entire_address_space:
+            if self.plugin_args.scan_entire_address_space:
                 timestamp_scanner = TimestampScanner(
                     profile=self.profile, session=self.session,
                     address_space=process_as)
@@ -176,7 +167,7 @@ class BashHistory(common.LinProcessFilter):
             if not timestamps:
                 continue
 
-            if self.scan_entire_address_space:
+            if self.plugin_args.scan_entire_address_space:
                 scanner = LinHistoryScanner(
                     profile=self.bash_profile, session=self.session,
                     address_space=process_as, pointers=timestamps)
@@ -191,5 +182,4 @@ class BashHistory(common.LinProcessFilter):
                 timestamp = self.profile.UnixTimeStamp(
                     value=int(unicode(hit.timestamp.deref())[1:]))
 
-                renderer.table_row(
-                    task.pid, task.comm, timestamp, hit.line.deref())
+                yield (task.pid, task.comm, timestamp, hit.line.deref())

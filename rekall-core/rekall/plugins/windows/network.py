@@ -36,6 +36,17 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
 
     __name = "netstat"
 
+    table_header = [
+        dict(name="Offsetdict(name=V)", cname="offset", style="address"),
+        dict(name="Proto", cname="protocol", width=8),
+        dict(name="Local Address", cname="local_addr", width=20),
+        dict(name="Remote Address", cname="remote_addr", width=20),
+        dict(name="State", cname="state", width=16),
+        dict(name="Pid", cname="pid", width=5, align="r"),
+        dict(name="Owner", cname="owner", width=14),
+        dict(name="Created", cname="created", width=7)
+    ]
+
     @classmethod
     def is_active(cls, session):
         # This plugin works with the _TCP_ENDPOINT interfaces. This interface
@@ -43,16 +54,7 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
         return (super(WinNetstat, cls).is_active(session) and
                 session.profile.get_constant('RtlEnumerateEntryHashTable'))
 
-    def render(self, renderer):
-        renderer.table_header([("Offset(V)", "offset", "[addrpad]"),
-                               ("Proto", "protocol", "<8"),
-                               ("Local Address", "local_addr", "<20"),
-                               ("Remote Address", "remote_addr", "<20"),
-                               ("State", "state", "<16"),
-                               ("Pid", "pid", ">5"),
-                               ("Owner", "owner", "<14"),
-                               ("Created", "created", "<7")])
-
+    def collect(self):
         # First list established endpoints (TcpE pooltags).
         partition_table = self.tcpip_profile.get_constant_object(
             "PartitionTable",
@@ -76,12 +78,11 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
                             endpoint.RemoteAddress(),
                             endpoint.RemotePort)
 
-                        renderer.table_row(
-                            endpoint,
-                            None,
-                            lendpoint,
-                            rendpoint,
-                            endpoint.State,
-                            endpoint.Owner.pid,
-                            endpoint.Owner.name,
-                            endpoint.CreateTime)
+                        yield (endpoint,
+                               None,
+                               lendpoint,
+                               rendpoint,
+                               endpoint.State,
+                               endpoint.Owner.pid,
+                               endpoint.Owner.name,
+                               endpoint.CreateTime)

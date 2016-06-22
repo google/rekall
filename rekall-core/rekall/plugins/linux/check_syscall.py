@@ -35,6 +35,15 @@ class CheckSyscall(common.LinuxPlugin):
 
     __name = "check_syscall"
 
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Table Name", cname="table", hidden=True),
+        dict(name="Index", cname="index", style="address"),
+        dict(name="Address", cname="address", style="address"),
+        dict(name="Symbol", cname="symbol", width=80)
+    ]
+
+
     def Find_sys_call_tables(self):
         """Calculates the size of the syscall table.
 
@@ -132,7 +141,7 @@ class CheckSyscall(common.LinuxPlugin):
             yield "ia32_sys_call_table", table_size
             yield "sys_call_table", table_size
 
-    def CheckSyscallTables(self):
+    def collect(self):
         """
         This works by walking the system call table
         and verifies that each is a symbol in the kernel
@@ -151,18 +160,13 @@ class CheckSyscall(common.LinuxPlugin):
                     )
                 )
 
+            yield dict(divider="Table %s" % table_name)
+
             resolver = self.session.address_resolver
             for i, entry in enumerate(table):
-                yield (table_name, i, entry,
-                       resolver.format_address(entry.deref()))
-
-    def render(self, renderer):
-        renderer.table_header([
-            ("Table Name", "table", "20"),
-            ("Index", "index", "[addr]"),
-            ("Address", "address", "[addrpad]"),
-            ("Symbol", "symbol", "<130")])
-
-        for table_name, i, call_addr, sym_name in self.CheckSyscallTables():
-            renderer.table_row(table_name, i, call_addr, sym_name or "Unknown",
-                               highlight=None if sym_name else "important")
+                sym_name = resolver.format_address(entry.deref())[:2]
+                yield dict(
+                    table=table_name, index=i,
+                    address=entry,
+                    symbol=sym_name or "Unknown",
+                    highlight=None if sym_name else "important")

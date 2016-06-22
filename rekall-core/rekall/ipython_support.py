@@ -117,6 +117,9 @@ class RekallObjectInspector(oinspect.Inspector):
 
         # First format positionals:
         for arg in command_metadata["arguments"]:
+            if arg.get("hidden"):
+                continue
+
             if arg.get("positional", False) == positional:
                 self._format_parameter(displayfields, arg)
 

@@ -80,7 +80,11 @@ class MacPmemAddressSpace(addrspace.RunBasedAddressSpace):
         # Open as read-only even if writes are supported and allowed, because
         # permissions may be set up such that opening for writing would be
         # disallowed.
-        self.fd = open(self.fname, "r")
+        try:
+            self.fd = open(self.fname, "r")
+        except (OSError, IOError):
+            raise addrspace.ASAssertionError(
+                "Filename does not exist or can not be opened.")
 
         self.fname_info = "%s_info" % self.fname
         self.as_assert(path.exists(self.fname_info),

@@ -27,6 +27,8 @@ from rekall import testlib
 from rekall import plugin
 from rekall import utils
 
+from rekall.plugins.common import pfn
+
 
 class BaseYaraASScanner(scan.BaseScanner):
     """An address space scanner for Yara signatures."""
@@ -77,34 +79,34 @@ class YaraScanMixin(object):
         dict(name="Owner", width=20),
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
-        dict(name="HexDump", style="hexdump", hex_width=16),
+        dict(name="HexDump", cname="hexdump", hex_width=16,
+             width=67),
         dict(name="Context"),
     )
 
     __args = [
-        plugin.CommandOption("hits", default=10, type="IntParser",
-                             help="Quit after finding this many hits."),
+        dict(name="hits", default=10, type="IntParser",
+             help="Quit after finding this many hits."),
 
-        plugin.CommandOption("string", default=None,
-                             help="A verbatim string to search for."),
+        dict(name="string", default=None,
+             help="A verbatim string to search for."),
 
-        plugin.CommandOption("binary_string", default=None,
-                             help="A binary string (encoded as hex) to search "
-                             "for. e.g. 000102[1-200]0506"),
+        dict(name="binary_string", default=None,
+             help="A binary string (encoded as hex) to search "
+             "for. e.g. 000102[1-200]0506"),
 
-        plugin.CommandOption("yara_file", default=None,
-                             help="The yara signature file to read."),
+        dict(name="yara_file", default=None,
+             help="The yara signature file to read."),
 
-        plugin.CommandOption("yara_expression", default=None,
-                             help="If provided we scan for this yara "
-                             "expression."),
+        dict(name="yara_expression", default=None,
+             help="If provided we scan for this yara "
+             "expression."),
 
-        plugin.CommandOption("context", default=0x40, type="IntParser",
-                             help="Context to print after the hit."),
+        dict(name="context", default=0x40, type="IntParser",
+             help="Context to print after the hit."),
 
-        plugin.CommandOption("pre_context", default=0, type="IntParser",
-                             help="Context to print before the hit."),
-
+        dict(name="pre_context", default=0, type="IntParser",
+             help="Context to print before the hit."),
     ]
 
     scanner_defaults = dict(
@@ -165,21 +167,24 @@ class YaraScanMixin(object):
 
                 # Result hit the physical memory - Get some context on this hit.
                 if run.data.get("type") == "PhysicalAS":
-                    rammap_plugin = self.session.plugins.rammap(
-                        start=address, end=address+1)
-                    symbol = rammap_plugin.summary()[0]
+                    symbol = pfn.PhysicalAddressContext(self.session, address)
                 else:
-                    symbol = self.session.address_resolver.format_address(
-                        address)
+                    symbol = utils.FormattedAddress(
+                        self.session.address_resolver, address)
 
-                yield (run.data.get("task") or run.data.get("type"),
-                       rule, address,
-                       utils.HexDumpedString(
-                           run.address_space.read(
-                               address - self.plugin_args.pre_context,
-                               self.plugin_args.context +
-                               self.plugin_args.pre_context)),
-                       symbol)
+                yield dict(
+                    Owner=run.data.get("task") or run.data.get("type"),
+                    Rule=rule,
+                    Offset=address,
+                    hexdump=utils.HexDumpedString(
+                        run.address_space.read(
+                            address - self.plugin_args.pre_context,
+                            self.plugin_args.context +
+                            self.plugin_args.pre_context)),
+                    Context=symbol,
+                    # Provide the address space where the hit is reported.
+                    address_space=run.address_space,
+                    run=run)
 
 
 class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
@@ -202,7 +207,8 @@ class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
     table_header = plugin.PluginHeader(
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
-        dict(name="HexDump", style="hexdump", hex_width=16),
+        dict(name="HexDump", cname="hexdump", hex_width=16,
+             width=67),
     )
 
     PROFILE_REQUIRED = False

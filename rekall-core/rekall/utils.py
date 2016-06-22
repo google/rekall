@@ -475,8 +475,9 @@ class AttributedString(object):
         return str(self.value)
 
     def __repr__(self):
-        return "AttributedString(%s, highlights=%s)" % (repr(self.value),
-                                                        repr(self.highlights))
+        return "%s(%s, highlights=%s)" % (self.__class__.__name__,
+                                          repr(self.value),
+                                          repr(self.highlights))
 
 
 class HexDumpedString(AttributedString):
@@ -502,15 +503,25 @@ class FormattedAddress(object):
     address is discarded, no formatting is done and we save some cycles.
     """
 
-    def __init__(self, resolver, address, max_distance=1e6):
+    def __init__(self, resolver, address, max_distance=1e6, max_count=100,
+                 hex_if_unknown=True):
         self.resolver = resolver
         self.address = address
         self.max_distance = max_distance
+        self.max_count = max_count
+        self.hex_if_unknown = hex_if_unknown
 
     def __str__(self):
-        return ", ".join(self.resolver.format_address(
-            self.address, max_distance=self.max_distance))
+        names = self.resolver.format_address(
+            self.address, max_distance=self.max_distance)[:self.max_count]
+        if names:
+            return ", ".join(names)
 
+        elif self.hex_if_unknown:
+            return "%#x" % self.address
+
+        else:
+            return ""
 
 
 class AttributeDict(dict):
@@ -973,3 +984,12 @@ class safe_property(property):
             # Retain the original backtrace but re-raise a RuntimeError to
             # prevent the property from calling __getattr__.
             raise RuntimeError, message, sys.exc_info()[2]
+
+
+def EscapeForFilesystem(filename):
+    """Creates a filesystem suitable name.
+
+    Very conservative.
+    """
+    s = SmartStr(filename).strip().replace(" ", "_")
+    return re.sub(r"(?u)[^-\w.]", "", s)

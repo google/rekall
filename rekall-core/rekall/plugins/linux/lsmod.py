@@ -30,49 +30,89 @@ from rekall.plugins.linux import common
 
 class Lsmod(common.LinuxPlugin):
     '''Gathers loaded kernel modules.'''
-    __name = "lsmod"
+    name = "lsmod"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(Lsmod, cls).args(parser)
-        parser.add_argument(
-            "-S", "--sections", default=False, type="Boolean",
-            help="Display section addresses.")
+    table_header = [
+        dict(name="Virtual", cname="virtual", style="address"),
+        dict(name="Core Start", cname="start", style="address"),
+        dict(name="Total Size", cname="size", width=10),
+        dict(name="Name", cname="name", width=20)
+    ]
 
-        parser.add_argument(
-            "-P", "--parameters", default=False, type="Boolean",
-            help="Display module parameters.")
+    def get_module_list(self):
+        modules = self.profile.get_constant_object(
+            "modules", target="list_head", vm=self.kernel_address_space)
 
-    def __init__(self, sections=None, parameters=None, **kwargs):
-        super(Lsmod, self).__init__(**kwargs)
-        self.render_sections = sections
-        self.render_parameters = parameters
+        # walk the modules list
+        for module in modules.list_of_type("module", "list"):
+            yield module
 
-        # Resolve the parameter's type based on the address of the getter
-        # function.
-        self.arg_lookuptable = {
-            "param_get_bool": ("bool", {}),
-            "param_get_byte": ("char", {}),
-            "param_get_charp": ("Pointer", dict(target="String")),
-            "param_get_int": ("int", {}),
-            "param_get_invbool": ("byte", {}),
-            "param_get_long": ("long", {}),
-            "param_get_short": ("short", {}),
-            "param_get_uint": ("unsigned int", {}),
-            "param_get_ulong": ("unsigned long", {}),
-            "param_get_ushort": ("unsigned short", {}),
-            }
+    def collect(self):
+        for module in self.get_module_list():
+            yield (module.obj_offset,
+                   module.module_core.deref(),
+                   module.init_size + module.core_size,
+                   module.name)
 
-        self.arg_lookuptable = dict(
-            (self.profile.get_constant_object(x, target="Function"), y)
-            for x, y in self.arg_lookuptable.items())
+
+class LsmodSections(common.LinuxPlugin):
+    """Display all the ELF sections of kernel modules."""
+
+    name = "lsmod_sections"
+
+    table_header = [
+        dict(name="Name", cname="name", width=20),
+        dict(name="Section", cname="section", width=30),
+        dict(name="Address", cname="address", style="address")
+    ]
 
     def get_module_sections(self, module):
-        num_sects = module.sect_attrs.nsections or 25
+        num_sects = module.sect_attrs.nsections
         for i in range(num_sects):
             section_attr = module.sect_attrs.attrs[i]
             yield section_attr
+
+    def collect(self):
+        lsmod = self.session.plugins.lsmod()
+        for module in lsmod.get_module_list():
+            for section_attr in self.get_module_sections(module):
+                yield (module.name, section_attr.name.deref(),
+                       section_attr.address)
+
+class Lsmod_parameters(common.LinuxPlugin):
+    """Display parameters for all kernel modules."""
+    name = "lsmod_parameters"
+
+    _arg_lookuptable = {
+        "linux!param_get_bool": ("bool", {}),
+        "linux!param_get_byte": ("char", {}),
+        "linux!param_get_charp": ("Pointer", dict(target="String")),
+        "linux!param_get_int": ("int", {}),
+        "linux!param_get_invbool": ("byte", {}),
+        "linux!param_get_long": ("long", {}),
+        "linux!param_get_short": ("short", {}),
+        "linux!param_get_uint": ("unsigned int", {}),
+        "linux!param_get_ulong": ("unsigned long", {}),
+        "linux!param_get_ushort": ("unsigned short", {}),
+    }
+
+    table_header = [
+        dict(name="Name", cname="name", width=20),
+        dict(name="Key", cname="key", width=40),
+        dict(name="Value", cname="value", width=20)
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super(Lsmod_parameters, self).__init__(*args, **kwargs)
+        self.arg_lookuptable = {}
+        resolver = self.session.address_resolver
+        for x, y in self._arg_lookuptable.items():
+            try:
+                address = resolver.get_constant_object(
+                    x, "Function").obj_offset
+                self.arg_lookuptable[address] = y
+            except ValueError:
+                pass
 
     def get_module_parameters(self, module):
         for kernel_param in module.m("kp"):
@@ -80,26 +120,27 @@ class Lsmod(common.LinuxPlugin):
                 offset=kernel_param.getter_addr,
                 vm=self.kernel_address_space)
 
-            lookup = self.arg_lookuptable.get(getter_function)
+            value = None
+            lookup = self.arg_lookuptable.get(kernel_param.getter_addr)
             if lookup:
                 type, args = lookup
 
                 # The arg type is a pointer to a basic type.
-                value = kernel_param.u1.arg.dereference_as(
+                value = kernel_param.m("u1").arg.dereference_as(
                     target=type, target_args=args)
 
             elif getter_function == self.profile.get_constant_object(
                     "param_get_string", target="Function",
                     vm=self.kernel_address_space):
 
-                value = kernel_param.u1.str.deref()
+                value = kernel_param.m("u1").str.deref().v()
 
             #It is an array of values.
             elif getter_function == self.profile.get_constant_object(
                     "param_array_get", target="Function",
                     vm=self.kernel_address_space):
 
-                array = kernel_param.u1.arr
+                array = kernel_param.m("u1").arr
 
                 getter_function = self.profile.Function(
                     offset=array.getter_addr, vm=self.kernel_address_space)
@@ -123,72 +164,29 @@ class Lsmod(common.LinuxPlugin):
             else:
                 self.session.logging.debug("Unknown function getter %r",
                                            getter_function)
-                value = None
+                value = self.session.address_resolver.format_address(
+                             getter_function)
 
             yield kernel_param.name.deref(), value
 
-    def get_module_list(self):
-        modules = self.profile.get_constant_object(
-            "modules", target="list_head", vm=self.kernel_address_space)
-
-        # walk the modules list
-        for module in modules.list_of_type("module", "list"):
-            yield module
-
-    def render(self, renderer):
-        renderer.section("Overview")
-        renderer.table_header([("Virtual", "virtual", "[addrpad]"),
-                               ("Core Start", "start", "[addrpad]"),
-                               ("Total Size", "size", ">10"),
-                               ("Name", "name", "<20")])
-
-        for module in self.get_module_list():
-            renderer.table_row(module.obj_offset,
-                               module.module_core.deref(),
-                               module.init_size + module.core_size,
-                               module.name)
-
-        if self.render_sections:
-            renderer.section("Elf Sections")
-            renderer.table_header([("Name", "name", "<20"),
-                                   ("Section", "section", "<30"),
-                                   ("Address", "address", "[addrpad]")])
-
-            for module in self.get_module_list():
-                for section_attr in self.get_module_sections(module):
-                    renderer.table_row(
-                        module.name, section_attr.name.deref(),
-                        section_attr.address)
-
-        if self.render_parameters:
-            renderer.section("Module Parameters")
-            renderer.table_header([("Name", "name", "<20"),
-                                   ("Key", "key", "<40"),
-                                   ("Value", "value", "<20")])
-
-            for module in self.get_module_list():
-                for key, value in self.get_module_parameters(module):
-                    renderer.table_row(module.name, key, value)
+    def collect(self):
+        lsmod = self.session.plugins.lsmod()
+        for module in lsmod.get_module_list():
+            for key, value in self.get_module_parameters(module):
+                yield (module.name, key, value)
 
 
 class Moddump(common.LinuxPlugin):
     '''Dumps loaded kernel modules.'''
     __name = "moddump"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(Moddump, cls).args(parser)
-        parser.add_argument(
-            "--dump_dir", default=None, help="Dump directory.",
-            required=True)
-        parser.add_argument(
-            "--regexp", default=None, help="Regexp on the module name.")
+    __args = [
+        dict(name="dump_dir", help="Dump directory.",
+             required=True),
 
-    def __init__(self, dump_dir=None, regexp=None, **kwargs):
-        super(Moddump, self).__init__(**kwargs)
-        self.dump_dir = dump_dir
-        self.regexp = regexp
+        dict(name="regexp", default=None, type="RegEx",
+             help="Regexp on the module name.")
+    ]
 
     def dump_module(self, module):
         module_start = int(module.module_core)
@@ -197,16 +195,16 @@ class Moddump(common.LinuxPlugin):
     def render(self, renderer):
         lsmod_plugin = self.session.plugins.lsmod(session=self.session)
         for module in lsmod_plugin.get_module_list():
-            if self.regexp:
+            if self.plugin_args.regexp:
                 if not module.name:
                     continue
 
-                if not re.search(module.name, self.regexp):
+                if not self.plugin_args.regexp.search(module.name):
                     continue
 
             file_name = "{0}.{1:#x}.lkm".format(module.name,
                                                 module.module_core)
-            with renderer.open(directory=self.dump_dir,
+            with renderer.open(directory=self.plugin_args.dump_dir,
                                filename=file_name,
                                mode="wb") as mod_file:
 

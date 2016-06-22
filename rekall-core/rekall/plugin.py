@@ -22,6 +22,7 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 
 import collections
+import copy
 import re
 import StringIO
 
@@ -52,7 +53,8 @@ class CommandOption(object):
     """An option specification."""
 
     def __init__(self, name=None, default=None, type="String", choices=None,
-                 help="", positional=False, required=False, override=False):
+                 help="", positional=False, required=False, override=False,
+                 hidden=False):
         self.name = name
         self.default = default
         self.type = type
@@ -61,13 +63,14 @@ class CommandOption(object):
         self.required = required
         self.positional = positional
         self.override = override
+        self.hidden = hidden
 
     def add_argument(self, parser):
         """Add ourselves to the parser."""
         prefix = "" if self.positional else "--"
         parser.add_argument(prefix + self.name, default=self.default,
                             type=self.type, help=self.help,
-                            positional=self.positional,
+                            positional=self.positional, hidden=self.hidden,
                             required=self.required, choices=self.choices)
 
     def parse(self, value, session):
@@ -470,13 +473,23 @@ class PluginHeader(object):
     def __getitem__(self, idx):
         return self.header[idx]
 
+    def fill_dict(self, row):
+        """Fills out dict with all the declared columns."""
+        for header in self.header:
+            column_name = header.get("cname", header.get("name"))
+            if column_name not in row:
+                row[column_name] = None
+
+        return row
+
     def dictify(self, row):
+        """Convert an ordered row into a dict.
+
+        Uses the internal column order to map row names to the dict.
+        """
         result = {}
         for idx, header in enumerate(self.header):
-            try:
-                column_name = header["cname"]
-            except KeyError:
-                column_name = header["name"]
+            column_name = header.get("cname", header.get("name"))
 
             try:
                 result[column_name] = row[idx]
@@ -579,13 +592,17 @@ class TypedProfileCommand(object):
         super(TypedProfileCommand, cls).args(parser)
 
         # Collect all the declared args and add them to the parser.
-        for name in dir(cls):
-            if name.endswith("__args"):
-                for definition in getattr(cls, name):
-                    if isinstance(definition, dict):
-                        definition = CommandOption(**definition)
+        for cls_i in cls.__mro__:
+            args_definition = getattr(cls_i, "_%s__args" % cls_i.__name__, [])
+            for definition in args_definition:
+                if isinstance(definition, dict):
+                    definition = CommandOption(**definition)
 
-                    definition.add_argument(parser)
+                # Allow derived classes to override args from base classes.
+                if definition.name in parser.args:
+                    continue
+
+                definition.add_argument(parser)
 
     def column_types(self):
         """Returns instances for each column definition.
@@ -608,16 +625,21 @@ class TypedProfileCommand(object):
             self.name, self.__class__.__name__)
 
         result = {}
+        columns = []
+        for column in self.table_header:
+            column_name = column.get(
+                "cname", column.get("name"))
+
+            columns.append(column_name)
+            result[column_name] = None
+
         try:
             for row_count, row in enumerate(self.collect()):
                 if isinstance(row, dict):
-                    row.update(result)
-                    result = row
+                    result.update(row)
 
                 elif isinstance(row, (tuple, list)):
-                    for item, column in zip(row, self.table_header):
-                        column_name = column.get(
-                            "cname", column.get("name"))
+                    for item, column_name in zip(row, columns):
                         if result.get(column_name) is None:
                             result[column_name] = item
 
@@ -640,7 +662,7 @@ class TypedProfileCommand(object):
         for row in self.collect():
             # Its already a dict.
             if isinstance(row, dict):
-                yield row
+                yield self.table_header.fill_dict(row)
             else:
                 yield self.table_header.dictify(row)
 
@@ -834,13 +856,24 @@ class PrivilegedMixIn(object):
 
 
 class VerbosityMixIn(object):
-    """Use this mixin to provide a --verbosity option to a plugin."""
+    """Use this mixin to provide a --verbosity option to a plugin.
+
+    If verbosity is > 1, we enable hidden columns.
+    """
 
     __args = [
         dict(name="verbosity", default=1, type="IntParser",
              help="An integer reflecting the amount of desired output: "
              "0 = quiet, 10 = noisy."),
     ]
+
+    def __init__(self, *args, **kwargs):
+        super(VerbosityMixIn, self).__init__(*args, **kwargs)
+        table_header = getattr(self, "table_header", None)
+        if table_header and self.plugin_args.verbosity > 1:
+            self.table_header = copy.deepcopy(table_header)
+            for descriptor in self.table_header:
+                descriptor["hidden"] = False
 
 
 class DataInterfaceMixin(object):

@@ -630,7 +630,7 @@ class queue_entry(basic.ListMixIn, obj.Struct):
                 return
             seen.add(item.obj_offset)
             item = item.m(member).next.dereference_as(type)
-            
+
 
 class sockaddr_dl(obj.Struct):
     def __unicode__(self):
@@ -1140,7 +1140,8 @@ class clist(obj.Struct):
 
         1: github.com/opensource-apple/xnu/blob/10.9/bsd/kern/tty_subr.c#L358
         """
-        return self.obj_vm.read(self.c_cs, self.c_cn)
+        return utils.HexDumpedString(
+            self.obj_vm.read(self.c_cs, self.c_cn))
 
     @utils.safe_property
     def size(self):

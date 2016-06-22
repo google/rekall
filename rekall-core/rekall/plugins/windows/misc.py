@@ -19,7 +19,6 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 import hashlib
-import re
 
 # pylint: disable=protected-access
 from rekall import obj
@@ -34,13 +33,13 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
 
     __name = "phys_map"
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Phys Start", "phys", "[addrpad]"),
-            ("Phys End", "phys", "[addrpad]"),
-            ("Number of Pages", "pages", ""),
-            ])
+    table_header = [
+        dict(name="Phys Start", cname="phys_start", style="address"),
+        dict(name="Phys End", cname="phys_end", style="address"),
+        dict(name="Number of Pages", cname="pages"),
+    ]
 
+    def collect(self):
         descriptor = self.profile.get_constant_object(
             "MmPhysicalMemoryBlock",
             target="Pointer",
@@ -49,10 +48,9 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
                 ))
 
         for memory_range in descriptor.Run:
-            renderer.table_row(
-                memory_range.BasePage * 0x1000,
-                (memory_range.BasePage + memory_range.PageCount) * 0x1000,
-                memory_range.PageCount)
+            yield (memory_range.BasePage * 0x1000,
+                   (memory_range.BasePage + memory_range.PageCount) * 0x1000,
+                   memory_range.PageCount)
 
 
 class WindowsSetProcessContext(core.SetProcessContextMixin,
@@ -74,18 +72,18 @@ class WinVirtualMap(common.WindowsCommandPlugin):
 
     __name = "virt_map"
 
+    table_header = [
+        dict(name="Virtual Start", cname="virt_start", style="address"),
+        dict(name="Virtual End", cname="virt_end", style="address"),
+        dict(name="Type", cname="type", width=10),
+    ]
+
     @classmethod
     def is_active(cls, session):
         return (super(WinVirtualMap, cls).is_active(session) and
                 session.profile.get_constant('MiSystemVaType'))
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Virtual Start", "virt_start", "[addrpad]"),
-            ("Virtual End", "virt_end", "[addrpad]"),
-            ("Type", "type", "10"),
-            ])
-
+    def collect(self):
         system_va_table = self.profile.get_constant_object(
             "MiSystemVaType",
             target="Array",
@@ -112,8 +110,7 @@ class WinVirtualMap(common.WindowsCommandPlugin):
             page_type = system_va_table[table_index]
             if page_type != range_type:
                 if range_type:
-                    renderer.table_row(
-                        range_start, range_start + range_length, range_type)
+                    yield (range_start, range_start + range_length, range_type)
 
                 range_type = page_type
                 range_start = offset
@@ -126,6 +123,15 @@ class Objects(common.WindowsCommandPlugin):
     """Displays all object Types on the system."""
 
     name = "object_types"
+
+    table_header = [
+        dict(name="Type", cname="type", style="address"),
+        dict(name="Index", cname="idx", align="r", width=5),
+        dict(name="Number Objects", cname="TotalNumberOfObjects",
+             align="r", width=15),
+        dict(name="PoolType", cname="PoolType", width=20),
+        dict(name="Name", cname="name")
+    ]
 
     def object_types(self):
         # The size of the type array depends on the operating system and it is
@@ -148,27 +154,24 @@ class Objects(common.WindowsCommandPlugin):
             if t:
                 yield t
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Type", "type", "[addrpad]"),
-            ("Index", "idx", ">5"),
-            ("Number Objects", "TotalNumberOfObjects", ">15"),
-            ("PoolType", "PoolType", "20"),
-            ("Name", "name", "")])
-
+    def collect(self):
         for obj_type in self.object_types():
-            renderer.table_row(
-                obj_type,
-                obj_type.Index,
-                obj_type.TotalNumberOfObjects,
-                obj_type.TypeInfo.PoolType,
-                obj_type.Name)
+            yield (obj_type,
+                   obj_type.Index,
+                   obj_type.TotalNumberOfObjects,
+                   obj_type.TypeInfo.PoolType,
+                   obj_type.Name)
 
 
 class ImageInfo(common.WindowsCommandPlugin):
     """List overview information about this image."""
 
     name = "imageinfo"
+
+    table_header = [
+        dict(name="Fact", cname="key", width=20),
+        dict(name="Value", cname="value")
+    ]
 
     @staticmethod
     def KeQueryTimeIncrement(profile):
@@ -200,12 +203,8 @@ class ImageInfo(common.WindowsCommandPlugin):
 
         return current_tick_count * self.KeQueryTimeIncrement(self.profile)
 
-    def render(self, renderer):
-        renderer.table_header([("Fact", "key", "20"),
-                               ("Value", "value", "")])
-
-        renderer.table_row(
-            "Kernel DTB", "%#x" % self.kernel_address_space.dtb)
+    def collect(self):
+        yield ("Kernel DTB", "%#x" % self.kernel_address_space.dtb)
 
         for desc, name, type in (
                 ("NT Build", "NtBuildLab", "String"),
@@ -213,25 +212,21 @@ class ImageInfo(common.WindowsCommandPlugin):
                 ("Signed Drivers", "g_CiEnabled", "bool"),
             ):
 
-            renderer.table_row(
-                desc, self.profile.get_constant_object(name, target=type))
+            yield (desc, self.profile.get_constant_object(name, target=type))
 
         # Print kuser_shared things.
         kuser_shared = self.profile.get_constant_object(
             "KI_USER_SHARED_DATA", "_KUSER_SHARED_DATA")
 
-        renderer.table_row("Time (UTC)", kuser_shared.SystemTime)
+        yield ("Time (UTC)", kuser_shared.SystemTime)
 
         # The bias is given in windows file time (i.e. in 100ns ticks).
         bias = kuser_shared.TimeZoneBias.cast("long long") / 1e7
-        renderer.table_row("Time (Local)", kuser_shared.SystemTime.display(
+        yield ("Time (Local)", kuser_shared.SystemTime.display(
             utc_shift=-bias))
 
-        renderer.table_row("Sec Since Boot", self.GetBootTime(kuser_shared))
-        renderer.table_row("NtSystemRoot", kuser_shared.NtSystemRoot)
-
-        renderer.section("Physical Layout")
-        self.session.plugins.phys_map().render(renderer)
+        yield ("Sec Since Boot", self.GetBootTime(kuser_shared))
+        yield ("NtSystemRoot", kuser_shared.NtSystemRoot)
 
 
 class WinImageFingerprint(common.AbstractWindowsParameterHook):
@@ -310,19 +305,16 @@ class ObjectTree(common.WindowsCommandPlugin):
 
     name = "object_tree"
 
-    @classmethod
-    def args(cls, parser):
-        """Declare the command line args we need."""
-        super(ObjectTree, cls).args(parser)
-        parser.add_argument("--type_regex", default=".",
-                            help="Filter the type of objects shown.")
+    __args = [
+        dict(name="type_regex", default=".", type="RegEx",
+             help="Filter the type of objects shown.")
+    ]
 
-    def __init__(self, type_regex=None, **kwargs):
-        super(ObjectTree, self).__init__(**kwargs)
-
-        if type_regex:
-            type_regex = re.compile(type_regex)
-        self.type_regex = type_regex
+    table_header = [
+        dict(name="_OBJECT_HEADER", cname="offset", style="address"),
+        dict(name="Type", cname="type", width=20),
+        dict(name="Name", type="TreeNode"),
+    ]
 
     def GetObjectByName(self, path):
         root = self.session.GetParameter("object_tree")
@@ -399,7 +391,7 @@ class ObjectTree(common.WindowsCommandPlugin):
 
         return new_components
 
-    def _render_directory(self, directory, renderer, seen, depth=0):
+    def _collect_directory(self, directory, seen, depth=0):
         for obj_header in directory.list():
             if obj_header in seen:
                 continue
@@ -412,24 +404,22 @@ class ObjectTree(common.WindowsCommandPlugin):
                 name += u"-> %s (%s)" % (obj_header.Object.LinkTarget,
                                          obj_header.Object.CreationTime)
 
-            if self.type_regex is None or self.type_regex.search(obj_type):
-                renderer.table_row(obj_header, obj_type, name, depth=depth)
+            if self.plugin_args.type_regex.search(obj_type):
+                yield dict(offset=obj_header, type=obj_type,
+                           Name=name, depth=depth)
 
             if obj_type == "Directory":
-                self._render_directory(
-                    obj_header.Object, renderer, seen, depth=depth+1)
+                for x in self._collect_directory(
+                        obj_header.Object, seen, depth=depth+1):
+                    yield x
 
-    def render(self, renderer):
-        renderer.table_header([("_OBJECT_HEADER", "offset", "[addrpad]"),
-                               ("Type", "type", "20"),
-                               dict(name="Name", type="TreeNode"),
-                              ])
-
+    def collect(self):
         # The root object.
         root = self.GetObjectByName("/")
 
         seen = set()
-        self._render_directory(root, renderer, seen)
+        for x in self._collect_directory(root, seen):
+            yield x
 
 
 class WindowsTimes(common.WindowsCommandPlugin):

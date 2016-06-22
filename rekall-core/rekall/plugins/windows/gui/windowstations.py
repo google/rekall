@@ -52,6 +52,15 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
 
     __name = "windows_stations"
 
+    table_header = [
+        dict(name="WindowStation", style="address"),
+        dict(name="Name", width=20),
+        dict(name="SesId", width=5),
+        dict(name="AtomTable", style="address"),
+        dict(name="Interactive", width=11),
+        dict(name="Desktops")
+    ]
+
     def stations_in_session(self, session):
         # Get the start of the Window station list from
         # win32k.sys. These are all the Windows stations that exist in
@@ -75,49 +84,14 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
             for station in self.stations_in_session(session):
                 yield station
 
-    def render(self, renderer):
+    def collect(self):
         for window_station in self.stations():
-            renderer.section()
-            renderer.format(
-                "WindowStation: {0:addr}, Name: {1}, Next: {2:addr}\n",
-                window_station,
-                window_station.Name,
-                window_station.rpwinstaNext)
-
-            renderer.format(
-                "SessionId: {0}, AtomTable: {1:addr}, "
-                "Interactive: {2}\n",
-                window_station.dwSessionId,
-                window_station.pGlobalAtomTable,
-                window_station.Interactive)
-
-            renderer.format(
-                "Desktops: {0}\n",
-                [desk.Name for desk in window_station.desktops()])
-
-            ethread = window_station.ptiDrawingClipboard.pEThread
-
-            renderer.format(
-                "ptiDrawingClipboard: pid {0} tid {1}\n",
-                ethread.Cid.UniqueProcess, ethread.Cid.UniqueThread)
-
-            last_registered_viewer = window_station.LastRegisteredViewer
-            renderer.format(
-                "spwndClipOpen: {0:addr}, spwndClipViewer: {1:addr} {2} {3}\n",
-                window_station.spwndClipOpen,
-                window_station.spwndClipViewer,
-                last_registered_viewer.UniqueProcessId,
-                last_registered_viewer.ImageFileName)
-
-            renderer.format("cNumClipFormats: {0}, iClipSerialNumber: {1}\n",
-                            window_station.cNumClipFormats,
-                            window_station.iClipSerialNumber)
-
-            renderer.format(
-                "pClipBase: {0:addr}, Formats: {1}\n",
-                window_station.pClipBase,
-                [clip.fmt for clip in window_station.pClipBase.dereference()])
-
+            desktops = [desk.Name for desk in window_station.desktops()]
+            yield (window_station, window_station.Name,
+                   window_station.dwSessionId,
+                   window_station.pGlobalAtomTable,
+                   window_station.Interactive,
+                   desktops)
 
 
 class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
@@ -125,57 +99,46 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
 
     __name = "desktops"
 
-    def render(self, renderer):
+    table_header = [
+        dict(name="tagDESKTOP", style="address"),
+        dict(name="Name", width=20),
+        dict(name="Sid", width=3),
+        dict(name="Hooks", width=5),
+        dict(name="tagWND", style="address"),
+        dict(name="Winds", width=5),
+        dict(name="Thrd", width=5),
+        dict(name="_EPROCESS"),
+    ]
+
+    def collect(self):
         for window_station in self.stations():
             for desktop in window_station.desktops():
-                renderer.section()
+                divider = ("Desktop: {0:addr}, Name: {1}\\{2}\n",
+                           desktop,
+                           window_station.Name,
+                           desktop.Name)
 
-                renderer.format(
-                    "Desktop: {0:addr}, Name: {1}\\{2}, Next: {3:addr}\n",
-                    desktop,
-                    window_station.Name,
-                    desktop.Name,
-                    desktop.rpdeskNext.v(),
-                    )
+                divider += ("Heap: {0:addr}, Size: {1:addr}, Base: {2:addr}, "
+                            "Limit: {3:addr}\n",
+                            desktop.pheapDesktop.v(),
+                            (desktop.DeskInfo.pvDesktopLimit.v() -
+                             desktop.DeskInfo.pvDesktopBase.v()),
+                            desktop.DeskInfo.pvDesktopBase,
+                            desktop.DeskInfo.pvDesktopLimit,
+                        )
 
-                renderer.format(
-                    "SessionId: {0}, DesktopInfo: {1:addr}, fsHooks: {2}\n",
-                    desktop.dwSessionId,
-                    desktop.pDeskInfo.v(),
-                    desktop.DeskInfo.fsHooks,
-                    )
+                yield dict(divider=divider)
 
-                renderer.format(
-                    "spwnd: {0:addr}, Windows: {1}\n",
-                    desktop.DeskInfo.spwnd,
-                    len(list(desktop.windows(desktop.DeskInfo.spwnd)))
-                    )
-                renderer.format(
-                    "Heap: {0:addr}, Size: {1:addr}, Base: {2:addr}, "
-                    "Limit: {3:addr}\n",
-                    desktop.pheapDesktop.v(),
-                    (desktop.DeskInfo.pvDesktopLimit.v() -
-                     desktop.DeskInfo.pvDesktopBase.v()),
-                    desktop.DeskInfo.pvDesktopBase,
-                    desktop.DeskInfo.pvDesktopLimit,
-                    )
-
-                # Print heap allocations.
-                if self.plugin_args.verbosity > 1:
-                    for entry in desktop.pheapDesktop.Entries:
-                        renderer.format(
-                            "   Alloc: {0:addr}, Size: {1:addr} "
-                            "Previous: {2:addr}\n",
-                            entry,
-                            entry.Size,
-                            entry.PreviousSize
-                            )
+                window_count = len(list(desktop.windows(
+                    desktop.DeskInfo.spwnd)))
 
                 for thrd in desktop.threads():
-                    renderer.format(
-                        " {0} ({1} {2} parent {3})\n",
-                        thrd.pEThread.Cid.UniqueThread,
-                        thrd.ppi.Process.ImageFileName,
-                        thrd.ppi.Process.UniqueProcessId,
-                        thrd.ppi.Process.InheritedFromUniqueProcessId,
-                        )
+                    yield dict(
+                        tagDESKTOP=desktop,
+                        Name=desktop.Name,
+                        Sid=desktop.dwSessionId,
+                        Hooks=desktop.DeskInfo.fsHooks,
+                        tagWND=desktop.DeskInfo.spwnd.deref(),
+                        Winds=window_count,
+                        Thrd=thrd.pEThread.Cid.UniqueThread,
+                        _EPROCESS=thrd.ppi.Process.deref())
