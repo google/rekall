@@ -753,10 +753,13 @@ class StackedCell(BaseCell):
         self._height = 0
         self._lines = []
 
-        column_widths = ()
+        column_widths = []
         if self.table_align:
-            column_widths = [0] * self.column_count
             for row in self.cells:
+                if len(row.cells) > len(column_widths):
+                    column_widths.extend([0] * (
+                        len(row.cells) - len(column_widths)))
+
                 for column, cell in enumerate(row.cells):
                     w = column_widths[column]
                     if cell.width > w:

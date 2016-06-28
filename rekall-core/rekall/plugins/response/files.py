@@ -29,7 +29,11 @@ import itertools
 import re
 import os
 
+from rekall import kb
+from rekall import plugin
+from rekall import utils
 from rekall.plugins.response import common
+from rekall.plugins.response import interpolators
 
 
 BUFFER_SIZE = 10 * 1024 * 1024
@@ -110,8 +114,20 @@ class IRHash(common.AbstractIRCommandPlugin):
 
 
 class Component(object):
-    def __init__(self, component):
+    def __init__(self, session, component):
+        self.session = session
         self.component = component
+        self.component_cache = self.session.GetParameter("component_cache")
+
+    def _build_cache(self, file_info):
+        cache = {}
+        # Cache not populated
+        for child in file_info.list():
+            basename = os.path.basename(child.filename.name).lower()
+            cache.setdefault(basename, []).append(child)
+
+        self.component_cache.Put(file_info.filename.name, cache)
+        return cache
 
     def __eq__(self, other):
         return unicode(self) == unicode(other)
@@ -126,11 +142,13 @@ class Component(object):
 class LiteralComponent(Component):
 
     def filter(self, file_info):
-        for child in file_info.list():
-            basename = os.path.basename(child.filename.name).lower()
-            if basename == self.component.lower():
-                yield child
-                return
+        key = self.component.lower()
+        try:
+            cache = self.component_cache.Get(file_info.filename.name)
+        except KeyError:
+            cache = self._build_cache(file_info)
+
+        return cache.get(key, [])
 
 
 class RegexComponent(Component):
@@ -139,15 +157,21 @@ class RegexComponent(Component):
         self.component_re = re.compile(self.component, re.I)
 
     def filter(self, file_info):
-        for child in file_info.list():
-            basename = os.path.basename(child.filename.name).lower()
-            if self.component_re.match(basename):
-                yield child
+        try:
+            cache = self.component_cache.Get(file_info.filename.name)
+        except KeyError:
+            cache = self._build_cache(file_info)
+
+        for child_groups in cache.itervalues():
+            for child in child_groups:
+                basename = os.path.basename(child.filename.name).lower()
+                if self.component_re.match(basename):
+                    yield child
 
 
 class RecursiveComponent(RegexComponent):
-    def __init__(self, component, depth):
-        super(RecursiveComponent, self).__init__(component)
+    def __init__(self, session, component, depth):
+        super(RecursiveComponent, self).__init__(session, component)
         self.depth = depth
 
     def filter(self, file_info, depth=0):
@@ -182,13 +206,16 @@ class IRGlob(common.AbstractIRCommandPlugin):
     ]
 
     table_header = [
-        dict(name="Path", type="FileInformation"),
+        dict(name="Path", cname="path", type="FileInformation"),
     ]
+
+    def column_types(self):
+        return dict(path=common.FileInformation(filename="/etc"))
 
     INTERPOLATED_REGEX = re.compile(r"%%([^%]+?)%%")
 
     # Grouping pattern: e.g. {test.exe,foo.doc,bar.txt}
-    GROUPING_PATTERN = re.compile("{([^}]+,[^}]+)}")
+    GROUPING_PATTERN = re.compile("({([^}]+,[^}]+)}|%%([^%]+?)%%)")
     RECURSION_REGEX = re.compile(r"\*\*(\d*)")
 
     # A regex indicating if there are shell globs in this path.
@@ -203,12 +230,25 @@ class IRGlob(common.AbstractIRCommandPlugin):
         components = []
         offset = 0
         for match in self.GROUPING_PATTERN.finditer(pattern):
-            components.append([pattern[offset:match.start()]])
+            match_str = match.group(0)
+            # Alternatives.
+            if match_str.startswith("{"):
+                components.append([pattern[offset:match.start()]])
 
-            # Expand the attribute into the set of possibilities:
-            alternatives = match.group(1).split(",")
-            components.append(set(alternatives))
-            offset = match.end()
+                # Expand the attribute into the set of possibilities:
+                alternatives = match.group(2).split(",")
+                components.append(set(alternatives))
+                offset = match.end()
+
+            # KnowledgeBase interpolation.
+            elif match_str.startswith("%"):
+                alternatives = interpolators.KB.expand(match_str)
+                components.append(set(alternatives))
+                offset = match.end()
+
+            else:
+                raise plugin.PluginError(
+                    "Unknown interpolation %s" % match.group(0))
 
         components.append([pattern[offset:]])
         # Now calculate the cartesian products of all these sets to form all
@@ -219,13 +259,6 @@ class IRGlob(common.AbstractIRCommandPlugin):
         # These should be all possible patterns.
         # e.g. /fooa/bar , /foob/bar
         return result
-
-    def interpolate(self, glob):
-        """Interpolate the glob.
-
-        Returns a list of globs with only wild cards.
-        """
-        return self._interpolate_grouping(glob)
 
     def convert_glob_into_path_components(self, pattern):
         """Converts a glob pattern into a list of pathspec components.
@@ -271,13 +304,16 @@ class IRGlob(common.AbstractIRCommandPlugin):
                 path_component = path_component.replace(m.group(0), "*")
 
                 component = RecursiveComponent(
+                    self.session,
                     fnmatch.translate(path_component), depth=depth)
 
             elif self.GLOB_MAGIC_CHECK.search(path_component):
-                component = RegexComponent(fnmatch.translate(path_component))
+                component = RegexComponent(
+                    self.session, fnmatch.translate(path_component))
 
             else:
-                component = LiteralComponent(path_component)
+                component = LiteralComponent(
+                    self.session, path_component)
 
             components.append(component)
 
@@ -299,7 +335,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
     def collect_globs(self, globs):
         expanded_globs = []
         for glob in globs:
-            expanded_globs.extend(self.interpolate(glob))
+            expanded_globs.extend(self._interpolate_grouping(glob))
 
         component_tree = {}
         for glob in expanded_globs:
@@ -313,4 +349,13 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
     def collect(self):
         for x in self.collect_globs(self.plugin_args.globs):
-            yield (x, )
+            yield dict(path=x)
+
+
+class ComponentCacheParameterHook(kb.ParameterHook):
+    name = "component_cache"
+
+    volatile = True
+
+    def calculate(self):
+        return utils.FastStore(50)

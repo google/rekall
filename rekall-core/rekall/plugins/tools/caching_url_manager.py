@@ -64,6 +64,10 @@ class CachingManager(io_manager.IOManager):
         return "Local Cache %s" % self.cache_io_manager
 
     def CheckInventory(self, name):
+        """Do we have this file at all?
+
+        Search for it in either the cache or in the delegate.
+        """
         if self.cache_io_manager.CheckInventory(name):
             return True
 
@@ -73,7 +77,10 @@ class CachingManager(io_manager.IOManager):
         if self.cache_io_manager.CheckInventory(name):
             local_age = self.cache_io_manager.Metadata(name).get(
                 "LastModified", 0)
-            remote_age = self.url_manager.Metadata(name).get("LastModified", 0)
+            remote_age = self.url_manager.Metadata(name).get("LastModified")
+
+            if remote_age is None:
+                raise IOError("Remote does not have file.")
 
             # Only get the local copy if it is not older than the remote
             # copy. This allows the remote end to update profiles and we will

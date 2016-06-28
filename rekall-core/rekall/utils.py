@@ -44,7 +44,6 @@ import sortedcontainers
 from rekall import registry
 
 
-
 def SmartStr(string, encoding="utf8"):
     """Forces the string to be an encoded byte string."""
     if type(string) == unicode:

@@ -127,9 +127,9 @@ class BashHistory(common.LinProcessFilter):
     ]
 
     table_header = [
-        dict(name="Pid", cname="pid", width=6, align="r"),
-        dict(name="Name", cname="name", width=20, align="r"),
-        dict(name="Timestamp", cname="time", width=24),
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Task", cname="task", hidden=True),
+        dict(name="Timestamp", cname="timestamp", width=24),
         dict(name="Command", cname="command"),
     ]
 
@@ -167,6 +167,10 @@ class BashHistory(common.LinProcessFilter):
             if not timestamps:
                 continue
 
+            yield dict(divider="Task: %s (%s)" % (task.name,
+                                                  task.pid))
+
+
             if self.plugin_args.scan_entire_address_space:
                 scanner = LinHistoryScanner(
                     profile=self.bash_profile, session=self.session,
@@ -182,4 +186,7 @@ class BashHistory(common.LinProcessFilter):
                 timestamp = self.profile.UnixTimeStamp(
                     value=int(unicode(hit.timestamp.deref())[1:]))
 
-                yield (task.pid, task.comm, timestamp, hit.line.deref())
+                yield dict(
+                    task=task,
+                    timestamp=timestamp,
+                    command=hit.line.deref())

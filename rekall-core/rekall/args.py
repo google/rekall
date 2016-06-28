@@ -341,7 +341,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             kwargs["action"] = ArrayIntParser
             kwargs["nargs"] = "+" if required else "*"
 
-        if arg_type == "ArrayStringParser":
+        if arg_type in ["ArrayString", "ArrayStringParser"]:
             kwargs["action"] = ArrayStringParser
             kwargs["nargs"] = "+" if required else "*"
 

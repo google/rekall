@@ -35,21 +35,26 @@ class ProcMaps(common.LinProcessFilter):
 
     __name = "maps"
 
-    def render(self, renderer):
-        renderer.table_header([("Pid", "pid", "8"),
-                               ("Start", "start", "[addrpad]"),
-                               ("End", "end", "[addrpad]"),
-                               ("Flags", "flags", "6"),
-                               ("Pgoff", "pgoff", "[addrpad]"),
-                               ("Major", "major", "6"),
-                               ("Minor", "minor", "6"),
-                               ("Inode", "inode", "13"),
-                               ("File Path", "file_path", "80"),
-                              ])
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Task", cname="task", hidden=True),
+        dict(name="Start", cname="start", style="address"),
+        dict(name="End", cname="end", style="address"),
+        dict(name="Flags", cname="flags", width=6),
+        dict(name="Pgoff", cname="pgoff", style="address"),
+        dict(name="Major", cname="major", width=6),
+        dict(name="Minor", cname="minor", width=6),
+        dict(name="Inode", cname="inode", width=13),
+        dict(name="File Path", cname="file_path"),
+    ]
 
+
+    def collect(self):
         for task in self.filter_processes():
             if not task.mm:
                 continue
+
+            yield dict(divider="Proc %s (%s)" % (task.name, task.pid))
 
             for vma in task.mm.mmap.walk_list("vm_next"):
                 if vma.vm_file:
@@ -70,15 +75,15 @@ class ProcMaps(common.LinProcessFilter):
                     else:
                         fname = ""
 
-                renderer.table_row(task.pid,
-                                   vma.vm_start,
-                                   vma.vm_end,
-                                   vma.vm_flags,
-                                   pgoff,
-                                   major,
-                                   minor,
-                                   ino,
-                                   fname)
+                yield dict(task=task,
+                           start=vma.vm_start,
+                           end=vma.vm_end,
+                           flags=vma.vm_flags,
+                           pgoff=pgoff,
+                           major=major,
+                           minor=minor,
+                           inode=ino,
+                           file_path=fname)
 
 
 class TestProcMaps(testlib.SimpleTestCase):

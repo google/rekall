@@ -31,6 +31,8 @@ rekall live
 and have Rekall install the right kernel module and connect to the driver on all
 supported operating systems.
 """
+import os
+
 from rekall import plugin
 
 from rekall.plugins.addrspaces import standard
@@ -44,6 +46,11 @@ class Live(plugin.ProfileCommand):
     PROFILE_REQUIRED = False
 
     def live(self):
+        if os.geteuid() != 0:
+            self.session.logging.error(
+                "You are not root. It is likely that some operations "
+                "may not be available.")
+
         try:
             # Stack the address spaces by hand.
             load_as = self.session.plugins.load_as(session=self.session)
@@ -53,10 +60,16 @@ class Live(plugin.ProfileCommand):
             self.session.physical_address_space = load_as.GuessAddressSpace(
                 base_as=base_as)
 
-            self.session.GetParameter("live", True)
+            self.session.SetParameter("session_name", "Live(/proc/kcore)")
+
         except IOError as e:
-            self.session.logging.debug("%s", e)
-            raise plugin.PluginError("%s. Are you root?" % e)
+            self.session.logging.error("Unable to load physical memory: %s ", e)
+            with self.session:
+                self.session.SetParameter("session_name", "Live")
+
+        # Force timed cache for live sessions.
+        with self.session:
+            self.session.SetParameter("cache", "timed")
 
     def close(self):
         pass

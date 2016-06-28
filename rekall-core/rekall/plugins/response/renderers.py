@@ -54,6 +54,15 @@ class UserTextObjectRenderer(text.TextObjectRenderer):
         return text.Cell(unicode(item.uid))
 
 
+class GroupTextObjectRenderer(text.TextObjectRenderer):
+    renders_type = "Group"
+
+    def render_row(self, item, **_):
+        if item.group_name:
+            return text.Cell(u"%s (%s)" % (item.group_name, item.gid))
+        return text.Cell(unicode(item.gid))
+
+
 class DataExportFileSpecObjectRenderer(
         data_export.DataExportBaseObjectRenderer):
     renders_type = "FileSpec"

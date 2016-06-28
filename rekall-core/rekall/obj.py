@@ -40,12 +40,12 @@ import struct
 import StringIO
 import copy
 
+import traceback
+
 from rekall import addrspace
 from rekall import registry
 from rekall import utils
 from rekall.ui import renderer
-
-import traceback
 
 
 class ProfileLog(object):
@@ -171,14 +171,6 @@ class NoneObject(object):
         self.args = args
         if self.strict:
             self.bt = ''.join(traceback.format_stack()[:-2])
-
-    def XXXget(self, key=None, default=None):
-        """Make a NoneObject accept a default like a dict."""
-        _ = key
-        if default is not None:
-            return default
-
-        return self
 
     def __str__(self):
         return unicode(self).encode('utf-8')
@@ -603,8 +595,14 @@ CreateMixIn(StringProxyMixIn)
 
 
 class NativeType(NumericProxyMixIn, BaseObject):
-    def __init__(self, value=None, format_string=None, **kwargs):
-        super(NativeType, self).__init__(**kwargs)
+    def __init__(self, value=None, format_string=None, session=None,
+                 profile=None, **kwargs):
+        # If a value is specified, we dont technically need a profile at all.
+        if value is not None and profile is None:
+            profile = NoneObject()
+
+        super(NativeType, self).__init__(
+            session=session, profile=profile, **kwargs)
         self.format_string = format_string
         if callable(value):
             value = value(self.obj_parent)
@@ -1590,6 +1588,19 @@ class MergeProfileLoader(ProfileSectionLoader):
 
         return profile
 
+class DummyAS(object):
+    name = 'dummy'
+    volatile = False
+
+    def __init__(self, session):
+        self.session = session
+
+    def is_valid_address(self, _offset):
+        return True
+
+    def read(self, _, length):
+        return "\x00" * length
+
 
 class Profile(object):
     """A collection of types relating to a single compilation unit.
@@ -1746,23 +1757,6 @@ class Profile(object):
 
         # This is the local cache of compiled expressions.
         self.flush_cache()
-
-        class dummy(object):
-            profile = self
-            name = 'dummy'
-            volatile = False
-
-            def __init__(self, session):
-                self.session = session
-
-            def is_valid_address(self, _offset):
-                return True
-
-            def read(self, _, length):
-                return "\x00" * length
-
-        # A dummy address space used internally.
-        self._dummy = dummy(self)
 
         # Call Initialize on demand.
         self._initialized = False
@@ -2156,7 +2150,7 @@ class Profile(object):
         """
         self.compile_type(type_name)
         return self.Object(type_name=type_name, name="Prototype",
-                           vm=self._dummy)
+                           vm=DummyAS(self.session))
 
     def get_obj_offset(self, name, member):
         """ Returns a member's offset within the struct.

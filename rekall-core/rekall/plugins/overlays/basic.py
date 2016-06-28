@@ -24,10 +24,11 @@
 """ This file defines some basic types which might be useful for many
 OS's
 """
-import arrow
 import datetime
 import socket
 import struct
+
+import arrow
 
 from rekall import config
 from rekall import obj

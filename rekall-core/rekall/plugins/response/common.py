@@ -36,12 +36,13 @@ from rekall import plugin
 from rekall.plugins.overlays import basic
 
 
-class FileSpec(object):
+class FileSpec(utils.AttributeDict):
     """Specification of a file path."""
 
     __metaclass__ = registry.UniqueObjectIdMetaclass
 
-    def __init__(self, filename, filesystem="API"):
+    def __init__(self, filename, filesystem=u"API"):
+        super(FileSpec, self).__init__()
         self.filesystem = filesystem
         if isinstance(filename, FileSpec):
             # Copy the other file spec.
@@ -79,6 +80,11 @@ class User(utils.AttributeDict):
 
         return result
 
+    def __unicode__(self):
+        if self.username:
+            return u"%s (%s)" % (self.username, self.uid)
+        return unicode(self.uid)
+
 
 class Group(utils.AttributeDict):
     """A class to represent a user."""
@@ -100,12 +106,20 @@ class Group(utils.AttributeDict):
 
         return result
 
+    def __unicode__(self):
+        if self.group_name:
+            return u"%s (%s)" % (self.group_name, self.gid)
+
+        return unicode(self.gid)
+
 
 class FileInformation(utils.AttributeDict):
     """An object representing a file on disk.
 
     This FileInformation uses the API to read data about the file.
     """
+
+    session = None
 
     def __init__(self, session=None, filename=None, **kwargs):
         super(FileInformation, self).__init__(**kwargs)
@@ -154,11 +168,14 @@ class FileInformation(utils.AttributeDict):
         if not self.st_mode.is_dir():
             return
 
-        for name in os.listdir(self.filename.name):
-            full_path = os.path.join(self.filename.name, name)
-            item = self.from_stat(full_path, session=self.session)
-            if item:
-                yield item
+        try:
+            for name in os.listdir(self.filename.name):
+                full_path = os.path.join(self.filename.name, name)
+                item = self.from_stat(full_path, session=self.session)
+                if item:
+                    yield item
+        except (OSError, IOError):
+            pass
 
 
 class Permissions(object):
@@ -218,8 +235,7 @@ class Permissions(object):
         return stat.S_ISDIR(self.value)
 
 
-class AbstractIRCommandPlugin(plugin.PhysicalASMixin,
-                              plugin.TypedProfileCommand,
+class AbstractIRCommandPlugin(plugin.TypedProfileCommand,
                               plugin.Command):
     """A base class for all IR plugins.
 

@@ -41,36 +41,37 @@ from rekall import plugin
 from rekall.plugins.addrspaces import win32
 
 
-class Live(plugin.ProfileCommand):
+class Live(plugin.TypedProfileCommand,
+           plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"
 
     PROFILE_REQUIRED = False
 
-    @classmethod
-    def args(cls, parser):
-        parser.add_argument("--driver", default=None,
-                            help="Driver file to load")
+    __args = [
+        dict(name="driver",
+             help="Driver file to load"),
 
-        parser.add_argument("--device", default=r"\\.\pmem",
-                            help="Device name to use")
+        dict(name="device", default=r"\\.\pmem",
+             help="Device name to use"),
 
-        parser.add_argument("--service_name", default=r"pmem",
-                            help="Service name to use")
+        dict(name="service_name", default=r"pmem",
+             help="Service name to use")
+    ]
 
-    def __init__(self, driver=None, device=r"\\.\pmem", service_name="pmem",
-                 **kw):
-        super(Live, self).__init__(**kw)
+    table_header = [
+        dict(name="Message")
+    ]
+
+    def __init__(self, *args, **kw):
+        super(Live, self).__init__(*args, **kw)
         # It is OK for non privileged sessions to use the default drivers.
-        if not self.session.privileged and driver:
+        if not self.session.privileged and self.plugin_args.driver:
             raise plugin.PluginError(
                 "Installing arbitrary drivers is only available for "
                 "interactive or privileged sessions.")
 
-        self.driver = driver
-        self.device = device
-        self.name = service_name
         # Did we start the service? If so we need to clean up.
         self.we_started_service = False
         self.hScm = None
@@ -91,7 +92,7 @@ class Live(plugin.ProfileCommand):
     def load_driver(self):
         """Load the driver if possible."""
         # Check the driver is somewhere accessible.
-        if self.driver is None:
+        if self.plugin_args.driver is None:
             # Valid values
             # http://superuser.com/questions/305901/possible-values-of-processor-architecture
             machine = platform.machine()
@@ -102,17 +103,20 @@ class Live(plugin.ProfileCommand):
             else:
                 raise plugin.PluginError("Unsupported architecture")
 
-            self.driver = resources.get_resource("WinPmem/%s" % driver)
+            self.plugin_args.driver = resources.get_resource(
+                "WinPmem/%s" % driver)
 
             # Try the local directory
-            if self.driver is None:
-                self.driver = os.path.join(os.getcwd(), "WinPmem", driver)
+            if self.plugin_args.driver is None:
+                self.plugin_args.driver = os.path.join(
+                    os.getcwd(), "WinPmem", driver)
 
-        self.session.logging.debug("Loading driver from %s", self.driver)
+        self.session.logging.debug("Loading driver from %s",
+                                   self.plugin_args.driver)
 
-        if not os.access(self.driver, os.R_OK):
+        if not os.access(self.plugin_args.driver, os.R_OK):
             raise plugin.PluginError(
-                "Driver file %s is not accessible." % self.driver)
+                "Driver file %s is not accessible." % self.plugin_args.driver)
 
         self.hScm = win32service.OpenSCManager(
             None, None, win32service.SC_MANAGER_CREATE_SERVICE)
@@ -122,22 +126,24 @@ class Live(plugin.ProfileCommand):
 
         try:
             self.hSvc = win32service.CreateService(
-                self.hScm, self.name, self.name,
+                self.hScm, self.plugin_args.service_name,
+                self.plugin_args.service_name,
                 win32service.SERVICE_ALL_ACCESS,
                 win32service.SERVICE_KERNEL_DRIVER,
                 win32service.SERVICE_DEMAND_START,
                 win32service.SERVICE_ERROR_IGNORE,
-                self.driver,
+                self.plugin_args.driver,
                 None, 0, None, None, None)
 
-            self.session.logging.debug("Created service %s", self.name)
+            self.session.logging.debug("Created service %s",
+                                       self.plugin_args.service_name)
             # Remember to cleanup afterwards.
             self.we_started_service = True
 
         except win32service.error as e:
             # Service is already there, try to open it instead.
             self.hSvc = win32service.OpenService(
-                self.hScm, self.name,
+                self.hScm, self.plugin_args.service_name,
                 win32service.SERVICE_ALL_ACCESS)
 
         # Make sure the service is stopped.
@@ -154,14 +160,14 @@ class Live(plugin.ProfileCommand):
 
         try:
             return win32.WinPmemAddressSpace(
-                session=self.session, filename=self.device)
+                session=self.session, filename=self.plugin_args.device)
         except IOError as e:
             raise plugin.PluginError(*e.args)
 
     def live(self):
         try:
             phys_as = win32.WinPmemAddressSpace(
-                session=self.session, filename=self.device)
+                session=self.session, filename=self.plugin_args.device)
         except IOError as e:
             self.session.logging.debug("%s", e)
             errno = self.parse_exception(e)
@@ -179,7 +185,8 @@ class Live(plugin.ProfileCommand):
         self.session.GetParameter("live", True)
 
     def remove_service(self, also_close_as=True):
-        self.session.logging.debug("Removing service %s", self.name)
+        self.session.logging.debug("Removing service %s",
+                                   self.plugin_args.service_name)
 
         # Make sure the handle is closed.
         if also_close_as:
@@ -189,21 +196,23 @@ class Live(plugin.ProfileCommand):
         if not self.hSvc:
             try:
                 self.hSvc = win32service.OpenService(
-                    self.hScm, self.name,
+                    self.hScm, self.plugin_args.service_name,
                     win32service.SERVICE_ALL_ACCESS)
             except win32service.error:
                 self.session.logging.debug("%s service does not exist.",
-                                           self.name)
+                                           self.plugin_args.service_name)
 
         if self.hSvc:
-            self.session.logging.debug("Stopping service: %s", self.name)
+            self.session.logging.debug("Stopping service: %s",
+                                       self.plugin_args.service_name)
             try:
                 win32service.ControlService(
                     self.hSvc, win32service.SERVICE_CONTROL_STOP)
             except win32service.error as e:
                 self.session.logging.debug("Error stopping service: %s", e)
 
-            self.session.logging.debug("Deleting service: %s", self.name)
+            self.session.logging.debug("Deleting service: %s",
+                                       self.plugin_args.service_name)
             try:
                 win32service.DeleteService(self.hSvc)
             except win32service.error as e:
@@ -222,10 +231,12 @@ class Live(plugin.ProfileCommand):
     def __exit__(self, exc_type, exc_value, trace):
         self.close()
 
-    def render(self, renderer):
-        renderer.format("Launching live memory analysis\n")
+    def collect(self):
+        yield ("Launching live memory analysis\n",)
         try:
             self.live()
+
+            renderer = self.session.GetRenderer()
 
             # Launch the shell.
             shell = self.session.plugins.shell()

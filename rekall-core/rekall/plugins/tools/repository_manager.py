@@ -22,6 +22,7 @@
 This plugin manages the profile repository.
 
 """
+import fnmatch
 import json
 import os
 import multiprocessing
@@ -403,6 +404,50 @@ class LinuxProfile(RepositoryPlugin):
         # Now rebuild the index
         if changed_files and self.args.index or self.args.force_build_index:
             self.BuildIndex()
+
+
+class ArtifactProfile(RepositoryPlugin):
+    """Build the Artifacts profile.
+
+    This is needed when the artifacts are updated. Rekall loads all the
+    artifacts from the profile repository which allows us to update artifacts
+    easily for deployed Rekall clients.
+    """
+
+    def Build(self, renderer):
+        repository = self.args.repository
+        profile_metadata = repository.Metadata(self.args.profile_name)
+
+        sources = []
+        for pattern in self.args.patterns:
+            sources.extend(fnmatch.filter(repository.ListFiles(), pattern))
+
+        # Find the latest modified source
+        last_modified = 0
+        for source in sources:
+            source_metadata = repository.Metadata(source)
+            last_modified = max(
+                last_modified, source_metadata["LastModified"])
+
+        if not profile_metadata or (
+                last_modified > profile_metadata["LastModified"]):
+            definitions = []
+            for source in sources:
+                definitions.extend(yaml.safe_load_all(
+                    repository.GetData(source, raw=True)))
+
+            # Transform the data as required.
+            data = {
+                "$ARTIFACTS": definitions,
+                "$METADATA": dict(
+                    ProfileClass="ArtifactProfile",
+                )
+            }
+
+            repository.StoreData(self.args.profile_name, utils.PPrint(data),
+                                 raw=True)
+            renderer.format("Building artifact profile {0}\n",
+                            self.args.profile_name)
 
 
 class ManageRepository(plugin.Command):

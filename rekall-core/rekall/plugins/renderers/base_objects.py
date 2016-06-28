@@ -101,17 +101,6 @@ class PythonBoolTextRenderer(text.TextObjectRenderer):
     render_compact = render_full
 
 
-class PythonSetRenderer(text.TextObjectRenderer):
-    renders_type = ("set", "frozenset")
-
-    def render_full(self, target, **_):
-        return self.render_compact(target)
-
-    def render_compact(self, target, **_):
-        return text.Cell(
-            "{%s}" % ", ".join([repr(x) for x in target]))
-
-
 class NativeTypeTextRenderer(BaseObjectTextRenderer):
     renders_type = "NativeType"
 
@@ -203,7 +192,7 @@ class PointerTextRenderer(NativeTypeTextRenderer):
 
 class ListRenderer(text.TextObjectRenderer):
     """Renders a list of other objects."""
-    renders_type = ("list", "tuple")
+    renders_type = ("list", "tuple", "set", "frozenset")
 
     def render_row(self, target, **options):
         width = options.pop("width", None)
@@ -345,7 +334,7 @@ class AttributeDictTextRenderer(text.TextObjectRenderer):
 
     def render_row(self, item, **options):
         result = []
-        for key, value in item.iteritems():
+        for key, value in sorted(item.iteritems()):
             result.append(self.table.get_row(key, value))
 
         return text.StackedCell(*result)

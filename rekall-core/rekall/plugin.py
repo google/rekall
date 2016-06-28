@@ -120,7 +120,7 @@ class CommandOption(object):
                     raise TypeError("Arg %s must be one of %s" % (
                         self.name, self.choices))
 
-        elif self.type == "ArrayString":
+        elif self.type in ["ArrayString", "ArrayStringParser"]:
             if isinstance(value, basestring):
                 value = [value]
 

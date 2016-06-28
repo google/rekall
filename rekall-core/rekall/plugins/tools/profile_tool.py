@@ -89,7 +89,6 @@ import gzip
 import itertools
 import json
 import os
-import random
 import re
 import StringIO
 
@@ -100,7 +99,6 @@ from rekall import registry
 from rekall import testlib
 from rekall import utils
 
-from rekall.plugins import core
 from rekall.plugins.common import profile_index
 from rekall.plugins.overlays.linux import dwarfdump
 from rekall.plugins.overlays.linux import dwarfparser
@@ -659,38 +657,39 @@ class BuildIndex(plugin.Command):
 
         return result
 
-    def _SymbolIsUnique(self,  profile_id, symbol, profiles):
-      """Returns True if symbol uniquely identifies profile_id within profiles.
+    def _SymbolIsUnique(self, profile_id, symbol, profiles):
+        """Does symbol uniquely identify profile_id within profiles.
 
-      Args:
-        profile_id: The unique identifier of symbol's profile.
-        symbol: The symbol to test.
-        profiles: A dictionary of profile_id:symbol_dict entries where
-          symbol_dict is a dictionary of symbol:offset entries.
+        Args:
+          profile_id: The unique identifier of symbol's profile.
+          symbol: The symbol to test.
+          profiles: A dictionary of profile_id:symbol_dict entries where
+            symbol_dict is a dictionary of symbol:offset entries.
 
-          Every profile in profiles must be unique. That is, two entries must
-          not share the exact same set of symbol:offset pairs.
-      """
+            Every profile in profiles must be unique. That is, two entries must
+            not share the exact same set of symbol:offset pairs.
 
-      offset = profiles[profile_id].get(symbol)
+        """
 
-      # If the symbol doesn't exist it can't be unique
-      if offset is None:
-          return False
+        offset = profiles[profile_id].get(symbol)
 
-      unique = True
+        # If the symbol doesn't exist it can't be unique
+        if offset is None:
+            return False
 
-      for other_id, other_symbols in profiles.iteritems():
-          # Skip comparing this profile against itself.
-          if profile_id == other_id:
-            continue
+        unique = True
 
-          # Find duplicates
-          if offset == other_symbols.get(symbol):
-            unique = False
-            break
+        for other_id, other_symbols in profiles.iteritems():
+            # Skip comparing this profile against itself.
+            if profile_id == other_id:
+                continue
 
-      return unique
+            # Find duplicates
+            if offset == other_symbols.get(symbol):
+                unique = False
+                break
+
+        return unique
 
     def _FindNewProfiles(self, index, target):
         """Finds new profiles in the repository that were not in the index."""
@@ -746,13 +745,12 @@ class BuildIndex(plugin.Command):
 
     def _FindProfilesWithSymbolOffset(self, symbol_name, symbol_offset,
                                       profiles=None):
-      """Returns a set of profile_ids that have symbol_name: symbol_offset."""
-
-      matching_profiles = set()
-      for profile_id, symbols in profiles.iteritems():
-          if symbols.get(symbol_name) == symbol_offset:
-              matching_profiles.add(profile_id)
-      return matching_profiles
+        """Returns a set of profile_ids that have symbol_name: symbol_offset."""
+        matching_profiles = set()
+        for profile_id, symbols in profiles.iteritems():
+            if symbols.get(symbol_name) == symbol_offset:
+                matching_profiles.add(profile_id)
+        return matching_profiles
 
     def _FindTraits(self, profile_id=None, profiles=None, num_traits=1,
                     trait_length=1, first_try_symbols=None):
@@ -788,7 +786,7 @@ class BuildIndex(plugin.Command):
             symbol = trait_symbols[0]
             offset = profile_symbols.get(symbol)
             intersection_set = self._FindProfilesWithSymbolOffset(
-                symbol, offset,  profiles=profiles)
+                symbol, offset, profiles=profiles)
 
             for next_symbol in trait_symbols[1:]:
                 next_offset = profile_symbols.get(next_symbol)
@@ -1063,7 +1061,7 @@ class BuildIndex(plugin.Command):
             num_traits_to_find = (min_traits -
                                   len(traits_dict.get(profile_id, [])))
 
-            first_try_symbols  = None
+            first_try_symbols = None
             if len(traits_dict.get(profile_id, [])) == 1:
                 first_try_symbols = [trait[0] for trait
                                       in traits_dict.get(profile_id)]
@@ -1096,7 +1094,7 @@ class BuildIndex(plugin.Command):
         new_index_traits.update(traits_dict)
 
         # Update the profile metadata with the new and updated profiles.
-        new_index_profile_metadata =  index.profiles.copy()
+        new_index_profile_metadata = index.profiles.copy()
         for profile_id in new_profiles:
             file_mtime = self.io_manager.Metadata(profile_id)["LastModified"]
             metadata_dict = new_index_profile_metadata.get(profile_id, {})

@@ -141,9 +141,8 @@ class FileAddressSpace(FDAddressSpace):
 
         try:
             fhandle = open(self.fname, self.mode)
-        except (IOError, OSError):
-            raise addrspace.ASAssertionError(
-                "Filename does not exist or can not be opened.")
+        except (IOError, OSError) as e:
+            raise addrspace.ASAssertionError("%s" % e)
 
         self._closer = weakref.ref(self, lambda x: fhandle.close())
 

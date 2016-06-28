@@ -50,17 +50,9 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
             for member in sorted(structured.getmembers(item)):
                 type_instance = structured.resolve(item, member)
                 # If it was given as a type, we need an instance here.
-                if isinstance(type_instance, type):
-                    type_instance = type_instance()
-
-                try:
-                    object_type = type_instance.obj_type
-                except AttributeError:
-                    object_type = type(type_instance).__name__
-
                 yield dict(
                     Field=member,
-                    Type=object_type,
+                    Type=self._determine_type_name(type_instance),
                     depth=depth,
                 )
                 for x in self.collect_members(type_instance, depth + 1):
@@ -69,6 +61,20 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
         except (TypeError, NotImplementedError):
             pass
 
+    def _determine_type_name(self, column_type_instance):
+        if isinstance(column_type_instance, type):
+            column_type_instance = column_type_instance()
+
+        object_type = None
+        try:
+            object_type = column_type_instance.obj_type
+        except AttributeError:
+            pass
+
+        if object_type is None:
+            object_type = type(column_type_instance).__name__
+
+        return object_type
 
     def collect(self):
         plugin_name = self.plugin_args.plugin_name
@@ -94,18 +100,9 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
             else:
                 column_type_instance = column_types[i]
 
-            if isinstance(column_type_instance, type):
-                column_type_instance = column_type_instance()
-
-
-            try:
-                object_type = column_type_instance.obj_type
-            except AttributeError:
-                object_type = type(column_type_instance).__name__
-
             yield dict(
                 Field=column_name,
-                Type=object_type,
+                Type=self._determine_type_name(column_type_instance),
             )
 
             for x in self.collect_members(column_type_instance, 1):

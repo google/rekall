@@ -21,6 +21,7 @@
 __author__ = "Adam Sindelar <adamsh@google.com>"
 
 import itertools
+import re
 
 from efilter import api
 from efilter import ast
@@ -43,7 +44,7 @@ from rekall import obj
 from rekall import plugin
 from rekall import testlib
 from rekall import utils
-
+from rekall.plugins.overlays import basic
 from rekall.ui import identity as identity_renderer
 
 
@@ -409,6 +410,10 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
 
             return int(value)
 
+        def noncase_search_function(regex, value):
+            """Case insensitive regex search function."""
+            return bool(re.search(unicode(regex), unicode(value), re.I))
+
         return dict(
             hex=api.user_func(
                 hex_function, arg_types=[int], return_type=[str]),
@@ -418,6 +423,10 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
 
             int=api.user_func(
                 int_function, arg_types=[], return_type=[int]),
+
+            search=api.user_func(
+                noncase_search_function, arg_types=[unicode, unicode],
+                return_type=[bool]),
         )
 
     # IStructured implementation for EFILTER:
@@ -556,7 +565,7 @@ class Search(EfilterPlugin):
         Raises:
             EfilterError if anything goes wrong.
         """
-        return solve.solve(self.query, self).value
+        return solve.solve(self.query, self).value or []
 
     @utils.safe_property
     def first_result(self):
@@ -912,6 +921,17 @@ structured.IStructured.implement(
     }
 )
 
+
+# This lets us do flags.member.
+structured.IStructured.implement(
+    for_type=basic.Flags,
+    implementations={
+        structured.resolve: getattr,
+        structured.reflect_runtime_member:
+            lambda s, m: type(getattr(s, m, None)),
+        structured.getmembers_runtime: lambda x: list(x.maskmap),
+    }
+)
 
 # This lets us get indices out of Arrays.
 associative.IAssociative.implement(

@@ -1,0 +1,245 @@
+# Memory specific artifacts.
+
+name: LinuxProcessListing
+doc: A list of all processes from memory.
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >
+        select proc, proc.name, proc.pid, ppid, binary from pslist()
+
+      type_name: MemoryProcessListing
+
+      # Columns from the query will be coerced into these types. NOTE: The order
+      # is important and is preserved.
+      fields:
+        - name: proc
+          type: int
+          style: address
+        - name: name
+          type: unicode
+        - name: pid
+          type: int
+        - name: ppid
+          type: int
+        - name: binary
+          type: unicode
+
+supported_os:
+  - Linux
+
+---
+name: WindowsProcessListing
+doc: A list of all processes from memory.
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >
+        select _EPROCESS as proc, _EPROCESS.name, _EPROCESS.pid, ppid,
+           process_create_time, _EPROCESS.FullPath as binary from pslist()
+
+      type_name: MemoryProcessListing
+
+      # Columns from the query will be coerced into these types. NOTE: The order
+      # is important and is preserved.
+      fields:
+        - name: proc
+          type: int
+          style: address
+        - name: name
+          type: unicode
+        - name: pid
+          type: int
+        - name: ppid
+          type: int
+        - name: process_create_time
+          type: unicode
+        - name: binary
+          type: unicode
+
+supported_os:
+  - Windows
+
+---
+
+name: LinuxSSHD_WX
+doc: |
+  Detect sshd processes with write/execute pages. This typically occurs when an
+  external process patches the running version of SSH and injects code.
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >
+        select task.name, task.pid, start, end, flags, file_path
+        from maps(proc_regex: "sshd") where flags.x and flags.w
+
+      type_name: maps_output
+      fields:
+        - name: name
+          type: unicode
+        - name: pid
+          type: int
+        - name: start
+          type: int
+          style: address
+        - name: end
+          type: int
+          style: address
+        - name: flags
+          type: unicode
+        - name: file_path
+          type: unicode
+
+supported_os:
+  - Linux
+
+---
+
+name: WindowsKernelModulesLoadPath
+doc: |
+  On windows, kernel modules should be loaded from the Windows directory. This
+  artifact locates modules which are not loaded from this location. Such kernel
+  modules might be suspicious because they are loaded from temporary paths or
+  dropped by first stage loaders.
+
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >
+        select offset_v, file_name, module_base, module_size, path from
+          modules() where not (path =~ "(?i)Windows")
+
+      type_name: modules
+      fields:
+        - name: offset_v
+          type: int
+          style: address
+        - name: file_name
+          type: unicode
+        - name: module_base
+          type: int
+          style: address
+        - name: module_size
+          type: int
+          style: address
+        - name: path
+          type: unicode
+
+supported_os:
+  - Windows
+
+---
+
+name: WindowsDriverIRPKeyLogger
+doc: |
+  One technique of installing a keylogger in windows is to hook the IRP handler
+  routine of the kbd driver. This artifact dumps the entire IRP handler table
+  for the kbdclass (Keyboard Class) driver, if any of the functions do not
+  reside within the driver itself (i.e. it is hooked).
+
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >
+        if (any driverirp(regex: "kbdclass") where not (name=~"kbdclass")) then
+          select driver.DriverName, function, func_addres, name from
+             driverirp(regex: "kbdclass")
+
+      type_name: driver_irp
+      fields:
+        - name: DriverName
+          type: unicode
+        - name: function
+          type: unicode
+        - name: func_addres
+          type: int
+          style: address
+        - name: name
+          type: unicode
+
+supported_os:
+  - Windows
+
+---
+
+name: CurlPipeToBash
+doc: |
+
+  Attackers often have ready made rootkit installer scripts served from the
+  internet. One of the first actions might be to run these scripts, and
+  sometimes attackers will prefer to not write them to disk. A common way is to
+  pipe the output of wget or curl to bash directly. In this case there will be
+  no on-disk evidence - the only evidence will be in the shell's history buffer.
+
+  This artifact searches the bash history for such pattern and if found, dumps
+  the entire bash buffer to capture the state for further investigations.
+
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >
+        IF (ANY bash() WHERE command =~ '.*(wget|curl)\s.+\|.*?(bash|zsh|sh)') THEN
+          select task, task.name, task.pid, timestamp, command from bash()
+
+      type_name: bash
+      fields:
+        - name: task
+          type: int
+          style: address
+        - name: name
+          type: unicode
+        - name: pid
+          type: int
+        - name: timestamp
+          type: unicode
+        - name: command
+          type: unicode
+
+supported_os:
+  - Linux
+
+---
+
+name: WindowsFakeSVCHost
+doc: |
+  Windows has several different svchost.exe processes normally. Sometimes
+  malware names itself as svchost.exe to confuse curious users. However, the
+  real svchost.exe are always launched from services.exe.
+
+  This artifact finds those svchost.exe processes which are not launches by
+  services.exe. This should not normally happen and it is suspicious if it does.
+
+sources:
+  - type: REKALL_EFILTER
+    attributes:
+      query: >-
+        LET services_exe = (
+          SELECT _EPROCESS.pid FROM pslist(proc_regex: 'services.exe') LIMIT 1
+        )
+
+        SELECT _EPROCESS, _EPROCESS.name, _EPROCESS.pid, ppid,
+           process_create_time, _EPROCESS.FullPath
+           FROM pslist(proc_regex: 'svchost.exe')
+           where _EPROCESS.InheritedFromUniqueProcessId != services_exe
+
+      type_name: MemoryProcessListing
+
+      # Columns from the query will be coerced into these types. NOTE: The order
+      # is important and is preserved.
+      fields:
+        - name: _EPROCESS
+          type: int
+          style: address
+        - name: name
+          type: unicode
+        - name: pid
+          type: int
+        - name: ppid
+          type: int
+        - name: process_create_time
+          type: unicode
+        - name: FullPath
+          type: unicode
+
+supported_os:
+  - Windows

@@ -936,9 +936,11 @@ class Session(object):
             container = io_manager.DirectoryIOManager(os.path.dirname(name),
                                                       version=None,
                                                       session=self)
-            result = obj.Profile.LoadProfileFromData(
-                container.GetData(os.path.basename(name)),
-                self, name=name)
+            data = container.GetData(os.path.basename(name))
+            if data == None:
+                raise IOError("Not found.")
+
+            result = obj.Profile.LoadProfileFromData(data, self, name=name)
         except IOError:
             pass
 
