@@ -22,6 +22,10 @@ class EfilterMagics(magic.Magics):
             return self._RunPlugin(session, "search", cell)
 
     @magic.line_cell_magic
+    def SELECT(self, line, cell=None):
+        return self._process_select(line, cell)
+
+    @magic.line_cell_magic
     def select(self, line, cell=None):
         """This makes it easier to run the search plugin:
 
@@ -31,6 +35,9 @@ class EfilterMagics(magic.Magics):
 0xfa80024f85d0 svchost.exe            236    480     19      455      0 False
 0xfa80023f6770 svchost.exe            608    480     12      352      0 False
         """
+        return self._process_select(line, cell)
+
+    def _process_select(self, line, cell=None):
         session = self.shell.user_global_ns.session
         if cell is None:
             return self._RunPlugin(session, "search", "select " + line)

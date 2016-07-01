@@ -1494,6 +1494,10 @@ class TestRenderer(TextRenderer):
     def __init__(self, **kwargs):
         super(TestRenderer, self).__init__(tablesep="||", **kwargs)
 
+    def GetColumns(self):
+        # Return a predictable and stable width.
+        return 138
+
 
 class WideTextRenderer(TextRenderer):
     """A Renderer which explodes tables into wide formatted records."""

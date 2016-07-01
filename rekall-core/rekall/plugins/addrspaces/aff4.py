@@ -114,12 +114,15 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         self.resolver = data_store.MemoryDataStore()
 
         # If we have a cache directory, configure AFF4 to use it.
-        cache_dir = cache.GetCacheDir(self.session)
-        if cache_dir:
-            self.resolver.Set(lexicon.AFF4_CONFIG_CACHE_DIR,
-                              lexicon.AFF4_FILE_NAME,
-                              rdfvalue.XSDString(
-                                  os.path.join(cache_dir, "aff4_cache")))
+        try:
+            cache_dir = cache.GetCacheDir(self.session)
+            if cache_dir:
+                self.resolver.Set(lexicon.AFF4_CONFIG_CACHE_DIR,
+                                  lexicon.AFF4_FILE_NAME,
+                                  rdfvalue.XSDString(
+                                      os.path.join(cache_dir, "aff4_cache")))
+        except IOError:
+            pass
 
         # A map between the filename and the offset it is mapped into the
         # address space.

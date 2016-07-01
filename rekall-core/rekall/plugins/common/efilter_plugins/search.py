@@ -424,7 +424,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             int=api.user_func(
                 int_function, arg_types=[], return_type=[int]),
 
-            search=api.user_func(
+            regex_search=api.user_func(
                 noncase_search_function, arg_types=[unicode, unicode],
                 return_type=[bool]),
         )
