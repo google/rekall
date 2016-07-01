@@ -15,7 +15,7 @@ def raw_versions():
     "codename": "Furka", 
     "version": "1.5.2", 
     "post": "0", 
-    "rc": "1"
+    "rc": "0"
 }
 """)
 
@@ -25,7 +25,7 @@ import subprocess
 
 try:
     # We are looking for the git repo which contains this file.
-    MY_DIR = os.path.dirname(__file__)
+    MY_DIR = os.path.dirname(os.path.abspath(__file__))
 except:
     MY_DIR = None
 

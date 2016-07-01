@@ -6,5 +6,5 @@ dependent_versions:
 version_data:
   codename: Furka
   post: '0'
-  rc: '1'
+  rc: '0'
   version: 1.5.2
