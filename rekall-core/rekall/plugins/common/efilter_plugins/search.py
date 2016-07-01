@@ -987,3 +987,16 @@ structured.IStructured.implement(
         structured.resolve: resolve_Pointer
     }
 )
+
+# AttributeDict is like a dict, except it does not raise when accessed
+# via an attribute - it just returns None. Plugins can return an
+# AttributeDict when they may return arbitrary columns and then
+# Efilter can simply reference these columns via the "." operator. If
+# the field does not exist, the column will simply have None there.
+structured.IStructured.implement(
+    for_type=utils.AttributeDict,
+    implementations={
+        structured.resolve: lambda d, m: d.get(m),
+        structured.getmembers_runtime: lambda d: d.keys(),
+    }
+)

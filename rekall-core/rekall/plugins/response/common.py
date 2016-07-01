@@ -24,6 +24,7 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 import os
+import re
 import stat
 
 from efilter.protocols import associative
@@ -41,12 +42,16 @@ class FileSpec(utils.AttributeDict):
 
     __metaclass__ = registry.UniqueObjectIdMetaclass
 
-    def __init__(self, filename, filesystem=u"API"):
+    def __init__(self, filename, filesystem=u"API", path_sep="/"):
         super(FileSpec, self).__init__()
         self.filesystem = filesystem
+        self.path_sep = path_sep
+
         if isinstance(filename, FileSpec):
             # Copy the other file spec.
             self.name = filename.name
+            self.filesystem = filename.filesystem
+            self.path_sep = filename.path_sep
 
         elif isinstance(filename, basestring):
             self.name = unicode(filename)
@@ -54,8 +59,38 @@ class FileSpec(utils.AttributeDict):
         else:
             raise TypeError("Filename must be a string or file spec.")
 
+    def components(self):
+        return filter(None, self.name.split(self.path_sep))
+
+    def os_path(self):
+        # Handle canonical paths of the form /c:/windows/ -> c:/windows
+        # So they can be opened by the OS APIs.
+
+        # Try to split the path into a drive and path component.
+        m = re.match("\\%s([a-zA-Z]):(.*)" % self.path_sep, self.name)
+        if m:
+            # Make sure that path is never relative. In this code we
+            # always want to deal with absolute paths so they need leading "/".
+            path = m.group(2)
+            if not path.startswith(self.path_sep):
+                path = self.path_sep + path
+
+            drive = m.group(1)
+            return "%s:%s" % (drive, path)
+
+        return self.name
+
     def __str__(self):
         return self.name
+
+    def add(self, component):
+        if self.name == self.path_sep:
+            path = self.name + component
+        else:
+            path = self.name + self.path_sep + component
+
+        return FileSpec(filename=path, path_sep=self.path_sep,
+                        filesystem=self.filesystem)
 
 
 class User(utils.AttributeDict):
@@ -83,7 +118,10 @@ class User(utils.AttributeDict):
     def __unicode__(self):
         if self.username:
             return u"%s (%s)" % (self.username, self.uid)
-        return unicode(self.uid)
+        elif self.uid is not None:
+            return unicode(self.uid)
+
+        return ""
 
 
 class Group(utils.AttributeDict):
@@ -110,7 +148,10 @@ class Group(utils.AttributeDict):
         if self.group_name:
             return u"%s (%s)" % (self.group_name, self.gid)
 
-        return unicode(self.gid)
+        elif self.gid is not None:
+            return unicode(self.gid)
+
+        return ""
 
 
 class FileInformation(utils.AttributeDict):
@@ -128,16 +169,12 @@ class FileInformation(utils.AttributeDict):
         self.session = session
 
     @classmethod
-    def from_stat(cls, filename, session=None):
-        filename = FileSpec(filename)
-        if filename.filesystem != "API":
-            raise RuntimeError("Unsupported file spec type %s" %
-                               filename.filesystem)
-
-        result = cls(filename=filename, session=session)
+    def from_stat(cls, filespec, session=None):
+        filespec = FileSpec(filespec)
+        result = FileInformation(filename=filespec, session=session)
 
         try:
-            s = os.stat(result.filename.name)
+            s = os.stat(filespec.os_path())
         except (IOError, OSError) as e:
             return obj.NoneObject("Unable to stat %s", e)
 
@@ -159,7 +196,7 @@ class FileInformation(utils.AttributeDict):
 
     def open(self):
         try:
-            return open(self.filename.name)
+            return open(self.filename.os_path())
         except (IOError, OSError) as e:
             return obj.NoneObject("Unable to open file: %s", e)
 
@@ -168,9 +205,10 @@ class FileInformation(utils.AttributeDict):
         if not self.st_mode.is_dir():
             return
 
+        filename = self.filename.os_path()
         try:
-            for name in os.listdir(self.filename.name):
-                full_path = os.path.join(self.filename.name, name)
+            for name in os.listdir(filename):
+                full_path = os.path.join(filename, name)
                 item = self.from_stat(full_path, session=self.session)
                 if item:
                     yield item
@@ -179,6 +217,7 @@ class FileInformation(utils.AttributeDict):
 
 
 class Permissions(object):
+
     """An object to represent permissions."""
     __metaclass__ = registry.UniqueObjectIdMetaclass
 
@@ -254,6 +293,8 @@ class AbstractIRCommandPlugin(plugin.TypedProfileCommand,
 
 
 
+FILE_SPEC_DISPATCHER = dict(API=FileInformation)
+
 def FileFactory(filename, session=None):
     """Return the correct FileInformation class from the filename.
 
@@ -261,13 +302,18 @@ def FileFactory(filename, session=None):
     also support NTFS files.
     """
     # Ensure this is a valid file spec.
-    filename = FileSpec(filename)
+    filespec = FileSpec(filename)
 
-    if filename.filesystem != "API":
-        raise RuntimeError("Unsupported file spec type %s" %
-                           filename.filesystem)
+    handler = FILE_SPEC_DISPATCHER.get(filespec.filesystem)
+    if handler:
+        try:
+            return handler.from_stat(filespec, session=session)
+        except (IOError, OSError):
 
-    return FileInformation.from_stat(filename, session=session)
+            return obj.NoneObject("Cant open %s", filespec)
+
+    raise RuntimeError("Unsupported file spec type %s" %
+                       filespec.filesystem)
 
 
 # Efilter Glue code.

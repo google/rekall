@@ -60,7 +60,8 @@ class Live(plugin.ProfileCommand):
             self.session.physical_address_space = load_as.GuessAddressSpace(
                 base_as=base_as)
 
-            self.session.SetParameter("session_name", "Live(/proc/kcore)")
+            with self.session:
+                self.session.SetParameter("session_name", "Live(/proc/kcore)")
 
         except IOError as e:
             self.session.logging.error("Unable to load physical memory: %s ", e)

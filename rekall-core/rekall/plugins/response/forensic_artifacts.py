@@ -46,6 +46,9 @@ class ArtifactResult(object):
         self.results = []
         self.fields = fields or []
 
+    def __iter__(self):
+        return iter(self.results)
+
     def add_result(self, **data):
         if data:
             self.results.append(data)
@@ -69,6 +72,7 @@ class _FieldDefinitionValidator(object):
     def _LoadFieldDefinitions(self, data):
         for field in self._field_definitions:
             name = field["name"]
+
             default = field.get("default")
             required_type = field.get("type")
 
@@ -199,7 +203,9 @@ class FileSourceType(SourceType):
         result = super(FileSourceType, self).apply(
             fields=self._FIELDS, result_type="file_information", **kwargs)
 
-        for hits in session.plugins.glob(self.paths).collect():
+        for hits in session.plugins.glob(
+                self.paths, path_sep=self.separator,
+                root=self.separator).collect():
             # Hits are FileInformation objects, and we just pick some of the
             # important fields to report.
             info = hits["path"]
@@ -226,6 +232,151 @@ class ArtifactGroupSourceType(SourceType):
             for result in collector.collect_artifact(name):
                 yield result
 
+class WMISourceType(SourceType):
+    _field_definitions = [
+        dict(name="query", type=basestring),
+        dict(name="fields", type=list, optional=True, default=[]),
+        dict(name="type_name", type=basestring, optional=True),
+        dict(name="supported_os", optional=True,
+             default=definitions.SUPPORTED_OS),
+    ]
+
+    fields = None
+
+    def _guess_returned_fields(self, sample):
+        result = []
+        for key, value in sample.iteritems():
+            field_type = type(value)
+            if field_type is int:
+                field_type = "int"
+            elif field_type is str:
+                field_type = "unicode"
+            else:
+                field_type = "unicode"
+
+            result.append(dict(name=key, type=field_type))
+        return result
+
+    def apply(self, session=None, **kwargs):
+        result = super(WMISourceType, self).apply(
+            result_type=self.type_name, **kwargs)
+        wmi = session.plugins.wmi(query=self.query)
+
+        # The wmi plugin may not exist on non-windows systems.
+        if wmi == None:
+            return
+
+        for collected in wmi.collect():
+            match = collected["Result"]
+            row = {}
+            # If the user did not specify the fields, we must
+            # deduce them from the first returns row.
+            if not self.fields:
+                result.fields = self.fields = self._guess_returned_fields(match)
+
+            for column in self.fields:
+                name = column["name"]
+                type = column["type"]
+                value = match.get(name)
+                if value is None:
+                    continue
+
+                row[name] = RekallEFilterArtifacts.allowed_types[
+                    type](value)
+
+            result.add_result(**row)
+
+        yield result
+
+
+class RegistryKeySourceType(SourceType):
+    _field_definitions = [
+        dict(name="keys", default=[]),
+        dict(name="supported_os", optional=True,
+             default=["Windows"]),
+    ]
+
+    _FIELDS = [
+        dict(name="st_mtime", type="unicode"),
+        dict(name="hive", type="unicode"),
+        dict(name="key_name", type="unicode"),
+        dict(name="value", type="str"),
+        dict(name="value_type", type="str"),
+    ]
+
+    def apply(self, session=None, **kwargs):
+        result = super(RegistryKeySourceType, self).apply(
+            fields=self._FIELDS, result_type="registry_key", **kwargs)
+
+        for hits in session.plugins.glob(
+                self.keys, path_sep="\\", filesystem="Reg",
+                root="\\").collect():
+            # Hits are FileInformation objects, and we just pick some of the
+            # important fields to report.
+            info = hits["path"]
+            row = {}
+            for field in self._FIELDS:
+                name = field["name"]
+                field_type = RekallEFilterArtifacts.allowed_types[field["type"]]
+                data = info.get(name)
+                if data is not None:
+                    row[name] = field_type(data)
+
+            result.add_result(**row)
+
+        yield result
+
+
+class RegistryValueSourceType(SourceType):
+    def CheckKeyValuePairs(self, source):
+        key_value_pairs = source["key_value_pairs"]
+        for pair in key_value_pairs:
+            if (not isinstance(pair, dict) or "key" not in pair or
+                "value" not in pair):
+                raise errors.FormatError(
+                    u"key_value_pairs should consist of dicts with key and "
+                    "value items.")
+
+        return key_value_pairs
+
+    _field_definitions = [
+        dict(name="key_value_pairs", default=[],
+             checker=CheckKeyValuePairs),
+        dict(name="supported_os", optional=True,
+             default=["Windows"]),
+    ]
+
+    _FIELDS = [
+        dict(name="st_mtime", type="unicode"),
+        dict(name="hive", type="unicode"),
+        dict(name="key_name", type="unicode"),
+        dict(name="value_name", type="unicode"),
+        dict(name="value_type", type="str"),
+        dict(name="value", type="str"),
+    ]
+
+    def apply(self, session=None, **kwargs):
+        result = super(RegistryValueSourceType, self).apply(
+            fields=self._FIELDS, result_type="registry_value", **kwargs)
+        globs = [u"%s\\%s" % (x["key"], x["value"])
+                 for x in self.key_value_pairs]
+
+        for hits in session.plugins.glob(
+                globs, path_sep="\\", filesystem="Reg",
+                root="\\").collect():
+            info = hits["path"]
+            row = {}
+            for field in self._FIELDS:
+                name = field["name"]
+                field_type = RekallEFilterArtifacts.allowed_types[field["type"]]
+                data = info.get(name)
+                if data is not None:
+                    row[name] = field_type(data)
+
+            result.add_result(**row)
+
+        yield result
+
 
 # This lookup table maps between source type name and concrete implementations
 # that we support. Artifacts which contain sources which are not implemented
@@ -234,6 +385,9 @@ SOURCE_TYPES = {
     TYPE_INDICATOR_REKALL: RekallEFilterArtifacts,
     definitions.TYPE_INDICATOR_FILE: FileSourceType,
     definitions.TYPE_INDICATOR_ARTIFACT_GROUP: ArtifactGroupSourceType,
+    definitions.TYPE_INDICATOR_WMI_QUERY: WMISourceType,
+    definitions.TYPE_INDICATOR_WINDOWS_REGISTRY_KEY: RegistryKeySourceType,
+    definitions.TYPE_INDICATOR_WINDOWS_REGISTRY_VALUE: RegistryValueSourceType,
 }
 
 
@@ -440,7 +594,12 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
 
         self.seen.add(artifact_name)
 
-        definition = self.artifact_profile.GetDefinitionByName(artifact_name)
+        try:
+            definition = self.artifact_profile.GetDefinitionByName(
+                artifact_name)
+        except KeyError:
+            self.session.logging.error("Unknown artifact %s" % artifact_name)
+            return
 
         # This artifact is not for us.
         if self.supported_os not in definition.supported_os:

@@ -38,6 +38,7 @@ import win32service
 
 from rekall import resources
 from rekall import plugin
+from rekall import obj
 from rekall.plugins.addrspaces import win32
 
 
@@ -165,6 +166,7 @@ class Live(plugin.TypedProfileCommand,
             raise plugin.PluginError(*e.args)
 
     def live(self):
+        phys_as = obj.NoneObject("Unable to access physical memory")
         try:
             phys_as = win32.WinPmemAddressSpace(
                 session=self.session, filename=self.plugin_args.device)
@@ -172,14 +174,19 @@ class Live(plugin.TypedProfileCommand,
             self.session.logging.debug("%s", e)
             errno = self.parse_exception(e)
             if errno == 5:   # Access Denied.
-                raise plugin.PluginError(
+                self.session.logging.error(
                     "%s. Are you running as Administrator?" % e)
 
             elif errno == 2: # File not found
-                phys_as = self.load_driver()
+                try:
+                    phys_as = self.load_driver()
+                except plugin.PluginError:
+                    self.session.logging.error(
+                        "Unable to load driver: %s." % e)
 
             else:
-                raise plugin.PluginError("%s" % e)
+                self.session.logging.error(
+                    "Unable to access physical memory: %s." % e)
 
         self.session.physical_address_space = phys_as
         self.session.GetParameter("live", True)

@@ -21,15 +21,20 @@
 Globs and Artifacts may expand interpolations from the KnowledgeBase. This
 module provides a live, on demand, KnowledgeBase.
 """
-
+import os
+import re
 import platform
 
+from rekall import kb
 from rekall import registry
 
 
 class KnowledgeBase(object):
 
-    def expand(self, _):
+    def __init__(self, session):
+        self.session = session
+
+    def expand(self, variable):
         return []
 
 
@@ -51,7 +56,52 @@ class LinuxKnowledgeBase(KnowledgeBase):
         return []
 
 
-if platform.system() == "Linux":
-    KnowledgeBase = LinuxKnowledgeBase
+class WindowsKnowledgeBase(KnowledgeBase):
+    @registry.memoize
+    def _get_sids(self):
+        result = []
+        for hit in self.session.plugins.glob(
+                "HKEY_USERS\*", filesystem="Reg", root="\\",
+                path_sep="\\").collect():
+            path = hit["path"]
+            m = re.search(
+                "(S-(\d+-)+\d+)$", path.filename.name or "", re.I)
+            if m:
+                result.append(m.group(1))
 
-KB = KnowledgeBase()
+        return result
+
+    @registry.memoize
+    def _get_homedirs(self):
+        """On windows the homedirs are the paths of the user's profile."""
+        result = []
+        for artifact_hit in self.session.plugins.artifact_collector(
+                "WindowsRegistryProfiles"):
+            for hit_result in artifact_hit.get("result", []):
+                profile_path = hit_result.get("value")
+                if profile_path:
+                    result.append(profile_path)
+
+        return result
+
+    def expand(self, variable):
+        if variable == "%%users.sid%%":
+            return self._get_sids()
+
+        if variable == "%%users.homedir%%":
+            return self._get_homedirs()
+
+        if variable == "%%environ_systemroot%%":
+            return [os.environ["systemroot"]]
+
+        return []
+
+
+class KnowledgeBaseHook(kb.ParameterHook):
+    name = "knowledge_base"
+
+    def calculate(self):
+        if platform.system() == "Linux":
+            return LinuxKnowledgeBase(self.session)
+        elif platform.system() == "Windows":
+            return WindowsKnowledgeBase(self.session)

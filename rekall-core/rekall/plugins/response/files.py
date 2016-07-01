@@ -26,6 +26,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import fnmatch
 import hashlib
 import itertools
+import platform
 import re
 import os
 
@@ -114,16 +115,25 @@ class IRHash(common.AbstractIRCommandPlugin):
 
 
 class Component(object):
-    def __init__(self, session, component):
+    def __init__(self, session, component, cache):
         self.session = session
         self.component = component
-        self.component_cache = self.session.GetParameter("component_cache")
+        self.component_cache = cache
 
     def _build_cache(self, file_info):
+        """Builds a case corrected cache of filenames.
+
+        keys are lower cased filenames within the directory file_info. Values
+        are lists of files with those lower cased filenames with the correct
+        casing.
+
+        """
         cache = {}
         # Cache not populated
         for child in file_info.list():
-            basename = os.path.basename(child.filename.name).lower()
+            basename = os.path.basename(
+                child.filename.name.rstrip(
+                    child.filename.path_sep)).lower()
             cache.setdefault(basename, []).append(child)
 
         self.component_cache.Put(file_info.filename.name, cache)
@@ -141,7 +151,24 @@ class Component(object):
 
 class LiteralComponent(Component):
 
+    def case_insensitive_filesystem(self):
+        if platform.system() == "Windows":
+            return True
+
+        return False
+
     def filter(self, file_info):
+        # For case insensitive filesystems we can just try to open the
+        # component.
+        if self.case_insensitive_filesystem():
+            result = common.FileFactory(
+                file_info.filename.add(self.component),
+                session=self.session)
+            if result:
+                return [result]
+
+            return []
+
         key = self.component.lower()
         try:
             cache = self.component_cache.Get(file_info.filename.name)
@@ -157,21 +184,15 @@ class RegexComponent(Component):
         self.component_re = re.compile(self.component, re.I)
 
     def filter(self, file_info):
-        try:
-            cache = self.component_cache.Get(file_info.filename.name)
-        except KeyError:
-            cache = self._build_cache(file_info)
-
-        for child_groups in cache.itervalues():
-            for child in child_groups:
-                basename = os.path.basename(child.filename.name).lower()
-                if self.component_re.match(basename):
-                    yield child
+        for child in file_info.list():
+            basename = os.path.basename(child.filename.name)
+            if self.component_re.match(basename, re.I):
+                yield child
 
 
 class RecursiveComponent(RegexComponent):
-    def __init__(self, session, component, depth):
-        super(RecursiveComponent, self).__init__(session, component)
+    def __init__(self, session, component, cache, depth):
+        super(RecursiveComponent, self).__init__(session, component, cache)
         self.depth = depth
 
     def filter(self, file_info, depth=0):
@@ -198,11 +219,17 @@ class IRGlob(common.AbstractIRCommandPlugin):
     __args = [
         dict(name="globs", positional=True, type="ArrayString",
              help="List of globs to return."),
-        dict(name="root", default="/",
+        dict(name="root",
              help="Root directory to glob from."),
         dict(name="case_insensitive", default=True, type="Bool",
              help="Globs will be case insensitive."),
-
+        dict(name="path_sep",
+             # Default path seperator is platform dependent.
+             default="\\" if platform.system() == "Windows" else "/",
+             help="Path separator character (/ or \\)"),
+        dict(name="filesystem", choices=common.FILE_SPEC_DISPATCHER,
+             type="Choices", default="API",
+             help="The virtual filesystem implementation to glob in.")
     ]
 
     table_header = [
@@ -220,6 +247,13 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
     # A regex indicating if there are shell globs in this path.
     GLOB_MAGIC_CHECK = re.compile("[*?[]")
+
+    def __init__(self, *args, **kwargs):
+        super(IRGlob, self).__init__(*args, **kwargs)
+
+        # By default use the root of the filesystem.
+        if self.plugin_args.root is None:
+            self.plugin_args.root = self.plugin_args.path_sep
 
     def _interpolate_grouping(self, pattern):
         # Take the pattern and split it into components around grouping
@@ -242,7 +276,11 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
             # KnowledgeBase interpolation.
             elif match_str.startswith("%"):
-                alternatives = interpolators.KB.expand(match_str)
+                components.append([pattern[offset:match.start()]])
+
+                kb = self.session.GetParameter("knowledge_base")
+                alternatives = kb.expand(match_str)
+
                 components.append(set(alternatives))
                 offset = match.end()
 
@@ -287,7 +325,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
         """
         components = []
-        for path_component in pattern.split("/"):
+        for path_component in pattern.split(self.plugin_args.path_sep):
             if not path_component:
                 continue
 
@@ -305,15 +343,20 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
                 component = RecursiveComponent(
                     self.session,
-                    fnmatch.translate(path_component), depth=depth)
+                    fnmatch.translate(path_component),
+                    self.component_cache,
+                    depth=depth)
 
             elif self.GLOB_MAGIC_CHECK.search(path_component):
                 component = RegexComponent(
-                    self.session, fnmatch.translate(path_component))
+                    self.session,
+                    fnmatch.translate(path_component),
+                    self.component_cache)
 
             else:
                 component = LiteralComponent(
-                    self.session, path_component)
+                    self.session, path_component,
+                    self.component_cache)
 
             components.append(component)
 
@@ -333,6 +376,11 @@ class IRGlob(common.AbstractIRCommandPlugin):
                         yield item
 
     def collect_globs(self, globs):
+        root_spec = common.FileSpec(
+            self.plugin_args.root,
+            filesystem=self.plugin_args.filesystem,
+            path_sep=self.plugin_args.path_sep)
+
         expanded_globs = []
         for glob in globs:
             expanded_globs.extend(self._interpolate_grouping(glob))
@@ -343,19 +391,77 @@ class IRGlob(common.AbstractIRCommandPlugin):
             for component in self.convert_glob_into_path_components(glob):
                 node = node.setdefault(component, {})
 
-        root = common.FileFactory(self.plugin_args.root, session=self.session)
-        for item in self._filter(component_tree, root):
+        root_file = common.FileFactory(root_spec, session=self.session)
+        for item in self._filter(component_tree, root_file):
             yield item
 
     def collect(self):
+        self.component_cache = utils.FastStore(50)
         for x in self.collect_globs(self.plugin_args.globs):
             yield dict(path=x)
 
 
-class ComponentCacheParameterHook(kb.ParameterHook):
-    name = "component_cache"
+def print_component_tree(tree, depth=""):
+    """This is used for debugging the component_tree."""
+    if not tree:
+        return
 
-    volatile = True
+    for k, v in tree.iteritems():
+        print "%s %s:" % (depth, k)
+        print_component_tree(v, depth + " ")
 
-    def calculate(self):
-        return utils.FastStore(50)
+
+
+class IRDump(IRGlob):
+    """Hexdump files from disk."""
+
+    name = "hexdump_file"
+
+    __args = [
+        dict(name="start", type="IntParser", default=0,
+             help="An offset to hexdump."),
+
+        dict(name="length", type="IntParser", default=100,
+             help="Maximum length to dump."),
+
+        dict(name="width", type="IntParser", default=24,
+             help="Number of bytes per row"),
+
+        dict(name="rows", type="IntParser", default=4,
+             help="Number of bytes per row"),
+    ]
+
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="FileSpec", hidden=True),
+        dict(name="Offset", cname="offset", style="address"),
+        dict(name="Data", cname="hexdump", width=65),
+    ]
+
+    def collect(self):
+        for hit in super(IRDump, self).collect():
+            path = hit.get("path")
+            if path:
+                fd = path.open()
+                if fd:
+                    yield dict(divider=path.filename)
+
+                    to_read = min(
+                        self.plugin_args.length,
+                        self.plugin_args.width * self.plugin_args.rows)
+                    for offset in utils.xrange(
+                            self.plugin_args.start,
+                            self.plugin_args.start + to_read,
+                            self.plugin_args.width):
+
+                        fd.seek(offset)
+                        data = fd.read(self.plugin_args.width)
+                        if not data:
+                            break
+
+                        yield dict(
+                            offset=offset,
+                            FileSpec=path.filename,
+                            hexdump=utils.HexDumpedString(data),
+                            nowrap=True,
+                            hex_width=self.plugin_args.width)
