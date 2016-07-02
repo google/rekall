@@ -542,7 +542,20 @@ http://lxr.free-electrons.com/source/include/linux/socket.h#L140
         "seq": [0, ["seqcount"]],
         "timekeeper": [8, ["timekeeper"]],
         }],
-    }
+
+    "neigh_hash_table": [None, {
+        "hash_buckets": [None, ["Pointer", dict(
+            target="Array",
+            target_args=dict(
+                count=lambda x: 1 << x.hash_shift,
+                target="Pointer",
+                target_args=dict(
+                    target="neighbour",
+                ),
+            )
+        )]],
+    }],
+}
 
 
 class list_head(basic.ListMixIn, obj.Struct):
