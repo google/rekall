@@ -71,7 +71,7 @@ class Arp(common.LinuxPlugin):
 
     def get_handle_tables(self):
         # In earlier Linux neigh_table is a linked list.
-        if self.session.profile.neigh_table().m("next"):
+        if self.session.profile.neigh_table().m("next") != None:
             tables = self.profile.get_constant_object(
                 "neigh_tables",
                 target="Pointer",
