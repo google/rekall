@@ -696,7 +696,7 @@ Automating Rekall
 One of our main design goals is the automation of Rekall so it can be used from
 external programs easily, as well as making it easier to write custom scripts.
 
-This section demonstrates how to automate the framework, both by embedding it a
+This section demonstrates how to automate the framework, both by embedding it
 completely inside another application, as well as simply automating the analysis
 from rekall itself.
 
@@ -732,21 +732,22 @@ Render the plugin into the renderer::
 -----------------------------------------------------------------------------
 import logging
 
-from rekall import session
-from rekall import plugins                           # <1>
-
 # Setup logging as required. Rekall will log to the standard logging service.
 logging.basicConfig(level=logging.DEBUG)
+
+from rekall import session
+from rekall import plugins                           # <1>
 
 s = session.Session(                                 # <2>
   filename="win7.elf",
   autodetect=["rsds"],
   logger=logging.getLogger(),
+  autodetect_scan_length=18446744073709551616,       # <3>
   profile_path=[
      "http://profiles.rekall-forensic.com"
   ])
 
-print s.plugins.pslist(method="PsActiveProcessHead") # <3>
+print s.plugins.pslist(method="PsActiveProcessHead") # <4>
 
 -----------------------------------------------------------------------------
 
@@ -757,8 +758,102 @@ print s.plugins.pslist(method="PsActiveProcessHead") # <3>
     therefore you will need to provide a valid repository address here. If you
     plan to use autodetection (you should) here is where the relevant methods
     should be specified.
-<3> The plugin is instantiated from the session object. When a plugin instance
+<3> Rekall will only scan some of the image for RSDS signatures, setting this
+    limit ensures that we dont waste too much time trying to load an image we
+    cant.
+<4> The plugin is instantiated from the session object. When a plugin instance
     is printed, it renders its output to the console by default.
+
+
+Alternatively one can manually render the plugin output. Suppose you want to
+capture the output of the plugin into a string for further processing:
+
+[source,python,numbered]
+-----------------------------------------------------------------------------
+import logging
+import StringIO
+
+# Setup logging as required. Rekall will log to the standard logging service.
+logging.basicConfig(level=logging.DEBUG)
+
+from rekall import session
+from rekall import plugins
+
+from rekall.ui import text
+
+s = session.Session(
+  filename="win7.elf",
+  autodetect=["rsds"],
+  logger=logging.getLogger(),
+  autodetect_scan_length=18446744073709551616,
+  profile_path=[
+     "http://profiles.rekall-forensic.com"
+  ])
+
+fd = StringIO.StringIO()
+renderer = text.TextRenderer(session=s, fd=fd)   # <1>
+
+with renderer.start():                           # <2>
+    plugin = s.plugins.pslist()                  # <3>
+    if plugin != None:
+        plugin.render(renderer)                  # <4>
+
+print fd.getvalue()
+-----------------------------------------------------------------------------
+<1> Create a custom renderer using any of the renderers provided by Rekall
+    (e.g. TextRenderer, DataExportRenderer).
+<2> Start the renderer to receive new input.
+<3> Instantiate the plugin object. This does not actually run the plugin but
+    will verify all the arguments are correct. If the plugin is not active for
+    this profile (i.e. it is not supported for this image) this will return a
+    NoneObject which can be compared to None.
+<4> Rendering the plugin into the renderer will cause the renderer to collect
+    output into its file like object. In this case we use a StringIO (memory
+    stream) to collect output. Finally we can access the complete content as a
+    string.
+
+Receiving structured output.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most plugins will now return structured output. You can see exactly what will be
+returned using the `describe` plugin (See
+http://rekall-forensic.blogspot.ch/2016/07/searching-memory-with-rekall.html for
+details).
+
+In order to receive structured output you do not need a renderer, simply call the `collect()` method.
+
+
+[source,python,numbered]
+-----------------------------------------------------------------------------
+import logging
+
+# Setup logging as required. Rekall will log to the standard logging service.
+logging.basicConfig(level=logging.DEBUG)
+
+from rekall import session
+from rekall import plugins
+
+s = session.Session(
+  filename="win7.elf",
+  autodetect=["rsds"],
+  logger=logging.getLogger(),
+  autodetect_scan_length=18446744073709551616,
+  profile_path=[
+     "http://profiles.rekall-forensic.com"
+  ])
+
+for row in s.plugins.pslist().collect():   # <1>
+    print "%s, %s, %s" % (
+        row["_EPROCESS"].name,             # <2>
+        row["_EPROCESS"].pid,
+        row["process_create_time"])
+-----------------------------------------------------------------------------
+
+<1> Instantiating the plugin object allows us to call its collect() method. This
+    returns a dict or a tuple of its results.
+
+<2> It is possible to use the results directly now by printing it, storing to
+    file etc.
 
 
 Example: Using a custom address space
@@ -778,7 +873,9 @@ file-like object (For this example we directly open the file).
 import logging
 
 # Setup logging as required. Rekall will log to the standard logging service or
-# to a provided logger.
+# to a provided logger. NOTE: basicConfig must be called before importing any
+# other modules! If any dependency sets up the logging system this call will be
+# ignored!
 logging.basicConfig(level=logging.DEBUG)
 
 from rekall import plugins
@@ -788,6 +885,7 @@ from rekall.plugins.addrspaces import standard
 s = session.Session(                                      # <1>
     autodetect=["rsds"],
     logger=logging.getLogger(),
+    autodetect_scan_length=18446744073709551616,
     profile_path=[
         "http://profiles.rekall-forensic.com"
     ])

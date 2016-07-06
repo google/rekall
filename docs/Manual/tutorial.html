@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -179,17 +181,19 @@ ript>
             Plugins
           </a>
         </li>
-        <li>
-          <a href='#Rekall Overview' class="category-link">
-            Rekall Overview
-          </a>
-        </li>
-        <li class='active'>
-          <a href='#Rekall Tutorial' class="category-link">
-            Rekall Tutorial
-          </a>
-        </li>
-        </ul></ul>
+        
+    <li class=''>
+      <a href='/docs/Manual/overview.html' class="category-link">
+        Rekall Overview
+      </a>
+    </li>
+    
+    <li class='active'>
+      <a href='/docs/Manual/tutorial.html' class="category-link">
+        Rekall Tutorial
+      </a>
+    </li>
+    </ul></ul>
   </div>
 
   <div class="col-md-10">
@@ -1142,7 +1146,7 @@ file is also not considered user viewable and should not be edited manually.</td
 <div class="sectionbody">
 <div class="paragraph"><p>One of our main design goals is the automation of Rekall so it can be used from
 external programs easily, as well as making it easier to write custom scripts.</p></div>
-<div class="paragraph"><p>This section demonstrates how to automate the framework, both by embedding it a
+<div class="paragraph"><p>This section demonstrates how to automate the framework, both by embedding it
 completely inside another application, as well as simply automating the analysis
 from rekall itself.</p></div>
 <div class="sect2">
@@ -1199,17 +1203,17 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> logging
 <span style="color: #000000">    2:</span>
-<span style="color: #000000">    3:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
-<span style="color: #000000">    4:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins                           <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+<span style="color: #000000">    3:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service.</span></span>
+<span style="color: #000000">    4:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
+<span style="color: #000000">    5:</span>
+<span style="color: #000000">    6:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">    7:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins                           <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
 YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
 dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
 ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">    5:</span>
-<span style="color: #000000">    6:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service.</span></span>
-<span style="color: #000000">    7:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
 <span style="color: #000000">    8:</span>
 <span style="color: #000000">    9:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                                 <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
@@ -1222,11 +1226,7 @@ AAAASUVORK5CYII=" /></span></span>
 <span style="color: #000000">   10:</span>   filename<span style="color: #990000">=</span><span style="color: #FF0000">"win7.elf"</span><span style="color: #990000">,</span>
 <span style="color: #000000">   11:</span>   autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
 <span style="color: #000000">   12:</span>   logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
-<span style="color: #000000">   13:</span>   profile_path<span style="color: #990000">=[</span>
-<span style="color: #000000">   14:</span> <span style="font-style: italic"><span style="color: #9A1900">     "http://profiles.rekall-forensic.com"</span></span>
-<span style="color: #000000">   15:</span>   <span style="color: #990000">])</span>
-<span style="color: #000000">   16:</span>
-<span style="color: #000000">   17:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
+<span style="color: #000000">   13:</span>   autodetect_scan_length<span style="color: #990000">=</span><span style="color: #993399">18446744073709551616</span><span style="color: #990000">,</span>       <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
 JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
 7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
@@ -1234,7 +1234,19 @@ Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
 cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
 NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
 SUVORK5CYII=" /></span></span>
-<span style="color: #000000">   18:</span> </tt></pre></div></div>
+<span style="color: #000000">   14:</span>   profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   15:</span> <span style="font-style: italic"><span style="color: #9A1900">     "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   16:</span>   <span style="color: #990000">])</span>
+<span style="color: #000000">   17:</span>
+<span style="color: #000000">   18:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span> <span style="font-style: italic"><span style="color: #9A1900"># <img alt="4" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
+HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
+ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
+6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
+QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
+YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
+QmCC" /></span></span>
+<span style="color: #000000">   19:</span> </tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1265,13 +1277,200 @@ Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
 cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
 NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
 SUVORK5CYII=" /></td><td>
+Rekall will only scan some of the image for RSDS signatures, setting this
+    limit ensures that we dont waste too much time trying to load an image we
+    cant.
+</td></tr>
+<tr><td><img alt="4" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
+HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
+ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
+6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
+QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
+YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
+QmCC" /></td><td>
 The plugin is instantiated from the session object. When a plugin instance
     is printed, it renders its output to the console by default.
 </td></tr>
 </table></div>
+<div class="paragraph"><p>Alternatively one can manually render the plugin output. Suppose you want to
+capture the output of the plugin into a string for further processing:</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> logging
+<span style="color: #000000">    2:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> StringIO
+<span style="color: #000000">    3:</span>
+<span style="color: #000000">    4:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service.</span></span>
+<span style="color: #000000">    5:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
+<span style="color: #000000">    6:</span>
+<span style="color: #000000">    7:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">    8:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
+<span style="color: #000000">    9:</span>
+<span style="color: #000000">   10:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>ui <span style="font-weight: bold"><span style="color: #000080">import</span></span> text
+<span style="color: #000000">   11:</span>
+<span style="color: #000000">   12:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>
+<span style="color: #000000">   13:</span>   filename<span style="color: #990000">=</span><span style="color: #FF0000">"win7.elf"</span><span style="color: #990000">,</span>
+<span style="color: #000000">   14:</span>   autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
+<span style="color: #000000">   15:</span>   logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
+<span style="color: #000000">   16:</span>   autodetect_scan_length<span style="color: #990000">=</span><span style="color: #993399">18446744073709551616</span><span style="color: #990000">,</span>
+<span style="color: #000000">   17:</span>   profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   18:</span> <span style="font-style: italic"><span style="color: #9A1900">     "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   19:</span>   <span style="color: #990000">])</span>
+<span style="color: #000000">   20:</span>
+<span style="color: #000000">   21:</span> fd <span style="color: #990000">=</span> StringIO<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">StringIO</span></span><span style="color: #990000">()</span>
+<span style="color: #000000">   22:</span> renderer <span style="color: #990000">=</span> text<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">TextRenderer</span></span><span style="color: #990000">(</span>session<span style="color: #990000">=</span>s<span style="color: #990000">,</span> fd<span style="color: #990000">=</span>fd<span style="color: #990000">)</span>   <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">   23:</span>
+<span style="color: #000000">   24:</span> with renderer<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">start</span></span><span style="color: #990000">():</span>                           <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">   25:</span>     plugin <span style="color: #990000">=</span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">()</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img alt="3" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
+JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
+7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
+Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
+cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
+NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
+SUVORK5CYII=" /></span></span>
+<span style="color: #000000">   26:</span>     <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> plugin <span style="color: #990000">!=</span> None<span style="color: #990000">:</span>
+<span style="color: #000000">   27:</span>         plugin<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">render</span></span><span style="color: #990000">(</span>renderer<span style="color: #990000">)</span>                  <span style="font-style: italic"><span style="color: #9A1900"># <img alt="4" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
+HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
+ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
+6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
+QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
+YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
+QmCC" /></span></span>
+<span style="color: #000000">   28:</span>
+<span style="color: #000000">   29:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> fd<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getvalue</span></span><span style="color: #990000">()</span></tt></pre></div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+Create a custom renderer using any of the renderers provided by Rekall
+    (e.g. TextRenderer, DataExportRenderer).
+</td></tr>
+<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></td><td>
+Start the renderer to receive new input.
+</td></tr>
+<tr><td><img alt="3" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
+JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
+7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
+Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
+cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
+NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
+SUVORK5CYII=" /></td><td>
+Instantiate the plugin object. This does not actually run the plugin but
+    will verify all the arguments are correct. If the plugin is not active for
+    this profile (i.e. it is not supported for this image) this will return a
+    NoneObject which can be compared to None.
+</td></tr>
+<tr><td><img alt="4" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
+HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
+ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
+6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
+QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
+YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
+QmCC" /></td><td>
+Rendering the plugin into the renderer will cause the renderer to collect
+    output into its file like object. In this case we use a StringIO (memory
+    stream) to collect output. Finally we can access the complete content as a
+    string.
+</td></tr>
+</table></div>
 </div>
 <div class="sect2">
-<h3 id="_example_using_a_custom_address_space">5.2. Example: Using a custom address space</h3>
+<h3 id="_receiving_structured_output">5.2. Receiving structured output.</h3>
+<div class="paragraph"><p>Most plugins will now return structured output. You can see exactly what will be
+returned using the <code>describe</code> plugin (See
+<a href="http://rekall-forensic.blogspot.ch/2016/07/searching-memory-with-rekall.html">http://rekall-forensic.blogspot.ch/2016/07/searching-memory-with-rekall.html</a> for
+details).</p></div>
+<div class="paragraph"><p>In order to receive structured output you do not need a renderer, simply call the <code>collect()</code> method.</p></div>
+<div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.6
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> logging
+<span style="color: #000000">    2:</span>
+<span style="color: #000000">    3:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service.</span></span>
+<span style="color: #000000">    4:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
+<span style="color: #000000">    5:</span>
+<span style="color: #000000">    6:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">    7:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
+<span style="color: #000000">    8:</span>
+<span style="color: #000000">    9:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>
+<span style="color: #000000">   10:</span>   filename<span style="color: #990000">=</span><span style="color: #FF0000">"win7.elf"</span><span style="color: #990000">,</span>
+<span style="color: #000000">   11:</span>   autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
+<span style="color: #000000">   12:</span>   logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
+<span style="color: #000000">   13:</span>   autodetect_scan_length<span style="color: #990000">=</span><span style="color: #993399">18446744073709551616</span><span style="color: #990000">,</span>
+<span style="color: #000000">   14:</span>   profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   15:</span> <span style="font-style: italic"><span style="color: #9A1900">     "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   16:</span>   <span style="color: #990000">])</span>
+<span style="color: #000000">   17:</span>
+<span style="color: #000000">   18:</span> <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> row <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">().</span><span style="font-weight: bold"><span style="color: #000000">collect</span></span><span style="color: #990000">():</span>   <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">   19:</span>     <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> <span style="color: #FF0000">"%s, %s, %s"</span> <span style="color: #990000">%</span> <span style="color: #990000">(</span>
+<span style="color: #000000">   20:</span>         row<span style="color: #990000">[</span><span style="color: #FF0000">"_EPROCESS"</span><span style="color: #990000">].</span>name<span style="color: #990000">,</span>             <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></span></span>
+<span style="color: #000000">   21:</span>         row<span style="color: #990000">[</span><span style="color: #FF0000">"_EPROCESS"</span><span style="color: #990000">].</span>pid<span style="color: #990000">,</span>
+<span style="color: #000000">   22:</span>         row<span style="color: #990000">[</span><span style="color: #FF0000">"process_create_time"</span><span style="color: #990000">])</span></tt></pre></div></div>
+<div class="colist arabic"><table>
+<tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
+VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
+gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
+YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
+dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
+ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></td><td>
+Instantiating the plugin object allows us to call its collect() method. This
+    returns a dict or a tuple of its results.
+</td></tr>
+<tr><td><img alt="2" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
+HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
+Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
+izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
+MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
+MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
+AAAASUVORK5CYII=" /></td><td>
+It is possible to use the results directly now by printing it, storing to
+    file etc.
+</td></tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_example_using_a_custom_address_space">5.3. Example: Using a custom address space</h3>
 <div class="paragraph"><p>Sometimes the image files to be analyzed are not directly written to disk. For
 example, they may be available as a python file-like object. In this case we
 want to provide this "virtual image" to Rekall for analysis, but wrapping it in
@@ -1287,27 +1486,30 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="color: #000000">    1:</span> <span style="font-weight: bold"><span style="color: #000080">import</span></span> logging
 <span style="color: #000000">    2:</span>
 <span style="color: #000000">    3:</span> <span style="font-style: italic"><span style="color: #9A1900"># Setup logging as required. Rekall will log to the standard logging service or</span></span>
-<span style="color: #000000">    4:</span> <span style="font-style: italic"><span style="color: #9A1900"># to a provided logger.</span></span>
-<span style="color: #000000">    5:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
-<span style="color: #000000">    6:</span>
-<span style="color: #000000">    7:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
-<span style="color: #000000">    8:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
-<span style="color: #000000">    9:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span>addrspaces <span style="font-weight: bold"><span style="color: #000080">import</span></span> standard
-<span style="color: #000000">   10:</span>
-<span style="color: #000000">   11:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                                      <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
+<span style="color: #000000">    4:</span> <span style="font-style: italic"><span style="color: #9A1900"># to a provided logger. NOTE: basicConfig must be called before importing any</span></span>
+<span style="color: #000000">    5:</span> <span style="font-style: italic"><span style="color: #9A1900"># other modules! If any dependency sets up the logging system this call will be</span></span>
+<span style="color: #000000">    6:</span> <span style="font-style: italic"><span style="color: #9A1900"># ignored!</span></span>
+<span style="color: #000000">    7:</span> logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">basicConfig</span></span><span style="color: #990000">(</span>level<span style="color: #990000">=</span>logging<span style="color: #990000">.</span>DEBUG<span style="color: #990000">)</span>
+<span style="color: #000000">    8:</span>
+<span style="color: #000000">    9:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> plugins
+<span style="color: #000000">   10:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall <span style="font-weight: bold"><span style="color: #000080">import</span></span> session
+<span style="color: #000000">   11:</span> <span style="font-weight: bold"><span style="color: #000080">from</span></span> rekall<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span>addrspaces <span style="font-weight: bold"><span style="color: #000080">import</span></span> standard
+<span style="color: #000000">   12:</span>
+<span style="color: #000000">   13:</span> s <span style="color: #990000">=</span> session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">Session</span></span><span style="color: #990000">(</span>                                      <span style="font-style: italic"><span style="color: #9A1900"># <img alt="1" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
 gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
 YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
 dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
 ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">   12:</span>     autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
-<span style="color: #000000">   13:</span>     logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
-<span style="color: #000000">   14:</span>     profile_path<span style="color: #990000">=[</span>
-<span style="color: #000000">   15:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
-<span style="color: #000000">   16:</span>     <span style="color: #990000">])</span>
-<span style="color: #000000">   17:</span>
-<span style="color: #000000">   18:</span> s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>       <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
+<span style="color: #000000">   14:</span>     autodetect<span style="color: #990000">=[</span><span style="color: #FF0000">"rsds"</span><span style="color: #990000">],</span>
+<span style="color: #000000">   15:</span>     logger<span style="color: #990000">=</span>logging<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">getLogger</span></span><span style="color: #990000">(),</span>
+<span style="color: #000000">   16:</span>     autodetect_scan_length<span style="color: #990000">=</span><span style="color: #993399">18446744073709551616</span><span style="color: #990000">,</span>
+<span style="color: #000000">   17:</span>     profile_path<span style="color: #990000">=[</span>
+<span style="color: #000000">   18:</span> <span style="font-style: italic"><span style="color: #9A1900">        "http://profiles.rekall-forensic.com"</span></span>
+<span style="color: #000000">   19:</span>     <span style="color: #990000">])</span>
+<span style="color: #000000">   20:</span>
+<span style="color: #000000">   21:</span> s<span style="color: #990000">.</span>physical_address_space <span style="color: #990000">=</span> standard<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">FDAddressSpace</span></span><span style="color: #990000">(</span>       <span style="font-style: italic"><span style="color: #9A1900"># <img alt="2" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
 HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
 Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
@@ -1315,12 +1517,12 @@ izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
 MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
 MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
 AAAASUVORK5CYII=" /></span></span>
-<span style="color: #000000">   19:</span>     fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
-<span style="color: #000000">   20:</span>        <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span>
-<span style="color: #000000">   21:</span>     session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
-<span style="color: #000000">   22:</span>
-<span style="color: #000000">   23:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
-<span style="color: #000000">   24:</span> </tt></pre></div></div>
+<span style="color: #000000">   22:</span>     fhandle<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">open</span></span><span style="color: #990000">(</span>
+<span style="color: #000000">   23:</span>        <span style="color: #FF0000">"/home/scudette/images/win7x86.raw"</span><span style="color: #990000">),</span>
+<span style="color: #000000">   24:</span>     session<span style="color: #990000">=</span>s<span style="color: #990000">)</span>
+<span style="color: #000000">   25:</span>
+<span style="color: #000000">   26:</span> <span style="font-weight: bold"><span style="color: #0000FF">print</span></span> s<span style="color: #990000">.</span>plugins<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">pslist</span></span><span style="color: #990000">(</span>method<span style="color: #990000">=</span><span style="color: #FF0000">"PsActiveProcessHead"</span><span style="color: #990000">)</span>
+<span style="color: #000000">   27:</span> </tt></pre></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1343,7 +1545,7 @@ We can directly add the FDAddressSpace() as the physical address space to
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_example_automating_the_rekall_console">5.3. Example: Automating the Rekall Console</h3>
+<h3 id="_example_automating_the_rekall_console">5.4. Example: Automating the Rekall Console</h3>
 <div class="paragraph"><p>Much of the time the Rekall interactive interface is sufficient for most
 analysis. Sometimes, however, we need to automate some of this
 analysis.</p></div>
@@ -1473,7 +1675,7 @@ function as <em>pslist()</em>.</p></div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_extending_rekall">5.4. Extending Rekall</h3>
+<h3 id="_extending_rekall">5.5. Extending Rekall</h3>
 <div class="paragraph"><p>Extending Rekall is most useful when you want to add additional functionality
 which should be reused by other people, or contributed to the core. If you are
 just interested in automating a very specific analysis, an interactive shell
@@ -1529,7 +1731,7 @@ Plugins
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-01-31 17:12:40 CET
+Last updated 2016-07-06 10:39:50 PDT
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

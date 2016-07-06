@@ -278,7 +278,21 @@ def categories(page=None, path=None):
 
 
 def docs(page=None):
-    return plugin(page)
+    page = _render_plugin_desc(page)
+    plugin_path = os.path.dirname(page.url)
+
+    file_template = u"""
+    <li class='{classes}'>
+      <a href='{page.url}' class="category-link">
+        {title}
+      </a>
+    </li>
+    """
+
+    page.navigator = _MakeNavigatorForPlugin(
+        plugin_path, location=page.url, file_template=file_template)
+
+    return default(page)
 
 
 def embedded_doc(page=None):
@@ -287,7 +301,16 @@ def embedded_doc(page=None):
     Also includes the doc nav bar on the left.
     """
     plugin_path = os.path.dirname(page.url)
-    page.navigator = _MakeNavigatorForPlugin(plugin_path, location=page.url)
+    file_template = u"""
+    <li class='{classes}'>
+      <a href='{page.url}' class="category-link">
+        {title}
+      </a>
+    </li>
+    """
+
+    page.navigator = _MakeNavigatorForPlugin(
+        plugin_path, location=page.url, file_template=file_template)
     return embedded(page)
 
 
@@ -338,7 +361,26 @@ def embedded(page=None):
 
 
 @utils.memoize
-def _MakeNavigatorForPlugin(plugin_path, location=None):
+def _MakeNavigatorForPlugin(plugin_path, location=None,
+                            file_template=None,
+                            directory_template=None):
+    if file_template is None:
+        file_template = u"""
+        <li classes='{classes}'>
+          <a href='#{page.title}' class="category-link">
+            {title}
+          </a>
+        </li>
+        """
+    if directory_template is None:
+        directory_template = u"""
+        <li>
+          <a href='{page.url}' class="category-directory-link">
+            {title}
+          </a>
+        </li>
+        """
+
     args = dict(prev_url=os.path.dirname(plugin_path),
                 plugin_name=os.path.basename(plugin_path),
                 plugin_url=plugin_path)
@@ -360,32 +402,23 @@ def _MakeNavigatorForPlugin(plugin_path, location=None):
 
     directories, files = _list_subpages(plugin_path)
     nav_result = ""
-    # First render the files.
+    # First render the directories.
     for page in sorted(directories, key=lambda x: x.title):
         if page.hidden:
             continue
 
-        nav_result += u"""
-        <li>
-          <a href='{page.url}' class="category-directory-link">
-            {title}
-          </a>
-        </li>
-        """.format(page=page, title=os.path.basename(page.url))
+        nav_result += directory_template.format(
+            page=page, title=os.path.basename(page.url))
 
-    # Now render the directories.
+    # Now render the files.
     for page in sorted(files, key=lambda x: x.title):
         if location == page.url:
-            nav_result += u"<li class='active'>"
+            classes = u"active"
         else:
-            nav_result += u"<li>"
+            classes = u""
 
-        nav_result += u"""
-          <a href='#{page.title}' class="category-link">
-            {title}
-          </a>
-        </li>
-        """.format(page=page, title=page.title)
+        nav_result += file_template.format(page=page, title=page.title,
+                                           classes=classes)
 
     if nav_result:
         result += u"<ul class='nav nav-pills nav-stacked'>%s</ul>" % nav_result

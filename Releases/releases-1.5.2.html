@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -138,7 +140,7 @@ ript>
     </li>
     
        <li>
-        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/Hidden/PEAddressResolver.md?message=Describe%20your%20change..."
+        <a href="https://github.com/google/rekall/edit/gh-pages/Releases/releases-1.5.2.md?message=Describe%20your%20change..."
            data-toggle="tooltip"
            data-placement="bottom"
            title="Improve this page"
@@ -163,145 +165,40 @@ ript>
 <div class="main">
   <div class="col-md-2">
     
-<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
- <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
-  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
- </a>
-
- <a href='/docs/Manual/Plugins/Hidden/index.html' class="btn btn-default btn-lg btn-block">
-   Hidden
- </a>
- <p>
-
-<ul class='nav nav-pills nav-stacked'>
-        <li classes=''>
-          <a href='#BaseSessionCommand.md' class="category-link">
-            BaseSessionCommand.md
-          </a>
-        </li>
-        
-        <li classes='active'>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#address_resolver' class="category-link">
-            address_resolver
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dwarfparser' class="category-link">
-            dwarfparser
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#guess_guid' class="category-link">
-            guess_guid
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#info' class="category-link">
-            info
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#json_render' class="category-link">
-            json_render
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#load_as' class="category-link">
-            load_as
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#load_plugin' class="category-link">
-            load_plugin
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#shell' class="category-link">
-            shell
-          </a>
-        </li>
-        </ul></ul>
   </div>
 
   <div class="col-md-10">
-    
-
-<nav class="navbar navbar-default plugins" role="navigation">
-
-  <ul class="nav navbar-nav navbar-left">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Hidden/BaseSessionCommand.html">
-         <span class="glyphicon glyphicon-arrow-left"></span>
-         BaseSessionCommand.md
-       </a>
-    </li>
-  </ul>
-
-
-  <ul class="nav navbar-nav navbar-right">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Hidden/WindowsAddressResolver.html">
-          address_resolver
-          <span class="glyphicon glyphicon-arrow-right"></span>
-       </a>
-    </li>
-  </ul>
-
-</nav>
-
-
-<h1 id="#address_resolver" class="anchor" >address_resolver</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.windows.address_resolver.PEAddressResolver-class.html">View Source</a>
-
-
-<div class="abstract">
-<h2>A simple address resolver for PE files.</h2>
-</div>
-
-
-
-
-
-<p>
-
-<nav class="navbar navbar-default plugins" role="navigation">
-
-  <ul class="nav navbar-nav navbar-left">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Hidden/BaseSessionCommand.html">
-         <span class="glyphicon glyphicon-arrow-left"></span>
-         BaseSessionCommand.md
-       </a>
-    </li>
-  </ul>
-
-
-  <ul class="nav navbar-nav navbar-right">
-    <li class="active">
-       <a href="/docs/Manual/Plugins/Hidden/WindowsAddressResolver.html">
-          address_resolver
-          <span class="glyphicon glyphicon-arrow-right"></span>
-       </a>
-    </li>
-  </ul>
-
-</nav>
-
+    <h1>Rekall Memory Forensic Releases</h1>
+<p>This is the next point release in the 1.5 (Furka) series.</p>
+<p>Some highlights of this release:</p>
+<ul>
+<li>
+<p>Rekall had obtained many live plugins for Incident Response:</p>
+</li>
+<li>
+<p>glob, wmi, registry yara scanning of files etc. This capability makes Rekall
+    a capable tool for incident response and triaging.</p>
+</li>
+<li>
+<p>EFilter is now better integrated. Users can simple run SQL queries directly in
+    the console.</p>
+</li>
+<li>
+<p>Artifact collector allows Rekall to use the forensic artifacts project
+    (https://github.com/ForensicArtifacts/artifacts)</p>
+</li>
+</ul>
+<p>As always install with pip and virtualenv:</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">virtualenv</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">env</span>
+<span class="err">$</span> <span class="n">source</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">env</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="err">$</span> <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
+<span class="err">$</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">rekall</span>
+</pre></div>
+<a href="https://github.com/google/rekall/releases">
+ <button class="btn btn-large btn-success">
+   Go get it now!
+ </button>
+</a>
 
   </div>
 </div>
