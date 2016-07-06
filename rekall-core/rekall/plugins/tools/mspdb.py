@@ -148,9 +148,6 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
             raise RuntimeError(
                 "Filename must be provided when GUID is specified.")
 
-        else:
-            self.guid = self.guid.upper()
-
         # Write the file data to the renderer.
         pdb_file_data = self.FetchPDBFile()
         with renderer.open(filename=self.plugin_args.pdb_filename,

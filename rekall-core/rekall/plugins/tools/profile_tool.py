@@ -1245,8 +1245,8 @@ class BuildProfileLocally(plugin.Command):
 
 class TestBuildProfileLocally(testlib.HashChecker):
     PARAMETERS = dict(
-        commandline=("build_local_profile %(pdb_name)s %(guid)s "
-                     "--dumpfile %(tempdir)s/output"),
+        commandline=("build_local_profile --module_name=%(pdb_name)s "
+                     "--guid=%(guid)s --dumpfile %(tempdir)s/output"),
         pdb_name="ntkrnlpa",
         guid="BD8F451F3E754ED8A34B50560CEB08E31"
     )
