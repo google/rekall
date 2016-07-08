@@ -30,11 +30,38 @@ import stat
 from efilter.protocols import associative
 from efilter.protocols import structured
 
+from rekall import addrspace
 from rekall import obj
 from rekall import registry
 from rekall import utils
 from rekall import plugin
 from rekall.plugins.overlays import basic
+
+
+# Will be registered by OS specific implementations.
+IRProcessAddressSpace = None
+IRProfile = None
+
+
+class IRDummyPhysicalAddressSpace(addrspace.BaseAddressSpace):
+    __image = True
+
+    def __init__(self, base=None, session=None, **kwargs):
+        self.as_assert(base is None)
+        self.as_assert(session.GetParameter("live_mode") == "API")
+
+        with session:
+            session.SetParameter("profile", IRBaseProfile(session=session))
+
+        super(IRDummyPhysicalAddressSpace, self).__init__(
+            session=session, **kwargs)
+
+
+class IRBaseProfile(obj.Profile):
+    """A class representing the profile for IR (live) analysis."""
+
+    # This profile is used for API based analysis.
+    METADATA = dict(live=True, type="API")
 
 
 class FileSpec(utils.AttributeDict):
@@ -275,7 +302,7 @@ class Permissions(object):
 
 
 class AbstractIRCommandPlugin(plugin.TypedProfileCommand,
-                              plugin.Command):
+                              plugin.ProfileCommand):
     """A base class for all IR plugins.
 
     IR Plugins are only active when the session is live.
@@ -289,8 +316,7 @@ class AbstractIRCommandPlugin(plugin.TypedProfileCommand,
     def is_active(cls, session):
         """We are only active if the profile is windows."""
         return (super(AbstractIRCommandPlugin, cls).is_active(session) and
-                session.GetParameter("live"))
-
+                session.GetParameter("live_mode") == "API")
 
 
 FILE_SPEC_DISPATCHER = dict(API=FileInformation)

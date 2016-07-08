@@ -41,7 +41,6 @@ try:
 except ImportError as e:
     logging.info("Webconsole disabled: %s", e)
 
-
 system = platform.system()
 if system == "Linux":
     from rekall.plugins.tools import live_linux

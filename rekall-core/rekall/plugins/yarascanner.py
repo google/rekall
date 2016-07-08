@@ -170,7 +170,8 @@ class YaraScanMixin(object):
                     symbol = pfn.PhysicalAddressContext(self.session, address)
                 else:
                     symbol = utils.FormattedAddress(
-                        self.session.address_resolver, address)
+                        self.session.address_resolver, address,
+                        max_distance=2**64)
 
                 yield dict(
                     Owner=run.data.get("task") or run.data.get("type"),

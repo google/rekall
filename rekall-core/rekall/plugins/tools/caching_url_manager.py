@@ -78,9 +78,11 @@ class CachingManager(io_manager.IOManager):
             local_age = self.cache_io_manager.Metadata(name).get(
                 "LastModified", 0)
             remote_age = self.url_manager.Metadata(name).get("LastModified")
-
             if remote_age is None:
-                raise IOError("Remote does not have file.")
+                # The remote might not have this file at all, in case we
+                # downloaded it locally (e.g. with build_local_profile).
+                self.session.logging.debug("Remote does not have file %s.", name)
+                remote_age = 0
 
             # Only get the local copy if it is not older than the remote
             # copy. This allows the remote end to update profiles and we will

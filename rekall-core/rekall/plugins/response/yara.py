@@ -34,7 +34,7 @@ class FileYaraScanner(yarascanner.YaraScanMixin,
 
     __args = [
         dict(name="paths", positional=True, type="Array",
-             help="Paths to hash."),
+             help="Paths to scan."),
     ]
 
 

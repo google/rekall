@@ -1,16 +1,23 @@
 """Windows specific response plugins."""
+import ctypes
 import itertools
+import re
 import win32api
 import pythoncom
 import win32com.client
 
+from ctypes import wintypes
+
 from rekall import plugin
 from rekall import obj
 from rekall import utils
+from rekall.plugins.common import address_resolver
 from rekall.plugins.response import common
+from rekall.plugins.windows import address_resolver as win_address_resolver
 
 
 def get_drives():
+    """List all the drives on this system."""
     drives = win32api.GetLogicalDriveStrings()
     return [x.rstrip("\\") for x in drives.split('\000') if x]
 
@@ -125,3 +132,55 @@ class WindowsFileInformation(common.FileInformation):
 
 # Register a specialized implementation of FileInformation
 common.FILE_SPEC_DISPATCHER["API"] = WindowsFileInformation
+
+
+class LiveModule(win_address_resolver.PEModule):
+    """Address resolver modules accessed through APIs."""
+
+    def __init__(self, vad=None, session=None):
+        name = "vad_%#x" % vad.start
+        self.filename = vad.filename
+        if self.filename:
+            name = WinIRAddressResponse.NormalizeModuleName(self.filename)
+
+        self.vad = vad
+
+        super(LiveModule, self).__init__(name=name,
+                                         start=vad.start,
+                                         end=vad.end,
+                                         session=session)
+
+
+class WinIRAddressResponse(address_resolver.AddressResolverMixin,
+                           common.AbstractIRCommandPlugin):
+    """Address resolver for windows API access."""
+
+    @staticmethod
+    def NormalizeModuleName(module_name):
+        result = unicode(module_name)
+        result = re.split(r"[/\\]", result)[-1]
+
+        # Drop the file extension.
+        result = result.split(".")[0]
+
+        return result.lower()
+
+    def _EnsureInitialized(self):
+        """Initialize the address resolver.
+
+        In windows we populate the virtual address space map from kernel modules
+        and VAD mapped files (dlls).
+        """
+        if self._initialized:
+            return
+
+        try:
+            process_context = self.session.GetParameter("process_context")
+            if process_context != None:
+                # Now use the vad.
+                for vad in self.session.plugins.vad().merge_ranges(
+                        process_context.pid):
+                    self.AddModule(LiveModule(vad=vad, session=self.session))
+
+        finally:
+            self._initialized = True

@@ -1635,7 +1635,7 @@ class Profile(object):
 
     # The metadata for this profile. This should be specified by derived
     # classes. It is OK To put a (mutable) dict in here. It will not be
-    # directory modified by anything.
+    # directly modified by anything.
     METADATA = {}
 
     # The constructor will build this dict of metadata by copying the values

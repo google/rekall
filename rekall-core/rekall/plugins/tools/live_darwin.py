@@ -64,7 +64,7 @@ class Live(plugin.ProfileCommand):
                             help="Just load the driver and exit.")
 
     def __init__(self, driver_path=None, device=r"/dev/pmem", unload=None,
-                 load=None, **kw):
+                 load=None, mode=None, **kw):
         super(Live, self).__init__(**kw)
         # It is OK for non privileged sessions to use the default drivers.
         if not self.session.privileged and driver_path:

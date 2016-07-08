@@ -60,6 +60,7 @@ install_requires = [
     "pycrypto == 2.6.1",
     "pyelftools == 0.23",
     "pytz == 2016.4",
+    "psutil == 4.3.0",
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
     "sortedcontainers == 1.4.4",

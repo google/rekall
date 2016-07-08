@@ -83,3 +83,10 @@ class PermissionsFileSpecObjectRenderer(
 
     def GetState(self, item, **options):
         return dict(perm=str(item), int_perm=int(item))
+
+
+class LiveProcessTextRenderer(text.TextObjectRenderer):
+    renders_type = "LiveProcess"
+
+    def render_row(self, target, width=None, **_):
+        return text.Cell("%s (%s)" % (target.name, target.pid), width=width)

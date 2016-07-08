@@ -1,0 +1,178 @@
+"""Rekall plugins for displaying processes in live triaging."""
+
+import psutil
+from rekall import obj
+from rekall import utils
+
+from rekall.plugins import core
+from rekall.plugins.response import common
+from rekall.plugins.overlays import basic
+
+from rekall.plugins import yarascanner
+from rekall.plugins.common import scanners
+
+
+class LiveProcess(utils.AttributeDict):
+    """An object to represent a live process.
+
+    This is the live equivalent of _EPROCESS.
+    """
+    _proc = None
+    session = None
+
+    def __init__(self, proc, session=None):
+        """Construct a representation of the live process.
+
+        Args:
+          proc: The psutil.Process instance.
+        """
+        # Hold on to the original psutil object.
+        self._proc = proc
+        self.session = session
+        super(LiveProcess, self).__init__(**proc.as_dict())
+
+        # Some processes do not have environ defined.
+        if self.environ is None:
+            self.environ = {}
+
+        self.create_time = basic.UnixTimeStamp(
+            name="create_time", value=self.create_time, session=self.session)
+
+        self.obj_profile = common.IRProfile(session=session, proc=self)
+
+    def __int__(self):
+        return self.pid
+
+    def __format__(self, formatspec):
+        """Support the format() protocol."""
+        if not formatspec:
+            formatspec = "s"
+
+        if formatspec[-1] in "xdXD":
+            return format(int(self), formatspec)
+
+        return object.__format__(self, formatspec)
+
+    def __repr__(self):
+        return "<Live Process pid=%s>" % self.pid
+
+    def get_process_address_space(self):
+        return common.IRProcessAddressSpace(self.pid, session=self.session)
+
+
+class IRProcessFilter(common.AbstractIRCommandPlugin):
+    """A live process filter using the system APIs."""
+
+    __abstract = True
+
+    __args = [
+        dict(name="pids", positional=True, type="ArrayIntParser", default=[],
+             help="One or more pids of processes to select."),
+
+        dict(name="proc_regex", default=None, type="RegEx",
+             help="A regex to select a process by name."),
+    ]
+
+    @utils.safe_property
+    def filtering_requested(self):
+        return (self.plugin_args.pids or self.plugin_args.proc_regex)
+
+    def filter_processes(self):
+        """Filters eprocess list using pids lists."""
+        for proc in self.list_eprocess():
+            if not self.filtering_requested:
+                yield proc
+
+            else:
+                if int(proc.pid) in self.plugin_args.pids:
+                    yield proc
+
+                elif (self.plugin_args.proc_regex and
+                      self.plugin_args.proc_regex.match(
+                          utils.SmartUnicode(proc.name))):
+                    yield proc
+
+    def list_eprocess(self):
+        result = [LiveProcess(x, session=self.session)
+                  for x in psutil.process_iter()]
+        result.sort(key=lambda x: x.pid)
+
+        return result
+
+
+class IRPslist(IRProcessFilter):
+    """A live pslist plugin using the APIs."""
+
+    name = "pslist"
+
+    table_header = [
+        dict(name="proc", hidden=True),
+        dict(name="Name", width=30),
+        dict(name="pid", width=6, align="r"),
+        dict(name="PPID", cname="ppid", width=6, align="r"),
+        dict(name="Thds", cname="thread_count", width=6, align="r"),
+        dict(name="Hnds", cname="handle_count", width=8, align="r"),
+        dict(name="Wow64", cname="wow64", width=6),
+        dict(name="Start", cname="process_create_time", width=24),
+    ]
+
+    def column_types(self):
+        return self._row(LiveProcess(psutil.Process(), session=self.session))
+
+    def is_wow64(self, proc):
+        """Determine if the proc is Wow64."""
+        # Not the most accurate method but very fast.
+        return (proc.environ.get("PROCESSOR_ARCHITECTURE") == 'x86' and
+                proc.environ.get("PROCESSOR_ARCHITEW6432") == 'AMD64')
+
+    def _row(self, proc):
+        return dict(proc=proc,
+                    Name=proc.name,
+                    pid=proc.pid,
+                    ppid=proc.ppid,
+                    thread_count=proc.num_threads,
+                    handle_count=proc.num_handles,
+                    wow64=self.is_wow64(proc),
+                    process_create_time=proc.create_time)
+
+    def collect(self):
+        for proc in self.filter_processes():
+            yield self._row(proc)
+
+
+class IRSetProcessContext(core.SetProcessContextMixin,
+                          IRProcessFilter):
+    """A cc plugin for setting process context to live mode."""
+    name = "cc"
+
+
+class IRProcessScanner(IRProcessFilter):
+    """Scanner for scanning processes using the ReadProcessMemory() API."""
+
+    __abstract = True
+
+    def generate_memory_ranges(self):
+        with self.session.plugins.cc() as cc:
+            for task in self.filter_processes():
+                comment = "%s (%s)" % (task.name, task.pid)
+
+                cc.SwitchProcessContext(task)
+
+                process_address_space = self.session.GetParameter(
+                    "default_address_space")
+
+                for _, _, run in process_address_space.runs:
+                    vad = run.data["vad"]
+                    self.session.logging.info(
+                        "Scanning %s (%s) in: %s [%#x-%#x]",
+                        task.name, task.pid, vad.filename or "",
+                        vad.start, vad.end)
+
+                    run.data["comment"] = comment
+                    run.data["task"] = task
+                    yield run
+
+
+class ProcessYaraScanner(yarascanner.YaraScanMixin, IRProcessScanner):
+    """Yara scan process memory using the ReadProcessMemory() API."""
+    name = "yarascan"

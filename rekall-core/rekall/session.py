@@ -85,6 +85,13 @@ config.DeclareOption(
     help="Tune Rekall's choice of algorithms, depending on performance "
     "priority.")
 
+LIVE_MODES = ["API", "Memory"]
+
+config.DeclareOption(
+    "--live", default=None, type="ChoiceArray", required=False,
+    choices=LIVE_MODES, help="Enable live memory analysis.")
+
+
 class RecursiveHookException(RuntimeError):
     """Raised when a hook is invoked recursively."""
 
@@ -229,8 +236,17 @@ class Configuration(utils.AttributeDict):
         return "<Configuration Object>"
 
     def _set_live(self, live, _):
-        if live and not self.live:
-            live_plugin = self.session.plugins.live()
+        if live is not None and not self.live:
+            # Default is to use Memory analysis.
+            if len(live) == 0:
+                mode = "Memory"
+            elif len(live) == 1:
+                mode = live[0]
+            else:
+                raise RuntimeError(
+                    "--live parameter should specify only one mode.")
+
+            live_plugin = self.session.plugins.live(mode=mode)
             live_plugin.live()
 
             # When the session is destroyed, close the live plugin.
@@ -1027,6 +1043,12 @@ class Session(object):
 
     @utils.safe_property
     def profile(self):
+        # If a process context is specified, we use the profile from the process
+        # context.
+        process_context = self.GetParameter("process_context").obj_profile
+        if process_context != None:
+            return process_context
+
         res = self.GetParameter("profile_obj")
         return res
 
@@ -1203,7 +1225,6 @@ class InteractiveSession(Session):
             session=self,
 
             # Prepopulate the namespace with our most important modules.
-            profile=self.profile,
             v=self.v,
 
             # Some useful modules which should be available always.

@@ -36,6 +36,7 @@ import platform
 import re
 import win32service
 
+from rekall import session
 from rekall import resources
 from rekall import plugin
 from rekall import obj
@@ -51,6 +52,10 @@ class Live(plugin.TypedProfileCommand,
     PROFILE_REQUIRED = False
 
     __args = [
+        dict(name="mode", default="Memory", type="Choices",
+             choices=session.LIVE_MODES,
+             help="Mode for live analysis."),
+
         dict(name="driver",
              help="Driver file to load"),
 
@@ -166,30 +171,35 @@ class Live(plugin.TypedProfileCommand,
             raise plugin.PluginError(*e.args)
 
     def live(self):
-        phys_as = obj.NoneObject("Unable to access physical memory")
-        try:
-            phys_as = win32.WinPmemAddressSpace(
-                session=self.session, filename=self.plugin_args.device)
-        except IOError as e:
-            self.session.logging.debug("%s", e)
-            errno = self.parse_exception(e)
-            if errno == 5:   # Access Denied.
-                self.session.logging.error(
-                    "%s. Are you running as Administrator?" % e)
-
-            elif errno == 2: # File not found
-                try:
-                    phys_as = self.load_driver()
-                except plugin.PluginError:
+        if self.plugin_args.mode == "Memory":
+            phys_as = obj.NoneObject("Unable to access physical memory")
+            try:
+                phys_as = win32.WinPmemAddressSpace(
+                    session=self.session, filename=self.plugin_args.device)
+                self.session.logging.debug("Using PMEM driver at %s",
+                                           self.plugin_args.device)
+            except IOError as e:
+                self.session.logging.debug("%s", e)
+                errno = self.parse_exception(e)
+                if errno == 5:   # Access Denied.
                     self.session.logging.error(
-                        "Unable to load driver: %s." % e)
+                        "%s. Are you running as Administrator?" % e)
 
-            else:
-                self.session.logging.error(
-                    "Unable to access physical memory: %s." % e)
+                elif errno == 2: # File not found
+                    try:
+                        phys_as = self.load_driver()
+                    except plugin.PluginError:
+                        self.session.logging.error(
+                            "Unable to load driver: %s." % e)
 
-        self.session.physical_address_space = phys_as
-        self.session.GetParameter("live", True)
+                else:
+                    self.session.logging.error(
+                        "Unable to access physical memory: %s." % e)
+
+            self.session.physical_address_space = phys_as
+
+        with self.session:
+            self.session.SetParameter("live_mode", self.plugin_args.mode)
 
     def remove_service(self, also_close_as=True):
         self.session.logging.debug("Removing service %s",

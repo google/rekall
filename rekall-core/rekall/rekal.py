@@ -43,10 +43,6 @@ from rekall import plugins  # pylint: disable=unused-import
 
 
 config.DeclareOption(
-    "--live", default=False, type="Boolean",
-    help="Enable live memory analysis.")
-
-config.DeclareOption(
     "--version", default=False, type="Boolean",
     help="Prints the Rekall version and exits.")
 

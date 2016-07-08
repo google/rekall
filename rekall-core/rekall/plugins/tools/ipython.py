@@ -237,7 +237,7 @@ class PagingLimitHook(kb.ParameterHook):
         return int(os.environ.get("ROWS", 50))
 
 
-class InteractiveShell(plugin.PhysicalASMixin, plugin.ProfileCommand):
+class InteractiveShell(plugin.ProfileCommand):
     """An interactive shell for Rekall."""
 
     name = "shell"

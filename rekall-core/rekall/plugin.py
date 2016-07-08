@@ -295,7 +295,7 @@ class Command(object):
         return fd.getvalue()
 
     def __repr__(self):
-        return "Plugin: %s" % self.name
+        return "Plugin: %s (%s)" % (self.name, self.__class__.__name__)
 
     def __iter__(self):
         """Make plugins that define collect iterable, as convenience.

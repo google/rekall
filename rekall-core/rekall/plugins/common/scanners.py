@@ -114,9 +114,9 @@ class BaseScannerPlugin(object):
                             task.name, task.pid, module.name)
 
                         self.session.logging.info(
-                            "Scanning %s (%s) in: %s [%#x-%#x]" % (
-                                task.name, task.pid, comment,
-                                module.start, module.end))
+                            "Scanning %s (%s) in: %s [%#x-%#x]",
+                            task.name, task.pid, comment,
+                            module.start, module.end)
 
                         yield addrspace.Run(
                             start=module.start, end=module.end,

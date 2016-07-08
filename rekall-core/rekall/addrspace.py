@@ -218,6 +218,7 @@ class BaseAddressSpace(object):
         if runs:
             last_run = runs[-1]
             return last_run.end
+        return 0
 
     def get_address_ranges(self, start=0, end=0xfffffffffffff):
         """Generates the runs which fall between start and end.

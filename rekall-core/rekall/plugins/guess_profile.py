@@ -792,7 +792,6 @@ class ProfileHook(kb.ParameterHook):
         """Try to find the correct profile by scanning for PDB files."""
         # Clear the profile for the duration of the scan.
         self.session.profile = obj.NoneObject("Unset")
-
         if not self.session.physical_address_space:
             # Try to load the physical_address_space so we can scan it.
             if not self.session.plugins.load_as().GetPhysicalAddressSpace():

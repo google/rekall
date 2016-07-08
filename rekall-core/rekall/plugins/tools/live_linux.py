@@ -34,6 +34,7 @@ supported operating systems.
 import os
 
 from rekall import plugin
+from rekall import session
 
 from rekall.plugins.addrspaces import standard
 
@@ -44,6 +45,12 @@ class Live(plugin.ProfileCommand):
     name = "live"
 
     PROFILE_REQUIRED = False
+
+    __args = [
+        dict(name="mode", default="Memory", type="Choices",
+             choices=session.LIVE_MODES,
+             help="Mode for live analysis."),
+    ]
 
     def live(self):
         if os.geteuid() != 0:
@@ -71,6 +78,7 @@ class Live(plugin.ProfileCommand):
         # Force timed cache for live sessions.
         with self.session:
             self.session.SetParameter("cache", "timed")
+            self.session.SetParameter("live_mode", self.plugin_args.mode)
 
     def close(self):
         pass
