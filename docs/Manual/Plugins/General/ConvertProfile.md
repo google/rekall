@@ -3,9 +3,17 @@ abstract: "Convert a profile from another program to the Rekall format.\n\n    T
   \ Rekall profile format is optimized for loading at runtime. This plugin\n    produces\
   \ a Rekall profile from a variety of sources, including:\n\n    - Linux debug compiled\
   \ kernel module (see tool/linux/README)\n    - OSX Dwarfdump outputs.\n    "
-args: {converter: The name of the converter to use. If not specified autoguess., out_file: Path
-    for output file., profile_class: 'The name of the profile implementation to specify.
-    If not specified, we autodetect.', source: Filename of profile to read.}
+args: {converter: 'The name of the converter to use. If not specified autoguess. (type:
+    String)
+
+    ', out_file: 'Path for output file. (type: String)
+
+    ', profile_class: 'The name of the profile implementation to specify. If not specified,
+    we autodetect. (type: String)
+
+    ', source: 'Filename of profile to read. (type: String)
+
+    '}
 class_name: ConvertProfile
 epydoc: rekall.plugins.tools.profile_tool.ConvertProfile-class.html
 layout: plugin

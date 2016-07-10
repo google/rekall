@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -707,15 +679,15 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>binary_string</p></td><td><p>A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506</p></td></tr><tr><td><p>context</p></td><td><p>Context to print after the hit. (type: IntParser)</p>
+<tr><td><p>binary_string</p></td><td><p>A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506 (type: String)</p></td></tr><tr><td><p>context</p></td><td><p>Context to print after the hit. (type: IntParser)</p>
 <ul>
 <li>Default: 64</li>
-</ul></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>hits</p></td><td><p>Quit after finding this many hits. (type: IntParser)</p>
+</ul></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
-<li>Default: 100000000.0</li>
-</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search.</p>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>hits</p></td><td><p>Quit after finding this many hits. (type: IntParser)</p>
 <ul>
-<li>Default: 18446744073709551616</li>
+<li>Default: 10</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -731,16 +703,34 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>pre_context</p></td><td><p>Context to print before the hit. (type: IntParser)</p>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>pre_context</p></td><td><p>Context to print before the hit. (type: IntParser)</p>
 <ul>
 <li>Default: 0</li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_physical</p></td><td><p>If specified we scan the physcial address space. Note that by default we scan the address space of the specified processes (or if no process selectors are specified, the default AS). (type: Boolean)</p>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_kernel</p></td><td><p>Scan the entire kernel address space. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>start</p></td><td><p>Start searching from this offset. (type: IntParser)</p>
+</ul></td></tr><tr><td><p>scan_kernel_code</p></td><td><p>Scan the kernel image and loaded drivers. (type: Boolean)</p>
 <ul>
-<li>Default: 0</li>
-</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for.</p></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression.</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read.</p></td></tr>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_nonpaged_pool</p></td><td><p>Scan the kernel non-paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_paged_pool</p></td><td><p>Scan the kernel paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_session_pools</p></td><td><p>Scan session pools for all processes. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_physical</p></td><td><p>Scan the physical address space only. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for. (type: String)</p></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression. (type: String)</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -446,10 +448,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>all</p></td><td><p>Specify to see all the fops, even if they are known. (type: Boolean)</p>
-<ul>
-<li>Default: False</li>
-</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes (Default uses all methods). (type: ChoiceArray)</p>
+<tr><td><p>all</p></td><td><p>Specify to see all the fops, even if they are known. (type: Boolean)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes (Default uses all methods). (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -460,7 +459,7 @@ ript>
 <li>
 <p>Default: InitTask</p>
 </li>
-</ul></td></tr><tr><td><p>phys_task</p></td><td><p>Physical addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>task_head</p></td><td><p>Use this as the first task to follow the list. (type: IntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -479,12 +478,11 @@ pointer resides within a known module or the kernel image.</p>
 </ul>
 <h3>Sample output</h3>
 <p>Expect blank output on clean systems.</p>
-<div class="highlight"><pre><span class="n">pmem</span> <span class="mi">15</span><span class="o">:</span><span class="mi">44</span><span class="o">:</span><span class="mi">30</span><span class="o">&gt;</span> <span class="n">check_task_fops</span>
-<span class="o">-------------&gt;</span> <span class="n">check_proc_fops</span><span class="p">()</span>
-   <span class="n">DirEntry</span>    <span class="n">Path</span>                                               <span class="n">Member</span>                  <span class="n">Address</span>     <span class="n">Module</span>              
-<span class="o">--------------</span> <span class="o">--------------------------------------------------</span> <span class="o">--------------------</span> <span class="o">--------------</span> <span class="o">--------------------</span>
-<span class="n">pmem</span> <span class="mi">15</span><span class="o">:</span><span class="mi">44</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> 
-</pre></div>
+<pre class="highlight"><code>pmem 15:44:30&gt; check_task_fops
+-------------&gt; check_proc_fops()
+   DirEntry    Path                                               Member                  Address     Module              
+-------------- -------------------------------------------------- -------------------- -------------- --------------------
+pmem 15:44:35&gt; </code></pre>
 
 <p>
 

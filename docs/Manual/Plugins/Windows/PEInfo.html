@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>address-space</p></td><td><p>The address space to use.</p></td></tr><tr><td><p>executable</p></td><td><p>If provided we create an address space from this file.</p></td></tr><tr><td><p>image-base</p></td><td><p>The base of the image. (type: SymbolAddress)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<tr><td><p>address_space</p></td><td><p>The address space to use. (type: String)</p></td></tr><tr><td><p>executable</p></td><td><p>If provided we create an address space from this file. (type: String)</p></td></tr><tr><td><p>image_base</p></td><td><p>The base of the image. (type: SymbolAddress)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
 <ul>
 <li>Default: 1</li>
 </ul></td></tr>
@@ -748,77 +720,76 @@ variety of information about it:</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">15</span><span class="o">:</span><span class="mi">11</span><span class="o">:</span><span class="mo">02</span><span class="o">&gt;</span> <span class="n">peinfo</span> <span class="s">&quot;nt&quot;</span>
-<span class="o">-------------------&gt;</span> <span class="n">peinfo</span><span class="p">(</span><span class="s">&quot;nt&quot;</span><span class="p">)</span>
-<span class="n">Attribute</span>            <span class="n">Value</span>
-<span class="o">--------------------</span> <span class="o">-----</span>
-<span class="n">Machine</span>              <span class="n">IMAGE_FILE_MACHINE_AMD64</span>
-<span class="n">TimeDateStamp</span>        <span class="mi">2013</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">14</span> <span class="mi">08</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">16</span><span class="o">+</span><span class="mo">0000</span>
-<span class="n">Characteristics</span>      <span class="n">IMAGE_FILE_EXECUTABLE_IMAGE</span><span class="p">,</span> <span class="n">IMAGE_FILE_LARGE_ADDRESS_AWARE</span>
-<span class="n">GUID</span><span class="o">/</span><span class="n">Age</span>             <span class="n">FD3D00D28EDC4527BB922BCC0509D2851</span>
-<span class="n">PDB</span>                  <span class="n">ntkrnlmp</span><span class="p">.</span><span class="n">pdb</span>
-<span class="n">MajorOperatingSystemVersion</span> <span class="mi">6</span>
-<span class="n">MinorOperatingSystemVersion</span> <span class="mi">3</span>
-<span class="n">MajorImageVersion</span>    <span class="mi">6</span>
-<span class="n">MinorImageVersion</span>    <span class="mi">3</span>
-<span class="n">MajorSubsystemVersion</span> <span class="mi">6</span>
-<span class="n">MinorSubsystemVersion</span> <span class="mi">3</span>
+<pre class="highlight"><code>win8.1.raw 15:11:02&gt; peinfo &quot;nt&quot;
+-------------------&gt; peinfo(&quot;nt&quot;)
+Attribute            Value
+-------------------- -----
+Machine              IMAGE_FILE_MACHINE_AMD64
+TimeDateStamp        2013-09-14 08:23:16+0000
+Characteristics      IMAGE_FILE_EXECUTABLE_IMAGE, IMAGE_FILE_LARGE_ADDRESS_AWARE
+GUID/Age             FD3D00D28EDC4527BB922BCC0509D2851
+PDB                  ntkrnlmp.pdb
+MajorOperatingSystemVersion 6
+MinorOperatingSystemVersion 3
+MajorImageVersion    6
+MinorImageVersion    3
+MajorSubsystemVersion 6
+MinorSubsystemVersion 3
 
-<span class="n">Sections</span> <span class="p">(</span><span class="n">Relative</span> <span class="n">to</span> <span class="mh">0xF802D3019000</span><span class="p">)</span><span class="o">:</span>
-<span class="n">Perm</span> <span class="n">Name</span>          <span class="n">VMA</span>            <span class="n">Size</span>
-<span class="o">----</span> <span class="o">--------</span> <span class="o">--------------</span> <span class="o">--------------</span>
-<span class="n">xr</span><span class="o">-</span>  <span class="p">.</span><span class="n">text</span>    <span class="mh">0x000000001000</span> <span class="mh">0x00000028d600</span>
-<span class="n">xr</span><span class="o">-</span>  <span class="n">NONPAGED</span> <span class="mh">0x00000028f000</span> <span class="mh">0x000000000200</span>
-<span class="n">xr</span><span class="o">-</span>  <span class="n">POOLCODE</span> <span class="mh">0x000000290000</span> <span class="mh">0x000000002800</span>
-<span class="o">-</span><span class="n">rw</span>  <span class="p">.</span><span class="n">data</span>    <span class="mh">0x000000293000</span> <span class="mh">0x00000000be00</span>
-<span class="o">-</span><span class="n">r</span><span class="o">-</span>  <span class="p">.</span><span class="n">reloc</span>   <span class="mh">0x000000778000</span> <span class="mh">0x000000008e00</span>
-<span class="p">...</span>
+Sections (Relative to 0xF802D3019000):
+Perm Name          VMA            Size
+---- -------- -------------- --------------
+xr-  .text    0x000000001000 0x00000028d600
+xr-  NONPAGED 0x00000028f000 0x000000000200
+xr-  POOLCODE 0x000000290000 0x000000002800
+-rw  .data    0x000000293000 0x00000000be00
+-r-  .reloc   0x000000778000 0x000000008e00
+...
 
-<span class="n">Data</span> <span class="n">Directories</span><span class="o">:</span>
-<span class="o">-</span>                                             <span class="n">VMA</span>            <span class="n">Size</span>
-<span class="o">----------------------------------------</span> <span class="o">--------------</span> <span class="o">--------------</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_EXPORT</span>             <span class="mh">0xf802d36ab000</span> <span class="mh">0x0000000135ff</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_IMPORT</span>             <span class="mh">0xf802d335b728</span> <span class="mh">0x00000000012c</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_RESOURCE</span>           <span class="mh">0xf802d375f000</span> <span class="mh">0x000000031d20</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_EXCEPTION</span>          <span class="mh">0xf802d331c000</span> <span class="mh">0x00000003ed6c</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_SECURITY</span>           <span class="mh">0xf802d3725e00</span> <span class="mh">0x000000002158</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_BASERELOC</span>          <span class="mh">0xf802d3791000</span> <span class="mh">0x000000003cd4</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_DEBUG</span>              <span class="mh">0xf802d301a100</span> <span class="mh">0x000000000038</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_COPYRIGHT</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_GLOBALPTR</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_TLS</span>                <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG</span>        <span class="mh">0xf802d3033f20</span> <span class="mh">0x000000000094</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT</span>       <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_IAT</span>                <span class="mh">0xf802d335b000</span> <span class="mh">0x000000000728</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT</span>       <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR</span>     <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_RESERVED</span>           <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+Data Directories:
+-                                             VMA            Size
+---------------------------------------- -------------- --------------
+IMAGE_DIRECTORY_ENTRY_EXPORT             0xf802d36ab000 0x0000000135ff
+IMAGE_DIRECTORY_ENTRY_IMPORT             0xf802d335b728 0x00000000012c
+IMAGE_DIRECTORY_ENTRY_RESOURCE           0xf802d375f000 0x000000031d20
+IMAGE_DIRECTORY_ENTRY_EXCEPTION          0xf802d331c000 0x00000003ed6c
+IMAGE_DIRECTORY_ENTRY_SECURITY           0xf802d3725e00 0x000000002158
+IMAGE_DIRECTORY_ENTRY_BASERELOC          0xf802d3791000 0x000000003cd4
+IMAGE_DIRECTORY_ENTRY_DEBUG              0xf802d301a100 0x000000000038
+IMAGE_DIRECTORY_ENTRY_COPYRIGHT          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_GLOBALPTR          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_TLS                0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG        0xf802d3033f20 0x000000000094
+IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT       0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_IAT                0xf802d335b000 0x000000000728
+IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT       0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR     0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_RESERVED           0x000000000000 0x000000000000
 
-<span class="n">Import</span> <span class="n">Directory</span> <span class="p">(</span><span class="n">Original</span><span class="p">)</span><span class="o">:</span>
-<span class="n">Name</span>                                               <span class="n">Ord</span>
-<span class="o">--------------------------------------------------</span> <span class="o">-----</span>
-<span class="n">ext</span><span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">win</span><span class="o">-</span><span class="n">ntos</span><span class="o">-</span><span class="n">werkernel</span><span class="o">-</span><span class="n">l1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">WerLiveKernelCloseHandle</span> <span class="mi">1</span>
-<span class="n">ext</span><span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">win</span><span class="o">-</span><span class="n">ntos</span><span class="o">-</span><span class="n">werkernel</span><span class="o">-</span><span class="n">l1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">WerLiveKernelOpenDumpFile</span> <span class="mi">4</span>
-<span class="n">ext</span><span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">win</span><span class="o">-</span><span class="n">ntos</span><span class="o">-</span><span class="n">werkernel</span><span class="o">-</span><span class="n">l1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">WerLiveKernelCancelReport</span> <span class="mi">0</span>
-<span class="n">ext</span><span class="o">-</span><span class="n">ms</span><span class="o">-</span><span class="n">win</span><span class="o">-</span><span class="n">ntos</span><span class="o">-</span><span class="n">werkernel</span><span class="o">-</span><span class="n">l1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">WerLiveKernelInitSystem</span> <span class="mi">3</span>
-<span class="p">...</span>
-<span class="n">msrpc</span><span class="p">.</span><span class="n">sys</span><span class="o">!</span><span class="n">MesDecodeBufferHandleCreate</span>              <span class="mi">11</span>
-<span class="n">msrpc</span><span class="p">.</span><span class="n">sys</span><span class="o">!</span><span class="n">NdrMesTypeDecode3</span>                        <span class="mi">45</span>
+Import Directory (Original):
+Name                                               Ord
+-------------------------------------------------- -----
+ext-ms-win-ntos-werkernel-l1-1-0.dll!WerLiveKernelCloseHandle 1
+ext-ms-win-ntos-werkernel-l1-1-0.dll!WerLiveKernelOpenDumpFile 4
+ext-ms-win-ntos-werkernel-l1-1-0.dll!WerLiveKernelCancelReport 0
+ext-ms-win-ntos-werkernel-l1-1-0.dll!WerLiveKernelInitSystem 3
+...
+msrpc.sys!MesDecodeBufferHandleCreate              11
+msrpc.sys!NdrMesTypeDecode3                        45
 
-<span class="n">Export</span> <span class="n">Directory</span><span class="o">:</span>
-    <span class="n">Entry</span>      <span class="n">Stat</span> <span class="n">Ord</span>   <span class="n">Name</span>
-<span class="o">--------------</span> <span class="o">----</span> <span class="o">-----</span> <span class="o">--------------------------------------------------</span>
-<span class="mh">0xf802d30ed1f4</span> <span class="n">M</span>    <span class="mi">3</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">AlpcGetHeaderSize</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">AlpcGetHeaderSize</span><span class="p">)</span>
-<span class="mh">0xf802d30ed080</span> <span class="n">M</span>    <span class="mi">4</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">AlpcGetMessageAttribute</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">AlpcGetMessageAttribute</span><span class="p">)</span>
-<span class="mh">0xf802d30ed19c</span> <span class="n">M</span>    <span class="mi">5</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">AlpcInitializeMessageAttribute</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">AlpcInitializeMessageAttribute</span><span class="p">)</span>
-<span class="mh">0xf802d36a4004</span> <span class="o">-</span>    <span class="mi">6</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">BgkDisplayCharacter</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">BgkDisplayCharacter</span><span class="p">)</span>
-<span class="mh">0xf802d36a40b8</span> <span class="o">-</span>    <span class="mi">7</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">BgkGetConsoleState</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">BgkGetConsoleState</span><span class="p">)</span>
-<span class="mh">0xf802d36a40e0</span> <span class="o">-</span>    <span class="mi">8</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">BgkGetCursorState</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">BgkGetCursorState</span><span class="p">)</span>
-<span class="mh">0xf802d36a4108</span> <span class="o">-</span>    <span class="mi">9</span>     <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">BgkSetCursor</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">BgkSetCursor</span><span class="p">)</span>
-<span class="mh">0xf802d31d23c8</span> <span class="n">M</span>    <span class="mi">10</span>    <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">CcAddDirtyPagesToExternalCache</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">CcAddDirtyPagesToExternalCache</span><span class="p">)</span>
-<span class="mh">0xf802d3106888</span> <span class="n">M</span>    <span class="mi">11</span>    <span class="n">ntoskrnl</span><span class="p">.</span><span class="n">exe</span><span class="o">!</span><span class="n">CcCanIWrite</span> <span class="p">(</span><span class="n">nt</span><span class="o">!</span><span class="n">CcCanIWrite</span><span class="p">)</span>
-<span class="p">...</span>
-</pre></div>
+Export Directory:
+    Entry      Stat Ord   Name
+-------------- ---- ----- --------------------------------------------------
+0xf802d30ed1f4 M    3     ntoskrnl.exe!AlpcGetHeaderSize (nt!AlpcGetHeaderSize)
+0xf802d30ed080 M    4     ntoskrnl.exe!AlpcGetMessageAttribute (nt!AlpcGetMessageAttribute)
+0xf802d30ed19c M    5     ntoskrnl.exe!AlpcInitializeMessageAttribute (nt!AlpcInitializeMessageAttribute)
+0xf802d36a4004 -    6     ntoskrnl.exe!BgkDisplayCharacter (nt!BgkDisplayCharacter)
+0xf802d36a40b8 -    7     ntoskrnl.exe!BgkGetConsoleState (nt!BgkGetConsoleState)
+0xf802d36a40e0 -    8     ntoskrnl.exe!BgkGetCursorState (nt!BgkGetCursorState)
+0xf802d36a4108 -    9     ntoskrnl.exe!BgkSetCursor (nt!BgkSetCursor)
+0xf802d31d23c8 M    10    ntoskrnl.exe!CcAddDirtyPagesToExternalCache (nt!CcAddDirtyPagesToExternalCache)
+0xf802d3106888 M    11    ntoskrnl.exe!CcCanIWrite (nt!CcCanIWrite)
+...</code></pre>
 
 <p>
 

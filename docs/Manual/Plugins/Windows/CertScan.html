@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes='active'>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -546,6 +530,12 @@ ript>
           </a>
         </li>
         
+        <li classes='active'>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
         <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -681,9 +653,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CertVadScan.html">
+       <a href="/docs/Manual/Plugins/Windows/Services.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         cert_vad_scan
+         services
        </a>
     </li>
   </ul>
@@ -691,8 +663,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CheckPEHooks.html">
-          check_pehooks
+       <a href="/docs/Manual/Plugins/Windows/Sockets.html">
+          sockets
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -701,7 +673,7 @@ ript>
 </nav>
 
 
-<h1 id="#certscan" class="anchor" >certscan</h1>
+<h1 id="#simple_certscan" class="anchor" >simple_certscan</h1>
 
 <a class="btn btn-default epydoc_link"
    href="/epydocs/rekall.plugins.windows.dumpcerts.CertScan-class.html">View Source</a>
@@ -712,15 +684,6 @@ ript>
 </div>
 
 
-<h3>Plugin Arguments</h3>
-<div class="plugins_args">
-<table class='table table-condensed'>
-<tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr>
-</tbody>
-</table>
-</div>
-
 
 <p>This plugin is similar to the <a href="CertVadScan.html">cert_vad_scan</a> plugin. It
 attempts to detect DER encoded X509 certificates or RSA private keys in physical
@@ -728,17 +691,16 @@ memory.</p>
 <p>Optionally, if a dump directory is provided the DER encoded certificates are
 also dumped to files in the specified directory.</p>
 <h3>Sample Output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mo">07</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> <span class="n">certscan</span>
-<span class="o">-------------------&gt;</span> <span class="n">certscan</span><span class="p">()</span>
-   <span class="n">Address</span>     <span class="n">Type</span>       <span class="n">Length</span>     <span class="n">Description</span>
-<span class="o">--------------</span> <span class="o">----------</span> <span class="o">----------</span> <span class="o">-----------</span>
-<span class="mh">0x000000030c95</span> <span class="n">X509</span>       <span class="mi">1287</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span>
-<span class="mh">0x00000003119c</span> <span class="n">X509</span>       <span class="mi">1499</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Production</span> <span class="n">PCA</span> <span class="mi">2011</span>
-<span class="mh">0x000000031b94</span> <span class="n">X509</span>       <span class="mi">1653</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">PCA</span> <span class="mi">2010</span>
-<span class="mh">0x000000032209</span> <span class="n">X509</span>       <span class="mi">1246</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">MOPR</span><span class="o">/</span><span class="n">OU</span><span class="o">=</span><span class="n">nCipher</span> <span class="n">DSE</span> <span class="n">ESN</span><span class="o">:</span><span class="n">F528</span><span class="o">-</span><span class="mi">3777</span><span class="o">-</span><span class="mi">8</span><span class="n">A76</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">Service</span>
-<span class="mh">0x00000017114e</span> <span class="n">X509</span>       <span class="mi">1499</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Production</span> <span class="n">PCA</span> <span class="mi">2011</span>
-<span class="mh">0x000000171b46</span> <span class="n">X509</span>       <span class="mi">1653</span>       <span class="o">/</span><span class="n">C</span><span class="o">=</span><span class="n">US</span><span class="o">/</span><span class="n">ST</span><span class="o">=</span><span class="n">Washington</span><span class="o">/</span><span class="n">L</span><span class="o">=</span><span class="n">Redmond</span><span class="o">/</span><span class="n">O</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">/</span><span class="n">CN</span><span class="o">=</span><span class="n">Microsoft</span> <span class="n">Time</span><span class="o">-</span><span class="n">Stamp</span> <span class="n">PCA</span> <span class="mi">2010</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 22:07:35&gt; certscan
+-------------------&gt; certscan()
+   Address     Type       Length     Description
+-------------- ---------- ---------- -----------
+0x000000030c95 X509       1287       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Windows
+0x00000003119c X509       1499       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Windows Production PCA 2011
+0x000000031b94 X509       1653       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Time-Stamp PCA 2010
+0x000000032209 X509       1246       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/OU=MOPR/OU=nCipher DSE ESN:F528-3777-8A76/CN=Microsoft Time-Stamp Service
+0x00000017114e X509       1499       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Windows Production PCA 2011
+0x000000171b46 X509       1653       /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/CN=Microsoft Time-Stamp PCA 2010</code></pre>
 
 <p>
 
@@ -746,9 +708,9 @@ also dumped to files in the specified directory.</p>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CertVadScan.html">
+       <a href="/docs/Manual/Plugins/Windows/Services.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         cert_vad_scan
+         services
        </a>
     </li>
   </ul>
@@ -756,8 +718,8 @@ also dumped to files in the specified directory.</p>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CheckPEHooks.html">
-          check_pehooks
+       <a href="/docs/Manual/Plugins/Windows/Sockets.html">
+          sockets
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

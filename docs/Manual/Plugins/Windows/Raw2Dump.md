@@ -23,12 +23,11 @@ abstract: "Convert the physical address space to a crash dump.\n\n    The Window
   \    the symbol information we already have.\n\n    NOTE: The crashdump file format\
   \ can be deduced by:\n\n    dis 'nt!IoFillDumpHeader'\n\n    This is the reference\
   \ for this plugin.\n    "
-args: {destination: The destination path to write the crash dump., rebuild: 'Rebuild
-    the KDBG data block. (type: Boolean)
+args: {destination: 'The destination path to write the crash dump. (type: String)
 
+    ', rebuild: 'Rebuild the KDBG data block. (type: Boolean)
 
-
-    * Default: False'}
+    '}
 class_name: Raw2Dump
 epydoc: rekall.plugins.windows.crashinfo.Raw2Dump-class.html
 layout: plugin

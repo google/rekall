@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -446,7 +448,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Dump directory.</p></td></tr><tr><td><p>regexp</p></td><td><p>Regexp on the module name.</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Dump directory. (type: String)</p></td></tr><tr><td><p>regexp</p></td><td><p>Regexp on the module name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -454,9 +456,8 @@ ript>
 
 <p>The list of loaded modules is obtained by running the <code>lsmod</code> plugin.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="err">$</span> <span class="n">PYTHONPATH</span><span class="o">=</span><span class="p">.</span> <span class="n">python</span> <span class="n">rekall</span><span class="o">/</span><span class="n">rekal</span><span class="p">.</span><span class="n">py</span> <span class="o">-</span><span class="n">f</span> <span class="n">Linux</span><span class="o">-</span><span class="mf">3.2.0</span><span class="o">-</span><span class="mi">4</span><span class="o">-</span><span class="mi">686</span><span class="o">-</span><span class="n">pae</span><span class="p">.</span><span class="n">E01</span> <span class="o">--</span><span class="n">profile_path</span> <span class="p">..</span><span class="o">/</span><span class="n">my</span><span class="o">-</span><span class="n">profiles</span><span class="o">/</span> <span class="n">https</span><span class="o">:</span><span class="c1">//raw.githubusercontent.com/google/rekall-profiles/master/ - moddump --regex ext4 --dump_dir .</span>
-<span class="n">Wrote</span> <span class="mi">306996</span> <span class="n">bytes</span> <span class="n">to</span> <span class="n">ext4</span><span class="mf">.0</span><span class="n">xf836a000</span><span class="p">.</span><span class="n">lkm</span>
-</pre></div>
+<pre class="highlight"><code>$ PYTHONPATH=. python rekall/rekal.py -f Linux-3.2.0-4-686-pae.E01 --profile_path ../my-profiles/ https://raw.githubusercontent.com/google/rekall-profiles/master/ - moddump --regex ext4 --dump_dir .
+Wrote 306996 bytes to ext4.0xf836a000.lkm</code></pre>
 
 <p>
 

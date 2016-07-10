@@ -2,14 +2,19 @@
 abstract: Parse the PDB streams.
 args: {concise: 'Specify this to emit less detailed information. (type: Boolean)
 
+    ', dump_dir: 'Path suitable for dumping files. (type: String)
 
+    ', output_filename: 'The name of the file to store this profile.  (type: String)
 
-    * Default: False', dump_dir: 'Path suitable for dumping files. (Default: Use current
-    directory)', output_filename: 'The name of the file to store this profile. ',
-  pdb_filename: The filename of the PDB file., profile_class: The name of the profile
-    implementation. Default name is derived from the pdb filename., windows_version: 'The
-    windows version (major.minor.revision) corresponding with this PDB. For example,
-    Windows 7 should be given as 6.1'}
+    ', pdb_filename: 'The filename of the PDB file. (type: String)
+
+    ', profile_class: 'The name of the profile implementation. Default name is derived
+    from the pdb filename. (type: String)
+
+    ', windows_version: 'The windows version (major.minor.revision) corresponding
+    with this PDB. For example, Windows 7 should be given as 6.1 (type: String)
+
+    '}
 class_name: ParsePDB
 epydoc: rekall.plugins.tools.mspdb.ParsePDB-class.html
 layout: plugin

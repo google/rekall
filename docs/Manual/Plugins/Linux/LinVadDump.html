@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -446,7 +448,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes (Default uses all methods). (type: ChoiceArray)</p>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes (Default uses all methods). (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -457,7 +459,7 @@ ript>
 <li>
 <p>Default: InitTask</p>
 </li>
-</ul></td></tr><tr><td><p>phys_task</p></td><td><p>Physical addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>task_head</p></td><td><p>Use this as the first task to follow the list. (type: IntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
 </tbody>
 </table>
 </div>

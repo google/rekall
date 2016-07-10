@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes='active'>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -691,8 +663,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/DTBScan2.html">
-          dtbscan2
+       <a href="/docs/Manual/Plugins/Windows/DumpFiles.html">
+          dumpfiles
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -718,9 +690,12 @@ to find hidden processes.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>limit</p></td><td><p>Stop scanning after this many mb. (type: IntParser)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
-<li>Default: 0</li>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>Stop scanning after this many mb. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -736,7 +711,10 @@ to find hidden processes.</p>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -751,24 +729,23 @@ physical page and locate its DTB (or page table directory base) offset. We then
 match the DTB to a known process DTB. If the DTB is not known this is a strong
 indication that the process is hidden.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">50</span><span class="o">&gt;</span> <span class="n">dtbscan</span>
-<span class="o">-------------------&gt;</span> <span class="n">dtbscan</span><span class="p">()</span>
-     <span class="n">DTB</span>           <span class="n">VAddr</span>        <span class="n">_EPROCESS</span>    <span class="n">Image</span> <span class="n">Name</span>           <span class="n">Known</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">-----</span>
-<span class="mh">0x0000001a7000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00000074580</span> <span class="n">System</span>               <span class="n">True</span>
-<span class="mh">0x0000118a3000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00002073900</span> <span class="n">explorer</span><span class="p">.</span><span class="n">exe</span>         <span class="n">True</span>
-<span class="mh">0x00000923e000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000020ea900</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x000036ea3000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000006208c0</span> <span class="n">taskhost</span><span class="p">.</span><span class="n">exe</span>         <span class="n">True</span>
-<span class="mh">0x000004c01000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000000ce080</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x00000d0a4000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000022c6900</span> <span class="n">MsMpEng</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x0000093c4000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000020df080</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x0000348c6000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00001e2f700</span> <span class="n">dwm</span><span class="p">.</span><span class="n">exe</span>              <span class="n">True</span>
-<span class="mh">0x000011504000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe000007a3080</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x000007c94000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00001f22080</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>              <span class="n">True</span>
-<span class="mh">0x00002fe03000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00002043900</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span>          <span class="n">True</span>
-<span class="mh">0x00002f8ce000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00001299900</span> <span class="n">SearchIndexer</span><span class="p">.</span>       <span class="n">True</span>
-<span class="mh">0x0000207b9000</span> <span class="mh">0xf6fb7dbed000</span> <span class="mh">0xe00002645080</span> <span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span>         <span class="n">True</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 16:23:50&gt; dtbscan
+-------------------&gt; dtbscan()
+     DTB           VAddr        _EPROCESS    Image Name           Known
+-------------- -------------- -------------- -------------------- -----
+0x0000001a7000 0xf6fb7dbed000 0xe00000074580 System               True
+0x0000118a3000 0xf6fb7dbed000 0xe00002073900 explorer.exe         True
+0x00000923e000 0xf6fb7dbed000 0xe000020ea900 svchost.exe          True
+0x000036ea3000 0xf6fb7dbed000 0xe000006208c0 taskhost.exe         True
+0x000004c01000 0xf6fb7dbed000 0xe000000ce080 wininit.exe          True
+0x00000d0a4000 0xf6fb7dbed000 0xe000022c6900 MsMpEng.exe          True
+0x0000093c4000 0xf6fb7dbed000 0xe000020df080 svchost.exe          True
+0x0000348c6000 0xf6fb7dbed000 0xe00001e2f700 dwm.exe              True
+0x000011504000 0xf6fb7dbed000 0xe000007a3080 svchost.exe          True
+0x000007c94000 0xf6fb7dbed000 0xe00001f22080 cmd.exe              True
+0x00002fe03000 0xf6fb7dbed000 0xe00002043900 conhost.exe          True
+0x00002f8ce000 0xf6fb7dbed000 0xe00001299900 SearchIndexer.       True
+0x0000207b9000 0xf6fb7dbed000 0xe00002645080 VBoxTray.exe         True</code></pre>
 
 <p>
 
@@ -786,8 +763,8 @@ indication that the process is hidden.</p>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/DTBScan2.html">
-          dtbscan2
+       <a href="/docs/Manual/Plugins/Windows/DumpFiles.html">
+          dumpfiles
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

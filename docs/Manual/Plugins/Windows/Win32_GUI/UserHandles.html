@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -272,10 +274,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>free</p></td><td><p>Also include free handles. (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
-<li>Default: False</li>
-</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>free</p></td><td><p>Also include free handles. (type: Boolean)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -290,7 +292,13 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>type</p></td><td><p>Filter handle type by this Regular Expression.</p></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>type</p></td><td><p>Filter handle type by this Regular Expression. (type: RegEx)</p>
+<ul>
+<li>Default: .</li>
+</ul></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
 </tbody>
 </table>
 </div>

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -326,7 +328,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>name_regex</p></td><td><p>Filter module names by this regex.</p></td></tr><tr><td><p>scan_filename</p></td><td><p>Optional file to scan. If not specified we scan the physical address space.</p></td></tr>
+<tr><td><p>name_regex</p></td><td><p>Filter module names by this regex. (type: RegEx)</p>
+<ul>
+<li>Default: .</li>
+</ul></td></tr><tr><td><p>scan_filename</p></td><td><p>Optional file to scan. If not specified we scan the physical address space. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -343,11 +348,10 @@ malware. In that case scanning for a known malicious GUID can be a strong
 signature.</p>
 <p>In the below example we scan the memory image for the exact version of the
 windows kernel. Note how hits can be restricted by using a regular expression.</p>
-<div class="highlight"><pre>[1] win7.elf 00:01:51&gt; version_scan name_regex=&quot;krnl&quot;
+<pre class="highlight"><code class="language-text">[1] win7.elf 00:01:51&gt; version_scan name_regex=&quot;krnl&quot;
   Offset (P)             GUID/Version                         PDB
 -------------- --------------------------------- ------------------------------
-0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb
-</pre></div>
+0x0000027bb5fc F8E2A8B5C9B74BF4A6E4A48F180099942 ntkrnlmp.pdb</code></pre>
 
 <p>
 

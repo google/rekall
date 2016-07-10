@@ -5,17 +5,14 @@ args: {end: 'Stop reading at this offset. (type: IntParser)
 
 
 
-    * Default: 9223372036854775808', method: "Method to list processes (Default uses\
-    \ all methods).\n\n* Valid Choices:\n    - allproc\n    - dead_procs\n    - tasks\n\
-    \    - pidhash\n    - pgrphash\n", phys_proc: 'Physical addresses of proc structs.
+    * Default: 9223372036854775808', pids: 'One or more pids of processes to select.
     (type: ArrayIntParser)
-
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
 
     ', proc: 'Kernel addresses of proc structs. (type: ArrayIntParser)
 
-    ', proc_regex: A regex to select a process by name., start: 'Start reading from
-    this page. (type: IntParser)
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    ', start: 'Start reading from this page. (type: IntParser)
 
 
 

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -181,6 +183,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#aff4export' class="category-link">
             aff4export
           </a>
@@ -195,6 +203,18 @@ ript>
         <li classes=''>
           <a href='#allproc' class="category-link">
             allproc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#artifact_collector' class="category-link">
+            artifact_collector
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#artifact_list' class="category-link">
+            artifact_list
           </a>
         </li>
         
@@ -225,6 +245,24 @@ ript>
         <li classes=''>
           <a href='#cc' class="category-link">
             cc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#certscan' class="category-link">
+            certscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#clipboard' class="category-link">
+            clipboard
           </a>
         </li>
         
@@ -277,6 +315,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#dns_cache' class="category-link">
             dns_cache
           </a>
@@ -289,14 +333,44 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#file_yara' class="category-link">
+            file_yara
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#find' class="category-link">
+            find
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#fstat' class="category-link">
             fstat
           </a>
         </li>
         
         <li classes=''>
+          <a href='#glob' class="category-link">
+            glob
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#handles' class="category-link">
             handles
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hash' class="category-link">
+            hash
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hexdump_file' class="category-link">
+            hexdump_file
           </a>
         </li>
         
@@ -351,6 +425,24 @@ ript>
         <li classes='active'>
           <a href='#load_profile' class="category-link">
             load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#lookup' class="category-link">
+            lookup
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#lsmod_parameters' class="category-link">
+            lsmod_parameters
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#lsmod_sections' class="category-link">
+            lsmod_sections
           </a>
         </li>
         
@@ -433,6 +525,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#pslist' class="category-link">
+            pslist
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#pstree' class="category-link">
             pstree
           </a>
@@ -441,6 +539,12 @@ ript>
         <li classes=''>
           <a href='#raise_the_roof' class="category-link">
             raise_the_roof
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
           </a>
         </li>
         
@@ -487,6 +591,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certdump' class="category-link">
+            simple_certdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#tasks' class="category-link">
             tasks
           </a>
@@ -495,6 +611,12 @@ ript>
         <li classes=''>
           <a href='#terminals' class="category-link">
             terminals
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -535,6 +657,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#zones' class="category-link">
             zones
           </a>
@@ -559,8 +693,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Incoming/ManageRepository.html">
-          manage_repo
+       <a href="/docs/Manual/Plugins/Incoming/Lookup.html">
+          lookup
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -588,7 +722,7 @@ server interactively.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>guid</p></td><td><p>The guid of the module.</p></td></tr><tr><td><p>module_name</p></td><td><p>The name of the module (without the .pdb extensilon).</p></td></tr>
+<tr><td><p>guid</p></td><td><p>The guid of the module. (type: String)</p></td></tr><tr><td><p>module_name</p></td><td><p>The name of the module (without the .pdb extensilon). (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -612,8 +746,8 @@ server interactively.</p>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Incoming/ManageRepository.html">
-          manage_repo
+       <a href="/docs/Manual/Plugins/Incoming/Lookup.html">
+          lookup
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

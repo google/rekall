@@ -1,7 +1,8 @@
 ---
 abstract: Disassemble the given offset.
-args: {address_space: The address space to use., branch: 'If set we follow all branches
-    to cover all code. (type: Boolean)
+args: {address_space: 'The address space to use. (type: AddressSpace)
+
+    ', branch: 'If set we follow all branches to cover all code. (type: Boolean)
 
 
 
@@ -15,15 +16,11 @@ args: {address_space: The address space to use., branch: 'If set we follow all b
     ', length: 'The number of instructions (lines) to disassemble. (type: IntParser)
 
     ', mode: "Disassemble Mode (AMD64 or I386). Defaults to 'auto'. (type: Choices)\n\
-    \n\n* Valid Choices:\n    - auto\n    - I386\n    - AMD64\n    - MIPS\n\n\n* Default:\
-    \ auto", offset: 'An offset to disassemble. This can also be the name of a symbol
-    with an optional offset. For example: tcpip!TcpCovetNetBufferList. (type: SymbolAddress)
+    \n\n* Valid Choices:\n    - I386\n    - AMD64\n    - MIPS\n", offset: 'An offset
+    to disassemble. This can also be the name of a symbol with an optional offset.
+    For example: tcpip!TcpCovetNetBufferList. (type: SymbolAddress)
 
-    ', suppress_headers: 'If set we do not write table headers. (type: Boolean)
-
-
-
-    * Default: False'}
+    '}
 class_name: Disassemble
 epydoc: rekall.plugins.tools.disassembler.Disassemble-class.html
 layout: plugin

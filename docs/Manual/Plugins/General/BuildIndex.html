@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -312,51 +314,48 @@ ript>
 <h2>Generate a profile index file based on an index specification.</h2>
 <p>The index specification is currently a yaml file with the following
 structure:</p>
-<div class="highlight"><pre><span class="nl">base_symbol:</span> <span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="err">#</span> <span class="n">OPTIONAL</span> <span class="n">Compute</span> <span class="n">ALL</span> <span class="n">offsets</span> <span class="n">as</span> <span class="n">relative</span> <span class="n">to</span> <span class="n">this</span>
-    <span class="n">symbol</span><span class="p">.</span> <span class="n">This</span> <span class="n">includes</span> <span class="n">MaxOffset</span> <span class="n">and</span> <span class="n">MinOffset</span><span class="p">.</span>
-<span class="nl">symbols:</span> <span class="p">(</span><span class="n">array</span> <span class="n">of</span> <span class="n">dicts</span><span class="p">)</span> <span class="err">#</span> <span class="n">A</span> <span class="n">list</span> <span class="n">of</span> <span class="n">symbols</span> <span class="n">to</span> <span class="n">index</span><span class="p">.</span>
-  <span class="o">-</span>
-    <span class="nl">name:</span> <span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="err">#</span> <span class="n">Symbol</span> <span class="n">name</span>
-    <span class="nl">data:</span> <span class="p">(</span><span class="n">string</span><span class="p">)</span> <span class="err">#</span> <span class="n">Data</span> <span class="n">that</span> <span class="n">should</span> <span class="n">be</span> <span class="n">at</span> <span class="n">the</span> <span class="n">symbol</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">offset</span>
-    <span class="nl">shift:</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="err">#</span> <span class="n">OPTIONAL</span> <span class="n">Adjust</span> <span class="n">symbol</span> <span class="n">offset</span> <span class="n">by</span> <span class="n">this</span> <span class="n">number</span>
-</pre></div>
+<pre class="highlight"><code>base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
+    symbol. This includes MaxOffset and MinOffset.
+symbols: (array of dicts) # A list of symbols to index.
+  -
+    name: (string) # Symbol name
+    data: (string) # Data that should be at the symbol's offset
+    shift: (int) # OPTIONAL Adjust symbol offset by this number</code></pre>
 
 
 <h2>Example:</h2>
-<div class="highlight"><pre><span class="nl">path:</span> <span class="n">win32k</span><span class="p">.</span><span class="n">sys</span>
-<span class="nl">symbols:</span>
-  <span class="o">-</span>
-    <span class="err">#</span> <span class="n">The</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">symbol</span> <span class="n">we</span> <span class="n">test</span> <span class="k">for</span><span class="p">.</span>
-    <span class="nl">name:</span> <span class="s">&quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;</span>
+<pre class="highlight"><code>path: win32k.sys
+symbols:
+  -
+    # The name of the symbol we test for.
+    name: &quot;??_C@_1BO@KLKIFHLC@?$AAG?$AAU?$AAI?$AAF?$AAo?$AAn?$AAt?$AA?4?$AAH?$AAe?$AAi?$AAg?$AAh?$AAt?$AA?$AA@&quot;
 
-    <span class="err">#</span> <span class="n">The</span> <span class="n">data</span> <span class="n">we</span> <span class="n">expect</span> <span class="n">to</span> <span class="n">find</span> <span class="n">at</span> <span class="n">that</span> <span class="n">offset</span><span class="p">.</span>
-    <span class="nl">data:</span> <span class="s">&quot;47005500490046006f006e0074002e00480065006900670068007400&quot;</span>
+    # The data we expect to find at that offset.
+    data: &quot;47005500490046006f006e0074002e00480065006900670068007400&quot;
 
-  <span class="o">-</span>
-    <span class="nl">name:</span> <span class="s">&quot;wcschr&quot;</span>
-    <span class="nl">shift:</span> <span class="o">-</span><span class="mi">1</span>
-    <span class="nl">data:</span> <span class="s">&quot;90&quot;</span>
-</pre></div>
+  -
+    name: &quot;wcschr&quot;
+    shift: -1
+    data: &quot;90&quot;</code></pre>
 
 
 <p>The result is an index profile. This has an $INDEX section which is a dict,
 with keys being the profile name, and values being a list of (offset, match)
 tuples. For example:</p>
-<div class="highlight"><pre><span class="p">{</span>
- <span class="s">&quot;$INDEX&quot;</span><span class="o">:</span> <span class="p">{</span>
-  <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1184600</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-  <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1190376</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-  <span class="s">&quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1194296</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-<span class="p">...</span>
+<pre class="highlight"><code>{
+ &quot;$INDEX&quot;: {
+  &quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;: [[1184600, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
+  &quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;: [[1190376, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
+  &quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;: [[1194296, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
+...
 
- <span class="s">&quot;$METADATA&quot;</span><span class="o">:</span> <span class="p">{</span>
-  <span class="s">&quot;ProfileClass&quot;</span><span class="o">:</span> <span class="s">&quot;Index&quot;</span><span class="p">,</span>
-  <span class="s">&quot;Type&quot;</span><span class="o">:</span> <span class="s">&quot;Profile&quot;</span>
-  <span class="s">&quot;MaxOffset&quot;</span><span class="o">:</span> <span class="mi">546567</span>
-  <span class="s">&quot;MinOffset&quot;</span><span class="o">:</span> <span class="mi">0</span>
-  <span class="p">}</span>
- <span class="p">}</span>
-</pre></div>
+ &quot;$METADATA&quot;: {
+  &quot;ProfileClass&quot;: &quot;Index&quot;,
+  &quot;Type&quot;: &quot;Profile&quot;
+  &quot;MaxOffset&quot;: 546567
+  &quot;MinOffset&quot;: 0
+  }
+ }</code></pre>
 </div>
 
 
@@ -374,17 +373,16 @@ tuples. For example:</p>
 
 
 <p>For example:</p>
-<div class="highlight"><pre>    <span class="p">{</span>
-     <span class="s">&quot;$INDEX&quot;</span><span class="o">:</span> <span class="p">{</span>
-      <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1184600</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-      <span class="s">&quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1190376</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-      <span class="s">&quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;</span><span class="o">:</span> <span class="p">[[</span><span class="mi">1194296</span><span class="p">,</span> <span class="s">&quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;</span><span class="p">]],</span>
-     <span class="s">&quot;$METADATA&quot;</span><span class="o">:</span> <span class="p">{</span>
-      <span class="s">&quot;ProfileClass&quot;</span><span class="o">:</span> <span class="s">&quot;Index&quot;</span><span class="p">,</span>
-      <span class="s">&quot;Type&quot;</span><span class="o">:</span> <span class="s">&quot;Profile&quot;</span>
-      <span class="p">}</span>
-     <span class="p">}</span>
-</pre></div>
+<pre class="highlight"><code>    {
+     &quot;$INDEX&quot;: {
+      &quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;: [[1184600, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
+      &quot;tcpip.sys/AMD64/6.0.6001.18493/29A4DBCAF840463298F40190DD1492D02&quot;: [[1190376, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
+      &quot;tcpip.sys/AMD64/6.0.6002.18272/7E79532FC7E349C690F5FBD16E3562172&quot;: [[1194296, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
+     &quot;$METADATA&quot;: {
+      &quot;ProfileClass&quot;: &quot;Index&quot;,
+      &quot;Type&quot;: &quot;Profile&quot;
+      }
+     }</code></pre>
 
 <p>
 

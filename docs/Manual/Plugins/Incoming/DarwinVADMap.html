@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -181,6 +183,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#aff4export' class="category-link">
             aff4export
           </a>
@@ -195,6 +203,18 @@ ript>
         <li classes=''>
           <a href='#allproc' class="category-link">
             allproc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#artifact_collector' class="category-link">
+            artifact_collector
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#artifact_list' class="category-link">
+            artifact_list
           </a>
         </li>
         
@@ -225,6 +245,24 @@ ript>
         <li classes=''>
           <a href='#cc' class="category-link">
             cc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#certscan' class="category-link">
+            certscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#clipboard' class="category-link">
+            clipboard
           </a>
         </li>
         
@@ -277,6 +315,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#dns_cache' class="category-link">
             dns_cache
           </a>
@@ -289,14 +333,44 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#file_yara' class="category-link">
+            file_yara
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#find' class="category-link">
+            find
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#fstat' class="category-link">
             fstat
           </a>
         </li>
         
         <li classes=''>
+          <a href='#glob' class="category-link">
+            glob
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#handles' class="category-link">
             handles
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hash' class="category-link">
+            hash
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hexdump_file' class="category-link">
+            hexdump_file
           </a>
         </li>
         
@@ -351,6 +425,24 @@ ript>
         <li classes=''>
           <a href='#load_profile' class="category-link">
             load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#lookup' class="category-link">
+            lookup
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#lsmod_parameters' class="category-link">
+            lsmod_parameters
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#lsmod_sections' class="category-link">
+            lsmod_sections
           </a>
         </li>
         
@@ -433,6 +525,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#pslist' class="category-link">
+            pslist
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#pstree' class="category-link">
             pstree
           </a>
@@ -441,6 +539,12 @@ ript>
         <li classes=''>
           <a href='#raise_the_roof' class="category-link">
             raise_the_roof
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
           </a>
         </li>
         
@@ -487,6 +591,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certdump' class="category-link">
+            simple_certdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#tasks' class="category-link">
             tasks
           </a>
@@ -495,6 +611,12 @@ ript>
         <li classes=''>
           <a href='#terminals' class="category-link">
             terminals
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -531,6 +653,18 @@ ript>
         <li classes=''>
           <a href='#which_plugin' class="category-link">
             which_plugin
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
           </a>
         </li>
         
@@ -589,17 +723,7 @@ VAD.</p>
 <tr><td><p>end</p></td><td><p>Stop reading at this offset. (type: IntParser)</p>
 <ul>
 <li>Default: 9223372036854775808</li>
-</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes (Default uses all methods).</p>
-<ul>
-<li>Valid Choices:<ul>
-<li>allproc</li>
-<li>dead_procs</li>
-<li>tasks</li>
-<li>pidhash</li>
-<li>pgrphash</li>
-</ul>
-</li>
-</ul></td></tr><tr><td><p>phys_proc</p></td><td><p>Physical addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr><tr><td><p>start</p></td><td><p>Start reading from this page. (type: IntParser)</p>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>start</p></td><td><p>Start reading from this page. (type: IntParser)</p>
 <ul>
 <li>Default: 0</li>
 </ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>

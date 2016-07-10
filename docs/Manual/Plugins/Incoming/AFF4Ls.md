@@ -1,10 +1,14 @@
 ---
 abstract: List the content of an AFF4 file.
-args: {long: 'Include additional information about each stream. (type: Boolean)
+args: {gce_credentials: 'The GCE service account credentials to use. (type: String)
 
+    ', gce_credentials_path: 'A path to the GCE service account credentials to use.
+    (type: String)
 
+    ', long: 'Include additional information about each stream. (type: Boolean)
 
-    * Default: False', regex: 'Regex of filenames to dump.
+    ', regex: 'Regex of filenames to dump. (type: RegEx)
+
 
 
     * Default: .', verbosity: 'An integer reflecting the amount of desired output:
@@ -12,7 +16,9 @@ args: {long: 'Include additional information about each stream. (type: Boolean)
 
 
 
-    * Default: 1', volume: Volume to list.}
+    * Default: 1', volume: 'Volume to list. (type: String)
+
+    '}
 class_name: AFF4Ls
 epydoc: rekall.plugins.tools.aff4acquire.AFF4Ls-class.html
 layout: plugin

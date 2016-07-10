@@ -1,15 +1,12 @@
 ---
 abstract: Checks if any processes are sharing credential structures
 args: {method: "Method to list processes (Default uses all methods). (type: ChoiceArray)\n\
-    \n\n* Valid Choices:\n    - InitTask\n\n\n* Default: InitTask", phys_task: 'Physical
-    addresses of task structs. (type: ArrayIntParser)
+    \n\n* Valid Choices:\n    - InitTask\n\n\n* Default: InitTask", pids: 'One or
+    more pids of processes to select. (type: ArrayIntParser)
 
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
-    ', proc_regex: A regex to select a process by name., task: 'Kernel addresses of
-    task structs. (type: ArrayIntParser)
-
-    ', task_head: 'Use this as the first task to follow the list. (type: IntParser)
+    ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
     '}
 class_name: CheckCreds

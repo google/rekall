@@ -1,9 +1,12 @@
 ---
 abstract: Dumps out the vad sections to a file
-args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directory)',
-  eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
+args: {dump_dir: 'Path suitable for dumping files. (type: String)
 
-    ', max_size: 'Maximum file size to dump. (type: IntParser)
+    ', eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
+
+
+
+    * Default: ', max_size: 'Maximum file size to dump. (type: IntParser)
 
 
 
@@ -13,13 +16,15 @@ args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directo
     \ Sessions, Handles", offset: 'Only print the vad corresponding to this offset.
     (type: IntParser)
 
-    ', phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
+    ', pids: 'One or more pids of processes to select. (type: ArrayIntParser)
 
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
 
-    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
-    ', regex: A regular expression to filter VAD filenames.}
+    * Default: ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    ', regex: 'A regular expression to filter VAD filenames. (type: RegEx)
+
+    '}
 class_name: VADDump
 epydoc: rekall.plugins.windows.vadinfo.VADDump-class.html
 layout: plugin

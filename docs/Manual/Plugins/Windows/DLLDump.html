@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,9 +706,12 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>out_fd</p></td><td><p>A file like object to write the output.</p></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A Regular expression for selecting the dlls to dump.</p>
+</ul></td></tr><tr><td><p>out_fd</p></td><td><p>A file like object to write the output. (type: String)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
-<li>Default: .+</li>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A Regular expression for selecting the dlls to dump. (type: RegEx)</p>
+<ul>
+<li>Default: .</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -761,16 +739,15 @@ to dump.</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">14</span><span class="o">:</span><span class="mi">51</span><span class="o">:</span><span class="mi">37</span><span class="o">&gt;</span> <span class="n">dlldump</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp/&quot;</span>
-<span class="o">-------------------&gt;</span> <span class="n">dlldump</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp/&quot;</span><span class="p">)</span>
-  <span class="n">_EPROCESS</span>    <span class="n">Name</span>                  <span class="n">Base</span>      <span class="n">Module</span>               <span class="n">Dump</span> <span class="n">File</span>
-<span class="o">--------------</span> <span class="o">----------------</span> <span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">---------</span>
-<span class="mh">0xe0000204a900</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="mh">0x000000020000</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span>    <span class="n">module</span><span class="mf">.2628.3</span><span class="n">d04a900</span><span class="mf">.20000</span><span class="p">.</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="n">exe</span>
-<span class="mh">0xe0000204a900</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="mh">0x7ff87f320000</span> <span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>            <span class="n">module</span><span class="mf">.2628.3</span><span class="n">d04a900</span><span class="mf">.7f</span><span class="n">f87f320000</span><span class="p">.</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0xe0000204a900</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="mh">0x000076f50000</span> <span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>            <span class="n">module</span><span class="mf">.2628.3</span><span class="n">d04a900</span><span class="mf">.76f50000.</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0xe0000204a900</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="mh">0x000076fa0000</span> <span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>         <span class="n">module</span><span class="mf">.2628.3</span><span class="n">d04a900</span><span class="mf">.76f</span><span class="n">a0000</span><span class="p">.</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0xe0000204a900</span> <span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span>   <span class="mh">0x000077010000</span> <span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>         <span class="n">module</span><span class="mf">.2628.3</span><span class="n">d04a900</span><span class="mf">.77010000</span><span class="p">.</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 14:51:37&gt; dlldump proc_regex=&quot;winpmem&quot;, dump_dir=&quot;/tmp/&quot;
+-------------------&gt; dlldump(proc_regex=&quot;winpmem&quot;, dump_dir=&quot;/tmp/&quot;)
+  _EPROCESS    Name                  Base      Module               Dump File
+-------------- ---------------- -------------- -------------------- ---------
+0xe0000204a900 winpmem_1.5.2.   0x000000020000 winpmem_1.5.2.exe    module.2628.3d04a900.20000.winpmem_1.5.2.exe
+0xe0000204a900 winpmem_1.5.2.   0x7ff87f320000 ntdll.dll            module.2628.3d04a900.7ff87f320000.ntdll.dll
+0xe0000204a900 winpmem_1.5.2.   0x000076f50000 wow64.dll            module.2628.3d04a900.76f50000.wow64.dll
+0xe0000204a900 winpmem_1.5.2.   0x000076fa0000 wow64win.dll         module.2628.3d04a900.76fa0000.wow64win.dll
+0xe0000204a900 winpmem_1.5.2.   0x000077010000 wow64cpu.dll         module.2628.3d04a900.77010000.wow64cpu.dll</code></pre>
 
 <p>
 

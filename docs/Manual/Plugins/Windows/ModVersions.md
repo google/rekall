@@ -1,6 +1,8 @@
 ---
 abstract: Try to determine the versions for all kernel drivers.
-args: {name_regex: Filter module names by this regex.}
+args: {name_regex: 'Filter module names by this regex. (type: RegEx)
+
+    '}
 class_name: ModVersions
 epydoc: rekall.plugins.windows.modules.ModVersions-class.html
 layout: plugin

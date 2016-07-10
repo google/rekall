@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -347,7 +349,7 @@ in the first place (use AFF4 or ELF). However, if Rekall is run in live mode,
 the <code>imagecopy</code> plugin will produce a RAW image of live memory.</p>
 <p>In the following example we convert an EWF image to raw so Volatility can read
 it:</p>
-<div class="highlight"><pre>[1] win7.elf.E01 23:36:57&gt; imagecopy &quot;/tmp/foo.raw&quot;
+<pre class="highlight"><code class="language-text">[1] win7.elf.E01 23:36:57&gt; imagecopy &quot;/tmp/foo.raw&quot;
 ---------------------&gt; imagecopy(&quot;/tmp/foo.raw&quot;)
 Range 0x0 - 0x2cb00000
 Range 0xe0000000 - 0x1000000
@@ -362,8 +364,7 @@ Offset(V)          Name                    PID   PPID   Thds     Hnds   Sess  Wo
 ------------------ -------------------- ------ ------ ------ -------- ------ ------ ------------------------------ ------------------------------
 0xfffffa80008959e0 System                    4      0     84      511 ------      0 2012-10-01 21:39:51 UTC+0000
 0xfffffa8001994310 smss.exe                272      4      2       29 ------      0 2012-10-01 21:39:51 UTC+0000
-0xfffffa8002259060 csrss.exe               348    340      9      436      0      0 2012-10-01 21:39:57 UTC+0000
-</pre></div>
+0xfffffa8002259060 csrss.exe               348    340      9      436      0      0 2012-10-01 21:39:57 UTC+0000</code></pre>
 
 <p>
 

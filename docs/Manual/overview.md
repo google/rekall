@@ -38,6 +38,7 @@ $ virtualenv  /tmp/MyEnv
 New python executable in /tmp/MyEnv/bin/python
 Installing setuptools, pip...done.
 $ source /tmp/MyEnv/bin/activate
+$ pip install --upgrade setuptools pip wheel
 $ pip install rekall
 ```
 
@@ -59,7 +60,11 @@ use.
 
 For development it is easier to install rekall inside a virtual env. Virtual Env
 is a way for containing and running multiple versions of python packages at the
-same time, without interfering with the host system.
+same time, without interfering with the host system. NOTE: Due to the fragility
+of python dependencies the only configuration which is supported is installing
+Rekall via virtualenv. This is the only way that guarantees that all of Rekall's
+dependencies are installed with their correct versions. Although it is possible
+to install Rekall to the system python this is fragile and likely to break.
 
 ```sh
 # You might need to install virtualenv:
@@ -73,13 +78,16 @@ $ source /tmp/Test/bin/activate
 
 # For development run the devel version
 $ git clone https://github.com/google/rekall.git
-$ cd rekall
-$ python setup.py develop
+
+# Install the rekall-core and rekall from its directory.
+$ pip install --editable ./rekall-core
+$ pip install --editable .
 ```
 
 When done you can just remove the `/tmp/Test` directory.
 
-On Windows systems, the installtion process is covered in the blob post [Installing Rekall on Windows](http://rekall-forensic.blogspot.ch/2015/09/installing-rekall-on-windows.html).
+On Windows systems, the installtion process is covered in the blob post
+[Installing Rekall on Windows](http://rekall-forensic.blogspot.ch/2015/09/installing-rekall-on-windows.html).
 
 ## Mailing Lists
 

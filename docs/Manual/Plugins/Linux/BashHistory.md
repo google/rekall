@@ -2,19 +2,17 @@
 abstract: "Scan the bash process for history.\n\n    Based on original algorithm by\
   \ Andrew Case.\n    "
 args: {method: "Method to list processes (Default uses all methods). (type: ChoiceArray)\n\
-    \n\n* Valid Choices:\n    - InitTask\n\n\n* Default: InitTask", phys_task: 'Physical
-    addresses of task structs. (type: ArrayIntParser)
+    \n\n* Valid Choices:\n    - InitTask\n\n\n* Default: InitTask", pids: 'One or
+    more pids of processes to select. (type: ArrayIntParser)
 
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
-
-    ', proc_regex: A regex to select a process by name., scan_entire_address_space: 'Scan
-    the entire process address space, not only the heap. (type: Boolean)
+    ', proc_regex: 'The processes we should examine. (type: RegEx)
 
 
 
-    * Default: False', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
+    * Default: ^bash$', scan_entire_address_space: 'Scan the entire process address
+    space, not only the heap. (type: Boolean)
 
-    ', task_head: 'Use this as the first task to follow the list. (type: IntParser)
+    ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
     '}
 class_name: BashHistory

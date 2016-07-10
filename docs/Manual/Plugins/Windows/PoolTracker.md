@@ -2,9 +2,9 @@
 abstract: Enumerate pool tag usage statistics.
 args: {}
 class_name: PoolTracker
-epydoc: rekall.plugins.windows.misc.PoolTracker-class.html
+epydoc: rekall.plugins.windows.pool.PoolTracker-class.html
 layout: plugin
-module: rekall.plugins.windows.misc
+module: rekall.plugins.windows.pool
 title: pool_tracker
 ---
 

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -332,7 +334,7 @@ produces a Rekall profile from a variety of sources, including:</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>converter</p></td><td><p>The name of the converter to use. If not specified autoguess.</p></td></tr><tr><td><p>out_file</p></td><td><p>Path for output file.</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation to specify. If not specified, we autodetect.</p></td></tr><tr><td><p>source</p></td><td><p>Filename of profile to read.</p></td></tr>
+<tr><td><p>converter</p></td><td><p>The name of the converter to use. If not specified autoguess. (type: String)</p></td></tr><tr><td><p>out_file</p></td><td><p>Path for output file. (type: String)</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation to specify. If not specified, we autodetect. (type: String)</p></td></tr><tr><td><p>source</p></td><td><p>Filename of profile to read. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -356,17 +358,17 @@ JSON format used by Relall. There are two main use cases:</p>
 </ol>
 <p>The below example demonstrates how to build and convert a Linux profile locally
 for live analysis:</p>
-<div class="highlight"><pre>rekall/tools/linux# make profile
-make -C /usr/src/linux-headers-3.13.0-74-generic <span class="nv">CONFIG_DEBUG_INFO</span><span class="o">=</span>y <span class="nv">M</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span> modules
-make<span class="o">[</span>1<span class="o">]</span>: Entering directory <span class="sb">`</span>/usr/src/linux-headers-3.13.0-74-generic<span class="s1">&#39;</span>
-<span class="s1">  Building modules, stage 2.</span>
-<span class="s1">    MODPOST 2 modules</span>
-<span class="s1">    make[1]: Leaving directory `/usr/src/linux-headers-3.13.0-74-generic&#39;</span>
+<pre class="highlight"><code class="language-sh">rekall/tools/linux# make profile
+make -C /usr/src/linux-headers-3.13.0-74-generic CONFIG_DEBUG_INFO=y M=`pwd` modules
+make[1]: Entering directory `/usr/src/linux-headers-3.13.0-74-generic'
+  Building modules, stage 2.
+    MODPOST 2 modules
+    make[1]: Leaving directory `/usr/src/linux-headers-3.13.0-74-generic'
     cp module.ko module_dwarf.ko
-    zip <span class="s2">&quot;3.13.0-74-generic.zip&quot;</span> module_dwarf.ko /boot/System.map-3.13.0-74-generic /boot/config-3.13.0-74-generic
-    updating: module_dwarf.ko <span class="o">(</span>deflated 65%<span class="o">)</span>
-    updating: boot/System.map-3.13.0-74-generic <span class="o">(</span>deflated 79%<span class="o">)</span>
-    updating: boot/config-3.13.0-74-generic <span class="o">(</span>deflated 75%<span class="o">)</span>
+    zip &quot;3.13.0-74-generic.zip&quot; module_dwarf.ko /boot/System.map-3.13.0-74-generic /boot/config-3.13.0-74-generic
+    updating: module_dwarf.ko (deflated 65%)
+    updating: boot/System.map-3.13.0-74-generic (deflated 79%)
+    updating: boot/config-3.13.0-74-generic (deflated 75%)
 
 rekall/tools/linux# rekal convert_profile 3.13.0-74-generic.zip 3.13.0-74-generic.json
 rekall/tools/linux# rekal --profile 3.13.0-74-generic.json -f /proc/kcore pslist
@@ -374,8 +376,7 @@ rekall/tools/linux# rekal --profile 3.13.0-74-generic.json -f /proc/kcore pslist
      -------------- -------------------- ------ ------ ------ ------ -------------- ------------------------ ------
      0x8804285f0000 init                      1      0      0      0 0x000426592000     2016-01-29 12:50:31Z /sbin/init
      0x8804285f1800 kthreadd                  2      0      0      0 -                  2016-01-29 12:50:31Z -
-     0x8804285f3000 ksoftirqd/0               3      2      0      0 -                  2016-01-29 12:50:31Z -
-</pre></div>
+     0x8804285f3000 ksoftirqd/0               3      2      0      0 -                  2016-01-29 12:50:31Z -</code></pre>
 
 <p>
 

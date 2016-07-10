@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,46 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>scan_in_kernel</p></td><td><p>Scan in the kernel address space (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_kernel</p></td><td><p>Scan the entire kernel address space. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_code</p></td><td><p>Scan the kernel image and loaded drivers. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_nonpaged_pool</p></td><td><p>Scan the kernel non-paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_paged_pool</p></td><td><p>Scan the kernel paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_session_pools</p></td><td><p>Scan session pools for all processes. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_physical</p></td><td><p>Scan the physical address space only. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
 </ul></td></tr>
@@ -738,19 +749,18 @@ in Ring 0.</p>
    the other hand, this plugin may reveal drivers which have been unloaded.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">17</span><span class="o">:</span><span class="mi">29</span><span class="o">&gt;</span> <span class="n">driverscan</span>
-<span class="o">-------------------&gt;</span> <span class="n">driverscan</span><span class="p">()</span>
-    <span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>    <span class="err">#</span><span class="n">Ptr</span> <span class="err">#</span><span class="n">Hnd</span>     <span class="n">Start</span>           <span class="n">Size</span>      <span class="n">Service</span> <span class="n">Key</span>          <span class="n">Name</span>         <span class="n">Driver</span> <span class="n">Name</span>
-<span class="o">-</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">----</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------------</span> <span class="o">-----------</span>
-<span class="p">...</span>
-  <span class="mh">0x00003e569c60</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf80000b14000</span>        <span class="mh">0x10000</span> <span class="n">pcw</span>                  <span class="n">pcw</span>          <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">pcw</span>
-  <span class="mh">0x00003e569e60</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf80000aeb000</span>        <span class="mh">0x29000</span> <span class="n">VBoxGuest</span>            <span class="n">VBoxGuest</span>    <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">VBoxGuest</span>
-  <span class="mh">0x00003e59e590</span>   <span class="mi">17</span>    <span class="mi">0</span> <span class="mh">0xf80000c26000</span>       <span class="mh">0x118000</span> <span class="n">NDIS</span>                 <span class="n">NDIS</span>         <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">NDIS</span>
-  <span class="mh">0x00003e5a1060</span>    <span class="mi">8</span>    <span class="mi">0</span> <span class="mh">0xf80000ec5000</span>       <span class="mh">0x27f000</span> <span class="n">Tcpip</span>                <span class="n">Tcpip</span>        <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">Tcpip</span>
-  <span class="mh">0x00003eb8d870</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf800025ca000</span>        <span class="mh">0x10000</span> <span class="n">pmem</span>                 <span class="n">pmem</span>         <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">pmem</span>
-  <span class="mh">0x00003f066e60</span>    <span class="mi">3</span>    <span class="mi">0</span> <span class="mh">0xf80001c69000</span>         <span class="mh">0xe000</span> <span class="n">monitor</span>              <span class="n">monitor</span>      <span class="err">\</span><span class="n">Driver</span><span class="err">\</span><span class="n">monitor</span>
-<span class="p">....</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 16:17:29&gt; driverscan
+-------------------&gt; driverscan()
+    Offset(P)    #Ptr #Hnd     Start           Size      Service Key          Name         Driver Name
+- -------------- ---- ---- -------------- -------------- -------------------- ------------ -----------
+...
+  0x00003e569c60    3    0 0xf80000b14000        0x10000 pcw                  pcw          \Driver\pcw
+  0x00003e569e60    3    0 0xf80000aeb000        0x29000 VBoxGuest            VBoxGuest    \Driver\VBoxGuest
+  0x00003e59e590   17    0 0xf80000c26000       0x118000 NDIS                 NDIS         \Driver\NDIS
+  0x00003e5a1060    8    0 0xf80000ec5000       0x27f000 Tcpip                Tcpip        \Driver\Tcpip
+  0x00003eb8d870    3    0 0xf800025ca000        0x10000 pmem                 pmem         \Driver\pmem
+  0x00003f066e60    3    0 0xf80001c69000         0xe000 monitor              monitor      \Driver\monitor
+....</code></pre>
 
 <p>
 

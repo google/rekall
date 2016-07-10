@@ -14,10 +14,7 @@ args: {image_is_guest: 'The image is for a guest VM, not the host. (type: Boolea
 
     * Default: False', no_nested: 'Don''t do nested VM detection. (type: Boolean)
 
-
-
-    * Default: False', no_validation: '[DEBUG SETTING] Disable validation of VMs.
-    (type: Boolean)
+    ', no_validation: '[DEBUG SETTING] Disable validation of VMs. (type: Boolean)
 
 
 
@@ -28,9 +25,7 @@ args: {image_is_guest: 'The image is for a guest VM, not the host. (type: Boolea
 
     * Default: 0', quick: 'Perform quick VM detection. (type: Boolean)
 
-
-
-    * Default: False', show_all: 'Also show VMs that failed validation. (type: Boolean)
+    ', show_all: 'Also show VMs that failed validation. (type: Boolean)
 
 
 

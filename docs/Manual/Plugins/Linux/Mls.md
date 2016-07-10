@@ -1,18 +1,16 @@
 ---
 abstract: Lists the files in a mounted filesystem.
-args: {device: Name of the device to match., path: 'Path to the file.
+args: {device: 'Name of the device to match. (type: String)
+
+    ', path: 'Path to the file. (type: String)
+
 
 
     * Default: /', recursive: 'Recursive listing (type: Boolean)
 
+    ', unallocated: 'Show files that have no inode information. (type: Boolean)
 
-
-    * Default: False', unallocated: 'Show files that have no inode information. (type:
-    Boolean)
-
-
-
-    * Default: False'}
+    '}
 class_name: Mls
 epydoc: rekall.plugins.linux.fs.Mls-class.html
 layout: plugin

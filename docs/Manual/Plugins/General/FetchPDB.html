@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -326,7 +328,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>guid</p></td><td><p>The GUID of the pdb file. If provided, the pdb filename must.be provided in the &ndash;pdb_filename parameter.</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the executable to get the PDB file for.</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>guid</p></td><td><p>The GUID of the pdb file. If provided, the pdb filename must be provided in the &ndash;pdb_filename parameter. (type: String)</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the executable to get the PDB file for. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -344,7 +346,7 @@ to <code>parse_pdb</code> after fetching it so a profile can be generated for Re
 use.</p>
 <p>In the example below we find the GUID and pdb file name of an executable from
 the image, then use the <code>fetch_pdb</code> plugin to fetch it. Note that PDB files are compressed using CAB on the symbol server so we need <code>cabextract</code> installed locally.</p>
-<div class="highlight"><pre>[1] win7.elf 23:08:40&gt; peinfo &quot;termdd&quot;
+<pre class="highlight"><code class="language-text">[1] win7.elf 23:08:40&gt; peinfo &quot;termdd&quot;
           Attribute                                       Value
 ------------------------------ ------------------------------------------------------------
 Machine                        IMAGE_FILE_MACHINE_AMD64
@@ -365,8 +367,7 @@ MajorImageVersion              6
 Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
   extracting termdd.pdb
 
-All done, no errors.
-</pre></div>
+All done, no errors.</code></pre>
 
 <p>
 

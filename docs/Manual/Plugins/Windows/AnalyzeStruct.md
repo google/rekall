@@ -1,7 +1,8 @@
 ---
 abstract: A plugin to analyze a memory location.
-args: {offset: A virtual address to analyze., search: 'How far back to search for
-    pool tag. (type: IntParser)
+args: {offset: 'A virtual address to analyze. (type: SymbolAddress)
+
+    ', search: 'How far back to search for pool tag. (type: IntParser)
 
 
 

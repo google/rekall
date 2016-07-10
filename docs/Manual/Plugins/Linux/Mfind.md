@@ -1,6 +1,9 @@
 ---
 abstract: Finds a file by name in memory.
-args: {device: Name of the device to match., path: 'Path to the file.
+args: {device: 'Name of the device to match. (type: String)
+
+    ', path: 'Path to the file. (type: String)
+
 
 
     * Default: /'}

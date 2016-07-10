@@ -1,13 +1,12 @@
 ---
 abstract: Runs a signature scans against physical, kernel or process memory.
-args: {phys_proc: 'Physical addresses of proc structs. (type: ArrayIntParser)
-
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+args: {pids: 'One or more pids of processes to select. (type: ArrayIntParser)
 
     ', proc: 'Kernel addresses of proc structs. (type: ArrayIntParser)
 
-    ', proc_regex: A regex to select a process by name., scan_kernel: 'If specified
-    we scan the kernel address space. (type: Boolean)
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    ', scan_kernel: 'If specified we scan the kernel address space. (type: Boolean)
 
 
 

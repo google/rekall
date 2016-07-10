@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -447,15 +449,14 @@ ript>
 <p>Rekall uses the <code>neigh_tables</code> kernel symbol and walks the neighbour tables to
 show the entries.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">Windows7_VMware</span><span class="p">(</span><span class="n">Win7x64</span><span class="o">+</span><span class="n">Ubuntu686</span><span class="p">,</span><span class="n">Ubuntu64</span><span class="p">)</span><span class="n">_VBox</span><span class="p">(</span><span class="n">XPSP3x86</span><span class="p">).</span><span class="n">ram</span> <span class="mi">12</span><span class="o">:</span><span class="mi">09</span><span class="o">:</span><span class="mo">00</span><span class="o">&gt;</span> <span class="n">arp</span>
-<span class="o">-----------------------------------------------------------------------&gt;</span> <span class="n">arp</span><span class="p">()</span>
-                                   <span class="n">IP</span> <span class="n">Address</span>                  <span class="n">MAC</span>          <span class="n">Device</span>
-<span class="o">---------------------------------------------</span> <span class="o">--------------------</span> <span class="o">---------------</span>
-                            <span class="n">ff02</span><span class="o">::</span><span class="mi">1</span><span class="o">:</span><span class="n">ff57</span><span class="o">:</span><span class="n">f719</span>    <span class="mi">33</span><span class="o">:</span><span class="mi">33</span><span class="o">:</span><span class="n">ff</span><span class="o">:</span><span class="mi">57</span><span class="o">:</span><span class="n">f7</span><span class="o">:</span><span class="mi">19</span>            <span class="n">eth0</span>
-                                     <span class="n">ff02</span><span class="o">::</span><span class="mi">16</span>    <span class="mi">33</span><span class="o">:</span><span class="mi">33</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">16</span>            <span class="n">eth0</span>
-                                <span class="mf">192.168.239.2</span>    <span class="mo">00</span><span class="o">:</span><span class="mi">50</span><span class="o">:</span><span class="mi">56</span><span class="o">:</span><span class="n">e5</span><span class="o">:</span><span class="mi">38</span><span class="o">:</span><span class="n">b6</span>            <span class="n">eth0</span>
-                              <span class="mf">192.168.239.254</span>    <span class="mo">00</span><span class="o">:</span><span class="mi">50</span><span class="o">:</span><span class="mi">56</span><span class="o">:</span><span class="n">f7</span><span class="o">:</span><span class="mi">25</span><span class="o">:</span><span class="n">d0</span>            <span class="n">eth0</span>
-</pre></div>
+<pre class="highlight"><code>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 12:09:00&gt; arp
+-----------------------------------------------------------------------&gt; arp()
+                                   IP Address                  MAC          Device
+--------------------------------------------- -------------------- ---------------
+                            ff02::1:ff57:f719    33:33:ff:57:f7:19            eth0
+                                     ff02::16    33:33:00:00:00:16            eth0
+                                192.168.239.2    00:50:56:e5:38:b6            eth0
+                              192.168.239.254    00:50:56:f7:25:d0            eth0</code></pre>
 
 <p>
 

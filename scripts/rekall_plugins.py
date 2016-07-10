@@ -69,7 +69,7 @@ class PluginDescription(object):
             if "type" in arg:
                 desc += " (type: %s)\n" % arg["type"]
 
-            if "choices" in arg:
+            if arg.get("choices"):
                 desc += "\n\n* Valid Choices:"
                 for choice in arg["choices"]:
                     desc += "\n    - " + choice

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -326,10 +328,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>concise</p></td><td><p>Specify this to emit less detailed information. (type: Boolean)</p>
-<ul>
-<li>Default: False</li>
-</ul></td></tr><tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>output_filename</p></td><td><p>The name of the file to store this profile. </p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the PDB file.</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation. Default name is derived from the pdb filename.</p></td></tr><tr><td><p>windows_version</p></td><td><p>The windows version (major.minor.revision) corresponding with this PDB. For example, Windows 7 should be given as 6.1</p></td></tr>
+<tr><td><p>concise</p></td><td><p>Specify this to emit less detailed information. (type: Boolean)</p></td></tr><tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>output_filename</p></td><td><p>The name of the file to store this profile.  (type: String)</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the PDB file. (type: String)</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation. Default name is derived from the pdb filename. (type: String)</p></td></tr><tr><td><p>windows_version</p></td><td><p>The windows version (major.minor.revision) corresponding with this PDB. For example, Windows 7 should be given as 6.1 (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -345,7 +344,7 @@ parse it and produce a JSON file for Rekall to use.</p>
 <p>Note that normally this plugin is called by other plugins such as
 <code>build_local_profile</code> or automatically by Rekall. So users do not need to call
 this plugin directly in most cases.</p>
-<div class="highlight"><pre>[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
+<pre class="highlight"><code class="language-text">[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
  Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
  Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
 Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
@@ -364,8 +363,7 @@ All done, no errors.
   &quot;IcaChargeForPostCompressionUsage&quot;: 46106,
   &quot;IcaConnectionDispatchTable&quot;: 45632,
   &quot;IcaDeviceObject&quot;: 46848,
-  &quot;IcaDisableFlowControl&quot;: 46105,
-</pre></div>
+  &quot;IcaDisableFlowControl&quot;: 46105,</code></pre>
 
 <p>
 

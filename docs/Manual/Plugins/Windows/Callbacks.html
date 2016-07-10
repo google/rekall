@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -691,8 +663,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CertVadScan.html">
-          cert_vad_scan
+       <a href="/docs/Manual/Plugins/Windows/CheckPEHooks.html">
+          check_pehooks
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -732,7 +704,7 @@ approximately as their distance from the module&rsquo;s export table.</p>
 instruct the address resolver to download the profile from the Microsoft symbol
 server. Once the profile is downloaded, Rekall can determine the exact function
 name registered (wdf01000!FxpBugCheckCallback).</p>
-<div class="highlight"><pre>[1] win7.elf 00:59:59&gt; callbacks
+<pre class="highlight"><code class="language-text">[1] win7.elf 00:59:59&gt; callbacks
 ---------------------&gt; callbacks()
                 Type                     Offset        Callback                          Symbol                       Details
 ------------------------------------ -------------- -------------- -------------------------------------------------- -------
@@ -775,8 +747,7 @@ nt!KeBugCheckCallbackListHead        0xfa80019a1ea0 0xf880014548f0 ndis!NdisGetS
 nt!KeBugCheckCallbackListHead        0xf80002c25400 0xf80002c0eef4 hal!HalQueryMaximumProcessorCount+0x54c            ACPI x64
 nt!KeBugCheckReasonCallbackListHead  0xfa80026549f8 0xf88000efd054 wdf01000!FxpBugCheckCallback                       PEAUTH
 nt!KeBugCheckReasonCallbackListHead  0xfa8000927f88 0xf88000efd054 wdf01000!FxpBugCheckCallback                       monitor
-nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40                                      mouhid
-</pre></div>
+nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40                                      mouhid</code></pre>
 
 <p>
 
@@ -794,8 +765,8 @@ nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CertVadScan.html">
-          cert_vad_scan
+       <a href="/docs/Manual/Plugins/Windows/CheckPEHooks.html">
+          check_pehooks
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

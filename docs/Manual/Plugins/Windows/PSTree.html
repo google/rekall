@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,7 +706,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
 <ul>
 <li>Default: 1</li>
 </ul></td></tr>
@@ -761,26 +739,25 @@ another process.</p>
 <li>audit: <strong>task.SeAuditProcessCreationInfo.ImageFileName.Name</strong></li>
 </ul>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">14</span><span class="o">:</span><span class="mi">55</span><span class="o">:</span><span class="mi">19</span><span class="o">&gt;</span> <span class="n">pstree</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span>
-<span class="n">Name</span>                                        <span class="n">Pid</span>   <span class="n">PPid</span>   <span class="n">Thds</span>   <span class="n">Hnds</span> <span class="n">Time</span>
-<span class="o">----------------------------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span>
- <span class="mh">0xFA8002259060</span><span class="o">:</span><span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>                   <span class="mi">348</span>    <span class="mi">340</span>      <span class="mi">9</span>    <span class="mi">436</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span>
-    <span class="nl">cmd:</span> <span class="o">%</span><span class="n">SystemRoot</span><span class="o">%</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">csrss</span><span class="p">.</span><span class="n">exe</span> <span class="n">ObjectDirectory</span><span class="o">=</span><span class="err">\</span><span class="n">Windows</span> <span class="n">SharedSection</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span><span class="mi">20480</span><span class="p">,</span><span class="mi">768</span> <span class="n">Windows</span><span class="o">=</span><span class="n">On</span> <span class="n">SubSystemType</span><span class="o">=</span><span class="n">Windows</span> <span class="n">ServerDll</span><span class="o">=</span><span class="n">basesrv</span><span class="p">,</span><span class="mi">1</span> <span class="n">ServerDll</span><span class="o">=</span><span class="n">winsrv</span><span class="o">:</span><span class="n">UserServerDllInitialization</span><span class="p">,</span><span class="mi">3</span> <span class="n">ServerDll</span><span class="o">=</span><span class="n">winsrv</span><span class="o">:</span><span class="n">ConServerDllInitialization</span><span class="p">,</span><span class="mi">2</span> <span class="n">ServerDll</span><span class="o">=</span><span class="n">sxssrv</span><span class="p">,</span><span class="mi">4</span> <span class="n">ProfileControl</span><span class="o">=</span><span class="n">Off</span> <span class="n">MaxRequestThreads</span><span class="o">=</span><span class="mi">16</span>
-    <span class="nl">path:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>
-    <span class="nl">audit:</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">csrss</span><span class="p">.</span><span class="n">exe</span>
- <span class="mh">0xFA8000901060</span><span class="o">:</span><span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>                 <span class="mi">384</span>    <span class="mi">340</span>      <span class="mi">3</span>     <span class="mi">75</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">57</span><span class="o">+</span><span class="mo">0000</span>
-    <span class="nl">cmd:</span> <span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>
-    <span class="nl">path:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>
-    <span class="nl">audit:</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wininit</span><span class="p">.</span><span class="n">exe</span>
-<span class="p">.</span> <span class="mh">0xFA800206D5F0</span><span class="o">:</span><span class="n">services</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">480</span>    <span class="mi">384</span>     <span class="mi">11</span>    <span class="mi">208</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">58</span><span class="o">+</span><span class="mo">0000</span>
-     <span class="nl">cmd:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">services</span><span class="p">.</span><span class="n">exe</span>
-     <span class="nl">path:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">services</span><span class="p">.</span><span class="n">exe</span>
-     <span class="nl">audit:</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">services</span><span class="p">.</span><span class="n">exe</span>
-<span class="p">..</span> <span class="mh">0xFA80024F85D0</span><span class="o">:</span><span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>               <span class="mi">236</span>    <span class="mi">480</span>     <span class="mi">19</span>    <span class="mi">455</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">14</span><span class="o">:</span><span class="mi">40</span><span class="o">:</span><span class="mo">01</span><span class="o">+</span><span class="mo">0000</span>
-      <span class="nl">cmd:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">svchost</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">k</span> <span class="n">LocalService</span>
-      <span class="nl">path:</span> <span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>
-      <span class="nl">audit:</span> <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>
-</pre></div>
+<pre class="highlight"><code>win7.elf 14:55:19&gt; pstree verbose=1
+Name                                        Pid   PPid   Thds   Hnds Time
+---------------------------------------- ------ ------ ------ ------ ------------------------
+ 0xFA8002259060:csrss.exe                   348    340      9    436 2012-10-01 21:39:57+0000
+    cmd: %SystemRoot%\system32\csrss.exe ObjectDirectory=\Windows SharedSection=1024,20480,768 Windows=On SubSystemType=Windows ServerDll=basesrv,1 ServerDll=winsrv:UserServerDllInitialization,3 ServerDll=winsrv:ConServerDllInitialization,2 ServerDll=sxssrv,4 ProfileControl=Off MaxRequestThreads=16
+    path: C:\Windows\system32\csrss.exe
+    audit: \Device\HarddiskVolume2\Windows\System32\csrss.exe
+ 0xFA8000901060:wininit.exe                 384    340      3     75 2012-10-01 21:39:57+0000
+    cmd: wininit.exe
+    path: C:\Windows\system32\wininit.exe
+    audit: \Device\HarddiskVolume2\Windows\System32\wininit.exe
+. 0xFA800206D5F0:services.exe               480    384     11    208 2012-10-01 21:39:58+0000
+     cmd: C:\Windows\system32\services.exe
+     path: C:\Windows\system32\services.exe
+     audit: \Device\HarddiskVolume2\Windows\System32\services.exe
+.. 0xFA80024F85D0:svchost.exe               236    480     19    455 2012-10-01 14:40:01+0000
+      cmd: C:\Windows\system32\svchost.exe -k LocalService
+      path: C:\Windows\system32\svchost.exe
+      audit: \Device\HarddiskVolume2\Windows\System32\svchost.exe</code></pre>
 
 <p>
 

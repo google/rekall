@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -274,7 +276,7 @@ obtain the string it identifies by querying the global atom table.</p>
 <p>Using this plugin you can find registered window messages, rogue injected DLL
 paths, window class names, etc.</p>
 <p>Sample output:</p>
-<div class="highlight"><pre>  Offset(P)    Session    WindowStation           Atom      RefCount   HIndex     Pinned     Name
+<pre class="highlight"><code>  Offset(P)    Session    WindowStation           Atom      RefCount   HIndex     Pinned     Name
 -------------- ---------- ------------------ -------------- ---------- ---------- ---------- ----
 0xf8a002871020 0          WinSta0                    0xc001 1          1          True       StdExit
 0xf8a002871020 0          WinSta0                    0xc002 1          2          True       StdNewDocument
@@ -296,8 +298,7 @@ paths, window class names, etc.</p>
 0xf8a002811020 0          ------------------         0xc046 2          70         False      MSUIM.Msg.MuiMgrDirtyUpdate
 0xf8a002811020 0          ------------------         0xc047 1          71         False      C:\Windows\system32\wls0wndh.dll
 0xf8a002811020 0          ------------------         0xc048 27         72         False      {FB8F0821-0164-101B-84ED-08002B2EC713}
-0xf8a002811020 0          ------------------         0xc049 2          73         False      MMDEVAPI
-</pre></div>
+0xf8a002811020 0          ------------------         0xc049 2          73         False      MMDEVAPI</code></pre>
 </div>
 
 <h1 id="atomscan" class="anchor">atomscan</h1>
@@ -316,10 +317,49 @@ paths, window class names, etc.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>scan_in_kernel</p></td><td><p>Scan in the kernel address space (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_kernel</p></td><td><p>Scan the entire kernel address space. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>sort-by</p></td><td><p>Sort by [offset | atom | refcount]</p>
+</ul></td></tr><tr><td><p>scan_kernel_code</p></td><td><p>Scan the kernel image and loaded drivers. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_nonpaged_pool</p></td><td><p>Scan the kernel non-paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_paged_pool</p></td><td><p>Scan the kernel paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_session_pools</p></td><td><p>Scan session pools for all processes. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_physical</p></td><td><p>Scan the physical address space only. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>sort_by</p></td><td><p>Sort by [offset | atom | refcount] (type: String)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -385,7 +425,10 @@ paths, window class names, etc.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -400,7 +443,10 @@ paths, window class names, etc.</p>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -479,7 +525,10 @@ to list the processes - yet another list _EPROCESS objects are on.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -494,7 +543,10 @@ to list the processes - yet another list _EPROCESS objects are on.</p>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -519,10 +571,10 @@ to list the processes - yet another list _EPROCESS objects are on.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>free</p></td><td><p>Also include free handles. (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
-<li>Default: False</li>
-</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>free</p></td><td><p>Also include free handles. (type: Boolean)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -537,7 +589,13 @@ to list the processes - yet another list _EPROCESS objects are on.</p>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>type</p></td><td><p>Filter handle type by this Regular Expression.</p></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>type</p></td><td><p>Filter handle type by this Regular Expression. (type: RegEx)</p>
+<ul>
+<li>Default: .</li>
+</ul></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
 </tbody>
 </table>
 </div>

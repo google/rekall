@@ -1,6 +1,8 @@
 ---
 abstract: Dumps all compressed pages.
-args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directory)'}
+args: {dump_dir: 'Path suitable for dumping files. (type: String)
+
+    '}
 class_name: DarwinDumpCompressedPages
 epydoc: rekall.plugins.darwin.compressor.DarwinDumpCompressedPages-class.html
 layout: plugin

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -728,14 +700,13 @@ it through the <strong>MmGetPhysicalMemoryRanges()</strong> function.</p>
    and to avoid reading from DMA mapped memory.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">15</span><span class="o">:</span><span class="mi">19</span><span class="o">:</span><span class="mi">26</span><span class="o">&gt;</span> <span class="n">phys_map</span>
-<span class="o">-------------------&gt;</span> <span class="n">phys_map</span><span class="p">()</span>
-  <span class="n">Phys</span> <span class="n">Start</span>      <span class="n">Phys</span> <span class="n">End</span>    <span class="n">Number</span> <span class="n">of</span> <span class="n">Pages</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">---------------</span>
-<span class="mh">0x000000001000</span> <span class="mh">0x00000009f000</span> <span class="mi">158</span>
-<span class="mh">0x000000100000</span> <span class="mh">0x000000102000</span> <span class="mi">2</span>
-<span class="mh">0x000000103000</span> <span class="mh">0x00003fff0000</span> <span class="mi">261869</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 15:19:26&gt; phys_map
+-------------------&gt; phys_map()
+  Phys Start      Phys End    Number of Pages
+-------------- -------------- ---------------
+0x000000001000 0x00000009f000 158
+0x000000100000 0x000000102000 2
+0x000000103000 0x00003fff0000 261869</code></pre>
 
 <p>
 

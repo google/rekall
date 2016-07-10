@@ -9,9 +9,7 @@ abstract: "Scan for possible _KDDEBUGGER_DATA64 structures.\n\n    The scanner i
   \ reflecting\n    through the Header.List member.\n    "
 args: {full_scan: 'Scan the full address space. (type: Boolean)
 
-
-
-    * Default: False'}
+    '}
 class_name: KDBGScan
 epydoc: rekall.plugins.windows.kdbgscan.KDBGScan-class.html
 layout: plugin

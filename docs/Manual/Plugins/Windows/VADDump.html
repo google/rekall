@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -691,8 +663,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/VADInfo.html">
-          vadinfo
+       <a href="/docs/Manual/Plugins/Windows/VADMap.html">
+          vadmap
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>max_size</p></td><td><p>Maximum file size to dump. (type: IntParser)</p>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>max_size</p></td><td><p>Maximum file size to dump. (type: IntParser)</p>
 <ul>
 <li>Default: 104857600</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
@@ -734,7 +709,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>offset</p></td><td><p>Only print the vad corresponding to this offset. (type: IntParser)</p></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A regular expression to filter VAD filenames.</p></td></tr>
+</ul></td></tr><tr><td><p>offset</p></td><td><p>Only print the vad corresponding to this offset. (type: IntParser)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A regular expression to filter VAD filenames. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -745,109 +723,108 @@ plugin, this only dumps the main executable. For further analysis of a process
 it is useful to dump its entire address space. Since the address space is
 discontiguous it is best to dump it out one vad segment at a time.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mi">23</span><span class="o">:</span><span class="mi">45</span><span class="o">:</span><span class="mo">01</span><span class="o">&gt;</span> <span class="n">vaddump</span> <span class="n">pid</span><span class="o">=</span><span class="mi">1232</span><span class="p">,</span> <span class="n">dump_dir</span><span class="o">=</span><span class="s">&quot;/tmp&quot;</span>
-<span class="o">*************</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span> <span class="p">(</span><span class="mi">1232</span><span class="p">)</span> <span class="o">*************</span>
-    <span class="n">Start</span>           <span class="n">End</span>           <span class="n">Length</span>     <span class="n">Filename</span>                                                     <span class="n">Comment</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">------------------------------------------------------------</span> <span class="o">-------</span>
-<span class="mh">0x000073660000</span> <span class="mh">0x0000736bbfff</span>        <span class="mh">0x5bfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.73660000</span><span class="o">-</span><span class="mi">736</span><span class="n">bbfff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64win</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000000400000</span> <span class="mh">0x000000427fff</span>        <span class="mh">0x27fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00400000</span><span class="o">-</span><span class="mf">00427ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Python27</span><span class="err">\</span><span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span>
-<span class="mh">0x000000290000</span> <span class="mh">0x000000293fff</span>         <span class="mh">0x3fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00290000</span><span class="o">-</span><span class="mf">00293ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>                <span class="n">Pagefile</span><span class="o">-</span><span class="n">backed</span> <span class="n">section</span>
-<span class="mh">0x000000050000</span> <span class="mh">0x00000008ffff</span>        <span class="mh">0x3ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00050000</span><span class="o">-</span><span class="mf">0008ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000000040000</span> <span class="mh">0x000000040fff</span>          <span class="mh">0xfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00040000</span><span class="o">-</span><span class="mf">00040ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">apisetschema</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000000010000</span> <span class="mh">0x00000001ffff</span>         <span class="mh">0xffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00010000</span><span class="o">-</span><span class="mf">0001ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>                <span class="n">Pagefile</span><span class="o">-</span><span class="n">backed</span> <span class="n">section</span>
-<span class="mh">0x000000090000</span> <span class="mh">0x00000028ffff</span>       <span class="mh">0x1fffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00090000</span><span class="o">-</span><span class="mf">0028ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x0000002b0000</span> <span class="mh">0x000000316fff</span>        <span class="mh">0x66fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.002</span><span class="n">b0000</span><span class="o">-</span><span class="mf">00316ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">locale</span><span class="p">.</span><span class="n">nls</span>
-<span class="mh">0x0000002a0000</span> <span class="mh">0x0000002a0fff</span>          <span class="mh">0xfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.002</span><span class="n">a0000</span><span class="o">-</span><span class="mo">002</span><span class="n">a0fff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000000360000</span> <span class="mh">0x00000039ffff</span>        <span class="mh">0x3ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00360000</span><span class="o">-</span><span class="mf">0039ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x0000003a0000</span> <span class="mh">0x0000003dffff</span>        <span class="mh">0x3ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.003</span><span class="n">a0000</span><span class="o">-</span><span class="mo">003</span><span class="n">dffff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000000830000</span> <span class="mh">0x00000092ffff</span>        <span class="mh">0xfffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00830000</span><span class="o">-</span><span class="mf">0092ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000000580000</span> <span class="mh">0x00000058ffff</span>         <span class="mh">0xffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00580000</span><span class="o">-</span><span class="mf">0058ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000000430000</span> <span class="mh">0x0000004affff</span>        <span class="mh">0x7ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00430000</span><span class="o">-</span><span class="mo">004</span><span class="n">affff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x0000005f0000</span> <span class="mh">0x00000066ffff</span>        <span class="mh">0x7ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.005f</span><span class="mo">0000</span><span class="o">-</span><span class="mf">0066ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x0000735d0000</span> <span class="mh">0x00007361afff</span>        <span class="mh">0x4afff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.735</span><span class="n">d0000</span><span class="o">-</span><span class="mi">7361</span><span class="n">afff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">apphelp</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000000b30000</span> <span class="mh">0x000000d2ffff</span>       <span class="mh">0x1fffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00</span><span class="n">b30000</span><span class="o">-</span><span class="mo">00</span><span class="n">d2ffff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000000d30000</span> <span class="mh">0x000000f2ffff</span>       <span class="mh">0x1fffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.00</span><span class="n">d30000</span><span class="o">-</span><span class="mf">00f2ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000073650000</span> <span class="mh">0x000073657fff</span>         <span class="mh">0x7fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.73650000</span><span class="o">-</span><span class="mf">73657ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64cpu</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x00007efb0000</span> <span class="mh">0x00007efd2fff</span>        <span class="mh">0x22fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efb0000</span><span class="o">-</span><span class="mi">7</span><span class="n">efd2fff</span><span class="p">.</span><span class="n">dmp</span>                <span class="n">Pagefile</span><span class="o">-</span><span class="n">backed</span> <span class="n">section</span>
-<span class="mh">0x0000760a0000</span> <span class="mh">0x00007619ffff</span>        <span class="mh">0xfffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.760</span><span class="n">a0000</span><span class="o">-</span><span class="mf">7619ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">kernel32</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000074b50000</span> <span class="mh">0x000074b95fff</span>        <span class="mh">0x45fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.74</span><span class="n">b50000</span><span class="o">-</span><span class="mi">74</span><span class="n">b95fff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">KernelBase</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000074a70000</span> <span class="mh">0x000074a7bfff</span>         <span class="mh">0xbfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.74</span><span class="n">a70000</span><span class="o">-</span><span class="mi">74</span><span class="n">a7bfff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">cryptbase</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x0000736c0000</span> <span class="mh">0x0000736fefff</span>        <span class="mh">0x3efff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.736</span><span class="n">c0000</span><span class="o">-</span><span class="mf">736f</span><span class="n">efff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000074a80000</span> <span class="mh">0x000074adffff</span>        <span class="mh">0x5ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.74</span><span class="n">a80000</span><span class="o">-</span><span class="mi">74</span><span class="n">adffff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">sspicli</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000076000000</span> <span class="mh">0x00007609ffff</span>        <span class="mh">0x9ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.76000000</span><span class="o">-</span><span class="mf">7609ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">advapi32</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000076ce0000</span> <span class="mh">0x000076dfefff</span>       <span class="mh">0x11efff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.76</span><span class="n">ce0000</span><span class="o">-</span><span class="mi">76</span><span class="n">dfefff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x0000767b0000</span> <span class="mh">0x00007685bfff</span>        <span class="mh">0xabfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.767</span><span class="n">b0000</span><span class="o">-</span><span class="mi">7685</span><span class="n">bfff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">msvcrt</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x0000763b0000</span> <span class="mh">0x00007649ffff</span>        <span class="mh">0xeffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.763</span><span class="n">b0000</span><span class="o">-</span><span class="mf">7649ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">rpcrt4</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000076860000</span> <span class="mh">0x000076878fff</span>        <span class="mh">0x18fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.76860000</span><span class="o">-</span><span class="mf">76878ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">sechost</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x0000771b0000</span> <span class="mh">0x00007735bfff</span>       <span class="mh">0x1abfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.771</span><span class="n">b0000</span><span class="o">-</span><span class="mi">7735</span><span class="n">bfff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x000076f50000</span> <span class="mh">0x000077049fff</span>        <span class="mh">0xf9fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.76f</span><span class="mi">50000</span><span class="o">-</span><span class="mf">77049ff</span><span class="n">f</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x000077390000</span> <span class="mh">0x00007750ffff</span>       <span class="mh">0x17ffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.77390000</span><span class="o">-</span><span class="mf">7750ff</span><span class="n">ff</span><span class="p">.</span><span class="n">dmp</span>                <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0x00007efad000</span> <span class="mh">0x00007efaffff</span>         <span class="mh">0x2fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efad000</span><span class="o">-</span><span class="mi">7</span><span class="n">efaffff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007f0e0000</span> <span class="mh">0x00007ffdffff</span>       <span class="mh">0xefffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7f0e0000</span><span class="o">-</span><span class="mf">7ff</span><span class="n">dffff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007efde000</span> <span class="mh">0x00007efdefff</span>          <span class="mh">0xfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efde000</span><span class="o">-</span><span class="mi">7</span><span class="n">efdefff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007efdb000</span> <span class="mh">0x00007efddfff</span>         <span class="mh">0x2fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efdb000</span><span class="o">-</span><span class="mi">7</span><span class="n">efddfff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007efd5000</span> <span class="mh">0x00007efd7fff</span>         <span class="mh">0x2fff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efd5000</span><span class="o">-</span><span class="mi">7</span><span class="n">efd7fff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007efdf000</span> <span class="mh">0x00007efdffff</span>          <span class="mh">0xfff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efdf000</span><span class="o">-</span><span class="mi">7</span><span class="n">efdffff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007efe0000</span> <span class="mh">0x00007f0dffff</span>        <span class="mh">0xfffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7</span><span class="n">efe0000</span><span class="o">-</span><span class="mf">7f</span><span class="mi">0</span><span class="n">dffff</span><span class="p">.</span><span class="n">dmp</span>                <span class="n">Pagefile</span><span class="o">-</span><span class="n">backed</span> <span class="n">section</span>
-<span class="mh">0x00007ffe0000</span> <span class="mh">0x00007ffeffff</span>         <span class="mh">0xffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7f</span><span class="n">fe0000</span><span class="o">-</span><span class="mf">7ff</span><span class="n">effff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="mh">0x00007fff0000</span> <span class="mh">0x07fffffeffff</span>  <span class="mh">0x7ff7fffffff</span> <span class="n">grrservice</span><span class="p">.</span><span class="n">exe</span><span class="mf">.2f</span><span class="mi">684</span><span class="n">a70</span><span class="mf">.7f</span><span class="n">ff0000</span><span class="o">-</span><span class="mf">7ff</span><span class="n">fffeffff</span><span class="p">.</span><span class="n">dmp</span>
-<span class="p">...</span>
-<span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mi">23</span><span class="o">:</span><span class="mi">45</span><span class="o">:</span><span class="mi">13</span><span class="o">&gt;</span> <span class="n">peinfo</span> <span class="n">executable</span><span class="o">=</span><span class="s">&quot;/tmp/grrservice.exe.2f684a70.760a0000-7619ffff.dmp&quot;</span>
-<span class="n">Attribute</span>            <span class="n">Value</span>
-<span class="o">--------------------</span> <span class="o">-----</span>
-<span class="n">Machine</span>              <span class="n">IMAGE_FILE_MACHINE_I386</span>
-<span class="n">TimeDateStamp</span>        <span class="mi">2011</span><span class="o">-</span><span class="mo">07</span><span class="o">-</span><span class="mi">16</span> <span class="mo">04</span><span class="o">:</span><span class="mi">33</span><span class="o">:</span><span class="mi">08</span><span class="o">+</span><span class="mo">0000</span>
-<span class="n">Characteristics</span>      <span class="n">IMAGE_FILE_32BIT_MACHINE</span><span class="p">,</span> <span class="n">IMAGE_FILE_DLL</span><span class="p">,</span>
-                     <span class="n">IMAGE_FILE_EXECUTABLE_IMAGE</span>
-<span class="n">GUID</span><span class="o">/</span><span class="n">Age</span>             <span class="mi">0</span><span class="n">EB73428EC4E430FB8EDD94C5946855B2</span>
-<span class="n">PDB</span>                  <span class="n">wkernel32</span><span class="p">.</span><span class="n">pdb</span>
-<span class="n">MajorOperatingSystemVersion</span> <span class="mi">6</span>
-<span class="n">MinorOperatingSystemVersion</span> <span class="mi">1</span>
-<span class="n">MajorImageVersion</span>    <span class="mi">6</span>
-<span class="n">MinorImageVersion</span>    <span class="mi">1</span>
-<span class="n">MajorSubsystemVersion</span> <span class="mi">6</span>
-<span class="n">MinorSubsystemVersion</span> <span class="mi">1</span>
+<pre class="highlight"><code>win7_trial_64bit.dmp.E01 23:45:01&gt; vaddump pid=1232, dump_dir=&quot;/tmp&quot;
+************* grrservice.exe (1232) *************
+    Start           End           Length     Filename                                                     Comment
+-------------- -------------- -------------- ------------------------------------------------------------ -------
+0x000073660000 0x0000736bbfff        0x5bfff grrservice.exe.2f684a70.73660000-736bbfff.dmp                \Windows\System32\wow64win.dll
+0x000000400000 0x000000427fff        0x27fff grrservice.exe.2f684a70.00400000-00427fff.dmp                \Python27\grrservice.exe
+0x000000290000 0x000000293fff         0x3fff grrservice.exe.2f684a70.00290000-00293fff.dmp                Pagefile-backed section
+0x000000050000 0x00000008ffff        0x3ffff grrservice.exe.2f684a70.00050000-0008ffff.dmp
+0x000000040000 0x000000040fff          0xfff grrservice.exe.2f684a70.00040000-00040fff.dmp                \Windows\System32\apisetschema.dll
+0x000000010000 0x00000001ffff         0xffff grrservice.exe.2f684a70.00010000-0001ffff.dmp                Pagefile-backed section
+0x000000090000 0x00000028ffff       0x1fffff grrservice.exe.2f684a70.00090000-0028ffff.dmp
+0x0000002b0000 0x000000316fff        0x66fff grrservice.exe.2f684a70.002b0000-00316fff.dmp                \Windows\System32\locale.nls
+0x0000002a0000 0x0000002a0fff          0xfff grrservice.exe.2f684a70.002a0000-002a0fff.dmp
+0x000000360000 0x00000039ffff        0x3ffff grrservice.exe.2f684a70.00360000-0039ffff.dmp
+0x0000003a0000 0x0000003dffff        0x3ffff grrservice.exe.2f684a70.003a0000-003dffff.dmp
+0x000000830000 0x00000092ffff        0xfffff grrservice.exe.2f684a70.00830000-0092ffff.dmp
+0x000000580000 0x00000058ffff         0xffff grrservice.exe.2f684a70.00580000-0058ffff.dmp
+0x000000430000 0x0000004affff        0x7ffff grrservice.exe.2f684a70.00430000-004affff.dmp
+0x0000005f0000 0x00000066ffff        0x7ffff grrservice.exe.2f684a70.005f0000-0066ffff.dmp
+0x0000735d0000 0x00007361afff        0x4afff grrservice.exe.2f684a70.735d0000-7361afff.dmp                \Windows\SysWOW64\apphelp.dll
+0x000000b30000 0x000000d2ffff       0x1fffff grrservice.exe.2f684a70.00b30000-00d2ffff.dmp
+0x000000d30000 0x000000f2ffff       0x1fffff grrservice.exe.2f684a70.00d30000-00f2ffff.dmp
+0x000073650000 0x000073657fff         0x7fff grrservice.exe.2f684a70.73650000-73657fff.dmp                \Windows\System32\wow64cpu.dll
+0x00007efb0000 0x00007efd2fff        0x22fff grrservice.exe.2f684a70.7efb0000-7efd2fff.dmp                Pagefile-backed section
+0x0000760a0000 0x00007619ffff        0xfffff grrservice.exe.2f684a70.760a0000-7619ffff.dmp                \Windows\SysWOW64\kernel32.dll
+0x000074b50000 0x000074b95fff        0x45fff grrservice.exe.2f684a70.74b50000-74b95fff.dmp                \Windows\SysWOW64\KernelBase.dll
+0x000074a70000 0x000074a7bfff         0xbfff grrservice.exe.2f684a70.74a70000-74a7bfff.dmp                \Windows\SysWOW64\cryptbase.dll
+0x0000736c0000 0x0000736fefff        0x3efff grrservice.exe.2f684a70.736c0000-736fefff.dmp                \Windows\System32\wow64.dll
+0x000074a80000 0x000074adffff        0x5ffff grrservice.exe.2f684a70.74a80000-74adffff.dmp                \Windows\SysWOW64\sspicli.dll
+0x000076000000 0x00007609ffff        0x9ffff grrservice.exe.2f684a70.76000000-7609ffff.dmp                \Windows\SysWOW64\advapi32.dll
+0x000076ce0000 0x000076dfefff       0x11efff grrservice.exe.2f684a70.76ce0000-76dfefff.dmp
+0x0000767b0000 0x00007685bfff        0xabfff grrservice.exe.2f684a70.767b0000-7685bfff.dmp                \Windows\SysWOW64\msvcrt.dll
+0x0000763b0000 0x00007649ffff        0xeffff grrservice.exe.2f684a70.763b0000-7649ffff.dmp                \Windows\SysWOW64\rpcrt4.dll
+0x000076860000 0x000076878fff        0x18fff grrservice.exe.2f684a70.76860000-76878fff.dmp                \Windows\SysWOW64\sechost.dll
+0x0000771b0000 0x00007735bfff       0x1abfff grrservice.exe.2f684a70.771b0000-7735bfff.dmp                \Windows\System32\ntdll.dll
+0x000076f50000 0x000077049fff        0xf9fff grrservice.exe.2f684a70.76f50000-77049fff.dmp
+0x000077390000 0x00007750ffff       0x17ffff grrservice.exe.2f684a70.77390000-7750ffff.dmp                \Windows\SysWOW64\ntdll.dll
+0x00007efad000 0x00007efaffff         0x2fff grrservice.exe.2f684a70.7efad000-7efaffff.dmp
+0x00007f0e0000 0x00007ffdffff       0xefffff grrservice.exe.2f684a70.7f0e0000-7ffdffff.dmp
+0x00007efde000 0x00007efdefff          0xfff grrservice.exe.2f684a70.7efde000-7efdefff.dmp
+0x00007efdb000 0x00007efddfff         0x2fff grrservice.exe.2f684a70.7efdb000-7efddfff.dmp
+0x00007efd5000 0x00007efd7fff         0x2fff grrservice.exe.2f684a70.7efd5000-7efd7fff.dmp
+0x00007efdf000 0x00007efdffff          0xfff grrservice.exe.2f684a70.7efdf000-7efdffff.dmp
+0x00007efe0000 0x00007f0dffff        0xfffff grrservice.exe.2f684a70.7efe0000-7f0dffff.dmp                Pagefile-backed section
+0x00007ffe0000 0x00007ffeffff         0xffff grrservice.exe.2f684a70.7ffe0000-7ffeffff.dmp
+0x00007fff0000 0x07fffffeffff  0x7ff7fffffff grrservice.exe.2f684a70.7fff0000-7fffffeffff.dmp
+...
+win7_trial_64bit.dmp.E01 23:45:13&gt; peinfo executable=&quot;/tmp/grrservice.exe.2f684a70.760a0000-7619ffff.dmp&quot;
+Attribute            Value
+-------------------- -----
+Machine              IMAGE_FILE_MACHINE_I386
+TimeDateStamp        2011-07-16 04:33:08+0000
+Characteristics      IMAGE_FILE_32BIT_MACHINE, IMAGE_FILE_DLL,
+                     IMAGE_FILE_EXECUTABLE_IMAGE
+GUID/Age             0EB73428EC4E430FB8EDD94C5946855B2
+PDB                  wkernel32.pdb
+MajorOperatingSystemVersion 6
+MinorOperatingSystemVersion 1
+MajorImageVersion    6
+MinorImageVersion    1
+MajorSubsystemVersion 6
+MinorSubsystemVersion 1
 
-<span class="n">Sections</span> <span class="p">(</span><span class="n">Relative</span> <span class="n">to</span> <span class="mh">0x760A0000</span><span class="p">)</span><span class="o">:</span>
-<span class="n">Perm</span> <span class="n">Name</span>          <span class="n">VMA</span>            <span class="n">Size</span>
-<span class="o">----</span> <span class="o">--------</span> <span class="o">--------------</span> <span class="o">--------------</span>
-<span class="n">xr</span><span class="o">-</span>  <span class="p">.</span><span class="n">text</span>    <span class="mh">0x000000010000</span> <span class="mh">0x0000000c0000</span>
-<span class="o">-</span><span class="n">rw</span>  <span class="p">.</span><span class="n">data</span>    <span class="mh">0x0000000d0000</span> <span class="mh">0x000000010000</span>
-<span class="o">-</span><span class="n">r</span><span class="o">-</span>  <span class="p">.</span><span class="n">rsrc</span>    <span class="mh">0x0000000e0000</span> <span class="mh">0x000000010000</span>
-<span class="o">-</span><span class="n">r</span><span class="o">-</span>  <span class="p">.</span><span class="n">reloc</span>   <span class="mh">0x0000000f0000</span> <span class="mh">0x000000010000</span>
+Sections (Relative to 0x760A0000):
+Perm Name          VMA            Size
+---- -------- -------------- --------------
+xr-  .text    0x000000010000 0x0000000c0000
+-rw  .data    0x0000000d0000 0x000000010000
+-r-  .rsrc    0x0000000e0000 0x000000010000
+-r-  .reloc   0x0000000f0000 0x000000010000
 
-<span class="n">Data</span> <span class="n">Directories</span><span class="o">:</span>
-<span class="o">-</span>                                             <span class="n">VMA</span>            <span class="n">Size</span>
-<span class="o">----------------------------------------</span> <span class="o">--------------</span> <span class="o">--------------</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_EXPORT</span>             <span class="mh">0x00007615f728</span> <span class="mh">0x00000000aa1a</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_IMPORT</span>             <span class="mh">0x00007616a144</span> <span class="mh">0x0000000001f4</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_RESOURCE</span>           <span class="mh">0x000076180000</span> <span class="mh">0x000000000520</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_EXCEPTION</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_SECURITY</span>           <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_BASERELOC</span>          <span class="mh">0x000076190000</span> <span class="mh">0x00000000ad3c</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_DEBUG</span>              <span class="mh">0x00007616feb8</span> <span class="mh">0x000000000038</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_COPYRIGHT</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_GLOBALPTR</span>          <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_TLS</span>                <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG</span>        <span class="mh">0x000076123330</span> <span class="mh">0x000000000040</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT</span>       <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_IAT</span>                <span class="mh">0x0000760b0000</span> <span class="mh">0x000000000ddc</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT</span>       <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR</span>     <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
-<span class="n">IMAGE_DIRECTORY_ENTRY_RESERVED</span>           <span class="mh">0x000000000000</span> <span class="mh">0x000000000000</span>
+Data Directories:
+-                                             VMA            Size
+---------------------------------------- -------------- --------------
+IMAGE_DIRECTORY_ENTRY_EXPORT             0x00007615f728 0x00000000aa1a
+IMAGE_DIRECTORY_ENTRY_IMPORT             0x00007616a144 0x0000000001f4
+IMAGE_DIRECTORY_ENTRY_RESOURCE           0x000076180000 0x000000000520
+IMAGE_DIRECTORY_ENTRY_EXCEPTION          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_SECURITY           0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_BASERELOC          0x000076190000 0x00000000ad3c
+IMAGE_DIRECTORY_ENTRY_DEBUG              0x00007616feb8 0x000000000038
+IMAGE_DIRECTORY_ENTRY_COPYRIGHT          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_GLOBALPTR          0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_TLS                0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG        0x000076123330 0x000000000040
+IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT       0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_IAT                0x0000760b0000 0x000000000ddc
+IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT       0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR     0x000000000000 0x000000000000
+IMAGE_DIRECTORY_ENTRY_RESERVED           0x000000000000 0x000000000000
 
-<span class="n">Import</span> <span class="n">Directory</span> <span class="p">(</span><span class="n">Original</span><span class="p">)</span><span class="o">:</span>
-<span class="n">Name</span>                                               <span class="n">Ord</span>
-<span class="o">--------------------------------------------------</span> <span class="o">-----</span>
-<span class="n">API</span><span class="o">-</span><span class="n">MS</span><span class="o">-</span><span class="n">Win</span><span class="o">-</span><span class="n">Core</span><span class="o">-</span><span class="n">RtlSupport</span><span class="o">-</span><span class="n">L1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlUnwind</span>    <span class="mi">3</span>
-<span class="n">API</span><span class="o">-</span><span class="n">MS</span><span class="o">-</span><span class="n">Win</span><span class="o">-</span><span class="n">Core</span><span class="o">-</span><span class="n">RtlSupport</span><span class="o">-</span><span class="n">L1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlCaptureContext</span> <span class="mi">0</span>
-<span class="n">API</span><span class="o">-</span><span class="n">MS</span><span class="o">-</span><span class="n">Win</span><span class="o">-</span><span class="n">Core</span><span class="o">-</span><span class="n">RtlSupport</span><span class="o">-</span><span class="n">L1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlCaptureStackBackTrace</span> <span class="mi">1</span>
-<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">NtCreateEvent</span>                            <span class="mi">227</span>
-<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">NtDuplicateObject</span>                        <span class="mi">275</span>
-<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlConvertSidToUnicodeString</span>             <span class="mi">686</span>
-<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">NtNotifyChangeKey</span>                        <span class="mi">337</span>
-<span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">RtlRunOnceInitialize</span>                     <span class="mi">1151</span>
-</pre></div>
+Import Directory (Original):
+Name                                               Ord
+-------------------------------------------------- -----
+API-MS-Win-Core-RtlSupport-L1-1-0.dll!RtlUnwind    3
+API-MS-Win-Core-RtlSupport-L1-1-0.dll!RtlCaptureContext 0
+API-MS-Win-Core-RtlSupport-L1-1-0.dll!RtlCaptureStackBackTrace 1
+ntdll.dll!NtCreateEvent                            227
+ntdll.dll!NtDuplicateObject                        275
+ntdll.dll!RtlConvertSidToUnicodeString             686
+ntdll.dll!NtNotifyChangeKey                        337
+ntdll.dll!RtlRunOnceInitialize                     1151</code></pre>
 
 <p>
 
@@ -865,8 +842,8 @@ discontiguous it is best to dump it out one vad segment at a time.</p>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/VADInfo.html">
-          vadinfo
+       <a href="/docs/Manual/Plugins/Windows/VADMap.html">
+          vadmap
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

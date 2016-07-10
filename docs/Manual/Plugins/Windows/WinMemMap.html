@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -722,7 +694,10 @@ ript>
 </ul></td></tr><tr><td><p>coalesce</p></td><td><p>Merge contiguous pages into larger ranges. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+</ul></td></tr><tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -737,7 +712,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -760,23 +738,22 @@ physical address to a virtual address.</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mo">00</span><span class="o">:</span><span class="mi">54</span><span class="o">:</span><span class="mi">22</span><span class="o">&gt;</span> <span class="n">memmap</span> <span class="n">pid</span><span class="o">=</span><span class="mi">2912</span>
-<span class="o">-----------------&gt;</span> <span class="n">memmap</span><span class="p">(</span><span class="n">pid</span><span class="o">=</span><span class="mi">2912</span><span class="p">)</span>
-<span class="o">**************************************************</span>
-<span class="nl">Process:</span> <span class="err">&#39;</span><span class="n">vol</span><span class="p">.</span><span class="n">exe</span><span class="err">&#39;</span> <span class="n">pid</span><span class="o">:</span> <span class="mi">2912</span>
+<pre class="highlight"><code>win7.elf 00:54:22&gt; memmap pid=2912
+-----------------&gt; memmap(pid=2912)
+**************************************************
+Process: 'vol.exe' pid: 2912
 
-<span class="n">Dumping</span> <span class="n">address</span> <span class="n">space</span> <span class="n">at</span> <span class="n">DTB</span> <span class="mh">0x271ec000</span>
+Dumping address space at DTB 0x271ec000
 
-   <span class="n">Virtual</span>        <span class="n">Physical</span>         <span class="n">Size</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">--------------</span>
-<span class="mh">0x000000010000</span> <span class="mh">0x000007c4c000</span>         <span class="mh">0x1000</span>
-<span class="mh">0x000000020000</span> <span class="mh">0x00000818f000</span>         <span class="mh">0x1000</span>
-<span class="mh">0x000000021000</span> <span class="mh">0x000007e11000</span>         <span class="mh">0x1000</span>
-<span class="mh">0x00000002f000</span> <span class="mh">0x000008010000</span>         <span class="mh">0x1000</span>
-<span class="mh">0x000000040000</span> <span class="mh">0x00002428e000</span>         <span class="mh">0x1000</span>
-<span class="mh">0x000000050000</span> <span class="mh">0x000001e6b000</span>         <span class="mh">0x1000</span>
-<span class="mh">0x000000051000</span> <span class="mh">0x000007f49000</span>         <span class="mh">0x1000</span>
-</pre></div>
+   Virtual        Physical         Size
+-------------- -------------- --------------
+0x000000010000 0x000007c4c000         0x1000
+0x000000020000 0x00000818f000         0x1000
+0x000000021000 0x000007e11000         0x1000
+0x00000002f000 0x000008010000         0x1000
+0x000000040000 0x00002428e000         0x1000
+0x000000050000 0x000001e6b000         0x1000
+0x000000051000 0x000007f49000         0x1000</code></pre>
 
 <p>
 

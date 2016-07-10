@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -444,21 +446,20 @@ ript>
 
 
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">Linux</span><span class="o">-</span><span class="mf">3.2.0</span><span class="o">-</span><span class="mi">4</span><span class="o">-</span><span class="mi">686</span><span class="o">-</span><span class="n">pae</span><span class="p">.</span><span class="n">E01</span> <span class="mi">12</span><span class="o">:</span><span class="mi">56</span><span class="o">:</span><span class="mi">57</span><span class="o">&gt;</span> <span class="n">mount</span>
-<span class="o">--------------------------------------&gt;</span> <span class="n">mount</span><span class="p">()</span>
-                      <span class="n">Device</span>                                              <span class="n">Path</span>                             <span class="n">Type</span>             <span class="n">flags</span>
-<span class="o">--------------------------------------------------</span> <span class="o">--------------------------------------------------</span> <span class="o">--------------</span> <span class="o">--------------------</span>
-<span class="n">proc</span>                                               <span class="o">/</span><span class="n">proc</span>                                              <span class="n">proc</span>           <span class="n">rw</span><span class="p">,</span> <span class="n">nodev</span><span class="p">,</span> <span class="n">noexec</span><span class="p">,</span> <span class="n">nosuid</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">devpts</span>                                             <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span>                                           <span class="n">devpts</span>         <span class="n">rw</span><span class="p">,</span> <span class="n">noexec</span><span class="p">,</span> <span class="n">nosuid</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">tmpfs</span>                                              <span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">lock</span>                                          <span class="n">tmpfs</span>          <span class="n">rw</span><span class="p">,</span> <span class="n">nodev</span><span class="p">,</span> <span class="n">noexec</span><span class="p">,</span> <span class="n">nosuid</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">tmpfs</span>                                              <span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">shm</span>                                           <span class="n">tmpfs</span>          <span class="n">rw</span><span class="p">,</span> <span class="n">nodev</span><span class="p">,</span> <span class="n">noexec</span><span class="p">,</span> <span class="n">nosuid</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">udev</span>                                               <span class="o">/</span><span class="n">dev</span>                                               <span class="n">devtmpfs</span>       <span class="n">rw</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">tmpfs</span>                                              <span class="o">/</span><span class="n">run</span>                                               <span class="n">tmpfs</span>          <span class="n">rw</span><span class="p">,</span> <span class="n">noexec</span><span class="p">,</span> <span class="n">nosuid</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">rpc_pipefs</span>                                         <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">nfs</span><span class="o">/</span><span class="n">rpc_pipefs</span>                            <span class="n">rpc_pipefs</span>     <span class="n">rw</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">disk</span><span class="o">/</span><span class="n">by</span><span class="o">-</span><span class="n">uuid</span><span class="o">/</span><span class="mi">55</span><span class="n">bda481</span><span class="o">-</span><span class="mf">150f</span><span class="o">-</span><span class="mi">442</span><span class="n">e</span><span class="o">-</span><span class="n">b781</span><span class="o">-</span><span class="mi">231</span><span class="n">a904cebd1</span> <span class="o">/</span>                                                  <span class="n">ext4</span>           <span class="n">rw</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">devtmpfs</span>                                           <span class="o">/</span>                                                  <span class="n">devtmpfs</span>       <span class="n">rw</span><span class="p">,</span> <span class="n">relatime</span>
-<span class="n">sysfs</span>                                              <span class="o">/</span><span class="n">sys</span>                                               <span class="n">sysfs</span>          <span class="n">rw</span><span class="p">,</span> <span class="n">nodev</span><span class="p">,</span> <span class="n">noexec</span><span class="p">,</span> <span class="n">nosuid</span><span class="p">,</span> <span class="n">relatime</span>
-</pre></div>
+<pre class="highlight"><code>[1] Linux-3.2.0-4-686-pae.E01 12:56:57&gt; mount
+--------------------------------------&gt; mount()
+                      Device                                              Path                             Type             flags
+-------------------------------------------------- -------------------------------------------------- -------------- --------------------
+proc                                               /proc                                              proc           rw, nodev, noexec, nosuid, relatime
+devpts                                             /dev/pts                                           devpts         rw, noexec, nosuid, relatime
+tmpfs                                              /run/lock                                          tmpfs          rw, nodev, noexec, nosuid, relatime
+tmpfs                                              /run/shm                                           tmpfs          rw, nodev, noexec, nosuid, relatime
+udev                                               /dev                                               devtmpfs       rw, relatime
+tmpfs                                              /run                                               tmpfs          rw, noexec, nosuid, relatime
+rpc_pipefs                                         /var/lib/nfs/rpc_pipefs                            rpc_pipefs     rw, relatime
+/dev/disk/by-uuid/55bda481-150f-442e-b781-231a904cebd1 /                                                  ext4           rw, relatime
+devtmpfs                                           /                                                  devtmpfs       rw, relatime
+sysfs                                              /sys                                               sysfs          rw, nodev, noexec, nosuid, relatime</code></pre>
 
 <p>
 

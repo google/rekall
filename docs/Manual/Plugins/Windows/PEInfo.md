@@ -1,7 +1,11 @@
 ---
 abstract: Print information about a PE binary.
-args: {address-space: The address space to use., executable: If provided we create
-    an address space from this file., image-base: 'The base of the image. (type: SymbolAddress)
+args: {address_space: 'The address space to use. (type: String)
+
+    ', executable: 'If provided we create an address space from this file. (type:
+    String)
+
+    ', image_base: 'The base of the image. (type: SymbolAddress)
 
     ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
     10 = noisy. (type: IntParser)

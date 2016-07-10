@@ -1,6 +1,7 @@
 ---
 abstract: Print information by filename.
-args: {path: 'Path to print stats for.
+args: {path: 'Path to print stats for. (type: String)
+
 
 
     * Default: /'}

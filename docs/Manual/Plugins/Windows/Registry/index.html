@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -251,23 +253,22 @@ registry keys from memory.</p>
 <p>The getservicesids command calculates the SIDs for services on a machine. The
 service names are taken from the registry (&ldquo;SYSTEM\CurrentControlSet\Services&rdquo;)</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">16</span><span class="o">:</span><span class="mi">58</span><span class="o">:</span><span class="mi">23</span><span class="o">&gt;</span> <span class="n">getservicesids</span>
-<span class="o">-------------------&gt;</span> <span class="n">getservicesids</span><span class="p">()</span>
-<span class="n">SID</span>                                                                    <span class="n">Service</span> <span class="n">Name</span>
-<span class="o">----------------------------------------------------------------------</span> <span class="o">------------</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">3476726845</span><span class="o">-</span><span class="mi">1218940557</span><span class="o">-</span><span class="mi">3240126423</span><span class="o">-</span><span class="mi">1396283824</span><span class="o">-</span><span class="mi">3706223860</span>        <span class="p">.</span><span class="n">NET</span> <span class="n">CLR</span> <span class="n">Data</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">3749761688</span><span class="o">-</span><span class="mi">76038143</span><span class="o">-</span><span class="mi">2425834820</span><span class="o">-</span><span class="mi">4129736068</span><span class="o">-</span><span class="mi">309120712</span>           <span class="p">.</span><span class="n">NET</span> <span class="n">CLR</span> <span class="n">Networking</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">4151353957</span><span class="o">-</span><span class="mi">356578678</span><span class="o">-</span><span class="mi">4163131872</span><span class="o">-</span><span class="mi">800126167</span><span class="o">-</span><span class="mi">2037860865</span>          <span class="p">.</span><span class="n">NET</span> <span class="n">CLR</span> <span class="n">Networking</span> <span class="mf">4.0.0.0</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">603392709</span><span class="o">-</span><span class="mi">3706100282</span><span class="o">-</span><span class="mi">1779817366</span><span class="o">-</span><span class="mi">3290147925</span><span class="o">-</span><span class="mi">2109454977</span>         <span class="p">.</span><span class="n">NET</span> <span class="n">Data</span> <span class="n">Provider</span> <span class="k">for</span> <span class="n">Oracle</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">1168016597</span><span class="o">-</span><span class="mi">2140435647</span><span class="o">-</span><span class="mi">491797002</span><span class="o">-</span><span class="mi">352772175</span><span class="o">-</span><span class="mi">817350590</span>           <span class="p">.</span><span class="n">NET</span> <span class="n">Data</span> <span class="n">Provider</span> <span class="k">for</span> <span class="n">SqlServer</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">1135273183</span><span class="o">-</span><span class="mi">3738781202</span><span class="o">-</span><span class="mi">689480478</span><span class="o">-</span><span class="mi">891280274</span><span class="o">-</span><span class="mi">255333391</span>           <span class="p">.</span><span class="n">NET</span> <span class="n">Memory</span> <span class="n">Cache</span> <span class="mf">4.0</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">255220978</span><span class="o">-</span><span class="mi">1106536095</span><span class="o">-</span><span class="mi">1636044468</span><span class="o">-</span><span class="mi">311807000</span><span class="o">-</span><span class="mi">281316439</span>           <span class="p">.</span><span class="n">NETFramework</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">799694863</span><span class="o">-</span><span class="mi">4024754253</span><span class="o">-</span><span class="mi">4060439485</span><span class="o">-</span><span class="mi">3284853837</span><span class="o">-</span><span class="mi">2852070736</span>         <span class="mi">1394</span><span class="n">ohci</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">3459415445</span><span class="o">-</span><span class="mi">2224257447</span><span class="o">-</span><span class="mi">3423677131</span><span class="o">-</span><span class="mi">2829651752</span><span class="o">-</span><span class="mi">4257665947</span>        <span class="mi">3</span><span class="n">ware</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">550892281</span><span class="o">-</span><span class="mi">1246201444</span><span class="o">-</span><span class="mi">2906082186</span><span class="o">-</span><span class="mi">2301917840</span><span class="o">-</span><span class="mi">2280485454</span>         <span class="n">ACPI</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">2670625634</span><span class="o">-</span><span class="mi">2386107419</span><span class="o">-</span><span class="mi">4204951937</span><span class="o">-</span><span class="mi">4094372046</span><span class="o">-</span><span class="mi">2600379021</span>        <span class="n">acpiex</span>
-<span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">80</span><span class="o">-</span><span class="mi">3267050047</span><span class="o">-</span><span class="mi">1503497915</span><span class="o">-</span><span class="mi">401953950</span><span class="o">-</span><span class="mi">2662906978</span><span class="o">-</span><span class="mi">1179039408</span>         <span class="n">acpipagr</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 16:58:23&gt; getservicesids
+-------------------&gt; getservicesids()
+SID                                                                    Service Name
+---------------------------------------------------------------------- ------------
+S-1-5-80-3476726845-1218940557-3240126423-1396283824-3706223860        .NET CLR Data
+S-1-5-80-3749761688-76038143-2425834820-4129736068-309120712           .NET CLR Networking
+S-1-5-80-4151353957-356578678-4163131872-800126167-2037860865          .NET CLR Networking 4.0.0.0
+S-1-5-80-603392709-3706100282-1779817366-3290147925-2109454977         .NET Data Provider for Oracle
+S-1-5-80-1168016597-2140435647-491797002-352772175-817350590           .NET Data Provider for SqlServer
+S-1-5-80-1135273183-3738781202-689480478-891280274-255333391           .NET Memory Cache 4.0
+S-1-5-80-255220978-1106536095-1636044468-311807000-281316439           .NETFramework
+S-1-5-80-799694863-4024754253-4060439485-3284853837-2852070736         1394ohci
+S-1-5-80-3459415445-2224257447-3423677131-2829651752-4257665947        3ware
+S-1-5-80-550892281-1246201444-2906082186-2301917840-2280485454         ACPI
+S-1-5-80-2670625634-2386107419-4204951937-4094372046-2600379021        acpiex
+S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr</code></pre>
 </div>
 
 <h1 id="hivedump" class="anchor">hivedump</h1>
@@ -367,7 +368,7 @@ service names are taken from the registry (&ldquo;SYSTEM\CurrentControlSet\Servi
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (Default: Use current directory)</p></td></tr><tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
 </tbody>
 </table>
 </div>

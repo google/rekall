@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,7 +706,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>named_only</p></td><td><p>Output only handles with a name . (type: Boolean)</p></td></tr><tr><td><p>object_types</p></td><td><p>Types of objects to show. (type: ArrayStringParser)</p></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>named_only</p></td><td><p>Output only handles with a name . (type: Boolean)</p></td></tr><tr><td><p>object_types</p></td><td><p>Types of objects to show. (type: ArrayStringParser)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -756,40 +734,39 @@ seen by the <a href="ObjectTypes.html">object_types</a> plugin.</p>
 <p>In the following output we see the winpmem acquisition tool&rsquo;s handle table. Note
 that it has an open file to the raw device <em>\Device\pmem</em> and the output file of
 <em>\Device\HarddiskVolume2\temp\win8.1.raw</em>.</p>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">18</span><span class="o">:</span><span class="mo">00</span><span class="o">:</span><span class="mi">43</span><span class="o">&gt;</span> <span class="n">handles</span> <span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span>
-<span class="o">-------------------&gt;</span> <span class="n">handles</span><span class="p">(</span><span class="n">proc_regex</span><span class="o">=</span><span class="s">&quot;winpmem&quot;</span><span class="p">)</span>
-  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>      <span class="n">Pid</span>     <span class="n">Handle</span>         <span class="n">Access</span>     <span class="n">Type</span>             <span class="n">Details</span>
-<span class="o">--------------</span> <span class="o">------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----------------</span> <span class="o">-------</span>
-<span class="mh">0xe00001f82f20</span>   <span class="mi">2628</span>            <span class="mh">0x4</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Reference</span>
-<span class="mh">0xe00001d17e00</span>   <span class="mi">2628</span>           <span class="mh">0x10</span>       <span class="mh">0x100020</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">Windows</span>
-<span class="mh">0xe00001f546b0</span>   <span class="mi">2628</span>           <span class="mh">0x18</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Input</span>
-<span class="mh">0xe00001eef800</span>   <span class="mi">2628</span>           <span class="mh">0x1c</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Output</span>
-<span class="mh">0xe00001eef800</span>   <span class="mi">2628</span>           <span class="mh">0x20</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Output</span>
-<span class="mh">0xe00001d0db80</span>   <span class="mi">2628</span>           <span class="mh">0x24</span>       <span class="mh">0x100020</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">temp</span>
-<span class="mh">0xe0000006e1f0</span>   <span class="mi">2628</span>           <span class="mh">0x28</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">ConDrv</span><span class="err">\</span><span class="n">Connect</span>
-<span class="mh">0xe00000637480</span>   <span class="mi">2628</span>           <span class="mh">0x30</span>       <span class="mh">0x1f0001</span> <span class="n">ALPC</span> <span class="n">Port</span>
-<span class="mh">0xe000006bd290</span>   <span class="mi">2628</span>           <span class="mh">0x34</span>       <span class="mh">0x1f0003</span> <span class="n">Event</span>
-<span class="mh">0xe00001ed6060</span>   <span class="mi">2628</span>           <span class="mh">0x38</span>            <span class="mh">0x1</span> <span class="n">WaitCompletionPacket</span>
-<span class="mh">0xe00001ecd080</span>   <span class="mi">2628</span>           <span class="mh">0x3c</span>       <span class="mh">0x1f0003</span> <span class="n">IoCompletion</span>
-<span class="mh">0xe00001ec7060</span>   <span class="mi">2628</span>           <span class="mh">0x40</span>        <span class="mh">0xf00ff</span> <span class="n">TpWorkerFactory</span>
-<span class="mh">0xe00000778320</span>   <span class="mi">2628</span>           <span class="mh">0x44</span>       <span class="mh">0x100002</span> <span class="n">IRTimer</span>
-<span class="mh">0xe00001ecfb80</span>   <span class="mi">2628</span>           <span class="mh">0x48</span>            <span class="mh">0x1</span> <span class="n">WaitCompletionPacket</span>
-<span class="mh">0xe00001a629d0</span>   <span class="mi">2628</span>           <span class="mh">0x4c</span>       <span class="mh">0x100002</span> <span class="n">IRTimer</span>
-<span class="mh">0xe00001ec8f90</span>   <span class="mi">2628</span>           <span class="mh">0x50</span>            <span class="mh">0x1</span> <span class="n">WaitCompletionPacket</span>
-<span class="mh">0xe00002048970</span>   <span class="mi">2628</span>           <span class="mh">0x54</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe0000077dd00</span>   <span class="mi">2628</span>           <span class="mh">0x58</span>       <span class="mh">0x100003</span> <span class="n">Semaphore</span>
-<span class="mh">0xe00001d1b340</span>   <span class="mi">2628</span>           <span class="mh">0x5c</span>       <span class="mh">0x100001</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">CNG</span>
-<span class="mh">0xe000006b82c0</span>   <span class="mi">2628</span>           <span class="mh">0x60</span>       <span class="mh">0x100003</span> <span class="n">Semaphore</span>
-<span class="mh">0xe00001d0c6e0</span>   <span class="mi">2628</span>           <span class="mh">0x64</span>       <span class="mh">0x120196</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">HarddiskVolume2</span><span class="err">\</span><span class="n">temp</span><span class="err">\</span><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span>
-<span class="mh">0xe000007db2f0</span>   <span class="mi">2628</span>           <span class="mh">0x74</span>       <span class="mh">0x1f0003</span> <span class="n">Event</span>
-<span class="mh">0xe000023eda60</span>   <span class="mi">2628</span>           <span class="mh">0x78</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe000024c56c0</span>   <span class="mi">2628</span>           <span class="mh">0x7c</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe00001f803e0</span>   <span class="mi">2628</span>           <span class="mh">0x80</span>          <span class="mh">0x804</span> <span class="n">EtwRegistration</span>
-<span class="mh">0xe00000813330</span>   <span class="mi">2628</span>           <span class="mh">0x84</span>       <span class="mh">0x1f0003</span> <span class="n">Event</span>
-<span class="mh">0xe00001254440</span>   <span class="mi">2628</span>           <span class="mh">0x88</span>       <span class="mh">0x1fffff</span> <span class="n">Thread</span>           <span class="n">TID</span> <span class="mi">3420</span> <span class="n">PID</span> <span class="mi">2628</span>
-<span class="mh">0xe0000061ebb0</span>   <span class="mi">2628</span>           <span class="mh">0x8c</span>       <span class="mh">0x1f0001</span> <span class="n">ALPC</span> <span class="n">Port</span>
-<span class="mh">0xe00001d0c340</span>   <span class="mi">2628</span>           <span class="mh">0x90</span>       <span class="mh">0x12019f</span> <span class="n">File</span>             <span class="err">\</span><span class="n">Device</span><span class="err">\</span><span class="n">pmem</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 18:00:43&gt; handles proc_regex=&quot;winpmem&quot;
+-------------------&gt; handles(proc_regex=&quot;winpmem&quot;)
+  Offset (V)      Pid     Handle         Access     Type             Details
+-------------- ------ -------------- -------------- ---------------- -------
+0xe00001f82f20   2628            0x4       0x12019f File             \Device\ConDrv\Reference
+0xe00001d17e00   2628           0x10       0x100020 File             \Device\HarddiskVolume2\Windows
+0xe00001f546b0   2628           0x18       0x12019f File             \Device\ConDrv\Input
+0xe00001eef800   2628           0x1c       0x12019f File             \Device\ConDrv\Output
+0xe00001eef800   2628           0x20       0x12019f File             \Device\ConDrv\Output
+0xe00001d0db80   2628           0x24       0x100020 File             \Device\HarddiskVolume2\temp
+0xe0000006e1f0   2628           0x28       0x12019f File             \Device\ConDrv\Connect
+0xe00000637480   2628           0x30       0x1f0001 ALPC Port
+0xe000006bd290   2628           0x34       0x1f0003 Event
+0xe00001ed6060   2628           0x38            0x1 WaitCompletionPacket
+0xe00001ecd080   2628           0x3c       0x1f0003 IoCompletion
+0xe00001ec7060   2628           0x40        0xf00ff TpWorkerFactory
+0xe00000778320   2628           0x44       0x100002 IRTimer
+0xe00001ecfb80   2628           0x48            0x1 WaitCompletionPacket
+0xe00001a629d0   2628           0x4c       0x100002 IRTimer
+0xe00001ec8f90   2628           0x50            0x1 WaitCompletionPacket
+0xe00002048970   2628           0x54          0x804 EtwRegistration
+0xe0000077dd00   2628           0x58       0x100003 Semaphore
+0xe00001d1b340   2628           0x5c       0x100001 File             \Device\CNG
+0xe000006b82c0   2628           0x60       0x100003 Semaphore
+0xe00001d0c6e0   2628           0x64       0x120196 File             \Device\HarddiskVolume2\temp\win8.1.raw
+0xe000007db2f0   2628           0x74       0x1f0003 Event
+0xe000023eda60   2628           0x78          0x804 EtwRegistration
+0xe000024c56c0   2628           0x7c          0x804 EtwRegistration
+0xe00001f803e0   2628           0x80          0x804 EtwRegistration
+0xe00000813330   2628           0x84       0x1f0003 Event
+0xe00001254440   2628           0x88       0x1fffff Thread           TID 3420 PID 2628
+0xe0000061ebb0   2628           0x8c       0x1f0001 ALPC Port
+0xe00001d0c340   2628           0x90       0x12019f File             \Device\pmem</code></pre>
 
 <p>
 

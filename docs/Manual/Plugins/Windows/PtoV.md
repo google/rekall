@@ -2,16 +2,18 @@
 abstract: Converts a physical address to a virtual address.
 args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
-    ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid Choices:\n\
-    \    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n \
-    \   - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
-    \ Handles", phys_eprocess: 'Physical addresses of eprocess structs. (type: ArrayIntParser)
 
-    ', physical_address: 'The Virtual Address to examine. (type: IntParser)
 
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+    * Default: ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid\
+    \ Choices:\n    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n\
+    \    - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
+    \ Handles", physical_address: 'The Virtual Address to examine. (type: IntParser)
 
-    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+    ', pids: 'One or more pids of processes to select. (type: ArrayIntParser)
+
+
+
+    * Default: ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
     '}
 class_name: PtoV

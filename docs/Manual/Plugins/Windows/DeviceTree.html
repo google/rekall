@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,46 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>scan_in_kernel</p></td><td><p>Scan in the kernel address space (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_kernel</p></td><td><p>Scan the entire kernel address space. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_code</p></td><td><p>Scan the kernel image and loaded drivers. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_nonpaged_pool</p></td><td><p>Scan the kernel non-paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_paged_pool</p></td><td><p>Scan the kernel paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_session_pools</p></td><td><p>Scan session pools for all processes. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_physical</p></td><td><p>Scan the physical address space only. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
 </ul></td></tr>
@@ -739,16 +750,15 @@ susceptible to false positives and active subversion. We are working on
 converting this plugin to use the <a href="ObjectTree.html">object_tree</a> plugin to
 directly parse kernel driver structures.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="k">[snip]</span>
-<span class="err">DRV</span> <span class="err">0x2bb31060</span> <span class="err">\Driver\winpmem</span>
-<span class="err">---|</span> <span class="err">DEV</span> <span class="err">0xfa80019ba060</span> <span class="err">pmem</span> <span class="err">FILE_DEVICE_UNKNOWN</span>
-<span class="err">DRV</span> <span class="err">0x2bb36600</span> <span class="err">\Driver\TermDD</span>
-<span class="err">---|</span> <span class="err">DEV</span> <span class="err">0xfa80019ff040</span> <span class="err">-</span> <span class="err">FILE_DEVICE_8042_PORT</span>
-<span class="err">------|</span> <span class="err">ATT</span> <span class="err">0xfa80019ff980</span> <span class="err">-</span> <span class="err">-</span> <span class="err">\Driver\mouclass</span> <span class="err">FILE_DEVICE_MOUSE</span>
-<span class="err">---|</span> <span class="err">DEV</span> <span class="err">0xfa80019e2040</span> <span class="err">-</span> <span class="err">FILE_DEVICE_8042_PORT</span>
-<span class="err">------|</span> <span class="err">ATT</span> <span class="err">0xfa80019e2960</span> <span class="err">-</span> <span class="err">-</span> <span class="err">\Driver\kbdclass</span> <span class="err">FILE_DEVICE_KEYBOARD</span>
-<span class="k">[snip]</span>
-</pre></div>
+<pre class="highlight"><code>[snip]
+DRV 0x2bb31060 \Driver\winpmem
+---| DEV 0xfa80019ba060 pmem FILE_DEVICE_UNKNOWN
+DRV 0x2bb36600 \Driver\TermDD
+---| DEV 0xfa80019ff040 - FILE_DEVICE_8042_PORT
+------| ATT 0xfa80019ff980 - - \Driver\mouclass FILE_DEVICE_MOUSE
+---| DEV 0xfa80019e2040 - FILE_DEVICE_8042_PORT
+------| ATT 0xfa80019e2960 - - \Driver\kbdclass FILE_DEVICE_KEYBOARD
+[snip]</code></pre>
 
 
 <p>In the above we can see that the winpmem driver has a device called &ldquo;pmem&rdquo;. We

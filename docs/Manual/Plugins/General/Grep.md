@@ -1,13 +1,15 @@
 ---
 abstract: Search an address space for keywords.
-args: {address_space: Name of the address_space to search., context: 'Context to print
-    around the hit. (type: IntParser)
+args: {address_space: 'Name of the address_space to search. (type: AddressSpace)
+
+    ', context: 'Context to print around the hit. (type: IntParser)
 
 
 
-    * Default: 20', keyword: 'The binary strings to find. (type: ArrayStringParser)
+    * Default: 20', keyword: 'The binary strings to find. (type: ArrayString)
 
-    ', limit: 'The length of data to search.
+    ', limit: 'The length of data to search. (type: String)
+
 
 
     * Default: 18446744073709551616', offset: 'Start searching from this offset. (type:

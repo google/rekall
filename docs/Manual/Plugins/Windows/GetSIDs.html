@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,7 +706,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -745,29 +723,28 @@ who started it.</p>
 <h3>Sample output</h3>
 <p>In the below we can see that this cmd.exe process was started by the user <code>test</code>
 with SID <code>S-1-5-21-1077689984-2177008626-1601812314-1001</code>.</p>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">22</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mo">01</span><span class="o">&gt;</span> <span class="n">tokens</span>
-<span class="o">-------------------&gt;</span> <span class="n">tokens</span><span class="p">()</span>
-<span class="n">Process</span>          <span class="n">Pid</span>   <span class="n">Sid</span>                                                <span class="n">Comment</span>
-<span class="o">----------------</span> <span class="o">-----</span> <span class="o">--------------------------------------------------</span> <span class="o">-------</span>
-<span class="p">...</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">1077689984</span><span class="o">-</span><span class="mi">2177008626</span><span class="o">-</span><span class="mi">1601812314</span><span class="o">-</span><span class="mi">1001</span>     <span class="n">User</span><span class="o">:</span> <span class="n">test</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">1077689984</span><span class="o">-</span><span class="mi">2177008626</span><span class="o">-</span><span class="mi">1601812314</span><span class="o">-</span><span class="mi">513</span>      <span class="n">Domain</span> <span class="n">Users</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">0</span>                                            <span class="n">Everyone</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">114</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">21</span><span class="o">-</span><span class="mi">1077689984</span><span class="o">-</span><span class="mi">2177008626</span><span class="o">-</span><span class="mi">1601812314</span><span class="o">-</span><span class="mi">1002</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">32</span><span class="o">-</span><span class="mi">544</span>                                       <span class="n">Administrators</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">32</span><span class="o">-</span><span class="mi">545</span>                                       <span class="n">Users</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">4</span>                                            <span class="n">Interactive</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span>                                            <span class="n">Console</span> <span class="n">Logon</span> <span class="p">(</span><span class="n">Users</span> <span class="n">who</span> <span class="n">are</span> <span class="n">logged</span> <span class="n">onto</span> <span class="n">the</span> <span class="n">physical</span> <span class="n">console</span><span class="p">)</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">11</span>                                           <span class="n">Authenticated</span> <span class="n">Users</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">15</span>                                           <span class="n">This</span> <span class="n">Organization</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">113</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">0</span><span class="o">-</span><span class="mi">126935</span>                                   <span class="n">Logon</span> <span class="n">Session</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="o">-</span><span class="mi">0</span>                                            <span class="n">Local</span> <span class="p">(</span><span class="n">Users</span> <span class="n">with</span> <span class="n">the</span> <span class="n">ability</span> <span class="n">to</span> <span class="n">log</span> <span class="n">in</span> <span class="n">locally</span><span class="p">)</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">5</span><span class="o">-</span><span class="mi">64</span><span class="o">-</span><span class="mi">10</span>                                        <span class="n">NTLM</span> <span class="n">Authentication</span>
-<span class="n">cmd</span><span class="p">.</span><span class="n">exe</span>          <span class="mi">888</span>   <span class="n">S</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="mi">16</span><span class="o">-</span><span class="mi">12288</span>                                       <span class="n">High</span> <span class="n">Mandatory</span> <span class="n">Level</span>
-<span class="p">...</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 22:41:01&gt; tokens
+-------------------&gt; tokens()
+Process          Pid   Sid                                                Comment
+---------------- ----- -------------------------------------------------- -------
+...
+cmd.exe          888   S-1-5-21-1077689984-2177008626-1601812314-1001     User: test
+cmd.exe          888   S-1-5-21-1077689984-2177008626-1601812314-513      Domain Users
+cmd.exe          888   S-1-1-0                                            Everyone
+cmd.exe          888   S-1-5-114
+cmd.exe          888   S-1-5-21-1077689984-2177008626-1601812314-1002
+cmd.exe          888   S-1-5-32-544                                       Administrators
+cmd.exe          888   S-1-5-32-545                                       Users
+cmd.exe          888   S-1-5-4                                            Interactive
+cmd.exe          888   S-1-2-1                                            Console Logon (Users who are logged onto the physical console)
+cmd.exe          888   S-1-5-11                                           Authenticated Users
+cmd.exe          888   S-1-5-15                                           This Organization
+cmd.exe          888   S-1-5-113
+cmd.exe          888   S-1-5-5-0-126935                                   Logon Session
+cmd.exe          888   S-1-2-0                                            Local (Users with the ability to log in locally)
+cmd.exe          888   S-1-5-64-10                                        NTLM Authentication
+cmd.exe          888   S-1-16-12288                                       High Mandatory Level
+...</code></pre>
 
 <p>
 

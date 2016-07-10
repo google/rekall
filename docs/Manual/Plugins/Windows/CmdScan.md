@@ -1,7 +1,8 @@
 ---
 abstract: Extract command history by scanning for _COMMAND_HISTORY
 args: {max_history: 'Value of history buffer size. See HKEY_CURRENT_USER\Console\HistoryBufferSize
-    for default.
+    for default. (type: IntParser)
+
 
 
     * Default: 50'}

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -457,7 +459,7 @@ ript>
 <li>
 <p>Default: InitTask</p>
 </li>
-</ul></td></tr><tr><td><p>phys_task</p></td><td><p>Physical addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name.</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>task_head</p></td><td><p>Use this as the first task to follow the list. (type: IntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -466,20 +468,19 @@ ript>
 <p>Rekall walks the process table and dereferences each of the <code>task.files.fds</code> for each
 kernel task.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="err">$</span> <span class="n">python</span> <span class="n">rekall</span><span class="o">/</span><span class="n">rekal</span><span class="p">.</span><span class="n">py</span> <span class="o">-</span><span class="n">f</span> <span class="o">~/</span><span class="n">memory_images</span><span class="o">/</span><span class="n">Windows7_VMware</span><span class="err">\</span><span class="p">(</span><span class="n">Win7x64</span><span class="o">+</span><span class="n">Ubuntu686</span><span class="p">,</span><span class="n">Ubuntu64</span><span class="err">\</span><span class="p">)</span><span class="n">_VBox</span><span class="err">\</span><span class="p">(</span><span class="n">XPSP3x86</span><span class="err">\</span><span class="p">).</span><span class="n">ram</span>  <span class="o">--</span><span class="n">ept</span> <span class="mh">0x00017725001e</span> <span class="o">-</span> <span class="n">lsof</span> 
-<span class="p">[...]</span>
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">13</span> <span class="o">-</span>                       <span class="mi">0</span> <span class="o">-</span>        <span class="o">-</span>   
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">14</span>            <span class="mi">0</span>            <span class="mi">0</span>        <span class="mi">0</span> <span class="n">socket</span><span class="o">:/</span><span class="n">NETLINK</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">15</span>            <span class="mi">0</span>            <span class="mi">0</span>    <span class="mi">12987</span> <span class="n">socket</span><span class="o">:/</span><span class="n">UNIX</span><span class="p">[</span><span class="mi">12987</span><span class="p">]</span>
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">16</span> <span class="o">-</span>                       <span class="mi">0</span> <span class="o">-</span>        <span class="n">proc</span>
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">17</span>            <span class="mi">0</span>            <span class="mi">0</span>        <span class="mi">0</span> <span class="n">socket</span><span class="o">:/</span><span class="n">NETLINK</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">18</span>            <span class="mi">0</span>            <span class="mi">0</span>     <span class="mi">8902</span> <span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">libvirt</span><span class="o">/</span><span class="n">network</span><span class="o">/</span><span class="n">nwfilter</span><span class="p">.</span><span class="n">leases</span>
-<span class="n">libvirtd</span>             <span class="mi">1199</span>            <span class="mi">0</span>       <span class="mi">19</span>            <span class="mi">0</span>            <span class="mi">0</span>     <span class="mi">7861</span> <span class="o">-</span>   
-<span class="n">bash</span>                 <span class="mi">1335</span>            <span class="mi">0</span>        <span class="mi">0</span> <span class="o">-</span>                       <span class="mi">0</span> <span class="o">-</span>        <span class="o">-</span>   
-<span class="n">bash</span>                 <span class="mi">1335</span>            <span class="mi">0</span>        <span class="mi">1</span> <span class="o">-</span>                       <span class="mi">0</span> <span class="o">-</span>        <span class="o">-</span>   
-<span class="n">bash</span>                 <span class="mi">1335</span>            <span class="mi">0</span>        <span class="mi">2</span> <span class="o">-</span>                       <span class="mi">0</span> <span class="o">-</span>        <span class="o">-</span>   
-<span class="n">bash</span>                 <span class="mi">1335</span>            <span class="mi">0</span>      <span class="mi">255</span> <span class="o">-</span>                       <span class="mi">0</span> <span class="o">-</span>        <span class="o">-</span>   
-</pre></div>
+<pre class="highlight"><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware\(Win7x64+Ubuntu686,Ubuntu64\)_VBox\(XPSP3x86\).ram  --ept 0x00017725001e - lsof 
+[...]
+libvirtd             1199            0       13 -                       0 -        -   
+libvirtd             1199            0       14            0            0        0 socket:/NETLINK[0]
+libvirtd             1199            0       15            0            0    12987 socket:/UNIX[12987]
+libvirtd             1199            0       16 -                       0 -        proc
+libvirtd             1199            0       17            0            0        0 socket:/NETLINK[0]
+libvirtd             1199            0       18            0            0     8902 /run/libvirt/network/nwfilter.leases
+libvirtd             1199            0       19            0            0     7861 -   
+bash                 1335            0        0 -                       0 -        -   
+bash                 1335            0        1 -                       0 -        -   
+bash                 1335            0        2 -                       0 -        -   
+bash                 1335            0      255 -                       0 -        -   </code></pre>
 
 <p>
 

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -735,17 +707,16 @@ services.exe process, parsed and shown as output.</p>
    evtx event log format. We are still working on supporting these logs.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre>xp-laptop-2005-06-25.img 16:43:19&gt; evtlogs
+<pre class="highlight"><code class="language-text">xp-laptop-2005-06-25.img 16:43:19&gt; evtlogs
 ---------------------------------&gt; evtlogs()
 TimeWritten Filename Computer Sid Source Event Id Event Type Message
 ----------- -------- -------- --- ------ -------- ---------- -------
-2004-05-05 19:36:55+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-18 Security 612 Success &#39;-&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;-&#39;;&#39;-&#39;;&#39;-&#39;;&#39;-&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;+&#39;;&#39;MOIT-A-PHXMOD2$&#39;;&#39;BALTIMORE&#39;;&#39;(0x0,0x3E7)&#39;
-2004-05-05 19:36:56+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-18 Security 618 Success &#39;MOIT-A-PHXMOD2$&#39;;&#39;BALTIMORE&#39;;&#39;(0x0,0x3E7)&#39;;&#39;PolEfDat: &lt;binary data&gt; (none);  &#39;
-2004-05-05 19:37:03+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-18 Security 537 Failure &#39;AJ.Morning&#39;;&#39;BALTIMORE&#39;;&#39;11&#39;;&#39;User32  &#39;;&#39;Negotiate&#39;;&#39;MOIT-A-PHXMOD2&#39;;&#39;0xC000005E&#39;;&#39;0x0&#39;
-2004-05-05 19:37:03+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-21-487349131-2095749132-2248483902-19753 Security 528 Success &#39;AJ.Morning&#39;;&#39;BALTIMORE&#39;;&#39;(0x0,0x113AD)&#39;;&#39;2&#39;;&#39;User32  &#39;;&#39;Negotiate&#39;;&#39;MOIT-A-PHXMOD2&#39;;&#39;{5c92d34f-85d3-2f5d-d036-759d7c97bfd7}&#39;
-2004-05-05 19:37:32+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-19 Security 528 Success &#39;LOCAL SERVICE&#39;;&#39;NT AUTHORITY&#39;;&#39;(0x0,0x3E5)&#39;;&#39;5&#39;;&#39;Advapi  &#39;;&#39;Negotiate&#39;;&#39;&#39;;&#39;{00000000-0000-0000-0000-000000000000}&#39;
-2004-05-05 19:37:33+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-21-487349131-2095749132-2248483902-19753 Security 596 Failure &#39;619be804-cde6-484f-aff4-2a5e588d6eef&#39;;&#39;&#39;;&#39;&#39;;&#39;0x57&#39;
-</pre></div>
+2004-05-05 19:36:55+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-18 Security 612 Success '-';'+';'+';'+';'+';'+';'-';'-';'-';'-';'+';'+';'+';'+';'+';'+';'+';'+';'MOIT-A-PHXMOD2$';'BALTIMORE';'(0x0,0x3E7)'
+2004-05-05 19:36:56+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-18 Security 618 Success 'MOIT-A-PHXMOD2$';'BALTIMORE';'(0x0,0x3E7)';'PolEfDat: &lt;binary data&gt; (none);  '
+2004-05-05 19:37:03+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-18 Security 537 Failure 'AJ.Morning';'BALTIMORE';'11';'User32  ';'Negotiate';'MOIT-A-PHXMOD2';'0xC000005E';'0x0'
+2004-05-05 19:37:03+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-21-487349131-2095749132-2248483902-19753 Security 528 Success 'AJ.Morning';'BALTIMORE';'(0x0,0x113AD)';'2';'User32  ';'Negotiate';'MOIT-A-PHXMOD2';'{5c92d34f-85d3-2f5d-d036-759d7c97bfd7}'
+2004-05-05 19:37:32+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-19 Security 528 Success 'LOCAL SERVICE';'NT AUTHORITY';'(0x0,0x3E5)';'5';'Advapi  ';'Negotiate';'';'{00000000-0000-0000-0000-000000000000}'
+2004-05-05 19:37:33+0000 SecEvent.Evt MOIT-A-PHXMOD2 S-1-5-21-487349131-2095749132-2248483902-19753 Security 596 Failure '619be804-cde6-484f-aff4-2a5e588d6eef';'';'';'0x57'</code></pre>
 
 <p>
 

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,46 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>scan_in_kernel</p></td><td><p>Scan in the kernel address space (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_kernel</p></td><td><p>Scan the entire kernel address space. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_code</p></td><td><p>Scan the kernel image and loaded drivers. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_nonpaged_pool</p></td><td><p>Scan the kernel non-paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_paged_pool</p></td><td><p>Scan the kernel paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_session_pools</p></td><td><p>Scan session pools for all processes. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_physical</p></td><td><p>Scan the physical address space only. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
 </ul></td></tr>
@@ -753,37 +764,36 @@ specified, the scanning occurs in kernel space.</p>
 we can still see exited threads. Rekall resolves the start address of the thread
 (i.e. the function which started running in this thread). This helps to identify
 what the thread is supposed to be doing.</p>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">18</span><span class="o">:</span><span class="mi">52</span><span class="o">:</span><span class="mi">26</span><span class="o">&gt;</span> <span class="n">thrdscan</span>
-  <span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>       <span class="n">PID</span>    <span class="n">TID</span> <span class="n">Start</span> <span class="n">Address</span>  <span class="n">Create</span> <span class="n">Time</span>              <span class="n">Exit</span> <span class="n">Time</span>                <span class="n">Process</span>          <span class="n">Symbol</span>
-<span class="o">--------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------------</span> <span class="o">------------------------</span> <span class="o">------------------------</span> <span class="o">----------------</span> <span class="o">------</span>
-<span class="mh">0x0000001ab080</span>   <span class="mi">2332</span>   <span class="mi">3976</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x000000230880</span>   <span class="mi">2392</span>   <span class="mi">3212</span> <span class="mh">0x7ff6670fd0bc</span> <span class="o">-</span>                        <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">18</span><span class="o">:</span><span class="mi">44</span><span class="o">+</span><span class="mo">0000</span> <span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span>     <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span><span class="o">!+</span><span class="mh">0xd0bc</span>
-<span class="mh">0x00000025e080</span>   <span class="mi">3644</span>   <span class="mi">1068</span> <span class="mh">0x7ff7a4831070</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">conhost</span><span class="p">.</span><span class="n">exe</span><span class="o">!+</span><span class="mh">0x1070</span>
-<span class="mh">0x000000261080</span>    <span class="mi">880</span>   <span class="mi">2440</span> <span class="mh">0x7ff866dbaf44</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wuaueng</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x3af44</span>
-<span class="mh">0x000000261880</span>    <span class="mi">880</span>   <span class="mi">3512</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x0000002d6080</span>   <span class="mi">3644</span>   <span class="mi">3688</span> <span class="mh">0x7ff7a4833060</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">conhost</span><span class="p">.</span><span class="n">exe</span><span class="o">!+</span><span class="mh">0x3060</span>
-<span class="mh">0x0000002e1080</span>    <span class="mi">976</span>   <span class="mi">3932</span> <span class="mh">0x7ff877104924</span> <span class="o">-</span>                        <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">18</span><span class="o">:</span><span class="mi">37</span><span class="o">+</span><span class="mo">0000</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">sysmain</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x94924</span>
-<span class="mh">0x0000002e1880</span>    <span class="mi">880</span>   <span class="mi">3324</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x00000035d080</span>    <span class="mi">880</span>   <span class="mi">1752</span> <span class="mh">0x7ff866dbaf44</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wuaueng</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x3af44</span>
-<span class="mh">0x000000558080</span>    <span class="mi">880</span>   <span class="mi">3524</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x000000613080</span>    <span class="mi">880</span>   <span class="mi">3496</span> <span class="mh">0x7ff866dbaf44</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wuaueng</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x3af44</span>
-<span class="mh">0x000000613880</span>   <span class="mi">3400</span>   <span class="mi">3648</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">MpCmdRun</span><span class="p">.</span><span class="n">exe</span>     <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x000000668080</span>    <span class="mi">880</span>   <span class="mi">3524</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x0000006c0080</span>    <span class="mi">880</span>   <span class="mi">3692</span> <span class="mh">0x7ff8733911b0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">aelupsvc</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x11b0</span>
-<span class="mh">0x0000006ce080</span>    <span class="mi">880</span>   <span class="mi">3180</span> <span class="mh">0x7ff866d81f3c</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wuaueng</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x1f3c</span>
-<span class="mh">0x000002bd2080</span>    <span class="mi">880</span>   <span class="mi">3736</span> <span class="mh">0x7ff866dbaf44</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wuaueng</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x3af44</span>
-<span class="mh">0x00000370a080</span>    <span class="mi">976</span>   <span class="mi">3932</span> <span class="mh">0x7ff877104924</span> <span class="o">-</span>                        <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">18</span><span class="o">:</span><span class="mi">37</span><span class="o">+</span><span class="mo">0000</span> <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">sysmain</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x94924</span>
-<span class="mh">0x00000370a880</span>    <span class="mi">880</span>   <span class="mi">3324</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x000004eef080</span>    <span class="mi">880</span>   <span class="mi">3692</span> <span class="mh">0x7ff8733911b0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">aelupsvc</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x11b0</span>
-<span class="mh">0x0000051a4874</span> <span class="mi">2124654</span> <span class="mi">30318413</span> <span class="mh">0xffe800000000</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="o">----------------</span>
-<span class="mh">0x000005d8a080</span>    <span class="mi">880</span>   <span class="mi">3692</span> <span class="mh">0x7ff8733911b0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">aelupsvc</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x11b0</span>
-<span class="mh">0x000009f5d080</span>   <span class="mi">2332</span>   <span class="mi">3928</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x00000cbde080</span>   <span class="mi">2392</span>   <span class="mi">3880</span> <span class="mh">0x7ff6670fd0bc</span> <span class="o">-</span>                        <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">18</span><span class="o">:</span><span class="mi">24</span><span class="o">+</span><span class="mo">0000</span> <span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span>     <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span><span class="o">!+</span><span class="mh">0xd0bc</span>
-<span class="mh">0x00000dbdb080</span>   <span class="mi">2392</span>   <span class="mi">4084</span> <span class="mh">0x7ff6670fd0bc</span> <span class="o">-</span>                        <span class="mi">2014</span><span class="o">-</span><span class="mo">01</span><span class="o">-</span><span class="mi">24</span> <span class="mi">21</span><span class="o">:</span><span class="mi">19</span><span class="o">:</span><span class="mi">27</span><span class="o">+</span><span class="mo">0000</span> <span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span>     <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">VBoxTray</span><span class="p">.</span><span class="n">exe</span><span class="o">!+</span><span class="mh">0xd0bc</span>
-<span class="mh">0x00000f345080</span>    <span class="mi">880</span>   <span class="mi">1532</span> <span class="mh">0x7ff866dbaf44</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wuaueng</span><span class="p">.</span><span class="n">dll</span><span class="o">!+</span><span class="mh">0x3af44</span>
-<span class="mh">0x00000f345880</span>    <span class="mi">880</span>   <span class="mi">2932</span> <span class="mh">0x7ff87f35b5c0</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">svchost</span><span class="p">.</span><span class="n">exe</span>      <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">ntdll</span><span class="p">.</span><span class="n">dll</span><span class="o">!</span><span class="n">TpPostWork</span><span class="o">+</span><span class="mh">0x4a0</span>
-<span class="mh">0x00000f413080</span>      <span class="mi">4</span>   <span class="mi">3176</span> <span class="mh">0xf802d3613418</span> <span class="o">-</span>                        <span class="o">-</span>                        <span class="n">System</span>           <span class="n">nt</span><span class="o">!</span><span class="n">MiStoreEvictThread</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 18:52:26&gt; thrdscan
+  Offset(P)       PID    TID Start Address  Create Time              Exit Time                Process          Symbol
+-------------- ------ ------ -------------- ------------------------ ------------------------ ---------------- ------
+0x0000001ab080   2332   3976 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x000000230880   2392   3212 0x7ff6670fd0bc -                        2014-01-24 21:18:44+0000 VBoxTray.exe     \Windows\System32\VBoxTray.exe!+0xd0bc
+0x00000025e080   3644   1068 0x7ff7a4831070 -                        -                        conhost.exe      \Windows\System32\conhost.exe!+0x1070
+0x000000261080    880   2440 0x7ff866dbaf44 -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x3af44
+0x000000261880    880   3512 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x0000002d6080   3644   3688 0x7ff7a4833060 -                        -                        conhost.exe      \Windows\System32\conhost.exe!+0x3060
+0x0000002e1080    976   3932 0x7ff877104924 -                        2014-01-24 21:18:37+0000 svchost.exe      \Windows\System32\sysmain.dll!+0x94924
+0x0000002e1880    880   3324 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x00000035d080    880   1752 0x7ff866dbaf44 -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x3af44
+0x000000558080    880   3524 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x000000613080    880   3496 0x7ff866dbaf44 -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x3af44
+0x000000613880   3400   3648 0x7ff87f35b5c0 -                        -                        MpCmdRun.exe     \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x000000668080    880   3524 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x0000006c0080    880   3692 0x7ff8733911b0 -                        -                        svchost.exe      \Windows\System32\aelupsvc.dll!+0x11b0
+0x0000006ce080    880   3180 0x7ff866d81f3c -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x1f3c
+0x000002bd2080    880   3736 0x7ff866dbaf44 -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x3af44
+0x00000370a080    976   3932 0x7ff877104924 -                        2014-01-24 21:18:37+0000 svchost.exe      \Windows\System32\sysmain.dll!+0x94924
+0x00000370a880    880   3324 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x000004eef080    880   3692 0x7ff8733911b0 -                        -                        svchost.exe      \Windows\System32\aelupsvc.dll!+0x11b0
+0x0000051a4874 2124654 30318413 0xffe800000000 -                        -                        ----------------
+0x000005d8a080    880   3692 0x7ff8733911b0 -                        -                        svchost.exe      \Windows\System32\aelupsvc.dll!+0x11b0
+0x000009f5d080   2332   3928 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x00000cbde080   2392   3880 0x7ff6670fd0bc -                        2014-01-24 21:18:24+0000 VBoxTray.exe     \Windows\System32\VBoxTray.exe!+0xd0bc
+0x00000dbdb080   2392   4084 0x7ff6670fd0bc -                        2014-01-24 21:19:27+0000 VBoxTray.exe     \Windows\System32\VBoxTray.exe!+0xd0bc
+0x00000f345080    880   1532 0x7ff866dbaf44 -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x3af44
+0x00000f345880    880   2932 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
+0x00000f413080      4   3176 0xf802d3613418 -                        -                        System           nt!MiStoreEvictThread</code></pre>
 
 <p>
 

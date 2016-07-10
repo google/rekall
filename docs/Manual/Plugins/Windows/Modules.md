@@ -1,6 +1,8 @@
 ---
 abstract: Print list of loaded kernel modules.
-args: {name_regex: Filter module names by this regex.}
+args: {name_regex: 'Filter module names by this regex. (type: RegEx)
+
+    '}
 class_name: Modules
 epydoc: rekall.plugins.windows.modules.Modules-class.html
 layout: plugin

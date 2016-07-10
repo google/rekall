@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,46 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>scan_in_kernel</p></td><td><p>Scan in the kernel address space (type: Boolean)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<ul>
+<li>
+<p>Valid Choices:</p>
+<ul>
+<li>PsActiveProcessHead</li>
+<li>CSRSS</li>
+<li>PspCidTable</li>
+<li>Sessions</li>
+<li>Handles</li>
+</ul>
+</li>
+<li>
+<p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
+</li>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>scan_kernel</p></td><td><p>Scan the entire kernel address space. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_code</p></td><td><p>Scan the kernel image and loaded drivers. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_nonpaged_pool</p></td><td><p>Scan the kernel non-paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_paged_pool</p></td><td><p>Scan the kernel paged pool. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_kernel_session_pools</p></td><td><p>Scan session pools for all processes. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_physical</p></td><td><p>Scan the physical address space only. (type: Boolean)</p>
+<ul>
+<li>Default: False</li>
+</ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
 </ul></td></tr>
@@ -738,31 +749,30 @@ that have been hidden/unlinked by rootkits.</p>
 <h3>Sample output</h3>
 <p>In this example we can identify the pmem driver which was loaded from a
 temporary location.</p>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">23</span><span class="o">:</span><span class="mi">27</span><span class="o">:</span><span class="mi">24</span><span class="o">&gt;</span> <span class="n">modscan</span>
-<span class="o">-------------------&gt;</span> <span class="n">modscan</span><span class="p">()</span>
-  <span class="n">Offset</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>    <span class="n">Name</span>                      <span class="n">Base</span>           <span class="n">Size</span>      <span class="n">File</span>
-<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----</span>
-<span class="mh">0x000001ce507e</span>                      <span class="mh">0x20c483483824</span>     <span class="mh">0xebc08b44</span>
-<span class="mh">0x00003ce163b0</span> <span class="n">mrxsmb</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf80002174000</span>        <span class="mh">0x6d000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">mrxsmb</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce17610</span> <span class="n">mrxsmb20</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf80002000000</span>        <span class="mh">0x39000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">mrxsmb20</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce1e830</span> <span class="n">mpsdrv</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf8000215d000</span>        <span class="mh">0x17000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">mpsdrv</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce4cf30</span> <span class="n">Ndu</span><span class="p">.</span><span class="n">sys</span>              <span class="mh">0xf800022cd000</span>        <span class="mh">0x1d000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">Ndu</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce4df20</span> <span class="n">mrxsmb10</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf80002282000</span>        <span class="mh">0x4b000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">mrxsmb10</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce80170</span> <span class="n">peauth</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf800022ea000</span>        <span class="mh">0xa9000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">peauth</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce8b010</span> <span class="n">srvnet</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf8000239e000</span>        <span class="mh">0x43000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">srvnet</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ce8bc20</span> <span class="n">secdrv</span><span class="p">.</span><span class="n">SYS</span>           <span class="mh">0xf80002393000</span>         <span class="mh">0xb000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">Drivers</span><span class="err">\</span><span class="n">secdrv</span><span class="p">.</span><span class="n">SYS</span>
-<span class="mh">0x00003ceae280</span> <span class="n">tcpipreg</span><span class="p">.</span><span class="n">sys</span>         <span class="mh">0xf800023e1000</span>        <span class="mh">0x12000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">tcpipreg</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003ceae520</span> <span class="n">srv2</span><span class="p">.</span><span class="n">sys</span>             <span class="mh">0xf800024ec000</span>        <span class="mh">0xad000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">srv2</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003cec9ee0</span>                      <span class="mh">0x665602050006</span>            <span class="mh">0x0</span>
-<span class="mh">0x00003ceede60</span> <span class="n">srv</span><span class="p">.</span><span class="n">sys</span>              <span class="mh">0xf80002400000</span>        <span class="mh">0x98000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">srv</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003cf44eb0</span> <span class="n">mslldp</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf80002498000</span>        <span class="mh">0x16000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">mslldp</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003d144160</span> <span class="n">rspndr</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf80001caf000</span>        <span class="mh">0x18000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">rspndr</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003d145a50</span> <span class="n">lltdio</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf80001c9b000</span>        <span class="mh">0x14000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">lltdio</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003d18c850</span> <span class="n">HTTP</span><span class="p">.</span><span class="n">sys</span>             <span class="mh">0xf80002043000</span>        <span class="mh">0xfa000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">HTTP</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003d29b010</span> <span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span>          <span class="mh">0xf800025ca000</span>        <span class="mh">0x10000</span> <span class="err">\</span><span class="o">??</span><span class="err">\</span><span class="n">C</span><span class="o">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">test</span><span class="err">\</span><span class="n">AppData</span><span class="err">\</span><span class="n">Local</span><span class="err">\</span><span class="n">Temp</span><span class="err">\</span><span class="n">pmeA86F</span><span class="p">.</span><span class="n">tmp</span>
-<span class="mh">0x00003d655520</span> <span class="n">HdAudio</span><span class="p">.</span><span class="n">sys</span>          <span class="mh">0xf80001d45000</span>        <span class="mh">0x66000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">drivers</span><span class="err">\</span><span class="n">HdAudio</span><span class="p">.</span><span class="n">sys</span>
-<span class="mh">0x00003d6593e0</span> <span class="n">tunnel</span><span class="p">.</span><span class="n">sys</span>           <span class="mh">0xf800024ae000</span>        <span class="mh">0x2d000</span> <span class="err">\</span><span class="n">SystemRoot</span><span class="err">\</span><span class="n">system32</span><span class="err">\</span><span class="n">DRIVERS</span><span class="err">\</span><span class="n">tunnel</span><span class="p">.</span><span class="n">sys</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 23:27:24&gt; modscan
+-------------------&gt; modscan()
+  Offset(P)    Name                      Base           Size      File
+-------------- -------------------- -------------- -------------- ----
+0x000001ce507e                      0x20c483483824     0xebc08b44
+0x00003ce163b0 mrxsmb.sys           0xf80002174000        0x6d000 \SystemRoot\system32\DRIVERS\mrxsmb.sys
+0x00003ce17610 mrxsmb20.sys         0xf80002000000        0x39000 \SystemRoot\system32\DRIVERS\mrxsmb20.sys
+0x00003ce1e830 mpsdrv.sys           0xf8000215d000        0x17000 \SystemRoot\System32\drivers\mpsdrv.sys
+0x00003ce4cf30 Ndu.sys              0xf800022cd000        0x1d000 \SystemRoot\system32\drivers\Ndu.sys
+0x00003ce4df20 mrxsmb10.sys         0xf80002282000        0x4b000 \SystemRoot\system32\DRIVERS\mrxsmb10.sys
+0x00003ce80170 peauth.sys           0xf800022ea000        0xa9000 \SystemRoot\system32\drivers\peauth.sys
+0x00003ce8b010 srvnet.sys           0xf8000239e000        0x43000 \SystemRoot\System32\DRIVERS\srvnet.sys
+0x00003ce8bc20 secdrv.SYS           0xf80002393000         0xb000 \SystemRoot\System32\Drivers\secdrv.SYS
+0x00003ceae280 tcpipreg.sys         0xf800023e1000        0x12000 \SystemRoot\System32\drivers\tcpipreg.sys
+0x00003ceae520 srv2.sys             0xf800024ec000        0xad000 \SystemRoot\System32\DRIVERS\srv2.sys
+0x00003cec9ee0                      0x665602050006            0x0
+0x00003ceede60 srv.sys              0xf80002400000        0x98000 \SystemRoot\System32\DRIVERS\srv.sys
+0x00003cf44eb0 mslldp.sys           0xf80002498000        0x16000 \SystemRoot\system32\DRIVERS\mslldp.sys
+0x00003d144160 rspndr.sys           0xf80001caf000        0x18000 \SystemRoot\system32\DRIVERS\rspndr.sys
+0x00003d145a50 lltdio.sys           0xf80001c9b000        0x14000 \SystemRoot\system32\DRIVERS\lltdio.sys
+0x00003d18c850 HTTP.sys             0xf80002043000        0xfa000 \SystemRoot\system32\drivers\HTTP.sys
+0x00003d29b010 pmeA86F.tmp          0xf800025ca000        0x10000 \??\C:\Users\test\AppData\Local\Temp\pmeA86F.tmp
+0x00003d655520 HdAudio.sys          0xf80001d45000        0x66000 \SystemRoot\system32\drivers\HdAudio.sys
+0x00003d6593e0 tunnel.sys           0xf800024ae000        0x2d000 \SystemRoot\system32\DRIVERS\tunnel.sys</code></pre>
 
 <p>
 

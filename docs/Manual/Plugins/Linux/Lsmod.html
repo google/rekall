@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -442,33 +444,17 @@ ript>
 </div>
 
 
-<h3>Plugin Arguments</h3>
-<div class="plugins_args">
-<table class='table table-condensed'>
-<tbody>
-<tr><td><p>parameters</p></td><td><p>Display module parameters. (type: Boolean)</p>
-<ul>
-<li>Default: False</li>
-</ul></td></tr><tr><td><p>sections</p></td><td><p>Display section addresses. (type: Boolean)</p>
-<ul>
-<li>Default: False</li>
-</ul></td></tr>
-</tbody>
-</table>
-</div>
-
 
 <p>Rekall walks the list at kernel symbol <code>modules</code> to provide the list of modules.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">Windows7_VMware</span><span class="p">(</span><span class="n">Win7x64</span><span class="o">+</span><span class="n">Ubuntu686</span><span class="p">,</span><span class="n">Ubuntu64</span><span class="p">)</span><span class="n">_VBox</span><span class="p">(</span><span class="n">XPSP3x86</span><span class="p">).</span><span class="n">ram</span> <span class="mi">16</span><span class="o">:</span><span class="mi">22</span><span class="o">:</span><span class="mi">54</span><span class="o">&gt;</span> <span class="n">lsmod</span>
-<span class="o">---------------------------------------------------------------------------&gt;</span> <span class="n">lsmod</span><span class="p">()</span>
+<pre class="highlight"><code>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 16:22:54&gt; lsmod
+---------------------------------------------------------------------------&gt; lsmod()
 
-<span class="o">********************</span> <span class="n">Overview</span> <span class="o">********************</span>
-   <span class="n">Virtual</span>       <span class="n">Core</span> <span class="n">Start</span>   <span class="n">Total</span> <span class="n">Size</span>         <span class="n">Name</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----------</span> <span class="o">--------------------</span>
-<span class="mh">0xffffa038d120</span> <span class="mh">0xffffa038b000</span>      <span class="mi">12880</span> <span class="n">ipt_MASQUERADE</span>
-<span class="mh">0xffffa0383180</span> <span class="mh">0xffffa0381000</span>      <span class="mi">13011</span> <span class="n">iptable_nat</span>
-</pre></div>
+******************** Overview ********************
+   Virtual       Core Start   Total Size         Name
+-------------- -------------- ---------- --------------------
+0xffffa038d120 0xffffa038b000      12880 ipt_MASQUERADE
+0xffffa0383180 0xffffa0381000      13011 iptable_nat</code></pre>
 
 <p>
 

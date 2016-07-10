@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,7 +706,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>virtual_address</p></td><td><p>The Virtual Address to examine. (type: SymbolAddress)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>virtual_address</p></td><td><p>The Virtual Address to examine. (type: SymbolAddress)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -747,14 +725,13 @@ address to a physical address.</p>
    <a href="SetProcessContext.html">cc</a> plugin.</li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mi">23</span><span class="o">:</span><span class="mi">52</span><span class="o">:</span><span class="mi">53</span><span class="o">&gt;</span> <span class="n">vtop</span> <span class="mh">0xfa8000a2d060</span>
-<span class="n">Virtual</span> <span class="mh">0xfa8000a2d060</span> <span class="n">Page</span> <span class="n">Directory</span> <span class="mh">0x00187000</span>
-<span class="n">pml4e</span><span class="err">@</span> <span class="mh">0x187fa8</span> <span class="o">=</span> <span class="mh">0x3c00863</span>
-<span class="n">pdpte</span><span class="err">@</span> <span class="mh">0x3c00000</span> <span class="o">=</span> <span class="mh">0x3c01863</span>
-<span class="n">pde</span><span class="err">@</span> <span class="mh">0x3c01028</span> <span class="o">=</span> <span class="mh">0x30c009e3</span>
-<span class="n">Large</span> <span class="n">page</span> <span class="n">mapped</span> <span class="mh">0x30e2d060</span>
-<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x30c2d060</span>
-</pre></div>
+<pre class="highlight"><code>win7_trial_64bit.dmp.E01 23:52:53&gt; vtop 0xfa8000a2d060
+Virtual 0xfa8000a2d060 Page Directory 0x00187000
+pml4e@ 0x187fa8 = 0x3c00863
+pdpte@ 0x3c00000 = 0x3c01863
+pde@ 0x3c01028 = 0x30c009e3
+Large page mapped 0x30e2d060
+Physical Address 0x30c2d060</code></pre>
 
 <p>
 

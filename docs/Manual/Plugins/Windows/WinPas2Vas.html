@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,7 +706,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>offsets</p></td><td><p>A list of physical offsets to resolve. (type: ArrayIntParser)</p></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>offsets</p></td><td><p>A list of physical offsets to resolve. (type: ArrayIntParser)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -773,44 +751,43 @@ processes.</p>
 first find the physical address of the mapped dll (note we need to switch to the
 correct process context first), then we use the <strong>pas2vas</strong> plugin to determine
 which other process has that physical page mapped.</p>
-<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">29</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> <span class="n">pslist</span>
-  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                    <span class="n">Exit</span>
-<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------------------------</span> <span class="o">------------------------</span>
-<span class="p">...</span>
-<span class="mh">0xfa8002193060</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">2912</span>   <span class="mi">2644</span>      <span class="mi">1</span>       <span class="mi">19</span>      <span class="mi">1</span>   <span class="n">True</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">14</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mo">03</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="mh">0xfa80017f9060</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">2920</span>   <span class="mi">2912</span>      <span class="mi">4</span>      <span class="mi">169</span>      <span class="mi">1</span>   <span class="n">True</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">14</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mo">03</span><span class="o">+</span><span class="mo">0000</span> <span class="o">-</span>
-<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">29</span><span class="o">:</span><span class="mi">59</span><span class="o">&gt;</span> <span class="n">vad</span> <span class="mi">2912</span>
-<span class="o">-----------------&gt;</span> <span class="n">vad</span><span class="p">(</span><span class="mi">2912</span><span class="p">)</span>
-<span class="o">**************************************************</span>
-<span class="nl">Pid:</span> <span class="mi">2912</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>
-     <span class="n">VAD</span>       <span class="n">lev</span>     <span class="n">start</span>           <span class="n">end</span>        <span class="n">com</span> <span class="o">-</span>       <span class="o">-</span>      <span class="n">Protect</span>              <span class="n">Filename</span>
-<span class="o">--------------</span> <span class="o">---</span> <span class="o">--------------</span> <span class="o">--------------</span> <span class="o">----</span> <span class="o">-------</span> <span class="o">------</span> <span class="o">--------------------</span> <span class="o">--------</span>
-<span class="mh">0xfa80026f9d80</span> <span class="mi">1</span>         <span class="mh">0x74400</span>        <span class="mh">0x7443e</span>    <span class="mi">3</span> <span class="n">Mapped</span>  <span class="n">Exe</span>    <span class="n">EXECUTE_WRITECOPY</span>    <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">System32</span><span class="err">\</span><span class="n">wow64</span><span class="p">.</span><span class="n">dll</span>
-<span class="p">...</span>
-<span class="mh">0xfa80021da200</span> <span class="mi">3</span>         <span class="mh">0x766c0</span>        <span class="mh">0x766f4</span>    <span class="mi">2</span> <span class="n">Mapped</span>  <span class="n">Exe</span>    <span class="n">EXECUTE_WRITECOPY</span>    <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">ws2_32</span><span class="p">.</span><span class="n">dll</span>
-<span class="mh">0xfa80026eb5e0</span> <span class="mi">4</span>         <span class="mh">0x75ef0</span>        <span class="mh">0x75fdf</span>    <span class="mi">2</span> <span class="n">Mapped</span>  <span class="n">Exe</span>    <span class="n">EXECUTE_WRITECOPY</span>    <span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">SysWOW64</span><span class="err">\</span><span class="n">rpcrt4</span><span class="p">.</span><span class="n">dll</span>
-<span class="p">...</span>
-<span class="mh">0xfa80028f59d0</span> <span class="mi">5</span>         <span class="mh">0x7fff0</span>     <span class="mh">0x7fffffef</span>   <span class="o">-</span><span class="mi">1</span> <span class="n">Private</span>        <span class="n">READONLY</span>
-<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">30</span><span class="o">:</span><span class="mi">08</span><span class="o">&gt;</span> <span class="n">cc</span> <span class="mi">2912</span>
-<span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="n">context</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="p">(</span><span class="n">Pid</span> <span class="mi">2912</span><span class="err">@</span><span class="mh">0xfa8002193060</span><span class="p">)</span>
+<pre class="highlight"><code>win7.elf 12:29:35&gt; pslist
+  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                    Exit
+-------------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------ ------------------------
+...
+0xfa8002193060 vol.exe                2912   2644      1       19      1   True 2012-10-01 14:41:03+0000 -
+0xfa80017f9060 vol.exe                2920   2912      4      169      1   True 2012-10-01 14:41:03+0000 -
+win7.elf 12:29:59&gt; vad 2912
+-----------------&gt; vad(2912)
+**************************************************
+Pid: 2912 vol.exe
+     VAD       lev     start           end        com -       -      Protect              Filename
+-------------- --- -------------- -------------- ---- ------- ------ -------------------- --------
+0xfa80026f9d80 1         0x74400        0x7443e    3 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\System32\wow64.dll
+...
+0xfa80021da200 3         0x766c0        0x766f4    2 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\SysWOW64\ws2_32.dll
+0xfa80026eb5e0 4         0x75ef0        0x75fdf    2 Mapped  Exe    EXECUTE_WRITECOPY    \Windows\SysWOW64\rpcrt4.dll
+...
+0xfa80028f59d0 5         0x7fff0     0x7fffffef   -1 Private        READONLY
+win7.elf 12:30:08&gt; cc 2912
+Switching to process context: vol.exe (Pid 2912@0xfa8002193060)
 
-<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">45</span><span class="o">&gt;</span> <span class="n">vtop</span> <span class="mh">0x766c0000</span>
-<span class="o">-----------------&gt;</span> <span class="n">vtop</span><span class="p">(</span><span class="mh">0x766c0000</span><span class="p">)</span>
-<span class="n">Virtual</span> <span class="mh">0x766c0000</span> <span class="n">Page</span> <span class="n">Directory</span> <span class="mh">0x271ec000</span>
-<span class="n">pml4e</span><span class="err">@</span> <span class="mh">0x271ec000</span> <span class="o">=</span> <span class="mh">0x70000008844867</span>
-<span class="n">pdpte</span><span class="err">@</span> <span class="mh">0x8844008</span> <span class="o">=</span> <span class="mh">0x80000007845867</span>
-<span class="n">pde</span><span class="err">@</span> <span class="mh">0x7845d98</span> <span class="o">=</span> <span class="mh">0x7b55847</span>
-<span class="n">pte</span><span class="err">@</span> <span class="mh">0x7b55600</span> <span class="o">=</span> <span class="mh">0x1a58f005</span>
-<span class="n">PTE</span> <span class="n">mapped</span><span class="err">@</span> <span class="mh">0x7b55600</span> <span class="o">=</span> <span class="mh">0x1a58f000</span>
-<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x1a58f000</span>
-<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">12</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">53</span><span class="o">&gt;</span> <span class="n">pas2vas</span> <span class="mh">0x1a58f000</span>
+win7.elf 12:32:45&gt; vtop 0x766c0000
+-----------------&gt; vtop(0x766c0000)
+Virtual 0x766c0000 Page Directory 0x271ec000
+pml4e@ 0x271ec000 = 0x70000008844867
+pdpte@ 0x8844008 = 0x80000007845867
+pde@ 0x7845d98 = 0x7b55847
+pte@ 0x7b55600 = 0x1a58f005
+PTE mapped@ 0x7b55600 = 0x1a58f000
+Physical Address 0x1a58f000
+win7.elf 12:32:53&gt; pas2vas 0x1a58f000
 
-   <span class="n">Physical</span>       <span class="n">Virtual</span>        <span class="n">Pid</span> <span class="n">Name</span>
-<span class="o">--------------</span> <span class="o">--------------</span> <span class="o">------</span> <span class="o">----</span>
-<span class="mh">0x00001a58f000</span> <span class="mh">0x0000766c0000</span>   <span class="mi">2616</span> <span class="n">Console</span><span class="p">.</span><span class="n">exe</span>
-<span class="mh">0x00001a58f000</span> <span class="mh">0x0000766c0000</span>   <span class="mi">2920</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>
-<span class="mh">0x00001a58f000</span> <span class="mh">0x0000766c0000</span>   <span class="mi">2912</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>
-</pre></div>
+   Physical       Virtual        Pid Name
+-------------- -------------- ------ ----
+0x00001a58f000 0x0000766c0000   2616 Console.exe
+0x00001a58f000 0x0000766c0000   2920 vol.exe
+0x00001a58f000 0x0000766c0000   2912 vol.exe</code></pre>
 
 
 <p>We see that <code>Console.exe</code> also maps the same dll - probably since it is also a

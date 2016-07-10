@@ -6,15 +6,14 @@ abstract: "Prints various information about a query.\n\n    Explains how a query
   \ valid in the Search plugin. It supports:\n\n     - Any search query that can be\
   \ passed to Search.\n     - Expressions asking about types and members of profile\
   \ types\n       (like structs).\n    "
-args: {query: The dotty/EFILTER query to run., query_parameters: 'Positional parameters
-    for parametrized queries. (type: ArrayStringParser)
+args: {query: 'The dotty/EFILTER query to run. (type: String)
 
+    ', query_parameters: 'Positional parameters for parametrized queries. (type: ArrayString)
 
-
-    * Default: '}
+    '}
 class_name: Explain
-epydoc: rekall.plugins.common.search.Explain-class.html
+epydoc: rekall.plugins.common.efilter_plugins.search.Explain-class.html
 layout: plugin
-module: rekall.plugins.common.search
+module: rekall.plugins.common.efilter_plugins.search
 title: explain
 ---

@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -449,30 +451,29 @@ will give such information as well as its kernel-space address.</p>
 <p>If malware dynamically allocates memory and copies code there to handle
 these functions, the Module column will appear as Unknown.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">Windows7_VMware</span><span class="p">(</span><span class="n">Win7x64</span><span class="o">+</span><span class="n">Ubuntu686</span><span class="p">,</span><span class="n">Ubuntu64</span><span class="p">)</span><span class="n">_VBox</span><span class="p">(</span><span class="n">XPSP3x86</span><span class="p">).</span><span class="n">ram</span> <span class="mi">13</span><span class="o">:</span><span class="mi">51</span><span class="o">:</span><span class="mi">35</span><span class="o">&gt;</span> <span class="n">check_afinfo</span>
-<span class="o">-----------------------------------------------------------------------&gt;</span> <span class="n">check_afinfo</span><span class="p">()</span>
-<span class="n">Constant</span> <span class="n">Name</span>                  <span class="n">Member</span>                            <span class="n">Address</span>     <span class="n">Module</span>
-<span class="o">------------------------------</span> <span class="o">------------------------------</span> <span class="o">--------------</span> <span class="o">--------------------</span>
-<span class="n">tcp4_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">llseek</span>                <span class="mh">0xffff811c9250</span> <span class="n">Kernel</span>
-<span class="n">tcp4_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">read</span>                  <span class="mh">0xffff811c9460</span> <span class="n">Kernel</span>
-<span class="n">tcp4_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">release</span>               <span class="mh">0xffff812157d0</span> <span class="n">Kernel</span>
-<span class="n">udplite6_seq_afinfo</span>            <span class="n">seq_ops</span><span class="p">.</span><span class="n">show</span>                   <span class="mh">0xffff816a1300</span> <span class="n">Kernel</span>
-<span class="n">udplite6_seq_afinfo</span>            <span class="n">seq_fops</span><span class="p">.</span><span class="n">llseek</span>                <span class="mh">0xffff811c9250</span> <span class="n">Kernel</span>
-<span class="n">udplite6_seq_afinfo</span>            <span class="n">seq_fops</span><span class="p">.</span><span class="n">read</span>                  <span class="mh">0xffff811c9460</span> <span class="n">Kernel</span>
-<span class="n">udplite6_seq_afinfo</span>            <span class="n">seq_fops</span><span class="p">.</span><span class="n">release</span>               <span class="mh">0xffff812157d0</span> <span class="n">Kernel</span>
-<span class="n">udp6_seq_afinfo</span>                <span class="n">seq_ops</span><span class="p">.</span><span class="n">show</span>                   <span class="mh">0xffff816a1300</span> <span class="n">Kernel</span>
-<span class="n">udp6_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">llseek</span>                <span class="mh">0xffff811c9250</span> <span class="n">Kernel</span>
-<span class="n">udp6_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">read</span>                  <span class="mh">0xffff811c9460</span> <span class="n">Kernel</span>
-<span class="n">udp6_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">release</span>               <span class="mh">0xffff812157d0</span> <span class="n">Kernel</span>
-<span class="n">udplite4_seq_afinfo</span>            <span class="n">seq_ops</span><span class="p">.</span><span class="n">show</span>                   <span class="mh">0xffff8164f9e0</span> <span class="n">Kernel</span>
-<span class="n">udplite4_seq_afinfo</span>            <span class="n">seq_fops</span><span class="p">.</span><span class="n">llseek</span>                <span class="mh">0xffff811c9250</span> <span class="n">Kernel</span>
-<span class="n">udplite4_seq_afinfo</span>            <span class="n">seq_fops</span><span class="p">.</span><span class="n">read</span>                  <span class="mh">0xffff811c9460</span> <span class="n">Kernel</span>
-<span class="n">udplite4_seq_afinfo</span>            <span class="n">seq_fops</span><span class="p">.</span><span class="n">release</span>               <span class="mh">0xffff812157d0</span> <span class="n">Kernel</span>
-<span class="n">udp4_seq_afinfo</span>                <span class="n">seq_ops</span><span class="p">.</span><span class="n">show</span>                   <span class="mh">0xffff8164f9e0</span> <span class="n">Kernel</span>
-<span class="n">udp4_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">llseek</span>                <span class="mh">0xffff811c9250</span> <span class="n">Kernel</span>
-<span class="n">udp4_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">read</span>                  <span class="mh">0xffff811c9460</span> <span class="n">Kernel</span>
-<span class="n">udp4_seq_afinfo</span>                <span class="n">seq_fops</span><span class="p">.</span><span class="n">release</span>               <span class="mh">0xffff812157d0</span> <span class="n">Kernel</span>
-</pre></div>
+<pre class="highlight"><code>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 13:51:35&gt; check_afinfo
+-----------------------------------------------------------------------&gt; check_afinfo()
+Constant Name                  Member                            Address     Module
+------------------------------ ------------------------------ -------------- --------------------
+tcp4_seq_afinfo                seq_fops.llseek                0xffff811c9250 Kernel
+tcp4_seq_afinfo                seq_fops.read                  0xffff811c9460 Kernel
+tcp4_seq_afinfo                seq_fops.release               0xffff812157d0 Kernel
+udplite6_seq_afinfo            seq_ops.show                   0xffff816a1300 Kernel
+udplite6_seq_afinfo            seq_fops.llseek                0xffff811c9250 Kernel
+udplite6_seq_afinfo            seq_fops.read                  0xffff811c9460 Kernel
+udplite6_seq_afinfo            seq_fops.release               0xffff812157d0 Kernel
+udp6_seq_afinfo                seq_ops.show                   0xffff816a1300 Kernel
+udp6_seq_afinfo                seq_fops.llseek                0xffff811c9250 Kernel
+udp6_seq_afinfo                seq_fops.read                  0xffff811c9460 Kernel
+udp6_seq_afinfo                seq_fops.release               0xffff812157d0 Kernel
+udplite4_seq_afinfo            seq_ops.show                   0xffff8164f9e0 Kernel
+udplite4_seq_afinfo            seq_fops.llseek                0xffff811c9250 Kernel
+udplite4_seq_afinfo            seq_fops.read                  0xffff811c9460 Kernel
+udplite4_seq_afinfo            seq_fops.release               0xffff812157d0 Kernel
+udp4_seq_afinfo                seq_ops.show                   0xffff8164f9e0 Kernel
+udp4_seq_afinfo                seq_fops.llseek                0xffff811c9250 Kernel
+udp4_seq_afinfo                seq_fops.read                  0xffff811c9460 Kernel
+udp4_seq_afinfo                seq_fops.release               0xffff812157d0 Kernel</code></pre>
 
 <p>
 

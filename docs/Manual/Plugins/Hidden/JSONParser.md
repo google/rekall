@@ -4,7 +4,9 @@ abstract: "Renders a json rendering file, as produced by the JsonRenderer.\n\n  
   \ img.dd --format json plugin_name --output test.json\n\n    Then it can be rendered\
   \ again using:\n\n    rekall json_render test.json\n\n    This plugin implements\
   \ the proper decoding of the JSON encoded output.\n    "
-args: {file: The filename to parse.}
+args: {file: 'The filename to parse. (type: String)
+
+    '}
 class_name: JSONParser
 epydoc: rekall.plugins.tools.json_tools.JSONParser-class.html
 layout: plugin

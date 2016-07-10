@@ -1,15 +1,32 @@
 ---
-abstract: Hexdump an object or memory location.
-args: {address_space: The address space to use., data: Dump this string instead.,
-  length: 'Maximum length to dump. (type: IntParser)
+abstract: "Hexdump an object or memory location.\n\n    You can use this plugin repeateadely\
+  \ to keep dumping more data using the\n     \"p _\" (print last result) operation:\n\
+  \n    In [2]: dump 0x814b13b0, address_space=\"K\"\n    ------> dump(0x814b13b0,\
+  \ address_space=\"K\")\n    Offset                         Hex                 \
+  \             Data\n    ---------- ------------------------------------------------\
+  \ ----------------\n    0x814b13b0 03 00 1b 00 00 00 00 00 b8 13 4b 81 b8 13 4b\
+  \ 81  ..........K...K.\n\n    Out[3]: <rekall.plugins.core.Dump at 0x2967510>\n\n\
+  \    In [4]: p _\n    ------> p(_)\n    Offset                         Hex     \
+  \                         Data\n    ---------- ------------------------------------------------\
+  \ ----------------\n    0x814b1440 70 39 00 00 54 1b 01 00 18 0a 00 00 32 59 00\
+  \ 00  p9..T.......2Y..\n    0x814b1450 6c 3c 01 00 81 0a 00 00 18 0a 00 00 00 b0\
+  \ 0f 06  l<..............\n    0x814b1460 00 10 3f 05 64 77 ed 81 d4 80 21 82 00\
+  \ 00 00 00  ..?.dw....!.....\n    "
+args: {address_space: 'The address space to use. (type: AddressSpace)
+
+    ', data: 'Dump this string instead. (type: String)
+
+    ', length: 'Maximum length to dump. (type: IntParser)
 
     ', offset: 'An offset to hexdump. (type: SymbolAddress)
 
-    ', suppress_headers: 'Should headers be suppressed?. (type: Boolean)
 
 
+    * Default: 0', rows: 'Number of bytes per row (type: IntParser)
 
-    * Default: False'}
+    ', width: 'Number of bytes per row (type: IntParser)
+
+    '}
 class_name: Dump
 epydoc: rekall.plugins.core.Dump-class.html
 layout: plugin

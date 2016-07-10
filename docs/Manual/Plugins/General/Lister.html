@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -327,7 +329,7 @@ ript>
 <code>l</code> plugin to quickly print each value in the list.</p>
 <p>In the below example we instantiate the PsActiveProcessHeadHook and walk the
 list of processes (this is one of the <code>pslist</code> methods).</p>
-<div class="highlight"><pre>[1] win7.elf 23:48:12&gt; head = session.profile.get_constant_object(&quot;PsActiveProcessHead&quot;, &quot;_LIST_ENTRY&quot;)
+<pre class="highlight"><code class="language-text">[1] win7.elf 23:48:12&gt; head = session.profile.get_constant_object(&quot;PsActiveProcessHead&quot;, &quot;_LIST_ENTRY&quot;)
 
 [1] win7.elf 23:48:32&gt; l head.list_of_type(&quot;_EPROCESS&quot;, &quot;ActiveProcessLinks&quot;)
 ---------------------&gt; l(head.list_of_type(&quot;_EPROCESS&quot;, &quot;ActiveProcessLinks&quot;))
@@ -339,8 +341,7 @@ list of processes (this is one of the <code>pslist</code> methods).</p>
   0x178 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0xFA8000895B58
   0x180 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x00000004
   0x188 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0xFA8000895B68
-  ....
-</pre></div>
+  ....</code></pre>
 
 <p>
 

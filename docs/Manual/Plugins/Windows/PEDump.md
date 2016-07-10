@@ -1,12 +1,14 @@
 ---
 abstract: Dump a PE binary from memory.
-args: {address_space: The address space to use., image_base: 'The address of the image
-    base (dos header). (type: IntParser)
+args: {address_space: 'The address space to use. (type: AddressSpace)
 
+    ', image_base: 'The address of the image base (dos header). (type: SymbolAddress)
 
+    ', out_fd: 'A file like object to write the output. (type: String)
 
-    * Default: 0', out_fd: A file like object to write the output., out_file: The
-    file name to write.}
+    ', out_file: 'The file name to write. (type: String)
+
+    '}
 class_name: PEDump
 epydoc: rekall.plugins.windows.procdump.PEDump-class.html
 layout: plugin

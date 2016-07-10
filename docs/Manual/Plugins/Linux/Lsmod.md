@@ -1,14 +1,6 @@
 ---
 abstract: Gathers loaded kernel modules.
-args: {parameters: 'Display module parameters. (type: Boolean)
-
-
-
-    * Default: False', sections: 'Display section addresses. (type: Boolean)
-
-
-
-    * Default: False'}
+args: {}
 class_name: Lsmod
 epydoc: rekall.plugins.linux.lsmod.Lsmod-class.html
 layout: plugin

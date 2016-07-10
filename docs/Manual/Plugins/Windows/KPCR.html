@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,20 +688,19 @@ ript>
 <p>Windows maintains per-processor information for each physical CPU in the
 system. This plugin displays this infomation.</p>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win8</span><span class="mf">.1</span><span class="p">.</span><span class="n">raw</span> <span class="mi">21</span><span class="o">:</span><span class="mi">15</span><span class="o">:</span><span class="mi">09</span><span class="o">&gt;</span> <span class="n">kpcr</span>
-<span class="o">-------------------&gt;</span> <span class="n">kpcr</span><span class="p">()</span>
-<span class="o">**************************************************</span>
-<span class="n">Property</span>                       <span class="n">Value</span>
-<span class="o">------------------------------</span> <span class="o">-----</span>
-<span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>                     <span class="mh">0xf802d3307000</span>
-<span class="n">KdVersionBlock</span>                 <span class="n">Pointer</span> <span class="n">to</span> <span class="o">-</span>
-<span class="n">IDT</span>                            <span class="mh">0xf802d4a43080</span>
-<span class="n">GDT</span>                            <span class="mh">0xf802d4a43000</span>
-<span class="n">CurrentThread</span>                 <span class="o">:</span> <span class="mh">0xe00001254440</span> <span class="n">TID</span> <span class="mi">3420</span> <span class="p">(</span><span class="n">winpmem_1</span><span class="mf">.5.2</span><span class="p">.</span><span class="o">:</span><span class="mi">2628</span><span class="p">)</span>
-<span class="n">IdleThread</span>                    <span class="o">:</span> <span class="mh">0xf802d335fa80</span> <span class="n">TID</span> <span class="mi">0</span> <span class="p">(</span><span class="n">System</span><span class="o">:</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">Details</span>                       <span class="o">:</span> <span class="n">CPU</span> <span class="mi">0</span> <span class="p">(</span><span class="n">GenuineIntel</span> <span class="err">@</span> <span class="mi">2517</span> <span class="n">MHz</span><span class="p">)</span>
-<span class="n">CR3</span><span class="o">/</span><span class="n">DTB</span>                       <span class="o">:</span> <span class="mh">0x1a7000</span>
-</pre></div>
+<pre class="highlight"><code>win8.1.raw 21:15:09&gt; kpcr
+-------------------&gt; kpcr()
+**************************************************
+Property                       Value
+------------------------------ -----
+Offset (V)                     0xf802d3307000
+KdVersionBlock                 Pointer to -
+IDT                            0xf802d4a43080
+GDT                            0xf802d4a43000
+CurrentThread                 : 0xe00001254440 TID 3420 (winpmem_1.5.2.:2628)
+IdleThread                    : 0xf802d335fa80 TID 0 (System:0)
+Details                       : CPU 0 (GenuineIntel @ 2517 MHz)
+CR3/DTB                       : 0x1a7000</code></pre>
 
 <p>
 

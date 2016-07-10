@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -199,18 +201,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#cert_vad_scan' class="category-link">
-            cert_vad_scan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#certscan' class="category-link">
-            certscan
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -279,12 +269,6 @@ ript>
         <li classes=''>
           <a href='#dtbscan' class="category-link">
             dtbscan
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#dtbscan2' class="category-link">
-            dtbscan2
           </a>
         </li>
         
@@ -547,6 +531,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#sockets' class="category-link">
             sockets
           </a>
@@ -619,26 +609,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#vadinfo' class="category-link">
-            vadinfo
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#vadmap' class="category-link">
             vadmap
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadtree' class="category-link">
-            vadtree
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#vadwalk' class="category-link">
-            vadwalk
           </a>
         </li>
         
@@ -716,7 +688,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
+<tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
 <p>Valid Choices:</p>
@@ -731,7 +706,10 @@ ript>
 <li>
 <p>Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions, Handles</p>
 </li>
-</ul></td></tr><tr><td><p>phys_eprocess</p></td><td><p>Physical addresses of eprocess structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>physical_address</p></td><td><p>The Virtual Address to examine. (type: IntParser)</p></td></tr><tr><td><p>pid</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>physical_address</p></td><td><p>The Virtual Address to examine. (type: IntParser)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
+<ul>
+<li>Default: </li>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -753,23 +731,22 @@ need to enumerate all address spaces prior to running (so it is a bit faster).</
 </li>
 </ol>
 <h3>Sample output</h3>
-<div class="highlight"><pre><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">15</span><span class="o">:</span><span class="mi">22</span><span class="o">:</span><span class="mi">57</span><span class="o">&gt;</span> <span class="n">vtop</span> <span class="mh">0xfa8002635810</span>
-<span class="o">-----------------&gt;</span> <span class="n">vtop</span><span class="p">(</span><span class="mh">0xfa8002635810</span><span class="p">)</span>
-<span class="n">Virtual</span> <span class="mh">0xfa8002635810</span> <span class="n">Page</span> <span class="n">Directory</span> <span class="mh">0x271ec000</span>
-<span class="n">pml4e</span><span class="err">@</span> <span class="mh">0x271ecfa8</span> <span class="o">=</span> <span class="mh">0x4000863</span>
-<span class="n">pdpte</span><span class="err">@</span> <span class="mh">0x4000000</span> <span class="o">=</span> <span class="mh">0x4001863</span>
-<span class="n">pde</span><span class="err">@</span> <span class="mh">0x4001098</span> <span class="o">=</span> <span class="mh">0x2ac009e3</span>
-<span class="n">Large</span> <span class="n">page</span> <span class="n">mapped</span> <span class="mh">0x2ae35810</span>
-<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x2ac35810</span>
-<span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">15</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mo">05</span><span class="o">&gt;</span> <span class="n">ptov</span> <span class="mh">0x2ac35810</span>
-<span class="o">-----------------&gt;</span> <span class="n">ptov</span><span class="p">(</span><span class="mh">0x2ac35810</span><span class="p">)</span>
-<span class="n">Physical</span> <span class="n">Address</span> <span class="mh">0x2ac35810</span> <span class="o">=&gt;</span> <span class="n">Virtual</span> <span class="n">Address</span> <span class="mh">0xf6fd40035810</span>
-<span class="n">DTB</span> <span class="err">@</span> <span class="mh">0x187000</span>
-<span class="n">PML4E</span> <span class="err">@</span> <span class="mh">0x187f68</span>
-<span class="n">PDPTE</span> <span class="err">@</span> <span class="mh">0x187fa8</span>
-<span class="n">PDE</span> <span class="err">@</span> <span class="mh">0x4000000</span>
-<span class="n">PTE</span> <span class="err">@</span> <span class="mh">0x40011a8</span>
-</pre></div>
+<pre class="highlight"><code>win7.elf 15:22:57&gt; vtop 0xfa8002635810
+-----------------&gt; vtop(0xfa8002635810)
+Virtual 0xfa8002635810 Page Directory 0x271ec000
+pml4e@ 0x271ecfa8 = 0x4000863
+pdpte@ 0x4000000 = 0x4001863
+pde@ 0x4001098 = 0x2ac009e3
+Large page mapped 0x2ae35810
+Physical Address 0x2ac35810
+win7.elf 15:23:05&gt; ptov 0x2ac35810
+-----------------&gt; ptov(0x2ac35810)
+Physical Address 0x2ac35810 =&gt; Virtual Address 0xf6fd40035810
+DTB @ 0x187000
+PML4E @ 0x187f68
+PDPTE @ 0x187fa8
+PDE @ 0x4000000
+PTE @ 0x40011a8</code></pre>
 
 <p>
 

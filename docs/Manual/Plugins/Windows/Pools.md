@@ -6,9 +6,9 @@ abstract: "Prints information about system pools.\n\n    Ref:\n    http://illmat
   \    "
 args: {}
 class_name: Pools
-epydoc: rekall.plugins.windows.misc.Pools-class.html
+epydoc: rekall.plugins.windows.pool.Pools-class.html
 layout: plugin
-module: rekall.plugins.windows.misc
+module: rekall.plugins.windows.pool
 title: pools
 ---
 

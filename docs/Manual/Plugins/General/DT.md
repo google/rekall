@@ -1,14 +1,18 @@
 ---
 abstract: "Print a struct or other symbol.\n\n    Really just a convenience function\
   \ for instantiating the object and printing\n    all its members.\n    "
-args: {address-space: The address space to use., member_offset: 'If specified we only
-    show the member at this offset. (type: IntParser)
+args: {address_space: 'The address space to use. (type: AddressSpace)
+
+    ', member_offset: 'If specified we only show the member at this offset. (type:
+    IntParser)
 
     ', offset: 'Name of a struct definition. (type: IntParser)
 
 
 
-    * Default: 0', target: Name of a struct definition.}
+    * Default: 0', target: 'Name of a struct definition. (type: String)
+
+    '}
 class_name: DT
 epydoc: rekall.plugins.core.DT-class.html
 layout: plugin

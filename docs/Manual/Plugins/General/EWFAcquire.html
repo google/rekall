@@ -72,6 +72,8 @@ ript>
 
     <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
 
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
   </ul>
  </li>
 
@@ -326,7 +328,7 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.E01 in current directory.</p></td></tr>
+<tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.E01 in current directory. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -341,10 +343,9 @@ or to convert a memory image from another format to EWF format.</p>
 not necessarily interchangeable with other implementations. We usually recommend
 using <code>aff4acquire</code> over <code>ewfacquire</code> because the AFF4 format can contain
 multiple streams and can also keep important metadata.</p>
-<div class="highlight"><pre>[1] win7.elf 23:02:22&gt; ewfacquire destination=&quot;/tmp/test.E01&quot;
+<pre class="highlight"><code class="language-text">[1] win7.elf 23:02:22&gt; ewfacquire destination=&quot;/tmp/test.E01&quot;
 ---------------------&gt; ewfacquire(destination=&quot;/tmp/test.E01&quot;)
- Writing 352Mb
-</pre></div>
+ Writing 352Mb</code></pre>
 
 <p>
 

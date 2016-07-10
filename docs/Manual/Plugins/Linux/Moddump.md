@@ -1,6 +1,10 @@
 ---
 abstract: Dumps loaded kernel modules.
-args: {dump_dir: Dump directory., regexp: Regexp on the module name.}
+args: {dump_dir: 'Dump directory. (type: String)
+
+    ', regexp: 'Regexp on the module name. (type: RegEx)
+
+    '}
 class_name: Moddump
 epydoc: rekall.plugins.linux.lsmod.Moddump-class.html
 layout: plugin

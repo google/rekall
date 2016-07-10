@@ -1,9 +1,14 @@
 ---
 abstract: Fetch the PDB file for an executable from the Microsoft PDB server.
-args: {dump_dir: 'Path suitable for dumping files. (Default: Use current directory)',
-  guid: 'The GUID of the pdb file. If provided, the pdb filename must.be provided
-    in the --pdb_filename parameter.', pdb_filename: The filename of the executable
-    to get the PDB file for.}
+args: {dump_dir: 'Path suitable for dumping files. (type: String)
+
+    ', guid: 'The GUID of the pdb file. If provided, the pdb filename must be provided
+    in the --pdb_filename parameter. (type: String)
+
+    ', pdb_filename: 'The filename of the executable to get the PDB file for. (type:
+    String)
+
+    '}
 class_name: FetchPDB
 epydoc: rekall.plugins.tools.mspdb.FetchPDB-class.html
 layout: plugin

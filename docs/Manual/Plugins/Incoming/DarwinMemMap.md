@@ -9,13 +9,13 @@ args: {all: 'Use the entire range of address space. (type: Boolean)
 
 
 
-    * Default: False', phys_proc: 'Physical addresses of proc structs. (type: ArrayIntParser)
-
-    ', pid: 'One or more pids of processes to select. (type: ArrayIntParser)
+    * Default: False', pids: 'One or more pids of processes to select. (type: ArrayIntParser)
 
     ', proc: 'Kernel addresses of proc structs. (type: ArrayIntParser)
 
-    ', proc_regex: A regex to select a process by name.}
+    ', proc_regex: 'A regex to select a process by name. (type: RegEx)
+
+    '}
 class_name: DarwinMemMap
 epydoc: rekall.plugins.darwin.processes.DarwinMemMap-class.html
 layout: plugin
