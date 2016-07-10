@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>rekall.plugins.common.profile_index_test</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
+        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
+        <a href="rekall.plugins.common-module.html">Package&nbsp;common</a> ::
+        Module&nbsp;profile_index_test
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="rekall.plugins.common.profile_index_test-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="rekall.plugins.common.profile_index_test-module.html">Module rekall.plugins.common.profile_index_test</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-docstring">"""Tests for profile_index."""</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Variable rekall.session.Session.logging=rekall.session.Session-class.html#logging"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-0', 'logging', 'link-0');">logging</a></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">unittest</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-1" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-1', 'rekall', 'link-1');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-2" class="py-name" targets="Variable rekall.plugins.common.efilter_plugins.search.CommandWrapper.session=rekall.plugins.common.efilter_plugins.search.CommandWrapper-class.html#session,Class rekall.plugins.overlays.darwin.darwin.session=rekall.plugins.overlays.darwin.darwin.session-class.html,Variable rekall.plugins.response.common.FileInformation.session=rekall.plugins.response.common.FileInformation-class.html#session,Variable rekall.plugins.response.processes.LiveProcess.session=rekall.plugins.response.processes.LiveProcess-class.html#session,Module rekall.session=rekall.session-module.html,Variable rekall.session.Configuration.session=rekall.session.Configuration-class.html#session"><a title="rekall.plugins.common.efilter_plugins.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.plugins.response.common.FileInformation.session
+rekall.plugins.response.processes.LiveProcess.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-2', 'session', 'link-2');">session</a></tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-3" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-3', 'rekall', 'link-1');">rekall</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.testlib=rekall.testlib-module.html"><a title="rekall.testlib" class="py-name" href="#" onclick="return doclink('link-4', 'testlib', 'link-4');">testlib</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-5', 'rekall', 'link-1');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-6', 'plugins', 'link-6');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name" targets="Package rekall.plugins.common=rekall.plugins.common-module.html,Module rekall.plugins.darwin.common=rekall.plugins.darwin.common-module.html,Module rekall.plugins.linux.common=rekall.plugins.linux.common-module.html,Module rekall.plugins.overlays.windows.common=rekall.plugins.overlays.windows.common-module.html,Module rekall.plugins.response.common=rekall.plugins.response.common-module.html,Module rekall.plugins.windows.common=rekall.plugins.windows.common-module.html"><a title="rekall.plugins.common
+rekall.plugins.darwin.common
+rekall.plugins.linux.common
+rekall.plugins.overlays.windows.common
+rekall.plugins.response.common
+rekall.plugins.windows.common" class="py-name" href="#" onclick="return doclink('link-7', 'common', 'link-7');">common</a></tt> <tt class="py-keyword">import</tt> <tt id="link-8" class="py-name" targets="Module rekall.plugins.common.profile_index=rekall.plugins.common.profile_index-module.html"><a title="rekall.plugins.common.profile_index" class="py-name" href="#" onclick="return doclink('link-8', 'profile_index', 'link-8');">profile_index</a></tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"> </tt>
+<a name="SymbolOffsetIndexTest"></a><div id="SymbolOffsetIndexTest-def"><a name="L11"></a><tt class="py-lineno"> 11</tt> <a class="py-toggle" href="#" id="SymbolOffsetIndexTest-toggle" onclick="return toggle('SymbolOffsetIndexTest');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index_test.SymbolOffsetIndexTest-class.html">SymbolOffsetIndexTest</a><tt class="py-op">(</tt><tt class="py-base-class">testlib</tt><tt class="py-op">.</tt><tt class="py-base-class">RekallBaseUnitTestCase</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SymbolOffsetIndexTest-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="SymbolOffsetIndexTest-expanded"><a name="SymbolOffsetIndexTest.setUp"></a><div id="SymbolOffsetIndexTest.setUp-def"><a name="L12"></a><tt class="py-lineno"> 12</tt> <a class="py-toggle" href="#" id="SymbolOffsetIndexTest.setUp-toggle" onclick="return toggle('SymbolOffsetIndexTest.setUp');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index_test.SymbolOffsetIndexTest-class.html#setUp">setUp</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SymbolOffsetIndexTest.setUp-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SymbolOffsetIndexTest.setUp-expanded"><a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">test_index_data</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line">            <tt class="py-string">"$METADATA"</tt><tt class="py-op">:</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line">            <tt class="py-op">{</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line">                <tt class="py-string">"ProfileClass"</tt><tt class="py-op">:</tt> <tt class="py-string">"SymbolOffsetIndex"</tt><tt class="py-op">,</tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line">                <tt class="py-string">"Type"</tt><tt class="py-op">:</tt> <tt class="py-string">"SymbolOffsetIndex"</tt><tt class="py-op">,</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line">                <tt class="py-string">"Version"</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line">                <tt class="py-string">"BaseSymbol"</tt><tt class="py-op">:</tt> <tt class="py-string">"c"</tt><tt class="py-op">,</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line">            <tt class="py-string">"$INDEX"</tt><tt class="py-op">:</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line">            <tt class="py-op">{</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line">                <tt class="py-string">"$PROFILES"</tt><tt class="py-op">:</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line">                    <tt class="py-string">"P1"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt> <tt class="py-string">"LastModified"</tt><tt class="py-op">:</tt> <tt class="py-number">12345</tt> <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line">                    <tt class="py-string">"P1-1"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt> <tt class="py-string">"LastModified"</tt><tt class="py-op">:</tt> <tt class="py-number">12346</tt> <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line">                    <tt class="py-string">"P3"</tt><tt class="py-op">:</tt> <tt class="py-op">{</tt> <tt class="py-string">"LastModified"</tt><tt class="py-op">:</tt> <tt class="py-number">12347</tt> <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line">                <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line">                <tt class="py-string">"$TRAITS"</tt><tt class="py-op">:</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line">                    <tt class="py-string">"P1"</tt><tt class="py-op">:</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line">                    <tt class="py-op">[</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line">                        <tt class="py-op">[</tt><tt class="py-op">[</tt><tt class="py-string">"a"</tt><tt class="py-op">,</tt> <tt class="py-op">-</tt><tt class="py-number">2</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line">                    <tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line">                    <tt class="py-string">"P1-1"</tt><tt class="py-op">:</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line">                    <tt class="py-op">[</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">                        <tt class="py-op">[</tt><tt class="py-op">[</tt><tt class="py-string">"a"</tt><tt class="py-op">,</tt> <tt class="py-op">-</tt><tt class="py-number">3</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">                    <tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">                    <tt class="py-string">"P3"</tt><tt class="py-op">:</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">                    <tt class="py-op">[</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">                        <tt class="py-op">[</tt><tt class="py-op">[</tt><tt class="py-string">"d"</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line">                        <tt class="py-op">[</tt><tt class="py-op">[</tt><tt class="py-string">"e"</tt><tt class="py-op">,</tt> <tt class="py-number">4</tt><tt class="py-op">]</tt><tt class="py-op">]</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">                    <tt class="py-op">]</tt><tt class="py-op">,</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">                <tt class="py-op">}</tt><tt class="py-op">,</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">                <tt class="py-string">"$HASHES"</tt><tt class="py-op">:</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">                <tt class="py-op">}</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">            <tt class="py-op">}</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">        <tt class="py-op">}</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-9" class="py-name" targets="Variable rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles=rekall.plugins.common.profile_index.SymbolOffsetIndex-class.html#profiles,Method rekall.plugins.core.Info.profiles()=rekall.plugins.core.Info-class.html#profiles,Module rekall.plugins.windows.interactive.profiles=rekall.plugins.windows.interactive.profiles-module.html"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-9', 'profiles', 'link-9');">profiles</a></tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">"P1"</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line">                <tt class="py-string">"$CONSTANTS"</tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">                    <tt class="py-string">"a"</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">                    <tt class="py-string">"b"</tt><tt class="py-op">:</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">                    <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">3</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">                <tt class="py-op">}</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">"P1-DUPLICATE"</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt>  <tt class="py-comment"># This is a duplicate profile</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">                <tt class="py-string">"$CONSTANTS"</tt><tt class="py-op">:</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">                    <tt class="py-string">"a"</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">                    <tt class="py-string">"b"</tt><tt class="py-op">:</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">                    <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">3</tt><tt class="py-op">,</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">                <tt class="py-op">}</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">"P1-1"</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt>  <tt class="py-comment"># P1-1 simulates a slightly newer P1 profile</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                <tt class="py-string">"$CONSTANTS"</tt><tt class="py-op">:</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">                    <tt class="py-string">"a"</tt><tt class="py-op">:</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                    <tt class="py-string">"b"</tt><tt class="py-op">:</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                    <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">4</tt> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                <tt class="py-op">}</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">            <tt class="py-op">(</tt><tt class="py-string">"P3"</tt><tt class="py-op">,</tt> <tt class="py-op">{</tt>  <tt class="py-comment"># P3 simulated a completely different profile</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">                <tt class="py-string">"$CONSTANTS"</tt><tt class="py-op">:</tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">                <tt class="py-op">{</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">                    <tt class="py-string">"b"</tt><tt class="py-op">:</tt> <tt class="py-number">3</tt><tt class="py-op">,</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line">                    <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">                    <tt class="py-string">"d"</tt><tt class="py-op">:</tt> <tt class="py-number">6</tt><tt class="py-op">,</tt> </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line">                    <tt class="py-string">"e"</tt><tt class="py-op">:</tt> <tt class="py-number">9</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">                <tt class="py-op">}</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">            <tt class="py-op">}</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-op">]</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt> <tt class="py-op">=</tt> <tt id="link-10" class="py-name"><a title="rekall.plugins.common.profile_index" class="py-name" href="#" onclick="return doclink('link-10', 'profile_index', 'link-8');">profile_index</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name" targets="Class rekall.plugins.common.profile_index.SymbolOffsetIndex=rekall.plugins.common.profile_index.SymbolOffsetIndex-class.html"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex" class="py-name" href="#" onclick="return doclink('link-11', 'SymbolOffsetIndex', 'link-11');">SymbolOffsetIndex</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name" targets="Class Method rekall.obj.Profile.LoadProfileFromData()=rekall.obj.Profile-class.html#LoadProfileFromData"><a title="rekall.obj.Profile.LoadProfileFromData" class="py-name" href="#" onclick="return doclink('link-12', 'LoadProfileFromData', 'link-12');">LoadProfileFromData</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">test_index_data</tt><tt class="py-op">,</tt> <tt id="link-13" class="py-name"><a title="rekall.plugins.common.efilter_plugins.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.plugins.response.common.FileInformation.session
+rekall.plugins.response.processes.LiveProcess.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-13', 'session', 'link-2');">session</a></tt><tt class="py-op">=</tt><tt id="link-14" class="py-name"><a title="rekall.plugins.common.efilter_plugins.search.CommandWrapper.session
+rekall.plugins.overlays.darwin.darwin.session
+rekall.plugins.response.common.FileInformation.session
+rekall.plugins.response.processes.LiveProcess.session
+rekall.session
+rekall.session.Configuration.session" class="py-name" href="#" onclick="return doclink('link-14', 'session', 'link-2');">session</a></tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Class rekall.session.Session=rekall.session.Session-class.html"><a title="rekall.session.Session" class="py-name" href="#" onclick="return doclink('link-15', 'Session', 'link-15');">Session</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"> </tt>
+<a name="SymbolOffsetIndexTest.testHashingIsStable"></a><div id="SymbolOffsetIndexTest.testHashingIsStable-def"><a name="L91"></a><tt class="py-lineno"> 91</tt> <a class="py-toggle" href="#" id="SymbolOffsetIndexTest.testHashingIsStable-toggle" onclick="return toggle('SymbolOffsetIndexTest.testHashingIsStable');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index_test.SymbolOffsetIndexTest-class.html#testHashingIsStable">testHashingIsStable</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SymbolOffsetIndexTest.testHashingIsStable-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SymbolOffsetIndexTest.testHashingIsStable-expanded"><a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-docstring">"""Test that hashing the same profile twice leads to the same hash."""</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">hash1</tt> <tt class="py-op">=</tt> <tt id="link-16" class="py-name"><a title="rekall.plugins.common.profile_index" class="py-name" href="#" onclick="return doclink('link-16', 'profile_index', 'link-8');">profile_index</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex" class="py-name" href="#" onclick="return doclink('link-17', 'SymbolOffsetIndex', 'link-11');">SymbolOffsetIndex</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Class Method rekall.plugins.common.profile_index.SymbolOffsetIndex.CalculateRawProfileHash()=rekall.plugins.common.profile_index.SymbolOffsetIndex-class.html#CalculateRawProfileHash"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.CalculateRawProfileHash" class="py-name" href="#" onclick="return doclink('link-18', 'CalculateRawProfileHash', 'link-18');">CalculateRawProfileHash</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-19', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">        <tt class="py-name">hash2</tt> <tt class="py-op">=</tt> <tt id="link-20" class="py-name"><a title="rekall.plugins.common.profile_index" class="py-name" href="#" onclick="return doclink('link-20', 'profile_index', 'link-8');">profile_index</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex" class="py-name" href="#" onclick="return doclink('link-21', 'SymbolOffsetIndex', 'link-11');">SymbolOffsetIndex</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.CalculateRawProfileHash" class="py-name" href="#" onclick="return doclink('link-22', 'CalculateRawProfileHash', 'link-18');">CalculateRawProfileHash</a></tt><tt class="py-op">(</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-23', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">hash1</tt><tt class="py-op">,</tt> <tt class="py-name">hash2</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"> </tt>
+<a name="SymbolOffsetIndexTest.testLookupProfileWorksOnProfilesInTheIndex"></a><div id="SymbolOffsetIndexTest.testLookupProfileWorksOnProfilesInTheIndex-def"><a name="L99"></a><tt class="py-lineno"> 99</tt> <a class="py-toggle" href="#" id="SymbolOffsetIndexTest.testLookupProfileWorksOnProfilesInTheIndex-toggle" onclick="return toggle('SymbolOffsetIndexTest.testLookupProfileWorksOnProfilesInTheIndex');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index_test.SymbolOffsetIndexTest-class.html#testLookupProfileWorksOnProfilesInTheIndex">testLookupProfileWorksOnProfilesInTheIndex</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SymbolOffsetIndexTest.testLookupProfileWorksOnProfilesInTheIndex-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SymbolOffsetIndexTest.testLookupProfileWorksOnProfilesInTheIndex-expanded"><a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt class="py-comment"># This emulates having parsed kallsyms</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt class="py-comment"># We fake-find a "P1" profile on a live machine</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">        <tt class="py-name">symbols</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-24" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-24', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name" targets="Method rekall.session.DynamicNameSpace.get()=rekall.session.DynamicNameSpace-class.html#get"><a title="rekall.session.DynamicNameSpace.get" class="py-name" href="#" onclick="return doclink('link-25', 'get', 'link-25');">get</a></tt><tt class="py-op">(</tt><tt class="py-string">"$CONSTANTS"</tt><tt class="py-op">)</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">        <tt id="link-26" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-26', 'profiles', 'link-9');">profiles</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method rekall.plugins.common.profile_index.SymbolOffsetIndex.LookupProfile()=rekall.plugins.common.profile_index.SymbolOffsetIndex-class.html#LookupProfile"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.LookupProfile" class="py-name" href="#" onclick="return doclink('link-27', 'LookupProfile', 'link-27');">LookupProfile</a></tt><tt class="py-op">(</tt><tt class="py-name">symbols</tt><tt class="py-op">)</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-28', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt>  <tt class="py-comment"># Only 1 profile matches</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-29" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-29', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"P1"</tt><tt class="py-op">)</tt>  <tt class="py-comment"># It's "P1"</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-30" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-30', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt>  <tt class="py-comment"># And only 1 trait matched</tt> </tt>
+</div><a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"> </tt>
+<a name="SymbolOffsetIndexTest.testLookupProfileWorksWithKaslr"></a><div id="SymbolOffsetIndexTest.testLookupProfileWorksWithKaslr-def"><a name="L109"></a><tt class="py-lineno">109</tt> <a class="py-toggle" href="#" id="SymbolOffsetIndexTest.testLookupProfileWorksWithKaslr-toggle" onclick="return toggle('SymbolOffsetIndexTest.testLookupProfileWorksWithKaslr');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index_test.SymbolOffsetIndexTest-class.html#testLookupProfileWorksWithKaslr">testLookupProfileWorksWithKaslr</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SymbolOffsetIndexTest.testLookupProfileWorksWithKaslr-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SymbolOffsetIndexTest.testLookupProfileWorksWithKaslr-expanded"><a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt class="py-comment"># We're gonna SHIFT P1 by 0x20000, just like the Linux kernel does</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">        <tt id="link-31" class="py-name" targets="Variable rekall.plugins.windows.address_resolver.PEModule.profile=rekall.plugins.windows.address_resolver.PEModule-class.html#profile,Variable rekall.session.Session.profile=rekall.session.Session-class.html#profile"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-31', 'profile', 'link-31');">profile</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-32" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-32', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">        <tt class="py-name">symbols</tt> <tt class="py-op">=</tt> <tt class="py-name">dict</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt class="py-op">(</tt><tt id="link-33" class="py-name" targets="Variable rekall.plugins.darwin.WKdm.i=rekall.plugins.darwin.WKdm-module.html#i,Variable rekall.plugins.filesystems.lznt1.i=rekall.plugins.filesystems.lznt1-module.html#i,Variable rekall.ui.text.Colorizer.i=rekall.ui.text.Colorizer-class.html#i"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-33', 'i', 'link-33');">i</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt id="link-34" class="py-name"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-34', 'i', 'link-33');">i</a></tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">+</tt><tt class="py-number">0x200000</tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">                        <tt class="py-keyword">for</tt> <tt id="link-35" class="py-name"><a title="rekall.plugins.darwin.WKdm.i
+rekall.plugins.filesystems.lznt1.i
+rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('link-35', 'i', 'link-33');">i</a></tt> <tt class="py-keyword">in</tt> <tt id="link-36" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-36', 'profile', 'link-31');">profile</a></tt><tt class="py-op">[</tt><tt class="py-string">"$CONSTANTS"</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">iteritems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">        <tt id="link-37" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-37', 'profiles', 'link-9');">profiles</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt><tt class="py-op">.</tt><tt id="link-38" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.LookupProfile" class="py-name" href="#" onclick="return doclink('link-38', 'LookupProfile', 'link-27');">LookupProfile</a></tt><tt class="py-op">(</tt><tt class="py-name">symbols</tt><tt class="py-op">)</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-39" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-39', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt>  <tt class="py-comment"># Only 1 profile matches</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-40" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-40', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-string">"P1"</tt><tt class="py-op">)</tt>  <tt class="py-comment"># It's "P1"</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt id="link-41" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-41', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt>  <tt class="py-comment"># And only 1 trait matched</tt> </tt>
+</div><a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"> </tt>
+<a name="SymbolOffsetIndexTest.testLookupProfileDetectsUnknownProfiles"></a><div id="SymbolOffsetIndexTest.testLookupProfileDetectsUnknownProfiles-def"><a name="L121"></a><tt class="py-lineno">121</tt> <a class="py-toggle" href="#" id="SymbolOffsetIndexTest.testLookupProfileDetectsUnknownProfiles-toggle" onclick="return toggle('SymbolOffsetIndexTest.testLookupProfileDetectsUnknownProfiles');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.common.profile_index_test.SymbolOffsetIndexTest-class.html#testLookupProfileDetectsUnknownProfiles">testLookupProfileDetectsUnknownProfiles</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="SymbolOffsetIndexTest.testLookupProfileDetectsUnknownProfiles-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="SymbolOffsetIndexTest.testLookupProfileDetectsUnknownProfiles-expanded"><a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt class="py-comment"># We'll have at least 3 cases where profile matching will find new</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt class="py-comment"># profiles:</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-comment">#   1) No match. If no profile matches, this is clearly a new profile.</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line">        <tt class="py-comment">#   2) Partial match. A profile that only matches some traits is a new</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">        <tt class="py-comment">#   profile that clashes with a known profile in the repository.</tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt class="py-comment">#   3) Several matches. A profile that matches more than one profile in</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt class="py-comment">#   the index is a new profile that clashes with several profiles and</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">        <tt class="py-comment">#   affects the quality of the index.</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">        <tt class="py-comment">#</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">        <tt class="py-comment"># Additionally, there's a chance a new profile may remain undiscovered</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">        <tt class="py-comment"># when it matches all traits of a currently known profile, yet is</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt class="py-comment"># actually slightly different.</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt class="py-comment"># Unknown profile.</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt class="py-name">symbols1</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-string">"x"</tt><tt class="py-op">:</tt> <tt class="py-number">99</tt><tt class="py-op">,</tt> <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">14</tt><tt class="py-op">}</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt id="link-42" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-42', 'profiles', 'link-9');">profiles</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt><tt class="py-op">.</tt><tt id="link-43" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.LookupProfile" class="py-name" href="#" onclick="return doclink('link-43', 'LookupProfile', 'link-27');">LookupProfile</a></tt><tt class="py-op">(</tt><tt class="py-name">symbols1</tt><tt class="py-op">)</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-44" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-44', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-comment"># Partial match</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt class="py-name">symbols2</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt> <tt class="py-string">"d"</tt><tt class="py-op">:</tt> <tt class="py-number">6</tt><tt class="py-op">,</tt> <tt class="py-string">"e"</tt><tt class="py-op">:</tt> <tt class="py-number">20</tt><tt class="py-op">}</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt id="link-45" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-45', 'profiles', 'link-9');">profiles</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.LookupProfile" class="py-name" href="#" onclick="return doclink('link-46', 'LookupProfile', 'link-27');">LookupProfile</a></tt><tt class="py-op">(</tt><tt class="py-name">symbols2</tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-47" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-47', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">        <tt class="py-comment"># Only 1 out of 2 traits matches from P3</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line">        <tt id="link-48" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-48', 'profile', 'link-31');">profile</a></tt> <tt class="py-op">=</tt> <tt id="link-49" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-49', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt class="py-name">num_matched_traits</tt> <tt class="py-op">=</tt> <tt id="link-50" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-50', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">        <tt class="py-name">total_traits</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt><tt class="py-op">.</tt><tt id="link-51" class="py-name" targets="Variable rekall.plugins.common.profile_index.SymbolOffsetIndex.traits=rekall.plugins.common.profile_index.SymbolOffsetIndex-class.html#traits"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.traits" class="py-name" href="#" onclick="return doclink('link-51', 'traits', 'link-51');">traits</a></tt><tt class="py-op">[</tt><tt id="link-52" class="py-name"><a title="rekall.plugins.windows.address_resolver.PEModule.profile
+rekall.session.Session.profile" class="py-name" href="#" onclick="return doclink('link-52', 'profile', 'link-31');">profile</a></tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">num_matched_traits</tt><tt class="py-op">,</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">total_traits</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-comment"># Several profile matches.</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-comment">#   a is at -2 from c (matching P1's trait)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-comment">#   d is at +3 from c (matching one of P3's traits)</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">        <tt class="py-name">symbols3</tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt> <tt class="py-string">"a"</tt><tt class="py-op">:</tt> <tt class="py-number">3</tt><tt class="py-op">,</tt> <tt class="py-string">"c"</tt><tt class="py-op">:</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt> <tt class="py-string">"d"</tt><tt class="py-op">:</tt> <tt class="py-number">6</tt> <tt class="py-op">}</tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt id="link-53" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-53', 'profiles', 'link-9');">profiles</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">dummy_index</tt><tt class="py-op">.</tt><tt id="link-54" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.LookupProfile" class="py-name" href="#" onclick="return doclink('link-54', 'LookupProfile', 'link-27');">LookupProfile</a></tt><tt class="py-op">(</tt><tt class="py-name">symbols3</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-comment"># More than 1 profile matches will mean this profile is new and that we</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-comment"># need to recompute the index.</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">assertEqual</tt><tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt id="link-55" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-55', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">)</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">)</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-56" class="py-name" targets="Method rekall.testlib.RekallBaseUnitTestCase.assertListEqual()=rekall.testlib.RekallBaseUnitTestCase-class.html#assertListEqual"><a title="rekall.testlib.RekallBaseUnitTestCase.assertListEqual" class="py-name" href="#" onclick="return doclink('link-56', 'assertListEqual', 'link-56');">assertListEqual</a></tt><tt class="py-op">(</tt><tt class="py-name">sorted</tt><tt class="py-op">(</tt><tt class="py-op">[</tt><tt id="link-57" class="py-name" targets="Variable rekall.plugins.windows.registry.hashdump.p=rekall.plugins.windows.registry.hashdump-module.html#p"><a title="rekall.plugins.windows.registry.hashdump.p" class="py-name" href="#" onclick="return doclink('link-57', 'p', 'link-57');">p</a></tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> <tt class="py-keyword">for</tt> <tt id="link-58" class="py-name"><a title="rekall.plugins.windows.registry.hashdump.p" class="py-name" href="#" onclick="return doclink('link-58', 'p', 'link-57');">p</a></tt> <tt class="py-keyword">in</tt> <tt id="link-59" class="py-name"><a title="rekall.plugins.common.profile_index.SymbolOffsetIndex.profiles
+rekall.plugins.core.Info.profiles
+rekall.plugins.windows.interactive.profiles" class="py-name" href="#" onclick="return doclink('link-59', 'profiles', 'link-9');">profiles</a></tt><tt class="py-op">]</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">                             <tt class="py-op">[</tt><tt class="py-string">"P1"</tt><tt class="py-op">,</tt> <tt class="py-string">"P3"</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"><tt class="py-keyword">if</tt> <tt class="py-name">__name__</tt> <tt class="py-op">==</tt> <tt class="py-string">'__main__'</tt><tt class="py-op">:</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line">    <tt id="link-60" class="py-name"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-60', 'logging', 'link-0');">logging</a></tt><tt class="py-op">.</tt><tt class="py-name">basicConfig</tt><tt class="py-op">(</tt><tt class="py-name">level</tt><tt class="py-op">=</tt><tt id="link-61" class="py-name"><a title="rekall.session.Session.logging" class="py-name" href="#" onclick="return doclink('link-61', 'logging', 'link-0');">logging</a></tt><tt class="py-op">.</tt><tt class="py-name">DEBUG</tt><tt class="py-op">)</tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">    <tt class="py-name">unittest</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name" targets="Function rekall.rekal.main()=rekall.rekal-module.html#main"><a title="rekall.rekal.main" class="py-name" href="#" onclick="return doclink('link-62', 'main', 'link-62');">main</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="http://www.rekall-forensic.com/">Rekall Memory Forensics</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:27 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

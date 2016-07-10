@@ -172,9 +172,28 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.win32.WinPmemAddressSpace-class.html#get_file_address_space" class="summary-sig-name">get_file_address_space</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">filename</span>)</span><br />
+      Return an address space for filename.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.addrspaces.win32-pysrc.html#WinPmemAddressSpace.get_file_address_space">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.addrspaces.win32.WinPmemAddressSpace-class.html#get_mapped_offset" class="summary-sig-name">get_mapped_offset</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">filename</span>,
-        <span class="summary-sig-arg">file_offset</span>)</span><br />
+        <span class="summary-sig-arg">file_offset</span>,
+        <span class="summary-sig-arg">length</span>=<span class="summary-sig-default">None</span>)</span><br />
       Implement this if we can map files into this address space.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.addrspaces.win32-pysrc.html#WinPmemAddressSpace.get_mapped_offset">source&nbsp;code</a></span>
@@ -400,7 +419,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.addrspace.RunBasedAddressSpace-class.html#get_mappings" class="summary-sig-name">get_mappings</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">0</span>)</span><br />
+        <span class="summary-sig-arg">start</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">18446744073709551616</span>)</span><br />
       Yields the mappings.
       <em>(Inherited from <a href="rekall.addrspace.RunBasedAddressSpace-class.html">rekall.addrspace.RunBasedAddressSpace</a>)</em></td>
           <td align="right" valign="top">
@@ -702,8 +722,8 @@ sSpace'&gt;,
 dMemory'&gt;,
  'ArmPagedMemory': &lt;class 'rekall.plugins.addrspaces.arm.ArmPagedMemor\
 y'&gt;,
+ 'BufferAddressSpace': &lt;class 'rekall.addrspace.BufferAddressSpace'&gt;,
  'CustomAddressSpace': &lt;class 'rekall.session_test.CustomAddressSpace'\
-&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4AddressSpace</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.addrspac<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
@@ -712,15 +732,15 @@ y'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.addrspace.BaseAddressSpace-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'': [&lt;class 'rekall.plugins.addrspaces.intel.IA32PagedMemory'&gt;,
+        <a href="rekall.addrspace.BaseAddressSpace-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{'': [&lt;class 'rekall.addrspace.BufferAddressSpace'&gt;,
+      &lt;class 'rekall.plugins.addrspaces.intel.IA32PagedMemory'&gt;,
       &lt;class 'rekall.plugins.addrspaces.intel.IA32PagedMemoryPae'&gt;,
       &lt;class 'rekall.plugins.addrspaces.standard.FDAddressSpace'&gt;,
       &lt;class 'rekall.plugins.addrspaces.standard.FileAddressSpace'&gt;,
       &lt;class 'rekall.plugins.addrspaces.standard.GlobalOffsetAddressSp\
 ace'&gt;,
       &lt;class 'rekall.plugins.addrspaces.standard.WritableAddressSpace'\
-&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.addrspaces.inte<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.addrspace.BufferAddress<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
   </tr>
@@ -747,6 +767,14 @@ ace'&gt;,
         <a name="runs"></a><span class="summary-name">runs</span> = <code title="None">None</code><br />
       hash(x)
       <em>(Inherited from <a href="rekall.addrspace.RunBasedAddressSpace-class.html">rekall.addrspace.RunBasedAddressSpace</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="virtualized"></a><span class="summary-name">virtualized</span> = <code title="False">False</code>
+      <em>(Inherited from <a href="rekall.addrspace.BaseAddressSpace-class.html">rekall.addrspace.BaseAddressSpace</a>)</em>
     </td>
   </tr>
 </table>
@@ -827,6 +855,29 @@ ace'&gt;,
   </dl>
 </td></tr></table>
 </div>
+<a name="get_file_address_space"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_file_address_space</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">filename</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.addrspaces.win32-pysrc.html#WinPmemAddressSpace.get_file_address_space">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return an address space for filename.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.addrspace.BaseAddressSpace-class.html#get_file_address_space">addrspace.BaseAddressSpace.get_file_address_space</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="get_mapped_offset"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -836,7 +887,8 @@ ace'&gt;,
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_mapped_offset</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">filename</span>,
-        <span class="sig-arg">file_offset</span>)</span>
+        <span class="sig-arg">file_offset</span>,
+        <span class="sig-arg">length</span>=<span class="sig-default">None</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.addrspaces.win32-pysrc.html#WinPmemAddressSpace.get_mapped_offset">source&nbsp;code</a></span>&nbsp;
@@ -911,7 +963,7 @@ ad&quot;]+ [&quot;Padding%s&quot; % i for i in xrange(0xff)]+ [&quot;NumberOfRun
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:52 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:38 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

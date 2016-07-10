@@ -129,6 +129,63 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="BuildIndex"></a><span class="summary-sig-name">BuildIndex</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html">rekall.plugins.tools.repository_manager.RepositoryPlugin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.BuildIndex">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="LaunchBuilder"></a><span class="summary-sig-name">LaunchBuilder</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Relaunch this builder with the provided parameters.
+      <em>(Inherited from <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html">rekall.plugins.tools.repository_manager.RepositoryPlugin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.LaunchBuilder">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="LaunchPlugin"></a><span class="summary-sig-name">LaunchPlugin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plugin_name</span>,
+        <span class="summary-sig-arg">*pos</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Runs a plugin in another process.
+      <em>(Inherited from <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html">rekall.plugins.tools.repository_manager.RepositoryPlugin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.LaunchPlugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="TransformProfile"></a><span class="summary-sig-name">TransformProfile</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">profile</span>)</span><br />
       Transform the profile according to the specified transforms.
@@ -236,14 +293,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html#classes" class="summary-name">classes</a> = <code title="{'CopyAndTransform': &lt;class 'rekall.plugins.tools.repository_manager.C\
+        <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html#classes" class="summary-name">classes</a> = <code title="{'ArtifactProfile': &lt;class 'rekall.plugins.tools.repository_manager.Ar\
+tifactProfile'&gt;,
+ 'CopyAndTransform': &lt;class 'rekall.plugins.tools.repository_manager.C\
 opyAndTransform'&gt;,
+ 'LinuxProfile': &lt;class 'rekall.plugins.tools.repository_manager.Linux\
+Profile'&gt;,
  'OSXProfile': &lt;class 'rekall.plugins.tools.repository_manager.OSXProf\
 ile'&gt;,
- 'RepositoryPlugin': &lt;class 'rekall.plugins.tools.repository_manager.R\
-epositoryPlugin'&gt;,
- 'WindowsGUIDProfile': &lt;class 'rekall.plugins.tools.repository_manager\
-.WindowsGUIDProfile'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CopyAndTransform</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.re<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArtifactProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.rep<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html">rekall.plugins.tools.repository_manager.RepositoryPlugin</a>)</em>
     </td>
   </tr>
@@ -257,7 +315,9 @@ in'&gt;,
 file'&gt;,
         &lt;class 'rekall.plugins.tools.repository_manager.CopyAndTransfo\
 rm'&gt;,
-        &lt;class 'rekall.plugins.tools.repository_manager.OSXProfile'&gt;]}"><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.reposit<code class="variable-ellipsis">...</code></code>
+        &lt;class 'rekall.plugins.tools.repository_manager.OSXProfile'&gt;,
+        &lt;class 'rekall.plugins.tools.repository_manager.LinuxProfile'&gt;\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.reposit<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html">rekall.plugins.tools.repository_manager.RepositoryPlugin</a>)</em>
     </td>
   </tr>
@@ -396,7 +456,7 @@ rm'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:11 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:59 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -61,10 +61,12 @@
 <h1 class="epydoc">Class RepositoryPlugin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_repository_2" name="class_hierarchy_for_repository_2">
-<area shape="rect" id="node1" href="rekall.plugins.tools.repository_manager.CopyAndTransform-class.html" title="CopyAndTransform" alt="" coords="5,59,120,82"/>
-<area shape="rect" id="node2" href="rekall.plugins.tools.repository_manager.OSXProfile-class.html" title="OSXProfile" alt="" coords="145,59,219,82"/>
-<area shape="rect" id="node3" href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html" title="RepositoryPlugin" alt="" coords="131,6,233,29"/>
-<area shape="rect" id="node4" href="rekall.plugins.tools.repository_manager.WindowsGUIDProfile-class.html" title="WindowsGUIDProfile" alt="" coords="244,59,367,82"/>
+<area shape="rect" id="node1" href="rekall.plugins.tools.repository_manager.ArtifactProfile-class.html" title="ArtifactProfile" alt="" coords="5,59,91,82"/>
+<area shape="rect" id="node2" href="rekall.plugins.tools.repository_manager.CopyAndTransform-class.html" title="CopyAndTransform" alt="" coords="115,59,231,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.tools.repository_manager.LinuxProfile-class.html" title="LinuxProfile" alt="" coords="256,59,332,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.tools.repository_manager.OSXProfile-class.html" title="OSXProfile" alt="" coords="357,59,431,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html" title="RepositoryPlugin" alt="" coords="243,6,345,29"/>
+<area shape="rect" id="node6" href="rekall.plugins.tools.repository_manager.WindowsGUIDProfile-class.html" title="WindowsGUIDProfile" alt="" coords="456,59,579,82"/>
 </map>
   <img src="class_hierarchy_for_repository_2.gif" alt='' usemap="#class_hierarchy_for_repository_2" ismap="ismap" class="graph-without-title" />
 </center>
@@ -135,6 +137,60 @@
       Transform the profile according to the specified transforms.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.TransformProfile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="BuildIndex"></a><span class="summary-sig-name">BuildIndex</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.BuildIndex">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="LaunchPlugin"></a><span class="summary-sig-name">LaunchPlugin</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plugin_name</span>,
+        <span class="summary-sig-arg">*pos</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Runs a plugin in another process.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.LaunchPlugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="LaunchBuilder"></a><span class="summary-sig-name">LaunchBuilder</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Relaunch this builder with the provided parameters.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.repository_manager-pysrc.html#RepositoryPlugin.LaunchBuilder">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -234,14 +290,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html#classes" class="summary-name">classes</a> = <code title="{'CopyAndTransform': &lt;class 'rekall.plugins.tools.repository_manager.C\
+        <a href="rekall.plugins.tools.repository_manager.RepositoryPlugin-class.html#classes" class="summary-name">classes</a> = <code title="{'ArtifactProfile': &lt;class 'rekall.plugins.tools.repository_manager.Ar\
+tifactProfile'&gt;,
+ 'CopyAndTransform': &lt;class 'rekall.plugins.tools.repository_manager.C\
 opyAndTransform'&gt;,
+ 'LinuxProfile': &lt;class 'rekall.plugins.tools.repository_manager.Linux\
+Profile'&gt;,
  'OSXProfile': &lt;class 'rekall.plugins.tools.repository_manager.OSXProf\
 ile'&gt;,
- 'RepositoryPlugin': &lt;class 'rekall.plugins.tools.repository_manager.R\
-epositoryPlugin'&gt;,
- 'WindowsGUIDProfile': &lt;class 'rekall.plugins.tools.repository_manager\
-.WindowsGUIDProfile'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CopyAndTransform</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.re<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArtifactProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.rep<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -254,7 +311,9 @@ in'&gt;,
 file'&gt;,
         &lt;class 'rekall.plugins.tools.repository_manager.CopyAndTransfo\
 rm'&gt;,
-        &lt;class 'rekall.plugins.tools.repository_manager.OSXProfile'&gt;]}"><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.reposit<code class="variable-ellipsis">...</code></code>
+        &lt;class 'rekall.plugins.tools.repository_manager.OSXProfile'&gt;,
+        &lt;class 'rekall.plugins.tools.repository_manager.LinuxProfile'&gt;\
+..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.reposit<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -337,14 +396,15 @@ rm'&gt;,
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CopyAndTransform</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArtifactProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.Ar<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+tifactProfile'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">CopyAndTransform</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.C<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 opyAndTransform'&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LinuxProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.Linux<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+Profile'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">OSXProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.OSXProf<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 ile'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">RepositoryPlugin</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager.R<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-epositoryPlugin'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">WindowsGUIDProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.repository_manager<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-.WindowsGUIDProfile'&gt;<code class="variable-group">}</code>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -368,7 +428,9 @@ in'&gt;<code class="variable-op">,</code>
 file'&gt;<code class="variable-op">,</code>
         &lt;class 'rekall.plugins.tools.repository_manager.CopyAndTransfo<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 rm'&gt;<code class="variable-op">,</code>
-        &lt;class 'rekall.plugins.tools.repository_manager.OSXProfile'&gt;<code class="variable-group">]</code><code class="variable-group">}</code>
+        &lt;class 'rekall.plugins.tools.repository_manager.OSXProfile'&gt;<code class="variable-op">,</code>
+        &lt;class 'rekall.plugins.tools.repository_manager.LinuxProfile'&gt;<code class="variable-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -403,7 +465,7 @@ rm'&gt;<code class="variable-op">,</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:11 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:59 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

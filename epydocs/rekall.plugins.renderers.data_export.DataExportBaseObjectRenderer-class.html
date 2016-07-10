@@ -62,15 +62,20 @@
 <center>
 <center>  <map id="class_hierarchy_for_dataexport" name="class_hierarchy_for_dataexport">
 <area shape="rect" id="node1" href="rekall.plugins.renderers.darwin.ProcDataExport-class.html" title="darwin.ProcDataExport" alt="" coords="5,273,139,295"/>
-<area shape="rect" id="node2" href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html" title="DataExportBaseObjectRenderer" alt="" coords="271,219,447,242"/>
-<area shape="rect" id="node4" href="rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer-class.html" title="DataExportPointerObjectRenderer" alt="" coords="163,273,349,295"/>
-<area shape="rect" id="node5" href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html" title="windows.EPROCESSDataExport" alt="" coords="373,273,552,295"/>
-<area shape="rect" id="node7" href="rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html" title="windows.UNICODE_STRINGDataExport" alt="" coords="577,273,793,295"/>
-<area shape="rect" id="node3" href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html" title="DataExportObjectRenderer" alt="" coords="283,166,435,189"/>
-<area shape="rect" id="node6" href="rekall.plugins.renderers.windows.STRINGDataExport-class.html" title="windows.STRINGDataExport" alt="" coords="605,326,765,349"/>
-<area shape="rect" id="node8" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="258,59,459,82"/>
-<area shape="rect" id="node9" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="241,113,475,135"/>
-<area shape="rect" id="node10" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="281,6,435,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.renderers.data_export.DataExportBaseObjectRenderer-class.html" title="DataExportBaseObjectRenderer" alt="" coords="687,219,863,242"/>
+<area shape="rect" id="node5" href="rekall.plugins.renderers.data_export.DataExportPointerObjectRenderer-class.html" title="DataExportPointerObjectRenderer" alt="" coords="163,273,349,295"/>
+<area shape="rect" id="node6" href="rekall.plugins.renderers.data_export.DataExportRDFValueObjectRenderer-class.html" title="DataExportRDFValueObjectRenderer" alt="" coords="373,273,576,295"/>
+<area shape="rect" id="node7" href="rekall.plugins.renderers.linux.TaskStruct_DataExport-class.html" title="linux.TaskStruct_DataExport" alt="" coords="600,273,757,295"/>
+<area shape="rect" id="node8" href="rekall.plugins.renderers.windows.EPROCESSDataExport-class.html" title="windows.EPROCESSDataExport" alt="" coords="781,273,960,295"/>
+<area shape="rect" id="node10" href="rekall.plugins.renderers.windows.UNICODE_STRINGDataExport-class.html" title="windows.UNICODE_STRINGDataExport" alt="" coords="985,273,1201,295"/>
+<area shape="rect" id="node11" href="rekall.plugins.response.renderers.DataExportFileSpecObjectRenderer-class.html" title="response.renderers.DataExportFileSpecObjectRenderer" alt="" coords="1227,273,1517,295"/>
+<area shape="rect" id="node12" href="rekall.plugins.response.renderers.PermissionsFileSpecObjectRenderer-class.html" title="response.renderers.PermissionsFileSpecObjectRenderer" alt="" coords="1541,273,1835,295"/>
+<area shape="rect" id="node3" href="rekall.plugins.renderers.data_export.DataExportObjectRenderer-class.html" title="DataExportObjectRenderer" alt="" coords="699,166,851,189"/>
+<area shape="rect" id="node4" href="rekall.plugins.renderers.data_export.DataExportPhysicalAddressContextObjectRenderer-class.html" title="DataExportPhysicalAddressContextObjectRenderer" alt="" coords="341,326,608,349"/>
+<area shape="rect" id="node9" href="rekall.plugins.renderers.windows.STRINGDataExport-class.html" title="windows.STRINGDataExport" alt="" coords="1013,326,1173,349"/>
+<area shape="rect" id="node13" href="rekall.ui.json_renderer.JsonObjectRenderer-class.html" title="ui.json_renderer.JsonObjectRenderer" alt="" coords="674,59,875,82"/>
+<area shape="rect" id="node14" href="rekall.ui.json_renderer.StateBasedObjectRenderer-class.html" title="ui.json_renderer.StateBasedObjectRenderer" alt="" coords="657,113,891,135"/>
+<area shape="rect" id="node15" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="697,6,851,29"/>
 </map>
   <img src="class_hierarchy_for_dataexport.gif" alt='' usemap="#class_hierarchy_for_dataexport" ismap="ismap" class="graph-without-title" />
 </center>
@@ -537,12 +542,12 @@
     </td><td class="summary">
         <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes" class="summary-name">classes</a> = <code title="{'ArrayObjectRenderer': &lt;class 'rekall.plugins.renderers.json_storage.\
 ArrayObjectRenderer'&gt;,
+ 'ArtifactResult_DataExportObjectRenderer': &lt;class 'rekall.plugins.res\
+ponse.forensic_artifacts.ArtifactResult_DataExportObjectRenderer'&gt;,
+ 'ArtifactResult_TextObjectRenderer': &lt;class 'rekall.plugins.response.\
+forensic_artifacts.ArtifactResult_TextObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
- 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
-nderer'&gt;,
- 'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.plugins.renderers.js\
-on_storage.BaseAddressSpaceObjectRenderer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -706,7 +711,7 @@ on_storage.BaseAddressSpaceObjectRenderer'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:06 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:52 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

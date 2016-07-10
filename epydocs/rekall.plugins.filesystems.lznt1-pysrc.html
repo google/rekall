@@ -97,8 +97,10 @@
 <a name="get_displacement"></a><div id="get_displacement-def"><a name="L37"></a><tt class="py-lineno"> 37</tt> <a class="py-toggle" href="#" id="get_displacement-toggle" onclick="return toggle('get_displacement');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="rekall.plugins.filesystems.lznt1-module.html#get_displacement">get_displacement</a><tt class="py-op">(</tt><tt class="py-param">offset</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
 </div><div id="get_displacement-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="get_displacement-expanded"><a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line">    <tt class="py-docstring">"""Calculate the displacement."""</tt> </tt>
 <a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line">    <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
-<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt class="py-keyword">while</tt> <tt id="link-1" class="py-name" targets="Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#offset"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-1', 'offset', 'link-1');">offset</a></tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0x10</tt><tt class="py-op">:</tt> </tt>
-<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt id="link-2" class="py-name"><a title="rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-2', 'offset', 'link-1');">offset</a></tt> <tt class="py-op">&gt;&gt;=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line">    <tt class="py-keyword">while</tt> <tt id="link-1" class="py-name" targets="Variable rekall.plugins.filesystems.ntfs.IDump.offset=rekall.plugins.filesystems.ntfs.IDump-class.html#offset,Variable rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset=rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member-class.html#offset"><a title="rekall.plugins.filesystems.ntfs.IDump.offset
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-1', 'offset', 'link-1');">offset</a></tt> <tt class="py-op">&gt;=</tt> <tt class="py-number">0x10</tt><tt class="py-op">:</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line">        <tt id="link-2" class="py-name"><a title="rekall.plugins.filesystems.ntfs.IDump.offset
+rekall.plugins.overlays.linux.dwarfparser.DW_TAG_member.offset" class="py-name" href="#" onclick="return doclink('link-2', 'offset', 'link-1');">offset</a></tt> <tt class="py-op">&gt;&gt;=</tt> <tt class="py-number">1</tt> </tt>
 <a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line">        <tt class="py-name">result</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
 <a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"> </tt>
 <a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">    <tt class="py-keyword">return</tt> <tt class="py-name">result</tt> </tt>
@@ -138,10 +140,11 @@ rekall.ui.text.Colorizer.i" class="py-name" href="#" onclick="return doclink('li
 <a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">        <tt class="py-name">block_offset</tt> <tt class="py-op">=</tt> <tt class="py-name">in_fd</tt><tt class="py-op">.</tt><tt class="py-name">tell</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
 <a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">        <tt class="py-name">uncompressed_chunk_offset</tt> <tt class="py-op">=</tt> <tt class="py-name">output_fd</tt><tt class="py-op">.</tt><tt class="py-name">tell</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
 <a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
-<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">block_header</tt> <tt class="py-op">=</tt> <tt class="py-name">struct</tt><tt class="py-op">.</tt><tt class="py-name">unpack</tt><tt class="py-op">(</tt><tt class="py-string">"&lt;H"</tt><tt class="py-op">,</tt> <tt class="py-name">in_fd</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.read()=rekall.addrspace.BaseAddressSpace-class.html#read,Method rekall.addrspace.BufferAddressSpace.read()=rekall.addrspace.BufferAddressSpace-class.html#read,Method rekall.addrspace.CachingAddressSpaceMixIn.read()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#read,Method rekall.addrspace.PagedReader.read()=rekall.addrspace.PagedReader-class.html#read,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#read,Method rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read()=rekall.plugins.addrspaces.aff4.AFF4StreamWrapper-class.html#read,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#read,Method rekall.plugins.addrspaces.lime.LimeAddressSpace.read()=rekall.plugins.addrspaces.lime.LimeAddressSpace-class.html#read,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.FDAddressSpace.read()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read()=rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn-class.html#read,Method rekall.plugins.addrspaces.win32.Win32FileWrapper.read()=rekall.plugins.addrspaces.win32.Win32FileWrapper-class.html#read,Method rekall.plugins.filesystems.ntfs.FixupAddressSpace.read()=rekall.plugins.filesystems.ntfs.FixupAddressSpace-class.html#read,Method rekall.plugins.overlays.linux.linux.page.read()=rekall.plugins.overlays.linux.linux.page-class.html#read,Method rekall.plugins.tools.ewf.EWFFile.read()=rekall.plugins.tools.ewf.EWFFile-class.html#read"><a title="rekall.addrspace.BaseAddressSpace.read
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">        <tt class="py-name">block_header</tt> <tt class="py-op">=</tt> <tt class="py-name">struct</tt><tt class="py-op">.</tt><tt class="py-name">unpack</tt><tt class="py-op">(</tt><tt class="py-string">"&lt;H"</tt><tt class="py-op">,</tt> <tt class="py-name">in_fd</tt><tt class="py-op">.</tt><tt id="link-16" class="py-name" targets="Method rekall.addrspace.BaseAddressSpace.read()=rekall.addrspace.BaseAddressSpace-class.html#read,Method rekall.addrspace.BufferAddressSpace.read()=rekall.addrspace.BufferAddressSpace-class.html#read,Method rekall.addrspace.CachingAddressSpaceMixIn.read()=rekall.addrspace.CachingAddressSpaceMixIn-class.html#read,Method rekall.addrspace.PagedReader.read()=rekall.addrspace.PagedReader-class.html#read,Method rekall.obj.DummyAS.read()=rekall.obj.DummyAS-class.html#read,Method rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read()=rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory-class.html#read,Method rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read()=rekall.plugins.addrspaces.aff4.AFF4StreamWrapper-class.html#read,Method rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read()=rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace-class.html#read,Method rekall.plugins.addrspaces.lime.LimeAddressSpace.read()=rekall.plugins.addrspaces.lime.LimeAddressSpace-class.html#read,Method rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace.read()=rekall.plugins.addrspaces.mmap_address_space.MmapFileAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.FDAddressSpace.read()=rekall.plugins.addrspaces.standard.FDAddressSpace-class.html#read,Method rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read()=rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn-class.html#read,Method rekall.plugins.addrspaces.win32.Win32FileWrapper.read()=rekall.plugins.addrspaces.win32.Win32FileWrapper-class.html#read,Method rekall.plugins.filesystems.ntfs.FixupAddressSpace.read()=rekall.plugins.filesystems.ntfs.FixupAddressSpace-class.html#read,Method rekall.plugins.overlays.linux.linux.page.read()=rekall.plugins.overlays.linux.linux.page-class.html#read,Method rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read()=rekall.plugins.response.windows_processes.WinIRProcessAddressSpace-class.html#read,Method rekall.plugins.tools.ewf.EWFFile.read()=rekall.plugins.tools.ewf.EWFFile-class.html#read"><a title="rekall.addrspace.BaseAddressSpace.read
 rekall.addrspace.BufferAddressSpace.read
 rekall.addrspace.CachingAddressSpaceMixIn.read
 rekall.addrspace.PagedReader.read
+rekall.obj.DummyAS.read
 rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
 rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read
 rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
@@ -152,6 +155,7 @@ rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read
 rekall.plugins.addrspaces.win32.Win32FileWrapper.read
 rekall.plugins.filesystems.ntfs.FixupAddressSpace.read
 rekall.plugins.overlays.linux.linux.page.read
+rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read
 rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return doclink('link-16', 'read', 'link-16');">read</a></tt><tt class="py-op">(</tt><tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
 <a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">        <tt class="py-name">lznt1_logger</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"Header %#x @ %#x"</tt><tt class="py-op">,</tt> <tt class="py-name">block_header</tt><tt class="py-op">,</tt> <tt class="py-name">block_offset</tt><tt class="py-op">)</tt> </tt>
 <a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">block_header</tt> <tt class="py-op">&amp;</tt> <tt id="link-17" class="py-name"><a title="rekall.plugins.filesystems.lznt1.SIGNATURE_MASK" class="py-name" href="#" onclick="return doclink('link-17', 'SIGNATURE_MASK', 'link-9');">SIGNATURE_MASK</a></tt> <tt class="py-op">!=</tt> <tt id="link-18" class="py-name"><a title="rekall.plugins.filesystems.lznt1.SIGNATURE_MASK" class="py-name" href="#" onclick="return doclink('link-18', 'SIGNATURE_MASK', 'link-9');">SIGNATURE_MASK</a></tt><tt class="py-op">:</tt> </tt>
@@ -177,6 +181,7 @@ rekall.plugins.overlays.linux.vfs.File.size" class="py-name" href="#" onclick="r
 rekall.addrspace.BufferAddressSpace.read
 rekall.addrspace.CachingAddressSpaceMixIn.read
 rekall.addrspace.PagedReader.read
+rekall.obj.DummyAS.read
 rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
 rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read
 rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
@@ -187,6 +192,7 @@ rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read
 rekall.plugins.addrspaces.win32.Win32FileWrapper.read
 rekall.plugins.filesystems.ntfs.FixupAddressSpace.read
 rekall.plugins.overlays.linux.linux.page.read
+rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read
 rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return doclink('link-25', 'read', 'link-16');">read</a></tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
 <a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">                <tt class="py-name">lznt1_logger</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"Tag %#x"</tt><tt class="py-op">,</tt> <tt id="link-26" class="py-name"><a title="rekall.plugin.PluginHeader.header" class="py-name" href="#" onclick="return doclink('link-26', 'header', 'link-24');">header</a></tt><tt class="py-op">)</tt> </tt>
 <a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">mask</tt> <tt class="py-keyword">in</tt> <tt id="link-27" class="py-name"><a title="rekall.plugins.filesystems.lznt1.TAG_MASKS" class="py-name" href="#" onclick="return doclink('link-27', 'TAG_MASKS', 'link-11');">TAG_MASKS</a></tt><tt class="py-op">:</tt> </tt>
@@ -198,6 +204,7 @@ rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return 
 rekall.addrspace.BufferAddressSpace.read
 rekall.addrspace.CachingAddressSpaceMixIn.read
 rekall.addrspace.PagedReader.read
+rekall.obj.DummyAS.read
 rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
 rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read
 rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
@@ -208,6 +215,7 @@ rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read
 rekall.plugins.addrspaces.win32.Win32FileWrapper.read
 rekall.plugins.filesystems.ntfs.FixupAddressSpace.read
 rekall.plugins.overlays.linux.linux.page.read
+rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read
 rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return doclink('link-29', 'read', 'link-16');">read</a></tt><tt class="py-op">(</tt><tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt> </tt>
 <a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">                        <tt class="py-name">displacement</tt> <tt class="py-op">=</tt> <tt id="link-30" class="py-name"><a title="rekall.plugins.filesystems.lznt1.DISPLACEMENT_TABLE" class="py-name" href="#" onclick="return doclink('link-30', 'DISPLACEMENT_TABLE', 'link-3');">DISPLACEMENT_TABLE</a></tt><tt class="py-op">[</tt> </tt>
 <a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">                            <tt class="py-name">output_fd</tt><tt class="py-op">.</tt><tt class="py-name">tell</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-name">uncompressed_chunk_offset</tt> <tt class="py-op">-</tt> <tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
@@ -223,6 +231,7 @@ rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-3
 rekall.addrspace.BufferAddressSpace.read
 rekall.addrspace.CachingAddressSpaceMixIn.read
 rekall.addrspace.PagedReader.read
+rekall.obj.DummyAS.read
 rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
 rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read
 rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
@@ -233,6 +242,7 @@ rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read
 rekall.plugins.addrspaces.win32.Win32FileWrapper.read
 rekall.plugins.filesystems.ntfs.FixupAddressSpace.read
 rekall.plugins.overlays.linux.linux.page.read
+rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read
 rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return doclink('link-32', 'read', 'link-16');">read</a></tt><tt class="py-op">(</tt><tt class="py-name">symbol_length</tt><tt class="py-op">)</tt> </tt>
 <a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"> </tt>
 <a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">                        <tt class="py-comment"># Pad the data to make it fit.</tt> </tt>
@@ -300,6 +310,7 @@ rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-4
 rekall.addrspace.BufferAddressSpace.read
 rekall.addrspace.CachingAddressSpaceMixIn.read
 rekall.addrspace.PagedReader.read
+rekall.obj.DummyAS.read
 rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
 rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read
 rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
@@ -310,6 +321,7 @@ rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read
 rekall.plugins.addrspaces.win32.Win32FileWrapper.read
 rekall.plugins.filesystems.ntfs.FixupAddressSpace.read
 rekall.plugins.overlays.linux.linux.page.read
+rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read
 rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return doclink('link-43', 'read', 'link-16');">read</a></tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
 <a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">                        <tt class="py-name">lznt1_logger</tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"Symbol %#x"</tt><tt class="py-op">,</tt> <tt class="py-name">ord</tt><tt class="py-op">(</tt><tt id="link-44" class="py-name"><a title="rekall.addrspace.Run.data
 rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.data
@@ -348,6 +360,7 @@ rekall.utils.Node.data" class="py-name" href="#" onclick="return doclink('link-4
 rekall.addrspace.BufferAddressSpace.read
 rekall.addrspace.CachingAddressSpaceMixIn.read
 rekall.addrspace.PagedReader.read
+rekall.obj.DummyAS.read
 rekall.plugins.addrspaces.accelerated.AcceleratedAMD64PagedMemory.read
 rekall.plugins.addrspaces.aff4.AFF4StreamWrapper.read
 rekall.plugins.addrspaces.hibernate.WindowsHiberFileSpace.read
@@ -358,6 +371,7 @@ rekall.plugins.addrspaces.standard.WritableAddressSpaceMixIn.read
 rekall.plugins.addrspaces.win32.Win32FileWrapper.read
 rekall.plugins.filesystems.ntfs.FixupAddressSpace.read
 rekall.plugins.overlays.linux.linux.page.read
+rekall.plugins.response.windows_processes.WinIRProcessAddressSpace.read
 rekall.plugins.tools.ewf.EWFFile.read" class="py-name" href="#" onclick="return doclink('link-48', 'read', 'link-16');">read</a></tt><tt class="py-op">(</tt><tt id="link-49" class="py-name"><a title="rekall.plugins.filesystems.ntfs.NTFS_ATTRIBUTE.size
 rekall.plugins.overlays.darwin.darwin.clist.size
 rekall.plugins.overlays.linux.dwarfparser.DW_TAG_structure_type.size
@@ -424,7 +438,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:31 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:23 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

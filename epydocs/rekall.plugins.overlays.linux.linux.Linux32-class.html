@@ -64,8 +64,9 @@
 <center>  <map id="class_hierarchy_for_linux32" name="class_hierarchy_for_linux32">
 <area shape="rect" id="node1" href="rekall.obj.Profile-class.html" title="obj.Profile" alt="" coords="25,6,95,29"/>
 <area shape="rect" id="node2" href="rekall.plugins.overlays.basic.BasicClasses-class.html" title="basic.BasicClasses" alt="" coords="5,59,115,82"/>
-<area shape="rect" id="node3" href="rekall.plugins.overlays.linux.linux.Linux-class.html" title="Linux" alt="" coords="37,113,83,135"/>
-<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.Linux32-class.html" title="Linux32" alt="" coords="31,166,88,189"/>
+<area shape="rect" id="node4" href="rekall.plugins.overlays.linux.linux.Linux-class.html" title="Linux" alt="" coords="111,113,157,135"/>
+<area shape="rect" id="node3" href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html" title="basic.RelativeOffsetMixin" alt="" coords="140,59,279,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.overlays.linux.linux.Linux32-class.html" title="Linux32" alt="" coords="105,166,163,189"/>
 </map>
   <img src="class_hierarchy_for_linux32.gif" alt='' usemap="#class_hierarchy_for_linux32" ismap="ismap" class="graph-without-title" />
 </center>
@@ -129,8 +130,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.linux.linux.Linux-class.html#GetImageBase" class="summary-sig-name">GetImageBase</a>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.GetImageBase">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="GetPageOffset"></a><span class="summary-sig-name">GetPageOffset</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Gets the page offset without accounting for relocations or KASLR.
+      Gets the page offset.
       <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.GetPageOffset">source&nbsp;code</a></span>
@@ -153,24 +171,6 @@
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.GetPrototype">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="GetRelocationDelta"></a><span class="summary-sig-name">GetRelocationDelta</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Returns the number of bytes the kernel base is shifted.
-      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.overlays.linux.linux-pysrc.html#Linux.GetRelocationDelta">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -248,15 +248,12 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">session</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">metadata</span>=<span class="summary-sig-default">None</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.__init__">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.__init__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -325,14 +322,33 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="add_constants"></a><span class="summary-sig-name">add_constants</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">constants</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">constants_are_addresses</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">**_</span>)</span><br />
-      Add the kwargs as constants for this profile.
+          <td><span class="summary-sig"><a name="add_constant_type"></a><span class="summary-sig-name">add_constant_type</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constant</span>,
+        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">target_args</span>)</span>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_constants">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.add_constant_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add_constants"></a><span class="summary-sig-name">add_constants</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">constants</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">constants_are_absolute</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">**opts</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.add_constants">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -494,13 +510,13 @@ kwargs.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.obj.Profile-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">constant</span>,
+          <td><span class="summary-sig"><a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html#get_constant" class="summary-sig-name">get_constant</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">is_address</span>=<span class="summary-sig-default">False</span>)</span><br />
-      Retrieve a constant from the profile.
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+      Gets the constant from the profile.
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_constant">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.get_constant">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -595,11 +611,10 @@ kwargs.
         <tr>
           <td><span class="summary-sig"><a name="get_nearest_constant_by_address"></a><span class="summary-sig-name">get_nearest_constant_by_address</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">address</span>,
-        <span class="summary-sig-arg">below</span>=<span class="summary-sig-default">True</span>)</span><br />
-      Returns the closest constant below or equal to the address.
-      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+        <span class="summary-sig-arg">below</span>=<span class="summary-sig-default">True</span>)</span>
+      <em>(Inherited from <a href="rekall.plugins.overlays.basic.RelativeOffsetMixin-class.html">rekall.plugins.overlays.basic.RelativeOffsetMixin</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.get_nearest_constant_by_address">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.overlays.basic-pysrc.html#RelativeOffsetMixin.get_nearest_constant_by_address">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -749,6 +764,24 @@ kwargs.
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.has_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="integer_to_address"></a><span class="summary-sig-name">integer_to_address</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">virtual_address</span>)</span>
+      <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.obj-pysrc.html#Profile.integer_to_address">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -1127,8 +1160,8 @@ kwargs.
  'ListArray': &lt;class 'rekall.obj.ListArray'&gt;,
  'NativeType': &lt;class 'rekall.obj.NativeType'&gt;,
  'Pointer': &lt;class 'rekall.obj.Pointer'&gt;,
+ 'Pointer32': &lt;class 'rekall.obj.Pointer32'&gt;,
  'PointerArray': &lt;class 'rekall.obj.PointerArray'&gt;,
- 'Struct': &lt;class 'rekall.obj.Struct'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">Array</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.obj.Array'&gt;<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">BitFie</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
@@ -1162,15 +1195,15 @@ kwargs.
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.obj.Profile-class.html#classes" class="summary-name">classes</a> = <code title="{'BasicClasses': &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
+        <a href="rekall.obj.Profile-class.html#classes" class="summary-name">classes</a> = <code title="{'ArtifactProfile': &lt;class 'rekall.plugins.response.forensic_artifacts\
+.ArtifactProfile'&gt;,
+ 'BasicClasses': &lt;class 'rekall.plugins.overlays.basic.BasicClasses'&gt;,
  'BasicPEProfile': &lt;class 'rekall.plugins.overlays.windows.pe_vtypes.B\
 asicPEProfile'&gt;,
  'ConHost64': &lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos\
 t64'&gt;,
  'ConHost86': &lt;class 'rekall.plugins.windows.malware.cmdhistory.ConHos\
-t86'&gt;,
- 'Conhost': &lt;class 'rekall.plugins.windows.malware.cmdhistory.Conhost'\
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BasicClasses</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.overlays.bas<code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArtifactProfile</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.response.<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
     </td>
   </tr>
@@ -1197,6 +1230,14 @@ t86'&gt;,
         <a name="constants"></a><span class="summary-name">constants</span> = <code title="None">None</code><br />
       hash(x)
       <em>(Inherited from <a href="rekall.obj.Profile-class.html">rekall.obj.Profile</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="image_base"></a><span class="summary-name">image_base</span> = <code title="0">0</code>
+      <em>(Inherited from <a href="rekall.plugins.overlays.linux.linux.Linux-class.html">rekall.plugins.overlays.linux.linux.Linux</a>)</em>
     </td>
   </tr>
 <tr>
@@ -1337,7 +1378,7 @@ t86'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:03 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:49 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

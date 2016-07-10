@@ -59,19 +59,24 @@
 </table>
 <!-- ==================== MODULE DESCRIPTION ==================== -->
 <h1 class="epydoc">Module macho</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.overlays.darwin.macho-pysrc.html">source&nbsp;code</a></span></p>
-<p>This profile is for the MACH-O file format.</p>
-  <p>For now this is not a complete implementation - just enough to parse 
-  the MACHO core dump style images.</p>
-  <p>References: 
-  https://developer.apple.com/library/mac/#documentation/developertools/conceptual/MachORuntime/Reference/reference.html</p>
+<p>This profile is for the Mach-O file format.</p>
+  <p>References:</p>
   
-  <p>http://www.opensource.apple.com/source/xnu/xnu-1456.1.26/EXTERNAL_HEADERS/mach-o/loader.h</p>
-  <p>http://svn.red-bean.com/bob/macholib/trunk/macholib/mach_o.py</p>
+  <p>https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/Reference/reference.html
+  
+  http://www.opensource.apple.com/source/xnu/xnu-1456.1.26/EXTERNAL_HEADERS/Mach-O/loader.h
+  
+  https://github.com/llvm-mirror/llvm/blob/release_34/include/llvm/Support/MachO.h
+  
+  https://github.com/opensource-apple/xnu/blob/10.9/EXTERNAL_HEADERS/Mach-O/loader.h</p>
 
 <hr />
-<div class="fields">      <p><strong>Author:</strong>
-        Michael Cohen &lt;scudette@gmail.com&gt;
-      </p>
+<div class="fields">      <dl><dt>Authors:</dt>
+        <dd>
+          Michael Cohen &lt;scudette@gmail.com&gt;,
+          Adam Sindelar &lt;adamsh@google.com
+        </dd>
+      </dl>
 </div><!-- ==================== CLASSES ==================== -->
 <a name="section-Classes"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -84,16 +89,8 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.overlays.darwin.macho.MACHOFileImplementation-class.html" class="summary-name">MACHOFileImplementation</a><br />
-      An implementation of a parser for MAC-O files.
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-        <a href="rekall.plugins.overlays.darwin.macho.MACHO64Profile-class.html" class="summary-name">MACHO64Profile</a><br />
-      A profile for MAC-O files.
+        <a href="rekall.plugins.overlays.darwin.macho.MachoProfile-class.html" class="summary-name">MachoProfile</a><br />
+      A profile for Mach-O files.
     </td>
   </tr>
 </table>
@@ -110,14 +107,14 @@
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
         <a href="rekall.plugins.overlays.darwin.macho-module.html#macho_vtypes" class="summary-name">macho_vtypes</a> = <code title="{'mach_header_64': [32,
-                    {'cpusubtype': [8, ['int']],
-                     'cputype': [4,
+                    {'cputype': [None,
                                  ['Enumeration',
                                   {'choices': {1: 'VAX',
                                                6: 'MC680x0',
                                                7: 'i386',
                                                8: 'MIPS',
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">mach_header_64</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cpusubtype</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">in</code><code class="variable-ellipsis">...</code></code>
+                                               10: 'MC98000',
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">mach_header_64</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cputype</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">En</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -150,13 +147,13 @@
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
 <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">mach_header_64</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>32<code class="variable-op">,</code>
-                    <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cpusubtype</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>8<code class="variable-op">, </code><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">int</code><code class="variable-quote">'</code><code class="variable-group">]</code><code class="variable-group">]</code><code class="variable-op">,</code>
-                     <code class="variable-quote">'</code><code class="variable-string">cputype</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>4<code class="variable-op">,</code>
+                    <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cputype</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>None<code class="variable-op">,</code>
                                  <code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">Enumeration</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                   <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">choices</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">{</code>1<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">VAX</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                                6<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">MC680x0</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                                7<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">i386</code><code class="variable-quote">'</code><code class="variable-op">,</code>
                                                8<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">MIPS</code><code class="variable-quote">'</code><code class="variable-op">,</code>
+                                               10<code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">MC98000</code><code class="variable-quote">'</code><code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -192,7 +189,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:45 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:31 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

@@ -60,7 +60,7 @@
 <!-- ==================== CLASS DESCRIPTION ==================== -->
 <h1 class="epydoc">Class DarwinFindDTB</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#DarwinFindDTB">source&nbsp;code</a></span></p>
 <center>
-<center>  <map id="class_hierarchy_for_darwinfind" name="class_hierarchy_for_darwinfind">
+<center>  <map id="class_hierarchy_for_darwinfind_2" name="class_hierarchy_for_darwinfind_2">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node3" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
 <area shape="rect" id="node2" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
@@ -69,7 +69,7 @@
 <area shape="rect" id="node6" href="rekall.plugins.darwin.common.DarwinKASLRMixin-class.html" title="DarwinKASLRMixin" alt="" coords="219,113,333,135"/>
 <area shape="rect" id="node7" href="rekall.plugins.darwin.common.DarwinOnlyMixin-class.html" title="DarwinOnlyMixin" alt="" coords="357,113,459,135"/>
 </map>
-  <img src="class_hierarchy_for_darwinfind.gif" alt='' usemap="#class_hierarchy_for_darwinfind" ismap="ismap" class="graph-without-title" />
+  <img src="class_hierarchy_for_darwinfind_2.gif" alt='' usemap="#class_hierarchy_for_darwinfind_2" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
@@ -368,6 +368,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return an instance of this plugin with suitable default arguments.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetPrototype">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.DarwinFindDTB-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>)</span></td>
           <td align="right" valign="top">
@@ -464,12 +483,12 @@
     </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
 ,
+ 'AFF4Dump': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Dump'&gt;,
  'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
  'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
  'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -478,14 +497,14 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+        &lt;class 'rekall.plugins.tools.profile_tool_test.BuildIndexTeste\
+r'&gt;],
  'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
 WindowsAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.windows.address_resolver.\
 PEAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.darwin.address_resolver.D\
-arwinAddressResolver'&gt;,
-                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -717,7 +736,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:54 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:40 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

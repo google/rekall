@@ -39,10 +39,11 @@
   <tr valign="top">
     <td width="100%">
       <span class="breadcrumbs">
-        <a href="rekall-module.html">Package&nbsp;rekall</a> ::
-        <a href="rekall.plugins-module.html">Package&nbsp;plugins</a> ::
-        <a href="rekall.plugins.renderers-module.html">Package&nbsp;renderers</a> ::
-        <a href="rekall.plugins.renderers.xls-module.html">Module&nbsp;xls</a> ::
+        rekall ::
+        plugins ::
+        renderers ::
+        xls ::
+        XLSDateTimeRenderer ::
         Class&nbsp;XLSDateTimeRenderer
       </span>
     </td>
@@ -61,9 +62,9 @@
 <h1 class="epydoc">Class XLSDateTimeRenderer</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSDateTimeRenderer">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_xlsdatetim" name="class_hierarchy_for_xlsdatetim">
-<area shape="rect" id="node1" href="rekall.plugins.renderers.xls.XLSDateTimeRenderer-class.html" title="XLSDateTimeRenderer" alt="" coords="14,113,148,135"/>
-<area shape="rect" id="node2" href="rekall.plugins.renderers.xls.XLSObjectRenderer-class.html" title="XLSObjectRenderer" alt="" coords="22,59,140,82"/>
-<area shape="rect" id="node3" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="4,6,157,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.renderers.xls.XLSDateTimeRenderer-class.html" title="XLSDateTimeRenderer" alt="" coords="5,6,139,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.renderers.xls.XLSObjectRenderer-class.html" title="XLSObjectRenderer" alt="" coords="163,6,281,29"/>
+<area shape="rect" id="node3" href="rekall.ui.renderer.ObjectRenderer-class.html" title="ui.renderer.ObjectRenderer" alt="" coords="305,6,459,29"/>
 </map>
   <img src="class_hierarchy_for_xlsdatetim.gif" alt='' usemap="#class_hierarchy_for_xlsdatetim" ismap="ismap" class="graph-without-title" />
 </center>
@@ -356,10 +357,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.renderers.xls.XLSDateTimeRenderer-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+          <td><span class="summary-sig"><a name="ImplementationByClass"></a><span class="summary-sig-name">ImplementationByClass</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSDateTimeRenderer.ImplementationByClass">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.ImplementationByClass">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -373,10 +375,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.renderers.xls.XLSDateTimeRenderer-class.html#ImplementationByName" class="summary-sig-name">ImplementationByName</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span></td>
+          <td><span class="summary-sig"><a name="ImplementationByName"></a><span class="summary-sig-name">ImplementationByName</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSDateTimeRenderer.ImplementationByName">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#ObjectRenderer.ImplementationByName">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -443,14 +446,14 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="renders_type"></a><span class="summary-name">renders_type</span> = <code title="'UnixTimeStamp'"><code class="variable-quote">'</code><code class="variable-string">UnixTimeStamp</code><code class="variable-quote">'</code></code>
+        <a name="renders_type"></a><span class="summary-name">renders_type</span> = <code title="&quot;UnixTimeStamp&quot;">&quot;UnixTimeStamp&quot;</code>
     </td>
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="STYLE"></a><span class="summary-name">STYLE</span> = <code title="Style(number_format='MM/DD/YYYY HH:MM:SS')">Style(number_format='MM/DD/YYYY HH:MM:SS')</code><br />
+        <a name="STYLE"></a><span class="summary-name">STYLE</span> = <code title="styles.Style(number_format= 'MM/DD/YYYY HH:MM:SS')">styles.Style(number_format= 'MM/DD/YYYY HH:MM:SS')</code><br />
       hash(x)
     </td>
   </tr>
@@ -460,12 +463,12 @@
     </td><td class="summary">
         <a href="rekall.ui.renderer.ObjectRenderer-class.html#classes" class="summary-name">classes</a> = <code title="{'ArrayObjectRenderer': &lt;class 'rekall.plugins.renderers.json_storage.\
 ArrayObjectRenderer'&gt;,
+ 'ArtifactResult_DataExportObjectRenderer': &lt;class 'rekall.plugins.res\
+ponse.forensic_artifacts.ArtifactResult_DataExportObjectRenderer'&gt;,
+ 'ArtifactResult_TextObjectRenderer': &lt;class 'rekall.plugins.response.\
+forensic_artifacts.ArtifactResult_TextObjectRenderer'&gt;,
  'AttributeDictObjectRenderer': &lt;class 'rekall.plugins.renderers.json_\
 storage.AttributeDictObjectRenderer'&gt;,
- 'AttributedStringRenderer': &lt;class 'rekall.ui.text.AttributedStringRe\
-nderer'&gt;,
- 'BaseAddressSpaceObjectRenderer': &lt;class 'rekall.plugins.renderers.js\
-on_storage.BaseAddressSpaceObjectRenderer'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">ArrayObjectRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.rende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.ObjectRenderer-class.html">rekall.ui.renderer.ObjectRenderer</a>)</em>
     </td>
@@ -498,7 +501,7 @@ on_storage.BaseAddressSpaceObjectRenderer'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="renderers"></a><span class="summary-name">renderers</span> = <code title="['XLSRenderer']"><code class="variable-group">[</code><code class="variable-quote">'</code><code class="variable-string">XLSRenderer</code><code class="variable-quote">'</code><code class="variable-group">]</code></code>
+        <a name="renderers"></a><span class="summary-name">renderers</span> = <code title="[&quot;XLSRenderer&quot;]">[&quot;XLSRenderer&quot;]</code>
       <em>(Inherited from <a href="rekall.plugins.renderers.xls.XLSObjectRenderer-class.html">rekall.plugins.renderers.xls.XLSObjectRenderer</a>)</em>
     </td>
   </tr>
@@ -552,54 +555,6 @@ on_storage.BaseAddressSpaceObjectRenderer'&gt;,
   </dl>
 </td></tr></table>
 </div>
-<a name="ImplementationByClass"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByClass</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">name</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSDateTimeRenderer.ImplementationByClass">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.ui.renderer.ObjectRenderer-class.html#ImplementationByClass">ui.renderer.ObjectRenderer.ImplementationByClass</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
-<a name="ImplementationByName"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">ImplementationByName</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">name</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.renderers.xls-pysrc.html#XLSDateTimeRenderer.ImplementationByName">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.ui.renderer.ObjectRenderer-class.html#ImplementationByName">ui.renderer.ObjectRenderer.ImplementationByName</a>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -629,7 +584,7 @@ on_storage.BaseAddressSpaceObjectRenderer'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:08 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:54 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

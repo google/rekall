@@ -119,7 +119,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.ui.identity.IdentityRenderer-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">*_</span>,
-        <span class="summary-sig-arg">**__</span>)</span><br />
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.__init__">source&nbsp;code</a></span>
@@ -156,6 +156,41 @@
         <span class="summary-sig-arg">*_</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.__exit__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.identity.IdentityRenderer-class.html#format" class="summary-sig-name">format</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      Write formatted data.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.format">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.identity.IdentityRenderer-class.html#flush" class="summary-sig-name">flush</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Renderer should flush data.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.flush">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -226,6 +261,24 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.ui.identity.IdentityRenderer-class.html#open" class="summary-sig-name">open</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      Opens a file for writing or reading.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.open">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#Log" class="summary-sig-name">Log</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">record</span>)</span><br />
       Logs a log message.
@@ -283,44 +336,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="flush"></a><span class="summary-sig-name">flush</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Renderer should flush data.
-      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.flush">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.ui.renderer.BaseRenderer-class.html#format" class="summary-sig-name">format</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">formatstring</span>,
-        <span class="summary-sig-arg">*data</span>)</span><br />
-      Write formatted data.
-      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.format">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="get_object_renderer"></a><span class="summary-sig-name">get_object_renderer</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">target</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">type</span>=<span class="summary-sig-default">None</span>,
@@ -329,27 +344,6 @@
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.get_object_renderer">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="open"></a><span class="summary-sig-name">open</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">directory</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">filename</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">rb</code><code class="variable-quote">'</code></span>)</span><br />
-      Opens a file for writing or reading.
-      <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.ui.renderer-pysrc.html#BaseRenderer.open">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -520,8 +514,7 @@ taExportRenderer'&gt;,
  'JsonRenderer': &lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;,
  'TestRenderer': &lt;class 'rekall.ui.text.TestRenderer'&gt;,
  'TextRenderer': &lt;class 'rekall.ui.text.TextRenderer'&gt;,
- 'WideTextRenderer': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRend<code class="variable-ellipsis">...</code></code>
+ 'WideTextRenderer': &lt;class 'rekall.ui.text.WideTextRenderer'&gt;}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BaseRenderer</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.renderer.BaseRend<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
   </tr>
@@ -536,8 +529,7 @@ rer'&gt;],
  'json': [&lt;class 'rekall.ui.json_renderer.JsonRenderer'&gt;],
  'test': [&lt;class 'rekall.ui.text.TestRenderer'&gt;],
  'text': [&lt;class 'rekall.ui.text.TextRenderer'&gt;],
- 'wide': [&lt;class 'rekall.ui.text.WideTextRenderer'&gt;],
-..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.ui.renderer.BaseRende<code class="variable-ellipsis">...</code></code>
+ 'wide': [&lt;class 'rekall.ui.text.WideTextRenderer'&gt;]}"><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.ui.renderer.BaseRende<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.ui.renderer.BaseRenderer-class.html">rekall.ui.renderer.BaseRenderer</a>)</em>
     </td>
   </tr>
@@ -626,7 +618,7 @@ rer'&gt;],
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">*_</span>,
-        <span class="sig-arg">**__</span>)</span>
+        <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
   </td><td align="right" valign="top"
@@ -684,6 +676,57 @@ rer'&gt;],
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.ui.renderer.BaseRenderer-class.html#__exit__">renderer.BaseRenderer.__exit__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="format"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">format</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.format">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Write formatted data.</p>
+  <p>For renderers that need access to the raw data (e.g. to check for 
+  NoneObjects), it is preferred to call this method directly rather than to
+  format the string in the plugin itself.</p>
+  <p>By default we just call the format string directly.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#format">renderer.BaseRenderer.format</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="flush"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">flush</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.flush">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Renderer should flush data.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#flush">renderer.BaseRenderer.flush</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -776,6 +819,30 @@ Args:
   </dl>
 </td></tr></table>
 </div>
+<a name="open"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">open</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.ui.identity-pysrc.html#IdentityRenderer.open">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Opens a file for writing or reading.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.ui.renderer.BaseRenderer-class.html#open">renderer.BaseRenderer.open</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
 <a name="ImplementationByClass"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -853,7 +920,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:23 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:10 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

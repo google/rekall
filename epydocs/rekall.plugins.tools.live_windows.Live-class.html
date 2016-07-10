@@ -63,9 +63,9 @@
 <center>
 <center>  <map id="class_hierarchy_for_live_3" name="class_hierarchy_for_live_3">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
-<area shape="rect" id="node3" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node2" href="rekall.plugin.PrivilegedMixIn-class.html" title="plugin.PrivilegedMixIn" alt="" coords="147,6,271,29"/>
-<area shape="rect" id="node4" href="rekall.plugins.tools.live_windows.Live-class.html" title="Live" alt="" coords="295,6,336,29"/>
+<area shape="rect" id="node2" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
+<area shape="rect" id="node3" href="rekall.plugin.TypedProfileCommand-class.html" title="plugin.TypedProfileCommand" alt="" coords="148,6,311,29"/>
+<area shape="rect" id="node4" href="rekall.plugins.tools.live_windows.Live-class.html" title="Live" alt="" coords="335,6,376,29"/>
 </map>
   <img src="class_hierarchy_for_live_3.gif" alt='' usemap="#class_hierarchy_for_live_3" ismap="ismap" class="graph-without-title" />
 </center>
@@ -115,9 +115,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.tools.live_windows.Live-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">driver</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">device</span>=<span class="summary-sig-default">r&quot;\\.\pmem&quot;</span>,
-        <span class="summary-sig-arg">service_name</span>=<span class="summary-sig-default">&quot;pmem&quot;</span>,
+        <span class="summary-sig-arg">*args</span>,
         <span class="summary-sig-arg">**kw</span>)</span><br />
       x.__init__(...) initializes x; see help(type(x)) for signature</td>
           <td align="right" valign="top">
@@ -186,7 +184,8 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="remove_service"></a><span class="summary-sig-name">remove_service</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="remove_service"></a><span class="summary-sig-name">remove_service</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">also_close_as</span>=<span class="summary-sig-default">True</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.remove_service">source&nbsp;code</a></span>
             
@@ -253,11 +252,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.tools.live_windows.Live-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.live_windows.Live-class.html#collect" class="summary-sig-name">collect</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Collect data that will be passed to renderer.table_row.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.collect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -325,6 +323,77 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="collect_as_dicts"></a><span class="summary-sig-name">collect_as_dicts</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.collect_as_dicts">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.TypedProfileCommand-class.html#column_types" class="summary-sig-name">column_types</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns instances for each column definition.
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.column_types">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column"></a><span class="summary-sig-name">get_column</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column_type"></a><span class="summary-sig-name">get_column_type</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column_type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#get_plugin" class="summary-sig-name">get_plugin</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
@@ -332,6 +401,60 @@
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.get_plugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getkeys"></a><span class="summary-sig-name">getkeys</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.getkeys">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reflect"></a><span class="summary-sig-name">reflect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">member</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.reflect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render"></a><span class="summary-sig-name">render</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -370,11 +493,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.tools.live_windows.Live-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args this plugin needs.</td>
+          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return only the active commands based on config.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -388,12 +512,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
-      Return only the active commands based on config.
+      Return an instance of this plugin with suitable default arguments.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetPrototype">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -430,6 +554,24 @@
       <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#ProfileCommand.ImplementationByName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">parser</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.args">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -483,6 +625,14 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="table_header"></a><span class="summary-name">table_header</span> = <code title="[dict(name= &quot;Message&quot;)]">[dict(name= &quot;Message&quot;)]</code><br />
+      hash(x)
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="exception_format_regex"></a><span class="summary-name">exception_format_regex</span> = <code title="re.compile(r&quot;: \((\d+),&quot;)">re.compile(r&quot;: \((\d+),&quot;)</code>
     </td>
   </tr>
@@ -492,12 +642,12 @@
     </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
 ,
+ 'AFF4Dump': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Dump'&gt;,
  'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
  'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
  'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -506,14 +656,14 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+        &lt;class 'rekall.plugins.tools.profile_tool_test.BuildIndexTeste\
+r'&gt;],
  'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
 WindowsAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.windows.address_resolver.\
 PEAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.darwin.address_resolver.D\
-arwinAddressResolver'&gt;,
-                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -539,6 +689,15 @@ arwinAddressResolver'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="plugin_args"></a><span class="summary-name">plugin_args</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -549,6 +708,14 @@ arwinAddressResolver'&gt;,
     </td><td class="summary">
         <a name="producer"></a><span class="summary-name">producer</span> = <code title="False">False</code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="table_options"></a><span class="summary-name">table_options</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em>
     </td>
   </tr>
 </table>
@@ -577,31 +744,6 @@ arwinAddressResolver'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="args"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">args</span>(<span class="sig-arg">cls</span>,
-        <span class="sig-arg">parser</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.args">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Declare the command line args this plugin needs.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#args">plugin.Command.args</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="__init__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -610,9 +752,7 @@ arwinAddressResolver'&gt;,
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">driver</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">device</span>=<span class="sig-default">r&quot;\\.\pmem&quot;</span>,
-        <span class="sig-arg">service_name</span>=<span class="sig-default">&quot;pmem&quot;</span>,
+        <span class="sig-arg">*args</span>,
         <span class="sig-arg">**kw</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -630,37 +770,24 @@ arwinAddressResolver'&gt;,
   </dl>
 </td></tr></table>
 </div>
-<a name="render"></a>
+<a name="collect"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">collect</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.render">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.tools.live_windows-pysrc.html#Live.collect">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Produce results on the renderer given.
-
-Each plugin should implement this method to produce output on the
-renderer. The framework will initialize the plugin and provide it with
-some kind of renderer to write output on. The plugin should not assume
-that the renderer is actually TextRenderer, only that the methods
-defined in the BaseRenderer exist.
-
-Args:
-  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
-
-</pre>
+  <p>Collect data that will be passed to renderer.table_row.</p>
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
+        <a href="rekall.plugin.TypedProfileCommand-class.html#collect">plugin.TypedProfileCommand.collect</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -695,7 +822,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:10 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:57 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

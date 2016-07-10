@@ -472,7 +472,7 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugins.windows.vadinfo_test.TestVADDump-class.html#PARAMETERS" class="summary-name">PARAMETERS</a> = <code title="{'commandline': 'vaddump --pid %(pid)s --dump_dir %(tempdir)s'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">commandline</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">vaddump --pid %(pid)s --dump_dir</code><code class="variable-ellipsis">...</code></code>
+        <a href="rekall.plugins.windows.vadinfo_test.TestVADDump-class.html#PARAMETERS" class="summary-name">PARAMETERS</a> = <code title="{'commandline': 'vaddump %(pids)s --dump_dir %(tempdir)s'}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">commandline</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">vaddump %(pids)s --dump_dir %(te</code><code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
 <tr>
@@ -488,15 +488,15 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes" class="summary-name">classes</a> = <code title="{'CellTest': &lt;class 'rekall.ui.text_test.CellTest'&gt;,
+        <a href="rekall.testlib.RekallBaseUnitTestCase-class.html#classes" class="summary-name">classes</a> = <code title="{'BuildSymbolOffsetIndexTest': &lt;class 'rekall.plugins.tools.profile_to\
+ol_test.BuildSymbolOffsetIndexTest'&gt;,
+ 'CellTest': &lt;class 'rekall.ui.text_test.CellTest'&gt;,
  'DisabledTest': &lt;class 'rekall.testlib.DisabledTest'&gt;,
  'HashChecker': &lt;class 'rekall.testlib.HashChecker'&gt;,
  'IOManagerTest': &lt;class 'rekall.io_manager_test.IOManagerTest'&gt;,
  'InlineTest': &lt;class 'rekall.testlib.InlineTest'&gt;,
  'JsonTest': &lt;class 'rekall.plugins.tools.json_test.JsonTest'&gt;,
- 'MemoryMapTest': &lt;class 'rekall.plugins.renderers.visual_aides_test.M\
-emoryMapTest'&gt;,
-..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">CellTest</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.ui.text_test.CellTest'&gt;<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
+..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">BuildSymbolOffsetIndexTest</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugin<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
     </td>
   </tr>
@@ -509,9 +509,9 @@ emoryMapTest'&gt;,
         &lt;class 'rekall.testlib.DisabledTest'&gt;,
         &lt;class 'rekall.testlib.HashChecker'&gt;,
         &lt;class 'rekall.plugins.core.TestInfo'&gt;,
+        &lt;class 'rekall.plugins.core.TestRaisingTheRoof'&gt;,
         &lt;class 'rekall.plugins.tools.aff4acquire.TestAFF4Acquire'&gt;,
         &lt;class 'rekall.plugins.tools.disassembler.TestDisassemble'&gt;,
-        &lt;class 'rekall.plugins.tools.ewf.TestEWFAcquire'&gt;,
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.testlib.InlineTest'&gt;<code class="variable-op">,</code><code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.testlib.RekallBaseUnitTestCase-class.html">rekall.testlib.RekallBaseUnitTestCase</a>)</em>
     </td>
@@ -645,7 +645,7 @@ emoryMapTest'&gt;,
   <dl class="fields">
     <dt>Value:</dt>
       <dd><table><tr><td><pre class="variable">
-<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">commandline</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">vaddump --pid %(pid)s --dump_dir %(tempdir)s</code><code class="variable-quote">'</code><code class="variable-group">}</code>
+<code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">commandline</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">vaddump %(pids)s --dump_dir %(tempdir)s</code><code class="variable-quote">'</code><code class="variable-group">}</code>
 </pre></td></tr></table>
 </dd>
   </dl>
@@ -680,7 +680,7 @@ emoryMapTest'&gt;,
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:21 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:08 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

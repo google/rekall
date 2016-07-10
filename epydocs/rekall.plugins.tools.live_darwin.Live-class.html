@@ -63,9 +63,8 @@
 <center>
 <center>  <map id="class_hierarchy_for_live" name="class_hierarchy_for_live">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
-<area shape="rect" id="node3" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node2" href="rekall.plugin.PrivilegedMixIn-class.html" title="plugin.PrivilegedMixIn" alt="" coords="147,6,271,29"/>
-<area shape="rect" id="node4" href="rekall.plugins.tools.live_darwin.Live-class.html" title="Live" alt="" coords="295,6,336,29"/>
+<area shape="rect" id="node2" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.tools.live_darwin.Live-class.html" title="Live" alt="" coords="147,6,188,29"/>
 </map>
   <img src="class_hierarchy_for_live.gif" alt='' usemap="#class_hierarchy_for_live" ismap="ismap" class="graph-without-title" />
 </center>
@@ -119,8 +118,9 @@
         <span class="summary-sig-arg">device</span>=<span class="summary-sig-default">r&quot;/dev/pmem&quot;</span>,
         <span class="summary-sig-arg">unload</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">load</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">mode</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kw</span>)</span><br />
-      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+      Baseclass for all plugins which accept a profile.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.live_darwin-pysrc.html#Live.__init__">source&nbsp;code</a></span>
             
@@ -173,6 +173,41 @@
       Produce results on the renderer given.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.live_darwin-pysrc.html#Live.render">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__enter__"></a><span class="summary-sig-name">__enter__</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.live_darwin-pysrc.html#Live.__enter__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__exit__"></a><span class="summary-sig-name">__exit__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">exc_type</span>,
+        <span class="summary-sig-arg">exc_value</span>,
+        <span class="summary-sig-arg">trace</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.live_darwin-pysrc.html#Live.__exit__">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -322,6 +357,25 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return an instance of this plugin with suitable default arguments.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetPrototype">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugin.ProfileCommand-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>)</span>
       <em>(Inherited from <a href="rekall.plugin.ProfileCommand-class.html">rekall.plugin.ProfileCommand</a>)</em></td>
@@ -400,12 +454,12 @@
     </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
 ,
+ 'AFF4Dump': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Dump'&gt;,
  'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
  'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
  'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -414,14 +468,14 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+        &lt;class 'rekall.plugins.tools.profile_tool_test.BuildIndexTeste\
+r'&gt;],
  'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
 WindowsAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.windows.address_resolver.\
 PEAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.darwin.address_resolver.D\
-arwinAddressResolver'&gt;,
-                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -522,6 +576,7 @@ arwinAddressResolver'&gt;,
         <span class="sig-arg">device</span>=<span class="sig-default">r&quot;/dev/pmem&quot;</span>,
         <span class="sig-arg">unload</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">load</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">mode</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kw</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -530,7 +585,13 @@ arwinAddressResolver'&gt;,
     </td>
   </tr></table>
   
-  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <pre class="literalblock">
+Baseclass for all plugins which accept a profile.
+
+Args:
+  profile: The kernel profile to use for this command.
+
+</pre>
   <dl class="fields">
     <dt>Overrides:
         object.__init__
@@ -604,7 +665,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:10 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:57 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

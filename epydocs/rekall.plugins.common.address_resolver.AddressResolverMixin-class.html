@@ -137,6 +137,22 @@ about symbols related to that module.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="reset"></a><span class="summary-sig-name">reset</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.reset">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="NormalizeModuleName"></a><span class="summary-sig-name">NormalizeModuleName</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">module_name</span>)</span></td>
           <td align="right" valign="top">
@@ -222,9 +238,25 @@ about symbols related to that module.
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="GetAllModules"></a><span class="summary-sig-name">GetAllModules</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.GetAllModules">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#get_constant_object" class="summary-sig-name">get_constant_object</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>,
-        <span class="summary-sig-arg">target</span>,
+        <span class="summary-sig-arg">target</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Instantiate the named constant with these args.</td>
           <td align="right" valign="top">
@@ -310,6 +342,22 @@ about symbols related to that module.
       
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="collect"></a><span class="summary-sig-name">collect</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.common.address_resolver-pysrc.html#AddressResolverMixin.collect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -337,6 +385,14 @@ about symbols related to that module.
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Class Variables</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.common.address_resolver.AddressResolverMixin-class.html#table_header" class="summary-name">table_header</a> = <code title="plugin.PluginHeader(dict(name= &quot;Symbol&quot;, width= 20), dict(name= &quot;Offse\
+t&quot;, width= 20, style= &quot;address&quot;),)">plugin.PluginHeader(dict(name= &quot;Symbol&quot;, width=<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -440,7 +496,7 @@ Returns:
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">get_constant_object</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">name</span>,
-        <span class="sig-arg">target</span>,
+        <span class="sig-arg">target</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kwargs</span>)</span>
   </h3>
   </td><td align="right" valign="top"
@@ -538,6 +594,25 @@ Returns:
     <span class="table-header">Class Variable Details</span></td>
 </tr>
 </table>
+<a name="table_header"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">table_header</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+plugin.PluginHeader(dict(name= &quot;Symbol&quot;, width= 20), dict(name= &quot;Offse<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+t&quot;, width= 20, style= &quot;address&quot;),)
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="ADDRESS_NAME_REGEX"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -587,7 +662,7 @@ Za<code class="re-op">-</code>z_0<code class="re-op">-</code>9\.\\<code class="r
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:52 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:38 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

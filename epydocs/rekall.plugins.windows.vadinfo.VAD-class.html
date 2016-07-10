@@ -63,13 +63,14 @@
 <center>  <map id="class_hierarchy_for_vad" name="class_hierarchy_for_vad">
 <area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="21,6,123,29"/>
 <area shape="rect" id="node4" href="rekall.plugin.ProfileCommand-class.html" title="plugin.ProfileCommand" alt="" coords="5,59,139,82"/>
-<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="287,113,409,135"/>
-<area shape="rect" id="node7" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="154,166,341,189"/>
+<area shape="rect" id="node2" href="rekall.plugin.KernelASMixin-class.html" title="plugin.KernelASMixin" alt="" coords="365,113,488,135"/>
+<area shape="rect" id="node8" href="rekall.plugins.windows.common.WindowsCommandPlugin-class.html" title="common.WindowsCommandPlugin" alt="" coords="233,166,420,189"/>
 <area shape="rect" id="node3" href="rekall.plugin.PhysicalASMixin-class.html" title="plugin.PhysicalASMixin" alt="" coords="163,59,292,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="36,113,263,135"/>
-<area shape="rect" id="node6" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="175,219,321,242"/>
-<area shape="rect" id="node8" href="rekall.plugins.windows.vadinfo.VAD-class.html" title="VAD" alt="" coords="226,273,269,295"/>
-<area shape="rect" id="node9" href="rekall.plugins.windows.vadinfo.VADDump-class.html" title="VADDump" alt="" coords="211,326,284,349"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html" title="common.AbstractWindowsCommandPlugin" alt="" coords="115,113,341,135"/>
+<area shape="rect" id="node5" href="rekall.plugin.TypedProfileCommand-class.html" title="plugin.TypedProfileCommand" alt="" coords="317,59,480,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.windows.common.WinProcessFilter-class.html" title="common.WinProcessFilter" alt="" coords="253,219,400,242"/>
+<area shape="rect" id="node9" href="rekall.plugins.windows.vadinfo.VAD-class.html" title="VAD" alt="" coords="305,273,348,295"/>
+<area shape="rect" id="node10" href="rekall.plugins.windows.vadinfo.VADDump-class.html" title="VADDump" alt="" coords="290,326,363,349"/>
 </map>
   <img src="class_hierarchy_for_vad.gif" alt='' usemap="#class_hierarchy_for_vad" ismap="ismap" class="graph-without-title" />
 </center>
@@ -122,9 +123,26 @@
           <td><span class="summary-sig"><a href="rekall.plugins.windows.vadinfo.VAD-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">*args</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Filters processes by parameters.</td>
+      A mixin for plugins which require a valid kernel address space.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.vadinfo.VAD-class.html#column_types" class="summary-sig-name">column_types</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns instances for each column definition.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.column_types">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -191,12 +209,11 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="render_vadroot"></a><span class="summary-sig-name">render_vadroot</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>,
+          <td><span class="summary-sig"><a name="collect_vadroot"></a><span class="summary-sig-name">collect_vadroot</span>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">vad_root</span>,
         <span class="summary-sig-arg">task</span>)</span></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.render_vadroot">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.collect_vadroot">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -210,11 +227,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.vadinfo.VAD-class.html#render" class="summary-sig-name">render</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      Produce results on the renderer given.</td>
+          <td><span class="summary-sig"><a href="rekall.plugins.windows.vadinfo.VAD-class.html#collect" class="summary-sig-name">collect</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Collect data that will be passed to renderer.table_row.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.collect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -282,11 +298,64 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="collect_as_dicts"></a><span class="summary-sig-name">collect_as_dicts</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.collect_as_dicts">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a name="filter_processes"></a><span class="summary-sig-name">filter_processes</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Filters eprocess list using phys_eprocess and pids lists.
+      Filters eprocess list using pids lists.
       <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.filter_processes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column"></a><span class="summary-sig-name">get_column</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_column_type"></a><span class="summary-sig-name">get_column_type</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">name</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.get_column_type">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -307,6 +376,23 @@
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.get_plugin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getkeys"></a><span class="summary-sig-name">getkeys</span>(<span class="summary-sig-arg">self</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.getkeys">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -342,6 +428,43 @@
       <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.windows.common-pysrc.html#WinProcessFilter.list_from_eprocess">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="reflect"></a><span class="summary-sig-name">reflect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">member</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.reflect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="render"></a><span class="summary-sig-name">render</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">renderer</span>,
+        <span class="summary-sig-arg">**options</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#TypedProfileCommand.render">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -399,11 +522,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.windows.vadinfo.VAD-class.html#args" class="summary-sig-name">args</a>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span><br />
-      Declare the command line args we need.</td>
+          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return only the active commands based on config.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.args">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -417,12 +541,12 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="GetActiveClasses"></a><span class="summary-sig-name">GetActiveClasses</span>(<span class="summary-sig-arg">cls</span>,
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
-      Return only the active commands based on config.
+      Return an instance of this plugin with suitable default arguments.
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetActiveClasses">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetPrototype">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -470,6 +594,24 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">metadata</span>)</span>
+      <em>(Inherited from <a href="rekall.plugin.PhysicalASMixin-class.html">rekall.plugin.PhysicalASMixin</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#PhysicalASMixin.args">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.windows.common.AbstractWindowsCommandPlugin-class.html#is_active" class="summary-sig-name">is_active</a>(<span class="summary-sig-arg">cls</span>,
         <span class="summary-sig-arg">session</span>)</span><br />
       We are only active if the profile is windows.
@@ -492,6 +634,22 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Class Variables</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.vadinfo.VAD-class.html#table_header" class="summary-name">table_header</a> = <code title="[{'hidden': True, 'name': '_EPROCESS', 'type': '_EPROCESS'},
+ {'cname': 'divider', 'name': '', 'type': 'Divider'},
+ {'cname': 'offset', 'name': 'VAD', 'style': 'address'},
+ {'align': 'r', 'cname': 'level', 'name': 'lev', 'width': 3},
+ {'cname': 'start_pfn', 'name': 'Start Addr', 'style': 'address'},
+ {'cname': 'end_pfn', 'name': 'End Addr', 'style': 'address'},
+ {'align': 'r', 'name': 'com', 'width': 6},
+ {'cname': 'type', 'name': '', 'width': 7},
+..."><code class="variable-group">[</code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">hidden</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">type</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-ellipsis">...</code></code><br />
+      hash(x)
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -522,12 +680,12 @@
     </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
 ,
+ 'AFF4Dump': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Dump'&gt;,
  'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
  'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
  'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -536,14 +694,14 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+        &lt;class 'rekall.plugins.tools.profile_tool_test.BuildIndexTeste\
+r'&gt;],
  'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
 WindowsAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.windows.address_resolver.\
 PEAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.darwin.address_resolver.D\
-arwinAddressResolver'&gt;,
-                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -569,6 +727,15 @@ arwinAddressResolver'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a name="plugin_args"></a><span class="summary-name">plugin_args</span> = <code title="None">None</code><br />
+      hash(x)
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a name="plugin_feature"></a><span class="summary-name">plugin_feature</span> = <code title="'Command'"><code class="variable-quote">'</code><code class="variable-string">Command</code><code class="variable-quote">'</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -581,6 +748,14 @@ arwinAddressResolver'&gt;,
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
   </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="table_options"></a><span class="summary-name">table_options</span> = <code title="{}"><code class="variable-group">{</code><code class="variable-group">}</code></code>
+      <em>(Inherited from <a href="rekall.plugin.TypedProfileCommand-class.html">rekall.plugin.TypedProfileCommand</a>)</em>
+    </td>
+  </tr>
 </table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
@@ -590,6 +765,14 @@ arwinAddressResolver'&gt;,
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.windows.common.WinProcessFilter-class.html#filtering_requested" class="summary-name">filtering_requested</a>
+      <em>(Inherited from <a href="rekall.plugins.windows.common.WinProcessFilter-class.html">rekall.plugins.windows.common.WinProcessFilter</a>)</em>
+    </td>
+  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -615,31 +798,6 @@ arwinAddressResolver'&gt;,
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="args"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">args</span>(<span class="sig-arg">cls</span>,
-        <span class="sig-arg">parser</span>)</span>
-    <br /><em class="fname">Class Method</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.args">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <p>Declare the command line args we need.</p>
-  <dl class="fields">
-    <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#args">plugin.Command.args</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="__init__"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -658,18 +816,10 @@ arwinAddressResolver'&gt;,
   </tr></table>
   
   <pre class="literalblock">
-Filters processes by parameters.
+A mixin for plugins which require a valid kernel address space.
 
 Args:
-   physical_eprocess: One or more EPROCESS structs or offsets defined in
-      the physical AS.
-
-   pid: A single pid.
-
-   proc_regex: A regular expression for filtering process name (using
-     _EPROCESS.ImageFileName).
-
-   method: Methods to use for process listing.
+  dtb: A potential dtb to be used.
 
 </pre>
   <dl class="fields">
@@ -680,37 +830,56 @@ Args:
   </dl>
 </td></tr></table>
 </div>
-<a name="render"></a>
+<a name="column_types"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
        cellspacing="0" width="100%" bgcolor="white">
 <tr><td>
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">render</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">renderer</span>)</span>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">column_types</span>(<span class="sig-arg">self</span>)</span>
   </h3>
   </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.render">source&nbsp;code</a></span>&nbsp;
+    ><span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.column_types">source&nbsp;code</a></span>&nbsp;
     </td>
   </tr></table>
   
-  <pre class="literalblock">
-Produce results on the renderer given.
-
-Each plugin should implement this method to produce output on the
-renderer. The framework will initialize the plugin and provide it with
-some kind of renderer to write output on. The plugin should not assume
-that the renderer is actually TextRenderer, only that the methods
-defined in the BaseRenderer exist.
-
-Args:
-  renderer: A renderer based at rekall.ui.renderer.BaseRenderer.
-
-</pre>
+  <p>Returns instances for each column definition.</p>
+  <p>The actual objects that are returned when the plugin runs are often 
+  determined at run time because they depend on the profile loaded.</p>
+  <p>This method is used in order to introspect the types of each column 
+  without actually running the plugin. A plugin must provide an instance 
+  for each column without running any code. This allows interospectors to 
+  learn about the output format before running the actual plugin.</p>
+  <p>Note that this method should almost always be overloaded. We try to do
+  our best here but it is not ideal. Ultimately all plugins will override 
+  this method and just declare a column_types() method.</p>
   <dl class="fields">
     <dt>Overrides:
-        <a href="rekall.plugin.Command-class.html#render">plugin.Command.render</a>
+        <a href="rekall.plugin.TypedProfileCommand-class.html#column_types">plugin.TypedProfileCommand.column_types</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="collect"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">collect</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.windows.vadinfo-pysrc.html#VAD.collect">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Collect data that will be passed to renderer.table_row.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.plugin.TypedProfileCommand-class.html#collect">plugin.TypedProfileCommand.collect</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -765,6 +934,42 @@ Args:
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="table_header"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">table_header</h3>
+  <p>hash(x)</p>
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">hidden</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">type</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">_EPROCESS</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">divider</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">type</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Divider</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">offset</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">VAD</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">style</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">address</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">align</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">r</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">level</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">lev</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>3<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">start_pfn</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Start Addr</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">style</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">address</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">end_pfn</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">End Addr</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">style</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">address</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">align</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">r</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">com</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>6<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">type</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string"></code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>7<code class="variable-group">}</code><code class="variable-op">,</code>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -793,7 +998,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:21 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:08 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

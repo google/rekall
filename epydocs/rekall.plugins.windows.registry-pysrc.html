@@ -61,27 +61,33 @@
 <a name="L1"></a><tt class="py-lineno"> 1</tt>  <tt class="py-line"><tt class="py-comment"># Module for memory analysis of the windows registry.</tt> </tt>
 <a name="L2"></a><tt class="py-lineno"> 2</tt>  <tt class="py-line"><tt class="py-comment"># pylint: disable=unused-import</tt> </tt>
 <a name="L3"></a><tt class="py-lineno"> 3</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package rekall=rekall-module.html"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-0', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-1" class="py-name" targets="Package rekall.plugins=rekall.plugins-module.html,Method rekall.plugins.core.Info.plugins()=rekall.plugins.core.Info-class.html#plugins"><a title="rekall.plugins
-rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.overlays.windows=rekall.plugins.overlays.windows-module.html,Module rekall.plugins.overlays.windows.windows=rekall.plugins.overlays.windows.windows-module.html,Module rekall.plugins.renderers.windows=rekall.plugins.renderers.windows-module.html,Package rekall.plugins.windows=rekall.plugins.windows-module.html,Method rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows()=rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html#windows"><a title="rekall.plugins.overlays.windows
+rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-1', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-2" class="py-name" targets="Package rekall.plugins.overlays.windows=rekall.plugins.overlays.windows-module.html,Module rekall.plugins.overlays.windows.windows=rekall.plugins.overlays.windows.windows-module.html,Module rekall.plugins.renderers.windows=rekall.plugins.renderers.windows-module.html,Module rekall.plugins.response.windows=rekall.plugins.response.windows-module.html,Package rekall.plugins.windows=rekall.plugins.windows-module.html,Method rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows()=rekall.plugins.windows.gui.win32k_core.tagDESKTOP-class.html#windows"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
+rekall.plugins.response.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-2', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Package rekall.plugins.windows.registry=rekall.plugins.windows.registry-module.html,Module rekall.plugins.windows.registry.registry=rekall.plugins.windows.registry.registry-module.html,Module rekall.registry=rekall.registry-module.html"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-2', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-3" class="py-name" targets="Module rekall.plugins.response.registry=rekall.plugins.response.registry-module.html,Package rekall.plugins.windows.registry=rekall.plugins.windows.registry-module.html,Module rekall.plugins.windows.registry.registry=rekall.plugins.windows.registry.registry-module.html,Module rekall.registry=rekall.registry-module.html"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
 rekall.registry" class="py-name" href="#" onclick="return doclink('link-3', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Module rekall.plugins.windows.registry.evtlogs=rekall.plugins.windows.registry.evtlogs-module.html"><a title="rekall.plugins.windows.registry.evtlogs" class="py-name" href="#" onclick="return doclink('link-4', 'evtlogs', 'link-4');">evtlogs</a></tt> </tt>
 <a name="L4"></a><tt class="py-lineno"> 4</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-5', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-6" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-6', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-7" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
+rekall.plugins.response.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-7', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-7', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-8" class="py-name"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
 rekall.registry" class="py-name" href="#" onclick="return doclink('link-8', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-9" class="py-name" targets="Module rekall.plugins.windows.registry.getsids=rekall.plugins.windows.registry.getsids-module.html"><a title="rekall.plugins.windows.registry.getsids" class="py-name" href="#" onclick="return doclink('link-9', 'getsids', 'link-9');">getsids</a></tt> </tt>
 <a name="L5"></a><tt class="py-lineno"> 5</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-10" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-10', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-11" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-11', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
+rekall.plugins.response.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-12', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-12', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-13" class="py-name"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
 rekall.registry" class="py-name" href="#" onclick="return doclink('link-13', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-14" class="py-name" targets="Module rekall.plugins.windows.registry.getservicesids=rekall.plugins.windows.registry.getservicesids-module.html"><a title="rekall.plugins.windows.registry.getservicesids" class="py-name" href="#" onclick="return doclink('link-14', 'getservicesids', 'link-14');">getservicesids</a></tt> </tt>
 <a name="L6"></a><tt class="py-lineno"> 6</tt>  <tt class="py-line"> </tt>
@@ -96,26 +102,33 @@ rekall.registry" class="py-name" href="#" onclick="return doclink('link-13', 're
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-16', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-17" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
+rekall.plugins.response.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-17', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-17', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-18" class="py-name"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
 rekall.registry" class="py-name" href="#" onclick="return doclink('link-18', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-19" class="py-name" targets="Module rekall.plugins.windows.registry.printkey=rekall.plugins.windows.registry.printkey-module.html"><a title="rekall.plugins.windows.registry.printkey" class="py-name" href="#" onclick="return doclink('link-19', 'printkey', 'link-19');">printkey</a></tt> </tt>
 <a name="L15"></a><tt class="py-lineno">15</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-20" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-20', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-21" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-21', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-22" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
+rekall.plugins.response.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-22', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-22', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-23" class="py-name"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
-rekall.registry" class="py-name" href="#" onclick="return doclink('link-23', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-24" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.registry" class="py-name" href="#" onclick="return doclink('link-23', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-24" class="py-name"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
 rekall.registry" class="py-name" href="#" onclick="return doclink('link-24', 'registry', 'link-3');">registry</a></tt> </tt>
 <a name="L16"></a><tt class="py-lineno">16</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-25" class="py-name"><a title="rekall" class="py-name" href="#" onclick="return doclink('link-25', 'rekall', 'link-0');">rekall</a></tt><tt class="py-op">.</tt><tt id="link-26" class="py-name"><a title="rekall.plugins
 rekall.plugins.core.Info.plugins" class="py-name" href="#" onclick="return doclink('link-26', 'plugins', 'link-1');">plugins</a></tt><tt class="py-op">.</tt><tt id="link-27" class="py-name"><a title="rekall.plugins.overlays.windows
 rekall.plugins.overlays.windows.windows
 rekall.plugins.renderers.windows
+rekall.plugins.response.windows
 rekall.plugins.windows
-rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-27', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.windows.registry
+rekall.plugins.windows.gui.win32k_core.tagDESKTOP.windows" class="py-name" href="#" onclick="return doclink('link-27', 'windows', 'link-2');">windows</a></tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="rekall.plugins.response.registry
+rekall.plugins.windows.registry
 rekall.plugins.windows.registry.registry
 rekall.registry" class="py-name" href="#" onclick="return doclink('link-28', 'registry', 'link-3');">registry</a></tt> <tt class="py-keyword">import</tt> <tt id="link-29" class="py-name" targets="Module rekall.plugins.windows.registry.userassist=rekall.plugins.windows.registry.userassist-module.html"><a title="rekall.plugins.windows.registry.userassist" class="py-name" href="#" onclick="return doclink('link-29', 'userassist', 'link-29');">userassist</a></tt> </tt>
 <a name="L17"></a><tt class="py-lineno">17</tt>  <tt class="py-line"> </tt><script type="text/javascript">
@@ -153,7 +166,7 @@ expandto(location.href);
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:34 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:24 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

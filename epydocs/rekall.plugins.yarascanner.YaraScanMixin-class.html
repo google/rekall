@@ -60,14 +60,22 @@
 <h1 class="epydoc">Class YaraScanMixin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_yarascanmi" name="class_hierarchy_for_yarascanmi">
-<area shape="rect" id="node1" href="rekall.plugins.yarascanner.YaraScanMixin-class.html" title="YaraScanMixin" alt="" coords="5,6,99,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.darwin.yarascan.DarwinYaraScan-class.html" title="darwin.yarascan.DarwinYaraScan" alt="" coords="5,59,189,82"/>
+<area shape="rect" id="node2" href="rekall.plugins.linux.yarascan.LinYaraScan-class.html" title="linux.yarascan.LinYaraScan" alt="" coords="214,59,367,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.response.processes.ProcessYaraScanner-class.html" title="response.processes.ProcessYaraScanner" alt="" coords="392,59,613,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.response.yara.FileYaraScanner-class.html" title="response.yara.FileYaraScanner" alt="" coords="637,59,811,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.windows.dumpcerts.CertYaraScan-class.html" title="windows.dumpcerts.CertYaraScan" alt="" coords="835,59,1021,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.windows.malware.yarascan.WinYaraScan-class.html" title="windows.malware.yarascan.WinYaraScan" alt="" coords="1045,59,1267,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.yarascanner.SimpleYaraScan-class.html" title="SimpleYaraScan" alt="" coords="1291,59,1392,82"/>
+<area shape="rect" id="node8" href="rekall.plugins.yarascanner.YaraScanMixin-class.html" title="YaraScanMixin" alt="" coords="677,6,771,29"/>
 </map>
   <img src="class_hierarchy_for_yarascanmi.gif" alt='' usemap="#class_hierarchy_for_yarascanmi" ismap="ismap" class="graph-without-title" />
 </center>
 </center>
 <hr />
 <p>A common implementation of yara scanner.</p>
-  <p>This should be mixed with the process filter.</p>
+  <p>This should be mixed with the OS specific Scanner (e.g. WinScanner) 
+  and plugin.TypedProfileCommand.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -84,12 +92,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.yarascanner.YaraScanMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">string</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">scan_physical</span>=<span class="summary-sig-default">False</span>,
-        <span class="summary-sig-arg">yara_file</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">yara_expression</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">binary_string</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">hits</span>=<span class="summary-sig-default">10</span>,
+        <span class="summary-sig-arg">*args</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       Scan using yara signatures.</td>
           <td align="right" valign="top">
@@ -125,8 +128,7 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="generate_hits"></a><span class="summary-sig-name">generate_hits</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">address_space</span>,
-        <span class="summary-sig-arg">end</span>=<span class="summary-sig-default">None</span>)</span></td>
+        <span class="summary-sig-arg">run</span>)</span></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.generate_hits">source&nbsp;code</a></span>
             
@@ -142,65 +144,10 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="render_scan_physical"></a><span class="summary-sig-name">render_scan_physical</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
-      This method scans the physical memory.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render_scan_physical">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="render_kernel_scan"></a><span class="summary-sig-name">render_kernel_scan</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render_kernel_scan">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="render_task_scan"></a><span class="summary-sig-name">render_task_scan</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>,
-        <span class="summary-sig-arg">task</span>)</span><br />
-      Scan a task's address space.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render_task_scan">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="render"></a><span class="summary-sig-name">render</span>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">renderer</span>)</span><br />
+          <td><span class="summary-sig"><a name="collect"></a><span class="summary-sig-name">collect</span>(<span class="summary-sig-arg">self</span>)</span><br />
       Render output.</td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.render">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.collect">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -227,32 +174,6 @@
     </td>
   </tr>
 </table>
-<!-- ==================== CLASS METHODS ==================== -->
-<a name="section-ClassMethods"></a>
-<table class="summary" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr bgcolor="#70b0f0" class="table-header">
-  <td align="left" colspan="2" class="table-header">
-    <span class="table-header">Class Methods</span></td>
-</tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.yarascanner-pysrc.html#YaraScanMixin.args">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-</table>
 <!-- ==================== CLASS VARIABLES ==================== -->
 <a name="section-ClassVariables"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -265,7 +186,26 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a name="name"></a><span class="summary-name">name</span> = <code title="&quot;yarascan&quot;">&quot;yarascan&quot;</code>
+        <a name="name"></a><span class="summary-name">name</span> = <code title="'yarascan'"><code class="variable-quote">'</code><code class="variable-string">yarascan</code><code class="variable-quote">'</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.yarascanner.YaraScanMixin-class.html#table_header" class="summary-name">table_header</a> = <code title="[{'name': 'Owner', 'width': 20},
+ {'name': 'Rule', 'width': 10},
+ {'name': 'Offset', 'style': 'address'},
+ {'cname': 'hexdump', 'hex_width': 16, 'name': 'HexDump', 'width': 67}\
+,
+ {'name': 'Context'}]"><code class="variable-group">[</code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Owner</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>20<code class="variable-group">}</code><code class="variable-op">, </code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Rule</code><code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="scanner_defaults"></a><span class="summary-name">scanner_defaults</span> = <code title="{'scan_physical': True}"><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">scan_physical</code><code class="variable-quote">'</code><code class="variable-op">: </code>True<code class="variable-group">}</code></code>
     </td>
   </tr>
 </table>
@@ -302,12 +242,7 @@
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">string</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">scan_physical</span>=<span class="sig-default">False</span>,
-        <span class="sig-arg">yara_file</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">yara_expression</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">binary_string</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">hits</span>=<span class="sig-default">10</span>,
+        <span class="sig-arg">*args</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -321,6 +256,39 @@
     <dt>Overrides:
         object.__init__
     </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== CLASS VARIABLE DETAILS ==================== -->
+<a name="section-ClassVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Class Variable Details</span></td>
+</tr>
+</table>
+<a name="table_header"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">table_header</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+<code class="variable-group">[</code><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Owner</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>20<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Rule</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>10<code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Offset</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">style</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">address</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">cname</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">hexdump</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">hex_width</code><code class="variable-quote">'</code><code class="variable-op">: </code>16<code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">HexDump</code><code class="variable-quote">'</code><code class="variable-op">, </code><code class="variable-quote">'</code><code class="variable-string">width</code><code class="variable-quote">'</code><code class="variable-op">: </code>67<code class="variable-group">}</code><code class="variable-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-op">,</code>
+ <code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">name</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-quote">'</code><code class="variable-string">Context</code><code class="variable-quote">'</code><code class="variable-group">}</code><code class="variable-group">]</code>
+</pre></td></tr></table>
+</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -353,7 +321,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:21 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:17:09 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

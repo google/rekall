@@ -61,8 +61,9 @@
 <h1 class="epydoc">Class BuildIndex</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_buildindex" name="class_hierarchy_for_buildindex">
-<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="5,6,107,29"/>
-<area shape="rect" id="node2" href="rekall.plugins.tools.profile_tool.BuildIndex-class.html" title="BuildIndex" alt="" coords="21,59,91,82"/>
+<area shape="rect" id="node1" href="rekall.plugin.Command-class.html" title="plugin.Command" alt="" coords="43,6,145,29"/>
+<area shape="rect" id="node2" href="rekall.plugins.tools.profile_tool.BuildIndex-class.html" title="BuildIndex" alt="" coords="59,59,129,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.tools.profile_tool_test.BuildIndexTester-class.html" title="profile_tool_test.BuildIndexTester" alt="" coords="5,113,184,135"/>
 </map>
   <img src="class_hierarchy_for_buildindex.gif" alt='' usemap="#class_hierarchy_for_buildindex" ismap="ismap" class="graph-without-title" />
 </center>
@@ -74,9 +75,7 @@ Generate a profile index file based on an index specification.
 The index specification is currently a yaml file with the following
 structure:
 
-Structure:
-==========
-
+```
 base_symbol: (string) # OPTIONAL Compute ALL offsets as relative to this
     symbol. This includes MaxOffset and MinOffset.
 symbols: (array of dicts) # A list of symbols to index.
@@ -84,10 +83,11 @@ symbols: (array of dicts) # A list of symbols to index.
     name: (string) # Symbol name
     data: (string) # Data that should be at the symbol's offset
     shift: (int) # OPTIONAL Adjust symbol offset by this number
+```
 
-Example:
-========
+## Example:
 
+```
 path: win32k.sys
 symbols:
   -
@@ -101,11 +101,13 @@ symbols:
     name: &quot;wcschr&quot;
     shift: -1
     data: &quot;90&quot;
+```
 
 The result is an index profile. This has an $INDEX section which is a dict,
 with keys being the profile name, and values being a list of (offset, match)
 tuples. For example:
 
+```
 {
  &quot;$INDEX&quot;: {
   &quot;tcpip.sys/AMD64/6.0.6001.18000/0C1A1EC1D61E4508A33F5212FC1B37202&quot;: [[1184600, &quot;495053656344656c657465496e626f756e644f7574626f756e64536150616972&quot;]],
@@ -120,6 +122,7 @@ tuples. For example:
   &quot;MinOffset&quot;: 0
   }
  }
+```
 
 </pre>
 
@@ -167,6 +170,7 @@ tuples. For example:
           <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.BuildIndex-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">spec</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">root</span>=<span class="summary-sig-default"><code class="variable-quote">'</code><code class="variable-string">./</code><code class="variable-quote">'</code></span>,
+        <span class="summary-sig-arg">manager</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       The constructor for this command.</td>
           <td align="right" valign="top">
@@ -185,8 +189,7 @@ tuples. For example:
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.BuildIndex-class.html#ValidateDataIndex" class="summary-sig-name">ValidateDataIndex</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">index</span>,
-        <span class="summary-sig-arg">spec</span>)</span><br />
+        <span class="summary-sig-arg">index</span>)</span><br />
       Check the index for collisions.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex.ValidateDataIndex">source&nbsp;code</a></span>
@@ -226,6 +229,41 @@ tuples. For example:
       Builds a Struct index from specification.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex.BuildStructIndex">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.BuildIndex-class.html#BuildSymbolsIndex" class="summary-sig-name">BuildSymbolsIndex</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">spec</span>)</span><br />
+      Builds an index to identify profiles based on their symbols-offsets.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex.BuildSymbolsIndex">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="build_index"></a><span class="summary-sig-name">build_index</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">spec</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex.build_index">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -393,6 +431,25 @@ tuples. For example:
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugin.Command-class.html#GetPrototype" class="summary-sig-name">GetPrototype</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">session</span>)</span><br />
+      Return an instance of this plugin with suitable default arguments.
+      <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugin-pysrc.html#Command.GetPrototype">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.tools.profile_tool.BuildIndex-class.html#ImplementationByClass" class="summary-sig-name">ImplementationByClass</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>)</span></td>
           <td align="right" valign="top">
@@ -455,12 +512,12 @@ tuples. For example:
     </td><td class="summary">
         <a href="rekall.plugin.Command-class.html#classes" class="summary-name">classes</a> = <code title="{'AFF4Acquire': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Acquire'&gt;\
 ,
+ 'AFF4Dump': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Dump'&gt;,
  'AFF4Export': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Export'&gt;,
  'AFF4Ls': &lt;class 'rekall.plugins.tools.aff4acquire.AFF4Ls'&gt;,
  'AnalyzeStruct': &lt;class 'rekall.plugins.windows.interactive.structs.A\
 nalyzeStruct'&gt;,
  'Arp': &lt;class 'rekall.plugins.linux.arp.Arp'&gt;,
- 'AtomScan': &lt;class 'rekall.plugins.windows.gui.atoms.AtomScan'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">AFF4Acquire</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.tools.aff4acq<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -469,14 +526,14 @@ nalyzeStruct'&gt;,
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
-        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;],
+        <a href="rekall.plugin.Command-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.tools.ipython.BaseSessionCommand'&gt;,
+        &lt;class 'rekall.plugins.tools.profile_tool_test.BuildIndexTeste\
+r'&gt;],
  'address_resolver': [&lt;class 'rekall.plugins.windows.address_resolver.\
 WindowsAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.windows.address_resolver.\
 PEAddressResolver'&gt;,
                       &lt;class 'rekall.plugins.darwin.address_resolver.D\
-arwinAddressResolver'&gt;,
-                      &lt;class 'rekall.plugins.linux.address_resolver.Li\
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.tools.ipython<code class="variable-ellipsis">...</code></code>
       <em>(Inherited from <a href="rekall.plugin.Command-class.html">rekall.plugin.Command</a>)</em>
     </td>
@@ -583,6 +640,7 @@ arwinAddressResolver'&gt;,
   <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
         <span class="sig-arg">spec</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">root</span>=<span class="sig-default"><code class="variable-quote">'</code><code class="variable-string">./</code><code class="variable-quote">'</code></span>,
+        <span class="sig-arg">manager</span>=<span class="sig-default">None</span>,
         <span class="sig-arg">**kwargs</span>)</span>
     <br /><em class="fname">(Constructor)</em>
   </h3>
@@ -602,6 +660,10 @@ Args:
     session by default, if not provided. This allows users to omit
     specifying many options.
 
+  ignore_required: If this is true plugin constructors must allow the
+    plugin to be instantiated with no parameters. All parameter
+    validation shall be disabled and construction must succeed.
+
 </pre>
   <dl class="fields">
     <dt>Overrides:
@@ -619,8 +681,7 @@ Args:
   <table width="100%" cellpadding="0" cellspacing="0" border="0">
   <tr valign="top"><td>
   <h3 class="epydoc"><span class="sig"><span class="sig-name">ValidateDataIndex</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">index</span>,
-        <span class="sig-arg">spec</span>)</span>
+        <span class="sig-arg">index</span>)</span>
   </h3>
   </td><td align="right" valign="top"
     ><span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex.ValidateDataIndex">source&nbsp;code</a></span>&nbsp;
@@ -678,6 +739,46 @@ Args:
   <p>Builds a Struct index from specification.</p>
   <p>A Struct index is a collection of struct offsets for certain members 
   over all available versions.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="BuildSymbolsIndex"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">BuildSymbolsIndex</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">spec</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.tools.profile_tool-pysrc.html#BuildIndex.BuildSymbolsIndex">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Builds an index to identify profiles based on their 
+  symbols-offsets.</p>
+  <p>The index stores traits for each profile. A trait is a combination of 
+  1 or more symbol-offset pairs that uniquely identify it within the 
+  current profile repository.</p>
+  <p>The code handles:</p>
+  <ul>
+    <li>
+      Incremental updates of the index. Adding a new profile to the index 
+      doesn't trigger recomputing the entire index.
+    </li>
+    <li>
+      Detection of duplicates. If a profile is to be added that's already 
+      in the index, it will be detected and skipped.
+    </li>
+    <li>
+      Clash detection. If a new profile has some symbol-offsets that were 
+      traits of other profiles, the profile whose traits are not unique 
+      anymore will be found and its index rebuilt.
+    </li>
+  </ul>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -795,7 +896,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:11 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:58 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

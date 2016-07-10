@@ -61,16 +61,21 @@
 <h1 class="epydoc">Class ProcessFilterMixin</h1><p class="nomargin-top"><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin">source&nbsp;code</a></span></p>
 <center>
 <center>  <map id="class_hierarchy_for_processfil" name="class_hierarchy_for_processfil">
-<area shape="rect" id="node1" href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html" title="ProcessFilterMixin" alt="" coords="679,6,787,29"/>
+<area shape="rect" id="node1" href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html" title="ProcessFilterMixin" alt="" coords="1055,6,1163,29"/>
 <area shape="rect" id="node2" href="rekall.plugins.darwin.lsof.DarwinHandles-class.html" title="lsof.DarwinHandles" alt="" coords="5,59,120,82"/>
-<area shape="rect" id="node3" href="rekall.plugins.darwin.processes.DarwinMaps-class.html" title="processes.DarwinMaps" alt="" coords="144,59,277,82"/>
-<area shape="rect" id="node4" href="rekall.plugins.darwin.processes.DarwinMemDump-class.html" title="processes.DarwinMemDump" alt="" coords="301,59,460,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.darwin.processes.DarwinMemMap-class.html" title="processes.DarwinMemMap" alt="" coords="485,59,637,82"/>
-<area shape="rect" id="node6" href="rekall.plugins.darwin.processes.DarwinPSAUX-class.html" title="processes.DarwinPSAUX" alt="" coords="662,59,804,82"/>
-<area shape="rect" id="node7" href="rekall.plugins.darwin.processes.DarwinPslist-class.html" title="processes.DarwinPslist" alt="" coords="828,59,957,82"/>
-<area shape="rect" id="node8" href="rekall.plugins.darwin.processes.DarwinPsxView-class.html" title="processes.DarwinPsxView" alt="" coords="983,59,1129,82"/>
-<area shape="rect" id="node9" href="rekall.plugins.darwin.processes.DarwinVadDump-class.html" title="processes.DarwinVadDump" alt="" coords="1153,59,1307,82"/>
-<area shape="rect" id="node10" href="rekall.plugins.darwin.sigscan.DarwinSigScan-class.html" title="sigscan.DarwinSigScan" alt="" coords="1332,59,1465,82"/>
+<area shape="rect" id="node3" href="rekall.plugins.darwin.maps.DarwinVADMap-class.html" title="maps.DarwinVADMap" alt="" coords="144,59,272,82"/>
+<area shape="rect" id="node4" href="rekall.plugins.darwin.misc.DarwinSetProcessContext-class.html" title="misc.DarwinSetProcessContext" alt="" coords="296,59,467,82"/>
+<area shape="rect" id="node5" href="rekall.plugins.darwin.misc.DarwinVtoP-class.html" title="misc.DarwinVtoP" alt="" coords="491,59,593,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.darwin.pas2kas.DarwinPas2Vas-class.html" title="pas2kas.DarwinPas2Vas" alt="" coords="618,59,757,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.darwin.processes.DarwinMaps-class.html" title="processes.DarwinMaps" alt="" coords="783,59,916,82"/>
+<area shape="rect" id="node8" href="rekall.plugins.darwin.processes.DarwinMemDump-class.html" title="processes.DarwinMemDump" alt="" coords="940,59,1099,82"/>
+<area shape="rect" id="node9" href="rekall.plugins.darwin.processes.DarwinMemMap-class.html" title="processes.DarwinMemMap" alt="" coords="1124,59,1276,82"/>
+<area shape="rect" id="node10" href="rekall.plugins.darwin.processes.DarwinPSAUX-class.html" title="processes.DarwinPSAUX" alt="" coords="1301,59,1443,82"/>
+<area shape="rect" id="node11" href="rekall.plugins.darwin.processes.DarwinPslist-class.html" title="processes.DarwinPslist" alt="" coords="1467,59,1596,82"/>
+<area shape="rect" id="node12" href="rekall.plugins.darwin.processes.DarwinPsxView-class.html" title="processes.DarwinPsxView" alt="" coords="1621,59,1768,82"/>
+<area shape="rect" id="node13" href="rekall.plugins.darwin.processes.DarwinVadDump-class.html" title="processes.DarwinVadDump" alt="" coords="1792,59,1945,82"/>
+<area shape="rect" id="node14" href="rekall.plugins.darwin.sigscan.DarwinSigScan-class.html" title="sigscan.DarwinSigScan" alt="" coords="1971,59,2104,82"/>
+<area shape="rect" id="node15" href="rekall.plugins.darwin.yarascan.DarwinYaraScan-class.html" title="yarascan.DarwinYaraScan" alt="" coords="2128,59,2276,82"/>
 </map>
   <img src="class_hierarchy_for_processfil.gif" alt='' usemap="#class_hierarchy_for_processfil" ismap="ismap" class="graph-without-title" />
 </center>
@@ -86,28 +91,6 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Instance Methods</span></td>
 </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">pid</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">proc_regex</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">phys_proc</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">proc</span>=<span class="summary-sig-default">None</span>,
-        <span class="summary-sig-arg">**kwargs</span>)</span><br />
-      Filters processes by parameters.</td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.__init__">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
@@ -150,6 +133,7 @@
       <code>__format__</code>,
       <code>__getattribute__</code>,
       <code>__hash__</code>,
+      <code>__init__</code>,
       <code>__new__</code>,
       <code>__reduce__</code>,
       <code>__reduce_ex__</code>,
@@ -176,23 +160,6 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="args"></a><span class="summary-sig-name">args</span>(<span class="summary-sig-arg">cls</span>,
-        <span class="summary-sig-arg">parser</span>)</span></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.args">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
           <td><span class="summary-sig"><a name="methods"></a><span class="summary-sig-name">methods</span>(<span class="summary-sig-arg">cls</span>)</span><br />
       Return the names of available proc enumeration methods.</td>
           <td align="right" valign="top">
@@ -213,6 +180,13 @@
   <td align="left" colspan="2" class="table-header">
     <span class="table-header">Properties</span></td>
 </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.darwin.common.ProcessFilterMixin-class.html#filtering_requested" class="summary-name">filtering_requested</a>
+    </td>
+  </tr>
   <tr>
     <td colspan="2" class="summary">
     <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
@@ -230,43 +204,6 @@
     <span class="table-header">Method Details</span></td>
 </tr>
 </table>
-<a name="__init__"></a>
-<div>
-<table class="details" border="1" cellpadding="3"
-       cellspacing="0" width="100%" bgcolor="white">
-<tr><td>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr valign="top"><td>
-  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
-        <span class="sig-arg">pid</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">proc_regex</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">phys_proc</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">proc</span>=<span class="sig-default">None</span>,
-        <span class="sig-arg">**kwargs</span>)</span>
-    <br /><em class="fname">(Constructor)</em>
-  </h3>
-  </td><td align="right" valign="top"
-    ><span class="codelink"><a href="rekall.plugins.darwin.common-pysrc.html#ProcessFilterMixin.__init__">source&nbsp;code</a></span>&nbsp;
-    </td>
-  </tr></table>
-  
-  <pre class="literalblock">
-Filters processes by parameters.
-
-Args:
-   phys_proc_struct: One or more proc structs or offsets defined in
-      the physical AS.
-
-   pid: A single pid.
-
-</pre>
-  <dl class="fields">
-    <dt>Overrides:
-        object.__init__
-    </dt>
-  </dl>
-</td></tr></table>
-</div>
 <a name="virtual_process_from_physical_offset"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -299,6 +236,30 @@ Returns:
 </td></tr></table>
 </div>
 <br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td align="left" colspan="2" class="table-header">
+    <span class="table-header">Property Details</span></td>
+</tr>
+</table>
+<a name="filtering_requested"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">filtering_requested</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.filtering_requested(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
        bgcolor="#a0c0ff" cellspacing="0">
@@ -327,7 +288,7 @@ Returns:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:54 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:40 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

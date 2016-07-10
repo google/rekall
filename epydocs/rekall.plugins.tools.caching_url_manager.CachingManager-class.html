@@ -156,7 +156,7 @@
         <tr>
           <td><span class="summary-sig"><a href="rekall.plugins.tools.caching_url_manager.CachingManager-class.html#CheckInventory" class="summary-sig-name">CheckInventory</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">name</span>)</span><br />
-      Checks the validity of the inventory and if the path exists in it.</td>
+      Do we have this file at all?</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.plugins.tools.caching_url_manager-pysrc.html#CachingManager.CheckInventory">source&nbsp;code</a></span>
             
@@ -228,8 +228,26 @@
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
+          <td><span class="summary-sig"><a href="rekall.plugins.tools.caching_url_manager.CachingManager-class.html#ListFiles" class="summary-sig-name">ListFiles</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns a generator over all the files in this container.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="rekall.plugins.tools.caching_url_manager-pysrc.html#CachingManager.ListFiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
           <td><span class="summary-sig"><a href="rekall.io_manager.IOManager-class.html#Create" class="summary-sig-name">Create</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">name</span>)</span><br />
+        <span class="summary-sig-arg">name</span>,
+        <span class="summary-sig-arg">**options</span>)</span><br />
       Creates a new file in the container.
       <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
           <td align="right" valign="top">
@@ -308,24 +326,6 @@
       <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
           <td align="right" valign="top">
             <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.FlushInventory">source&nbsp;code</a></span>
-            
-          </td>
-        </tr>
-      </table>
-      
-    </td>
-  </tr>
-<tr>
-    <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
-    </td><td class="summary">
-      <table width="100%" cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td><span class="summary-sig"><a name="ListFiles"></a><span class="summary-sig-name">ListFiles</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Returns a generator over all the files in this container.
-      <em>(Inherited from <a href="rekall.io_manager.IOManager-class.html">rekall.io_manager.IOManager</a>)</em></td>
-          <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.io_manager-pysrc.html#IOManager.ListFiles">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -680,14 +680,11 @@ Args:
     </td>
   </tr></table>
   
-  <p>Checks the validity of the inventory and if the path exists in it.</p>
-  <p>The inventory is a json object at the root of the repository which 
-  lists all the profiles in this repository. It allows us to determine 
-  quickly if a profile exists in this repository.</p>
+  <p>Do we have this file at all?</p>
+  <p>Search for it in either the cache or in the delegate.</p>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.io_manager.IOManager-class.html#CheckInventory">io_manager.IOManager.CheckInventory</a>
-        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -759,13 +756,38 @@ Args:
   name: The name under which the data will be stored.
   data: The data to store.
 
+Common options:
   raw: If true we write the data directly without encoding to json. In
     this case data should be a string.
+  uncompressed: File will not be compressed (default gzip compression).
 
 </pre>
   <dl class="fields">
     <dt>Overrides:
         <a href="rekall.io_manager.IOManager-class.html#StoreData">io_manager.IOManager.StoreData</a>
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="ListFiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">ListFiles</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="rekall.plugins.tools.caching_url_manager-pysrc.html#CachingManager.ListFiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns a generator over all the files in this container.</p>
+  <dl class="fields">
+    <dt>Overrides:
+        <a href="rekall.io_manager.IOManager-class.html#ListFiles">io_manager.IOManager.ListFiles</a>
         <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
@@ -848,7 +870,7 @@ Args:
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:09 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:56 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

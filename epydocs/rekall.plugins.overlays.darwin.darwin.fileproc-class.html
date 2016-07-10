@@ -123,10 +123,10 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="GetData"></a><span class="summary-sig-name">GetData</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Returns the raw data of this struct.
-      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+      Returns the raw data of this object.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.GetData">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.GetData">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -309,6 +309,7 @@
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">members</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">struct_size</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">callable_members</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       This must be instantiated with a dict of members.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
@@ -562,7 +563,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#m" class="summary-sig-name">m</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">attr</span>)</span><br />
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">allow_callable_attributes</span>=<span class="summary-sig-default">False</span>)</span><br />
       Fetch the member named by attr.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
@@ -581,7 +583,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#multi_m" class="summary-sig-name">multi_m</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>)</span><br />
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**opts</span>)</span><br />
       Retrieve a set of fields in order.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
@@ -816,6 +819,22 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html#socket" class="summary-name">socket</a><br />
+      Return the associated socket if the dtype is for socket.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html#vnode" class="summary-name">vnode</a><br />
+      Return the associated vnode if the dtype is for vnode.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.plugins.overlays.darwin.darwin.fileproc-class.html#human_name" class="summary-name">human_name</a>
     </td>
   </tr>
@@ -968,6 +987,36 @@ socket. For everything else, we return a NoneObject.
   </dl>
 </td></tr></table>
 </div>
+<a name="socket"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">socket</h3>
+  <p>Return the associated socket if the dtype is for socket.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.socket(<span class="summary-sig-arg">self</span>)</span>
+        - Return the associated socket if the dtype is for socket.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="vnode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">vnode</h3>
+  <p>Return the associated vnode if the dtype is for vnode.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.vnode(<span class="summary-sig-arg">self</span>)</span>
+        - Return the associated vnode if the dtype is for vnode.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
 <a name="human_name"></a>
 <div>
 <table class="details" border="1" cellpadding="3"
@@ -1025,7 +1074,7 @@ socket. For everything else, we return a NoneObject.
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:02 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:48 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

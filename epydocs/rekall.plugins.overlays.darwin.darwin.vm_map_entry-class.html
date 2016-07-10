@@ -121,10 +121,10 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="GetData"></a><span class="summary-sig-name">GetData</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Returns the raw data of this struct.
-      <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
+      Returns the raw data of this object.
+      <em>(Inherited from <a href="rekall.obj.BaseObject-class.html">rekall.obj.BaseObject</a>)</em></td>
           <td align="right" valign="top">
-            <span class="codelink"><a href="rekall.obj-pysrc.html#Struct.GetData">source&nbsp;code</a></span>
+            <span class="codelink"><a href="rekall.obj-pysrc.html#BaseObject.GetData">source&nbsp;code</a></span>
             
           </td>
         </tr>
@@ -307,6 +307,7 @@
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">members</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">struct_size</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">callable_members</span>=<span class="summary-sig-default">None</span>,
         <span class="summary-sig-arg">**kwargs</span>)</span><br />
       This must be instantiated with a dict of members.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
@@ -560,7 +561,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#m" class="summary-sig-name">m</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">attr</span>)</span><br />
+        <span class="summary-sig-arg">attr</span>,
+        <span class="summary-sig-arg">allow_callable_attributes</span>=<span class="summary-sig-default">False</span>)</span><br />
       Fetch the member named by attr.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
@@ -579,7 +581,8 @@
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="rekall.obj.Struct-class.html#multi_m" class="summary-sig-name">multi_m</a>(<span class="summary-sig-arg">self</span>,
-        <span class="summary-sig-arg">*args</span>)</span><br />
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**opts</span>)</span><br />
       Retrieve a set of fields in order.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em></td>
           <td align="right" valign="top">
@@ -827,6 +830,14 @@
     <td width="15%" align="right" valign="top" class="summary">
       <span class="summary-type">&nbsp;</span>
     </td><td class="summary">
+        <a href="rekall.plugins.overlays.darwin.darwin.vm_map_entry-class.html#vmo_object" class="summary-name">vmo_object</a><br />
+      Return the vm_object instance for this entry.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
         <a href="rekall.obj.Struct-class.html#indices" class="summary-name">indices</a><br />
       Returns (usually 1) representation(s) of self usable as dict keys.
       <em>(Inherited from <a href="rekall.obj.Struct-class.html">rekall.obj.Struct</a>)</em>
@@ -977,6 +988,31 @@
   </dl>
 </td></tr></table>
 </div>
+<a name="vmo_object"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">vmo_object</h3>
+  <p>Return the vm_object instance for this entry.</p>
+  <p>There's an intermediate link called struct vm_map_entry.</p>
+  <p>The members will be called either 'object' and 'vm_object' or 
+  'vme_object' and 'vmo_object'.</p>
+  <p>There is no easy heuristic for which it will be in a particular kernel
+  version* so we just try both, since they mean the same thing.</p>
+  <p>* The kernel version numbers could be identical for kernels built from
+  a feature branch and a kernel build from trunk, and the two could be 
+  months apart. Furthermore, the profiles are generated not from the kernel
+  itself but from a debug kit and can end up using out of date naming 
+  conventions.</p>
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><i>unreachable</i>.vmo_object(<span class="summary-sig-arg">self</span>)</span>
+        - Return the vm_object instance for this entry.
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
 <br />
 <!-- ==================== NAVIGATION BAR ==================== -->
 <table class="navbar" border="0" width="100%" cellpadding="0"
@@ -1006,7 +1042,7 @@
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:28:03 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:48 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"

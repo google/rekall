@@ -62,12 +62,13 @@
 <center>  <map id="class_hierarchy_for_detectionm" name="class_hierarchy_for_detectionm">
 <area shape="rect" id="node1" href="rekall.plugins.filesystems.ntfs.NTFSDetector-class.html" title="filesystems.ntfs.NTFSDetector" alt="" coords="5,59,171,82"/>
 <area shape="rect" id="node2" href="rekall.plugins.guess_profile.DarwinIndexDetector-class.html" title="DarwinIndexDetector" alt="" coords="196,59,319,82"/>
-<area shape="rect" id="node3" href="rekall.plugins.guess_profile.DetectionMethod-class.html" title="DetectionMethod" alt="" coords="426,6,528,29"/>
+<area shape="rect" id="node3" href="rekall.plugins.guess_profile.DetectionMethod-class.html" title="DetectionMethod" alt="" coords="495,6,597,29"/>
 <area shape="rect" id="node4" href="rekall.plugins.guess_profile.LinuxBannerDetector-class.html" title="LinuxBannerDetector" alt="" coords="343,59,465,82"/>
-<area shape="rect" id="node5" href="rekall.plugins.guess_profile.PEImageFileDetector-class.html" title="PEImageFileDetector" alt="" coords="490,59,613,82"/>
-<area shape="rect" id="node6" href="rekall.plugins.guess_profile.WindowsIndexDetector-class.html" title="WindowsIndexDetector" alt="" coords="638,59,769,82"/>
-<area shape="rect" id="node8" href="rekall.plugins.guess_profile.WindowsRSDSDetector-class.html" title="WindowsRSDSDetector" alt="" coords="795,59,929,82"/>
-<area shape="rect" id="node7" href="rekall.plugins.guess_profile.WindowsKernelImageDetector-class.html" title="WindowsKernelImageDetector" alt="" coords="779,113,945,135"/>
+<area shape="rect" id="node5" href="rekall.plugins.guess_profile.LinuxIndexDetector-class.html" title="LinuxIndexDetector" alt="" coords="489,59,604,82"/>
+<area shape="rect" id="node6" href="rekall.plugins.guess_profile.PEImageFileDetector-class.html" title="PEImageFileDetector" alt="" coords="629,59,752,82"/>
+<area shape="rect" id="node7" href="rekall.plugins.guess_profile.WindowsIndexDetector-class.html" title="WindowsIndexDetector" alt="" coords="777,59,908,82"/>
+<area shape="rect" id="node9" href="rekall.plugins.guess_profile.WindowsRSDSDetector-class.html" title="WindowsRSDSDetector" alt="" coords="933,59,1068,82"/>
+<area shape="rect" id="node8" href="rekall.plugins.guess_profile.WindowsKernelImageDetector-class.html" title="WindowsKernelImageDetector" alt="" coords="918,113,1084,135"/>
 </map>
   <img src="class_hierarchy_for_detectionm.gif" alt='' usemap="#class_hierarchy_for_detectionm" ismap="ismap" class="graph-without-title" />
 </center>
@@ -301,8 +302,8 @@ exDetector'&gt;,
 od'&gt;,
  'LinuxBannerDetector': &lt;class 'rekall.plugins.guess_profile.LinuxBann\
 erDetector'&gt;,
- 'NTFSDetector': &lt;class 'rekall.plugins.filesystems.ntfs.NTFSDetector'\
-&gt;,
+ 'LinuxIndexDetector': &lt;class 'rekall.plugins.guess_profile.LinuxIndex\
+Detector'&gt;,
 ..."><code class="variable-group">{</code><code class="variable-quote">'</code><code class="variable-string">DarwinIndexDetector</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.guess<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -313,11 +314,11 @@ erDetector'&gt;,
         <a href="rekall.plugins.guess_profile.DetectionMethod-class.html#classes_by_name" class="summary-name">classes_by_name</a> = <code title="{None: [&lt;class 'rekall.plugins.guess_profile.DetectionMethod'&gt;],
  'linux': [&lt;class 'rekall.plugins.guess_profile.LinuxBannerDetector'&gt;]\
 ,
+ 'linux_index': [&lt;class 'rekall.plugins.guess_profile.LinuxIndexDetect\
+or'&gt;],
  'nt_index': [&lt;class 'rekall.plugins.guess_profile.WindowsIndexDetecto\
 r'&gt;],
  'ntfs': [&lt;class 'rekall.plugins.filesystems.ntfs.NTFSDetector'&gt;],
- 'osx': [&lt;class 'rekall.plugins.guess_profile.DarwinIndexDetector'&gt;],
- 'pe': [&lt;class 'rekall.plugins.guess_profile.PEImageFileDetector'&gt;],
 ..."><code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile<code class="variable-ellipsis">...</code></code>
     </td>
   </tr>
@@ -451,8 +452,8 @@ exDetector'&gt;<code class="variable-op">,</code>
 od'&gt;<code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">LinuxBannerDetector</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.guess_profile.LinuxBann<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 erDetector'&gt;<code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">NTFSDetector</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.filesystems.ntfs.NTFSDetector'<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
-&gt;<code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">LinuxIndexDetector</code><code class="variable-quote">'</code><code class="variable-op">: </code>&lt;class 'rekall.plugins.guess_profile.LinuxIndex<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+Detector'&gt;<code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -474,11 +475,11 @@ erDetector'&gt;<code class="variable-op">,</code>
 <code class="variable-group">{</code>None<code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile.DetectionMethod'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">linux</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile.LinuxBannerDetector'&gt;<code class="variable-group">]</code><code class="variable-op"></code><span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 <code class="variable-op">,</code>
+ <code class="variable-quote">'</code><code class="variable-string">linux_index</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile.LinuxIndexDetect<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+or'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">nt_index</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile.WindowsIndexDetecto<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
 r'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
  <code class="variable-quote">'</code><code class="variable-string">ntfs</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.filesystems.ntfs.NTFSDetector'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">osx</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile.DarwinIndexDetector'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
- <code class="variable-quote">'</code><code class="variable-string">pe</code><code class="variable-quote">'</code><code class="variable-op">: </code><code class="variable-group">[</code>&lt;class 'rekall.plugins.guess_profile.PEImageFileDetector'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
 <code class="variable-ellipsis">...</code>
 </pre></td></tr></table>
 </dd>
@@ -514,7 +515,7 @@ r'&gt;<code class="variable-group">]</code><code class="variable-op">,</code>
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Mon Feb  1 01:27:58 2016
+    Generated by Epydoc 3.0.1 on Sun Jul 10 00:16:43 2016
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
