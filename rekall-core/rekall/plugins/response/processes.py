@@ -10,12 +10,13 @@ from rekall.plugins.overlays import basic
 from rekall.plugins import yarascanner
 
 
-class LiveProcess(utils.AttributeDict):
+class _LiveProcess(utils.AttributeDict):
     """An object to represent a live process.
 
     This is the live equivalent of _EPROCESS.
     """
     _proc = None
+    _obj_profile = None
     session = None
 
     def __init__(self, proc, session=None):
@@ -27,20 +28,37 @@ class LiveProcess(utils.AttributeDict):
         # Hold on to the original psutil object.
         self._proc = proc
         self.session = session
-        self.environ = None
-        super(LiveProcess, self).__init__(**proc.as_dict())
-
-        # Some processes do not have environ defined.
-        if self.environ is None:
-            self.environ = {}
+        super(_LiveProcess, self).__init__()
 
         self.create_time = basic.UnixTimeStamp(
             name="create_time", value=self.create_time, session=self.session)
 
-        self.obj_profile = common.IRProfile(session=session, proc=self)
+    @utils.safe_property
+    def obj_profile(self):
+        # Delay creation of the profile because it needs to look in the
+        # environment which is slow.
+        if self._obj_profile is None:
+            self._obj_profile = common.IRProfile(
+                session=self.session, proc=self)
+
+        return self._obj_profile
 
     def __int__(self):
         return self.pid
+
+    def _get_field(self, field_name):
+        try:
+            result = getattr(self._proc, field_name)
+            if callable(result):
+                result = result()
+
+            return result
+        except psutil.Error:
+            # Some processes do not have environ defined.
+            if field_name == "environ":
+                return {}
+
+            return None
 
     def __format__(self, formatspec):
         """Support the format() protocol."""
@@ -57,6 +75,27 @@ class LiveProcess(utils.AttributeDict):
 
     def get_process_address_space(self):
         return common.IRProcessAddressSpace(self.pid, session=self.session)
+
+    def as_dict(self):
+        return self._proc.as_dict()
+
+# Automatically add accessors for psutil fields.
+psutil_fields = ['cmdline', 'connections', 'cpu_affinity',
+                 'cpu_percent', 'cpu_times', 'create_time',
+                 'cwd', 'environ', 'exe', 'gids', 'io_counters',
+                 'ionice', 'memory_full_info', 'memory_info',
+                 'memory_info_ex', 'memory_maps', 'memory_percent',
+                 'name', 'nice', 'num_ctx_switches', 'num_fds',
+                 'num_threads', 'open_files', 'pid', 'ppid',
+                 'status', 'terminal', 'threads', 'uids', 'username']
+
+# Generate accessors for psutil derived properties.
+properties = {}
+for field in psutil_fields:
+    properties[field] = property(
+        lambda self, field=field: self._get_field(field))
+
+LiveProcess = type("LiveProcess", (_LiveProcess, ), properties)
 
 
 class IRProcessFilter(common.AbstractIRCommandPlugin):
@@ -78,7 +117,7 @@ class IRProcessFilter(common.AbstractIRCommandPlugin):
 
     def filter_processes(self):
         """Filters eprocess list using pids lists."""
-        for proc in self.list_eprocess():
+        for proc in self.list_process():
             if not self.filtering_requested:
                 yield proc
 
@@ -91,10 +130,9 @@ class IRProcessFilter(common.AbstractIRCommandPlugin):
                           utils.SmartUnicode(proc.name))):
                     yield proc
 
-    def list_eprocess(self):
+    def list_process(self):
         result = [LiveProcess(x, session=self.session)
                   for x in psutil.process_iter()]
-        result.sort(key=lambda x: x.pid)
 
         return result
 

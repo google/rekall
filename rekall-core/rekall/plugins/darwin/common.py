@@ -149,9 +149,12 @@ class CatfishOffsetHook(AbstractDarwinParameterHook):
     name = "catfish_offset"
 
     def calculate(self):
+        limit = self.session.GetParameter(
+            "autodetect_scan_length", 10*1024*1024*1024)
+
         for hit in CatfishScanner(
                 address_space=self.session.physical_address_space,
-                session=self.session).scan():
+                session=self.session).scan(0, maxlen=limit):
             return hit
 
 
@@ -215,9 +218,11 @@ class DarwinFindKASLR(plugin.PhysicalASMixin, DarwinOnlyMixin,
         first_hit = self.session.GetParameter("catfish_offset")
         yield first_hit
 
+        maxlen = self.session.GetParameter("autodetect_scan_length")
         for hit in CatfishScanner(
                 address_space=self.session.physical_address_space,
-                session=self.session).scan(offset=first_hit + 1):
+                session=self.session).scan(offset=first_hit + 1,
+                                           maxlen=maxlen):
             yield hit
 
     def vm_kernel_slide_hits(self):

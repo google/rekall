@@ -122,11 +122,13 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
     def scan_for_process(self):
         """Scan the image for the idle process."""
-        maxlen = self.session.GetParameter("autodetect_scan_length")
+        maxlen = self.session.GetParameter("autodetect_scan_length",
+                                           10*1024*1024*1024)
         for process in WinDTBScanner(
                 session=self.session, process_name=self.process_name,
                 profile=self.profile,
-                address_space=self.physical_address_space).scan(0, maxlen):
+                address_space=self.physical_address_space).scan(
+                    0, maxlen=maxlen):
             yield process
 
     def address_space_hits(self):
@@ -623,6 +625,8 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                             start=module.start, end=module.end,
                             address_space=self.session.kernel_address_space,
                             data=dict(type=comment, module=module))
+                        run.length = min(run.length, self.plugin_args.limit)
+                        yield run
 
                         run.length = min(run.length, self.plugin_args.limit)
                         yield run

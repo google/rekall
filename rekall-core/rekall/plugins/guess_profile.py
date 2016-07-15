@@ -737,8 +737,9 @@ class ProfileHook(kb.ParameterHook):
                         method.name, profile)
                     return profile
 
+        # 10 GB by default.
         autodetect_scan_length = self.session.GetParameter(
-            "autodetect_scan_length")
+            "autodetect_scan_length", 10*1024*1024*1024)
 
         # Build and configure the scanner.
         scanner = scan.MultiStringScanner(

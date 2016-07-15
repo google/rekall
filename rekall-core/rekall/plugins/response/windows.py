@@ -1,12 +1,9 @@
 """Windows specific response plugins."""
-import ctypes
 import itertools
 import re
 import win32api
 import pythoncom
 import win32com.client
-
-from ctypes import wintypes
 
 from rekall import plugin
 from rekall import obj

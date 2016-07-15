@@ -12,3 +12,6 @@ if platform.system() == "Windows":
     from rekall.plugins.response import registry
     from rekall.plugins.response import windows
     from rekall.plugins.response import windows_processes
+
+elif platform.system() == "Linux":
+    from rekall.plugins.response import linux

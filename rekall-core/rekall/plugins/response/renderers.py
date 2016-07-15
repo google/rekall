@@ -90,3 +90,10 @@ class LiveProcessTextRenderer(text.TextObjectRenderer):
 
     def render_row(self, target, width=None, **_):
         return text.Cell("%s (%s)" % (target.name, target.pid), width=width)
+
+class LiveProcessDataExportRenderer(
+        data_export.DataExportBaseObjectRenderer):
+    renders_type = "LiveProcess"
+
+    def GetState(self, item, **_):
+        return item.as_dict()

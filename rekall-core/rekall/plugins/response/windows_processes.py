@@ -1,7 +1,7 @@
-import ctypes
 import weakref
 import win32con
 
+import ctypes
 from ctypes import wintypes
 from rekall import addrspace
 from rekall import utils
@@ -10,9 +10,9 @@ from rekall.plugins.response import common
 from rekall.plugins.response import processes
 
 
-READ_ACCESS =  (win32con.PROCESS_VM_READ |
-                win32con.PROCESS_VM_OPERATION |
-                win32con.PROCESS_QUERY_INFORMATION)
+READ_ACCESS = (win32con.PROCESS_VM_READ |
+               win32con.PROCESS_VM_OPERATION |
+               win32con.PROCESS_QUERY_INFORMATION)
 
 MEMORY_PROTECTIONS = {
     0x10: "x---",
@@ -112,7 +112,7 @@ MAX_PATH = 1024
 
 class ProcessHandle(object):
     def __init__(self, pid):
-        handle = self.handle = ctypes.windll.kernel32.OpenProcess (
+        handle = self.handle = ctypes.windll.kernel32.OpenProcess(
             READ_ACCESS, # win32con.PROCESS_ALL_ACCESS,
             False,
             pid)
