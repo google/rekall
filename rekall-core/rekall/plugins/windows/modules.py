@@ -20,8 +20,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-import re
-
 from rekall import plugin
 from rekall import scan
 from rekall import utils
@@ -155,7 +153,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
         scanner = RSDSScanner(address_space=self.physical_address_space,
                               session=self.session, profile=pe_profile)
 
-        for hit in scanner.scan():
+        for hit in scanner.scan(0, self.physical_address_space.end()):
             rsds = pe_profile.CV_RSDS_HEADER(
                 offset=hit, vm=self.physical_address_space)
 

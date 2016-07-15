@@ -203,21 +203,22 @@ class WindowsFileMappingDescriptor(intel.AddressTranslationDescriptor):
         if subsection is None:
             subsection = self.get_subsection()
 
-        for details in self.session.GetParameter("subsections").get(
-                subsection.obj_offset, []):
-            task = self.session.profile._EPROCESS(details["task"])
-            vad = self.session.profile.Object(offset=details["vad"],
-                                              type_name=details["type"])
+        if subsection:
+            for details in self.session.GetParameter("subsections").get(
+                    subsection.obj_offset, []):
+                task = self.session.profile._EPROCESS(details["task"])
+                vad = self.session.profile.Object(offset=details["vad"],
+                                                  type_name=details["type"])
 
-            # Find the virtual address.
-            size_of_pte = self.session.profile.get_obj_size("_MMPTE")
-            relative_offset = (
-                self.pte_address - vad.FirstPrototypePte.v()) / size_of_pte
+                # Find the virtual address.
+                size_of_pte = self.session.profile.get_obj_size("_MMPTE")
+                relative_offset = (
+                    self.pte_address - vad.FirstPrototypePte.v()) / size_of_pte
 
-            virtual_address = (
-                relative_offset * 0x1000 + vad.Start + self.page_offset)
+                virtual_address = (
+                    relative_offset * 0x1000 + vad.Start + self.page_offset)
 
-            result.append((task, virtual_address))
+                result.append((task, virtual_address))
 
         return result
 

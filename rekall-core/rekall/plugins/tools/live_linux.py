@@ -39,7 +39,8 @@ from rekall import session
 from rekall.plugins.addrspaces import standard
 
 
-class Live(plugin.ProfileCommand):
+class Live(plugin.TypedProfileCommand,
+           plugin.ProfileCommand):
     """Launch a Rekall shell for live analysis on the current system."""
 
     name = "live"
@@ -95,7 +96,7 @@ class Live(plugin.ProfileCommand):
     def __exit__(self, exc_type, exc_value, trace):
         self.close()
 
-    def render(self, renderer):
+    def collect(self, renderer):
         renderer.format("Launching live memory analysis\n")
         self.live()
 

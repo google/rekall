@@ -834,8 +834,8 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
              required=True, default=0,
              help="An offset to hexdump."),
 
-        dict(name="address_space", type="AddressSpace",
-             help="The address space to use."),
+        dict(name="address_space", type="AddressSpace", positional=True,
+             required=False, help="The address space to use."),
 
         dict(name="data",
              help="Dump this string instead."),

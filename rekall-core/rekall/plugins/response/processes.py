@@ -1,7 +1,6 @@
 """Rekall plugins for displaying processes in live triaging."""
 
 import psutil
-from rekall import obj
 from rekall import utils
 
 from rekall.plugins import core
@@ -9,7 +8,6 @@ from rekall.plugins.response import common
 from rekall.plugins.overlays import basic
 
 from rekall.plugins import yarascanner
-from rekall.plugins.common import scanners
 
 
 class LiveProcess(utils.AttributeDict):
@@ -29,6 +27,7 @@ class LiveProcess(utils.AttributeDict):
         # Hold on to the original psutil object.
         self._proc = proc
         self.session = session
+        self.environ = None
         super(LiveProcess, self).__init__(**proc.as_dict())
 
         # Some processes do not have environ defined.

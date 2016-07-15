@@ -843,8 +843,8 @@ class Session(object):
         # We reset the renderer and make it hoard messages until we have the
         # new one.
         self.logging.debug(
-            "Running plugin (%s) with args (%s) kwargs (%s)",
-            plugin_name, args, kwargs)
+            u"Running plugin (%s) with args (%s) kwargs (%s)",
+            plugin_name, args, utils.SmartUnicode(kwargs)[:1000])
 
         with ui_renderer.start(plugin_name=plugin_name, kwargs=kwargs):
             try:

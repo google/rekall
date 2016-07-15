@@ -36,7 +36,6 @@ from rekall import utils
 from rekall.plugins import core
 from rekall.plugins import yarascanner
 from rekall.plugins.windows import common
-from rekall.plugins.windows import vadinfo
 from rekall.plugins.overlays import basic
 
 
@@ -116,7 +115,8 @@ class CertScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
             session=self.session,
             profile=basic.Profile32Bits(session=self.session))
 
-        for hit, type, data, description in scanner.scan():
+        for hit, type, data, description in scanner.scan(
+                0, self.physical_address_space.end()):
             yield dict(address=hit,
                        type=type,
                        length=len(data),
@@ -229,6 +229,13 @@ rule pkcs {
                            description=description,
                            Context=row["Context"],
                            data=data)
+
+
+class TestCertYaraScan(testlib.SimpleTestCase):
+    PARAMETERS = dict(
+        commandline="certscan --limit %(limit)s",
+        limit=20000000
+    )
 
 
 class TestCertVadScan(testlib.HashChecker):

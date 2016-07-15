@@ -122,10 +122,11 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
     def scan_for_process(self):
         """Scan the image for the idle process."""
+        maxlen = self.session.GetParameter("autodetect_scan_length")
         for process in WinDTBScanner(
                 session=self.session, process_name=self.process_name,
                 profile=self.profile,
-                address_space=self.physical_address_space).scan():
+                address_space=self.physical_address_space).scan(0, maxlen):
             yield process
 
     def address_space_hits(self):
@@ -520,10 +521,14 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
 
         dict(name="scan_kernel_session_pools", default=False, type="Boolean",
              help="Scan session pools for all processes."),
+
+        dict(name="limit", default=2**64, type="IntParser",
+             help="The length of data to search in each selected region."),
     ]
 
     def generate_memory_ranges(self):
         for run in super(WinScanner, self).generate_memory_ranges():
+            run.length = min(run.length, self.plugin_args.limit)
             yield run
 
         pools_seen = set()
@@ -549,10 +554,14 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                         "Scanning in: %s. [%#x-%#x]" % (
                             comment, pool.PoolStart, pool.PoolEnd))
 
-                    yield addrspace.Run(
+                    run = addrspace.Run(
                         start=pool.PoolStart, end=pool.PoolEnd,
                         address_space=pool.obj_vm,
                         data=dict(type=comment, pool=pool))
+
+                    run.length = min(run.length, self.plugin_args.limit)
+
+                    yield run
 
             # Non paged pool selection.
             if self.plugin_args.scan_kernel_nonpaged_pool:
@@ -569,10 +578,13 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                         "Scanning in: %s. [%#x-%#x]" % (
                             comment, pool.PoolStart, pool.PoolEnd))
 
-                    yield addrspace.Run(
+                    run = addrspace.Run(
                         start=pool.PoolStart, end=pool.PoolEnd,
                         address_space=pool.obj_vm,
                         data=dict(type=comment, pool=pool))
+
+                    run.length = min(run.length, self.plugin_args.limit)
+                    yield run
 
             if self.plugin_args.scan_kernel_paged_pool:
                 for pool in pool_plugin.find_paged_pool():
@@ -588,10 +600,13 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                     self.session.logging.info("Scanning in: %s [%#x-%#x]" % (
                         comment, pool.PoolStart, pool.PoolEnd))
 
-                    yield addrspace.Run(
+                    run = addrspace.Run(
                         start=pool.PoolStart, end=pool.PoolEnd,
                         address_space=pool.obj_vm,
                         data=dict(type=comment, pool=pool))
+
+                    run.length = min(run.length, self.plugin_args.limit)
+                    yield run
 
             if self.plugin_args.scan_kernel_code:
                 cc = self.session.plugins.cc()
@@ -604,10 +619,13 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                             "Scanning in: %s [%#x-%#x]" % (
                                 comment, module.start, module.end))
 
-                        yield addrspace.Run(
+                        run = addrspace.Run(
                             start=module.start, end=module.end,
                             address_space=self.session.kernel_address_space,
                             data=dict(type=comment, module=module))
+
+                        run.length = min(run.length, self.plugin_args.limit)
+                        yield run
 
 
 class PoolScannerPlugin(WinScanner, AbstractWindowsCommandPlugin):

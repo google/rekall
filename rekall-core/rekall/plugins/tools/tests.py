@@ -20,3 +20,4 @@
 
 from rekall.plugins.tools import dynamic_profiles_test
 from rekall.plugins.tools import json_test
+from rekall.plugins.tools import yara_support_test

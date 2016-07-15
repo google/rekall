@@ -30,42 +30,6 @@ from rekall import utils
 from rekall.plugins.common import pfn
 
 
-class BaseYaraASScanner(scan.BaseScanner):
-    """An address space scanner for Yara signatures."""
-    overlap = 1024
-
-    def __init__(self, rules=None, **kwargs):
-        super(BaseYaraASScanner, self).__init__(**kwargs)
-        self.rules = rules
-        self.hits = []
-        self.base_offset = None
-
-    def check_addr(self, scan_offset, buffer_as=None):
-        # The buffer was changed - we scan the entire buffer and record the
-        # hits - then we can feed it to the Rekall scan framework.
-        if self.base_offset != buffer_as.base_offset:
-            self.base_offset = buffer_as.base_offset
-            self.hits = []
-
-            matches = self.rules.match(data=buffer_as.data)
-            for match in matches:
-                for buffer_offset, name, value in match.strings:
-                    hit_offset = buffer_offset + buffer_as.base_offset
-                    self.hits.append(
-                        (match.rule, hit_offset, name, value))
-
-        if self.hits and scan_offset == self.hits[0][1]:
-            return self.hits.pop(0)
-
-    def skip(self, buffer_as, offset):
-        # Skip the entire buffer.
-        if not self.hits:
-            return len(buffer_as.data)
-
-        next_hit = self.hits[0][1]
-        return next_hit - offset
-
-
 class YaraScanMixin(object):
     """A common implementation of yara scanner.
 
@@ -75,14 +39,14 @@ class YaraScanMixin(object):
 
     name = "yarascan"
 
-    table_header = plugin.PluginHeader(
+    table_header = [
         dict(name="Owner", width=20),
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
         dict(name="HexDump", cname="hexdump", hex_width=16,
              width=67),
         dict(name="Context"),
-    )
+    ]
 
     __args = [
         dict(name="hits", default=10, type="IntParser",
@@ -148,19 +112,23 @@ class YaraScanMixin(object):
                 "Failed to compile yara expression: %s" % e)
 
     def generate_hits(self, run):
-        scanner = BaseYaraASScanner(
-            session=self.session,
-            address_space=run.address_space,
-            rules=self.rules)
+        for buffer_as in scan.BufferASGenerator(
+                self.session, run.address_space, run.start, run.end):
+            self.session.logging.debug(
+                "Scanning buffer %#x->%#x (length %#x)",
+                buffer_as.base_offset, buffer_as.end(),
+                buffer_as.end() - buffer_as.base_offset)
 
-        for hit in scanner.scan(offset=run.start, maxlen=run.length):
-            yield hit
+            for match in self.rules.match(data=buffer_as.data):
+                for buffer_offset, name, value in match.strings:
+                    hit_offset = buffer_offset + buffer_as.base_offset
+                    yield match.rule, hit_offset
 
     def collect(self):
         """Render output."""
         count = 0
         for run in self.generate_memory_ranges():
-            for rule, address, _, _ in self.generate_hits(run):
+            for rule, address in self.generate_hits(run):
                 count += 1
                 if count >= self.plugin_args.hits:
                     break
@@ -217,24 +185,29 @@ class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
     def collect(self):
         """Render output."""
         count = 0
-        scanner = BaseYaraASScanner(
-            session=self.session,
-            address_space=self.session.physical_address_space,
-            rules=self.rules)
+        address_space = self.session.physical_address_space
+        for buffer_as in scan.BufferASGenerator(
+                self.session, address_space,
+                self.plugin_args.start,
+                self.plugin_args.start + self.plugin_args.limit):
+            self.session.report_progress(
+                "Scanning buffer %#x->%#x (%#x)",
+                buffer_as.base_offset, buffer_as.end(),
+                buffer_as.end() - buffer_as.base_offset)
 
-        for rule, address, _, _ in scanner.scan(
-                offset=self.plugin_args.start, maxlen=self.plugin_args.limit):
-            count += 1
-            if count >= self.plugin_args.hits:
-                break
+            for match in self.rules.match(data=buffer_as.data):
+                for buffer_offset, _, _ in match.strings:
+                    hit_offset = buffer_offset + buffer_as.base_offset
+                    count += 1
+                    if count >= self.plugin_args.hits:
+                        break
 
-            yield (rule, address,
-                   utils.HexDumpedString(
-                       self.session.physical_address_space.read(
-                           address - self.plugin_args.pre_context,
-                           self.plugin_args.context +
-                           self.plugin_args.pre_context)))
-
+                    yield (match.rule, hit_offset,
+                           utils.HexDumpedString(
+                               self.session.physical_address_space.read(
+                                   hit_offset - self.plugin_args.pre_context,
+                                   self.plugin_args.context +
+                                   self.plugin_args.pre_context)))
 
 
 class TestYara(testlib.SimpleTestCase):

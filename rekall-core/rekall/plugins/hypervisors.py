@@ -1,5 +1,8 @@
 """Implements scanners and plugins to find hypervisors in memory."""
 
+from itertools import groupby
+import struct
+
 from rekall import plugin
 from rekall import obj
 from rekall import utils
@@ -9,8 +12,6 @@ from rekall.plugins.addrspaces import amd64
 from rekall.plugins.addrspaces import intel
 from rekall.plugins.overlays import basic
 
-from itertools import groupby
-import struct
 
 KNOWN_REVISION_IDS = {
     # Nested hypervisors
@@ -150,10 +151,9 @@ class VMCSScanner(scan.BaseScanner):
         super(VMCSScanner, self).__init__(**kwargs)
         self.profile = self.session.LoadProfile("VMCS")
 
-    def scan(self, offset=0, **_):
+    def scan(self, offset=0, end=None, **_):
         """Returns instances of VMCS objects found."""
-
-        for offset in super(VMCSScanner, self).scan(offset=offset):
+        for offset in super(VMCSScanner, self).scan(offset=offset, end=end):
             (revision_id,) = struct.unpack("<I",
                                            self.address_space.read(offset, 4))
             revision_id = revision_id & 0x7FFFFFFF
@@ -579,7 +579,9 @@ class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn,
         all_vmcs = VMCSScanner(
             address_space=self.physical_address_space,
             session=self.session,
-            profile=obj.NoneObject).scan(offset=self.plugin_args.offset)
+            profile=obj.NoneObject).scan(
+                offset=self.plugin_args.offset,
+                end=self.physical_address_space.end())
 
         host_vms = []
         nested_vms = []

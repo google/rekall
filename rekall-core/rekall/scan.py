@@ -19,9 +19,9 @@
 #
 
 __author__ = "Michael Cohen <scudette@gmail.com>"
+import re
 
 import acora
-import re
 
 from rekall import addrspace
 from rekall import constants
@@ -200,8 +200,158 @@ class RegexCheck(ScannerCheck):
         return bool(m)
 
 
+class _Padding(object):
+    """An object representing padding."""
+    def __init__(self, length):
+        self.length = length
+
+
+class _BufferFragments(object):
+    def __init__(self, base_offset):
+        self._fragments = []
+        self.base_offset = base_offset
+        self.total_length = 0
+
+    def pad(self, length):
+        if not self._fragments:
+            self.base_offset += length
+        else:
+            self._fragments.append(_Padding(length))
+            self.total_length += length
+
+    def append(self, data):
+        self._fragments.append(data)
+        self.total_length += len(data)
+
+    def materialize(self):
+        """Remove padding from the end and materialize any padding."""
+        # Remove the padding from the end.
+        while self._fragments:
+            item = self._fragments[-1]
+            if isinstance(item, _Padding):
+                self._fragments.pop(-1)
+            else:
+                break
+
+        # Now materialize the padding and join it all together.
+        expanded_result = []
+        start_index = 0
+        end_index = len(self._fragments)
+
+        for x in xrange(start_index, end_index):
+            item = self._fragments[x]
+            if isinstance(item, _Padding):
+                expanded_result.append(addrspace.ZEROER.GetZeros(item.length))
+            else:
+                expanded_result.append(item)
+
+        return "".join(expanded_result)
+
+
+class BufferASGenerator(object):
+    """A Generator of contiguous buffers read from the address space."""
+    def __init__(self, session, address_space, start, end,
+                 buffer_size=constants.SCAN_BLOCKSIZE,
+                 overlap_length=0):
+        self.start = start
+        self.end = end
+        self._generator = address_space.merge_base_ranges(start=start, end=end)
+        self.buffer_as = addrspace.BufferAddressSpace(session=session)
+        self.buffer_size = buffer_size
+        self.readptr = start
+        self.overlap_length = overlap_length
+        self.overlap = ""
+        self.current_run = None
+        self.finished = False
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        """Python 3 protocol."""
+        return self.next()
+
+    def next(self):
+        """Get the next buffer address space from the generator."""
+
+        # Collect the data in this buffer.
+        fragments = _BufferFragments(self.readptr)
+
+        # Offset of the current readptr in the buffer.
+        readptr = self.readptr
+
+        if self.current_run is None:
+            # If the generator is exhausted this will raise StopIteration and
+            # stop us too.
+            self.current_run = next(self._generator)
+
+        while 1:
+            # We are done - return this buffer.
+            if fragments.total_length >= self.buffer_size:
+                break
+
+            if readptr >= self.end:
+                raise StopIteration
+
+            # First case: run starts after the readptr. We pad the up to the
+            # start of the run and continue with case 2 below:
+
+            # ^__pad____ |~~~~~~~~|
+            # |            First run
+            # buffer readptr
+            if self.current_run.start > readptr:
+                if fragments.total_length > 0:
+                    padding_length = min(
+                        self.current_run.start - readptr,
+                        self.buffer_size - fragments.total_length)
+                    fragments.pad(padding_length)
+                    readptr += padding_length
+                else:
+                    fragments.pad(self.current_run.start - readptr)
+                    readptr = self.current_run.start
+
+            # Second case: buffer readptr is part way through the run. We just
+            # read the data from it and append to the fragments.
+            if self.current_run.start <= readptr < self.current_run.end:
+                phys_chunk_offset = (
+                    self.current_run.file_offset + (
+                        readptr - self.current_run.start))
+
+                # Read up to the requested end or the end of this run.
+                chunk_size = min(self.buffer_size - fragments.total_length,
+                                 self.current_run.end - readptr)
+
+                fragments.append(self.current_run.address_space.read(
+                    phys_chunk_offset, chunk_size))
+
+                readptr += chunk_size
+
+            # Third case: buffer readptr is after the current run. We need to
+            # get the next run and start over.
+            if self.current_run.end <= readptr:
+                try:
+                    self.current_run = next(self._generator)
+                except StopIteration:
+                    self.finished = True
+
+                    # Break to return the last buffer.
+                    break
+
+        # Now we can trim the padding from the start and the end.
+        base_offset = fragments.base_offset
+        data = fragments.materialize()
+
+        # No more real ranges we are done.
+        if self.finished and not data:
+            raise StopIteration
+
+        self.buffer_as.assign_buffer(data, base_offset=base_offset)
+        self.readptr = readptr
+        return self.buffer_as
+
+
 class BaseScanner(object):
-    """A more thorough scanner which checks every byte."""
+    """Base class for all scanners."""
 
     __metaclass__ = registry.MetaclassRegistry
 
@@ -214,7 +364,7 @@ class BaseScanner(object):
         """The base scanner.
 
         Args:
-           profile: The kernel profile to use for this scan.
+           profile: The profile to use for this scan.
            address_space: The address space we use for scanning.
            window_size: The size of the overlap window between each buffer read.
         """
@@ -285,7 +435,7 @@ class BaseScanner(object):
 
     overlap = 1024
 
-    def scan(self, offset=0, maxlen=None):
+    def scan(self, offset=0, maxlen=None, end=None):
         """Scan the region from offset for maxlen.
 
         Args:
@@ -297,11 +447,11 @@ class BaseScanner(object):
         Yields:
           offsets where all the constrainst are satisfied.
         """
-        if maxlen is None:
-            maxlen = 2**64
+        if end is None:
+            if maxlen is None:
+                raise IOError("Range end must be specified.")
 
-        end = int(offset) + int(maxlen)
-        overlap = ""
+            end = int(offset) + int(maxlen)
 
         # Record the last reported hit to prevent multiple reporting of the same
         # hits when using an overlap.
@@ -312,75 +462,29 @@ class BaseScanner(object):
         if self.constraints is None:
             self.build_constraints()
 
-        # We try to optimize the scanning by first merging contiguous ranges
-        # and then passing up to constants.SCAN_BLOCKSIZE bytes to the checkers
-        # and skippers.
-        #
-        # If range has less data than the block size, then the full range is
-        # scanned at once.
-        #
-        # If a range is larger than the block size, it's split in chunks until
-        # it's fully consumed. Overlap is applied only in this case, starting
-        # from the second chunk.
-        chunk_end = 0
+        for buffer_as in BufferASGenerator(
+                self.session, self.address_space, offset, end):
+            self.session.report_progress(
+                "Scanning buffer %#x->%#x (%#x)",
+                buffer_as.base_offset, buffer_as.end(),
+                buffer_as.end() - buffer_as.base_offset)
 
-        for run in self.address_space.merge_base_ranges(start=offset, end=end):
-            # Store where this chunk will start. Absolute offset.
-            chunk_offset = run.start
-            buffer_as = addrspace.BufferAddressSpace(session=self.session)
+            # Now scan within the received buffer.
+            scan_offset = buffer_as.base_offset
+            while scan_offset < buffer_as.end():
+                # Check the current offset for a match.
+                res = self.check_addr(scan_offset, buffer_as=buffer_as)
 
-            # Keep scanning this range as long as the current chunk isn't
-            # past the end of the range or the end of the scanner.
-            while chunk_offset < run.end:
-                if self.session:
-                    self.session.report_progress(
-                        self.progress_message % dict(
-                            offset=chunk_offset,
-                            name=self.__class__.__name__))
+                # Remove multiple matches in the overlap region which we
+                # have previously reported.
+                if res is not None and scan_offset > last_reported_hit:
+                    last_reported_hit = scan_offset
+                    yield res
 
-                # This chunk does not begin where the last chunk ended - this
-                # means there is a gap in the virtual address space and
-                # therefore we should not use any overlap.
-                if chunk_offset != chunk_end:
-                    overlap = ""
-
-                # Our chunk is SCAN_BLOCKSIZE long or as much data there's
-                # left in the range.
-                chunk_size = min(constants.SCAN_BLOCKSIZE,
-                                 run.end - chunk_offset)
-
-                chunk_end = chunk_offset + chunk_size
-
-                # Consume the next block in this range. We read directly from
-                # the physical address space to save an extra translation by the
-                # virtual address space's read() method.
-                phys_chunk_offset = run.file_offset + (chunk_offset - run.start)
-
-                buffer_as.assign_buffer(
-                    overlap + run.address_space.read(
-                        phys_chunk_offset, chunk_size),
-                    base_offset=chunk_offset - len(overlap))
-
-                if self.overlap > 0:
-                    overlap = buffer_as.data[-self.overlap:]
-
-                scan_offset = buffer_as.base_offset
-                while scan_offset < buffer_as.end():
-                    # Check the current offset for a match.
-                    res = self.check_addr(scan_offset, buffer_as=buffer_as)
-
-                    # Remove multiple matches in the overlap region which we
-                    # have previously reported.
-                    if res is not None and scan_offset > last_reported_hit:
-                        last_reported_hit = scan_offset
-                        yield res
-
-                    # Skip as much data as the skippers tell us to, up to the
-                    # end of the buffer.
-                    scan_offset += min(len(buffer_as),
-                                       self.skip(buffer_as, scan_offset))
-
-                chunk_offset = scan_offset
+                # Skip as much data as the skippers tell us to, up to the
+                # end of the buffer.
+                scan_offset += min(len(buffer_as),
+                                   self.skip(buffer_as, scan_offset))
 
 
 class FastStructScanner(BaseScanner):

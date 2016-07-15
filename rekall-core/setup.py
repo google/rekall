@@ -59,6 +59,7 @@ install_requires = [
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
     "pyelftools == 0.23",
+    "pyparsing==2.1.5",
     "pytz == 2016.4",
     "psutil == 4.3.0",
     "rekall-capstone == 3.0.4.post2",

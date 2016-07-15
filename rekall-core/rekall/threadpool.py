@@ -52,7 +52,9 @@ class Worker(threading.Thread):
                 if task is None:
                     break
 
-                on_error = kwargs.pop("on_error", lambda x: None)
+                on_error = kwargs.pop("on_error")
+                if on_error is None:
+                    on_error = lambda x: None
 
                 task(*args, **kwargs)
             except Exception as e:
