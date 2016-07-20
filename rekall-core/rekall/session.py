@@ -237,6 +237,9 @@ class Configuration(utils.AttributeDict):
 
     def _set_live(self, live, _):
         if live is not None and not self.live:
+            if isinstance(live, basestring):
+                live = [live]
+
             # Default is to use Memory analysis.
             if len(live) == 0:
                 mode = "Memory"
@@ -701,7 +704,8 @@ class Session(object):
         and OSX have a different one.
         """
         # Get the current process context.
-        current_context = repr(self.GetParameter("process_context") or "Kernel")
+        current_context = (self.GetParameter("process_context").obj_offset or
+                           "Kernel")
 
         # Get the resolver from the cache.
         address_resolver = self.context_cache.get(current_context)

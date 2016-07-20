@@ -337,6 +337,10 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
             positional_args.append("--" + name)
 
         arg_type = kwargs.pop("type", None)
+        choices = kwargs.pop("choices", [])
+        if callable(choices):
+            choices = choices()
+
         if arg_type == "ArrayIntParser":
             kwargs["action"] = ArrayIntParser
             kwargs["nargs"] = "+" if required else "*"
@@ -361,10 +365,10 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
         # Multiple entries of choices (requires a choices paramter).
         elif arg_type == "ChoiceArray":
             kwargs["nargs"] = "+" if required else "*"
-            kwargs["choices"] = list(kwargs["choices"])
+            kwargs["choices"] = list(choices)
 
         elif arg_type == "Choices":
-            kwargs["choices"] = list(kwargs["choices"])
+            kwargs["choices"] = list(choices)
 
         # Skip option if not critical.
         critical_arg = kwargs.pop("critical", False)

@@ -41,6 +41,7 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
     def is_active(cls, session):
         """We are only active if the profile is linux."""
         return (session.profile.metadata("os") == 'linux' and
+                session.GetParameter("live_mode") != 'API' and
                 plugin.Command.is_active(session))
 
 
@@ -50,6 +51,7 @@ class AbstractLinuxParameterHook(kb.ParameterHook):
     def is_active(cls, session):
         """We are only active if the profile is Linux."""
         return (super(AbstractLinuxParameterHook, cls).is_active(session) and
+                session.profile.metadata("type") != 'API' and
                 session.profile.metadata("os") == 'linux')
 
 

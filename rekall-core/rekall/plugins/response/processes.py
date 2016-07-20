@@ -1,6 +1,8 @@
 """Rekall plugins for displaying processes in live triaging."""
 
 import psutil
+from efilter.protocols import structured
+
 from rekall import utils
 
 from rekall.plugins import core
@@ -30,7 +32,7 @@ class _LiveProcess(utils.AttributeDict):
         self.session = session
         super(_LiveProcess, self).__init__()
 
-        self.create_time = basic.UnixTimeStamp(
+        self.start_time = basic.UnixTimeStamp(
             name="create_time", value=self.create_time, session=self.session)
 
     @utils.safe_property
@@ -98,6 +100,15 @@ for field in psutil_fields:
 LiveProcess = type("LiveProcess", (_LiveProcess, ), properties)
 
 
+structured.IStructured.implement(
+    for_type=LiveProcess,
+    implementations={
+        structured.resolve: lambda d, m: getattr(d, m, None),
+        structured.getmembers_runtime: lambda d: psutil_fields + d.keys(),
+    }
+)
+
+
 class IRProcessFilter(common.AbstractIRCommandPlugin):
     """A live process filter using the system APIs."""
 
@@ -150,7 +161,8 @@ class IRPslist(IRProcessFilter):
         dict(name="Thds", cname="thread_count", width=6, align="r"),
         dict(name="Hnds", cname="handle_count", width=8, align="r"),
         dict(name="Wow64", cname="wow64", width=6),
-        dict(name="Start", cname="process_create_time", width=24),
+        dict(name="Start", cname="start_time", width=24),
+        dict(name="binary"),
     ]
 
     def column_types(self):
@@ -170,7 +182,8 @@ class IRPslist(IRProcessFilter):
                     thread_count=proc.num_threads,
                     handle_count=proc.num_handles,
                     wow64=self.is_wow64(proc),
-                    process_create_time=proc.create_time)
+                    start_time=proc.start_time,
+                    binary=proc.exe)
 
     def collect(self):
         for proc in self.filter_processes():

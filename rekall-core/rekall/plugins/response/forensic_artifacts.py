@@ -22,8 +22,13 @@ https://github.com/ForensicArtifacts
 """
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import csv
+import json
 import platform
+import os
+import StringIO
 import sys
+import zipfile
 
 import yaml
 
@@ -31,10 +36,10 @@ from artifacts import definitions
 from artifacts import errors
 
 from rekall import plugin
+from rekall import registry
 from rekall import obj
 from rekall.ui import text
 from rekall.ui import json_renderer
-
 from rekall.plugins.response import common
 
 
@@ -55,6 +60,145 @@ class ArtifactResult(object):
 
     def merge(self, other):
         self.results.extend(other)
+
+    def as_dict(self):
+        return dict(fields=self.fields,
+                    results=self.results,
+                    artifact_name=self.artifact_name,
+                    result_type=self.result_type)
+
+
+
+class BaseArtifactResultWriter(object):
+    """Writes the results of artifacts."""
+    __abstract = True
+
+    __metaclass__ = registry.MetaclassRegistry
+
+    def __init__(self, session=None):
+        self.session = session
+
+    def write_result(self, result):
+        """Writes the artifact result."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        return
+
+
+class DirectoryBasedWriter(BaseArtifactResultWriter):
+    name = "Directory"
+
+    def __init__(self, output=None, **kwargs):
+        super(DirectoryBasedWriter, self).__init__(**kwargs)
+        self.dump_dir = output
+
+        # Check if the directory already exists.
+        if not os.path.isdir(self.dump_dir):
+            raise plugin.PluginError("%s is not a directory" % self.dump_dir)
+
+    def write_file(self, result):
+        """Writes a FileInformation object."""
+        for row in result.results:
+            filename = row["filename"]
+            with open(filename, "rb") as in_fd:
+                with self.session.GetRenderer().open(
+                        directory=self.dump_dir,
+                        filename=filename, mode="wb") as out_fd:
+                    while 1:
+                        data = in_fd.read(1024*1024)
+                        if not data:
+                            break
+
+                        out_fd.write(data)
+
+    def _write_csv_file(self, out_fd, result):
+        fieldnames = [x["name"] for x in result.fields]
+        writer = csv.DictWriter(
+            out_fd, dialect="excel",
+            fieldnames=fieldnames)
+        writer.writeheader()
+        for row in result.results:
+            writer.writerow(row)
+
+    def write_result(self, result):
+        """Writes the artifact result."""
+        if result.result_type == "file_information":
+            try:
+                self.write_file(result)
+            except (IOError, OSError) as e:
+                self.session.logging.warn(
+                    "Unable to copy file %s into output: %s",
+                    result["filename"], e)
+
+        with self.session.GetRenderer().open(
+                directory=self.dump_dir,
+                filename="artifacts/%s.json" % result.artifact_name,
+                mode="wb") as out_fd:
+            out_fd.write(json.dumps(result.as_dict(), sort_keys=True))
+
+        with self.session.GetRenderer().open(
+                directory=self.dump_dir,
+                filename="artifacts/%s.csv" % result.artifact_name,
+                mode="wb") as out_fd:
+            self._write_csv_file(out_fd, result)
+
+
+class ZipBasedWriter(BaseArtifactResultWriter):
+    name = "Zip"
+
+    def __init__(self, output=None, **kwargs):
+        super(ZipBasedWriter, self).__init__(**kwargs)
+        self.output = output
+
+    def __enter__(self):
+        self.out_fd = self.session.GetRenderer().open(
+            filename=self.output, mode="wb").__enter__()
+
+        self.outzip = zipfile.ZipFile(self.out_fd, mode="w",
+                                      compression=zipfile.ZIP_DEFLATED)
+
+        return self
+
+    def __exit__(self, *args):
+        self.outzip.close()
+        self.out_fd.__exit__(*args)
+
+    def _write_csv_file(self, out_fd, result):
+        fieldnames = [x["name"] for x in result.fields]
+        writer = csv.DictWriter(
+            out_fd, dialect="excel",
+            fieldnames=fieldnames)
+        writer.writeheader()
+        for row in result.results:
+            writer.writerow(row)
+
+    def write_file(self, result):
+        for row in result.results:
+            filename = row["filename"]
+            self.outzip.write(filename)
+
+    def write_result(self, result):
+        """Writes the artifact result."""
+        if result.result_type == "file_information":
+            try:
+                self.write_file(result)
+            except (IOError, OSError) as e:
+                self.session.logging.warn(
+                    "Unable to copy file %s into output: %s",
+                    result["filename"], e)
+
+        self.outzip.writestr("artifacts/%s.json" % result.artifact_name,
+                             json.dumps(result.as_dict(), sort_keys=True),
+                             zipfile.ZIP_DEFLATED)
+
+        tmp_fd = StringIO.StringIO()
+        self._write_csv_file(tmp_fd, result)
+        self.outzip.writestr("artifacts/%s.csv" % result.artifact_name,
+                             tmp_fd.getvalue(),
+                             zipfile.ZIP_DEFLATED)
 
 
 # Rekall defines a new artifact type.
@@ -114,12 +258,24 @@ class SourceType(_FieldDefinitionValidator):
         self.type_indicator = source_definition["type"]
         self._LoadFieldDefinitions(attributes)
 
+    def is_active(self, **_):
+        """Indicates if the source is applicable to the environment."""
+        return True
 
     def apply(self, artifact_name=None, fields=None, result_type=None, **_):
         """Generate ArtifactResult instances."""
         return ArtifactResult(artifact_name=artifact_name,
                               result_type=result_type,
                               fields=fields)
+
+# These are the valid types of Rekall images. They can be used to restrict
+# REKALL_EFILTER artifacts to specific types of images. The types which end in
+# API refer to the API only version of the similar plugins.
+REKALL_IMAGE_TYPES = [
+    "Windows", "WindowsAPI",
+    "Linux", "LinuxAPI",
+    "Darwin", "DarwinAPI"
+]
 
 
 class RekallEFilterArtifacts(SourceType):
@@ -138,8 +294,8 @@ class RekallEFilterArtifacts(SourceType):
         dict(name="query_parameters", default=[], optional=True),
         dict(name="fields", type=list),
         dict(name="type_name", type=basestring),
-        dict(name="supported_os", optional=True,
-             default=definitions.SUPPORTED_OS),
+        dict(name="image_type", type=list, optional=True,
+             default=REKALL_IMAGE_TYPES),
     ]
 
     def __init__(self, source_definition):
@@ -154,9 +310,26 @@ class RekallEFilterArtifacts(SourceType):
                 raise errors.FormatError(
                     u"Unsupported type %s." % mapped_type)
 
+    def GetImageType(self, session):
+        """Returns one of the standard image types based on the session."""
+        result = session.profile.metadata("os").capitalize()
+
+        if session.GetParameter("live_mode") == "API":
+            result += "API"
+
+        return result
+
+    def is_active(self, session=None):
+        """Determine if this source is active."""
+        return (self.image_type and
+                self.GetImageType(session) in self.image_type)
+
     def apply(self, session=None, **kwargs):
         result = super(RekallEFilterArtifacts, self).apply(
             fields=self.fields, result_type=self.type_name, **kwargs)
+
+        if not self.is_active(session):
+            return
 
         search = session.plugins.search(
             query=self.query,
@@ -538,7 +711,15 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
              "artifact definitions."),
 
         dict(name="definitions", type="ArrayStringParser",
-             help="An inline artifact definition in yaml format.")
+             help="An inline artifact definition in yaml format."),
+
+        dict(name="writer", type="Choices",
+             choices=lambda: (
+                 x.name for x in BaseArtifactResultWriter.classes.values()),
+             help="Writer for artifact results."),
+
+        dict(name="output_path",
+             help="Path suitable for dumping files."),
     ]
 
     table_header = [
@@ -616,11 +797,8 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
 
         for source in definition.sources:
             # This source is not for us.
-            if self.supported_os not in source.supported_os:
-                self.session.logging.debug(
-                    "Skipping artifact %s: Supported OS: %s",
-                    definition.name, definition.supported_os)
-                return
+            if not source.is_active(session=self.session):
+                continue
 
             for result in source.apply(
                     artifact_name=definition.name,
@@ -632,11 +810,32 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
                     yield dict(result=result)
 
     def collect(self):
-        self.seen = set()
+        # Figure out a sensible default for the output writer.
+        if (self.plugin_args.output_path is not None and
+            self.plugin_args.writer is None):
 
-        for artifact_name in self.plugin_args.artifacts:
-            for x in self.collect_artifact(artifact_name):
+            if os.path.isdir(self.plugin_args.output_path):
+                self.plugin_args.writer = "Directory"
+            else:
+                self.plugin_args.writer = "Zip"
+
+        if self.plugin_args.writer:
+            impl = BaseArtifactResultWriter.ImplementationByName(
+                self.plugin_args.writer)
+            with impl(session=self.session,
+                      output=self.plugin_args.output_path) as writer:
+                for x in self._collect(writer=writer):
+                    yield x
+        else:
+            for x in self._collect():
                 yield x
+
+    def _collect(self, writer=None):
+        for artifact_name in self.plugin_args.artifacts:
+            for hit in self.collect_artifact(artifact_name):
+                if "result" in hit and  writer:
+                    writer.write_result(hit["result"])
+                yield hit
 
 
 class ArtifactsList(plugin.TypedProfileCommand,

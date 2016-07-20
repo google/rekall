@@ -865,9 +865,17 @@ class Pointer(NativeType):
         self.obj_offset += self.target_size * other
 
     def __repr__(self):
-        return "<{0} {3} to [0x{2:08X}] ({1})>".format(
-            self.target, self.obj_name or '', self.v(),
-            self.__class__.__name__)
+        target = self.v()
+        target_name = self.obj_session.address_resolver.format_address(
+            target)
+        if target_name:
+            target_name = " (%s)" % target_name[0]
+        else:
+            target_name = ""
+
+        return "<%s %s to [%#010x%s] (%s)>" % (
+            self.target, self.__class__.__name__, target,
+            target_name, self.obj_name or '')
 
     def __unicode__(self):
         return u"Pointer to %s" % self.deref()

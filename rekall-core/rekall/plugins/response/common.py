@@ -23,6 +23,7 @@
 """This module adds support for incident response to Rekall."""
 
 __author__ = "Michael Cohen <scudette@google.com>"
+import platform
 import os
 import re
 import stat
@@ -61,7 +62,8 @@ class IRBaseProfile(obj.Profile):
     """A class representing the profile for IR (live) analysis."""
 
     # This profile is used for API based analysis.
-    METADATA = dict(live=True, type="API")
+    METADATA = dict(live=True, type="API",
+                    os=platform.system())
 
 
 class FileSpec(utils.AttributeDict):

@@ -59,11 +59,18 @@ class CommandOption(object):
         self.default = default
         self.type = type
         self.help = help
-        self.choices = choices
+        self._choices = choices
         self.required = required
         self.positional = positional
         self.override = override
         self.hidden = hidden
+
+    @utils.safe_property
+    def choices(self):
+        if callable(self._choices):
+            return list(self._choices())
+
+        return self._choices
 
     def add_argument(self, parser):
         """Add ourselves to the parser."""

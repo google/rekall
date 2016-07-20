@@ -59,27 +59,30 @@ class Live(plugin.TypedProfileCommand,
                 "You are not root. It is likely that some operations "
                 "may not be available.")
 
-        try:
-            # Stack the address spaces by hand.
-            load_as = self.session.plugins.load_as(session=self.session)
-            base_as = standard.FileAddressSpace(session=self.session,
-                                                filename="/proc/kcore")
-
-            self.session.physical_address_space = load_as.GuessAddressSpace(
-                base_as=base_as)
-
-            with self.session:
-                self.session.SetParameter("session_name", "Live(/proc/kcore)")
-
-        except IOError as e:
-            self.session.logging.error("Unable to load physical memory: %s ", e)
-            with self.session:
-                self.session.SetParameter("session_name", "Live")
-
         # Force timed cache for live sessions.
         with self.session:
             self.session.SetParameter("cache", "timed")
             self.session.SetParameter("live_mode", self.plugin_args.mode)
+            self.session.SetParameter("session_name", "Live (%s)" %
+                                      self.plugin_args.mode)
+
+            if self.plugin_args.mode == "Memory":
+                try:
+                    # Stack the address spaces by hand.
+                    load_as = self.session.plugins.load_as(session=self.session)
+                    base_as = standard.FileAddressSpace(session=self.session,
+                                                        filename="/proc/kcore")
+
+                    self.session.physical_address_space = (
+                        load_as.GuessAddressSpace(base_as=base_as))
+
+                    self.session.SetParameter("session_name",
+                                              "Live(/proc/kcore)")
+
+                except IOError as e:
+                    self.session.logging.error(
+                        "Unable to load physical memory: %s ", e)
+
 
     def close(self):
         pass
