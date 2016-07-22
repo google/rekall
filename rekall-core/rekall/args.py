@@ -293,7 +293,7 @@ def ConfigureCommandLineParser(command_metadata, parser, critical=False):
 
         # Skip this option since it is hidden.
         if options.pop("hidden", None):
-            continue
+            options["help"] = argparse.SUPPRESS
 
         # Prevent None getting into the kwargs because it upsets argparser.
         kwargs = dict((k, v) for k, v in options.items() if v is not None)
