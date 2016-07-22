@@ -365,7 +365,7 @@ class ProfileCommand(Command):
     def args(cls, metadata):
         # Top level args.
         metadata.add_argument(
-            "-p", "--profile", critical=True,
+            "-p", "--profile", critical=True, hidden=True,
             help="Name of the profile to load. This is the "
             "filename of the profile found in the profiles "
             "directory. Profiles are searched in the profile "

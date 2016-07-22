@@ -38,7 +38,7 @@ class EfilterMagics(magic.Magics):
         return self._process_select(line, cell)
 
     def _process_select(self, line, cell=None):
-        session = self.shell.user_global_ns.session
+        session = self.shell.user_module.session
         if cell is None:
             return self._RunPlugin(session, "search", "select " + line)
         else:

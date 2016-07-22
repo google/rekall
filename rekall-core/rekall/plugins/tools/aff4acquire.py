@@ -823,27 +823,13 @@ class AFF4Export(core.DirectoryDumperMixin, AbstractAFF4Plugin):
 
     name = "aff4export"
 
-    @classmethod
-    def args(cls, parser):
-        super(AFF4Export, cls).args(parser)
+    __args = [
+        dict(name="regex", default=".", type="RegEx",
+             help="Regex of filenames to dump."),
 
-        parser.add_argument(
-            "volume", default=None, required=True,
-            help="Volume to list.")
-
-        parser.add_argument(
-            "regex", default=[".+"], type="ArrayStringParser",
-            help="One or more Regex of filenames to dump.")
-
-    def __init__(self, volume=None, regex=None, **kwargs):
-        super(AFF4Export, self).__init__(**kwargs)
-        self.volume_path = volume
-        if not regex:
-            regex = [".+"]
-
-        self.regex = [re.compile(x) for x in regex]
-        self.aff4ls = self.session.plugins.aff4ls()
-        self.resolver = self.aff4ls.resolver
+        dict(name="volume", required=True, positional=True,
+             help="Volume to list."),
+    ]
 
     def _sanitize_filename(self, filename):
         filename = filename.replace("\\", "/")
@@ -879,16 +865,19 @@ class AFF4Export(core.DirectoryDumperMixin, AbstractAFF4Plugin):
             self.copy_stream(in_fd, out_fd, range.length)
 
     def render(self, renderer):
-        volume_urn = rdfvalue.URN().FromFileName(self.volume_path)
+        aff4ls = self.session.plugins.aff4ls(volume=self.plugin_args.volume)
+        self.resolver = aff4ls.resolver
+
+        volume_urn = rdfvalue.URN().FromFileName(self.plugin_args.volume)
         with zip.ZipFile.NewZipFile(self.resolver, volume_urn) as volume:
-            for urn, filename in self.aff4ls.interesting_streams(
+            for urn, filename in aff4ls.interesting_streams(
                     volume).items():
-                if any(x.match(filename) for x in self.regex):
+                if self.plugin_args.regex.match(filename):
                     # Force the file to be under the dumpdir.
                     filename = self._sanitize_filename(filename)
                     self.session.logging.info("Dumping %s", filename)
 
-                    with renderer.open(directory=self.dump_dir,
+                    with renderer.open(directory=self.plugin_args.dump_dir,
                                        filename=filename,
                                        mode="wb") as out_fd:
                         with self.resolver.AFF4FactoryOpen(urn) as in_fd:

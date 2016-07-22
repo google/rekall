@@ -94,6 +94,10 @@ win_xp_overlays = {
     '_IMAGE_ENTRY_IN_SESSION': [None, {
         'ImageBase': lambda x: x.Address.v()
     }],
+
+    "_SECTION_OBJECT": [None, {
+        "Segment": [None, ["Pointer", dict(target="_SEGMENT")]]
+    }],
 }
 
 

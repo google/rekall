@@ -39,8 +39,8 @@ class Handles(common.WinProcessFilter):
     ]
 
     table_header = [
-        dict(name="_OBJECT_HEADER", cname="offset_v", style="address"),
-        dict(name="_EPROCESS", type="_EPROCESS", cname="_EPROCESS"),
+        dict(name="_OBJECT_HEADER", style="address"),
+        dict(name="_EPROCESS", type="_EPROCESS"),
         dict(name="Handle", cname="handle", style="address"),
         dict(name="Access", cname="access", style="address"),
         dict(name="Type", cname="obj_type", width=16),
@@ -105,11 +105,12 @@ class Handles(common.WinProcessFilter):
                 self.session.report_progress("%s: %s handles" % (
                     task.ImageFileName, count))
 
-                yield (handle,
-                       task,
-                       utils.HexInteger(handle.HandleValue),
-                       utils.HexInteger(handle.GrantedAccess),
-                       object_type, utils.SmartUnicode(name))
+                yield dict(_OBJECT_HEADER=handle,
+                           _EPROCESS=task,
+                           handle=utils.HexInteger(handle.HandleValue),
+                           access=utils.HexInteger(handle.GrantedAccess),
+                           obj_type=object_type,
+                           details=utils.SmartUnicode(name))
 
 
 class TestHandles(testlib.SimpleTestCase):

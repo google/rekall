@@ -25,13 +25,19 @@
 __author__ = "Michael Cohen <scudette@gmail.com>"
 import logging
 import re
+import time
+
 import readline
+
+from pygments.token import Token
+from pygments import styles
 
 import IPython
 from IPython.core import page
 from IPython.core import oinspect
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.terminal import embed
+from IPython.terminal import prompts
 
 try:
     from traitlets.config.loader import Config
@@ -41,6 +47,13 @@ except ImportError:
 from rekall import constants
 from rekall import config
 from rekall import session as session_module
+from rekall import utils
+
+
+config.DeclareOption(
+    "--highlighting_style", default="monokai", type="Choices",
+    choices=list(styles.get_all_styles()),
+    help="Highlighting style for interactive console.")
 
 
 def RekallCompleter(self, text):
@@ -64,7 +77,7 @@ def RekallCompleter(self, text):
             if len(result) == 1:
                 result = [result[0] + "\""]
 
-            result = [x.split("!", 1)[1] for x in result]
+            result = [utils.SmartUnicode(x.split("!", 1)[1]) for x in result]
             return result
 
         # Only complete if there is exactly one object which matches and a space
@@ -76,7 +89,8 @@ def RekallCompleter(self, text):
                 try:
                     matches = [
                         "%s=" % x["name"] for x in obj.Metadata()["arguments"]]
-                    return [x for x in matches if x.startswith(text)]
+                    return [utils.SmartUnicode(x)
+                            for x in matches if x.startswith(text)]
                 except Exception:
                     pass
 
@@ -158,7 +172,8 @@ class RekallObjectInspector(oinspect.Inspector):
 
         return self._format_fields(display_fields)
 
-    def pinfo(self, obj, oname='', formatter=None, info=None, detail_level=0):
+    def pinfo(self, obj, oname='', formatter=None, info=None,
+              detail_level=0, **kw):
         if isinstance(obj, session_module.PluginRunner):
             # Delegate info generation for PluginRunners.
             result = self.plugin_pinfo(obj, detail_level=detail_level)
@@ -172,10 +187,10 @@ class RekallObjectInspector(oinspect.Inspector):
 
 
 class RekallShell(embed.InteractiveShellEmbed):
-    display_banner = constants.BANNER
+    banner = display_banner = constants.BANNER
 
     def atexit_operations(self):
-        self.user_global_ns.session.Flush()
+        self.user_module.session.Flush()
 
     def init_inspector(self):
         super(RekallShell, self).init_inspector()
@@ -185,19 +200,51 @@ class RekallShell(embed.InteractiveShellEmbed):
         InteractiveShell._instance = self
         ipython_version = IPython.__version__
 
-        # IPython 4 is the one we standardize on right now. This means we
-        # support earlier ones but turn off the bells and whistles.
-        if "4.0.0" <= ipython_version < "5.0.0":
+        # IPython 5 (4 should work too) is the one we standardize on right
+        # now. This means we support earlier ones but turn off the bells and
+        # whistles.
+        if "4.0.0" <= ipython_version < "6.0.0":
             self.inspector = RekallObjectInspector()
 
         else:
             self.user_ns.session.logging.warn(
                 "Warning: IPython version %s not fully supported. "
-                "We recommend installing ipython version 4.",
+                "We recommend installing IPython version 5.",
                 ipython_version)
 
 
 REGISTERED_MAGICS = []
+
+class RekallPrompt(prompts.Prompts):
+    def in_prompt_tokens(self, cli=None):
+        session = self.shell.user_module.session
+        style = session.GetParameter("highlighting_style")
+        old_style = self.shell.highlighting_style
+        if style != old_style:
+            try:
+                self.shell.highlighting_style = style
+            except Exception:
+                self.shell.highlighting_style = old_style
+                session.logging.error(
+                    "Style %s not valid. Valid styles are %s" %
+                    (style, list(styles.get_all_styles())))
+
+        return [
+            (Token.Prompt, "["),
+            (Token.Name.Variable, str(session.session_id)),
+            (Token.Prompt, "] "),
+            (Token.Name.Class, str(session.session_name)),
+            (Token.Prompt, " "),
+            (Token.Comment, time.strftime("%H:%M:%S")),
+            (Token.Prompt, "> "),
+        ]
+
+    def out_prompt_tokens(self):
+        return [
+            (Token.OutPrompt, 'Out<'),
+            (Token.Comment, time.strftime("%H:%M:%S")),
+            (Token.OutPrompt, '> '),
+        ]
 
 
 def Shell(user_session):
@@ -205,17 +252,7 @@ def Shell(user_session):
     # In [1]: pslist
     cfg = Config()
     cfg.InteractiveShellEmbed.autocall = 2
-
-    cfg.PromptManager.in_template = (
-        r'{color.LightCyan}'
-        r'[{session.session_id}] '
-        r'{session.session_name}'
-        r'{color.LightBlue}{color.Green} \T> ')
-
-    cfg.PromptManager.in2_template = (
-        r'{color.Green}|{color.LightGreen}\D{color.Green}> ')
-
-    cfg.PromptManager.out_template = r'Out<\#> '
+    cfg.TerminalInteractiveShell.prompts_class = RekallPrompt
     cfg.InteractiveShell.separate_in = ''
     cfg.InteractiveShell.separate_out = ''
     cfg.InteractiveShell.separate_out2 = ''
@@ -239,6 +276,6 @@ def Shell(user_session):
     for magic in REGISTERED_MAGICS:
         shell.register_magics(magic)
 
-    shell(global_ns=user_session.locals)
+    shell(module=user_session.locals, )
 
     return True

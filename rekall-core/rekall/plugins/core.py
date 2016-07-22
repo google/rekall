@@ -724,7 +724,7 @@ class DT(plugin.TypedProfileCommand, plugin.ProfileCommand):
         if isinstance(item, obj.Struct):
             return self.render_Struct(renderer, item)
 
-        self.session.plugins.p(self.target).render(renderer)
+        self.session.plugins.p(self.plugin_args.target).render(renderer)
 
 
 class AddressMap(object):

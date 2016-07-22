@@ -1452,6 +1452,19 @@ class VadTraverser(obj.Struct):
             yield c
 
 
+class _RTL_BALANCED_LINKS(VadTraverser):
+
+    def traverse_children(self):
+        for node in self.traverse(type=self.obj_type):
+            if node.obj_offset == self.obj_offset:
+                continue
+
+            yield node
+
+    def payload(self, type_name):
+        return self.cast(type_name=type_name, offset=self.obj_end)
+
+
 class _KTIMER(obj.Struct):
     @utils.safe_property
     def Dpc(self):
@@ -1547,6 +1560,7 @@ def InitializeWindowsProfile(profile):
         '_LDR_DATA_TABLE_ENTRY': _LDR_DATA_TABLE_ENTRY,
         '_LDR_DATA_TABLE_ENTRY32': _LDR_DATA_TABLE_ENTRY,
         "_MM_SESSION_SPACE": _MM_SESSION_SPACE,
+        "_RTL_BALANCED_LINKS": _RTL_BALANCED_LINKS,
         "_LUID": _LUID,
         "_SID": _SID,
         "_KTIMER": _KTIMER,

@@ -101,7 +101,7 @@ setup(
     # pulls in tested dependencies.
     install_requires=[
         "rekall-core >= 1.5.0",
-        "ipython >= 4.1.2, < 5.0",
+        "ipython >= 5.0.0, < 6.0",
     ],
 
     extras_require={

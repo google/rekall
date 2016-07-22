@@ -47,6 +47,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
     table_header = [
         dict(name="", cname="divider", type="Divider"),
         dict(name="Offset", cname="offset", style="address"),
+        dict(name="Alloc Off", cname="pool_offset", style="address"),
         dict(name="Content", cname="content")
     ]
 
@@ -98,20 +99,6 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
             relative_offset = member.obj_offset - offset
             result.append((relative_offset, address_info))
 
-            # If the last member was a _LIST_ENTRY skip this one since its just
-            # the Blink of it.
-            if len(result) > 1 and "_LIST_ENTRY" in result[-2][1]:
-                continue
-
-            # Check for _LIST_ENTRYs
-            list_member = member.cast("_LIST_ENTRY")
-            if list_member.obj_offset == list_member.Flink.Blink.v():
-                address_info.append("_LIST_ENTRY")
-                address_info.append("@%#x" % list_member.Flink.v())
-
-            if list_member.obj_offset == list_member.Flink.v():
-                address_info.append("Empty")
-
             # Try to find pointers to known pool allocations.
             pool = self.SearchForPoolHeader(member.v(), search=search)
             if pool:
@@ -122,7 +109,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
                 if proc.Peb:
                     address_info.append("ProcessBilled:%s" % proc.name)
 
-                address_info.append("@%#x (%#x)" % (member.v(), pool.size))
+                address_info.append("@ %#x (%#x)" % (member.v(), pool.size))
 
             else:
                 # Look for pointers to global symbols.
@@ -132,9 +119,19 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
                 if symbol and sym_offset == member.v():
                     address_info.append("Const:%s" % ", ".join(symbol))
 
+            # Check for _LIST_ENTRYs
+            list_member = member.cast("_LIST_ENTRY")
+            if list_member.obj_offset == list_member.Flink.Blink.v():
+                address_info.append("_LIST_ENTRY")
+                address_info.append("@ %#x" % list_member.Flink.v())
+
+            if list_member.obj_offset == list_member.Flink.v():
+                address_info.append("Empty")
+
         return result
 
     def collect(self):
+        pool_offset = None
         pool_header = self.SearchForPoolHeader(
             self.plugin_args.offset, search=self.plugin_args.search)
 
@@ -150,5 +147,12 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
         for relative_offset, info in self.GuessMembers(
                 self.plugin_args.offset, size=self.plugin_args.size,
                 search=self.plugin_args.search):
-            yield dict(offset=relative_offset, content=" ".join(
+
+            if pool_header:
+                pool_offset = (self.plugin_args.offset + relative_offset -
+                               pool_header.obj_offset)
+
+            yield dict(offset=relative_offset,
+                       pool_offset=pool_offset,
+                       content=" ".join(
                 [utils.SmartStr(x).encode("string-escape") for x in info]))

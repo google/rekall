@@ -272,6 +272,24 @@ class WindowsAddressResolver(address_resolver.AddressResolverMixin,
 
         return result.lower()
 
+    def track_modules(self, *modules):
+        """Add module names to the tracked list."""
+        already_tracked = self.session.GetParameter(
+            'autodetect_build_local_tracked') or []
+
+        needed = set(modules)
+        if not needed.issubset(already_tracked):
+            needed.update(already_tracked)
+            with self.session as session:
+                session.SetParameter("autodetect_build_local_tracked", needed)
+                for module_name in modules:
+                    module_obj = self.GetModuleByName(module_name)
+                    if module_obj:
+                        # Clear the module's profile. This will force it to
+                        # reload a new profile.
+                        module_obj.profile = None
+
+
     def _EnsureInitialized(self):
         """Initialize the address resolver.
 

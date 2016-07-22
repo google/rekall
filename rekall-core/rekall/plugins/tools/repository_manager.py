@@ -327,6 +327,7 @@ class OSXProfile(RepositoryPlugin):
     def Build(self, renderer):
         repository = self.args.repository
         changed_files = False
+
         for source in self.args.sources:
             profile_name = "OSX/%s" % source.split("/")[-1]
             profile_metadata = repository.Metadata(profile_name)
@@ -450,62 +451,42 @@ class ArtifactProfile(RepositoryPlugin):
                             self.args.profile_name)
 
 
-class ManageRepository(plugin.Command):
+class ManageRepository(plugin.TypedProfileCommand, plugin.Command):
     """Manages the profile repository."""
 
     name = "manage_repo"
 
-    @classmethod
-    def args(cls, parser):
-        super(ManageRepository, cls).args(parser)
-        parser.add_argument(
-            "-e", "--executable",
-            default=None,
-            help="The path to the rekall binary. This is used for "
-            "spawning multiple processes.")
+    __args = [
+        dict(name="executable", default=None,
+             help="The path to the rekall binary. This is used for "
+             "spawning multiple processes."),
 
-        parser.add_argument(
-            "--processes", default=NUMBER_OF_CORES, type="IntParser",
-            help="Number of concurrent workers.")
+        dict(name="processes", default=NUMBER_OF_CORES, type="IntParser",
+            help="Number of concurrent workers."),
 
-        parser.add_argument(
-            "--path_to_repository", default=".",
-            help="The path to the profile repository")
+        dict(name="path_to_repository", default=".",
+             help="The path to the profile repository"),
 
-        parser.add_argument(
-            "--force_build_index", type="Boolean", default=False,
-            help="Forces building the index.")
+        dict(name="force_build_index", type="Boolean", default=False,
+             help="Forces building the index."),
 
-        parser.add_argument(
-            "build_target", type="StringParser", required=False,
-            positional=True, help="A single target to build.")
+        dict(name="build_target", type="StringParser", required=False,
+             positional=True, help="A single target to build."),
 
-        parser.add_argument(
-            "builder_args", type="ArrayStringParser", required=False,
-            positional=True, help="Optional args for the builder.")
+        dict(name="builder_args", type="ArrayStringParser", required=False,
+             positional=True, help="Optional args for the builder.")
+    ]
 
-    def __init__(self, command=None, path_to_repository=None,
-                 build_target=None, force_build_index=False,
-                 builder_args=None, session=None, **kwargs):
-        super(ManageRepository, self).__init__(session=session)
-        self.command = command
-        self.builder_kwargs = kwargs
-        self.path_to_repository = os.path.abspath(path_to_repository)
-        self.build_target = build_target
-        self.force_build_index = force_build_index
-        self.builder_args = builder_args or []
-
+    def render(self, renderer):
         # Check if we can load the repository config file.
         self.repository = RepositoryManager(
-            self.path_to_repository, session=self.session)
+            self.plugin_args.path_to_repository, session=self.session)
 
         self.config_file = self.repository.GetData("config.yaml")
 
-    def render(self, renderer):
         for profile_name, kwargs in self.config_file.iteritems():
-            # Inject args from the commandline into the builder args.
-            kwargs.update(self.builder_kwargs)
-            if self.build_target and profile_name != self.build_target:
+            if (self.plugin_args.build_target and
+                profile_name != self.plugin_args.build_target):
                 continue
 
             self.session.logging.info("Building profiles for %s", profile_name)
@@ -523,10 +504,12 @@ class ManageRepository(plugin.Command):
             handler = handler_cls(
                 session=self.session, repository=self.repository,
                 profile_name=profile_name,
-                force_build_index=self.force_build_index,
+                force_build_index=self.plugin_args.force_build_index,
+                executable=self.plugin_args.executable,
+                processes=self.plugin_args.processes,
                 **kwargs)
 
-            handler.Build(renderer, *self.builder_args)
+            handler.Build(renderer, *self.plugin_args.builder_args)
 
 
 class TestManageRepository(testlib.DisabledTest):

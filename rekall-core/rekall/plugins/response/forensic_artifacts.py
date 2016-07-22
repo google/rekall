@@ -286,6 +286,7 @@ class RekallEFilterArtifacts(SourceType):
         "unicode": unicode,  # Unicode data.
         "str": str, # Used for binary data.
         "float": float,
+        "epoch": float,
         "any": str  # Used for opaque types that can not be further processed.
     }
 
