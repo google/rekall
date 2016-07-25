@@ -23,6 +23,7 @@ https://github.com/ForensicArtifacts
 
 __author__ = "Michael Cohen <scudette@google.com>"
 import csv
+import datetime
 import json
 import platform
 import os
@@ -75,11 +76,53 @@ class BaseArtifactResultWriter(object):
 
     __metaclass__ = registry.MetaclassRegistry
 
-    def __init__(self, session=None):
+    def __init__(self, session=None, copy_files=False,
+                 create_timeline=False):
         self.session = session
+        self.copy_files = copy_files
+        self.create_timeline = create_timeline
 
     def write_result(self, result):
         """Writes the artifact result."""
+
+    def _create_timeline(self, artifact_result):
+        """Create a new timeline result from the given result.
+
+        We use the output format suitable for the timesketch tool:
+        https://github.com/google/timesketch/wiki/UserGuideTimelineFromFile
+        """
+        artifact_fields = artifact_result.fields
+        fields = [
+            dict(name="message", type="unicode"),
+            dict(name="timestamp", type="int"),
+            dict(name="datetime", type="unicode"),
+            dict(name="timestamp_desc", type="unicode"),
+        ] + artifact_fields
+
+        new_result = ArtifactResult(
+            artifact_name=artifact_result.artifact_name,
+            result_type="timeline",
+            fields=fields)
+
+        for field in artifact_fields:
+            # This field is a timestamp - copy the entire row into the timeline.
+            if field["type"] == "epoch":
+                for row in artifact_result.results:
+                    new_row = row.copy()
+                    timestamp = row.get(field["name"])
+                    if timestamp is None:
+                        continue
+
+                    new_row["timestamp"] = int(timestamp)
+                    new_row["datetime"] = datetime.datetime.utcfromtimestamp(
+                        timestamp).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+                    new_row["timestamp_desc"] = artifact_result.artifact_name
+                    new_row["message"] = " ".join(
+                        unicode(row[field["name"]]) for field in artifact_fields
+                        if field["name"] in row)
+                    new_result.add_result(**new_row)
+
+        return new_result
 
     def __enter__(self):
         return self
@@ -125,7 +168,7 @@ class DirectoryBasedWriter(BaseArtifactResultWriter):
 
     def write_result(self, result):
         """Writes the artifact result."""
-        if result.result_type == "file_information":
+        if self.copy_files and result.result_type == "file_information":
             try:
                 self.write_file(result)
             except (IOError, OSError) as e:
@@ -144,6 +187,14 @@ class DirectoryBasedWriter(BaseArtifactResultWriter):
                 filename="artifacts/%s.csv" % result.artifact_name,
                 mode="wb") as out_fd:
             self._write_csv_file(out_fd, result)
+
+        if self.create_timeline:
+            with self.session.GetRenderer().open(
+                    directory=self.dump_dir,
+                    filename="artifacts/%s.timeline.csv" %
+                    result.artifact_name,
+                    mode="wb") as out_fd:
+                self._write_csv_file(out_fd, self._create_timeline(result))
 
 
 class ZipBasedWriter(BaseArtifactResultWriter):
@@ -182,7 +233,7 @@ class ZipBasedWriter(BaseArtifactResultWriter):
 
     def write_result(self, result):
         """Writes the artifact result."""
-        if result.result_type == "file_information":
+        if self.copy_files and result.result_type == "file_information":
             try:
                 self.write_file(result)
             except (IOError, OSError) as e:
@@ -199,6 +250,15 @@ class ZipBasedWriter(BaseArtifactResultWriter):
         self.outzip.writestr("artifacts/%s.csv" % result.artifact_name,
                              tmp_fd.getvalue(),
                              zipfile.ZIP_DEFLATED)
+
+
+        if self.create_timeline:
+            tmp_fd = StringIO.StringIO()
+            self._write_csv_file(tmp_fd, self._create_timeline(result))
+            self.outzip.writestr("artifacts/%s.timeline.csv" %
+                                 result.artifact_name,
+                                 tmp_fd.getvalue(),
+                                 zipfile.ZIP_DEFLATED)
 
 
 # Rekall defines a new artifact type.
@@ -286,7 +346,7 @@ class RekallEFilterArtifacts(SourceType):
         "unicode": unicode,  # Unicode data.
         "str": str, # Used for binary data.
         "float": float,
-        "epoch": float,
+        "epoch": float, # Dates as epoch timestamps.
         "any": str  # Used for opaque types that can not be further processed.
     }
 
@@ -353,7 +413,14 @@ class RekallEFilterArtifacts(SourceType):
         yield result
 
 
-class FileSourceType(SourceType):
+class LiveModeSourceMixin(object):
+    def is_active(self, session=None):
+        """Determine if this source is active."""
+        # We are only active in Live mode (API or Memory).
+        return session.GetParameter("live_mode")
+
+
+class FileSourceType(LiveModeSourceMixin, SourceType):
     _field_definitions = [
         dict(name="paths", default=[]),
         dict(name="separator", default="/", type=basestring,
@@ -369,7 +436,7 @@ class FileSourceType(SourceType):
         dict(name="st_uid", type="unicode"),
         dict(name="st_gid", type="unicode"),
         dict(name="st_size", type="int"),
-        dict(name="st_mtime", type="unicode"),
+        dict(name="st_mtime", type="epoch"),
         dict(name="filename", type="unicode"),
     ]
 
@@ -406,7 +473,7 @@ class ArtifactGroupSourceType(SourceType):
             for result in collector.collect_artifact(name):
                 yield result
 
-class WMISourceType(SourceType):
+class WMISourceType(LiveModeSourceMixin, SourceType):
     _field_definitions = [
         dict(name="query", type=basestring),
         dict(name="fields", type=list, optional=True, default=[]),
@@ -463,7 +530,7 @@ class WMISourceType(SourceType):
         yield result
 
 
-class RegistryKeySourceType(SourceType):
+class RegistryKeySourceType(LiveModeSourceMixin, SourceType):
     _field_definitions = [
         dict(name="keys", default=[]),
         dict(name="supported_os", optional=True,
@@ -471,7 +538,7 @@ class RegistryKeySourceType(SourceType):
     ]
 
     _FIELDS = [
-        dict(name="st_mtime", type="unicode"),
+        dict(name="st_mtime", type="epoch"),
         dict(name="hive", type="unicode"),
         dict(name="key_name", type="unicode"),
         dict(name="value", type="str"),
@@ -501,7 +568,7 @@ class RegistryKeySourceType(SourceType):
         yield result
 
 
-class RegistryValueSourceType(SourceType):
+class RegistryValueSourceType(LiveModeSourceMixin, SourceType):
     def CheckKeyValuePairs(self, source):
         key_value_pairs = source["key_value_pairs"]
         for pair in key_value_pairs:
@@ -521,7 +588,7 @@ class RegistryValueSourceType(SourceType):
     ]
 
     _FIELDS = [
-        dict(name="st_mtime", type="unicode"),
+        dict(name="st_mtime", type="epoch"),
         dict(name="hive", type="unicode"),
         dict(name="key_name", type="unicode"),
         dict(name="value_name", type="unicode"),
@@ -714,6 +781,12 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
         dict(name="definitions", type="ArrayStringParser",
              help="An inline artifact definition in yaml format."),
 
+        dict(name="create_timeline", type="Bool", default=False,
+             help="Also generate a timeline file."),
+
+        dict(name="copy_files", type="Bool", default=False,
+             help="Copy files into the output."),
+
         dict(name="writer", type="Choices",
              choices=lambda: (
                  x.name for x in BaseArtifactResultWriter.classes.values()),
@@ -748,22 +821,36 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
                     self.artifact_profile.AddDefinition(definition_data)
 
         self.seen = set()
+        self.supported_os = self.get_supported_os(self.session)
+        if self.supported_os is None:
+            raise plugin.PluginError(
+                "Unable to determine running environment.")
+
+        # Make sure the args make sense.
+        if self.plugin_args.output_path is None:
+            if self.plugin_args.copy_files:
+                raise plugin.PluginError(
+                    "Can only copy files when an output file is specified.")
+            if self.plugin_args.create_timeline:
+                raise plugin.PluginError(
+                    "Can only create timelines when an output file "
+                    "is specified.")
+
+    @classmethod
+    def get_supported_os(cls, session):
         # Determine which context we are running in. If we are running in live
         # mode, we use the platform to determine the supported OS, otherwise we
         # determine it from the profile.
-        if self.session.GetParameter("live"):
-            self.supported_os = platform.system()
-        elif self.session.profile.metadata("os") == "linux":
-            self.supported_os = "Linux"
+        if session.GetParameter("live"):
+            return platform.system()
+        elif session.profile.metadata("os") == "linux":
+            return "Linux"
 
-        elif self.session.profile.metadata("os") == "windows":
-            self.supported_os = "Windows"
+        elif session.profile.metadata("os") == "windows":
+            return "Windows"
 
-        elif self.session.profile.metadata("os") == "darwin":
-            self.supported_os = "Darwin"
-        else:
-            raise plugin.PluginError(
-                "Unable to determine running environment.")
+        elif session.profile.metadata("os") == "darwin":
+            return "Darwin"
 
     def _evaluate_conditions(self, conditions):
         # TODO: Implement an expression parser for these. For now we just return
@@ -824,6 +911,8 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
             impl = BaseArtifactResultWriter.ImplementationByName(
                 self.plugin_args.writer)
             with impl(session=self.session,
+                      copy_files=self.plugin_args.copy_files,
+                      create_timeline=self.plugin_args.create_timeline,
                       output=self.plugin_args.output_path) as writer:
                 for x in self._collect(writer=writer):
                     yield x
@@ -834,7 +923,7 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
     def _collect(self, writer=None):
         for artifact_name in self.plugin_args.artifacts:
             for hit in self.collect_artifact(artifact_name):
-                if "result" in hit and  writer:
+                if "result" in hit and writer:
                     writer.write_result(hit["result"])
                 yield hit
 
@@ -850,7 +939,7 @@ class ArtifactsList(plugin.TypedProfileCommand,
              default=".",
              help="Filter the artifact name."),
         dict(name="supported_os", type="ArrayStringParser",
-             default=[platform.system()],
+             default=None, required=False,
              help="If specified show for these OSs."),
         dict(name="labels", type="ArrayStringParser",
              help="Filter by these labels.")
@@ -865,7 +954,12 @@ class ArtifactsList(plugin.TypedProfileCommand,
     ]
 
     def collect(self):
-        supported_os = set(self.plugin_args.supported_os)
+        if self.plugin_args.supported_os is None:
+            supported_os = set([
+                ArtifactsCollector.get_supported_os(self.session)])
+        else:
+            supported_os = set(self.plugin_args.supported_os)
+
         for definition in self.session.LoadProfile(
                 "artifacts").GetDefinitions():
             if not supported_os.intersection(definition.supported_os):
@@ -874,11 +968,12 @@ class ArtifactsList(plugin.TypedProfileCommand,
             # Determine the type:
             types = set()
             for source in definition.sources:
-                types.add(source.type_indicator)
+                if source.is_active(session=self.session):
+                    types.add(source.type_indicator)
 
-            if self.plugin_args.regex.match(definition.name):
-                yield (definition.name, definition.supported_os,
-                       definition.labels, sorted(types), definition.doc)
+                    if self.plugin_args.regex.match(definition.name):
+                        yield (definition.name, definition.supported_os,
+                               definition.labels, sorted(types), definition.doc)
 
 
 class ArtifactResult_TextObjectRenderer(text.TextObjectRenderer):

@@ -40,11 +40,11 @@ from rekall.plugins.overlays import basic
 
 
 # Will be registered by OS specific implementations.
-IRProcessAddressSpace = None
-IRProfile = None
+APIProcessAddressSpace = None
+APIProfile = None
 
 
-class IRDummyPhysicalAddressSpace(addrspace.BaseAddressSpace):
+class APIDummyPhysicalAddressSpace(addrspace.BaseAddressSpace):
     __image = True
 
     def __init__(self, base=None, session=None, **kwargs):
@@ -52,13 +52,13 @@ class IRDummyPhysicalAddressSpace(addrspace.BaseAddressSpace):
         self.as_assert(session.GetParameter("live_mode") == "API")
 
         with session:
-            session.SetParameter("profile", IRBaseProfile(session=session))
+            session.SetParameter("profile", APIBaseProfile(session=session))
 
-        super(IRDummyPhysicalAddressSpace, self).__init__(
+        super(APIDummyPhysicalAddressSpace, self).__init__(
             session=session, **kwargs)
 
 
-class IRBaseProfile(obj.Profile):
+class APIBaseProfile(obj.Profile):
     """A class representing the profile for IR (live) analysis."""
 
     # This profile is used for API based analysis.
@@ -316,8 +316,24 @@ class AbstractIRCommandPlugin(plugin.TypedProfileCommand,
 
     @classmethod
     def is_active(cls, session):
-        """We are only active if the profile is windows."""
         return (super(AbstractIRCommandPlugin, cls).is_active(session) and
+                session.GetParameter("live_mode") in ["API", "Memory"])
+
+
+class AbstractAPICommandPlugin(plugin.TypedProfileCommand,
+                               plugin.ProfileCommand):
+    """A base class for all API access plugins.
+
+    IR Plugins are only active when the session is live.
+    """
+
+    __abstract = True
+
+    PROFILE_REQUIRED = False
+
+    @classmethod
+    def is_active(cls, session):
+        return (super(AbstractAPICommandPlugin, cls).is_active(session) and
                 session.GetParameter("live_mode") == "API")
 
 

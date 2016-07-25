@@ -132,7 +132,7 @@ class LiveVad(utils.AttributeDict):
         return self.end - self.start
 
 
-class IRVad(processes.IRProcessFilter):
+class APIVad(processes.APIProcessFilter):
     """A VAD plugin using the APIs."""
 
     name = "vad"
@@ -260,11 +260,11 @@ class IRVad(processes.IRProcessFilter):
                            filename=vad.filename)
 
 
-class WinIRProcessAddressSpace(addrspace.RunBasedAddressSpace):
+class WinAPIProcessAddressSpace(addrspace.RunBasedAddressSpace):
     """An address space which read processes using ReadProcessMemory()."""
 
     def __init__(self, pid=None, **kwargs):
-        super(WinIRProcessAddressSpace, self).__init__(**kwargs)
+        super(WinAPIProcessAddressSpace, self).__init__(**kwargs)
 
         self.process_handle = ProcessHandle(pid)
         for vad in self.session.plugins.vad().merge_ranges(pid):
@@ -288,7 +288,7 @@ class WinIRProcessAddressSpace(addrspace.RunBasedAddressSpace):
         return result.raw
 
 # Register the process AS as a windows one.
-common.IRProcessAddressSpace = WinIRProcessAddressSpace
+common.APIProcessAddressSpace = WinAPIProcessAddressSpace
 
 
 def is_wow64(proc):
@@ -298,11 +298,11 @@ def is_wow64(proc):
             proc.environ.get("PROCESSOR_ARCHITEW6432") == 'AMD64')
 
 
-class WinIRProfile(common.IRBaseProfile):
+class WinAPIProfile(common.APIBaseProfile):
     """Profile for Windows live analysis."""
 
     def __init__(self, proc=None, **kwargs):
-        super(WinIRProfile, self).__init__(**kwargs)
+        super(WinAPIProfile, self).__init__(**kwargs)
 
         # This is a profile for a dll or module in the current process
         # context. Depending if the current process is a Wow64 process we need
@@ -316,4 +316,4 @@ class WinIRProfile(common.IRBaseProfile):
 
 
 # Register the profile for windows.
-common.IRProfile = WinIRProfile
+common.APIProfile = WinAPIProfile

@@ -18,7 +18,7 @@ class LiveMap(utils.AttributeDict):
         return self.end - self.start
 
 
-class IRMaps(processes.IRProcessFilter):
+class IRMaps(processes.APIProcessFilter):
     """Examine the process memory maps."""
 
     name = "maps"
@@ -118,11 +118,11 @@ class IRMaps(processes.IRProcessFilter):
                            filename=maps.filename)
 
 
-class LinuxIRProfile(common.IRBaseProfile):
+class LinuxAPIProfile(common.APIBaseProfile):
     """Profile for Linux live analysis."""
 
     def __init__(self, proc=None, **kwargs):
-        super(LinuxIRProfile, self).__init__(**kwargs)
+        super(LinuxAPIProfile, self).__init__(**kwargs)
 
         # TODO: Although it is possible to run 32 bit processes on 64 bit
         # systems we dont detect this case. We set the profile architecture
@@ -135,14 +135,14 @@ class LinuxIRProfile(common.IRBaseProfile):
 
 
 # Register the profile for Linux.
-common.IRProfile = LinuxIRProfile
+common.APIProfile = LinuxAPIProfile
 
 
-class LinuxIRProcessAddressSpace(addrspace.RunBasedAddressSpace):
+class LinuxAPIProcessAddressSpace(addrspace.RunBasedAddressSpace):
     """An address space which read processes using ReadProcessMemory()."""
 
     def __init__(self, pid=None, **kwargs):
-        super(LinuxIRProcessAddressSpace, self).__init__(**kwargs)
+        super(LinuxAPIProcessAddressSpace, self).__init__(**kwargs)
         self.pid = pid
 
         try:
@@ -170,15 +170,15 @@ class LinuxIRProcessAddressSpace(addrspace.RunBasedAddressSpace):
 
 
 # Register the process AS as a Linux one.
-common.IRProcessAddressSpace = LinuxIRProcessAddressSpace
+common.IRProcessAddressSpace = LinuxAPIProcessAddressSpace
 
 
 class MapModule(address_resolver.Module):
     """A module representing a memory mapping."""
 
 
-class LinuxIRAddressResolver(address_resolver.AddressResolverMixin,
-                             common.AbstractIRCommandPlugin):
+class LinuxAPIAddressResolver(address_resolver.AddressResolverMixin,
+                              common.AbstractAPICommandPlugin):
     """A Linux specific address resolver plugin."""
 
     @staticmethod

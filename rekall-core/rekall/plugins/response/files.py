@@ -30,11 +30,9 @@ import platform
 import re
 import os
 
-from rekall import kb
 from rekall import plugin
 from rekall import utils
 from rekall.plugins.response import common
-from rekall.plugins.response import interpolators
 
 
 BUFFER_SIZE = 10 * 1024 * 1024

@@ -781,7 +781,7 @@ class KernelASMixin(object):
     """
 
     __args = [
-        dict(name="dtb", type="IntParser", default=None,
+        dict(name="dtb", type="IntParser", default=None, hidden=True,
              help="The DTB physical address.")
     ]
 

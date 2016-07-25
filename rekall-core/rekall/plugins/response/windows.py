@@ -138,7 +138,7 @@ class LiveModule(win_address_resolver.PEModule):
         name = "vad_%#x" % vad.start
         self.filename = vad.filename
         if self.filename:
-            name = WinIRAddressResponse.NormalizeModuleName(self.filename)
+            name = WinAPIAddressResponse.NormalizeModuleName(self.filename)
 
         self.vad = vad
 
@@ -148,8 +148,8 @@ class LiveModule(win_address_resolver.PEModule):
                                          session=session)
 
 
-class WinIRAddressResponse(address_resolver.AddressResolverMixin,
-                           common.AbstractIRCommandPlugin):
+class WinAPIAddressResponse(address_resolver.AddressResolverMixin,
+                            common.AbstractAPICommandPlugin):
     """Address resolver for windows API access."""
 
     @staticmethod

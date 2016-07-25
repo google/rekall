@@ -329,9 +329,10 @@ class BaseObjectRenderer(StateBasedObjectRenderer):
             value, options)
 
         profile = value.pop("profile", None)
-        value.pop("mro", None)
+        if profile:
+            value.pop("mro", None)
 
-        return profile.Object(**value)
+            return profile.Object(**value)
 
     def GetState(self, item, **_):
         return dict(offset=item.obj_offset,

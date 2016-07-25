@@ -40,7 +40,7 @@ class _LiveProcess(utils.AttributeDict):
         # Delay creation of the profile because it needs to look in the
         # environment which is slow.
         if self._obj_profile is None:
-            self._obj_profile = common.IRProfile(
+            self._obj_profile = common.APIProfile(
                 session=self.session, proc=self)
 
         return self._obj_profile
@@ -76,7 +76,7 @@ class _LiveProcess(utils.AttributeDict):
         return "<Live Process pid=%s>" % self.pid
 
     def get_process_address_space(self):
-        return common.IRProcessAddressSpace(self.pid, session=self.session)
+        return common.APIProcessAddressSpace(self.pid, session=self.session)
 
     def as_dict(self):
         return self._proc.as_dict()
@@ -109,7 +109,7 @@ structured.IStructured.implement(
 )
 
 
-class IRProcessFilter(common.AbstractIRCommandPlugin):
+class APIProcessFilter(common.AbstractAPICommandPlugin):
     """A live process filter using the system APIs."""
 
     __abstract = True
@@ -148,7 +148,7 @@ class IRProcessFilter(common.AbstractIRCommandPlugin):
         return result
 
 
-class IRPslist(IRProcessFilter):
+class APIPslist(APIProcessFilter):
     """A live pslist plugin using the APIs."""
 
     name = "pslist"
@@ -190,13 +190,13 @@ class IRPslist(IRProcessFilter):
             yield self._row(proc)
 
 
-class IRSetProcessContext(core.SetProcessContextMixin,
-                          IRProcessFilter):
+class APISetProcessContext(core.SetProcessContextMixin,
+                           APIProcessFilter):
     """A cc plugin for setting process context to live mode."""
     name = "cc"
 
 
-class IRProcessScanner(IRProcessFilter):
+class APIProcessScanner(APIProcessFilter):
     """Scanner for scanning processes using the ReadProcessMemory() API."""
 
     __abstract = True
@@ -223,6 +223,6 @@ class IRProcessScanner(IRProcessFilter):
                     yield run
 
 
-class ProcessYaraScanner(yarascanner.YaraScanMixin, IRProcessScanner):
+class ProcessYaraScanner(yarascanner.YaraScanMixin, APIProcessScanner):
     """Yara scan process memory using the ReadProcessMemory() API."""
     name = "yarascan"
