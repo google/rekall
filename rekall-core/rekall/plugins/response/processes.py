@@ -79,7 +79,11 @@ class _LiveProcess(utils.AttributeDict):
         return common.APIProcessAddressSpace(self.pid, session=self.session)
 
     def as_dict(self):
-        return self._proc.as_dict()
+        try:
+            return self._proc.as_dict()
+        except Exception:
+            # This can happen if the process no longer exists.
+            return {}
 
 # Automatically add accessors for psutil fields.
 psutil_fields = ['cmdline', 'connections', 'cpu_affinity',

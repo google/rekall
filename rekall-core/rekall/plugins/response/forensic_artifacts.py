@@ -273,8 +273,8 @@ class _FieldDefinitionValidator(object):
     """
     _field_definitions = []
 
-    def _LoadFieldDefinitions(self, data):
-        for field in self._field_definitions:
+    def _LoadFieldDefinitions(self, data, field_definitions):
+        for field in field_definitions:
             name = field["name"]
 
             default = field.get("default")
@@ -313,10 +313,19 @@ class _FieldDefinitionValidator(object):
 class SourceType(_FieldDefinitionValidator):
     """All sources inherit from this."""
 
+    # Common fields for all sources.
+    _common_fields = [
+        dict(name="type", optional=False),
+        dict(name="supported_os", optional=True, type=list,
+             default=list(definitions.SUPPORTED_OS)),
+    ]
+
     def __init__(self, source_definition):
         attributes = source_definition["attributes"]
+        self.source_definition = source_definition
         self.type_indicator = source_definition["type"]
-        self._LoadFieldDefinitions(attributes)
+        self._LoadFieldDefinitions(attributes, self._field_definitions)
+        self._LoadFieldDefinitions(source_definition, self._common_fields)
 
     def is_active(self, **_):
         """Indicates if the source is applicable to the environment."""
@@ -417,7 +426,9 @@ class LiveModeSourceMixin(object):
     def is_active(self, session=None):
         """Determine if this source is active."""
         # We are only active in Live mode (API or Memory).
-        return session.GetParameter("live_mode")
+        return (session.GetParameter("live_mode") != None and
+                session.profile.metadata("os").capitalize() in
+                self.supported_os)
 
 
 class FileSourceType(LiveModeSourceMixin, SourceType):
@@ -425,8 +436,6 @@ class FileSourceType(LiveModeSourceMixin, SourceType):
         dict(name="paths", default=[]),
         dict(name="separator", default="/", type=basestring,
              optional=True),
-        dict(name="supported_os", optional=True,
-             default=definitions.SUPPORTED_OS),
     ]
 
     # These fields will be present in the ArtifactResult object we return.
@@ -511,9 +520,11 @@ class WMISourceType(LiveModeSourceMixin, SourceType):
             match = collected["Result"]
             row = {}
             # If the user did not specify the fields, we must
-            # deduce them from the first returns row.
+            # deduce them from the first returned row.
             if not self.fields:
-                result.fields = self.fields = self._guess_returned_fields(match)
+                self.fields = self._guess_returned_fields(match)
+
+            result.fields = self.fields
 
             for column in self.fields:
                 name = column["name"]
@@ -723,7 +734,7 @@ class ArtifactDefinition(_FieldDefinitionValidator):
             raise errors.FormatError(u'Undefined keys: {}'.format(
                 different_keys))
 
-        self._LoadFieldDefinitions(data)
+        self._LoadFieldDefinitions(data, self._field_definitions)
 
 
 class ArtifactDefinitionProfileSectionLoader(obj.ProfileSectionLoader):
@@ -812,11 +823,15 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
         super(ArtifactsCollector, self).__init__(*args, **kwargs)
         self.artifact_profile = self.session.LoadProfile("artifacts")
 
+        extra_definitions = [
+            open(x).read() for x in self.plugin_args.artifact_files]
+        extra_definitions.extend(self.plugin_args.definitions or [])
+
         # Make a copy of the artifact registry.
-        if self.plugin_args.definitions:
+        if extra_definitions:
             self.artifact_profile = self.artifact_profile.copy()
 
-            for definition in self.plugin_args.definitions:
+            for definition in extra_definitions:
                 for definition_data in yaml.safe_load_all(definition):
                     self.artifact_profile.AddDefinition(definition_data)
 
@@ -938,9 +953,9 @@ class ArtifactsList(plugin.TypedProfileCommand,
         dict(name="regex", type="RegEx",
              default=".",
              help="Filter the artifact name."),
-        dict(name="supported_os", type="ArrayStringParser",
-             default=None, required=False,
-             help="If specified show for these OSs."),
+        dict(name="supported_os", type="ArrayStringParser", required=False,
+             help="If specified show for these OSs, otherwise autodetect "
+             "based on the current image."),
         dict(name="labels", type="ArrayStringParser",
              help="Filter by these labels.")
     ]
@@ -954,7 +969,8 @@ class ArtifactsList(plugin.TypedProfileCommand,
     ]
 
     def collect(self):
-        if self.plugin_args.supported_os is None:
+        # Empty means autodetect based on the image.
+        if not self.plugin_args.supported_os:
             supported_os = set([
                 ArtifactsCollector.get_supported_os(self.session)])
         else:

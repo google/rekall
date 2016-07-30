@@ -53,6 +53,7 @@ class LinuxKnowledgeBase(KnowledgeBase):
         if variable == "%%users.homedir%%":
             return self._get_users_homedir()
 
+        self.session.logging.warn("Unable to interpolate %s", variable)
         return []
 
 
@@ -61,11 +62,11 @@ class WindowsKnowledgeBase(KnowledgeBase):
     def _get_sids(self):
         result = []
         for hit in self.session.plugins.glob(
-                "HKEY_USERS\*", filesystem="Reg", root="\\",
+                r"HKEY_USERS\*", filesystem="Reg", root="\\",
                 path_sep="\\").collect():
             path = hit["path"]
             m = re.search(
-                "(S-(\d+-)+\d+)$", path.filename.name or "", re.I)
+                r"(S-(\d+-)+\d+)$", path.filename.name or "", re.I)
             if m:
                 result.append(m.group(1))
 

@@ -1175,7 +1175,7 @@ class TextTable(renderer_module.BaseTable):
                         max_width * total_width / sum_of_widths,
                         max_width + 1)
 
-                    width = max(width, len(column.name))
+                    width = max(width, len(unicode(column.name)))
                     column.options["width"] = width
 
             # Render the headers now.

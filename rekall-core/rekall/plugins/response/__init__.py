@@ -4,6 +4,7 @@ import platform
 from rekall.plugins.response import forensic_artifacts
 from rekall.plugins.response import common
 from rekall.plugins.response import files
+from rekall.plugins.response import interpolators
 from rekall.plugins.response import processes
 from rekall.plugins.response import renderers
 from rekall.plugins.response import yara

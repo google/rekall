@@ -15,7 +15,7 @@ class EfilterMagics(magic.Magics):
 
     @magic.line_cell_magic
     def search(self, line, cell=None):
-        session = self.shell.user_global_ns.session
+        session = self.shell.user_global_ns["session"]
         if cell is None:
             return self._RunPlugin(session, "search", line)
         else:

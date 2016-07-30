@@ -396,6 +396,9 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
         # queries. For example select hex(cmd_address) from dis(0xfa8000895a32).
         def hex_function(value):
             """A Function to format the output as a hex string."""
+            if value == None:
+                return
+
             return "%#x" % value
 
         def str_function(value):
@@ -914,7 +917,7 @@ def Struct_getmembers_runtime(item):
 structured.IStructured.implement(
     for_type=obj.Struct,
     implementations={
-        structured.resolve: getattr,
+        structured.resolve: lambda x, y: getattr(x, y, None),
         structured.reflect_runtime_member:
             lambda s, m: type(getattr(s, m, None)),
         structured.getmembers_runtime: Struct_getmembers_runtime,

@@ -88,7 +88,8 @@ class CommandOption(object):
                 if self.type == "AddressSpace":
                     return session.GetParameter("default_address_space")
 
-                if self.type in ["ArrayString", "ArrayIntParser", "Array"]:
+                if self.type in ["ArrayStringParser", "ArrayString",
+                                 "ArrayIntParser", "Array"]:
                     return []
 
                 if self.type in ["Bool", "Boolean"]:

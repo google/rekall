@@ -31,7 +31,9 @@ class WmiResult(utils.AttributeDict):
     def __init__(self, result):
         super(WmiResult, self).__init__()
         for prop in itertools.chain(
-                result.Properties_, result.SystemProperties_):
+                result.Properties_,
+                # On some systems this does not exist.
+                getattr(result, "SystemProperties_", [])):
             if prop.Name not in self.IGNORE_PROPS:
                 self[prop.Name] = prop.Value
 

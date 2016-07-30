@@ -119,7 +119,12 @@ class RekallObjectInspector(oinspect.Inspector):
     def _format_parameter(self, displayfields, arg):
         desc = arg["help"]
         try:
-            desc += " (type: %s)" % arg["type"]
+            type = arg["type"]
+            if type in ["Choices", "ChoiceArray"] and arg["choices"]:
+                desc += " (type: %s: %s)" % (type, ", ".join(arg["choices"]))
+            else:
+                desc += " (type: %s)" % type
+
         except KeyError:
             pass
 

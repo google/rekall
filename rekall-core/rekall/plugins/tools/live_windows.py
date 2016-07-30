@@ -200,6 +200,8 @@ class Live(plugin.TypedProfileCommand,
 
         with self.session:
             self.session.SetParameter("live_mode", self.plugin_args.mode)
+            self.session.SetParameter("session_name", "Live (%s)" %
+                                      self.plugin_args.mode)
 
     def remove_service(self, also_close_as=True):
         self.session.logging.debug("Removing service %s",
