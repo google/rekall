@@ -5,6 +5,6 @@ dependent_versions:
 - tools/layout_expert/layout_expert/_version.py
 version_data:
   codename: Furka
-  post: '1'
-  rc: '0'
-  version: 1.5.2
+  post: '0'
+  rc: '1'
+  version: 1.5.3
