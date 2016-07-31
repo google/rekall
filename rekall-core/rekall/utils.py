@@ -486,6 +486,9 @@ class HexDumpedString(AttributedString):
 class HexInteger(long):
     """An int which should be rendered as a hex digit."""
 
+    def __hex__(self):
+        return super(HexInteger, self).__hex__().rstrip("L")
+
 
 class FormattedAddress(object):
     """A container for an address that should be formatted.
