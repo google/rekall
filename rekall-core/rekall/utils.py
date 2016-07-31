@@ -483,7 +483,7 @@ class HexDumpedString(AttributedString):
     """A string which should be hex dumped."""
 
 
-class HexInteger(int):
+class HexInteger(long):
     """An int which should be rendered as a hex digit."""
 
 
