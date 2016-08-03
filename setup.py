@@ -75,6 +75,16 @@ class develop(_develop):
 
         _develop.run(self)
 
+
+def find_data_files(source):
+    result = []
+    for directory, _, files in os.walk(source):
+        files = [os.path.join(directory, x) for x in files]
+        result.append((directory, files))
+
+    return result
+
+
 commands = dict(
     install=install,
     develop=develop
@@ -113,5 +123,6 @@ setup(
             "readline",
         ],
 
-    }
+    },
+    data_files=find_data_files("tools"),
 )

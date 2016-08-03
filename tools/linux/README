@@ -54,20 +54,11 @@ Step 2: Convert the zip file into a Rekall standard profile.
 This step should be done on a system with rekall (and its dependencies) already
 installed:
 
-bash$ rekal.py convert_profile tools/linux/3.8.0-34-generic.zip Ubuntu-3.8.0-34-generic.zip
+bash$ rekal.py convert_profile tools/linux/3.8.0-34-generic.zip Ubuntu-3.8.0-34-generic.json
 
-This will generate the correct rekall_profile.zip. You may use it directly:
+This will generate the correct rekall_profile. You may now use it directly:
 
-bash$ rekal.py --profile Ubuntu-3.8.0-34-generic.zip -f my_image.dd
-
-Or you may upload it to a Rekall profile repository (which can also be a local
-directory):
-
-bash$ cp Ubuntu-3.8.0-34-generic.zip ~/profiles/
-bash$ rekal.py --profile Ubuntu-3.8.0-34-generic --profile_path ~/profiles/ -f my_image.dd
-
-The profile_path can also be permanently specified in your ~/.rekallrc file, in
-which case it needs not be also specified on the command line.
+bash$ rekal.py --profile Ubuntu-3.8.0-34-generic.json -f my_image.dd
 
 [NOTE]
 =======================================================================

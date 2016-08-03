@@ -514,15 +514,8 @@ class PluginHeader(object):
         """Get the column spec in 'name' by either cname or some heuristic."""
         return self.by_cname.get(name, self.by_name.get(name))
 
-
-class TypedProfileCommand(object):
-    """Mixin that provides the plugin with standardized table output."""
-
-    # Subclasses must override. Has to be a list of column specifications
-    # (i.e. list of dicts specifying the columns).
-    table_header = None
-    table_options = {}
-
+class ArgsParserMixin(object):
+    """A Mixin which provides argument parsing and validation."""
     # Each plugin mixin should define a list of CommandOption instances with
     # this name (__args). The constructor will collect these definitions into a
     # self.args parameter available for the plugins at runtime.
@@ -588,12 +581,24 @@ class TypedProfileCommand(object):
                 raise InvalidArgs("%s is required." % definition.name)
 
             self.plugin_args[definition.name] = definition.parse(
-                value, session=kwargs["session"])
+                value, session=kwargs.get("session"))
 
+        super(ArgsParserMixin, self).__init__(**kwargs)
+
+
+class TypedProfileCommand(ArgsParserMixin):
+    """Mixin that provides the plugin with standardized table output."""
+
+    # Subclasses must override. Has to be a list of column specifications
+    # (i.e. list of dicts specifying the columns).
+    table_header = None
+    table_options = {}
+
+    def __init__(self, *pos_args, **kwargs):
         if isinstance(self.table_header, (list, tuple)):
             self.table_header = PluginHeader(*self.table_header)
 
-        super(TypedProfileCommand, self).__init__(**kwargs)
+        super(TypedProfileCommand, self).__init__(*pos_args, **kwargs)
 
     @classmethod
     def args(cls, parser):

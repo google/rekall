@@ -42,6 +42,7 @@ class FileYaraScanner(yarascanner.YaraScanMixin,
         count = 0
 
         for path in self.plugin_args.paths:
+            self.session.logging.debug("File yara scanning %s", path)
             file_info = common.FileFactory(path, session=self.session)
             run = addrspace.Run(start=0, end=file_info.st_size,
                                 file_offset=0,
@@ -49,7 +50,7 @@ class FileYaraScanner(yarascanner.YaraScanMixin,
                                     session=self.session,
                                     fhandle=file_info.open()))
 
-            for rule, address, _, _ in self.generate_hits(run):
+            for rule, address in self.generate_hits(run):
                 count += 1
                 if count >= self.plugin_args.hits:
                     break
