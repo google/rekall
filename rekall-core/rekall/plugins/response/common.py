@@ -225,7 +225,7 @@ class FileInformation(utils.AttributeDict):
 
     def open(self):
         try:
-            return open(self.filename.os_path())
+            return open(self.filename.os_path(), "rb")
         except (IOError, OSError) as e:
             return obj.NoneObject("Unable to open file: %s", e)
 
