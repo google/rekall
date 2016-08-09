@@ -184,7 +184,7 @@ class RegexComponent(Component):
     def filter(self, file_info):
         for child in file_info.list():
             basename = os.path.basename(child.filename.name)
-            if self.component_re.match(basename, re.I):
+            if self.component_re.match(basename):
                 yield child
 
 

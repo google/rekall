@@ -101,19 +101,26 @@ class DriveLetterDeviceHook(common.AbstractWindowsParameterHook):
 
     @core.MethodWithAddressSpace()
     def calculate(self):
-        result = {}
-        obj_tree_plugin = self.session.plugins.object_tree()
-        # The global path contains symlinks from the drive letter to the device
-        # name.
-        for global_obj in obj_tree_plugin.GetObjectByName(r"\GLOBAL??").Object:
-            name = global_obj.NameInfo.Name.v()
-            if (global_obj.get_object_type() == "SymbolicLink" and
-                    len(name) > 1 and name[1] == ":"):
-                target = global_obj.Object.LinkTarget.v()
+        try:
+            result = {}
+            obj_tree_plugin = self.session.plugins.object_tree()
+            # The global path contains symlinks from the drive letter to the
+            # device name.
+            for global_obj in obj_tree_plugin.GetObjectByName(
+                    r"\GLOBAL??").Object:
+                name = global_obj.NameInfo.Name.v()
+                if (global_obj.get_object_type() == "SymbolicLink" and
+                        len(name) > 1 and name[1] == ":"):
+                    target = global_obj.Object.LinkTarget.v()
 
-                result[target] = name
+                    result[target] = name
 
-        return result
+            return result
+
+        # If we fail to traverse the object tree we just return None which will
+        # fail to resolve this drive letter but will try again next time.
+        except KeyError:
+            return None
 
 
 class KernelBaseHook(common.AbstractWindowsParameterHook):
