@@ -95,6 +95,7 @@ class DarwinOnlyMixin(object):
     def is_active(cls, session):
         """We are only active if the profile is darwin."""
         return (super(DarwinOnlyMixin, cls).is_active(session) and
+                session.GetParameter("live_mode") == 'Memory' and
                 session.profile.metadata("os") == "darwin")
 
 
@@ -203,6 +204,7 @@ class DarwinFindKASLR(plugin.PhysicalASMixin, DarwinOnlyMixin,
     @classmethod
     def is_active(cls, session):
         return (super(DarwinFindKASLR, cls).is_active(session) and
+                session.GetParameter("live_mode") == 'Memory' and
                 MOUNTAIN_LION_OR_LATER(session.profile))
 
     def all_catfish_hits(self):
