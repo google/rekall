@@ -324,7 +324,8 @@ class AbstractAPICommandPlugin(plugin.TypedProfileCommand,
                                plugin.ProfileCommand):
     """A base class for all API access plugins.
 
-    IR Plugins are only active when the session is live.
+    These plugins are only active when we are in pure API mode (e.g. API
+    pslist).
     """
 
     __abstract = True
