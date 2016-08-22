@@ -72,8 +72,11 @@ class AFF4ProgressReporter(aff4.ProgressContext):
         readptr = readptr + self.start
 
         # Rate in MB/s.
-        rate = ((readptr - self.last_offset) /
-                (self.now() - self.last_time) * 1000000 / 1024/1024)
+        try:
+            rate = ((readptr - self.last_offset) /
+                    (self.now() - self.last_time) * 1000000 / 1024/1024)
+        except ZeroDivisionError:
+            rate = "?"
 
         self.session.report_progress(
             " Reading %sMiB / %sMiB  %s MiB/s     ",
@@ -424,7 +427,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
         except IOError:
             try:
                 # Currently we can only access NTFS filesystems.
-                if self.profile.metadata("os") == "windows":
+                if self.session.profile.metadata("os") == "windows":
                     self.session.logging.debug(
                         "Unable to read %s. Attempting raw access.", filename)
 
@@ -571,9 +574,13 @@ class AFF4Acquire(AbstractAFF4Plugin):
     def collect_acquisition(self):
         """Do the actual acquisition."""
         # If destination looks like a URN, just let the AFF4 library handle it.
-        output_urn = rdfvalue.URN(self.plugin_args.destination)
+        try:
+            output_urn = rdfvalue.URN.NewURNFromFilename(
+                self.plugin_args.destination)
+        except IOError:
+            output_urn = rdfvalue.URN(self.plugin_args.destination)
         if (output_urn.Parse().scheme == "file" and
-                not self.plugin_args.destination.endswith("/")):
+                not self.plugin_args.destination[-1] in "/\\"):
             # Destination looks like a filename - go through the renderer to
             # create the file.
             with self.session.GetRenderer().open(
@@ -622,12 +629,14 @@ class AFF4Acquire(AbstractAFF4Plugin):
                             for x in self.copy_mapped_files(resolver, volume):
                                 yield x
 
-                        # If a physical_address_space is specified, then
-                        # we only allow copying files if it is volatile.
-                        if self.plugin_args.files:
-                            for x in self.copy_files(
-                                    resolver, volume, self.plugin_args.files):
-                                yield x
+                        # Always include the minimum file globs
+                        # required to support the given OS.
+                        file_globs = (self.plugin_args.files +
+                                      self._default_file_globs())
+
+                        for x in self.copy_files(
+                                resolver, volume, file_globs):
+                            yield x
 
                     elif any([self.plugin_args.also_pagefile,
                               self.plugin_args.also_mapped_files,

@@ -159,13 +159,13 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         path_components = list(filename.split(os.sep))
         while path_components:
             volume_path = os.sep.join(path_components)
-            volume_urn = rdfvalue.URN(volume_path)
+            volume_urn = rdfvalue.URN.NewURNFromFilename(volume_path)
             volume_urn_parts = volume_urn.Parse()
 
             if volume_urn_parts.scheme == "file":
                 if os.path.isfile(volume_path):
                     with zip.ZipFile.NewZipFile(
-                            self.resolver, volume_path) as volume:
+                            self.resolver, volume_urn) as volume:
                         if stream_name:
                             return volume.urn, os.sep.join(stream_name)
 
