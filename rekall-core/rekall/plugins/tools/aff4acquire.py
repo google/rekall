@@ -273,7 +273,9 @@ class AFF4Acquire(AbstractAFF4Plugin):
             # In Windows we need to collect at least the kernel and all the
             # kernel drivers.
             return [r"C:\Windows\System32\ntoskrnl.exe",
-                    r"C:\Windows\System32\*.sys"]
+                    r"C:\Windows\System32\*.sys",
+                    r"C:\Windows\SysNative\ntoskrnl.exe",
+                    r"C:\Windows\SysNative\*.sys"]
 
         elif platform.system() == "Linux":
             return ["/proc/kallsyms", "/boot/*"]

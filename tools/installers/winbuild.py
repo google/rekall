@@ -145,9 +145,10 @@ def main():
     print "Copy resources into the package."
     # Recent versions of Pyinstaller already copy resources they know about.
     copy("rekall-core/resources", "dist/rekal")
-    copy("rekall-gui/manuskript", "dist/rekal")
-    copy("rekall-gui/rekall_gui/plugins/webconsole",
-         "dist/rekal/rekall_gui/plugins")
+    # We no longer ship the GUI package by default.
+#    copy("rekall-gui/manuskript", "dist/rekal")
+#    copy("rekall-gui/rekall_gui/plugins/webconsole",
+#         "dist/rekal/rekall_gui/plugins")
 
     print "Remove unnecessary crap added by pyinstaller."
     rm("dist/rekal/_MEI")
