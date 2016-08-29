@@ -1,14 +1,13 @@
 import hashlib
+from time import sleep
 
 import pytsk3 as pytsk3
 import sys
 
+import plugin
 from rekall import obj
 from rekall.plugin import TypedProfileCommand, PhysicalASMixin, ProfileCommand
 from rekall.plugins import guess_profile
-
-TYPE_DIR = 0
-TYPE_FILE = 1
 
 
 class FSEntry(object):
@@ -17,10 +16,7 @@ class FSEntry(object):
 
     @property
     def type(self):
-        if self._tsk_file.info.meta.type == pytsk3.TSK_FS_META_TYPE_DIR:
-            return TYPE_DIR
-        else:
-            return TYPE_FILE
+        return str(self._tsk_file.info.meta.type)[17:]
 
     @property
     def name(self):
@@ -30,8 +26,14 @@ class FSEntry(object):
     def size(self):
         return self._tsk_file.info.meta.size
 
+    def read(self, start, size):
+        if self.size > 0:
+            return self._tsk_file.read_random(start, size)
+        else:
+            return ""
+
     def __iter__(self):
-        if self.type == TYPE_DIR:
+        if self.type == "DIR":
             for directory_entry in self._tsk_file.as_directory():
                 if directory_entry.info.meta is None:
                     continue
@@ -39,37 +41,53 @@ class FSEntry(object):
                 if name in [".", ".."]:
                     continue
                 yield FSEntry(directory_entry)
-        else:
-            return
-
-    def __str__(self):
-        if self.size > 0:
-            return self._tsk_file.read_random(0, self.size)
-        else:
-            return ""
 
 
 class FS(object):
     def __init__(self, tsk_fs):
         self._tsk_fs = tsk_fs
 
-    @property
-    def id(self):
-        return self._tsk_fs.info.fs_id
-
-    def __iter__(self):
-        entries = []
-        root = FSEntry(self._tsk_fs.open('/'))
-        entries.append(root)
-        while len(entries) > 0:
-            entry = entries.pop()
-            yield entry
-            for sub_entry in entry:
-                entries.append(sub_entry)
-
     def get_fs_entry_by_path(self, path):
+        path = path.replace('\\', '/')
         tsk_file = self._tsk_fs.open(path)
         return FSEntry(tsk_file)
+
+
+class VolumeSystem(object):
+    def __init__(self, disk, tsk_vs):
+        self._disk = disk
+        self._tsk_vs = tsk_vs
+        self.type = str(self._tsk_vs.info.vstype)[12:]
+        self.partitions = []
+        for partition in self._tsk_vs:
+            if partition.flags == pytsk3.TSK_VS_PART_FLAG_ALLOC:
+                try:
+                    tsk_fs = pytsk3.FS_Info(self._disk, offset=partition.start * self._tsk_vs.info.block_size)
+                    self.partitions.append(FS(tsk_fs))
+                except IOError:
+                    self.partitions.append(None)
+
+
+class Disk(object):
+    def __init__(self, img_info):
+        self._img_info = img_info
+        try:
+            # open as disk image
+            tsk_vs = pytsk3.Volume_Info(self._img_info)
+            self.volume_system = VolumeSystem(self._img_info, tsk_vs)
+            self.partitions = self.volume_system.partitions
+        except IOError:
+            # open as partition image
+            self.volume_system = None
+            self.partitions = []
+            try:
+                tsk_fs = pytsk3.FS_Info(self._img_info)
+                self.partitions.append(FS(tsk_fs))
+            except IOError:
+                pass
+
+    def read(self, offset, size):
+        return self._img_info.read(offset, size)
 
 
 class AS_Img_Info(pytsk3.Img_Info):
@@ -78,13 +96,13 @@ class AS_Img_Info(pytsk3.Img_Info):
         pytsk3.Img_Info.__init__(self, "")
 
     def close(self):
-        pass
+        self._as.close()
 
     def read(self, offset, size):
         return self._as.read(offset, size)
 
     def get_size(self):
-        return sys.maxint
+        return self._as.end()
 
 
 class TSKProfile(obj.Profile):
@@ -98,29 +116,10 @@ class TSKDetector(guess_profile.DetectionMethod):
         return [0]
 
     def DetectFromHit(self, hit, offset, address_space):
-        img = AS_Img_Info(address_space)
-        partitions = []
-        # first we try to open the image as partition
-        try:
-            tsk_fs = pytsk3.FS_Info(img)
-            partitions.append(FS(tsk_fs))
-        except IOError:
-            # now let's try to open it as disk
-            try:
-                vs = pytsk3.Volume_Info(img)
-            except IOError:
-                return None
-
-            for partition in vs:
-                if partition.flags == pytsk3.TSK_VS_PART_FLAG_ALLOC:
-                    try:
-                        tsk_fs = pytsk3.FS_Info(img, offset=partition.start * vs.info.block_size)
-                        partitions.append(FS(tsk_fs))
-                    except IOError as e:
-                        partitions.append(None)
-
-        if len(partitions) > 0:
-            self.session.partitions = partitions
+        img_info = AS_Img_Info(address_space)
+        disk = Disk(img_info)
+        if len(disk.partitions) > 0:
+            self.session.SetParameter("disk", disk)
             return TSKProfile(session=self.session)
         return None
 
@@ -135,28 +134,26 @@ class TSKILS(PhysicalASMixin, TypedProfileCommand, ProfileCommand):
              help="Directory path to print content of")
     ]
 
+    table_header = plugin.PluginHeader(
+        dict(name="Name", cname="name", width=50),
+        dict(name="Type", cname="type", width=10),
+        dict(name="Size", cname="size", width=10),
+        dict(name="MD5", cname="md5", width=32)
+    )
+
     @classmethod
     def is_active(cls, session):
         return isinstance(session.profile, TSKProfile)
 
-    def render(self, renderer):
-        renderer.table_header([
-            ("Name", "name", "50>"),
-            ("Type", "type", "10"),
-            ("Size", "size", "10"),
-            ("MD5", "md5", "32"),
-        ])
+    def collect(self):
         part_num = int(self.plugin_args.part_num)
-        path = self.plugin_args.dir_path
-
-        for entry in self.session.partitions[part_num].get_fs_entry_by_path(path):
-            name = entry.name
-            if entry.type == TYPE_DIR:
-                entry_type = "directory"
+        dir_path = self.plugin_args.dir_path
+        partition = self.session.GetParameter("disk").partitions[part_num]
+        for entry in partition.get_fs_entry_by_path(dir_path):
+            if entry.type == "DIR":
                 size = 0
                 md5 = ""
             else:
-                entry_type = "file"
                 size = entry.size
-                md5 = hashlib.md5(str(entry)).hexdigest()
-            renderer.table_row(name, entry_type, size, md5)
+                md5 = hashlib.md5(entry.read(0, size)).hexdigest()
+            yield entry.name, entry.type, size, md5

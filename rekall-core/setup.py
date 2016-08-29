@@ -45,6 +45,7 @@ def find_data_files(source):
 
     return result
 
+
 # These versions are fixed to the exact tested configuration. Prior to release,
 # please use "setup.py pip_upgrade" to test with the latest version. This
 # approach ensures that any Rekall version will always work as tested - even
@@ -65,12 +66,12 @@ install_requires = [
     "rekall-capstone == 3.0.4.post2",
     "rekall-yara == 3.4.0.1",
     "sortedcontainers == 1.4.4",
+    "pytsk3 == 20160721",
 
     # Version 2.5.0 is broken with pyinstaller.
     # https://github.com/pyinstaller/pyinstaller/issues/1848
     "python-dateutil == 2.5.3",
 ]
-
 
 if "VIRTUAL_ENV" not in os.environ:
     print "*****************************************************"
@@ -78,7 +79,6 @@ if "VIRTUAL_ENV" not in os.environ:
     print "  environment. This configuration is not supported!!!"
     print "  Expect breakage."
     print "*****************************************************"
-
 
 if int(setuptools.__version__.split(".")[0]) < 8:
     raise RuntimeError("Rekall requires at least setuptool version 8.0. "
@@ -88,6 +88,7 @@ if int(setuptools.__version__.split(".")[0]) < 8:
 class PIPUpgrade(Command):
     description = "Upgrade all the dependencies in the current virtualenv."
     user_options = []
+
     def initialize_options(self):
         pass
 
@@ -119,15 +120,19 @@ class CleanCommand(Command):
     description = ("custom clean command that forcefully removes "
                    "dist/build directories")
     user_options = []
+
     def initialize_options(self):
         self.cwd = None
+
     def finalize_options(self):
         self.cwd = os.getcwd()
+
     def run(self):
         if os.getcwd() != self.cwd:
             raise RuntimeError('Must be in package root: %s' % self.cwd)
 
         os.system('rm -rf ./build ./dist')
+
 
 commands = {}
 commands["pip_upgrade"] = PIPUpgrade
