@@ -280,6 +280,7 @@ LEAF_ENUM_TO_TYPE = dict(
     LF_USHORT="unsigned short int",
     LF_LONG="long",
     LF_ULONG="unsigned long",
+    LF_64PWCHAR="Pointer",
 )
 
 # The SubRecord field is a union which depends on the _LEAF_ENUM_e. The
@@ -835,6 +836,7 @@ class PDBParser(object):
         "T_64PQUAD": ["Pointer", dict(target="long long")],
         "T_64PRCHAR": ["Pointer", dict(target="unsigned char")],
         "T_64PUCHAR": ["Pointer", dict(target="unsigned char")],
+        "T_64PWCHAR": ["Pointer", dict(target="String")],
         "T_64PULONG": ["Pointer", dict(target="unsigned long")],
         "T_64PUQUAD": ["Pointer", dict(target="unsigned long long")],
         "T_64PUSHORT": ["Pointer", dict(target="unsigned short")],
@@ -1086,6 +1088,8 @@ class PDBParser(object):
             type_name = self._TYPE_ENUM_e.get(idx)
 
             result = self.TYPE_ENUM_TO_VTYPE.get(type_name)
+            if result is None and type_name != "T_NOTYPE":
+                self.session.logging.error("Unrecognized type %s\n", type_name)
 
         else:
             try:
