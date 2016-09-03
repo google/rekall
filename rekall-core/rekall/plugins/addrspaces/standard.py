@@ -72,8 +72,7 @@ class FDAddressSpace(addrspace.BaseAddressSpace):
         try:
             self.fhandle.seek(addr)
             data = self.fhandle.read(length)
-            if (addr + len(data)) > self.fsize:
-                self.fsize = addr + len(data)
+
             return data + addrspace.ZEROER.GetZeros(length - len(data))
         except IOError:
             return addrspace.ZEROER.GetZeros(length)

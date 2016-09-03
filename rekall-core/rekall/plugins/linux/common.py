@@ -22,13 +22,115 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
+import os
+import re
 
 from rekall import addrspace
 from rekall import kb
 from rekall import plugin
+from rekall import obj
 from rekall import utils
 
 from rekall.plugins import core
+
+
+class KAllSyms(object):
+    """A parser for KAllSyms files."""
+    # Location of the kallsyms file. We use it to do instant, accurate detection
+    # of the profile.
+    KALLSYMS_FILE = "/proc/kallsyms"
+
+    # The regular expression to parse the kallsyms file.
+    KALLSYMS_REGEXP = ("(?P<offset>[0-9a-fA-F]+) "
+                       "(?P<type>[a-zA-Z]) "
+                       "(?P<symbol>[^ ]+)"
+                       "(\t(?P<module>[^ ]+))?$")
+
+    def __init__(self, session):
+        self.session = session
+        self.physical_address_space = session.physical_address_space
+
+    def _ParseKallsym(self, line):
+        """Parses a single symbol line from a symbols file.
+
+        This is the result of obtaining symbols from nm:
+
+        0000000000 t linux_proc_banner
+        0000000010 s other_symbol [module]
+
+        Yields:
+          Tuple of offset, symbol_name, type, module
+        """
+
+        matches = None
+        if line:
+            matches = re.match(self.KALLSYMS_REGEXP, line.rstrip("\n"))
+
+        if not matches:
+            raise ValueError("Invalid line: %s", line)
+
+        # Obtain all fields from the kallsyms entry
+        offset = matches.group("offset")
+        symbol_type = matches.group("type")
+        symbol = matches.group("symbol")
+        try:
+            module = matches.group("module")
+        except IndexError:
+            module = None
+
+        try:
+            offset = obj.Pointer.integer_to_address(int(offset, 16))
+        except ValueError:
+            pass
+
+        return offset, symbol, symbol_type, module
+
+    def ObtainSymbols(self):
+        """Obtain symbol names and values for a live machine.
+
+        Yields:
+          Tuples of offset, symbol_name, type, module
+        """
+        kallsyms_as = self._OpenLiveSymbolsFile(
+            self.physical_address_space)
+
+        if not kallsyms_as:
+            return []
+
+        # Proc files do not have a stat and the address space shows it as being
+        # of zero length.
+        if kallsyms_as.end() != 0:
+            data = kallsyms_as.read(0, kallsyms_as.end())
+        else:
+            # Try to fully read the file
+            read_length = 1*1024*1024
+            data = kallsyms_as.read(0, read_length).strip("\x00")
+            while len(data) == read_length and read_length < 2**30:
+                read_length *= 2
+                data = kallsyms_as.read(0, read_length).strip("\x00")
+
+        return self.parse_data(data)
+
+    def parse_data(self, data):
+        self.session.logging.debug(
+            "Found %s of size: %d", self.KALLSYMS_FILE, len(data))
+
+        match_failures = 0
+        for line in data.split(os.linesep):
+            if match_failures >= 50:
+                break
+
+            try:
+                yield self._ParseKallsym(line)
+            except ValueError:
+                match_failures += 1
+                continue
+
+    def _OpenLiveSymbolsFile(self, physical_address_space):
+        """Opens the live symbols file to parse."""
+
+        return physical_address_space.get_file_address_space(
+            self.KALLSYMS_FILE)
 
 
 class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
@@ -308,6 +410,38 @@ class LinuxPageOffset(AbstractLinuxParameterHook):
     def calculate(self):
         """Returns PAGE_OFFSET."""
         return self.session.profile.GetPageOffset()
+
+
+class LinuxKASLR(AbstractLinuxParameterHook):
+    """The Kernel Address Space Randomization constant.
+
+    Note that this function assumes the profile is already correct. It is
+    not called during the profile guessing phase. So in reality this will
+    only come into play when the user provided the profile specifically.
+    """
+    name = "kernel_slide"
+
+    def calculate(self):
+        if self.session.GetCache("execution_phase") == "ProfileAutodetect":
+            raise RuntimeError(
+                "Attempting to get KASLR slide during profile "
+                "autodetection.")
+
+        # Try to get the kernel slide if kallsyms is available.
+        for offset, symbol, type, module in KAllSyms(
+                self.session).ObtainSymbols():
+            if not module and type in ["r", "R"]:
+                offset_from_profile = self.session.profile.get_constant(
+                    symbol)
+
+                # The KASLR is the difference between the profile and the
+                # kallsyms.
+                return offset - offset_from_profile
+
+        # We might want to scan for the kernel slide but the search space is
+        # really large, so right now we just do nothing.
+        return 0
+
 
 
 class LinuxInitTaskHook(AbstractLinuxParameterHook):

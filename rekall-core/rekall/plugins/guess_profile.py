@@ -436,15 +436,6 @@ class LinuxIndexDetector(DetectionMethod):
 
     name = "linux_index"
 
-    # Location of the kallsyms file. We use it to do instant, accurate detection
-    # of the profile.
-    KALLSYMS_FILE = "/proc/kallsyms"
-
-    # The regular expression to parse the kallsyms file.
-    KALLSYMS_REGEXP = ("(?P<offset>[0-9a-fA-F]+) "
-                       "(?P<type>[a-zA-Z]) "
-                       "(?P<symbol>[^ ]+)"
-                       "(\t(?P<module>[^ ]+))?$")
 
     find_dtb_impl = linux_common.LinuxFindDTB
 
@@ -455,84 +446,6 @@ class LinuxIndexDetector(DetectionMethod):
     def Offsets(self):
         return [0]
 
-    def _ParseKallsym(self, line):
-        """Parses a single symbol line from a symbols file.
-
-        This is the result of obtaining symbols from nm:
-
-        0000000000 t linux_proc_banner
-        0000000010 s other_symbol [module]
-
-        Yields:
-          Tuple of offset, symbol_name, type, module
-        """
-
-        matches = None
-        if line:
-            matches = re.match(self.KALLSYMS_REGEXP, line.rstrip("\n"))
-
-        if not matches:
-            raise ValueError("Invalid line: %s", line)
-
-        # Obtain all fields from the kallsyms entry
-        offset = matches.group("offset")
-        symbol_type = matches.group("type")
-        symbol = matches.group("symbol")
-        try:
-            module = matches.group("module")
-        except IndexError:
-            module = None
-
-        try:
-            offset = obj.Pointer.integer_to_address(int(offset, 16))
-        except ValueError:
-            pass
-
-        return offset, symbol, symbol_type, module
-
-    def ObtainSymbols(self, address_space):
-        """Obtain symbol names and values for a live machine.
-
-        Yields:
-          Tuples of offset, symbol_name, type, module
-        """
-
-        match_failures = 0
-
-        kallsyms_as = self._OpenLiveSymbolsFile(address_space)
-
-        if not kallsyms_as:
-            return
-
-        data = kallsyms_as.read(0, kallsyms_as.end())
-        if not data:
-            # Try to fully read the file
-            read_length = 1*1024*1024
-            data = kallsyms_as.read(0, read_length)
-            while len(data) <= kallsyms_as.end() and read_length < 2**30:
-                read_length *= 2
-                data = kallsyms_as.read(0, read_length)
-            # Truncate data to the actual size
-            data = data[:kallsyms_as.end()]
-
-        self.session.logging.debug(
-            "Found /proc/kallsyms of size: %d", len(data))
-
-        for line in data.split(os.linesep):
-            if match_failures >= 50:
-                break
-
-            try:
-                yield self._ParseKallsym(line)
-            except ValueError:
-                match_failures += 1
-                continue
-
-    def _OpenLiveSymbolsFile(self, address_space):
-        """Opens the live symbols file to parse."""
-
-        return address_space.get_file_address_space("/proc/kallsyms")
-
     def DetectFromHit(self, hit, offset, address_space):
         if offset != 0:
             return
@@ -540,11 +453,16 @@ class LinuxIndexDetector(DetectionMethod):
         self.session.logging.debug(
             "LinuxIndexDetector:DetectFromHit(%x) = %s", offset, hit)
 
+        kaslr_reader = linux_common.KAllSyms(self.session)
+
         # We create a dictionary of symbol:offset skipping symbols from
         # exported modules.
-        symbol_dict = dict([(s[1], s[0])
-                            for s in self.ObtainSymbols(address_space)
-                            if not s[3]])
+        symbol_dict = {}
+        for offset, symbol, _, module in kaslr_reader.ObtainSymbols():
+            # Ignore symbols in modules we only care about the kernel.
+            if not module:
+                symbol_dict[symbol] = offset
+
         if not symbol_dict:
             return
 
@@ -699,6 +617,13 @@ class ProfileHook(kb.ParameterHook):
     volatile = False
 
     def ScanProfiles(self):
+        try:
+            self.session.SetCache("execution_phase", "ProfileAutodetect")
+            return self._ScanProfiles()
+        finally:
+            self.session.SetCache("execution_phase", None)
+
+    def _ScanProfiles(self):
         address_space = self.session.physical_address_space
         best_profile = None
         best_match = 0
@@ -807,6 +732,8 @@ class ProfileHook(kb.ParameterHook):
                 # No physical address space - nothing to do here.
                 return obj.NoneObject("No Physical Address Space.")
 
+        # If the global cache is persistent we try to detect this image by
+        # fingerprint if we have seen it before.
         if self.session.cache.__class__ == cache.FileCache:
             name = self.session.cache.DetectImage(
                 self.session.physical_address_space)
