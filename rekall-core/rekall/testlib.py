@@ -415,3 +415,6 @@ class HashChecker(SimpleTestCase):
 
     def testCase(self):
         self.assertEqual(self.baseline['hashes'], self.current['hashes'])
+
+
+main = unittest.main
