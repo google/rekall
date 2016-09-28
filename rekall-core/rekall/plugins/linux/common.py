@@ -443,7 +443,6 @@ class LinuxKASLR(AbstractLinuxParameterHook):
         return 0
 
 
-
 class LinuxInitTaskHook(AbstractLinuxParameterHook):
     name = "pslist_InitTask"
 

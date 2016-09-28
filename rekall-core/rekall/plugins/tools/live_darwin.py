@@ -25,7 +25,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """A plugin to install relevant kernel modules to enable live analysis.
 
 The intention is to allow the user to launch:
-s
+
 rekall live
 
 and have Rekall install the right kernel module and connect to the driver on all
@@ -119,11 +119,12 @@ class Live(plugin.TypedProfileCommand,
                         ["kextload", full_driver_path])
 
                     if res != 0:
-                        raise plugin.PluginError("%s. Are you root?" % e)
-        
+                        raise plugin.PluginError(
+                            "Failed to load driver. Are you root?")
+
     def live(self):
         phys_as = obj.NoneObject("Unable to access physical memory")
-        
+
         if self.plugin_args.mode == "Memory":
             try:
                 phys_as = pmem.MacPmemAddressSpace(
@@ -135,7 +136,7 @@ class Live(plugin.TypedProfileCommand,
                 phys_as = pmem.MacPmemAddressSpace(
                     session=self.session,
                     filename=self.plugin_args.device)
-                    
+
         self.session.physical_address_space = phys_as
         with self.session:
             self.session.SetParameter("live_mode", self.plugin_args.mode)
@@ -166,7 +167,7 @@ class Live(plugin.TypedProfileCommand,
                     # There isnt much we can do about it here.
                     self.session.logging.debug(
                         "Unable to unload driver: %s" % e)
-            
+
     def close(self):
         if self.we_started_driver:
             self.unload_driver()
@@ -177,7 +178,7 @@ class Live(plugin.TypedProfileCommand,
             self.live()
 
             renderer = self.session.GetRenderer()
-            
+
             # Launch the shell.
             shell = self.session.plugins.shell()
             shell.render(renderer)

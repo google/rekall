@@ -24,7 +24,7 @@ from rekall import session
 from rekall import testlib
 
 
-class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
+class Describe(plugin.TypedProfileCommand, plugin.Command):
     """Describe the output of a plugin."""
 
     name = "describe"

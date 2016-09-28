@@ -317,7 +317,10 @@ class Command(object):
                 # do stuff
         """
         if callable(getattr(self, "collect", None)):
-            return self.collect()
+            for x in self.collect():
+                if x:
+                    yield x
+
         else:
             raise TypeError("%r is not iterable." % self)
 

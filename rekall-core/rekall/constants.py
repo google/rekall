@@ -49,7 +49,7 @@ PROFILE_REPOSITORY_VERSION = "v1.0"
 
 BANNER = """
 ----------------------------------------------------------------------------
-The Rekall Memory Forensic framework %s (%s).
+The Rekall Digital Forensic/Incident Response framework %s (%s).
 
 "We can remember it for you wholesale!"
 

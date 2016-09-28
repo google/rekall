@@ -144,6 +144,9 @@ class User(utils.AttributeDict):
 
         return result
 
+    def __int__(self):
+        return self.uid
+
     def __unicode__(self):
         if self.username:
             return u"%s (%s)" % (self.username, self.uid)
@@ -172,6 +175,9 @@ class Group(utils.AttributeDict):
             pass
 
         return result
+
+    def __int__(self):
+        return self.gid
 
     def __unicode__(self):
         if self.group_name:
@@ -203,7 +209,7 @@ class FileInformation(utils.AttributeDict):
         result = FileInformation(filename=filespec, session=session)
 
         try:
-            s = os.stat(filespec.os_path())
+            s = os.lstat(filespec.os_path())
         except (IOError, OSError) as e:
             return obj.NoneObject("Unable to stat %s", e)
 
@@ -299,8 +305,14 @@ class Permissions(object):
     def __str__(self):
         return self.filemode(self.value)
 
+    def __unicode__(self):
+        return self.filemode(self.value)
+
     def is_dir(self):
         return stat.S_ISDIR(self.value)
+
+    def is_link(self):
+        return stat.S_ISLNK(self.value)
 
 
 class AbstractIRCommandPlugin(plugin.TypedProfileCommand,

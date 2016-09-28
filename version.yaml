@@ -1,5 +1,6 @@
 dependent_versions:
 - _version.py
+- rekall-agent/_version.py
 - rekall-core/rekall/_version.py
 - rekall-gui/_version.py
 - tools/layout_expert/layout_expert/_version.py

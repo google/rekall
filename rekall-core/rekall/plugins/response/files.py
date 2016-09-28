@@ -62,6 +62,28 @@ class IRFind(common.AbstractIRCommandPlugin):
                     yield (result.st_mode, result.st_size, result)
 
 
+class IRStat(common.AbstractIRCommandPlugin):
+    name = "stat"
+
+    __args = [
+        dict(name="paths", positional=True, type="Array",
+             help="Paths to hash."),
+    ]
+
+    table_header = [
+        dict(name="Perms", type="Permissions", width=16),
+        dict(name="Size", align="r", width=10),
+        dict(name="Path"),
+    ]
+
+    def collect(self):
+        for full_path in self.plugin_args.paths:
+            result = common.FileFactory(full_path, session=self.session)
+            if result:
+                yield dict(Perms=result.st_mode, Size=result.st_size,
+                           Path=result)
+
+
 class Hash(object):
     """A class to hold a hash value."""
     def __init__(self, type="md5", value=None):
@@ -361,6 +383,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
         return components
 
     def _filter(self, node, file_information):
+        self.session.report_progress("Checking %s", file_information.filename)
         for component, child_node in node.iteritems():
             # Terminal node - yield the result.
             if not child_node:

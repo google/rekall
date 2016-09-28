@@ -581,6 +581,7 @@ class AFF4Acquire(AbstractAFF4Plugin):
                 self.plugin_args.destination)
         except IOError:
             output_urn = rdfvalue.URN(self.plugin_args.destination)
+
         if (output_urn.Parse().scheme == "file" and
                 not self.plugin_args.destination[-1] in "/\\"):
             # Destination looks like a filename - go through the renderer to

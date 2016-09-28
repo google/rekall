@@ -1,0 +1,105 @@
+
+
+
+ClientInformation:
+- name: client_name
+  type: unicode
+- name: client_version
+  type: int
+- name: revision
+  type: int
+- name: build_time
+  type: unicode
+- name: client_description
+  type: unicode
+- name: labels
+  repeated: true
+  type: unicode
+
+CpuSample:
+- name: user_cpu_time
+  type: int
+- name: system_cpu_time
+  type: int
+- name: cpu_percent
+  type: int
+- name: timestamp
+  type: epoch
+  doc: The time of this sample.
+
+IOSample:
+- name: read_count
+  type: int
+- name: write_count
+  type: int
+- name: read_bytes
+  type: int
+- name: write_bytes
+  type: int
+- name: timestamp
+  type: epoch
+  doc: The time of this sample.
+
+ClientStats:
+- name: cpu_samples
+  repeated: true
+  type: CpuSample
+- name: RSS_size
+  type: int
+- name: VMS_size
+  type: int
+- name: memory_percent
+  type: int
+- name: bytes_received
+  type: int
+- name: bytes_sent
+  type: int
+- name: io_samples
+  repeated: true
+  type: IOSample
+- name: create_time
+  type: int
+- name: boot_time
+  type: int
+
+CpuSeconds:
+- name: user_cpu_time
+  type: int
+- name: system_cpu_time
+  type: int
+
+Uname:
+- name: system
+  type: unicode
+  doc: The system platform (Windows|Darwin|Linux).
+- name: node
+  type: unicode
+  doc: The hostname of this system.
+- name: release
+  type: unicode
+  doc: The OS release identifier e.g. 7, OSX, debian.
+- name: version
+  type: unicode
+  doc: The OS version ID e.g. 6.1.7601SP1, 10.9.2, 14.04.
+- name: machine
+  type: unicode
+  doc: The system architecture e.g. AMD64, x86_64.
+- name: kernel
+  type: unicode
+  doc: The kernel version string e.g. 6.1.7601, 13.1.0, 3.15-rc2.
+- name: fqdn
+  type: unicode
+  doc: "The system's fully qualified domain name."
+- name: install_date
+  type: epoch
+  doc: When system was installed.
+- name: libc_ver
+  type: unicode
+  doc: The C library version
+- name: architecture
+  type: unicode
+  doc: The architecture of this binary. (Note this can be different from the machine
+    architecture in the case of a 32 bit binary running on a 64 bit system)
+- name: pep425tag
+  type: unicode
+  doc: The unique signature of this python system (as defined by PEP425 tags).
