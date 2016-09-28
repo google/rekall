@@ -234,6 +234,9 @@ class WinPmemAddressSpace(Win32AddressSpace):
 
     def _map_raw_filename(self, filename):
         drive, base_filename = os.path.splitdrive(filename)
+        if not drive:
+            return
+
         try:
             ntfs_session = self.filesystems[drive]
         except KeyError:

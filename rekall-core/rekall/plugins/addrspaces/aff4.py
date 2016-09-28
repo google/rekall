@@ -159,13 +159,13 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
         path_components = list(filename.split(os.sep))
         while path_components:
             volume_path = os.sep.join(path_components)
-            volume_urn = rdfvalue.URN(volume_path)
+            volume_urn = rdfvalue.URN.NewURNFromFilename(volume_path)
             volume_urn_parts = volume_urn.Parse()
 
             if volume_urn_parts.scheme == "file":
                 if os.path.isfile(volume_path):
                     with zip.ZipFile.NewZipFile(
-                            self.resolver, volume_path) as volume:
+                            self.resolver, volume_urn) as volume:
                         if stream_name:
                             return volume.urn, os.sep.join(stream_name)
 
@@ -235,10 +235,6 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             # This is a windows filename.
             filename = m.group(1).replace("/", "\\")
 
-            # The 32 bit WinPmem imager access native files via SysNative but
-            # they are really located in System32.
-            filename = filename.replace("SysNative", "System32")
-
             return filename.lower()
 
         return filename
@@ -307,6 +303,15 @@ class AFF4AddressSpace(addrspace.CachingAddressSpaceMixIn,
             # Try to map the file.
             subject = utils.CaseInsensitiveDictLookup(
                 filename, self.filenames)
+
+            # Fall back to looking up the sysnative path in case the
+            # image was acquired by a 32 bit imager.
+            if not subject:
+                # The 32 bit WinPmem imager access native files via
+                # SysNative but they are really located in System32.
+                subject = utils.CaseInsensitiveDictLookup(
+                    filename.replace("SysNative", "System32"),
+                    self.filenames)
 
             if subject:
                 stream = self.resolver.AFF4FactoryOpen(subject)

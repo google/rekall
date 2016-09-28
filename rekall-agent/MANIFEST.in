@@ -1,0 +1,9 @@
+include README.rst _version.py
+recursive-exclude .git *
+recursive-exclude build *
+
+recursive-include rekall_agent *
+recursive-exclude rekall_agent *.pyc
+
+exclude .gitignore
+exclude *.pyc

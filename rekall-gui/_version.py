@@ -14,8 +14,8 @@ def raw_versions():
 {
     "codename": "Furka", 
     "version": "1.5.3", 
-    "post": "0", 
-    "rc": "2"
+    "post": "1", 
+    "rc": "0"
 }
 """)
 

@@ -480,7 +480,7 @@ class LoadAddressSpace(plugin.Command):
                     error.append_reason(cls.__name__, e)
                     continue
                 except Exception as e:
-                    self.session.logging.error("Fatal Error: %s", e)
+                    self.session.logging.info("Error: %s", e)
                     if self.session.GetParameter("debug"):
                         pdb.post_mortem()
 
