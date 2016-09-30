@@ -52,7 +52,9 @@ Main policy:
       {root_path}/{client_id}/jobs
 
 """
+import pathlib
 
+from rekall_agent import cache
 from rekall_agent.config import agent
 from rekall_agent.locations import cloud
 
@@ -68,6 +70,10 @@ class GCSServerPolicy(agent.ServerPolicy):
 
         dict(name="service_account", type=cloud.ServiceAccount,
              doc="Service account credentials for cloud deployments."),
+
+        # GCS server must use a local cache.
+        dict(name="cache", type=cache.LocalDiskCache,
+             doc="Local cache to use."),
     ]
 
     # The following convention hold:
@@ -129,6 +135,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket, path_prefix="/".join(
                 (client_id, "vfs", vfs_type, path.lstrip("/"))),
+            path_template="{subpath}",
             expiration=expiration)
 
     def flow_ticket_for_client(self, batch_name, *ticket_names, **kw):
@@ -154,6 +161,21 @@ class GCSServerPolicy(agent.ServerPolicy):
             bucket=self.bucket, path="/".join(
                 (client_id, "flows.sqlite")
             ))
+
+    def location_from_path_for_server(self, path):
+        """Construct a location from a simple string path.
+
+        Path is just a reference into the bucket of the form:
+
+        {bucket_name}/{object_path}
+        """
+        if not path:
+            path = self.bucket
+
+        posix_path = pathlib.PurePosixPath(path.lstrip("/"))
+        return self.service_account.create_oauth_location(
+            bucket=posix_path.parts[0], path="/".join(posix_path.parts[1:]))
+
 
 
 class GCSAgentPolicy(agent.ClientPolicy):

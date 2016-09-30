@@ -36,6 +36,8 @@ class CollectFlow(flow.Flow):
     more complete flows.
 
     """
+    __abstract = True
+
     # This is the EFilter query and possible parameters.
     _query = None
     _query_parameters = []

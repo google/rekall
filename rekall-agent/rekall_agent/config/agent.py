@@ -28,6 +28,7 @@ import os
 
 from rekall import obj
 from rekall_agent import action
+from rekall_agent import cache
 from rekall_agent import crypto
 from rekall_agent import location
 from rekall_agent import serializer
@@ -245,6 +246,9 @@ class ServerPolicy(ExternalFileMixin,
 
         dict(name="private_key", type=crypto.RSAPrivateKey,
              doc="The server's private key"),
+
+        dict(name="cache", type=cache.Cache,
+             doc="Local cache to use."),
     ]
 
 

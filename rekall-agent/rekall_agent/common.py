@@ -98,4 +98,5 @@ class AbstractControllerCommand(AbstractAgentCommand):
     def __init__(self, *args, **kwargs):
         super(AbstractControllerCommand, self).__init__(*args, **kwargs)
         self.client_id = (self.plugin_args.client_id or
-                          self.session.GetParameter("controller_context"))
+                          self.session.GetParameter("controller_context") or
+                          None)

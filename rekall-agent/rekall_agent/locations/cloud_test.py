@@ -97,6 +97,16 @@ class TestGCS(testlib.RekallBaseUnitTestCase):
 
         self.assertEqual(location_obj.read_file(), "Hello world")
 
+    def test_read_modify_write_file(self):
+        def modify(filename):
+            with open(filename, "wb") as fd:
+                fd.write("hello world")
+
+        a = cloud.GCSOAuth2BasedLocation(session=self.session)
+        a.bucket = "rekall-temp"
+        a.path = "test.txt"
+        a.read_modify_write_local_file(modify)
+
 
 if __name__ == "__main__":
     testlib.main()

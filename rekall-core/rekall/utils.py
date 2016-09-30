@@ -793,9 +793,17 @@ class RangedCollection(object):
         return "\n".join(result)
 
 
-class JITIterator(object):
-    def __init__(self, baseclass):
-        self.baseclass = baseclass
+class JITIteratorCallable(object):
+    def __init__(self, func, *args):
+        if not callable(func):
+            raise RuntimeError("Function must be callable")
+
+        self.func = func
+        self.args = args
+
+    def __iter__(self):
+        for x in self.func(*self.args):
+            yield x
 
     def __contains__(self, item):
         return item in list(self)
@@ -803,9 +811,11 @@ class JITIterator(object):
     def __str__(self):
         return str(list(self))
 
-    def __iter__(self):
-        return (
-            x.name for x in self.baseclass.classes.values() if x.name)
+
+class JITIterator(JITIteratorCallable):
+    def __init__(self, baseclass):
+        super(JITIterator, self).__init__(
+            lambda: (x.name for x in baseclass.classes.values() if x.name))
 
 
 def CopyFDs(in_fd, out_fd, length=2**64):
@@ -995,3 +1005,12 @@ def EscapeForFilesystem(filename):
     """
     s = SmartStr(filename).strip().replace(" ", "_")
     return re.sub(r"(?u)[^-\w.]", "", s)
+
+
+def get_all_subclasses(base=None):
+    if base is None:
+        base = BatchTicket
+    for x in base.__subclasses__():
+        yield x.__name__
+        for y in get_all_subclasses(x):
+            yield y

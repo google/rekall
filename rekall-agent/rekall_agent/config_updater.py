@@ -26,8 +26,10 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """
 import os
 import time
+import yaml
 
 from rekall import plugin
+from rekall import utils
 from rekall_agent import common
 from rekall_agent import crypto
 
@@ -203,7 +205,14 @@ client:
             writeback_path=self.plugin_args.client_writeback_path,
         )
 
+        # The client config should be completely self contained (i.e. without
+        # external file references).
+        self.session.SetParameter("config_search_path", [self.config_dir])
         client_config_data = self.client_config_template.format(**parameters)
+
+        client_config = agent.Configuration.from_primitive(
+            yaml.safe_load(client_config_data), session=self.session)
+
         client_config_filename = os.path.join(
             self.config_dir, self.client_config_filename)
 
@@ -211,10 +220,11 @@ client:
             Message="Writing client config file %s" % client_config_filename)
 
         with open(client_config_filename, "wb") as fd:
-            fd.write(client_config_data)
+            fd.write(utils.PPrint(client_config.to_primitive()))
 
         server_config_data = self.server_config_template.format(**parameters)
-        server_config_data += client_config_data
+        server_config_data += self.client_config_template.format(
+            **parameters)
 
         server_config_filename = os.path.join(
             self.config_dir, self.server_config_filename)

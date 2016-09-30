@@ -58,7 +58,9 @@ class _LocationTracker(object):
 
     def get_data(self):
         data = self.location.read_file(if_modified_since=self.last_modified)
-        self.last_modified = time.time()
+        if data:
+            self.last_modified = time.time()
+
         return data
 
 
@@ -84,14 +86,17 @@ class RekallAgent(common.AbstractAgentCommand):
 
         for action in flow_obj.actions:
             # Make a progress ticket for this action if required.
-            flow_obj.ticket.status = "Pending"
+            flow_obj.ticket.status = "Started"
             flow_obj.ticket.current_action = action
+            flow_obj.ticket.timestamp = time.time()
 
             try:
                 # Write the ticket to set a checkpoint.
                 flow_obj.ticket.send_message()
 
-                # Run the action and report the produced collections.
+                # Run the action and report the produced collections. Note that
+                # the ticket contains all collections for all actions
+                # cumulatively.
                 for collection in (action.run() or []):
                     collection.location = collection.location.get_canonical()
                     flow_obj.ticket.collections.append(collection)
@@ -117,7 +122,8 @@ class RekallAgent(common.AbstractAgentCommand):
 
                 # We already did this flow before.
                 if flow_obj.created_time > self.writeback.last_flow_time:
-                    if flow_obj.created_time + flow_obj.ttl < time.time():
+                    if (flow_obj.created_time.float_timestamp + flow_obj.ttl <
+                        time.time()):
                         self.session.logging.debug(
                             "Ignoreing flow id %s - expired", flow_obj.flow_id)
                         continue

@@ -1,6 +1,7 @@
 import time
 import threading
 
+from rekall import utils
 from rekall_agent import common
 from rekall_agent import serializer
 from rekall_agent import location
@@ -55,6 +56,37 @@ class BatchTicket(serializer.SerializedObject):
 
     def process(self, context):
         """Called once on each instance to process this instance."""
+
+
+class AgentWorker(common.AbstractControllerCommand):
+    name = "agent_worker"
+
+    __args = [
+        dict(name="batches", type="ChoiceArray", positional=True,
+             choices=utils.JITIteratorCallable(
+                 utils.get_all_subclasses, BatchTicket),
+             help="One or more batch jobs to run."),
+
+        dict(name="loop", type="Boolean",
+             help="If specified we loop forever."),
+    ]
+
+    table_header = [
+        dict(name="Message")
+    ]
+
+    def collect(self):
+        batches = [BatchRunner(session=self.session, batch_name=x)
+                   for x in (self.plugin_args.batches or
+                             utils.get_all_subclasses(BatchTicket))]
+
+        while 1:
+            for batch_runner in batches:
+                yield dict(Message="Running batch %s" % batch_runner.batch_name)
+                batch_runner.run()
+
+            if not self.plugin_args.loop:
+                break
 
 
 class BatchRunner(object):

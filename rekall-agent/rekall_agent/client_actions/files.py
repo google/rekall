@@ -82,15 +82,12 @@ class ListDirectoryAction(action.Action):
     def run(self):
         self._collection = StatEntryCollection(session=self._session)
         self._collection.location = self.vfs_location.copy()
-        self._collection.open("w")
+        with self._collection.create_temp_file():
+            root_dir = response_common.FileFactory(
+                response_common.FileSpec(self.path, path_sep=os.path.sep),
+                session=self._session)
 
-        root_dir = response_common.FileFactory(
-            response_common.FileSpec(self.path, path_sep=os.path.sep),
-            session=self._session)
-
-        if root_dir.st_mode.is_dir():
-            self.upload_directory(root_dir)
-
-        self._collection.close()
+            if root_dir.st_mode.is_dir():
+                self.upload_directory(root_dir)
 
         return [self._collection]

@@ -52,12 +52,9 @@ class CollectAction(action.Action):
         if len(self.collection.tables) != 1:
             raise TypeError("Only a single table is supported.")
 
-        # Open the collection for writing.
-        self.collection.open("w")
-        for row in self.collect():
-            self.collection.insert(row=row)
-
-        # We are done.
-        self.collection.close()
+        # Open the collection for writing and upload it.
+        with self.collection.create_temp_file():
+            for row in self.collect():
+                self.collection.insert(row=row)
 
         return [self.collection]
