@@ -26,6 +26,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 This flow is the workhorse of filesystem operations.
 """
 import collections
+from rekall import plugin
 
 from rekall_agent import flow
 from rekall_agent import serializer
@@ -68,15 +69,20 @@ class FileFinderFlow(collect.CollectFlow):
     _collection_name = "file_finder_{timestamp}"
 
     schema = [
-        dict(name="globs", repeated=True,
+        dict(name="globs", repeated=True, user=True,
              doc="Globs to search in client."),
 
         dict(name="conditions", type=FileFilterCondition, repeated=True,
              doc="One or more filter conditions to restrict results."),
 
-        dict(name="download", type="bool",
+        dict(name="download", type="bool", user=True,
              doc="Should we download the file?"),
     ]
+
+    def validate(self):
+        super(FileFinderFlow, self).validate()
+        if not self.globs:
+            raise plugin.InvalidArgs("Some globs must be provided.")
 
     def create_query(self, collection):
         """Make an efilter query from all the flow parameters.
@@ -129,12 +135,17 @@ class FileFinderFlow(collect.CollectFlow):
 
 class ListDirectoryFlow(flow.Flow):
     schema = [
-        dict(name="path",
+        dict(name="path", user=True,
              doc="The name of the directory to list."),
 
-        dict(name="recursive", type="bool",
+        dict(name="recursive", type="bool", user=True,
              doc="If set we recursively list all directories."),
     ]
+
+    def validate(self):
+        super(ListDirectoryFlow, self).validate()
+        if not self.path:
+            raise plugin.InvalidArgs("Path must be set")
 
     def generate_actions(self):
         yield files.ListDirectoryAction.from_keywords(

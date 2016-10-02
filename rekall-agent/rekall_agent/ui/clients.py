@@ -33,7 +33,7 @@ class SearchClients(common.AbstractControllerCommand):
     name = "show_clients"
 
     __args = [
-        dict(name="client_id",
+        dict(name="client_id", positional=True, required=False,
              help="Exact match on client id"),
         dict(name="hostname",
              help="Partial match on hostname"),
@@ -52,12 +52,13 @@ class SearchClients(common.AbstractControllerCommand):
         dict(name="OS Install", cname="install_time"),
     ]
 
-    def collect(self):
-        collection = interrogate.ClientStatisticsCollection.from_keywords(
-            session=self.session,
-            location=self.config.server.client_db_for_server())
+    table_options = dict(
+        auto_widths=True
+    )
 
-        collection.open("r")
+    def collect(self):
+        collection = interrogate.ClientStatisticsCollection.load_from_location(
+            self.config.server.client_db_for_server(), session=self.session)
 
         query = "select * from tbl_default "
         condition = []

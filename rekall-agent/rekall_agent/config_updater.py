@@ -26,8 +26,10 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """
 import os
 import time
+import yaml
 
 from rekall import plugin
+from rekall import yaml_utils
 from rekall_agent import common
 from rekall_agent import crypto
 
@@ -203,27 +205,46 @@ client:
             writeback_path=self.plugin_args.client_writeback_path,
         )
 
+        # The client config should be completely self contained (i.e. without
+        # external file references).
+        self.session.SetParameter("config_search_path", [self.config_dir])
         client_config_data = self.client_config_template.format(**parameters)
+
+        client_config = agent.Configuration.from_primitive(
+            yaml.safe_load(client_config_data), session=self.session)
+
         client_config_filename = os.path.join(
             self.config_dir, self.client_config_filename)
 
-        yield dict(
-            Message="Writing client config file %s" % client_config_filename)
+        if os.access(client_config_filename, os.R_OK):
+            yield dict(
+                Message="Client config at %s exists. Remove to regenerate." % (
+                    client_config_filename))
+        else:
+            yield dict(
+                Message="Writing client config file %s" % (
+                    client_config_filename))
 
-        with open(client_config_filename, "wb") as fd:
-            fd.write(client_config_data)
+            with open(client_config_filename, "wb") as fd:
+                fd.write(yaml_utils.safe_dump(client_config.to_primitive()))
 
         server_config_data = self.server_config_template.format(**parameters)
-        server_config_data += client_config_data
+        server_config_data += self.client_config_template.format(
+            **parameters)
 
         server_config_filename = os.path.join(
             self.config_dir, self.server_config_filename)
 
-        yield dict(Message="Writing server config file %s" %
-                   server_config_filename)
+        if os.access(server_config_filename, os.R_OK):
+            yield dict(
+                Message="Server config at %s exists. Remove to regenerate." % (
+                    server_config_filename))
+        else:
+            yield dict(Message="Writing server config file %s" %
+                       server_config_filename)
 
-        with open(server_config_filename, "wb") as fd:
-            fd.write(server_config_data)
+            with open(server_config_filename, "wb") as fd:
+                fd.write(server_config_data)
 
         # Now load the server config file.
         command_plugin = common.AbstractAgentCommand(

@@ -106,6 +106,8 @@ import collections
 import json
 import yaml
 
+import arrow
+
 from rekall import registry
 from rekall import utils
 
@@ -159,6 +161,24 @@ class FloatDescriptor(FieldDescriptor):
 
     def get_default(self, session=None):
         return 0
+
+
+class EpochDescriptor(FieldDescriptor):
+    def validate(self, value, session=None):
+        if isinstance(value, (float, int)):
+            value = arrow.Arrow.fromtimestamp(value)
+
+        elif not isinstance(value, arrow.Arrow):
+            raise ValueError("Value must be timestamp or arrow.Arrow instance.")
+
+        return value
+
+    def to_primitive(self, value):
+        return value.float_timestamp
+
+    def from_primitive(self, value, session=None):
+        _ = session
+        return self.validate(value)
 
 
 class UnicodeDescriptor(FieldDescriptor):
@@ -354,7 +374,7 @@ DISPATCHER = dict(
     str=StringDescriptor,
     bytes=StringDescriptor,
     choices=ChoicesDescriptor,
-    epoch=FloatDescriptor,
+    epoch=EpochDescriptor,
     dict=FieldDescriptor,
     bool=BoolDescriptor,
 )
@@ -371,7 +391,7 @@ class SerializedObjectCompiler(registry.MetaclassRegistry):
     def __new__(mcs, cls_name, parents, dct):
         """We parse the schema and create accessors for fields."""
         # Parse the schema and add properties for all fields.
-        descriptors = {}
+        descriptors = collections.OrderedDict()
         for parent in parents:
             descriptors.update(getattr(parent, "_descriptors", {}))
 
@@ -451,6 +471,13 @@ class SerializedObject(object):
             for hook in self._hooks:
                 hook()
             self._hook = []
+
+    @classmethod
+    def get_descriptors(cls):
+        return [x.descriptor for x in cls._descriptors.itervalues()]
+
+    def HasMember(self, name):
+        return name in self._data
 
     def GetMember(self, name, get_default=True):
         result = self._data.get(name)
