@@ -22,10 +22,58 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 
-"""Flows are routines that run in the controller and schedule jobs for clients.
+"""Flows are collections of client actions.
+
+Scheduling a Flow
+=================
+
+The controller starts by creating a Flow object. The flow object has the
+following important parts:
+
+1) An optional condition: will be evaluated by the client prior to executing the
+   flow.
+
+2) A list of Action() objects. The client will execute each of these in turn.
+
+3) A FlowStatus ticket: The client will save a status message prior to running
+   each action.
+
+Once the flow message is created, the controller will queue it on one of the
+queues. Regular flows are queued in a specific client queue but hunts are queued
+on one of the general hunt queues.
+
+After queuing the flow message into a jobs file, the controller will update the
+client's flow database.
+
+Running the Flow
+================
+
+The client agent checks one of its jobs queues for flow messages. When it
+discovers a new message it:
+
+1) Evaluates the efilter condition if present. Flows which do not satisfy the
+   condition will be ignored.
+
+2) If the condition evaluates, the client will write a FlowStatus ticket with a
+   "Pending" status prior to running each of the actions specified in the flow.
+
+3) Once the actions are all finished, the FlowStatus is marked with a status of
+   "Done" or "Error" depending on the final outcome. This completes the flow's
+   processing by the client, which will ignore this flow from now on.
+
+
+Batch processing
+================
+
+FlowStatus messages maintain the current state of each flow. The FlowStatus
+batch updates the client's flow collection to reflect the latest view of flow's
+activities.
+
 """
 import os
 import time
+
+from rekall import plugin
 
 from rekall_agent import action
 from rekall_agent import common
@@ -44,7 +92,10 @@ class FlowStatus(batch.BatchTicket):
 
     schema = [
         dict(name="client_id"),
+
         dict(name="flow_id"),
+
+        dict(name="timestamp", type="epoch"),
 
         dict(name="logs", repeated=True,
              doc="Log lines from the client."),
@@ -66,6 +117,79 @@ class FlowStatus(batch.BatchTicket):
              doc="The collections produced by the flow."),
     ]
 
+    def process(self, context, ticket_location):
+        # Verify this ticket. We only process valid tickets that came from a
+        # valid location. Note that since the location is generally signed this
+        # ensure the ticket is written to the location the server decided in
+        # advance. We ignore invalid messages and they will be deleted.
+        components = ticket_location.to_path().split("/")
+        if (components[-1] != self.client_id or
+            components[-2] != self.flow_id or
+            components[-3] != self.__class__.__name__):
+            raise IOError("Ticket location unexpected.")
+
+        # Just group by client id. We do all the real work in the end() method.
+        context.setdefault(self.client_id, []).append(self)
+
+    @classmethod
+    def end(cls, context, session=None):
+        # Each client's flow collection can be modified on its own
+        # independently.
+        common.THREADPOOL.map(
+            cls._process_flows,
+            [(tickets, client_id, session)
+             for client_id, tickets in context.iteritems()])
+
+    @staticmethod
+    def _process_flows(_args):
+        tickets, client_id, session = _args
+        config = session.GetParameter("agent_config")
+
+        def _update_flow_info(flow_collection, tickets):
+            """Update the collection atomically."""
+            for ticket in tickets:
+                flow_collection.replace(
+                    condition="flow_id='%s'" % (ticket.flow_id),
+                    status=ticket.status, ticket_data=ticket.to_json(),
+                    last_active=ticket.timestamp,
+                )
+
+        FlowStatsCollection.transaction(
+            config.server.flow_db_for_server(client_id),
+            _update_flow_info, tickets, session=session)
+
+
+class HuntStatus(FlowStatus):
+    def process(self, context, ticket_location):
+        components = ticket_location.to_path().split("/")
+        if (components[-1] != self.client_id or
+            components[-2] != self.flow_id or
+            components[-3] != self.__class__.__name__):
+            raise IOError("Ticket location unexpected.")
+
+        # Just group by flow id. We do all the real work in the end() method.
+        context.setdefault(self.flow_id, []).append(self)
+
+    @staticmethod
+    def _process_flows(_args):
+        tickets, flow_id, session = _args
+        config = session.GetParameter("agent_config")
+
+        def _update_flow_info(flow_collection, tickets):
+            """Update the collection atomically."""
+            for ticket in tickets:
+                # We only care about clients which are done.
+                if ticket.status in ["Done", "Error"]:
+                    flow_collection.insert(
+                        client_id=ticket.client_id,
+                        status=ticket.status,
+                        executed=ticket.timestamp,
+                        ticket_data=ticket.to_json(),
+                    )
+
+        HuntStatsCollection.transaction(
+            config.server.hunt_db_for_server(flow_id),
+            _update_flow_info, tickets, session=session)
 
 
 class Flow(serializer.SerializedObject):
@@ -74,10 +198,15 @@ class Flow(serializer.SerializedObject):
     To launch a flow simply build a Flow object and call its start() method.
     """
     schema = [
-        dict(name="client_id"),
+        dict(name="client_id",
+             doc="A client id to target this flow on."),
+
+        dict(name="queue",
+             doc="A queue to launch this one. When specified this flow is "
+             "run as a hunt."),
 
         dict(name="flow_id",
-             doc="Flow unique ID of this flow."),
+             doc="Unique ID of this flow, will be populated when launched."),
 
         dict(name="condition",
              doc="An EFilter query to evaluate if the flow should be run."),
@@ -98,6 +227,10 @@ class Flow(serializer.SerializedObject):
              doc="The action requests sent to the client."),
     ]
 
+    def is_hunt(self):
+        """Is this flow running as a hunt?"""
+        return self.queue is not None
+
     def generate_actions(self):
         """Yields one or more Action() objects.
 
@@ -105,14 +238,21 @@ class Flow(serializer.SerializedObject):
         """
         return []
 
+    def validate(self):
+        # pylint: disable=access-member-before-definition
+        if not self.client_id:
+            self.client_id = self._session.GetParameter(
+                "controller_context") or None
+
+        if not self.client_id and not self.queue:
+            raise plugin.InvalidArgs(
+                "Hunt Queue name must be provided if client id is "
+                "not provided.")
+
     def start(self):
         """Launch the flow."""
         self._config = self._session.GetParameter("agent_config")
-        if not self.client_id:
-            self.client_id = self._session.GetParameter(
-                "controller_context")
-            if not self.client_id:
-                raise RuntimeError("A client_id must be provided.")
+        self.validate()
 
         # Make a random flow id.
         self.flow_id = "F_%s" % os.urandom(5).encode("hex")
@@ -120,33 +260,47 @@ class Flow(serializer.SerializedObject):
 
         self.actions = list(self.generate_actions())
 
+        # There are some differences in the ways flows and hunts are organized.
+        if self.is_hunt():
+            self.ticket = HuntStatus(session=self._session)
+        else:
+            self.ticket = FlowStatus(session=self._session)
+
         # Create a ticket location for the agent to report progress.
         self.ticket.client_id = self.client_id
-        self.ticket.status = "Pending"
+        self.ticket.status = "Started"
         self.ticket.flow_id = self.flow_id
+
         self.ticket.location = self._config.server.flow_ticket_for_client(
-            "FlowStatus", self.flow_id, path_template="{client_id}",
+            self.ticket.__class__.__name__,
+            self.flow_id, path_template="{client_id}",
             expiration=time.time() + self.ttl)
-        self.ticket.send_message()
 
-        # Add the new flow to the jobs file.
-        jobs_location = self._config.server.jobs_queue_for_server(
-            self.client_id)
+        def _add_flow(flow_collection):
+            flow_collection.insert(
+                status="Pending",
+                type=self.__class__.__name__,
+                created=self.created_time,
+                flow_id=self.flow_id,
+                flow_data=self.to_json())
 
-        # Note this happens under lock.
-        jobs_location.read_modify_write(self._add_flow_to_jobs_file)
+            # Add the new flow to the jobs file.
+            jobs_location = self._config.server.jobs_queue_for_server(
+                client_id=self.client_id, queue=self.queue)
 
-        # Announce the new flow.
-        FlowAnnouncement.from_keywords(
-            location=self._config.server.ticket_for_server(
-                "FlowAnnouncement", self.client_id, self.flow_id),
-            flow=self,
-            session=self._session).send_message()
+            # Note this happens under lock so we should be able to handle
+            # concurrent access.
+            jobs_location.read_modify_write(
+                self._add_flow_to_jobs_file, flow_collection)
+
+        FlowStatsCollection.transaction(
+            self._config.server.flow_db_for_server(self.client_id, self.queue),
+            _add_flow, session=self._session)
 
     def expiration(self):
         return time.time() + self.ttl
 
-    def _add_flow_to_jobs_file(self, jobs_file_content):
+    def _add_flow_to_jobs_file(self, jobs_file_content, flow_collection):
         """Safely add flow to the jobs file.
 
         This also trims the jobs file to remove all flows which have been
@@ -156,9 +310,11 @@ class Flow(serializer.SerializedObject):
 
         # Remove those flows which are done.
         filtered_flows = []
-        for flow_obj in common.THREADPOOL.imap_unordered(
-                self._check_flow_active, jobs_file.flows):
-            if flow_obj:
+        for flow_obj in jobs_file.flows:
+            # If the status in the flow database is "Pending" we need to keep
+            # the flow in the jobs file.
+            if flow_collection.query(
+                    "select * from tbl_default where status = 'Pending'"):
                 filtered_flows.append(flow_obj)
 
         # Make sure the flows are sorted by create time.
@@ -169,25 +325,6 @@ class Flow(serializer.SerializedObject):
         jobs_file.flows.append(self)
 
         return jobs_file.to_json()
-
-    def _check_flow_active(self, flow_obj):
-        ticket_location = self._config.server.ticket_for_server(
-            "FlowStatus", flow_obj.client_id, flow_obj.flow_id)
-        data = ticket_location.read_file()
-        if data:
-            try:
-                flow_status = FlowStatus.from_json(data, session=self._session)
-            except ValueError:
-                return
-
-            # Remove flows which do not need to be processed again by the
-            # client from the jobs file. Note the tickets remain in place.
-            if flow_status.status in ["Done", "Error"]:
-                self._session.logging.debug(
-                    "Removed old flow %s", flow_obj.flow_id)
-                return
-
-        return flow_obj
 
 
 class JobFile(serializer.SerializedObject):
@@ -204,55 +341,42 @@ class JobFile(serializer.SerializedObject):
 
 
 class FlowStatsCollection(result_collections.GenericSQLiteCollection):
+    """This collection maintains high level information about flows.
+
+    The collection exists either in the client's namespace (where it describes
+    flows targetted to the client) or in the label namespace (where it describes
+    all hunts run on the label).
+
+    e.g.
+    bucket/C.123354/flows.sqlite   <---- client's flow database.
+    bucket/labels/All/flows.sqlite <----- Describes all flows targetted at this
+       label (otherwise known as hunts).
+    """
     _tables = [dict(
         name="default",
         columns=[
             dict(name="type"),
             dict(name="status"),
             dict(name="created", type="epoch"),
+            dict(name="last_active", type="epoch"),
             dict(name="flow_id"),
             dict(name="flow_data"),
-            dict(name="ticket_data")
+            dict(name="ticket_data"),
         ]
     )]
 
 
-class FlowAnnouncement(batch.BatchTicket):
-    """A new flow was created."""
-    schema = [
-        dict(name="flow", type=Flow,
-             doc="The flow that was created."),
-    ]
 
-    def process(self, context):
-        # Just group flow announcements by client id. We do all the real work in
-        # the end() method.
-        context.setdefault(self.flow.client_id, []).append(self.flow)
+class HuntStatsCollection(result_collections.GenericSQLiteCollection):
+    """Maintain high level information about the hunt."""
 
-    @classmethod
-    def end(cls, context, session=None):
-        # Each client's flow collection can be modified on its own
-        # independently.
-        common.THREADPOOL.map(
-            cls._process_flows,
-            [(flows, client_id, session)
-             for client_id, flows in context.iteritems()])
-
-    @staticmethod
-    def _process_flows(_args):
-        flows, client_id, session = _args
-        config = session.GetParameter("agent_config")
-        flow_collection = FlowStatsCollection.from_keywords(
-            session=session,
-            location=config.server.flow_db_for_server(client_id))
-
-        flow_collection.open("a")
-
-        for flow_obj in flows:
-            flow_collection.insert(
-                type=flow_obj.__class__.__name__,
-                created=flow_obj.created_time,
-                flow_id=flow_obj.flow_id,
-                flow_data=flow_obj.to_json())
-
-        flow_collection.close()
+    _tables = [
+        dict(
+            name="default",
+            columns=[
+                dict(name="client_id"),
+                dict(name="status"),
+                dict(name="executed", type="epoch"),
+                dict(name="ticket_data"),
+            ]
+        )]

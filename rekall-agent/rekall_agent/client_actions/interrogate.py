@@ -91,31 +91,49 @@ class Startup(batch.BatchTicket):
     @classmethod
     def begin(cls, context, session=None):
         """Get the global client metadata collection."""
-        config = session.GetParameter("agent_config")
-        context["collection"] = ClientStatisticsCollection.from_keywords(
-            session=session,
-            location=config.server.client_db_for_server())
-        context["collection"].open("a")
+        context["messages"] = []
 
     @classmethod
     def end(cls, context, session=None):
-        context["collection"].close()
+        config = session.GetParameter("agent_config")
 
-    def process(self, context):
+        def _update_client_records(collection, messages):
+            for message in messages:
+                collection.delete(client_id=message["client_id"])
+                collection.insert(**message)
+
+        # Modify the collection atomically.
+        ClientStatisticsCollection.transaction(
+            config.server.client_db_for_server(),
+            _update_client_records, context["messages"],
+            session=session)
+
+    def process(self, context, ticket_location):
+        """This method runs once on each ticket.
+
+        Note that this method runs inside a threadpool.
+        """
+        components = ticket_location.to_path().split("/")
+
+        # Ensure the ticket location matches the ticket content.
+        if (components[-1] != self.client_id or
+            components[-2] != self.__class__.__name__):
+            raise IOError("Ticket location unexpected.")
+
         # Verify the client id and public key match.
         if self.public_key.client_id() != self.client_id:
             raise crypto.CipherError("Public key incompatible with client_id")
 
         # Update the client's record by deleting the old one and inserting a new
         # one.
-        context["collection"].delete(client_id=self.client_id)
-        context["collection"].insert(
-            client_id=self.client_id,
-            fqdn=self.system_info.fqdn,
-            system=self.system_info.system,
-            architecture=self.system_info.architecture,
-            boot_time=self.boot_time,
-            agent_start_time=self.agent_start_time,
+        context["messages"].append(
+            dict(client_id=self.client_id,
+                 fqdn=self.system_info.fqdn,
+                 system=self.system_info.system,
+                 architecture=self.system_info.architecture,
+                 boot_time=self.boot_time,
+                 agent_start_time=self.agent_start_time,
+             )
         )
 
         # Modify the client record atomically.

@@ -36,6 +36,8 @@ class CollectFlow(flow.Flow):
     more complete flows.
 
     """
+    __abstract = True
+
     # This is the EFilter query and possible parameters.
     _query = None
     _query_parameters = []
@@ -52,6 +54,11 @@ class CollectFlow(flow.Flow):
 
     def get_location(self):
         """Work out where the agent should store the collection."""
+        if self.is_hunt():
+            return self._config.server.hunt_vfs_path_for_client(
+                self.flow_id, self.expand_collection_name(),
+                expiration=self.expiration())
+
         return self._config.server.vfs_path_for_client(
             self.client_id, self.expand_collection_name(),
             expiration=self.expiration())

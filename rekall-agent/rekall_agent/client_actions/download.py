@@ -47,9 +47,14 @@ class GetFiles(collect.CollectAction):
         self._to_download = []
         for row in super(GetFiles, self).collect():
             if not self.location:
+                # If we are not downloading the files report all hits.
+                yield row
                 continue
 
-            # Try to detect files as instances if FileSpec.
+            # If we are uploading the files, then only reports the files we
+            # uploaded.
+
+            # Try to detect files as any column with an instance of FileSpec.
             for path in row.itervalues():
                 if isinstance(path, common.FileSpec):
                     file_info = common.FileInformation.from_stat(
@@ -71,9 +76,13 @@ class GetFiles(collect.CollectAction):
         result = super(GetFiles, self).run()
 
         if self._to_download:
-            # Wait until all the uploads are done before we return.
-            list(agent_common.THREADPOOL.imap_unordered(
-                lambda kw: self.location.upload_file_object(**kw),
-                self._to_download))
+            try:
+                # Wait until all the uploads are done before we return.
+                list(agent_common.THREADPOOL.imap_unordered(
+                    lambda kw: self.location.upload_file_object(**kw),
+                    self._to_download))
+            finally:
+                for kw in self._to_download:
+                    kw["fd"].close()
 
         return result

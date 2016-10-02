@@ -52,7 +52,9 @@ Main policy:
       {root_path}/{client_id}/jobs
 
 """
+import pathlib
 
+from rekall_agent import cache
 from rekall_agent.config import agent
 from rekall_agent.locations import cloud
 
@@ -68,18 +70,30 @@ class GCSServerPolicy(agent.ServerPolicy):
 
         dict(name="service_account", type=cloud.ServiceAccount,
              doc="Service account credentials for cloud deployments."),
+
+        # GCS server must use a local cache.
+        dict(name="cache", type=cache.LocalDiskCache,
+             doc="Local cache to use."),
     ]
 
-    # The following convention hold:
+    # The following convention holds:
     # If the method returns a Location to be used in server code it ends with
     # "for_server". Otherwise it ends with "for_client" to be passed to the
     # client's use.
 
-    def jobs_queue_for_server(self, client_id):
+    def jobs_queue_for_server(self, client_id=None, queue=None):
         """Returns a Location for the client's job queue.
 
         Used by the server to manipulate the client's job queue.
+
+        If a queue is specified, the jobs file is shared under this public queue
+        name. Otherwise the jobs file is private to the client_id.
         """
+        if queue:
+            return self.service_account.create_oauth_location(
+                bucket=self.bucket, path="labels/%s/jobs" % queue,
+                public=True)
+
         # The client's jobs queue itself is publicly readable since the client
         # itself has no credentials.
         return self.service_account.create_oauth_location(
@@ -91,9 +105,17 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="clients.sqlite")
 
-    def flow_db_for_server(self, client_id):
+    def flow_db_for_server(self, client_id=None, queue=None):
+        if queue:
+            return self.service_account.create_oauth_location(
+                bucket=self.bucket, path="hunts/%s/flows.sqlite" % queue)
+
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path=client_id + "/flows.sqlite")
+
+    def hunt_db_for_server(self, hunt_id):
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path="hunts/%s/stats.sqlite" % hunt_id)
 
     def client_record_for_server(self, client_id):
         """The client specific information."""
@@ -123,12 +145,21 @@ class GCSServerPolicy(agent.ServerPolicy):
                 (client_id, "vfs", vfs_type, path.lstrip("/"))),
             expiration=expiration)
 
+    def hunt_vfs_path_for_client(self, hunt_id, path, expiration=None,
+                                 vfs_type="analysis"):
+        return self.service_account.create_signed_policy_location(
+            bucket=self.bucket,
+            path_prefix="hunts/%s/vfs/%s/%s/" % (hunt_id, vfs_type, path),
+            path_template="{client_id}",
+            expiration=expiration)
+
     def vfs_prefix_for_client(self, client_id, path="", expiration=None,
                               vfs_type="files"):
         """Returns a Location suitable for storing a path using the prefix."""
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket, path_prefix="/".join(
                 (client_id, "vfs", vfs_type, path.lstrip("/"))),
+            path_template="{subpath}",
             expiration=expiration)
 
     def flow_ticket_for_client(self, batch_name, *ticket_names, **kw):
@@ -154,6 +185,21 @@ class GCSServerPolicy(agent.ServerPolicy):
             bucket=self.bucket, path="/".join(
                 (client_id, "flows.sqlite")
             ))
+
+    def location_from_path_for_server(self, path):
+        """Construct a location from a simple string path.
+
+        Path is just a reference into the bucket of the form:
+
+        {bucket_name}/{object_path}
+        """
+        if not path:
+            path = self.bucket
+
+        posix_path = pathlib.PurePosixPath(path.lstrip("/"))
+        return self.service_account.create_oauth_location(
+            bucket=posix_path.parts[0], path="/".join(posix_path.parts[1:]))
+
 
 
 class GCSAgentPolicy(agent.ClientPolicy):

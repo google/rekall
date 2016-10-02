@@ -54,6 +54,23 @@ from rekall_agent import location
 from rekall_agent import serializer
 
 
+MAX_BUFF_SIZE = 10*1024*1024
+
+
+class LocalFileManager(object):
+    """An object to manage local file lifetime."""
+
+    def __init__(self, filename):
+        self.filename = filename
+
+    def __enter__(self):
+        return self.filename
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        print "Removing %s" % self.filename
+        os.unlink(self.filename)
+
+
 class ServiceAccount(serializer.SerializedObject):
     """A GCS service account is an entity with delegation privileges.
 
@@ -224,6 +241,7 @@ class ServiceAccount(serializer.SerializedObject):
             components.append("x-goog-resumable:start")
 
         base_url = "/%s/%s" % (bucket, path)
+        base_url = base_url.rstrip("/")
 
         components.append(base_url)  # Canonicalized_Resource
 
@@ -246,13 +264,17 @@ class GCSLocation(location.Location):
         dict(name="bucket",
              doc="Name of the bucket"),
 
-        dict(name="upload", type="choices", default="direct",
-             choices=["direct", "resumable"],
+        dict(name="upload", type="choices", default=u"direct",
+             choices=[u"direct", u"resumable"],
              doc="Type of upload mechanism."),
 
         dict(name="path",
              doc="The path to the object in the bucket."),
     ]
+
+    def __init__(self, *args, **kwargs):
+        super(GCSLocation, self).__init__(*args, **kwargs)
+        self._cache = self._session.GetParameter("agent_config").server.cache
 
     def get_canonical(self):
         return GCSLocation.from_keywords(
@@ -314,20 +336,18 @@ class GCSLocation(location.Location):
         return response.ok
 
     def read_file(self, **kw):
-        url_endpoint, _, headers = self._get_parameters(**kw)
-
-        resp = self.get_requests_session().get(
-            url_endpoint, headers=headers)
-
-        if resp.ok:
-            return resp.content
-        return ""
+        try:
+            local_filename = self.get_local_filename(**kw)
+            with open(local_filename, "rb") as fd:
+                return fd.read(MAX_BUFF_SIZE)
+        except IOError:
+            return ""
 
     def write_file(self, data, **kwargs):
         return self.upload_file_object(StringIO.StringIO(data), **kwargs)
 
     def _upload_direct(self, fd, completion_routine=None, **kwargs):
-        url_endpoint, params, headers = self._get_parameters(**kwargs)
+        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
 
         headers["Content-Encoding"] = "gzip"
         resp = self.get_requests_session().put(
@@ -335,12 +355,12 @@ class GCSLocation(location.Location):
             params=params, headers=headers)
 
         self._session.logging.debug("Uploaded file: %s (%s bytes)",
-                                    self.path, fd.tell())
+                                    self.to_path(), fd.tell())
 
         return self._report_error(completion_routine, resp)
 
     def _upload_resumable(self, fd, completion_routine=None, **kwargs):
-        url_endpoint, params, headers = self._get_parameters(**kwargs)
+        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
 
         fd.seek(0, 2)
         file_length = fd.tell()
@@ -381,7 +401,7 @@ class GCSLocation(location.Location):
                 upload_location, data=data, headers=headers)
 
             self._session.report_progress(
-                "%s: Uploaded %s/%s", self.path, offset, file_length)
+                "%s: Uploaded %s/%s", self.to_path(), offset, file_length)
 
         return self._report_error(completion_routine, resp)
 
@@ -414,32 +434,41 @@ class GCSLocation(location.Location):
 
     def get_local_filename(self, completion_routine=None, **kwargs):
         # We need to download the file locally.
-        fd, filename = tempfile.mkstemp()
-        try:
-            url_endpoint, params, headers = self._get_parameters(**kwargs)
-            with contextlib.closing(
-                    self.get_requests_session().get(
-                        url_endpoint, params=params, headers=headers,
-                        stream=True)) as resp:
+        url_endpoint, params, headers, base_url = self._get_parameters(
+            **kwargs)
+        current_generation = self._cache.get_generation(base_url)
+        if current_generation:
+            headers["If-None-Match"] = current_generation
 
-                if not resp.ok:
-                    return self._report_error(completion_routine, resp)
+        with contextlib.closing(
+                self.get_requests_session().get(
+                    url_endpoint, params=params, headers=headers,
+                    stream=True)) as resp:
 
-                for chunk in resp.iter_content(chunk_size=1024*1024):
-                    if chunk:
-                        os.write(fd, chunk)
+            # Object not modified just return the cached object.
+            if resp.status_code == 304:
+                return self._cache.get_local_file(base_url, current_generation)
 
-                # Report success.
-                self._report_error(completion_routine, resp)
+            if not resp.ok:
+                return self._report_error(completion_routine, resp)
 
-        finally:
-            os.close(fd)
+            # Store the generation of this object in the cache.
+            current_generation = json.loads(resp.headers["ETag"])
+            filename = self._cache.store_at_generation(
+                base_url, current_generation,
+                iterator=resp.iter_content(chunk_size=1024*1024))
+
+            # Report success.
+            self._report_error(completion_routine, resp)
 
         return filename
 
     def list_files(self, **kwargs):
         """A generator of Location object below this one."""
         raise NotImplementedError()
+
+    def to_path(self):
+        return "%s/%s" % (self.bucket, self.path.strip("/"))
 
 
 class GCSHeaders(serializer.SerializedObject):
@@ -465,7 +494,7 @@ class GCSOAuth2BasedLocation(GCSLocation):
 
     def _get_parameters(self, if_modified_since=None, generation=None, **_):
         """Calculates the params for the request."""
-        base_url = "%s/%s" % (self.bucket, self.path)
+        base_url = self.to_path()
 
         url_endpoint = ('https://storage.googleapis.com/%s' %
                         base_url.lstrip("/"))
@@ -484,7 +513,73 @@ class GCSOAuth2BasedLocation(GCSLocation):
         if generation:
             params["generation"] = generation
 
-        return url_endpoint, params, headers
+        return url_endpoint, params, headers, base_url
+
+    def read_modify_write_local_file(self, modification_cb, *args):
+        """Atomically modifies this location.
+
+        We first download this object to the local filesystem cache, then we
+        modify it and then try to upload. If another modification occurred we
+        replay the callback until success.
+
+        Note that the modification_cb will be called with the filename to
+        modify. It may be called multiple times.
+        """
+        url_endpoint, _, headers, base_url = self._get_parameters()
+        for retry in range(5):
+            local_file_should_be_removed = False
+            current_generation = None
+            try:
+                try:
+                    local_filename = self.get_local_filename()
+
+                    # The current generation in the cache.
+                    current_generation = self._cache.get_generation(base_url)
+                except IOError:
+                    # File does not exist on the server, make a tmpfile.
+                    fd, local_filename = tempfile.mkstemp()
+                    os.close(fd)
+
+                    # Dont forget to remove the tempfile.
+                    local_file_should_be_removed = True
+
+                # Now let the callback modify the file.
+                modification_cb(local_filename, *args)
+
+                # We may only write if this is the current generation.
+                if current_generation:
+                    headers["If-Match"] = current_generation
+
+                headers["Content-Encoding"] = "gzip"
+                resp = self.get_requests_session().put(
+                    url_endpoint, data=GzipWrapper(
+                        self._session, open(local_filename, "rb")),
+                    headers=headers)
+
+                # OK - all went well.
+                if resp.ok:
+                    new_generation = json.loads(resp.headers["ETag"])
+                    # Update the cache into a new generation.
+                    self._cache.update_local_file_generation(
+                        base_url, new_generation, local_filename)
+
+                    # Do not remove the local file because it was moved by the
+                    # cache.
+                    local_file_should_be_removed = False
+                    self._session.logging.info("Modified: %s", self.to_path())
+                    return True
+
+                # The generation on the server has changed. Abort, wait a bit
+                # and retry.
+                if resp.status_code == 304:
+                    time.sleep(0.1 * retry)
+                    continue
+
+            finally:
+                if local_file_should_be_removed:
+                    os.unlink(local_filename)
+
+            raise IOError("Unable to update %s" % self)
 
     def read_modify_write(self, modification_cb, *args):
         """Atomically modify this location in a race free way.
@@ -498,48 +593,21 @@ class GCSOAuth2BasedLocation(GCSLocation):
         The underlying implementation is described here:
         https://cloud.google.com/storage/docs/object-versioning
         """
-        url_endpoint, _, headers = self._get_parameters()
+        def cb(filename, modification_cb, *args):
+            with open(filename, "rb") as fd:
+                data = fd.read()
 
-        # Try a few times in case we get a lock failure.
-        for retry in range(5):
-            try:
-                resp = self.get_requests_session().get(
-                    url_endpoint, headers=headers)
+            new_data = modification_cb(data, *args)
 
-                if resp.ok:
-                    generation = resp.headers["x-goog-generation"]
-                    meta_generation = resp.headers["x-goog-metageneration"]
+            # Update the file.
+            with open(filename, "wb") as fd:
+                fd.write(new_data)
 
-                    # Get new data.
-                    new_data = modification_cb(resp.content, *args)
-
-                    # Now update that generation.
-                    headers["x-goog-if-generation"] = generation
-                    headers["x-goog-metageneration"] = meta_generation
-
-                # Previous object does not exist.
-                elif resp.status_code == 404:
-                    new_data = modification_cb("", *args)
-            except IOError:
-                new_data = modification_cb("", *args)
-
-            headers["Content-Encoding"] = "gzip"
-            resp = self.get_requests_session().put(
-                url_endpoint, data=GzipWrapper(
-                    self._session, StringIO.StringIO(new_data)),
-                headers=headers)
-
-            if resp.ok:
-                self._session.logging.error("Modified: %s", self.path)
-                return True
-
-            time.sleep(0.1 * retry)
-
-        raise IOError("Unable to update %s" % self)
+        self.read_modify_write_local_file(cb, modification_cb, *args)
 
     def delete(self, completion_routine=None, **kwargs):
         """Deletes the current location."""
-        url_endpoint, params, headers = self._get_parameters(**kwargs)
+        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
         resp = self.get_requests_session().delete(
             url_endpoint, params=params, headers=headers)
 
@@ -548,7 +616,7 @@ class GCSOAuth2BasedLocation(GCSLocation):
     def list_files(self, completion_routine=None, paging=100,
                    max_results=100, **kwargs):
         """A generator of Location object below this one."""
-        _, params, headers = self._get_parameters(**kwargs)
+        _, params, headers, _ = self._get_parameters(**kwargs)
         url_endpoint = ("https://www.googleapis.com/storage/v1/b/%s/o" %
                         self.bucket)
 
@@ -590,7 +658,7 @@ class GCSUnauthenticatedLocation(GCSLocation):
     """A read only, unauthenticated location."""
 
     def _get_parameters(self, if_modified_since=None):
-        base_url = "%s/%s" % (self.bucket, self.path)
+        base_url = self.to_path()
 
         url_endpoint = ('https://storage.googleapis.com/%s' %
                         base_url.lstrip("/"))
@@ -600,7 +668,18 @@ class GCSUnauthenticatedLocation(GCSLocation):
             headers["If-Modified-Since"] = handlers.format_date_time(
                 if_modified_since)
 
-        return url_endpoint, {}, headers
+        return url_endpoint, {}, headers, base_url
+
+    def read_file(self, **kw):
+        url_endpoint, _, headers, _ = self._get_parameters(**kw)
+
+        resp = self.get_requests_session().get(
+            url_endpoint, headers=headers)
+
+        if resp.ok:
+            return resp.content
+
+        return ""
 
 
 class GCSSignedURLLocation(GCSLocation):
@@ -620,8 +699,7 @@ class GCSSignedURLLocation(GCSLocation):
 
     def _get_parameters(self):
         """Calculates the params for the request."""
-        base_url = "%s/%s" % (self.bucket, self.path)
-
+        base_url = self.to_path()
         url_endpoint = ('https://storage.googleapis.com/%s' %
                         base_url.lstrip("/"))
         params = dict(GoogleAccessId=self.GoogleAccessId,
@@ -630,7 +708,7 @@ class GCSSignedURLLocation(GCSLocation):
 
         headers = self.headers.to_primitive(False)
 
-        return url_endpoint, params, headers
+        return url_endpoint, params, headers, base_url
 
     def read_file(self, **kwargs):
         if self.method != "GET":
@@ -653,6 +731,7 @@ class GCSSignedURLLocation(GCSLocation):
 
 
 class GzipWrapper(object):
+    """Wrap an fd to produce a compressed stream from it."""
     BUFFER_SIZE = 1024 * 1024
 
     def __init__(self, session, infd):
@@ -663,9 +742,11 @@ class GzipWrapper(object):
         self.zipper = gzip.GzipFile(mode="wb", fileobj=self)
 
     def write(self, data):
+        """This function is called by the GzipFile writer."""
         self.buff += data
 
     def read(self, length=10000000000):
+        """This is called by readers if this wrapper."""
         # Read infd until we have length available in self.buff.
         while self.zipper and len(self.buff) < length:
             data = self.infd.read(self.BUFFER_SIZE)
@@ -741,6 +822,10 @@ class GCSSignedPolicyLocation(GCSLocation):
         key = "%s/%s/%s" % (self.bucket, self.path_prefix.rstrip("/"),
                            subpath.lstrip("/"))
 
+        # We must never upload to a URL that ends with / because GCS treats it
+        # as a different URL than the same without a /.
+        key = key.rstrip("/")
+
         url_endpoint = "https://storage.googleapis.com/"
         params = dict(GoogleAccessId=self.GoogleAccessId,
                       Signature=base64.b64encode(self.signature),
@@ -751,16 +836,16 @@ class GCSSignedPolicyLocation(GCSLocation):
         params["content-encoding"] = "gzip"
         headers = {"content-encoding": "gzip"}
 
-        return url_endpoint, params, headers
+        return url_endpoint, params, headers, key
 
     def upload_file_object(self, fd, completion_routine=None, **kwargs):
-        url_endpoint, params, headers = self._get_parameters(**kwargs)
+        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
         resp = self.get_requests_session().post(
             url_endpoint, params,
             files=dict(file=GzipWrapper(self._session, fd)),
             headers=headers)
 
-        self._session.logging.debug("Uploaded file: %s (%s bytes)",
-                                    params["key"], fd.tell())
+        self._session.logging.debug(
+            "Uploaded file: %s (%s bytes)", params["key"], fd.tell())
 
         return self._report_error(completion_routine, resp)

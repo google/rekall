@@ -36,6 +36,8 @@ import os
 import tempfile
 import sqlite3
 
+import arrow
+
 from rekall_agent import location
 from rekall_agent import serializer
 
@@ -96,6 +98,13 @@ SQLITE_CACHED_STATEMENTS = 20
 SQLITE_PAGE_SIZE = 1024
 
 
+def _coerce_timestamp(value):
+    if isinstance(value, arrow.Arrow):
+        return value.float_timestamp
+
+    return float(value)
+
+
 class GenericSQLiteCollection(CollectionSpec):
     """A Collection based on SQLite files."""
 
@@ -109,12 +118,17 @@ class GenericSQLiteCollection(CollectionSpec):
         "unicode": unicode,  # Unicode data.
         "str": str, # Used for binary data.
         "float": float,
-        "epoch": float, # Dates as epoch timestamps.
+
+        # Dates as epoch timestamps are stored as floats.
+        "epoch": _coerce_timestamp,
+
         "any": str  # Used for opaque types that can not be further processed.
     }
 
     def __init__(self, *args, **kwargs):
         super(GenericSQLiteCollection, self).__init__(*args, **kwargs)
+
+        self._flush_cb = lambda: None
 
         # Allow the collection to be initialized from an class member.
         if not self.GetMember("tables") and self._tables:
@@ -123,36 +137,48 @@ class GenericSQLiteCollection(CollectionSpec):
                 [Table.from_primitive(x, session=self._session)
                  for x in self._tables])
 
-    def open(self, mode=None):
-        # SQL requires a real file on the filesystem, so we must make a local
-        # copy.
-        if mode == "r":
-            # Fetch the file locally so we can open it. This will raise if the
-            # file does not exist.
-            self._filename = self.location.get_local_filename()
+    @classmethod
+    def load_from_location(cls, collection_location=None, filename=None,
+                           session=None):
+        if filename is None:
+            filename = collection_location.get_local_filename()
 
-        # A collection in append mode means we read it locally, manipulate it
-        # and then upload it. NOTE: The entire operation should be done inside a
-        # read_modify_write() callback.
-        elif mode == "a":
-            # Fetch the file locally so we can open it.
-            try:
-                self._filename = self.location.get_local_filename()
-            except IOError:
-                # Create a new file so we can upload it when done.
-                fd, self._filename = tempfile.mkstemp()
-                os.close(fd)
+        conn = sqlite3.connect(
+            filename, SQLITE_TIMEOUT, SQLITE_DETECT_TYPES,
+            SQLITE_ISOLATION, False, SQLITE_FACTORY,
+            SQLITE_CACHED_STATEMENTS)
 
-        elif mode == "w":
-            # Create a new file so we can upload it when done.
-            fd, self._filename = tempfile.mkstemp()
-            os.close(fd)
+        cursor = conn.cursor()
+        try:
+            for row in cursor.execute(
+                    "select value from metadata where key='schema'"):
+                result = cls.from_json(row[0], session=session)
+        except sqlite3.Error:
+            result = cls(session=session)
 
-        else:
-            raise RuntimeError("mode is invalid.")
+        result.location = collection_location
+        result.load_from_local_file(filename)
 
-        # Try to connect to the file.
-        self._mode = mode
+        return result
+
+    def create_temp_file(self):
+        fd, local_filename = tempfile.mkstemp()
+        os.close(fd)
+        self.load_from_local_file(local_filename)
+
+        def _flush_cb():
+            """When finished with collection, upload it and then remove it."""
+            with open(local_filename, "rb") as fd:
+                self.location.upload_file_object(fd)
+
+            os.unlink(local_filename)
+
+        self._flush_cb = _flush_cb
+
+        return self
+
+    def load_from_local_file(self, filename):
+        self._filename = filename
         self._conn = sqlite3.connect(
             self._filename, SQLITE_TIMEOUT, SQLITE_DETECT_TYPES,
             SQLITE_ISOLATION, False, SQLITE_FACTORY,
@@ -166,6 +192,22 @@ class GenericSQLiteCollection(CollectionSpec):
         self._cursor.execute("PRAGMA journal_mode = WAL")
 
         self._queries = {}
+
+        # Store metadata about the collection.
+        self._cursor.execute(
+            "CREATE TABLE IF NOT EXISTS metadata (key TEXT, value TEXT);")
+
+        existing_schema = None
+        for row in self._cursor.execute(
+                "select value from metadata where key='schema'"):
+            existing_schema = GenericSQLiteCollection.from_json(
+                row["value"], session=self._session)
+
+        if not existing_schema:
+            existing_schema = self
+            self._cursor.execute(
+                "insert into metadata values(?, ?)", ("schema", self.to_json()))
+
         # Now parse the schema and create the relevant table.
         for table in self.tables:
             column_specs = []
@@ -185,18 +227,35 @@ class GenericSQLiteCollection(CollectionSpec):
             self._cursor.execute("CREATE TABLE IF NOT EXISTS tbl_%s (%s);" % (
                 table.name, ",".join(column_specs)))
 
+    @classmethod
+    def transaction(cls, collection_location, callback, *args, **kwargs):
+        """Modify the collection safely.
+
+        The callback will receive the collection object:
+
+        callback(collection, *args)
+
+        If this function completes, the modified collection is guaranteed to be
+        consistent, even if another process or thread is trying to modify it at
+        the same time.
+        """
+        def _read_modify_write(filename, session):
+            collection = cls.load_from_location(filename=filename,
+                                                session=session)
+            # with forces cursors to be committed.
+            with collection:
+                callback(collection, *args)
+
+        collection_location.read_modify_write_local_file(
+            _read_modify_write, kwargs.pop("session"))
+
+    def __enter__(self):
         return self
 
-    def close(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         self._conn.commit()
         self._conn.close()
-
-        if self._mode == "w" or self._mode == "a":
-            # If we modified an existing file we sync it up with the remote
-            # location.
-            self.location.upload_local_file(self._filename, delete=True)
-
-        self._mode = None
+        self._flush_cb()
 
     def _find_table(self, table=None):
         if isinstance(table, basestring):
@@ -241,13 +300,31 @@ class GenericSQLiteCollection(CollectionSpec):
             self._queries[table.name],
             [sanitized_row.get(x.name) for x in table.columns])
 
+    def replace(self, table=None, condition=None, **kwargs):
+        table = self._find_table(table)
+        kwargs = self.sanitize_row(kwargs)
+        update_sql = ",".join("%s=?" % x for x in kwargs)
+        update_sql = "update tbl_%s set %s where %s" % (
+            table.name, update_sql, condition)
+
+        self._cursor.execute(update_sql, kwargs.values())
+
     def __iter__(self):
         return self._query()
 
-    def query(self, query=None, query_args=None, table=None):
+    def query(self, query=None, query_args=None, table=None, order_by=None,
+              **kwargs):
         table = self._find_table(table)
         if query is None:
             query = "select * from tbl_%s" % table.name
+            if not kwargs:
+                kwargs[1] = 1
+
+            query += " where " + " and ".join(["%s=?" % x for x in kwargs])
+            if order_by:
+                query += " order by " + order_by
+
+            query_args = kwargs.values()
 
         for row in self._cursor.execute(query, query_args or ()):
             yield row

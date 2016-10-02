@@ -1,5 +1,5 @@
-import yaml
 import collections
+import yaml
 
 
 class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
@@ -57,3 +57,42 @@ def decode(data):
 
 def encode(raw_data):
     return yaml.safe_dump(raw_data, default_flow_style=False)
+
+
+class PrettyPrinterDumper(yaml.SafeDumper):
+    """A dumper which produces pretty printed YAML.
+
+    See:
+    http://stackoverflow.com/questions/6432605/any-yaml-libraries-in-python-that-support-dumping-of-long-strings-as-block-liter
+    """
+
+
+def unicode_representer(_, data):
+    has_wide_lines = False
+    for line in data.splitlines():
+        if len(line) > 80:
+            has_wide_lines = True
+            break
+
+    if has_wide_lines:
+        return yaml.ScalarNode(
+            u'tag:yaml.org,2002:str', data, style='>')
+
+    if "\n" in data:
+        return yaml.ScalarNode(
+            u'tag:yaml.org,2002:str', data, style='|')
+
+    return yaml.ScalarNode(
+        u'tag:yaml.org,2002:str', data, style='')
+
+PrettyPrinterDumper.add_representer(
+    unicode, unicode_representer)
+
+PrettyPrinterDumper.add_representer(
+    str, unicode_representer)
+
+
+def safe_dump(data, **kwargs):
+    kwargs["default_flow_style"] = False
+    return yaml.dump_all(
+        [data], None, Dumper=PrettyPrinterDumper, **kwargs)

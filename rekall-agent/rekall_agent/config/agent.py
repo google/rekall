@@ -28,6 +28,7 @@ import os
 
 from rekall import obj
 from rekall_agent import action
+from rekall_agent import cache
 from rekall_agent import crypto
 from rekall_agent import location
 from rekall_agent import serializer
@@ -178,6 +179,12 @@ class ClientPolicy(ExternalFileMixin,
 
         dict(name="labels", repeated=True,
              doc="A set of labels for this client."),
+
+        dict(name="poll_min", type="int", default=5,
+             doc="How frequently to poll the server."),
+
+        dict(name="poll_max", type="int", default=60,
+             doc="How frequently to poll the server."),
     ]
 
     @property
@@ -245,6 +252,9 @@ class ServerPolicy(ExternalFileMixin,
 
         dict(name="private_key", type=crypto.RSAPrivateKey,
              doc="The server's private key"),
+
+        dict(name="cache", type=cache.Cache,
+             doc="Local cache to use."),
     ]
 
 
