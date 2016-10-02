@@ -87,6 +87,7 @@ class RekallAgent(common.AbstractAgentCommand):
         for action in flow_obj.actions:
             # Make a progress ticket for this action if required.
             flow_obj.ticket.status = "Started"
+            flow_obj.ticket.client_id = self.config.client.writeback.client_id
             flow_obj.ticket.current_action = action
             flow_obj.ticket.timestamp = time.time()
 
@@ -114,7 +115,8 @@ class RekallAgent(common.AbstractAgentCommand):
         flow_obj.ticket.send_message()
 
     def _process_flows(self, flows):
-        flow_ran = None
+        """Process all the flows and report the number that ran."""
+        flows_ran = 0
         try:
             for flow_obj in flows:
                 if not isinstance(flow_obj, flow.Flow):
@@ -128,14 +130,16 @@ class RekallAgent(common.AbstractAgentCommand):
                             "Ignoreing flow id %s - expired", flow_obj.flow_id)
                         continue
 
-                    flow_ran = flow_obj
+                    flows_ran += 1
                     self.writeback.last_flow_time = flow_obj.created_time
                     self._run_flow(flow_obj)
         finally:
             # At least one flow ran - we need to checkpoint the last ran time in
-            # persistent agent state.
-            if flow_ran:
+            # persistent agent state so we do not run it again.
+            if flows_ran > 0:
                 self.config.client.save_writeback()
+
+        return flows_ran
 
     def _read_all_flows(self):
         result = []
@@ -197,6 +201,8 @@ class RekallAgent(common.AbstractAgentCommand):
 
         This never exits.
         """
+        self.poll_wait = self.config.client.poll_min
+
         # The writeback is where the agent stores local state.
         self.writeback = self.config.client.get_writeback()
         self.jobs_locations = [_LocationTracker(x)
@@ -214,13 +220,24 @@ class RekallAgent(common.AbstractAgentCommand):
 
         # Spin here running jobs.
         while 1:
+            flows_ran = 0
             try:
-                self._process_flows(self._read_all_flows())
+                flows_ran = self._process_flows(self._read_all_flows())
             except Exception as e:
                 self.session.logging.exception("Error reading flows.")
 
+            # Adjust the poll interval based on what happened.
+            if flows_ran:
+                # Switch to fast poll.
+                self.poll_wait = self.config.client.poll_min
+            else:
+                # Slowly drift to slow poll
+                self.poll_wait += 5
+                if self.poll_wait > self.config.client.poll_max:
+                    self.poll_wait = self.config.client.poll_max
+
             # Wait a bit for the next poll.
-            time.sleep(5)
+            time.sleep(self.poll_wait)
 
 
 class AgentInfo(common.AbstractAgentCommand):

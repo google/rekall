@@ -108,11 +108,18 @@ class Startup(batch.BatchTicket):
             _update_client_records, context["messages"],
             session=session)
 
-    def process(self, context):
+    def process(self, context, ticket_location):
         """This method runs once on each ticket.
 
         Note that this method runs inside a threadpool.
         """
+        components = ticket_location.to_path().split("/")
+
+        # Ensure the ticket location matches the ticket content.
+        if (components[-1] != self.client_id or
+            components[-2] != self.__class__.__name__):
+            raise IOError("Ticket location unexpected.")
+
         # Verify the client id and public key match.
         if self.public_key.client_id() != self.client_id:
             raise crypto.CipherError("Public key incompatible with client_id")

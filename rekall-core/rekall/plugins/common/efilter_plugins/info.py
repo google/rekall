@@ -24,10 +24,12 @@ from rekall import session
 from rekall import testlib
 
 
-class Describe(plugin.TypedProfileCommand, plugin.Command):
+class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
     """Describe the output of a plugin."""
 
     name = "describe"
+
+    PROFILE_REQUIRED = False
 
     __args = [
         dict(name="plugin_name", required=True, positional=True,

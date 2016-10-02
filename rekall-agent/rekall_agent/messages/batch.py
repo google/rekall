@@ -54,7 +54,7 @@ class BatchTicket(serializer.SerializedObject):
     def end(cls, context, session=None):
         """Called once at the end of the batch run."""
 
-    def process(self, context):
+    def process(self, context, ticket_location):
         """Called once on each instance to process this instance."""
 
 
@@ -67,8 +67,9 @@ class AgentWorker(common.AbstractControllerCommand):
                  utils.get_all_subclasses, BatchTicket),
              help="One or more batch jobs to run."),
 
-        dict(name="loop", type="Boolean",
-             help="If specified we loop forever."),
+        dict(name="loop", type="IntParser", default=0,
+             help="If specified we loop forever and sleep that "
+             "many seconds between loops."),
     ]
 
     table_header = [
@@ -83,10 +84,15 @@ class AgentWorker(common.AbstractControllerCommand):
         while 1:
             for batch_runner in batches:
                 yield dict(Message="Running batch %s" % batch_runner.batch_name)
-                batch_runner.run()
+                try:
+                    batch_runner.run()
+                except Exception:
+                    pass
 
             if not self.plugin_args.loop:
                 break
+
+            time.sleep(self.plugin_args.loop)
 
 
 class BatchRunner(object):
@@ -130,7 +136,12 @@ class BatchRunner(object):
                 ticket_location.read_file(),
                 session=self.session)
             with self.lock:
-                batch.process(self.context)
+                batch.process(self.context, ticket_location)
+
+        except Exception as e:
+            self.session.logging.error(
+                "Invalid message %s: %s", ticket_location.to_path(), e)
+
         finally:
             # Remove the ticket from the batch queue.
             ticket_location.delete()

@@ -117,9 +117,18 @@ class FlowStatus(batch.BatchTicket):
              doc="The collections produced by the flow."),
     ]
 
-    def process(self, context):
-        # Just group flow announcements by client id. We do all the real work in
-        # the end() method.
+    def process(self, context, ticket_location):
+        # Verify this ticket. We only process valid tickets that came from a
+        # valid location. Note that since the location is generally signed this
+        # ensure the ticket is written to the location the server decided in
+        # advance. We ignore invalid messages and they will be deleted.
+        components = ticket_location.to_path().split("/")
+        if (components[-1] != self.client_id or
+            components[-2] != self.flow_id or
+            components[-3] != self.__class__.__name__):
+            raise IOError("Ticket location unexpected.")
+
+        # Just group by client id. We do all the real work in the end() method.
         context.setdefault(self.client_id, []).append(self)
 
     @classmethod
@@ -140,13 +149,46 @@ class FlowStatus(batch.BatchTicket):
             """Update the collection atomically."""
             for ticket in tickets:
                 flow_collection.replace(
-                    condition="flow_id='%s'" % ticket.flow_id,
+                    condition="flow_id='%s'" % (ticket.flow_id),
                     status=ticket.status, ticket_data=ticket.to_json(),
                     last_active=ticket.timestamp,
                 )
 
         FlowStatsCollection.transaction(
             config.server.flow_db_for_server(client_id),
+            _update_flow_info, tickets, session=session)
+
+
+class HuntStatus(FlowStatus):
+    def process(self, context, ticket_location):
+        components = ticket_location.to_path().split("/")
+        if (components[-1] != self.client_id or
+            components[-2] != self.flow_id or
+            components[-3] != self.__class__.__name__):
+            raise IOError("Ticket location unexpected.")
+
+        # Just group by flow id. We do all the real work in the end() method.
+        context.setdefault(self.flow_id, []).append(self)
+
+    @staticmethod
+    def _process_flows(_args):
+        tickets, flow_id, session = _args
+        config = session.GetParameter("agent_config")
+
+        def _update_flow_info(flow_collection, tickets):
+            """Update the collection atomically."""
+            for ticket in tickets:
+                # We only care about clients which are done.
+                if ticket.status in ["Done", "Error"]:
+                    flow_collection.insert(
+                        client_id=ticket.client_id,
+                        status=ticket.status,
+                        executed=ticket.timestamp,
+                        ticket_data=ticket.to_json(),
+                    )
+
+        HuntStatsCollection.transaction(
+            config.server.hunt_db_for_server(flow_id),
             _update_flow_info, tickets, session=session)
 
 
@@ -158,6 +200,10 @@ class Flow(serializer.SerializedObject):
     schema = [
         dict(name="client_id",
              doc="A client id to target this flow on."),
+
+        dict(name="queue",
+             doc="A queue to launch this one. When specified this flow is "
+             "run as a hunt."),
 
         dict(name="flow_id",
              doc="Unique ID of this flow, will be populated when launched."),
@@ -181,6 +227,10 @@ class Flow(serializer.SerializedObject):
              doc="The action requests sent to the client."),
     ]
 
+    def is_hunt(self):
+        """Is this flow running as a hunt?"""
+        return self.queue is not None
+
     def generate_actions(self):
         """Yields one or more Action() objects.
 
@@ -194,8 +244,10 @@ class Flow(serializer.SerializedObject):
             self.client_id = self._session.GetParameter(
                 "controller_context") or None
 
-        if not self.client_id:
-            raise plugin.InvalidArgs("Client id must be provided.")
+        if not self.client_id and not self.queue:
+            raise plugin.InvalidArgs(
+                "Hunt Queue name must be provided if client id is "
+                "not provided.")
 
     def start(self):
         """Launch the flow."""
@@ -208,12 +260,20 @@ class Flow(serializer.SerializedObject):
 
         self.actions = list(self.generate_actions())
 
+        # There are some differences in the ways flows and hunts are organized.
+        if self.is_hunt():
+            self.ticket = HuntStatus(session=self._session)
+        else:
+            self.ticket = FlowStatus(session=self._session)
+
         # Create a ticket location for the agent to report progress.
         self.ticket.client_id = self.client_id
         self.ticket.status = "Started"
         self.ticket.flow_id = self.flow_id
+
         self.ticket.location = self._config.server.flow_ticket_for_client(
-            "FlowStatus", self.flow_id, path_template="{client_id}",
+            self.ticket.__class__.__name__,
+            self.flow_id, path_template="{client_id}",
             expiration=time.time() + self.ttl)
 
         def _add_flow(flow_collection):
@@ -226,7 +286,7 @@ class Flow(serializer.SerializedObject):
 
             # Add the new flow to the jobs file.
             jobs_location = self._config.server.jobs_queue_for_server(
-                self.client_id)
+                client_id=self.client_id, queue=self.queue)
 
             # Note this happens under lock so we should be able to handle
             # concurrent access.
@@ -234,7 +294,7 @@ class Flow(serializer.SerializedObject):
                 self._add_flow_to_jobs_file, flow_collection)
 
         FlowStatsCollection.transaction(
-            self._config.server.flow_db_for_server(self.client_id),
+            self._config.server.flow_db_for_server(self.client_id, self.queue),
             _add_flow, session=self._session)
 
     def expiration(self):
@@ -304,3 +364,19 @@ class FlowStatsCollection(result_collections.GenericSQLiteCollection):
             dict(name="ticket_data"),
         ]
     )]
+
+
+
+class HuntStatsCollection(result_collections.GenericSQLiteCollection):
+    """Maintain high level information about the hunt."""
+
+    _tables = [
+        dict(
+            name="default",
+            columns=[
+                dict(name="client_id"),
+                dict(name="status"),
+                dict(name="executed", type="epoch"),
+                dict(name="ticket_data"),
+            ]
+        )]

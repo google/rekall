@@ -846,7 +846,6 @@ class GCSSignedPolicyLocation(GCSLocation):
             headers=headers)
 
         self._session.logging.debug(
-            "Uploaded file: %s/%s (%s bytes)",
-            self.bucket, params["key"], fd.tell())
+            "Uploaded file: %s (%s bytes)", params["key"], fd.tell())
 
         return self._report_error(completion_routine, resp)

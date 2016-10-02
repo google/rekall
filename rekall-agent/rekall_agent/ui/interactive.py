@@ -22,6 +22,7 @@ import json
 import arrow
 
 from rekall import utils
+from rekall import yaml_utils
 from rekall_agent import common
 from rekall_agent import result_collections
 
@@ -54,7 +55,7 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
 
     def render_json(self, data, renderer):
         renderer.table_header([dict(name="Message", width=160, wrap=True)])
-        renderer.table_row(utils.PPrint(data))
+        renderer.table_row(yaml_utils.safe_dump(data))
 
     def render_sqlite(self, location, renderer):
         collection = (

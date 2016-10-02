@@ -179,6 +179,12 @@ class ClientPolicy(ExternalFileMixin,
 
         dict(name="labels", repeated=True,
              doc="A set of labels for this client."),
+
+        dict(name="poll_min", type="int", default=5,
+             doc="How frequently to poll the server."),
+
+        dict(name="poll_max", type="int", default=60,
+             doc="How frequently to poll the server."),
     ]
 
     @property

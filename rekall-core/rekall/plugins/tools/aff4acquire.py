@@ -206,8 +206,11 @@ class AFF4Acquire(AbstractAFF4Plugin):
     PROFILE_REQUIRED = False
 
     __args = [
-        dict(name="destination", positional=True, required=True,
+        dict(name="destination", positional=True,
              help="The destination file to create. "),
+
+        dict(name="destination_url",
+             help="The destination AFF4 URL to create. "),
 
         # If compression is not specified we prefer snappy but if that is not
         # available we use zlib which should always be there.
@@ -250,6 +253,11 @@ class AFF4Acquire(AbstractAFF4Plugin):
 
     def __init__(self, *args, **kwargs):
         super(AFF4Acquire, self).__init__(*args, **kwargs)
+
+        if (not self.plugin_args.destination and
+            not self.plugin_args.destination_url):
+            raise plugin.PluginError(
+                "A destination or destination_url must be specified.")
 
         if self.plugin_args.compression == "snappy":
             self.compression = lexicon.AFF4_IMAGE_COMPRESSION_SNAPPY
@@ -576,11 +584,12 @@ class AFF4Acquire(AbstractAFF4Plugin):
     def collect_acquisition(self):
         """Do the actual acquisition."""
         # If destination looks like a URN, just let the AFF4 library handle it.
-        try:
+        if self.plugin_args.destination:
             output_urn = rdfvalue.URN.NewURNFromFilename(
                 self.plugin_args.destination)
-        except IOError:
-            output_urn = rdfvalue.URN(self.plugin_args.destination)
+
+        elif self.plugin_args.destination_url:
+            output_urn = rdfvalue.URN(self.plugin_args.destination_url)
 
         if (output_urn.Parse().scheme == "file" and
                 not self.plugin_args.destination[-1] in "/\\"):

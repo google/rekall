@@ -51,14 +51,7 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
         auto_widths=True,
     )
 
-    def collect(self):
-        if not self.client_id:
-            raise plugin.PluginError("Client ID must be specified.")
-
-        collection = flow.FlowStatsCollection.load_from_location(
-            self.config.server.flow_db_for_server(self.client_id),
-            session=self.session)
-
+    def collect_db(self, collection):
         # Now show all the flows.
         for i, row in enumerate(collection.query(order_by="created desc")):
             if i > self.plugin_args.limit:
@@ -80,6 +73,32 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
                        created=arrow.Arrow.fromtimestamp(row["created"]),
                        last_active=last_active,
                        collections=collections)
+
+    def collect(self):
+        if not self.client_id:
+            raise plugin.PluginError("Client ID must be specified.")
+
+        collection = flow.FlowStatsCollection.load_from_location(
+            self.config.server.flow_db_for_server(self.client_id),
+            session=self.session)
+
+        return self.collect_db(collection)
+
+
+class AgentControllerShowHunts(AgentControllerShowFlows):
+    name = "show_hunts"
+
+    __args = [
+        dict(name="queue", default="All",
+             help="The hunt queue."),
+    ]
+
+    def collect(self):
+        collection = flow.FlowStatsCollection.load_from_location(
+            self.config.server.flow_db_for_server(queue=self.plugin_args.queue),
+            session=self.session)
+
+        return self.collect_db(collection)
 
 
 class SerializedObjectInspectorMixin(object):
@@ -209,11 +228,14 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         dict(name="flow", type="Choices", positional=True, required=True,
              choices=utils.JITIteratorCallable(
                  utils.get_all_subclasses, flow.Flow),
-             help="The flow to explain"),
+             help="The flow to launch"),
 
         dict(name="args", type="Any", positional=True, default={},
              help="Arguments to the flow (use explain_flow to see valid args)."
              "This may also be a JSON encoded string"),
+
+        dict(name="queue",
+             help="Which queue to schedule the hunt on."),
 
         dict(name="condition",
              help="An EFilter query to evaluate if the flow should be run."),
@@ -239,6 +261,7 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
             args, session=self.session)
 
         flow_obj.client_id = self.client_id
+        flow_obj.queue = self.plugin_args.queue
 
         return flow_obj
 
@@ -246,6 +269,58 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         # Now launch the flow.
         flow_obj = self.make_flow_object()
         flow_obj.start()
+
+        for x in self._explain(flow_obj):
+            yield x
+
+
+CANNED_CONDITIONS = dict(
+    OS_WINDOWS="any from agent_info() where key=='system' and value=='Windows'",
+    OS_LINUX="any from agent_info() where key=='system' and value=='Linux'",
+    OS_OSX="any from agent_info() where key=='system' and value=='Darwin'",
+)
+
+
+class AgentControllerRunHunt(AgentControllerRunFlow):
+    """Launch a hunt on many clients at once.
+
+    Rekall does not treat hunts as different or special entities - a hunt is
+    just a flow which targets multiple systems. However, for users it is
+    sometimes helpful to think in terms of a "hunt". This plugin makes it easier
+    to launch the hunt.
+    """
+    name = "launch_hunt"
+
+    __args = [
+        # Flows are scheduled on the client's flow queue but hunts are generally
+        # scheduled on a Label Queue (e.g. the All queue schedules to all
+        # agents).
+        dict(name="queue", default="All",
+             help="Which queue to schedule the hunt on."),
+
+        # This should only be set if no condition is specified.
+        dict(name="canned_condition", type="Choices", default=None,
+             choices=CANNED_CONDITIONS,
+             help="Canned conditions for the hunt."),
+    ]
+
+    def make_flow_object(self):
+        # Hunts run on all clients.
+        self.client_id = None
+
+        # If a canned condition was specified automatically add it.
+        if self.plugin_args.canned_condition:
+            self.plugin_args.condition = CANNED_CONDITIONS[
+                self.plugin_args.canned_condition]
+
+        flow_obj = super(AgentControllerRunHunt, self).make_flow_object()
+
+        return flow_obj
+
+    def collect(self):
+        # Now launch the flow.
+        flow_obj = self.make_flow_object()
+        flow_obj.start_hunt(self.plugin_args.queue)
 
         for x in self._explain(flow_obj):
             yield x
