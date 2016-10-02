@@ -119,7 +119,6 @@ static string GetDriverName() {
   }
 }
 
-
 AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
   // We issue a DeviceIoControl() on the raw device handle to get the metadata.
   DWORD size;
@@ -132,6 +131,25 @@ AFF4Status WinPmemImager::GetMemoryInfo(PmemMemoryInfo *info) {
   if (!device_stream) {
     LOG(ERROR) << "Can not open device " << device_urn.SerializeToString();
     return IO_ERROR;
+  }
+
+  // Set the acquisition mode.
+  if (acquisition_mode == PMEM_MODE_AUTO) {
+    // For 64 bit systems we use PTE remapping.
+    if (_GetSystemArch() == PROCESSOR_ARCHITECTURE_AMD64) {
+      acquisition_mode = PMEM_MODE_PTE;
+    } else {
+      acquisition_mode = PMEM_MODE_PHYSICAL;
+    }
+  }
+
+  // Set the acquisition mode.
+  if (!DeviceIoControl(device_stream->fd, PMEM_CTRL_IOCTRL, &acquisition_mode,
+                       sizeof(acquisition_mode), NULL, 0, &size, NULL)) {
+    LOG(ERROR) << "Failed to set acquisition mode: " << GetLastErrorMessage();
+    return IO_ERROR;
+  } else {
+    LOG(INFO) << "Setting acquisition mode " << acquisition_mode;
   }
 
   // Get the memory ranges.
@@ -608,6 +626,9 @@ AFF4Status WinPmemImager::ParseArgs() {
   if (result == CONTINUE && Get("pagefile")->isSet())
     result = handle_pagefiles();
 
+  if (result == CONTINUE && Get("mode")->isSet())
+    result = handle_acquisition_mode();
+
   return result;
 }
 
@@ -639,6 +660,23 @@ WinPmemImager::~WinPmemImager() {
       UninstallDriver();
     }
   }
+}
+
+AFF4Status WinPmemImager::handle_acquisition_mode() {
+  string mode = GetArg<TCLAP::ValueArg<string>>("mode")->getValue();
+
+  if (mode == "MmMapIoSpace") {
+    acquisition_mode = PMEM_MODE_IOSPACE;
+  } else if (mode == "PhysicalMemory") {
+    acquisition_mode = PMEM_MODE_PHYSICAL;
+  } else if (mode == "PTERemapping") {
+    acquisition_mode = PMEM_MODE_PTE;
+  } else {
+    LOG(ERROR) << "Invalid acquisition mode specified: " << mode;
+    return IO_ERROR;
+  }
+
+  return CONTINUE;
 }
 
 AFF4Status WinPmemImager::handle_pagefiles() {

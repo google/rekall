@@ -80,6 +80,7 @@ class WinPmemImager: public PmemImager {
 
   string service_name = PMEM_SERVICE_NAME;
   string device_name = PMEM_DEVICE_NAME;
+  uint32_t acquisition_mode = PMEM_MODE_AUTO;
 
   /**
    * This resolver is used to parse the AFF4 volume we bring with us. Our
@@ -164,10 +165,13 @@ class WinPmemImager: public PmemImager {
   }
 
   virtual AFF4Status handle_pagefiles();
+  virtual AFF4Status handle_acquisition_mode();
   virtual AFF4Status ParseArgs();
   virtual AFF4Status ProcessArgs();
 
   AFF4Status GetMemoryInfo(PmemMemoryInfo *info);
+
+  AFF4Status SetAcquisitionMode();
 
  public:
   virtual ~WinPmemImager();

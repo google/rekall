@@ -30,12 +30,19 @@ from rekall import addrspace
 from rekall.plugins.addrspaces import standard
 
 
+PMEM_MODE_IOSPACE = 0
+PMEM_MODE_PHYSICAL = 1
+PMEM_MODE_PTE = 2
+PMEM_MODE_PTE_PCI = 3
+
+
 def CTL_CODE(DeviceType, Function, Method, Access):
     return (DeviceType << 16) | (Access << 14) | (Function << 2) | Method
 
 
 # IOCTLS for interacting with the driver.
 INFO_IOCTRL = CTL_CODE(0x22, 0x103, 0, 3)
+CTRL_IOCTRL = CTL_CODE(0x22, 0x101, 0, 3)
 
 PAGE_SHIFT = 12
 
@@ -210,6 +217,12 @@ class WinPmemAddressSpace(Win32AddressSpace):
               ["NumberOfRuns"])
 
     def ParseMemoryRuns(self, fhandle):
+        # Set acquisition mode. If the driver does not support this mode it will
+        # just fall back to the default.
+        win32file.DeviceIoControl(
+            fhandle, CTRL_IOCTRL,
+            struct.pack("I", PMEM_MODE_PTE), 4, None)
+
         result = win32file.DeviceIoControl(
             fhandle, INFO_IOCTRL, "", 102400, None)
 
