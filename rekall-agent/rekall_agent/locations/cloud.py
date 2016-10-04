@@ -233,7 +233,6 @@ class ServiceAccount(serializer.SerializedObject):
         if upload == "resumable":
             components.append("x-goog-resumable:start")
 
-        import pdb; pdb.set_trace()
         base_url = "/" + join_path(bucket, path)
 
         components.append(base_url)  # Canonicalized_Resource

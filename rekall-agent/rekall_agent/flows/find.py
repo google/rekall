@@ -120,8 +120,15 @@ class FileFinderFlow(collect.CollectFlow):
 
         location = None
         if self.download:
-            location = self._config.server.vfs_prefix_for_client(
-                self.client_id, vfs_type="files", expiration=self.expiration())
+            if self.is_hunt():
+                location = self._config.server.hunt_vfs_path_for_client(
+                    self.flow_id, vfs_type="files",
+                    path_template="{client_id}/{subpath}",
+                    expiration=self.expiration())
+            else:
+                location = self._config.server.vfs_prefix_for_client(
+                    self.client_id, vfs_type="files",
+                    expiration=self.expiration())
 
         yield download.GetFiles.from_keywords(
             session=self._session,
