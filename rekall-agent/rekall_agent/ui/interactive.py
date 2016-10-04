@@ -80,7 +80,7 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
 
             renderer.table_header(headers, auto_widths=True)
             for row in collection.query(table=table.name):
-                renderer.table_row(*[fn(x) for fn, x in zip(types, row)])
+                renderer.table_row(*[fn(x or 0) for fn, x in zip(types, row)])
 
 
 class AgentControllerStoreLs(common.AbstractControllerCommand):

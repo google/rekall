@@ -117,22 +117,32 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="hunts/%s/stats.sqlite" % hunt_id)
 
+    def hunt_result_collection_for_server(self, hunt_id, type):
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path="hunts/%s/%s" % (hunt_id, type))
+
     def client_record_for_server(self, client_id):
         """The client specific information."""
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="%s/client.metadata" % client_id)
 
-    def flows_for_server(self, client_id, flow_id):
+    def flows_for_server(self, flow_id):
         """A location to write flow objects."""
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="/".join(
-                (client_id, "flows", flow_id)))
+                ("flows", flow_id)))
 
     def ticket_for_server(self, batch_name, *args):
         """The location of the ticket queue for this batch."""
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="/".join(
                 ("tickets", batch_name) + args))
+
+    def canonical_for_server(self, location):
+        canonical_location = location.get_canonical()
+        return self.service_account.create_oauth_location(
+            bucket=canonical_location.bucket,
+            path=canonical_location.path)
 
     def vfs_path_for_client(self, client_id, path, mode="w", expiration=None,
                             vfs_type="analysis"):
@@ -142,14 +152,15 @@ class GCSServerPolicy(agent.ServerPolicy):
         """
         return self.service_account.create_signed_url_location(
             bucket=self.bucket, mode=mode, path="/".join(
-                (client_id, "vfs", vfs_type, path.lstrip("/"))),
+                (client_id, "vfs", vfs_type, path.strip("/"))),
             expiration=expiration)
 
     def hunt_vfs_path_for_client(self, hunt_id, path, expiration=None,
                                  vfs_type="analysis"):
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket,
-            path_prefix="hunts/%s/vfs/%s/%s/" % (hunt_id, vfs_type, path),
+            path_prefix="hunts/%s/vfs/%s/%s/" % (
+                hunt_id, vfs_type, path.strip("/")),
             path_template="{client_id}",
             expiration=expiration)
 
@@ -158,7 +169,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         """Returns a Location suitable for storing a path using the prefix."""
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket, path_prefix="/".join(
-                (client_id, "vfs", vfs_type, path.lstrip("/"))),
+                (client_id, "vfs", vfs_type, path.strip("/"))),
             path_template="{subpath}",
             expiration=expiration)
 

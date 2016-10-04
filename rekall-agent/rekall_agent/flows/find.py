@@ -64,7 +64,6 @@ class ModificationTimeCondition(FileFilterCondition):
         return "(" + " and ".join(result) + ")"
 
 
-
 class FileFinderFlow(collect.CollectFlow):
     _collection_name = "file_finder_{timestamp}"
 
@@ -142,6 +141,18 @@ class ListDirectoryFlow(flow.Flow):
              doc="If set we recursively list all directories."),
     ]
 
+    def get_location(self):
+        """Work out where the agent should store the collection."""
+        if self.is_hunt():
+            return self._config.server.hunt_vfs_path_for_client(
+                self.flow_id, self.path, vfs_type="metadata",
+                expiration=self.expiration())
+
+        return self._config.server.vfs_path_for_client(
+            self.client_id, self.path,
+                expiration=self.expiration(), vfs_type="metadata",
+                mode="w")
+
     def validate(self):
         super(ListDirectoryFlow, self).validate()
         if not self.path:
@@ -152,8 +163,5 @@ class ListDirectoryFlow(flow.Flow):
             session=self._session,
             path=self.path,
             recursive=self.recursive,
-            vfs_location=self._config.server.vfs_path_for_client(
-                self.client_id, self.path.rstrip("/"),
-                expiration=self.expiration(), vfs_type="metadata",
-                mode="w")
+            vfs_location=self.get_location(),
         )

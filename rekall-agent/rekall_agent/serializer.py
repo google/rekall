@@ -260,6 +260,9 @@ class NestedDescriptor(FieldDescriptor):
         return result
 
     def from_primitive(self, value, session=None):
+        if isinstance(value, SerializedObject):
+            return value
+
         if isinstance(value, dict):
             # Support instantiating a derived class from the raw data.
             value_cls_name = value.get("__type__", self.nested)
@@ -558,6 +561,9 @@ class SerializedObject(object):
         """Load ourselves from a pure dict."""
         if not data:
             data = {}
+
+        if isinstance(data, SerializedObject):
+            return data
 
         cls_type = data.get("__type__", cls.__name__)
         data_cls = cls.ImplementationByClass(cls_type)
