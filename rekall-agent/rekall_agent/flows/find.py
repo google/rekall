@@ -109,7 +109,7 @@ class FileFinderFlow(collect.CollectFlow):
             parts = [x.get_efilter_clause() for x in self.conditions]
             result += " where " + " and ".join(parts)
 
-        return result
+        return dict(mode_live=result)
 
     def generate_actions(self):
         # Make a collection to store the result.

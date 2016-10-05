@@ -181,6 +181,17 @@ class EpochDescriptor(FieldDescriptor):
         return self.validate(value)
 
 
+class DictDescriptor(FieldDescriptor):
+    def validate(self, value, session=None):
+        _ = session
+        if not isinstance(value, dict):
+            raise ValueError("Value must be unicode string")
+
+        return value
+
+    def get_default(self, session=None):
+        return {}
+
 class UnicodeDescriptor(FieldDescriptor):
     def validate(self, value, session=None):
         _ = session
@@ -378,7 +389,7 @@ DISPATCHER = dict(
     bytes=StringDescriptor,
     choices=ChoicesDescriptor,
     epoch=EpochDescriptor,
-    dict=FieldDescriptor,
+    dict=DictDescriptor,
     bool=BoolDescriptor,
 )
 
@@ -402,6 +413,7 @@ class SerializedObjectCompiler(registry.MetaclassRegistry):
             field_name = field["name"]
             field_type = field.get("type", "unicode")
             repeated = field.get("repeated")
+
             if isinstance(field_type, basestring):
                 field_type = DISPATCHER.get(field_type)
 
@@ -410,6 +422,9 @@ class SerializedObjectCompiler(registry.MetaclassRegistry):
 
             if field_type is None:
                 raise TypeError("Unknown field %s" % field)
+
+            if not issubclass(field_type, FieldDescriptor):
+                raise TypeError("Unsupported field type %s" % field)
 
             if repeated:
                 descriptors[field_name] = RepeatedDescriptor(field)

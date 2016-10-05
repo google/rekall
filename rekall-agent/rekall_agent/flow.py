@@ -333,7 +333,14 @@ class Flow(serializer.SerializedObject):
         This also trims the jobs file to remove all flows which have been
         completed.
         """
-        jobs_file = JobFile.from_json(jobs_file_content, session=self._session)
+        try:
+            jobs_file = JobFile.from_json(
+                jobs_file_content, session=self._session)
+        except Exception:
+            # Something went wrong reading the old jobs. This can happen if the
+            # jobs format has changed since they were last written, so they no
+            # longer validate. Just start again with fresh jobs.
+            jobs_file = JobFile(session=self._session)
 
         # Remove those flows which are done.
         filtered_flows = []

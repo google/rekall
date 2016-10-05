@@ -402,8 +402,8 @@ class ProfileCommand(Command):
             # needed. This might be slightly unexpected: When command line
             # completing the available plugins we will trigger profile
             # autodetection in order to determine which plugins are active.
-            profile = (super(ProfileCommand, cls).is_active(session) and
-                       session.profile != None)
+            profile = (session.profile != None and
+                       super(ProfileCommand, cls).is_active(session))
 
             return profile
 
