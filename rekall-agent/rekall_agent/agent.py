@@ -69,6 +69,12 @@ class RekallAgent(common.AbstractAgentCommand):
 
     name = "agent"
 
+    def _get_session(self, flow_obj):
+        kwargs = flow_obj.session.to_primitive(True)
+        rekall_session = self.session.clone(**kwargs)
+
+        return rekall_session
+
     def _run_flow(self, flow_obj):
         # Flow has a condition - we only run the flow if the condition matches.
         if flow_obj.condition:
@@ -84,6 +90,9 @@ class RekallAgent(common.AbstractAgentCommand):
                 self.session.logging.exception(e)
                 return
 
+        # Prepare the session specified by this flow.
+        rekall_session = self._get_session(flow_obj)
+
         for action in flow_obj.actions:
             # Make a progress ticket for this action if required.
             flow_obj.ticket.status = "Started"
@@ -95,10 +104,13 @@ class RekallAgent(common.AbstractAgentCommand):
                 # Write the ticket to set a checkpoint.
                 flow_obj.ticket.send_message()
 
-                # Run the action and report the produced collections. Note that
-                # the ticket contains all collections for all actions
-                # cumulatively.
-                for collection in (action.run() or []):
+                # Run the action with the new session, and report the produced
+                # collections. Note that the ticket contains all collections for
+                # all actions cumulatively.
+                action_to_run = action.from_primitive(
+                    action.to_primitive(), session=rekall_session)
+
+                for collection in (action_to_run.run() or []):
                     collection.location = collection.location.get_canonical()
                     flow_obj.ticket.collections.append(collection)
 
@@ -116,6 +128,7 @@ class RekallAgent(common.AbstractAgentCommand):
 
     def _process_flows(self, flows):
         """Process all the flows and report the number that ran."""
+        self.sessions_cache = {}
         flows_ran = 0
         try:
             for flow_obj in flows:
@@ -243,7 +256,8 @@ class RekallAgent(common.AbstractAgentCommand):
 class AgentInfo(common.AbstractAgentCommand):
     """Just emit information about the agent.
 
-    The output format is essentially key value pairs.
+    The output format is essentially key value pairs. This is useful for efilter
+    queries.
     """
     name = "agent_info"
 

@@ -82,6 +82,7 @@ from rekall_agent import output_plugin
 from rekall_agent import serializer
 
 from rekall_agent.messages import batch
+from rekall_agent.messages import rekall_messages
 
 
 class FlowStatus(batch.BatchTicket):
@@ -244,7 +245,10 @@ class Flow(serializer.SerializedObject):
 
         dict(name="output_plugins", type=output_plugin.OutputPlugin,
              repeated=True, private=True,
-             doc="A list of output plugins to post process the results.")
+             doc="A list of output plugins to post process the results."),
+
+        dict(name="session", type=rekall_messages.RekallSession,
+             doc="The session that will be invoked for this flow."),
     ]
 
     def is_hunt(self):

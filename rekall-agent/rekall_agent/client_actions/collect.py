@@ -29,7 +29,7 @@ class CollectAction(action.Action):
     """Collect the results of an efilter query into a collection."""
 
     schema = [
-        dict(name="query",
+        dict(name="query", type="dict",
              doc="The dotty/EFILTER query to run."),
 
         dict(name="query_parameters", repeated=True, type="unicode",
@@ -39,11 +39,18 @@ class CollectAction(action.Action):
              doc="A specification for constructing the output collection."),
     ]
 
+    def _get_query(self):
+        for mode, query in self.query.iteritems():
+            if self._session.GetParameter(mode):
+                return query
+
+        raise RuntimeError("Unable to find suitable query for current mode.")
+
     def collect(self):
         """A row generator of collections."""
         # Insert data into the collection.
         for match in self._session.plugins.search(
-                query=self.query,
+                query=self._get_query(),
                 query_parameters=self.query_parameters).collect():
             yield match.ordered_dict
 

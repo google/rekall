@@ -317,6 +317,10 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         dict(name="canned_condition", type="Choices", default=None,
              choices=CANNED_CONDITIONS,
              help="Canned conditions for the hunt."),
+
+        dict(name="live", type="Choices", default="API",
+             choices=["API", "Memory"],
+             help="Live mode to use"),
     ]
 
     def make_flow_object(self):
@@ -345,6 +349,7 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
 
         flow_obj.client_id = self.client_id
         flow_obj.queue = self.plugin_args.queue
+        flow_obj.session.live = self.plugin_args.live
 
         return flow_obj
 

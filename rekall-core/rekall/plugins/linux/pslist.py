@@ -79,7 +79,9 @@ class LinMemDump(memmap.MemDumpMixin, common.LinProcessFilter):
     """Dump the addressable memory for a process."""
 
 
-class TestLinMemDump(common.LinuxTestMixin, testlib.HashChecker):
+class TestLinMemDump(testlib.HashChecker):
+    mode = "mode_linux_memory"
+
     PARAMETERS = dict(
         commandline="memdump --proc_regex %(proc_name)s --dump_dir %(tempdir)s",
         proc_name="bash",

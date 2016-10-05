@@ -61,18 +61,14 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
         scan_physical=True
     )
 
+    mode = "mode_xp"
+
     def column_types(self):
         tcp_obj = self.tcpip_profile._TCPT_OBJECT()
         return dict(offset_p=tcp_obj,
                     local_net_address="172.16.176.143:1034",
                     remote_net_address="131.107.115.254:80",
                     pid=tcp_obj.Pid)
-
-    @classmethod
-    def is_active(cls, session):
-        # These only work for XP.
-        return (super(ConnScan, cls).is_active(session) and
-                session.profile.metadata("major") == 5)
 
     def collect(self):
         """Search the physical address space for _TCPT_OBJECTs.

@@ -37,22 +37,8 @@ class LSADump(common.WindowsCommandPlugin):
     """Dump (decrypted) LSA secrets from the registry"""
     # Declare meta information associated with this plugin
 
-    __name = "lsadump"
-
-    meta_info = {}
-    meta_info['author'] = 'Brendan Dolan-Gavitt'
-    meta_info['copyright'] = 'Copyright (c) 2007,2008 Brendan Dolan-Gavitt'
-    meta_info['contact'] = 'bdolangavitt@wesleyan.edu'
-    meta_info['license'] = 'GNU General Public License 2.0 or later'
-    meta_info['url'] = 'http://moyix.blogspot.com/'
-    meta_info['os'] = 'WIN_32_XP_SP2'
-    meta_info['version'] = '1.0'
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active for windows xp."""
-        if session and session.profile:
-            return session.profile.metadata("major") == 5
+    name = "lsadump"
+    mode = "mode_xp"
 
     def __init__(self, sys_offset=None, security_offset=None, **kwargs):
         """Dump (decrypted) LSA secrets from the registry.

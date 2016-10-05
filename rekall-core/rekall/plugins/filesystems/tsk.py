@@ -2,6 +2,7 @@ import pytsk3
 
 from rekall import addrspace
 from rekall import plugin
+from rekall import kb
 from rekall import obj
 from rekall import utils
 from rekall.plugins import guess_profile
@@ -196,10 +197,7 @@ class AbstractTSKCommandPlugin(plugin.PhysicalASMixin,
     """Baseclass for all TSK related plugins."""
     __abstract = True
 
-    @classmethod
-    def is_active(cls, session):
-        return (super(AbstractTSKCommandPlugin, cls).is_active(session) and
-                isinstance(session.profile, TSKProfile))
+    mode = "mode_tsk"
 
 
 class SetPartitionContext(AbstractTSKCommandPlugin):

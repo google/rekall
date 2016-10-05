@@ -43,6 +43,9 @@ class Location(serializer.SerializedObject):
     # This one object can represent a number of location types.
     schema = []
 
+    def to_path(self):
+        return ""
+
     def read_file(self):
         """Gets the contents of location as a string."""
         raise NotImplementedError()
