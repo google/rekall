@@ -112,7 +112,7 @@ class FetchPDB(core.DirectoryDumperMixin, plugin.TypedProfileCommand,
     __name = "fetch_pdb"
 
     SYM_URLS = ['http://msdl.microsoft.com/download/symbols']
-    USER_AGENT = "Microsoft-Symbol-Server/6.6.0007.5"
+    USER_AGENT = "Microsoft-Symbol-Server/10.0.0.0"
 
     __args = [
         dict(name="pdb_filename", required=True, positional=True,
