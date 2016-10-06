@@ -103,7 +103,7 @@ class FlowStatus(batch.BatchTicket):
              doc="Log lines from the client."),
 
         dict(name="status", type="choices",
-             choices=["Pending", "Started", "Done", "Error"]),
+             choices=["Pending", "Started", "Done", "Error", "Crash"]),
 
         dict(name="error",
              doc="If an error occurred, here will be the error message."),

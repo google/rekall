@@ -47,17 +47,13 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
     ]
 
     table_header = [
-        dict(name="state"),
-        dict(name="flow_id"),
-        dict(name="type"),
-        dict(name="created"),
-        dict(name="last_active"),
+        dict(name="state", width=8),
+        dict(name="flow_id", width=12),
+        dict(name="type", width=18),
+        dict(name="created", width=19),
+        dict(name="last_active", width=19),
         dict(name="collections"),
     ]
-
-    table_options = dict(
-        auto_widths=True,
-    )
 
     def collect_db(self, collection):
         # Now show all the flows.
@@ -82,6 +78,24 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
                        last_active=last_active,
                        collections=collections)
 
+    def _check_pending_flow(self, row):
+        """Check for flow tickets.
+
+        For pending flows, it is possible that the worker just has not caught
+        up. We try to show it anyway by checking for the tickets.
+        """
+        if row["state"] == "Pending":
+            ticket_location = self.config.server.ticket_for_server(
+                "FlowStatus", row["flow_id"], self.client_id)
+
+            data = ticket_location.read_file()
+            if data:
+                ticket = flow.FlowStatus.from_json(
+                    data, session=self.session)
+                row["state"] = "%s(*)" % ticket.status
+                row["collections"] = [ticket_location.to_path()]
+                row["last_active"] = ticket.timestamp
+
     def collect(self):
         if not self.client_id:
             raise plugin.PluginError("Client ID must be specified.")
@@ -90,7 +104,10 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
             self.config.server.flow_db_for_server(self.client_id),
             session=self.session)
 
-        return self.collect_db(collection)
+        rows = list(self.collect_db(collection))
+        common.THREADPOOL.map(self._check_pending_flow, rows)
+        for row in rows:
+            yield row
 
 
 class AgentControllerShowHunts(AgentControllerShowFlows):
@@ -328,11 +345,6 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         if not flow_cls:
             raise plugin.PluginError("Unknown flow %s" % self.plugin_args.flow)
 
-        # If a canned condition was specified automatically add it.
-        if self.plugin_args.canned_condition:
-            self.plugin_args.condition = CANNED_CONDITIONS[
-                self.plugin_args.canned_condition]
-
         args = self.plugin_args.args
         if isinstance(args, basestring):
             try:
@@ -350,6 +362,13 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         flow_obj.client_id = self.client_id
         flow_obj.queue = self.plugin_args.queue
         flow_obj.session.live = self.plugin_args.live
+
+        # If a canned condition was specified automatically add it.
+        if self.plugin_args.canned_condition:
+            flow_obj.condition = CANNED_CONDITIONS[
+                self.plugin_args.canned_condition]
+        elif self.plugin_args.condition:
+            flow_obj.condition = self.plugin_args.condition
 
         return flow_obj
 

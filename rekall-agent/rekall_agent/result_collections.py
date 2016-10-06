@@ -272,7 +272,12 @@ class GenericSQLiteCollection(CollectionSpec):
         consistent, even if another process or thread is trying to modify it at
         the same time.
         """
-        default_collection = kwargs.pop("default_collection", None)
+        session = kwargs.pop("session")
+
+        # A default collection will be used to make a new collection if the file
+        # does not already exist.
+        default_collection = kwargs.pop("default_collection",
+                                        cls(session=session))
 
         def _read_modify_write(filename, session):
             collection = cls.load_from_location(
@@ -284,7 +289,7 @@ class GenericSQLiteCollection(CollectionSpec):
                 callback(collection, *args)
 
         collection_location.read_modify_write_local_file(
-            _read_modify_write, kwargs.pop("session"))
+            _read_modify_write, session)
 
     def __enter__(self):
         return self
@@ -322,8 +327,9 @@ class GenericSQLiteCollection(CollectionSpec):
         # The EFilter query must name the columns exactly the same as the
         # collection spec.
         for column in table.columns:
-            value = row.get(column.name)
-            if value is None:
+            try:
+                value = row[str(column.name)]
+            except KeyError:
                 continue
 
             sanitized_row[column.name] = self._allowed_types[
@@ -349,13 +355,24 @@ class GenericSQLiteCollection(CollectionSpec):
         update_sql = "update tbl_%s set %s" % (table.name, update_sql)
         update_sql += " where " + " and ".join(["%s=?" % x for x in condition])
 
-        self._session.logging.debug("Query (%s): %s", self.location.to_path(),
-                                    update_sql)
+        self._session.logging.debug(
+            "Query (%s): %s (%s)", self.location.to_path(),
+            update_sql, kwargs.values() + condition.values())
 
         self._cursor.execute(update_sql, kwargs.values() + condition.values())
 
     def __iter__(self):
-        return self._query()
+        return self.query()
+
+    def __len__(self):
+        return self.table_count()
+
+    def table_count(self, table=None):
+        table = self._find_table(table)
+        rows = self._cursor.execute(
+            "select count(*) as c from tbl_%s" % table.name)
+        for row in rows:
+            return row["c"]
 
     def query(self, query=None, query_args=None, table=None, order_by=None,
               limit=None, **kwargs):

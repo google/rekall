@@ -73,6 +73,9 @@ class RekallAgent(common.AbstractAgentCommand):
         kwargs = flow_obj.session.to_primitive(True)
         rekall_session = self.session.clone(**kwargs)
 
+        # Make sure progress dispatches are propagated.
+        rekall_session.progress = self.session.progress
+
         return rekall_session
 
     def _run_flow(self, flow_obj):
@@ -144,7 +147,12 @@ class RekallAgent(common.AbstractAgentCommand):
                         continue
 
                     flows_ran += 1
+                    self.writeback.current_ticket = flow_obj.ticket
                     self.writeback.last_flow_time = flow_obj.created_time
+
+                    # Sync the writeback in case we crash.
+                    self.config.client.save_writeback()
+
                     self._run_flow(flow_obj)
         finally:
             # At least one flow ran - we need to checkpoint the last ran time in
@@ -198,6 +206,17 @@ class RekallAgent(common.AbstractAgentCommand):
         # configuration.
         self.config.manifest = agent.Manifest.from_json(
             signed_manifest.data, session=self.session)
+
+        # Did we crash last time?
+        if self.writeback.current_ticket:
+            self.session.logging.debug(
+                "Reporting crash for %s",
+                self.writeback.current_ticket.flow_id)
+            self.writeback.current_ticket.status = "Crash"
+            self.writeback.current_ticket.timestamp = time.time()
+            self.writeback.current_ticket.send_message()
+            self.writeback.current_ticket = None
+            self.config.client.save_writeback()
 
         # Now run the startup actions.
         for action in self.config.manifest.startup_actions:

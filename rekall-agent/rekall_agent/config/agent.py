@@ -160,6 +160,9 @@ class ClientWriteback(serializer.SerializedObject):
 
         dict(name="private_key", type=crypto.RSAPrivateKey,
              doc="The client's private key"),
+
+        dict(name="current_ticket", type=serializer.SerializedObject,
+             doc="The currently running flow's ticket.")
     ]
 
 

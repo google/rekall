@@ -155,6 +155,15 @@ class GCSServerPolicy(agent.ServerPolicy):
                 client_id, "vfs", vfs_type, path),
             expiration=expiration)
 
+    def vfs_path_for_server(self, client_id, path, vfs_type="analysis"):
+        """Returns a Location for storing the path in the client's VFS area.
+
+        Passed to the agent to write on client VFS.
+        """
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path=cloud.join_path(
+                client_id, "vfs", vfs_type, path))
+
     def hunt_vfs_path_for_client(self, hunt_id, path_prefix="", expiration=None,
                                  vfs_type="analysis",
                                  path_template="{client_id}"):
