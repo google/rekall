@@ -51,10 +51,7 @@ class InspectHeap(common.WinProcessFilter):
              help="Only show these heaps (default show all)")
     ]
 
-    @classmethod
-    def is_active(cls, session):
-        return (super(InspectHeap, cls).is_active(session) and
-                session.profile.metadata("arch") == 'AMD64')
+    mode = "mode_amd64"
 
     def __init__(self, *args, **kwargs):
         super(InspectHeap, self).__init__(*args, **kwargs)

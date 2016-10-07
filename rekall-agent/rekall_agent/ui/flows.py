@@ -27,7 +27,15 @@ from rekall import utils
 
 from rekall_agent import common
 from rekall_agent import flow
+from rekall_agent import output_plugin
 from rekall_agent import serializer
+
+
+CANNED_CONDITIONS = dict(
+    OS_WINDOWS="any from agent_info() where key=='system' and value=='Windows'",
+    OS_LINUX="any from agent_info() where key=='system' and value=='Linux'",
+    OS_OSX="any from agent_info() where key=='system' and value=='Darwin'",
+)
 
 
 class AgentControllerShowFlows(common.AbstractControllerCommand):
@@ -39,17 +47,13 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
     ]
 
     table_header = [
-        dict(name="state"),
-        dict(name="flow_id"),
-        dict(name="type"),
-        dict(name="created"),
-        dict(name="last_active"),
+        dict(name="state", width=8),
+        dict(name="flow_id", width=12),
+        dict(name="type", width=18),
+        dict(name="created", width=19),
+        dict(name="last_active", width=19),
         dict(name="collections"),
     ]
-
-    table_options = dict(
-        auto_widths=True,
-    )
 
     def collect_db(self, collection):
         # Now show all the flows.
@@ -74,6 +78,24 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
                        last_active=last_active,
                        collections=collections)
 
+    def _check_pending_flow(self, row):
+        """Check for flow tickets.
+
+        For pending flows, it is possible that the worker just has not caught
+        up. We try to show it anyway by checking for the tickets.
+        """
+        if row["state"] == "Pending":
+            ticket_location = self.config.server.ticket_for_server(
+                "FlowStatus", row["flow_id"], self.client_id)
+
+            data = ticket_location.read_file()
+            if data:
+                ticket = flow.FlowStatus.from_json(
+                    data, session=self.session)
+                row["state"] = "%s(*)" % ticket.status
+                row["collections"] = [ticket_location.to_path()]
+                row["last_active"] = ticket.timestamp
+
     def collect(self):
         if not self.client_id:
             raise plugin.PluginError("Client ID must be specified.")
@@ -82,7 +104,10 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
             self.config.server.flow_db_for_server(self.client_id),
             session=self.session)
 
-        return self.collect_db(collection)
+        rows = list(self.collect_db(collection))
+        common.THREADPOOL.map(self._check_pending_flow, rows)
+        for row in rows:
+            yield row
 
 
 class AgentControllerShowHunts(AgentControllerShowFlows):
@@ -148,6 +173,7 @@ class SerializedObjectInspectorMixin(object):
                 for row in self._explain(value, depth=depth+1):
                     yield row
 
+
 class InspectFlow(SerializedObjectInspectorMixin,
                   common.AbstractControllerCommand):
     name = "inspect_flow"
@@ -173,24 +199,21 @@ class InspectFlow(SerializedObjectInspectorMixin,
         if flow_id is None:
             flow_id = self.plugin_args.flow_id
 
-        collection = self._get_collection()
-        for row in collection.query(flow_id=flow_id):
-            flow_obj = flow.Flow.from_json(row["flow_data"],
-                                           session=self.session)
-            return flow_obj
+        return flow.Flow.from_json(
+            self.config.server.flows_for_server(flow_id).read_file(),
+            session=self.session)
 
     def collect(self):
         collection = self._get_collection()
+        flow_obj = self.get_flow_object(self.plugin_args.flow_id)
+
+        yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
+        for x in self._explain(flow_obj, ignore_fields=set([
+                "ticket", "actions"
+        ])):
+            yield x
+
         for row in collection.query(flow_id=self.plugin_args.flow_id):
-            flow_obj = flow.Flow.from_json(row["flow_data"],
-                                           session=self.session)
-
-            yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
-            for x in self._explain(flow_obj, ignore_fields=set([
-                    "ticket", "actions"
-            ])):
-                yield x
-
             ticket = flow.FlowStatus.from_json(row["ticket_data"],
                                                session=self.session)
 
@@ -220,6 +243,73 @@ class InspectFlow(SerializedObjectInspectorMixin,
 
 
 
+class InspectHunt(InspectFlow):
+    name = "inspect_hunt"
+
+    __args = [
+        dict(name="limit", type="IntParser", default=20,
+             help="Limit of rows to display"),
+    ]
+
+    table_header = [
+        dict(name="", cname="divider", type="Divider"),
+        dict(name="Field", width=20),
+        dict(name="Time", width=20),
+        dict(name="Value"),
+    ]
+
+    def _get_collection(self):
+        return flow.HuntStatsCollection.load_from_location(
+            self.config.server.hunt_db_for_server(self.plugin_args.flow_id),
+            session=self.session)
+
+    def collect(self):
+        collection = self._get_collection()
+        flow_obj = self.get_flow_object(self.plugin_args.flow_id)
+
+        yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
+        for x in self._explain(flow_obj, ignore_fields=set([
+                "ticket", "actions"
+        ])):
+            yield x
+
+        yield dict(divider="Summary")
+        yield dict(Field="Total Clients",
+                   Value=list(collection.query(
+                       "select count(*) as c from tbl_default"
+                   ))[0]["c"])
+
+        yield dict(Field="Successful Clients",
+                   Value=list(collection.query(
+                       "select count(*) as c from tbl_default "
+                       "where status = 'Done'"))[0]["c"])
+
+        yield dict(Field="Errors Clients",
+                   Value=list(collection.query(
+                       "select count(*) as c from tbl_default "
+                       "where status = 'Error'"))[0]["c"])
+
+        yield dict(divider="Results")
+        for row in collection.query(
+                status="Done", limit=self.plugin_args.limit):
+            ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                               session=self.session)
+
+            for result in ticket.collections:
+                yield dict(Field=ticket.client_id,
+                           Time=ticket.timestamp,
+                           Value=result.location.to_path())
+
+        for row in collection.query(
+                status="Error", limit=self.plugin_args.limit):
+            ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                               session=self.session)
+
+            yield dict(Field=ticket.client_id,
+                       Time=ticket.timestamp,
+                       Value=ticket.error)
+
+
 class AgentControllerRunFlow(SerializedObjectInspectorMixin,
                              common.AbstractControllerCommand):
     name = "launch_flow"
@@ -239,6 +329,15 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
 
         dict(name="condition",
              help="An EFilter query to evaluate if the flow should be run."),
+
+        # This should only be set if no condition is specified.
+        dict(name="canned_condition", type="Choices", default=None,
+             choices=CANNED_CONDITIONS,
+             help="Canned conditions for the hunt."),
+
+        dict(name="live", type="Choices", default="API",
+             choices=["API", "Memory"],
+             help="Live mode to use"),
     ]
 
     def make_flow_object(self):
@@ -262,6 +361,14 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
 
         flow_obj.client_id = self.client_id
         flow_obj.queue = self.plugin_args.queue
+        flow_obj.session.live = self.plugin_args.live
+
+        # If a canned condition was specified automatically add it.
+        if self.plugin_args.canned_condition:
+            flow_obj.condition = CANNED_CONDITIONS[
+                self.plugin_args.canned_condition]
+        elif self.plugin_args.condition:
+            flow_obj.condition = self.plugin_args.condition
 
         return flow_obj
 
@@ -272,13 +379,6 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
 
         for x in self._explain(flow_obj):
             yield x
-
-
-CANNED_CONDITIONS = dict(
-    OS_WINDOWS="any from agent_info() where key=='system' and value=='Windows'",
-    OS_LINUX="any from agent_info() where key=='system' and value=='Linux'",
-    OS_OSX="any from agent_info() where key=='system' and value=='Darwin'",
-)
 
 
 class AgentControllerRunHunt(AgentControllerRunFlow):
@@ -297,33 +397,7 @@ class AgentControllerRunHunt(AgentControllerRunFlow):
         # agents).
         dict(name="queue", default="All",
              help="Which queue to schedule the hunt on."),
-
-        # This should only be set if no condition is specified.
-        dict(name="canned_condition", type="Choices", default=None,
-             choices=CANNED_CONDITIONS,
-             help="Canned conditions for the hunt."),
     ]
-
-    def make_flow_object(self):
-        # Hunts run on all clients.
-        self.client_id = None
-
-        # If a canned condition was specified automatically add it.
-        if self.plugin_args.canned_condition:
-            self.plugin_args.condition = CANNED_CONDITIONS[
-                self.plugin_args.canned_condition]
-
-        flow_obj = super(AgentControllerRunHunt, self).make_flow_object()
-
-        return flow_obj
-
-    def collect(self):
-        # Now launch the flow.
-        flow_obj = self.make_flow_object()
-        flow_obj.start_hunt(self.plugin_args.queue)
-
-        for x in self._explain(flow_obj):
-            yield x
 
 
 class AgentControllerExplainFlows(common.AbstractControllerCommand):

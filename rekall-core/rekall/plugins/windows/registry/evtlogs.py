@@ -191,13 +191,8 @@ class EVTScanner(scan.BaseScanner):
 class EvtLogs(plugin.VerbosityMixIn, registry.RegistryPlugin):
     """Extract Windows Event Logs (XP/2003 only)"""
 
-    __name = "evtlogs"
-
-    @classmethod
-    def is_active(cls, config):
-        """Only active for windows XP."""
-        return (super(EvtLogs, cls).is_active(config) and
-                config.profile.metadata("major") == 5)
+    name = "evtlogs"
+    mode = "mode_xp"
 
     def __init__(self, **kwargs):
         super(EvtLogs, self).__init__(**kwargs)

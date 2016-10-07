@@ -178,7 +178,44 @@ class CommandOption(object):
         return value
 
 
-class Command(object):
+class ModeBasedActiveMixin(object):
+    # Specify this mode to decleratively activate this class. To make this work,
+    # you will need to define a kb.ParameterHook() that can calculate if the
+    # session is running in the specified mode.
+    mode = None
+
+    @classmethod
+    def is_active(cls, session):
+        """Checks we are active.
+
+        This method will be called with the session to check if this specific
+        class is active. This mechanism allows multiple implementations to all
+        share the same name, as long as only one is actually active. For
+        example, we can have a linux, windows and mac version of plugins with
+        the "pslist" name.
+
+        This mixin provides the mixed class with a basic is_active() method
+        which honors a mode member defined on the class and all its
+        subclasses. The mode is additive (meaning each class and its subclasses
+        are only active if the mode is active).
+        """
+        for subclass in cls.__mro__:
+            mode = getattr(subclass, "mode", None)
+
+            if isinstance(mode, basestring):
+                if not session.GetParameter(mode):
+                    return False
+
+            elif isinstance(mode, (list, tuple)):
+                for i in mode:
+                    if not session.GetParameter(i):
+                        return False
+
+        return True
+
+
+
+class Command(ModeBasedActiveMixin):
     """A command can be run from the rekall command line.
 
     Commands can be automatically imported into the shell's namespace and are
@@ -211,6 +248,8 @@ class Command(object):
 
     # This will hold the error status from running this plugin.
     error_status = None
+
+    mode = None
 
     @classmethod
     def args(cls, parser):
@@ -338,19 +377,6 @@ class Command(object):
         """
 
     @classmethod
-    def is_active(cls, session):
-        """Checks we are active.
-
-        This method will be called with the session to check if this specific
-        class is active. This mechanism allows multiple implementations to all
-        share the same name, as long as only one is actually active. For
-        example, we can have a linux, windows and mac version of plugins with
-        the "pslist" name.
-        """
-        _ = session
-        return True
-
-    @classmethod
     def GetActiveClasses(cls, session):
         """Return only the active commands based on config."""
         for command_cls in cls.classes.values():
@@ -384,13 +410,13 @@ class ProfileCommand(Command):
             # needed. This might be slightly unexpected: When command line
             # completing the available plugins we will trigger profile
             # autodetection in order to determine which plugins are active.
-            profile = (super(ProfileCommand, cls).is_active(session) and
-                       session.profile != None)
+            profile = (session.profile != None and
+                       super(ProfileCommand, cls).is_active(session))
 
             return profile
 
         else:
-            return True
+            return super(ProfileCommand, cls).is_active(session)
 
     def __init__(self, profile=None, **kwargs):
         """Baseclass for all plugins which accept a profile.

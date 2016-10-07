@@ -133,18 +133,26 @@ class LocalDiskCache(Cache):
         except (IOError, OSError):
             pass
 
-        print "Creating cached file %s" % file_path
+        self._session.logging.debug(
+            "Creating cached file %s", file_path)
+
+        count = 0
         with open(file_path, "wb") as outfd:
             if data:
                 outfd.write(data)
             elif iterator:
                 for data in iterator:
+                    count += len(data)
+                    self._session.report_progress("Downloading %s", count)
                     outfd.write(data)
             else:
                 while 1:
                     data = fd.read(1024*1024)
                     if not data:
                         break
+
+                    count += len(data)
+                    self._session.report_progress("Downloading %s", count)
                     outfd.write(data)
 
         return file_path

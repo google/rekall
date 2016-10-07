@@ -44,11 +44,7 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
 
     __name = "connections"
 
-    @classmethod
-    def is_active(cls, session):
-        # These only work for XP.
-        return (super(Connections, cls).is_active(session) and
-                session.profile.metadata("major") == 5)
+    mode = "mode_xp"
 
     table_header = [
         dict(name="Offset (V)", cname="offset_v", style="address"),
@@ -101,13 +97,8 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
     symbol. The hash table has a size found by the _AddrObjTableSize symbol.
     """
 
-    __name = "sockets"
-
-    @classmethod
-    def is_active(cls, session):
-        # These only work for XP.
-        return (super(Sockets, cls).is_active(session) and
-                session.profile.metadata("major") == 5)
+    name = "sockets"
+    mode = "mode_xp"
 
     table_header = [
         dict(name="Offset (V)", cname="offset_v", style="address"),

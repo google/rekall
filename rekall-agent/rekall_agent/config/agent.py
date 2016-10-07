@@ -26,6 +26,8 @@ __author__ = "Michael Cohen <scudette@google.com>"
 import json
 import os
 
+import arrow
+
 from rekall import obj
 from rekall_agent import action
 from rekall_agent import cache
@@ -153,11 +155,14 @@ class ClientWriteback(serializer.SerializedObject):
         dict(name="client_id",
              doc="A unique identified for the client."),
 
-        dict(name="last_flow_time", type="epoch",
+        dict(name="last_flow_time", type="epoch", default=arrow.get(0),
              doc="The create timestamp of the last flow we processed."),
 
         dict(name="private_key", type=crypto.RSAPrivateKey,
              doc="The client's private key"),
+
+        dict(name="current_ticket", type=serializer.SerializedObject,
+             doc="The currently running flow's ticket.")
     ]
 
 

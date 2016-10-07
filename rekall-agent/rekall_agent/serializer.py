@@ -181,6 +181,17 @@ class EpochDescriptor(FieldDescriptor):
         return self.validate(value)
 
 
+class DictDescriptor(FieldDescriptor):
+    def validate(self, value, session=None):
+        _ = session
+        if not isinstance(value, dict):
+            raise ValueError("Value must be unicode string")
+
+        return value
+
+    def get_default(self, session=None):
+        return {}
+
 class UnicodeDescriptor(FieldDescriptor):
     def validate(self, value, session=None):
         _ = session
@@ -260,6 +271,9 @@ class NestedDescriptor(FieldDescriptor):
         return result
 
     def from_primitive(self, value, session=None):
+        if isinstance(value, SerializedObject):
+            return value
+
         if isinstance(value, dict):
             # Support instantiating a derived class from the raw data.
             value_cls_name = value.get("__type__", self.nested)
@@ -375,7 +389,7 @@ DISPATCHER = dict(
     bytes=StringDescriptor,
     choices=ChoicesDescriptor,
     epoch=EpochDescriptor,
-    dict=FieldDescriptor,
+    dict=DictDescriptor,
     bool=BoolDescriptor,
 )
 
@@ -399,6 +413,7 @@ class SerializedObjectCompiler(registry.MetaclassRegistry):
             field_name = field["name"]
             field_type = field.get("type", "unicode")
             repeated = field.get("repeated")
+
             if isinstance(field_type, basestring):
                 field_type = DISPATCHER.get(field_type)
 
@@ -407,6 +422,9 @@ class SerializedObjectCompiler(registry.MetaclassRegistry):
 
             if field_type is None:
                 raise TypeError("Unknown field %s" % field)
+
+            if not issubclass(field_type, FieldDescriptor):
+                raise TypeError("Unsupported field type %s" % field)
 
             if repeated:
                 descriptors[field_name] = RepeatedDescriptor(field)
@@ -558,6 +576,9 @@ class SerializedObject(object):
         """Load ourselves from a pure dict."""
         if not data:
             data = {}
+
+        if isinstance(data, SerializedObject):
+            return data
 
         cls_type = data.get("__type__", cls.__name__)
         data_cls = cls.ImplementationByClass(cls_type)

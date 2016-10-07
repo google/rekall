@@ -29,8 +29,6 @@ These client actions are designed to maintain the client's Virtual File System
 """
 import os
 
-from rekall.plugins.response import common  as response_common
-
 from rekall_agent import action
 from rekall_agent import location
 from rekall_agent import result_collections
@@ -41,6 +39,7 @@ class StatEntryCollection(result_collections.GenericSQLiteCollection):
     _tables = [dict(
         name="default",
         columns=[
+            dict(name="dirname", type="unicode"),
             dict(name="filename", type="unicode"),
             dict(name="st_mode", type="int"),
             dict(name="st_mode_str", type="unicode"),
@@ -58,7 +57,10 @@ class StatEntryCollection(result_collections.GenericSQLiteCollection):
 
 
 class ListDirectoryAction(action.Action):
-    """List a directory and store it in the client's VFS."""
+    """List a directory and store it in the client's VFS.
+
+    This essentially returns a big collection of the file's stats.
+    """
     schema = [
         dict(name="path",
              doc="The name of the directory to list."),
@@ -70,24 +72,37 @@ class ListDirectoryAction(action.Action):
              doc="The vfs location where we write the collection."),
     ]
 
-    def upload_directory(self, directory):
-        print "Processing %s" % directory.filename
-        for item in directory.list():
-            self._collection.insert(row=item)
+    def _process_files(self, root, files):
+        for f in files:
+            path = os.path.join(root, f)
+            kwargs = dict(filename=f, dirname=root)
+            try:
+                s = os.lstat(path)
+                kwargs["st_mode"] = s.st_mode
+                kwargs["st_ino"] = s.st_ino
+                kwargs["st_dev"] = s.st_dev
+                kwargs["st_nlink"] = s.st_nlink
+                kwargs["st_uid"] = s.st_uid
+                kwargs["st_gid"] = s.st_gid
+                kwargs["st_size"] = s.st_size
+                kwargs["st_mtime"] = s.st_mtime
+                kwargs["st_ctime"] = s.st_ctime
+                kwargs["st_atime"] = s.st_atime
+            except Exception:
+                pass
 
-            # Recursively upload the directory.
-            if self.recursive and item.st_mode.is_dir():
-                self.upload_directory(item)
+            self._session.report_progress("Processing %s", path)
+            self._collection.insert(**kwargs)
 
     def run(self):
         self._collection = StatEntryCollection(session=self._session)
         self._collection.location = self.vfs_location.copy()
         with self._collection.create_temp_file():
-            root_dir = response_common.FileFactory(
-                response_common.FileSpec(self.path, path_sep=os.path.sep),
-                session=self._session)
+            if self.recursive:
+                for root, _, files in os.walk(self.path):
+                    self._process_files(root, files)
 
-            if root_dir.st_mode.is_dir():
-                self.upload_directory(root_dir)
+            else:
+                self._process_files(self.path, os.listdir(self.path))
 
         return [self._collection]

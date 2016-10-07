@@ -88,7 +88,7 @@ config.DeclareOption(
 LIVE_MODES = ["API", "Memory"]
 
 config.DeclareOption(
-    "--live", default=None, type="ChoiceArray", required=False,
+    "--live", default=None, type="Choice", required=False,
     choices=LIVE_MODES, help="Enable live memory analysis.")
 
 

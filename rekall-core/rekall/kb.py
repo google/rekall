@@ -1,10 +1,11 @@
 # This module provides for a central knowledge base which plugins can use to
 # collect information.
 
+from rekall import plugin
 from rekall import registry
 
 
-class ParameterHook(object):
+class ParameterHook(plugin.ModeBasedActiveMixin):
     """A mechanism for automatically calculating a parameter.
 
     The session contains many parameters which are calculated through the
@@ -36,11 +37,6 @@ class ParameterHook(object):
     # Signifies if this parameter is considered volatile (i.e. is likely to
     # change on a live system).
     volatile = True
-
-    @classmethod
-    def is_active(cls, session):
-        _ = session
-        return True
 
     def __init__(self, session):
         if session == None:

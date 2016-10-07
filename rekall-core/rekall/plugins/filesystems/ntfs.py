@@ -45,6 +45,7 @@ import re
 import struct
 
 from rekall import addrspace
+from rekall import kb
 from rekall import plugin
 from rekall import obj
 from rekall import testlib
@@ -1013,9 +1014,7 @@ class NTFSPlugins(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
     """Base class for ntfs plugins."""
     __abstract = True
 
-    @classmethod
-    def is_active(cls, session):
-        return isinstance(session.profile, NTFSProfile)
+    mode = "mode_ntfs"
 
     def __init__(self, *args, **kwargs):
         super(NTFSPlugins, self).__init__(*args, **kwargs)

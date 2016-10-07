@@ -28,6 +28,7 @@ This flow is the workhorse of filesystem operations.
 import collections
 from rekall import plugin
 
+from rekall_agent import common
 from rekall_agent import flow
 from rekall_agent import serializer
 from rekall_agent.client_actions import download
@@ -62,7 +63,6 @@ class ModificationTimeCondition(FileFilterCondition):
             result.append("Path.st_mtime < %s" % self.max)
 
         return "(" + " and ".join(result) + ")"
-
 
 
 class FileFinderFlow(collect.CollectFlow):
@@ -110,7 +110,7 @@ class FileFinderFlow(collect.CollectFlow):
             parts = [x.get_efilter_clause() for x in self.conditions]
             result += " where " + " and ".join(parts)
 
-        return result
+        return dict(mode_live=result)
 
     def generate_actions(self):
         # Make a collection to store the result.
@@ -121,8 +121,15 @@ class FileFinderFlow(collect.CollectFlow):
 
         location = None
         if self.download:
-            location = self._config.server.vfs_prefix_for_client(
-                self.client_id, vfs_type="files", expiration=self.expiration())
+            if self.is_hunt():
+                location = self._config.server.hunt_vfs_path_for_client(
+                    self.flow_id, vfs_type="files",
+                    path_template="{client_id}/{subpath}",
+                    expiration=self.expiration())
+            else:
+                location = self._config.server.vfs_prefix_for_client(
+                    self.client_id, vfs_type="files",
+                    expiration=self.expiration())
 
         yield download.GetFiles.from_keywords(
             session=self._session,
@@ -142,6 +149,18 @@ class ListDirectoryFlow(flow.Flow):
              doc="If set we recursively list all directories."),
     ]
 
+    def get_location(self):
+        """Work out where the agent should store the collection."""
+        if self.is_hunt():
+            return self._config.server.hunt_vfs_path_for_client(
+                self.flow_id, self.path, vfs_type="metadata",
+                expiration=self.expiration())
+
+        return self._config.server.vfs_path_for_client(
+            self.client_id, self.path,
+                expiration=self.expiration(), vfs_type="collections",
+                mode="w")
+
     def validate(self):
         super(ListDirectoryFlow, self).validate()
         if not self.path:
@@ -152,8 +171,71 @@ class ListDirectoryFlow(flow.Flow):
             session=self._session,
             path=self.path,
             recursive=self.recursive,
-            vfs_location=self._config.server.vfs_path_for_client(
-                self.client_id, self.path.rstrip("/"),
-                expiration=self.expiration(), vfs_type="metadata",
-                mode="w")
+            vfs_location=self.get_location(),
         )
+
+    def _write_collection(self, directory, rows):
+        print "Writing %d rows on %s" % (len(rows), directory)
+        config = self._session.GetParameter("agent_config")
+
+        def _copy_into_collection(col):
+            for row in rows:
+                col.insert(row=row)
+
+        # Write the rows into the new collection.
+        files.StatEntryCollection.transaction(
+            config.server.vfs_path_for_server(
+                self.client_id, directory, vfs_type="metadata"),
+            #lambda col: (col.insert(row=x) for x in rows),
+            _copy_into_collection,
+            session=self._session)
+
+    def post_process(self, tickets):
+        """Post process the list directory collection.
+
+        We want to maintain an easier to navigate view of the client's VFS in
+        the client's namespace. We place a StatEntryCollection at each directory
+        location and write all the files within that directory.
+        """
+        super(ListDirectoryFlow, self).post_process(tickets)
+
+        if self.is_hunt():
+            return
+
+        config = self._session.GetParameter("agent_config")
+
+        results = []
+
+        for ticket in tickets:
+            for collection in ticket.collections:
+                result_collection = collection.load_from_location(
+                    config.server.location_from_path_for_server(
+                        collection.location.to_path()),
+                    session=self._session)
+
+                # Collect all the rows with the same directory path.
+                directory_rows = []
+                last_directory = None
+                for row in result_collection.query(order_by="rowid"):
+                    if last_directory is None:
+                        last_directory = row["dirname"]
+
+                    if last_directory == row["dirname"]:
+                        directory_rows.append(row)
+                    else:
+                        # The new row is not in the last_directory, flush the
+                        # directory_rows and start again.
+                        results.append(common.THREADPOOL.apply_async(
+                        #results.append(common.THREADPOOL.apply(
+                            self._write_collection,
+                            (last_directory, directory_rows)))
+
+                        last_directory = row["dirname"]
+                        directory_rows = [row]
+
+                if last_directory and directory_rows:
+                    self._write_collection(last_directory, directory_rows)
+
+        # Wait for all the threads to finish.
+        for result in results:
+            result.get()

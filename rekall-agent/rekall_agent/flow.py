@@ -78,9 +78,11 @@ from rekall import plugin
 from rekall_agent import action
 from rekall_agent import common
 from rekall_agent import result_collections
+from rekall_agent import output_plugin
 from rekall_agent import serializer
 
 from rekall_agent.messages import batch
+from rekall_agent.messages import rekall_messages
 
 
 class FlowStatus(batch.BatchTicket):
@@ -101,7 +103,7 @@ class FlowStatus(batch.BatchTicket):
              doc="Log lines from the client."),
 
         dict(name="status", type="choices",
-             choices=["Pending", "Started", "Done", "Error"]),
+             choices=["Pending", "Started", "Done", "Error", "Crash"]),
 
         dict(name="error",
              doc="If an error occurred, here will be the error message."),
@@ -147,12 +149,20 @@ class FlowStatus(batch.BatchTicket):
 
         def _update_flow_info(flow_collection, tickets):
             """Update the collection atomically."""
+            # Process all tickets for all flows in the same client.
             for ticket in tickets:
+                flow_id = ticket.flow_id
+
                 flow_collection.replace(
-                    condition="flow_id='%s'" % (ticket.flow_id),
+                    condition=dict(flow_id=flow_id),
                     status=ticket.status, ticket_data=ticket.to_json(),
                     last_active=ticket.timestamp,
                 )
+
+                flow_obj = Flow.from_json(
+                    config.server.flows_for_server(flow_id).read_file(),
+                    session=session)
+                flow_obj.post_process([ticket])
 
         FlowStatsCollection.transaction(
             config.server.flow_db_for_server(client_id),
@@ -177,6 +187,8 @@ class HuntStatus(FlowStatus):
 
         def _update_flow_info(flow_collection, tickets):
             """Update the collection atomically."""
+            # Process all tickets in the same hunt (flow_id) from different
+            # clients.
             for ticket in tickets:
                 # We only care about clients which are done.
                 if ticket.status in ["Done", "Error"]:
@@ -186,6 +198,11 @@ class HuntStatus(FlowStatus):
                         executed=ticket.timestamp,
                         ticket_data=ticket.to_json(),
                     )
+
+            flow_obj = Flow.from_json(
+                config.server.flows_for_server(flow_id).read_file(),
+                session=session)
+            flow_obj.post_process(tickets)
 
         HuntStatsCollection.transaction(
             config.server.hunt_db_for_server(flow_id),
@@ -214,7 +231,7 @@ class Flow(serializer.SerializedObject):
         dict(name="created_time", type="epoch",
              doc="When the flow was created."),
 
-        dict(name="creator",
+        dict(name="creator", private=True,
              doc="The user that created this flow."),
 
         dict(name="ttl", type="int", default=60*60*24,
@@ -225,11 +242,18 @@ class Flow(serializer.SerializedObject):
 
         dict(name="actions", type=action.Action, repeated=True,
              doc="The action requests sent to the client."),
+
+        dict(name="output_plugins", type=output_plugin.OutputPlugin,
+             repeated=True, private=True,
+             doc="A list of output plugins to post process the results."),
+
+        dict(name="session", type=rekall_messages.RekallSession,
+             doc="The session that will be invoked for this flow."),
     ]
 
     def is_hunt(self):
         """Is this flow running as a hunt?"""
-        return self.queue is not None
+        return self.queue
 
     def generate_actions(self):
         """Yields one or more Action() objects.
@@ -281,8 +305,7 @@ class Flow(serializer.SerializedObject):
                 status="Pending",
                 type=self.__class__.__name__,
                 created=self.created_time,
-                flow_id=self.flow_id,
-                flow_data=self.to_json())
+                flow_id=self.flow_id)
 
             # Add the new flow to the jobs file.
             jobs_location = self._config.server.jobs_queue_for_server(
@@ -297,6 +320,10 @@ class Flow(serializer.SerializedObject):
             self._config.server.flow_db_for_server(self.client_id, self.queue),
             _add_flow, session=self._session)
 
+        # Store this flow object in the centralized flow id location.
+        self._config.server.flows_for_server(self.flow_id).write_file(
+            self.to_json())
+
     def expiration(self):
         return time.time() + self.ttl
 
@@ -306,7 +333,14 @@ class Flow(serializer.SerializedObject):
         This also trims the jobs file to remove all flows which have been
         completed.
         """
-        jobs_file = JobFile.from_json(jobs_file_content, session=self._session)
+        try:
+            jobs_file = JobFile.from_json(
+                jobs_file_content, session=self._session)
+        except Exception:
+            # Something went wrong reading the old jobs. This can happen if the
+            # jobs format has changed since they were last written, so they no
+            # longer validate. Just start again with fresh jobs.
+            jobs_file = JobFile(session=self._session)
 
         # Remove those flows which are done.
         filtered_flows = []
@@ -322,9 +356,28 @@ class Flow(serializer.SerializedObject):
 
         jobs_file.flows = filtered_flows
 
-        jobs_file.flows.append(self)
+        # Add ourselves to the jobs file.
+        new_job = self.copy()
+
+        # Clear all private fields - these should never be transmitted to the
+        # client.
+        for field_desc in new_job.get_descriptors():
+            if field_desc.get("private"):
+                new_job.SetMember(field_desc["name"], None)
+
+        jobs_file.flows.append(new_job)
 
         return jobs_file.to_json()
+
+    def post_process(self, tickets):
+        """Post process this flow's tickets.
+
+        When a flow ticket is received the flow receives the ticket with this
+        method. Flows that wish to do something with the ticket can override
+        this method.
+        """
+        for output_plugin_obj in self.output_plugins:
+            output_plugin_obj.post_process(self, tickets)
 
 
 class JobFile(serializer.SerializedObject):
@@ -360,11 +413,9 @@ class FlowStatsCollection(result_collections.GenericSQLiteCollection):
             dict(name="created", type="epoch"),
             dict(name="last_active", type="epoch"),
             dict(name="flow_id"),
-            dict(name="flow_data"),
             dict(name="ticket_data"),
         ]
     )]
-
 
 
 class HuntStatsCollection(result_collections.GenericSQLiteCollection):

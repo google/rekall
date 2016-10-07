@@ -97,7 +97,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         # The client's jobs queue itself is publicly readable since the client
         # itself has no credentials.
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path="/".join((client_id, "jobs")),
+            bucket=self.bucket, path=cloud.join_path(client_id, "jobs"),
             public=True)
 
     def client_db_for_server(self):
@@ -117,22 +117,32 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="hunts/%s/stats.sqlite" % hunt_id)
 
+    def hunt_result_collection_for_server(self, hunt_id, type):
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path="hunts/%s/%s" % (hunt_id, type))
+
     def client_record_for_server(self, client_id):
         """The client specific information."""
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="%s/client.metadata" % client_id)
 
-    def flows_for_server(self, client_id, flow_id):
+    def flows_for_server(self, flow_id):
         """A location to write flow objects."""
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path="/".join(
-                (client_id, "flows", flow_id)))
+            bucket=self.bucket, path=cloud.join_path(
+                "flows", flow_id))
 
     def ticket_for_server(self, batch_name, *args):
         """The location of the ticket queue for this batch."""
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path="/".join(
-                ("tickets", batch_name) + args))
+            bucket=self.bucket, path=cloud.join_path(
+                "tickets", batch_name, *args))
+
+    def canonical_for_server(self, location):
+        canonical_location = location.get_canonical()
+        return self.service_account.create_oauth_location(
+            bucket=canonical_location.bucket,
+            path=canonical_location.path)
 
     def vfs_path_for_client(self, client_id, path, mode="w", expiration=None,
                             vfs_type="analysis"):
@@ -141,24 +151,35 @@ class GCSServerPolicy(agent.ServerPolicy):
         Passed to the agent to write on client VFS.
         """
         return self.service_account.create_signed_url_location(
-            bucket=self.bucket, mode=mode, path="/".join(
-                (client_id, "vfs", vfs_type, path.lstrip("/"))),
+            bucket=self.bucket, mode=mode, path=cloud.join_path(
+                client_id, "vfs", vfs_type, path),
             expiration=expiration)
 
-    def hunt_vfs_path_for_client(self, hunt_id, path, expiration=None,
-                                 vfs_type="analysis"):
+    def vfs_path_for_server(self, client_id, path, vfs_type="analysis"):
+        """Returns a Location for storing the path in the client's VFS area.
+
+        Passed to the agent to write on client VFS.
+        """
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path=cloud.join_path(
+                client_id, "vfs", vfs_type, path))
+
+    def hunt_vfs_path_for_client(self, hunt_id, path_prefix="", expiration=None,
+                                 vfs_type="analysis",
+                                 path_template="{client_id}"):
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket,
-            path_prefix="hunts/%s/vfs/%s/%s/" % (hunt_id, vfs_type, path),
-            path_template="{client_id}",
+            path_prefix=cloud.join_path(
+                "hunts", hunt_id, "vfs", vfs_type, path_prefix),
+            path_template=path_template,
             expiration=expiration)
 
     def vfs_prefix_for_client(self, client_id, path="", expiration=None,
                               vfs_type="files"):
         """Returns a Location suitable for storing a path using the prefix."""
         return self.service_account.create_signed_policy_location(
-            bucket=self.bucket, path_prefix="/".join(
-                (client_id, "vfs", vfs_type, path.lstrip("/"))),
+            bucket=self.bucket, path_prefix=cloud.join_path(
+                client_id, "vfs", vfs_type, path),
             path_template="{subpath}",
             expiration=expiration)
 
@@ -174,7 +195,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         path_template = kw.pop("path_template", None)
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket,
-            path_prefix="/".join(("tickets", batch_name) + ticket_names),
+            path_prefix=cloud.join_path("tickets", batch_name, *ticket_names),
             path_template=path_template,
             expiration=expiration)
 
@@ -182,9 +203,9 @@ class GCSServerPolicy(agent.ServerPolicy):
         if not client_id:
             raise RuntimeError("client id expected")
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path="/".join(
-                (client_id, "flows.sqlite")
-            ))
+            bucket=self.bucket, path=cloud.join_path(
+                client_id, "flows.sqlite")
+        )
 
     def location_from_path_for_server(self, path):
         """Construct a location from a simple string path.
@@ -198,8 +219,8 @@ class GCSServerPolicy(agent.ServerPolicy):
 
         posix_path = pathlib.PurePosixPath(path.lstrip("/"))
         return self.service_account.create_oauth_location(
-            bucket=posix_path.parts[0], path="/".join(posix_path.parts[1:]))
-
+            bucket=posix_path.parts[0],
+            path=cloud.join_path(*posix_path.parts[1:]))
 
 
 class GCSAgentPolicy(agent.ClientPolicy):
@@ -220,14 +241,14 @@ class GCSAgentPolicy(agent.ClientPolicy):
         result = [
             cloud.GCSUnauthenticatedLocation.from_keywords(
                 session=self._session, bucket=self.manifest_location.bucket,
-                path="/".join([self.client_id, "jobs"]))
+                path=cloud.join_path(self.client_id, "jobs"))
         ]
 
         for label in self.labels:
             result.append(
                 cloud.GCSUnauthenticatedLocation.from_keywords(
                     session=self._session, bucket=self.manifest_location.bucket,
-                    path="/".join(["labels", label, "jobs"]))
+                    path=cloud.join_path("labels", label, "jobs"))
             )
 
         return result

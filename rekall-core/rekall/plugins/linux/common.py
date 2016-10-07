@@ -138,32 +138,12 @@ class AbstractLinuxCommandPlugin(plugin.PhysicalASMixin,
                                  plugin.ProfileCommand):
     """A base class for all linux based plugins."""
     __abstract = True
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is linux."""
-        return (session.profile.metadata("os") == 'linux' and
-                session.GetParameter("live_mode") in ["Memory", None] and
-                plugin.Command.is_active(session))
+    mode = "mode_linux_memory"
 
 
 class AbstractLinuxParameterHook(kb.ParameterHook):
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is Linux."""
-        return (super(AbstractLinuxParameterHook, cls).is_active(session) and
-                session.profile.metadata("live_mode") in ['Memory', None] and
-                session.profile.metadata("os") == 'linux')
-
-
-class LinuxTestMixin(object):
-
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is linux."""
-        return (session.profile.metadata("os") == 'linux' and
-                plugin.Command.is_active(session))
+    __abstract = True
+    mode = "mode_linux_memory"
 
 
 class LinuxFindDTB(AbstractLinuxCommandPlugin, core.FindDTB):
