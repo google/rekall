@@ -1,3 +1,35 @@
+# Rekall Memory Forensics
+# Copyright 2016 Google Inc. All Rights Reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+#
+
+"""Declares all the modes Rekall can be in.
+
+The Rekall session can exist in several modes at the same time. Modes are just
+simple True/False flags that represent certain aspects of the Rekall
+session. For example, a session may be in "mode_image" if it is dealing with an
+image.
+
+Plugins can then activate depending on the current mode vector. For example, a
+plugin may declare that it is active if all these modes are set
+"mode_image,mode_windows_memory" Which means it is only active if a windows
+memory image is used.
+"""
+
+
 from rekall import kb
 
 from rekall.plugins.filesystems import ntfs
@@ -78,9 +110,16 @@ class LiveAPIMode(kb.ParameterHook):
 
 
 class ImageMode(kb.ParameterHook):
+    """Determines if we are reading from an image."""
     name = "mode_image"
 
     def calculate(self):
+        # If there is no physical address space but a filename was specified we
+        # try to load the physical_address_space from the filename.
+        if (not self.session.physical_address_space and
+            self.session.GetParameter("filename")):
+            self.session.plugins.load_as().GetPhysicalAddressSpace()
+
         return (self.session.physical_address_space and
                 self.session.physical_address_space.metadata("image"))
 

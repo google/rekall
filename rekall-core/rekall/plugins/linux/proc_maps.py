@@ -126,7 +126,7 @@ class LinVadDump(core.DirectoryDumperMixin, common.LinProcessFilter):
 
 
 class TestLinVadDump(testlib.HashChecker):
-    mode = "mode_live_memory"
+    mode = "mode_linux_memory"
 
     PARAMETERS = dict(
         commandline="vaddump --proc_regex %(proc_name)s --dump_dir %(tempdir)s",

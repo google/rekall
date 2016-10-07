@@ -328,13 +328,17 @@ class RekallBaseUnitTestCase(unittest.TestCase):
             result.stopTest(self)
 
 
-class SimpleTestCase(RekallBaseUnitTestCase):
+class SimpleTestCase(plugin.ModeBasedActiveMixin,
+                     RekallBaseUnitTestCase):
     """A simple test which just compares with the baseline output."""
 
     __abstract = True
 
     @classmethod
     def is_active(cls, session):
+        if not super(SimpleTestCase, cls).is_active(session):
+            return False
+
         delegate_plugin = (
             plugin.Command.ImplementationByClass(cls.PLUGIN) or
             getattr(session.plugins, cls.CommandName() or "", None))

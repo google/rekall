@@ -85,7 +85,7 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
         plugin_cls = self.session.plugins.GetPluginClass(plugin_name)
         if not plugin_cls:
-            raise plugin.PluginError("Please specify a value plugin.")
+            raise plugin.PluginError("Please specify a valid plugin.")
 
         instance = plugin_cls(session=self.session, ignore_required=True)
         table_header = getattr(instance, "table_header", None)

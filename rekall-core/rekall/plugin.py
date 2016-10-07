@@ -179,6 +179,9 @@ class CommandOption(object):
 
 
 class ModeBasedActiveMixin(object):
+    # Specify this mode to decleratively activate this class. To make this work,
+    # you will need to define a kb.ParameterHook() that can calculate if the
+    # session is running in the specified mode.
     mode = None
 
     @classmethod
@@ -190,6 +193,11 @@ class ModeBasedActiveMixin(object):
         share the same name, as long as only one is actually active. For
         example, we can have a linux, windows and mac version of plugins with
         the "pslist" name.
+
+        This mixin provides the mixed class with a basic is_active() method
+        which honors a mode member defined on the class and all its
+        subclasses. The mode is additive (meaning each class and its subclasses
+        are only active if the mode is active).
         """
         for subclass in cls.__mro__:
             mode = getattr(subclass, "mode", None)
