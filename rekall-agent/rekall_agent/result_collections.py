@@ -32,6 +32,7 @@ Currently most collections are SQLite files, but other collection types may
 be possible.
 
 """
+import re
 import os
 import tempfile
 import sqlite3
@@ -69,6 +70,10 @@ class CollectionSpec(serializer.SerializedObject):
     _tables = None
 
     schema = [
+        # Allow the collection to specify its name.
+        dict(name="type",
+             doc="A canonical type name for this collection."),
+
         dict(name="tables", type=Table, repeated=True,
              doc="A list of tables in this collection."),
     ]
@@ -125,6 +130,8 @@ class GenericSQLiteCollection(CollectionSpec):
         "any": str  # Used for opaque types that can not be further processed.
     }
 
+    valid_table_name_re = re.compile("^[a-zA-Z0-9_]+$")
+
     def __init__(self, *args, **kwargs):
         super(GenericSQLiteCollection, self).__init__(*args, **kwargs)
 
@@ -139,9 +146,12 @@ class GenericSQLiteCollection(CollectionSpec):
 
     @classmethod
     def load_from_location(cls, collection_location=None, filename=None,
-                           session=None):
+                           default_collection=None, session=None):
         if filename is None:
             filename = collection_location.get_local_filename()
+
+        if default_collection is None:
+            default_collection = cls(session=session)
 
         conn = sqlite3.connect(
             filename, SQLITE_TIMEOUT, SQLITE_DETECT_TYPES,
@@ -154,7 +164,7 @@ class GenericSQLiteCollection(CollectionSpec):
                     "select value from metadata where key='schema'"):
                 result = cls.from_json(row[0], session=session)
         except sqlite3.Error:
-            result = cls(session=session)
+            result = default_collection
 
         result.location = collection_location
         result.load_from_local_file(filename)
@@ -176,6 +186,23 @@ class GenericSQLiteCollection(CollectionSpec):
         self._flush_cb = _flush_cb
 
         return self
+
+    def validate_collection(self):
+        """Ensures that the collection definition is valid."""
+        for table in self.tables:
+            if not self.valid_table_name_re.match(table.name):
+                raise RuntimeError("Invalid table name %s" % table.name)
+
+            for column in table.columns:
+                if not self.valid_table_name_re.match(column.name):
+                    raise RuntimeError("Invalid column name %s" % column.name)
+
+                # Default type is unicode.
+                if column.type is None:
+                    column.type = "unicode"
+
+                if column.type not in self._allowed_types:
+                    raise RuntimeError("Invalid column type %s" % column.type)
 
     def load_from_local_file(self, filename):
         self._filename = filename
@@ -200,6 +227,8 @@ class GenericSQLiteCollection(CollectionSpec):
         existing_schema = None
         for row in self._cursor.execute(
                 "select value from metadata where key='schema'"):
+            # TODO - manage collection versioning by merging existing schema
+            # with current schema.
             existing_schema = GenericSQLiteCollection.from_json(
                 row["value"], session=self._session)
 
@@ -208,7 +237,11 @@ class GenericSQLiteCollection(CollectionSpec):
             self._cursor.execute(
                 "insert into metadata values(?, ?)", ("schema", self.to_json()))
 
-        # Now parse the schema and create the relevant table.
+        # Make sure the collection is valid.
+        self.validate_collection()
+        existing_schema.validate_collection()
+
+        # Now parse the schema and create the relevant DB table.
         for table in self.tables:
             column_specs = []
             self._queries[table.name] = "insert into tbl_%s values (%s)" % (
@@ -239,15 +272,24 @@ class GenericSQLiteCollection(CollectionSpec):
         consistent, even if another process or thread is trying to modify it at
         the same time.
         """
+        session = kwargs.pop("session")
+
+        # A default collection will be used to make a new collection if the file
+        # does not already exist.
+        default_collection = kwargs.pop("default_collection",
+                                        cls(session=session))
+
         def _read_modify_write(filename, session):
-            collection = cls.load_from_location(filename=filename,
-                                                session=session)
+            collection = cls.load_from_location(
+                filename=filename, default_collection=default_collection,
+                session=session)
+
             # with forces cursors to be committed.
             with collection:
                 callback(collection, *args)
 
         collection_location.read_modify_write_local_file(
-            _read_modify_write, kwargs.pop("session"))
+            _read_modify_write, session)
 
     def __enter__(self):
         return self
@@ -267,6 +309,7 @@ class GenericSQLiteCollection(CollectionSpec):
             if len(self.tables) > 1:
                 RuntimeError("Collection contains multiple tables and no "
                              "table is specified.")
+
             return self.tables[0]
 
         raise RuntimeError("Unknown table %s" % table)
@@ -284,8 +327,9 @@ class GenericSQLiteCollection(CollectionSpec):
         # The EFilter query must name the columns exactly the same as the
         # collection spec.
         for column in table.columns:
-            value = row.get(column.name)
-            if value is None:
+            try:
+                value = row[str(column.name)]
+            except KeyError:
                 continue
 
             sanitized_row[column.name] = self._allowed_types[
@@ -301,19 +345,37 @@ class GenericSQLiteCollection(CollectionSpec):
             [sanitized_row.get(x.name) for x in table.columns])
 
     def replace(self, table=None, condition=None, **kwargs):
+        """Replace rows in the table with condition matching.
+
+        condition is a dict with columns as keys and values as values.
+        """
         table = self._find_table(table)
         kwargs = self.sanitize_row(kwargs)
         update_sql = ",".join("%s=?" % x for x in kwargs)
-        update_sql = "update tbl_%s set %s where %s" % (
-            table.name, update_sql, condition)
+        update_sql = "update tbl_%s set %s" % (table.name, update_sql)
+        update_sql += " where " + " and ".join(["%s=?" % x for x in condition])
 
-        self._cursor.execute(update_sql, kwargs.values())
+        self._session.logging.debug(
+            "Query (%s): %s (%s)", self.location.to_path(),
+            update_sql, kwargs.values() + condition.values())
+
+        self._cursor.execute(update_sql, kwargs.values() + condition.values())
 
     def __iter__(self):
-        return self._query()
+        return self.query()
+
+    def __len__(self):
+        return self.table_count()
+
+    def table_count(self, table=None):
+        table = self._find_table(table)
+        rows = self._cursor.execute(
+            "select count(*) as c from tbl_%s" % table.name)
+        for row in rows:
+            return row["c"]
 
     def query(self, query=None, query_args=None, table=None, order_by=None,
-              **kwargs):
+              limit=None, **kwargs):
         table = self._find_table(table)
         if query is None:
             query = "select * from tbl_%s" % table.name
@@ -326,6 +388,11 @@ class GenericSQLiteCollection(CollectionSpec):
 
             query_args = kwargs.values()
 
+            if limit is not None:
+                query += " limit %s " % limit
+
+        self._session.logging.debug("Query (%s): %s", self.location.to_path(),
+                                    query)
         for row in self._cursor.execute(query, query_args or ()):
             yield row
 
@@ -336,4 +403,7 @@ class GenericSQLiteCollection(CollectionSpec):
 
         query = "delete from tbl_%s where " % table.name
         query += " and ".join(["%s=?" % x for x in kwargs])
+
+        self._session.logging.debug("Query (%s): %s", self.location.to_path(),
+                                    query)
         self._cursor.execute(query, kwargs.values())

@@ -54,7 +54,7 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
             renderer.table_row(utils.HexDumpedString(data, hex_width=30))
 
     def render_json(self, data, renderer):
-        renderer.table_header([dict(name="Message", width=160, wrap=True)])
+        renderer.table_header([dict(name="Message")], auto_widths=True)
         renderer.table_row(yaml_utils.safe_dump(data))
 
     def render_sqlite(self, location, renderer):
@@ -78,9 +78,11 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
 
                 headers.append(col_spec)
 
-            renderer.table_header(headers, auto_widths=True)
+            # If the table is too large we cant wait to auto width it.
+            auto_widths = len(collection) < 1000
+            renderer.table_header(headers, auto_widths=auto_widths)
             for row in collection.query(table=table.name):
-                renderer.table_row(*[fn(x) for fn, x in zip(types, row)])
+                renderer.table_row(*[fn(x or 0) for fn, x in zip(types, row)])
 
 
 class AgentControllerStoreLs(common.AbstractControllerCommand):

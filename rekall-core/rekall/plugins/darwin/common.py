@@ -85,18 +85,10 @@ def ID_MAP_VTOP(x):
 X64_POINTER_MASK = 0x0000ffffffffffff
 
 
-def MOUNTAIN_LION_OR_LATER(profile):
-    return bool(profile.get_constant("_BootPML4", False))
-
-
 class DarwinOnlyMixin(object):
     """Every Darwin-only plugin or hook will have this mixin in their MRO."""
-    @classmethod
-    def is_active(cls, session):
-        """We are only active if the profile is darwin."""
-        return (super(DarwinOnlyMixin, cls).is_active(session) and
-                session.GetParameter("live_mode") in ['Memory', None] and
-                session.profile.metadata("os") == "darwin")
+
+    mode = "mode_darwin_memory"
 
 
 class AbstractDarwinParameterHook(DarwinOnlyMixin, kb.ParameterHook):
@@ -131,7 +123,7 @@ class KernelSlideHook(AbstractDarwinParameterHook):
     name = "vm_kernel_slide"
 
     def calculate(self):
-        if MOUNTAIN_LION_OR_LATER(self.session.profile):
+        if self.session.GetParameter("mode_darwin_mountain_lion_plus"):
             return DarwinFindKASLR(session=self.session).vm_kernel_slide()
 
         # Kernel slide should be treated as 0 if not relevant.
@@ -178,7 +170,7 @@ class DarwinKASLRMixin(object):
         """
         super(DarwinKASLRMixin, self).__init__(**kwargs)
 
-        if not MOUNTAIN_LION_OR_LATER(self.profile):
+        if not self.session.GetParameter("mode_darwin_mountain_lion_plus"):
             return
 
         if vm_kernel_slide is not None:
@@ -199,13 +191,8 @@ class DarwinFindKASLR(plugin.PhysicalASMixin, DarwinOnlyMixin,
     used for validation) for manual review, in case there are false positives.
     """
 
-    __name = "find_kaslr"
-
-    @classmethod
-    def is_active(cls, session):
-        return (super(DarwinFindKASLR, cls).is_active(session) and
-                session.GetParameter("live_mode") in ['Memory', None] and
-                MOUNTAIN_LION_OR_LATER(session.profile))
+    name = "find_kaslr"
+    mode = "mode_darwin_mountain_lion_plus"
 
     def all_catfish_hits(self):
         """Yields possible lowGlo offsets, starting with session-cached one.
@@ -411,7 +398,7 @@ class DarwinFindDTB(DarwinKASLRMixin, DarwinOnlyMixin, core.FindDTB):
         Yields:
           Callable object that will yield DTB values.
         """
-        if MOUNTAIN_LION_OR_LATER(self.profile):
+        if self.session.GetParameter("mode_darwin_mountain_lion_plus"):
             yield self._dtb_hits_idlepml4
         else:
             yield self._dtb_hits_legacy

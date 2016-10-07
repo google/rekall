@@ -325,11 +325,7 @@ class AbstractIRCommandPlugin(plugin.TypedProfileCommand,
     __abstract = True
 
     PROFILE_REQUIRED = False
-
-    @classmethod
-    def is_active(cls, session):
-        return (super(AbstractIRCommandPlugin, cls).is_active(session) and
-                session.GetParameter("live_mode") in ["API", "Memory"])
+    mode = "mode_live"
 
 
 class AbstractAPICommandPlugin(plugin.TypedProfileCommand,
@@ -343,11 +339,7 @@ class AbstractAPICommandPlugin(plugin.TypedProfileCommand,
     __abstract = True
 
     PROFILE_REQUIRED = False
-
-    @classmethod
-    def is_active(cls, session):
-        return (super(AbstractAPICommandPlugin, cls).is_active(session) and
-                session.GetParameter("live_mode") == "API")
+    mode = "mode_live_api"
 
 
 FILE_SPEC_DISPATCHER = dict(API=FileInformation)

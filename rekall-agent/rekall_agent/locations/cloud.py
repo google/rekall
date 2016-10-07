@@ -32,6 +32,7 @@ import contextlib
 import json
 import gzip
 import os
+import re
 import StringIO
 import tempfile
 import time
@@ -57,18 +58,10 @@ from rekall_agent import serializer
 MAX_BUFF_SIZE = 10*1024*1024
 
 
-class LocalFileManager(object):
-    """An object to manage local file lifetime."""
-
-    def __init__(self, filename):
-        self.filename = filename
-
-    def __enter__(self):
-        return self.filename
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        print "Removing %s" % self.filename
-        os.unlink(self.filename)
+def join_path(*args):
+    result = "/".join(args)
+    result = re.sub("/+", "/", result)
+    return result.strip("/")
 
 
 class ServiceAccount(serializer.SerializedObject):
@@ -167,7 +160,7 @@ class ServiceAccount(serializer.SerializedObject):
         policy = dict(expiration=arrow.get(expiration).isoformat(),
                       conditions=[
                           ["starts-with", "$key",
-                           "%s/%s" % (bucket, path_prefix)],
+                           join_path(bucket, path_prefix)],
                           {"bucket": bucket},
                           {"Content-Encoding": "gzip"},
                       ])
@@ -240,8 +233,7 @@ class ServiceAccount(serializer.SerializedObject):
         if upload == "resumable":
             components.append("x-goog-resumable:start")
 
-        base_url = "/%s/%s" % (bucket, path)
-        base_url = base_url.rstrip("/")
+        base_url = "/" + join_path(bucket, path)
 
         components.append(base_url)  # Canonicalized_Resource
 
@@ -468,7 +460,7 @@ class GCSLocation(location.Location):
         raise NotImplementedError()
 
     def to_path(self):
-        return "%s/%s" % (self.bucket, self.path.strip("/"))
+        return join_path(self.bucket, self.path)
 
 
 class GCSHeaders(serializer.SerializedObject):
@@ -496,8 +488,7 @@ class GCSOAuth2BasedLocation(GCSLocation):
         """Calculates the params for the request."""
         base_url = self.to_path()
 
-        url_endpoint = ('https://storage.googleapis.com/%s' %
-                        base_url.lstrip("/"))
+        url_endpoint = ('https://storage.googleapis.com/%s' % base_url)
 
         config = self._session.GetParameter("agent_config")
         headers = self.headers.to_primitive(False)
@@ -620,7 +611,7 @@ class GCSOAuth2BasedLocation(GCSLocation):
         url_endpoint = ("https://www.googleapis.com/storage/v1/b/%s/o" %
                         self.bucket)
 
-        params["prefix"] = self.path.lstrip("/")
+        params["prefix"] = join_path(self.path)
         params["maxResults"] = paging
         count = 0
         while count < max_results:
@@ -812,19 +803,13 @@ class GCSSignedPolicyLocation(GCSLocation):
         return GCSLocation.from_keywords(
             session=self._session,
             bucket=self.bucket,
-            path="%s/%s" % (
-                self.path_prefix, self.expand_path().lstrip("/"))
+            path=join_path(self.path_prefix, self.expand_path())
         )
 
     def _get_parameters(self, **kwargs):
         """Calculates the params for the request."""
         subpath = self.expand_path(**kwargs)
-        key = "%s/%s/%s" % (self.bucket, self.path_prefix.rstrip("/"),
-                           subpath.lstrip("/"))
-
-        # We must never upload to a URL that ends with / because GCS treats it
-        # as a different URL than the same without a /.
-        key = key.rstrip("/")
+        key = join_path(self.bucket, self.path_prefix, subpath)
 
         url_endpoint = "https://storage.googleapis.com/"
         params = dict(GoogleAccessId=self.GoogleAccessId,

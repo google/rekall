@@ -38,8 +38,10 @@ class CollectFlow(flow.Flow):
     """
     __abstract = True
 
-    # This is the EFilter query and possible parameters.
-    _query = None
+    # This is the EFilter query and possible parameters. It is a dict with key
+    # being the Rekall live mode and value being the query to run in that
+    # mode. The mode is selected from the Flow.session.live parameter.
+    _query = {}
     _query_parameters = []
 
     # The columns to add to the collection spec.
@@ -67,6 +69,7 @@ class CollectFlow(flow.Flow):
         # Make a collection to store the result.
         collection = result_collections.GenericSQLiteCollection.from_keywords(
             session=self._session,
+            type=self._collection_type,
             location=self.get_location(),
             tables=[
                 dict(name="default", columns=self._columns)
@@ -83,7 +86,14 @@ class CollectFlow(flow.Flow):
 
 class ListProcessesFlow(CollectFlow):
     """Collect data about all processes."""
-    _query = "select Name as name, pid, ppid, start_time from pslist()"
+    _query = dict(
+        mode_live_api=(
+            "select Name as name, pid, ppid, start_time from pslist()"),
+        mode_linux_memory=(
+            "select proc.name, proc.pid, ppid, start_time from pslist()")
+    )
+
+    _collection_type = "pslist"
     _columns = [
         dict(name="name", type="unicode"),
         dict(name="pid", type="int"),

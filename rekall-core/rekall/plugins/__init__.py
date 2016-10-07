@@ -9,6 +9,7 @@ from rekall.plugins import filesystems
 from rekall.plugins import guess_profile
 from rekall.plugins import hypervisors
 from rekall.plugins import imagecopy
+from rekall.plugins import modes
 from rekall.plugins import linux
 from rekall.plugins import renderers
 from rekall.plugins import response
