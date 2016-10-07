@@ -85,10 +85,23 @@ class LocalDiskCache(Cache):
             # renamed below.
             if current_generation_path != local_filename:
                 # Otherwise remove the old file.
+                self._session.logging.debug(
+                    "Expiring local cache %s", current_generation_path)
+
                 os.unlink(current_generation_path)
 
         # Move the local_filename into the position it needs to be in.
         os.renames(local_filename, destination)
+
+    def expire(self, path):
+        current_generation = self.get_generation(path)
+        if current_generation:
+            current_generation_path = self.get_local_file(
+                path, current_generation)
+
+            self._session.logging.debug(
+                "Expiring local cache %s", current_generation_path)
+            os.unlink(current_generation_path)
 
     def get_generation(self, path):
         """Returns current generation for this path, or None."""
@@ -96,14 +109,14 @@ class LocalDiskCache(Cache):
             self.cache_directory, path.lstrip(os.path.sep))
         try:
             for generation in os.listdir(containing_dir_path):
-                if generation.startswith("@"):
-                    return generation[1:]
+                if generation.startswith("@") and generation.endswith("@"):
+                    return generation[1:-1]
         except (IOError, OSError):
             pass
 
     def get_local_file(self, path, generation):
         return os.path.join(self.cache_directory, path.lstrip(os.path.sep),
-                            "@" + generation)
+                            "@" + generation + "@")
 
     def store_at_generation(self, path, generation, data=None, fd=None,
                             iterator=None):
@@ -117,14 +130,20 @@ class LocalDiskCache(Cache):
           iterator: An iterator that generates data to write.
         """
         file_path = os.path.join(self.cache_directory, path.lstrip(os.path.sep),
-                                 "@" + generation)
+                                 "@" + generation + "@")
         containing_dir_path = os.path.dirname(file_path)
+
         # Clear the previous generations.
         try:
             for stored_generation in os.listdir(containing_dir_path):
-                if stored_generation.startswith("@"):
-                    os.unlink(
-                        os.path.join(containing_dir_path, stored_generation))
+                if (stored_generation.startswith("@") and
+                    stored_generation.endswith("@")):
+                    current_generation_path = os.path.join(
+                        containing_dir_path, stored_generation)
+
+                    self._session.logging.debug(
+                        "Expiring local cache %s", current_generation_path)
+                    os.unlink(current_generation_path)
         except (IOError, OSError):
             pass
 

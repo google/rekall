@@ -29,6 +29,8 @@ These client actions are designed to maintain the client's Virtual File System
 """
 import os
 
+from rekall import utils
+
 from rekall_agent import action
 from rekall_agent import location
 from rekall_agent import result_collections
@@ -52,7 +54,8 @@ class StatEntryCollection(result_collections.GenericSQLiteCollection):
             dict(name="st_atime", type="epoch"),
             dict(name="st_mtime", type="epoch"),
             dict(name="st_ctime", type="epoch"),
-        ]
+        ],
+        indexes=["dirname"],
     )]
 
 
@@ -73,6 +76,7 @@ class ListDirectoryAction(action.Action):
     ]
 
     def _process_files(self, root, files):
+        root = utils.normpath(root)
         for f in files:
             path = os.path.join(root, f)
             kwargs = dict(filename=f, dirname=root)
@@ -99,8 +103,9 @@ class ListDirectoryAction(action.Action):
         self._collection.location = self.vfs_location.copy()
         with self._collection.create_temp_file():
             if self.recursive:
-                for root, _, files in os.walk(self.path):
+                for root, directories, files in os.walk(self.path):
                     self._process_files(root, files)
+                    self._process_files(root, directories)
 
             else:
                 self._process_files(self.path, os.listdir(self.path))

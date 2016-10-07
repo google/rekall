@@ -1008,9 +1008,17 @@ def EscapeForFilesystem(filename):
 
 
 def get_all_subclasses(base=None):
-    if base is None:
-        base = BatchTicket
     for x in base.__subclasses__():
         yield x.__name__
         for y in get_all_subclasses(x):
             yield y
+
+
+def join_path(*args):
+    result = "/".join(args)
+    result = re.sub("/+", "/", result)
+    return result.strip("/")
+
+
+def normpath(path):
+    return "/" + join_path(*path.split("/"))

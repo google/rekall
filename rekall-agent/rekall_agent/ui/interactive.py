@@ -35,6 +35,8 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
     __args = [
         dict(name="path", positional=True, required=True,
              help="A path to the object to display."),
+        dict(name="query",
+             help="If this is a collection, issue this query"),
     ]
 
     def render(self, renderer):
@@ -81,7 +83,8 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
             # If the table is too large we cant wait to auto width it.
             auto_widths = len(collection) < 1000
             renderer.table_header(headers, auto_widths=auto_widths)
-            for row in collection.query(table=table.name):
+            for row in collection.query(
+                    table=table.name, query=self.plugin_args.query):
                 renderer.table_row(*[fn(x or 0) for fn, x in zip(types, row)])
 
 

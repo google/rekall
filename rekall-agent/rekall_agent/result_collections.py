@@ -58,6 +58,7 @@ class Table(serializer.SerializedObject):
     schema = [
         dict(name="name", doc="Name of the table."),
         dict(name="columns", type=ColumnSpec, repeated=True),
+        dict(name="indexes", repeated=True),
     ]
 
 
@@ -204,6 +205,10 @@ class GenericSQLiteCollection(CollectionSpec):
                 if column.type not in self._allowed_types:
                     raise RuntimeError("Invalid column type %s" % column.type)
 
+            for index in table.indexes:
+                if not self.valid_table_name_re.match(index):
+                    raise RuntimeError("Invalid column name %s" % index)
+
     def load_from_local_file(self, filename):
         self._filename = filename
         self._conn = sqlite3.connect(
@@ -259,6 +264,11 @@ class GenericSQLiteCollection(CollectionSpec):
 
             self._cursor.execute("CREATE TABLE IF NOT EXISTS tbl_%s (%s);" % (
                 table.name, ",".join(column_specs)))
+
+            for index in table.indexes:
+                self._cursor.execute(
+                    "create index if not exists idx_%s on tbl_%s (%s)" % (
+                        index, table.name, index))
 
     @classmethod
     def transaction(cls, collection_location, callback, *args, **kwargs):

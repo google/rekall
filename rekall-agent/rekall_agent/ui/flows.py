@@ -27,7 +27,6 @@ from rekall import utils
 
 from rekall_agent import common
 from rekall_agent import flow
-from rekall_agent import output_plugin
 from rekall_agent import serializer
 
 
