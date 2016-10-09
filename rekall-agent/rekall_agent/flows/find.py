@@ -96,6 +96,8 @@ class FileFinderFlow(collect.CollectFlow):
         for x in collection.tables[0].columns:
             column_spec[x.name] = "Path.%s" % x.name
 
+        column_spec["dirname"] = "Path.filename.dirname"
+        column_spec["filename"] = "Path.filename.basename"
         column_spec["st_mode_str"] = "str(Path.st_mode)"
         column_spec["st_uid"] = "Path.st_uid.uid"
         column_spec["st_gid"] = "Path.st_gid.gid"

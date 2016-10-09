@@ -89,6 +89,14 @@ class FileSpec(utils.SlottedObject):
         else:
             raise TypeError("Filename must be a string or file spec.")
 
+    @property
+    def dirname(self):
+        return os.path.dirname(self.name)
+
+    @property
+    def basename(self):
+        return os.path.basename(self.name)
+
     def components(self):
         return filter(None, self.name.split(self.path_sep))
 

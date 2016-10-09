@@ -139,7 +139,51 @@ class SerializedObjectInspectorMixin(object):
         dict(name="Description")
     ]
 
-    def _explain(self, flow_obj, depth=0, ignore_fields=None):
+    def _explain(self, obj, depth=0, ignore_fields=None):
+        if isinstance(obj, serializer.SerializedObject):
+            for x in self._collect_serialized_object(
+                    obj, depth=depth, ignore_fields=ignore_fields):
+                yield x
+
+        elif isinstance(obj, basestring):
+            yield dict(Value=obj)
+
+        else:
+            raise RuntimeError("Unable to render object %r" % obj)
+
+    def _collect_list(self, list_obj, field, descriptor, depth):
+        yield dict(
+            Field=field,
+            Value="(Array)",
+            Description=descriptor.get("doc", ""),
+            highlight="important" if descriptor.get("user") else "",
+            depth=depth)
+
+        for i, value in enumerate(list_obj):
+            for row in self._explain(value, depth=depth):
+                row["Field"] = "[%s] %s" % (i, row.get("Field", ""))
+                if descriptor.get("user"):
+                    row["highlight"] = "important"
+
+                yield row
+
+    def _collect_dict(self, dict_obj, field, descriptor, depth):
+        yield dict(
+            Field=field,
+            Value="(Dict)",
+            Description=descriptor.get("doc", ""),
+            highlight="important" if descriptor.get("user") else "",
+            depth=depth)
+
+        for key, value in sorted(dict_obj.iteritems()):
+            for row in self._explain(value, depth=depth+1):
+                row["Field"] = ". " + key
+                if descriptor.get("user"):
+                    row["highlight"] = "important"
+
+                yield row
+
+    def _collect_serialized_object(self, flow_obj, depth=0, ignore_fields=None):
         for descriptor in flow_obj.get_descriptors():
             field = descriptor["name"]
 
@@ -153,10 +197,29 @@ class SerializedObjectInspectorMixin(object):
 
             value = flow_obj.GetMember(field)
 
-            if isinstance(value, str):
-                value = base64.b64encode(value)
+            if isinstance(value, serializer.SerializedObject):
+                display_value = "(Object)"
 
-            display_value = utils.SmartUnicode(value)
+            elif isinstance(value, str):
+                display_value = base64.b64encode(value)
+
+            elif isinstance(value, unicode):
+                display_value = value
+
+            elif isinstance(value, list):
+                for x in self._collect_list(value, field, descriptor, depth):
+                    yield x
+
+                return
+
+            elif isinstance(value, dict):
+                for x in self._collect_dict(value, field, descriptor, depth):
+                    yield x
+
+                return
+
+            else:
+                display_value = utils.SmartUnicode(value)
 
             if (not self.plugin_args.verbosity and len(display_value) > 45):
                 display_value = display_value[:45] + " ..."
