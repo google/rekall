@@ -69,8 +69,8 @@ class RekallAgent(common.AbstractAgentCommand):
 
     name = "agent"
 
-    def _get_session(self, flow_obj):
-        kwargs = flow_obj.session.to_primitive(True)
+    def _get_session(self, session_parameters):
+        kwargs = session_parameters.to_primitive(True)
         rekall_session = self.session.clone(**kwargs)
 
         # Make sure progress dispatches are propagated.
@@ -94,7 +94,7 @@ class RekallAgent(common.AbstractAgentCommand):
                 return
 
         # Prepare the session specified by this flow.
-        rekall_session = self._get_session(flow_obj)
+        rekall_session = self._get_session(flow_obj.session)
 
         for action in flow_obj.actions:
             # Make a progress ticket for this action if required.
@@ -220,8 +220,16 @@ class RekallAgent(common.AbstractAgentCommand):
 
         # Now run the startup actions.
         for action in self.config.manifest.startup_actions:
+            # Run the action with the new session, and report the produced
+            # collections. Note that the ticket contains all collections for
+            # all actions cumulatively.
+            action_to_run = action.from_primitive(
+                action.to_primitive(),
+                session=self._get_session(
+                    self.config.manifest.rekall_session))
+
             try:
-                action.run()
+                action_to_run.run()
             except Exception as e:
                 self.session.logging.error(
                     "Error running startup action: %s", e)

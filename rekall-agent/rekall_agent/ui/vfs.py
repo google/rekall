@@ -61,8 +61,8 @@ class VFSLs(common.AbstractControllerCommand):
     ]
 
     def _collect_one_dir(self, vfs_index, path_components):
+        path = utils.normpath(utils.join_path(*path_components))
         stat_collection_path = None
-
         virtual_directories = set()
 
         # More recent collections override older collections.
@@ -94,7 +94,6 @@ class VFSLs(common.AbstractControllerCommand):
 
                 self.collections[stat_collection_path] = stat_collection
 
-            path = utils.normpath(utils.join_path(*path_components))
             for row in list(stat_collection.query(dirname=path)):
                 mode = response_common.Permissions(row["st_mode"])
                 result = dict(

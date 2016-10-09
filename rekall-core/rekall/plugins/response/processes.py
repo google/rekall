@@ -12,14 +12,13 @@ from rekall.plugins.overlays import basic
 from rekall.plugins import yarascanner
 
 
-class _LiveProcess(utils.AttributeDict):
+class _LiveProcess(utils.SlottedObject):
     """An object to represent a live process.
 
     This is the live equivalent of _EPROCESS.
     """
-    _proc = None
-    _obj_profile = None
-    session = None
+    __slots__ = ("_proc", "_obj_profile", "session",
+                 "start_time", "pid")
 
     def __init__(self, proc, session=None):
         """Construct a representation of the live process.
@@ -29,6 +28,7 @@ class _LiveProcess(utils.AttributeDict):
         """
         # Hold on to the original psutil object.
         self._proc = proc
+        self._obj_profile = None
         self.session = session
         super(_LiveProcess, self).__init__()
 
@@ -60,6 +60,8 @@ class _LiveProcess(utils.AttributeDict):
             if field_name == "environ":
                 return {}
 
+            return None
+        except AttributeError:
             return None
 
     def __format__(self, formatspec):
@@ -93,10 +95,11 @@ psutil_fields = ['cmdline', 'connections', 'cpu_affinity',
                  'memory_info_ex', 'memory_maps', 'memory_percent',
                  'name', 'nice', 'num_ctx_switches', 'num_fds',
                  'num_threads', 'open_files', 'pid', 'ppid',
-                 'status', 'terminal', 'threads', 'uids', 'username']
+                 'status', 'terminal', 'threads', 'uids', 'username',
+                 'num_handles']
 
 # Generate accessors for psutil derived properties.
-properties = {}
+properties = dict(__slots__=())
 for field in psutil_fields:
     properties[field] = property(
         lambda self, field=field: self._get_field(field))

@@ -47,20 +47,22 @@ from rekall.plugins.renderers import json_storage
 
 # Copy many of the normal json object renderers.
 renderer.CopyObjectRenderers((
-    json_storage.BaseAddressSpaceObjectRenderer,
     json_renderer.StringRenderer,
+    json_storage.ArrowObjectRenderer,
+    json_storage.AttributeDictObjectRenderer,
+    json_storage.BaseAddressSpaceObjectRenderer,
     json_storage.FileAddressSpaceObjectRenderer,
-    json_storage.JsonFormattedAddress,
     json_storage.IA32PagedMemoryObjectRenderer,
     json_storage.JsonAttributedStringRenderer,
-    json_storage.AttributeDictObjectRenderer,
     json_storage.JsonEnumerationRenderer,
+    json_storage.JsonFormattedAddress,
     json_storage.JsonHexdumpRenderer,
     json_storage.JsonInstructionRenderer,
     json_storage.NoneObjectRenderer,
     json_storage.ProfileObjectRenderer,
     json_storage.SessionObjectRenderer,
     json_storage.SetObjectRenderer,
+    json_storage.SlottedObjectObjectRenderer,
     json_storage.UnixTimestampJsonObjectRenderer,
 ), renderer="DataExportRenderer")
 

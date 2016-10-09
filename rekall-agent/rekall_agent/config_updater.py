@@ -260,6 +260,8 @@ client:
         manifest = agent.Manifest.from_keywords(
             session=self.session,
 
+            rekall_session=dict(live="API"),
+
             # When the client starts up we want it to run the startup action and
             # store the result in the Startup batch queue.
             startup_actions=[

@@ -526,9 +526,23 @@ class FormattedAddress(object):
             return ""
 
 
-class AttributeDict(dict):
+class SlottedObject(object):
+    """A general purpose PODO."""
 
-    """A dict that can be accessed via attributes."""
+    # Declare this object's fields here.
+    __slots__ = ()
+
+    def __init__(self):
+        for k in self.__slots__:
+            setattr(self, k, None)
+
+
+class AttributeDict(dict):
+    """A dict that can be accessed via attributes.
+
+    This object is very slow due to use of __setstate__. Please consider using
+    SlottedObject instead.
+    """
     dirty = False
 
     _object_id = None

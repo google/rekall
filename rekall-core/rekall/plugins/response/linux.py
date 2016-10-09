@@ -11,7 +11,9 @@ from rekall.plugins.response import processes
 from rekall.plugins.overlays import basic
 
 
-class LiveMap(utils.AttributeDict):
+class LiveMap(utils.SlottedObject):
+    __slots__ = ("start", "end", "perms", "file_offset", "dev", "inode",
+                 "filename")
 
     @utils.safe_property
     def length(self):

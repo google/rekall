@@ -66,6 +66,8 @@ can then be subsequently used to dereference the memory image - we can recover
 the _EPROCESS.ImageFileName attribute and print the process name - even though
 the actual name was never encoded.
 """
+import arrow
+
 from rekall import addrspace
 from rekall import obj
 from rekall import session
@@ -123,6 +125,26 @@ class AttributeDictObjectRenderer(json_renderer.StateBasedObjectRenderer):
             state, options)
 
         return utils.AttributeDict(state.get("data", {}))
+
+
+class SlottedObjectObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    renders_type = "SlottedObject"
+
+    def GetState(self, item, **_):
+        return dict((k, getattr(item, k))
+                    for k in item.__slots__ if not k.startswith("_"))
+
+    def DecodeFromJsonSafe(self, state, options):
+        state = super(SlottedObjectObjectRenderer, self).DecodeFromJsonSafe(
+            state, options)
+
+        # Deliberately do not go through the constructor. Use __new__ directly
+        # so we can restore object state by assigning to the slots.
+        result = utils.SlottedObject.__new__(utils.SlottedObject)
+        for k, v in state.iteritems():
+            setattr(result, k, v)
+
+        return result
 
 
 class IA32PagedMemoryObjectRenderer(BaseAddressSpaceObjectRenderer):
@@ -221,6 +243,17 @@ class UnixTimestampJsonObjectRenderer(json_renderer.StateBasedObjectRenderer):
 
     def DecodeFromJsonSafe(self, state, options):
         return self.session.profile.UnixTimeStamp(value=state.get("epoch", 0))
+
+
+class ArrowObjectRenderer(json_renderer.StateBasedObjectRenderer):
+    renders_type = "Arrow"
+
+    def GetState(self, item, **_):
+        return dict(epoch=item.float_timestamp,
+                    string_value=item.isoformat())
+
+    def DecodeFromJsonSafe(self, state, options):
+        return arrow.Arrow.fromtimestamp(state["epoch"])
 
 
 class PointerObjectRenderer(json_renderer.BaseObjectRenderer):

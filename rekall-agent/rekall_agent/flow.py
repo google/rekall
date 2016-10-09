@@ -80,9 +80,8 @@ from rekall_agent import common
 from rekall_agent import result_collections
 from rekall_agent import output_plugin
 from rekall_agent import serializer
-
+from rekall_agent.config import agent
 from rekall_agent.messages import batch
-from rekall_agent.messages import rekall_messages
 
 
 class FlowStatus(batch.BatchTicket):
@@ -247,7 +246,7 @@ class Flow(serializer.SerializedObject):
              repeated=True, private=True,
              doc="A list of output plugins to post process the results."),
 
-        dict(name="session", type=rekall_messages.RekallSession,
+        dict(name="session", type=agent.RekallSession,
              doc="The session that will be invoked for this flow."),
     ]
 

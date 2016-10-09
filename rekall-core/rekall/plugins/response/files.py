@@ -156,7 +156,7 @@ class Component(object):
                     child.filename.path_sep)).lower()
             cache.setdefault(basename, []).append(child)
 
-        self.component_cache.Put(file_info.filename.name, cache)
+        #self.component_cache.Put(file_info.filename.name, cache)
         return cache
 
     def __eq__(self, other):
@@ -412,6 +412,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
             for component in self.convert_glob_into_path_components(glob):
                 node = node.setdefault(component, {})
 
+        print_component_tree(component_tree)
         root_file = common.FileFactory(root_spec, session=self.session)
         for item in self._filter(component_tree, root_file):
             yield item
