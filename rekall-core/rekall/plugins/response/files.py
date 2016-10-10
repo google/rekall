@@ -156,7 +156,7 @@ class Component(object):
                     child.filename.path_sep)).lower()
             cache.setdefault(basename, []).append(child)
 
-        self.component_cache.Put(file_info.filename.name, cache)
+        #self.component_cache.Put(file_info.filename.name, cache)
         return cache
 
     def __eq__(self, other):

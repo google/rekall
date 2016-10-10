@@ -23,7 +23,6 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Flows are collections of client actions.
-
 Scheduling a Flow
 =================
 
@@ -80,9 +79,9 @@ from rekall_agent import common
 from rekall_agent import result_collections
 from rekall_agent import output_plugin
 from rekall_agent import serializer
-
+from rekall_agent.config import agent
 from rekall_agent.messages import batch
-from rekall_agent.messages import rekall_messages
+from rekall_agent.messages import resources
 
 
 class FlowStatus(batch.BatchTicket):
@@ -98,6 +97,9 @@ class FlowStatus(batch.BatchTicket):
         dict(name="flow_id"),
 
         dict(name="timestamp", type="epoch"),
+
+        dict(name="quota", type=resources.Quota,
+             doc="The total resources used until now."),
 
         dict(name="logs", repeated=True,
              doc="Log lines from the client."),
@@ -135,16 +137,31 @@ class FlowStatus(batch.BatchTicket):
 
     @classmethod
     def end(cls, context, session=None):
+        config = session.GetParameter("agent_config")
+
+        # Read all the flow objects for the tickets at once before we take the
+        # lock.
+        flow_ids = []
+        for _, tickets in context.iteritems():
+            flow_ids.extend([t.flow_id for t in tickets])
+
+        flows = {}
+        for flow_data in common.THREADPOOL.map(
+                lambda f: config.server.flows_for_server(f).read_file(),
+                flow_ids):
+            flow_obj = Flow.from_json(flow_data, session=session)
+            flows[flow_obj.flow_id] = flow_obj
+
         # Each client's flow collection can be modified on its own
         # independently.
         common.THREADPOOL.map(
             cls._process_flows,
-            [(tickets, client_id, session)
+            [(tickets, client_id, session, flows)
              for client_id, tickets in context.iteritems()])
 
     @staticmethod
     def _process_flows(_args):
-        tickets, client_id, session = _args
+        tickets, client_id, session, flows = _args
         config = session.GetParameter("agent_config")
 
         def _update_flow_info(flow_collection, tickets):
@@ -159,9 +176,7 @@ class FlowStatus(batch.BatchTicket):
                     last_active=ticket.timestamp,
                 )
 
-                flow_obj = Flow.from_json(
-                    config.server.flows_for_server(flow_id).read_file(),
-                    session=session)
+                flow_obj = flows.get(flow_id)
                 flow_obj.post_process([ticket])
 
         FlowStatsCollection.transaction(
@@ -182,7 +197,7 @@ class HuntStatus(FlowStatus):
 
     @staticmethod
     def _process_flows(_args):
-        tickets, flow_id, session = _args
+        tickets, flow_id, session, flows = _args
         config = session.GetParameter("agent_config")
 
         def _update_flow_info(flow_collection, tickets):
@@ -199,9 +214,7 @@ class HuntStatus(FlowStatus):
                         ticket_data=ticket.to_json(),
                     )
 
-            flow_obj = Flow.from_json(
-                config.server.flows_for_server(flow_id).read_file(),
-                session=session)
+            flow_obj = flows.get(flow_id)
             flow_obj.post_process(tickets)
 
         HuntStatsCollection.transaction(
@@ -247,8 +260,11 @@ class Flow(serializer.SerializedObject):
              repeated=True, private=True,
              doc="A list of output plugins to post process the results."),
 
-        dict(name="session", type=rekall_messages.RekallSession,
+        dict(name="session", type=agent.RekallSession,
              doc="The session that will be invoked for this flow."),
+
+        dict(name="quota", type=resources.Quota,
+             doc="The total resources the flow is allows to use."),
     ]
 
     def is_hunt(self):
@@ -294,6 +310,7 @@ class Flow(serializer.SerializedObject):
         self.ticket.client_id = self.client_id
         self.ticket.status = "Started"
         self.ticket.flow_id = self.flow_id
+        self.ticket.quota = self.quota
 
         self.ticket.location = self._config.server.flow_ticket_for_client(
             self.ticket.__class__.__name__,

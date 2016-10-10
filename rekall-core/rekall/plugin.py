@@ -963,7 +963,7 @@ class PluginMetadataDatabase(object):
         # time.
         if len(results) > 1:
             raise RuntimeError("Multiple plugin implementations for %s: %s" % (
-                plugin_name, results))
+                plugin_name, [x.plugin_cls for x in results]))
 
         if results:
             return results[0]

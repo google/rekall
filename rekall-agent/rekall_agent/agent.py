@@ -69,8 +69,12 @@ class RekallAgent(common.AbstractAgentCommand):
 
     name = "agent"
 
-    def _get_session(self, flow_obj):
-        kwargs = flow_obj.session.to_primitive(True)
+    # If we currently running under quota management, this will contain the
+    # quota object.
+    _quota = None
+
+    def _get_session(self, session_parameters):
+        kwargs = session_parameters.to_primitive(True)
         rekall_session = self.session.clone(**kwargs)
 
         # Make sure progress dispatches are propagated.
@@ -94,7 +98,7 @@ class RekallAgent(common.AbstractAgentCommand):
                 return
 
         # Prepare the session specified by this flow.
-        rekall_session = self._get_session(flow_obj)
+        rekall_session = self._get_session(flow_obj.session)
 
         for action in flow_obj.actions:
             # Make a progress ticket for this action if required.
@@ -153,12 +157,22 @@ class RekallAgent(common.AbstractAgentCommand):
                     # Sync the writeback in case we crash.
                     self.config.client.save_writeback()
 
+                    # Start counting resources from now.
+                    self._quota = flow_obj.ticket.quota
+                    self._quota.start()
+
                     self._run_flow(flow_obj)
+
+                    # We ran the flow with no exception - remove transaction.
+                    self.writeback.current_ticket = None
         finally:
             # At least one flow ran - we need to checkpoint the last ran time in
             # persistent agent state so we do not run it again.
             if flows_ran > 0:
                 self.config.client.save_writeback()
+
+            # Stop measuring quotas.
+            self._quota = None
 
         return flows_ran
 
@@ -220,19 +234,38 @@ class RekallAgent(common.AbstractAgentCommand):
 
         # Now run the startup actions.
         for action in self.config.manifest.startup_actions:
+            # Run the action with the new session, and report the produced
+            # collections. Note that the ticket contains all collections for
+            # all actions cumulatively.
+            action_to_run = action.from_primitive(
+                action.to_primitive(),
+                session=self._get_session(
+                    self.config.manifest.rekall_session))
+
             try:
-                action.run()
+                action_to_run.run()
             except Exception as e:
                 self.session.logging.error(
                     "Error running startup action: %s", e)
 
         return True
 
+    def _check_quota(self, *_, **__):
+        if self._quota and not self._quota.check():
+            # Catch 22: If we exceeded our quota we must turn off quota
+            # management or we wont be able to actually send the error back (due
+            # to lack of quota).
+            self._quota = None
+            raise RuntimeError("Resource Exceeded.")
+
     def collect(self):
         """Main entry point for the Rekall agent.
 
         This never exits.
         """
+        # Register our quota check as a Rekall Session progress handler.
+        self.session.progress.Register("agent", self._check_quota)
+
         self.poll_wait = self.config.client.poll_min
 
         # The writeback is where the agent stores local state.

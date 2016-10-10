@@ -391,6 +391,7 @@ DISPATCHER = dict(
     epoch=EpochDescriptor,
     dict=DictDescriptor,
     bool=BoolDescriptor,
+    float=FloatDescriptor,
 )
 
 

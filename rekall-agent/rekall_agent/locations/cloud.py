@@ -32,7 +32,6 @@ import contextlib
 import json
 import gzip
 import os
-import re
 import StringIO
 import tempfile
 import time
@@ -56,12 +55,6 @@ from rekall_agent import serializer
 
 
 MAX_BUFF_SIZE = 10*1024*1024
-
-
-def join_path(*args):
-    result = "/".join(args)
-    result = re.sub("/+", "/", result)
-    return result.strip("/")
 
 
 class ServiceAccount(serializer.SerializedObject):
@@ -160,7 +153,7 @@ class ServiceAccount(serializer.SerializedObject):
         policy = dict(expiration=arrow.get(expiration).isoformat(),
                       conditions=[
                           ["starts-with", "$key",
-                           join_path(bucket, path_prefix)],
+                           utils.join_path(bucket, path_prefix)],
                           {"bucket": bucket},
                           {"Content-Encoding": "gzip"},
                       ])
@@ -233,7 +226,7 @@ class ServiceAccount(serializer.SerializedObject):
         if upload == "resumable":
             components.append("x-goog-resumable:start")
 
-        base_url = "/" + join_path(bucket, path)
+        base_url = "/" + utils.join_path(bucket, path)
 
         components.append(base_url)  # Canonicalized_Resource
 
@@ -442,6 +435,10 @@ class GCSLocation(location.Location):
                 return self._cache.get_local_file(base_url, current_generation)
 
             if not resp.ok:
+                # The file was removed from the server, make sure to expire the
+                # local copy too.
+                if resp.status_code == 404:
+                    self._cache.expire(base_url)
                 return self._report_error(completion_routine, resp)
 
             # Store the generation of this object in the cache.
@@ -460,7 +457,7 @@ class GCSLocation(location.Location):
         raise NotImplementedError()
 
     def to_path(self):
-        return join_path(self.bucket, self.path)
+        return utils.join_path(self.bucket, self.path)
 
 
 class GCSHeaders(serializer.SerializedObject):
@@ -611,7 +608,7 @@ class GCSOAuth2BasedLocation(GCSLocation):
         url_endpoint = ("https://www.googleapis.com/storage/v1/b/%s/o" %
                         self.bucket)
 
-        params["prefix"] = join_path(self.path)
+        params["prefix"] = utils.join_path(self.path)
         params["maxResults"] = paging
         count = 0
         while count < max_results:
@@ -803,13 +800,13 @@ class GCSSignedPolicyLocation(GCSLocation):
         return GCSLocation.from_keywords(
             session=self._session,
             bucket=self.bucket,
-            path=join_path(self.path_prefix, self.expand_path())
+            path=utils.join_path(self.path_prefix, self.expand_path())
         )
 
     def _get_parameters(self, **kwargs):
         """Calculates the params for the request."""
         subpath = self.expand_path(**kwargs)
-        key = join_path(self.bucket, self.path_prefix, subpath)
+        key = utils.join_path(self.bucket, self.path_prefix, subpath)
 
         url_endpoint = "https://storage.googleapis.com/"
         params = dict(GoogleAccessId=self.GoogleAccessId,

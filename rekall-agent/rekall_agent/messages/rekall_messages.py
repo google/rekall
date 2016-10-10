@@ -21,13 +21,3 @@
 #
 
 from rekall_agent import serializer
-
-
-class RekallSession(serializer.SerializedObject):
-    """A message describing a Rekall Session."""
-
-    schema = [
-        dict(name="live", type="choices", default="API",
-             choices=["API", "Memory"],
-             doc="The Rekall live mode"),
-    ]

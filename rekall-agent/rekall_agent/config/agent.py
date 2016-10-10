@@ -35,6 +35,15 @@ from rekall_agent import crypto
 from rekall_agent import location
 from rekall_agent import serializer
 
+class RekallSession(serializer.SerializedObject):
+    """A message describing a Rekall Session."""
+
+    schema = [
+        dict(name="live", type="choices", default="API",
+             choices=["API", "Memory"],
+             doc="The Rekall live mode"),
+    ]
+
 
 class Manifest(serializer.SerializedObject):
     """The manifest contains basic information about the installation.
@@ -48,6 +57,8 @@ class Manifest(serializer.SerializedObject):
     schema = [
         dict(name="startup_actions", type=action.Action, repeated=True,
              doc="These actions will be run at startup on the client."),
+        dict(name="rekall_session", type=RekallSession,
+             doc="The session used to run startup actions"),
     ]
 
 

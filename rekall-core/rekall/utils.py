@@ -526,9 +526,23 @@ class FormattedAddress(object):
             return ""
 
 
-class AttributeDict(dict):
+class SlottedObject(object):
+    """A general purpose PODO."""
 
-    """A dict that can be accessed via attributes."""
+    # Declare this object's fields here.
+    __slots__ = ()
+
+    def __init__(self):
+        for k in self.__slots__:
+            setattr(self, k, None)
+
+
+class AttributeDict(dict):
+    """A dict that can be accessed via attributes.
+
+    This object is very slow due to use of __setstate__. Please consider using
+    SlottedObject instead.
+    """
     dirty = False
 
     _object_id = None
@@ -1008,9 +1022,17 @@ def EscapeForFilesystem(filename):
 
 
 def get_all_subclasses(base=None):
-    if base is None:
-        base = BatchTicket
     for x in base.__subclasses__():
         yield x.__name__
         for y in get_all_subclasses(x):
             yield y
+
+
+def join_path(*args):
+    result = "/".join(args)
+    result = re.sub("/+", "/", result)
+    return result.strip("/")
+
+
+def normpath(path):
+    return "/" + join_path(*path.split("/"))

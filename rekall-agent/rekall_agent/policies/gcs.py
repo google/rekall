@@ -54,13 +54,14 @@ Main policy:
 """
 import pathlib
 
+from rekall import utils
+
 from rekall_agent import cache
 from rekall_agent.config import agent
 from rekall_agent.locations import cloud
 
 
 class GCSServerPolicy(agent.ServerPolicy):
-
     schema = [
         dict(name="bucket",
              doc="The name of the bucket"),
@@ -97,7 +98,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         # The client's jobs queue itself is publicly readable since the client
         # itself has no credentials.
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path=cloud.join_path(client_id, "jobs"),
+            bucket=self.bucket, path=utils.join_path(client_id, "jobs"),
             public=True)
 
     def client_db_for_server(self):
@@ -112,6 +113,11 @@ class GCSServerPolicy(agent.ServerPolicy):
 
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path=client_id + "/flows.sqlite")
+
+    def vfs_index_for_server(self, client_id=None):
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path=utils.join_path(
+                client_id, "vfs.index"))
 
     def hunt_db_for_server(self, hunt_id):
         return self.service_account.create_oauth_location(
@@ -129,13 +135,13 @@ class GCSServerPolicy(agent.ServerPolicy):
     def flows_for_server(self, flow_id):
         """A location to write flow objects."""
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path=cloud.join_path(
+            bucket=self.bucket, path=utils.join_path(
                 "flows", flow_id))
 
     def ticket_for_server(self, batch_name, *args):
         """The location of the ticket queue for this batch."""
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path=cloud.join_path(
+            bucket=self.bucket, path=utils.join_path(
                 "tickets", batch_name, *args))
 
     def canonical_for_server(self, location):
@@ -151,7 +157,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         Passed to the agent to write on client VFS.
         """
         return self.service_account.create_signed_url_location(
-            bucket=self.bucket, mode=mode, path=cloud.join_path(
+            bucket=self.bucket, mode=mode, path=utils.join_path(
                 client_id, "vfs", vfs_type, path),
             expiration=expiration)
 
@@ -161,7 +167,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         Passed to the agent to write on client VFS.
         """
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path=cloud.join_path(
+            bucket=self.bucket, path=utils.join_path(
                 client_id, "vfs", vfs_type, path))
 
     def hunt_vfs_path_for_client(self, hunt_id, path_prefix="", expiration=None,
@@ -169,7 +175,7 @@ class GCSServerPolicy(agent.ServerPolicy):
                                  path_template="{client_id}"):
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket,
-            path_prefix=cloud.join_path(
+            path_prefix=utils.join_path(
                 "hunts", hunt_id, "vfs", vfs_type, path_prefix),
             path_template=path_template,
             expiration=expiration)
@@ -178,7 +184,7 @@ class GCSServerPolicy(agent.ServerPolicy):
                               vfs_type="files"):
         """Returns a Location suitable for storing a path using the prefix."""
         return self.service_account.create_signed_policy_location(
-            bucket=self.bucket, path_prefix=cloud.join_path(
+            bucket=self.bucket, path_prefix=utils.join_path(
                 client_id, "vfs", vfs_type, path),
             path_template="{subpath}",
             expiration=expiration)
@@ -195,7 +201,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         path_template = kw.pop("path_template", None)
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket,
-            path_prefix=cloud.join_path("tickets", batch_name, *ticket_names),
+            path_prefix=utils.join_path("tickets", batch_name, *ticket_names),
             path_template=path_template,
             expiration=expiration)
 
@@ -203,7 +209,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         if not client_id:
             raise RuntimeError("client id expected")
         return self.service_account.create_oauth_location(
-            bucket=self.bucket, path=cloud.join_path(
+            bucket=self.bucket, path=utils.join_path(
                 client_id, "flows.sqlite")
         )
 
@@ -220,7 +226,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         posix_path = pathlib.PurePosixPath(path.lstrip("/"))
         return self.service_account.create_oauth_location(
             bucket=posix_path.parts[0],
-            path=cloud.join_path(*posix_path.parts[1:]))
+            path=utils.join_path(*posix_path.parts[1:]))
 
 
 class GCSAgentPolicy(agent.ClientPolicy):
@@ -241,14 +247,14 @@ class GCSAgentPolicy(agent.ClientPolicy):
         result = [
             cloud.GCSUnauthenticatedLocation.from_keywords(
                 session=self._session, bucket=self.manifest_location.bucket,
-                path=cloud.join_path(self.client_id, "jobs"))
+                path=utils.join_path(self.client_id, "jobs"))
         ]
 
         for label in self.labels:
             result.append(
                 cloud.GCSUnauthenticatedLocation.from_keywords(
                     session=self._session, bucket=self.manifest_location.bucket,
-                    path=cloud.join_path("labels", label, "jobs"))
+                    path=utils.join_path("labels", label, "jobs"))
             )
 
         return result
