@@ -466,7 +466,6 @@ class ProgressDispatcher(object):
     """
 
     def __init__(self):
-        self.heap = []
         self.callbacks = {}
 
     def Register(self, key, callback):
@@ -1076,13 +1075,13 @@ class Session(object):
     def clone(self, **kwargs):
         new_state = self.state.copy()
         # Remove the cache from the copy so we start with a fresh cache.
-        new_state.pop("cache")
+        new_state.pop("cache", None)
 
         # session_ids are automatically generated so we need to pop it.
-        new_state.pop("session_id")
+        new_state.pop("session_id", None)
 
         session_id = self._new_session_id()
-        old_session_name = new_state.pop("session_name")
+        old_session_name = new_state.pop("session_name", None)
         new_session_name = kwargs.pop(
             "session_name", kwargs.get(
                 "filename", "%s (%s)" % (old_session_name, session_id)))

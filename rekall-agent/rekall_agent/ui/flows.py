@@ -27,8 +27,8 @@ from rekall import utils
 
 from rekall_agent import common
 from rekall_agent import flow
-from rekall_agent import output_plugin
 from rekall_agent import serializer
+from rekall_agent.ui import renderers
 
 
 CANNED_CONDITIONS = dict(
@@ -48,7 +48,7 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
 
     table_header = [
         dict(name="state", width=8),
-        dict(name="flow_id", width=12),
+        dict(name="flow_id", width=14),
         dict(name="type", width=18),
         dict(name="created", width=19),
         dict(name="last_active", width=19),
@@ -107,6 +107,9 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
         rows = list(self.collect_db(collection))
         common.THREADPOOL.map(self._check_pending_flow, rows)
         for row in rows:
+            row["collections"] = [
+                renderers.UILink("gs", x) for x in row["collections"]]
+            row["flow_id"] = renderers.UILink("f", row["flow_id"])
             yield row
 
 
@@ -123,7 +126,9 @@ class AgentControllerShowHunts(AgentControllerShowFlows):
             self.config.server.flow_db_for_server(queue=self.plugin_args.queue),
             session=self.session)
 
-        return self.collect_db(collection)
+        for row in self.collect_db(collection):
+            row["flow_id"] = renderers.UILink("h", row["flow_id"])
+            yield row
 
 
 class SerializedObjectInspectorMixin(object):
@@ -140,7 +145,51 @@ class SerializedObjectInspectorMixin(object):
         dict(name="Description")
     ]
 
-    def _explain(self, flow_obj, depth=0, ignore_fields=None):
+    def _explain(self, obj, depth=0, ignore_fields=None):
+        if isinstance(obj, serializer.SerializedObject):
+            for x in self._collect_serialized_object(
+                    obj, depth=depth, ignore_fields=ignore_fields):
+                yield x
+
+        elif isinstance(obj, basestring):
+            yield dict(Value=obj)
+
+        else:
+            raise RuntimeError("Unable to render object %r" % obj)
+
+    def _collect_list(self, list_obj, field, descriptor, depth):
+        yield dict(
+            Field=field,
+            Value="(Array)",
+            Description=descriptor.get("doc", ""),
+            highlight="important" if descriptor.get("user") else "",
+            depth=depth)
+
+        for i, value in enumerate(list_obj):
+            for row in self._explain(value, depth=depth):
+                row["Field"] = "[%s] %s" % (i, row.get("Field", ""))
+                if descriptor.get("user"):
+                    row["highlight"] = "important"
+
+                yield row
+
+    def _collect_dict(self, dict_obj, field, descriptor, depth):
+        yield dict(
+            Field=field,
+            Value="(Dict)",
+            Description=descriptor.get("doc", ""),
+            highlight="important" if descriptor.get("user") else "",
+            depth=depth)
+
+        for key, value in sorted(dict_obj.iteritems()):
+            for row in self._explain(value, depth=depth+1):
+                row["Field"] = ". " + key
+                if descriptor.get("user"):
+                    row["highlight"] = "important"
+
+                yield row
+
+    def _collect_serialized_object(self, flow_obj, depth=0, ignore_fields=None):
         for descriptor in flow_obj.get_descriptors():
             field = descriptor["name"]
 
@@ -154,10 +203,29 @@ class SerializedObjectInspectorMixin(object):
 
             value = flow_obj.GetMember(field)
 
-            if isinstance(value, str):
-                value = base64.b64encode(value)
+            if isinstance(value, serializer.SerializedObject):
+                display_value = "(Object)"
 
-            display_value = utils.SmartUnicode(value)
+            elif isinstance(value, str):
+                display_value = base64.b64encode(value)
+
+            elif isinstance(value, unicode):
+                display_value = value
+
+            elif isinstance(value, list):
+                for x in self._collect_list(value, field, descriptor, depth):
+                    yield x
+
+                return
+
+            elif isinstance(value, dict):
+                for x in self._collect_dict(value, field, descriptor, depth):
+                    yield x
+
+                return
+
+            else:
+                display_value = utils.SmartUnicode(value)
 
             if (not self.plugin_args.verbosity and len(display_value) > 45):
                 display_value = display_value[:45] + " ..."
@@ -298,7 +366,8 @@ class InspectHunt(InspectFlow):
             for result in ticket.collections:
                 yield dict(Field=ticket.client_id,
                            Time=ticket.timestamp,
-                           Value=result.location.to_path())
+                           Value=renderers.UILink(
+                               "gs", result.location.to_path()))
 
         for row in collection.query(
                 status="Error", limit=self.plugin_args.limit):
@@ -338,6 +407,9 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         dict(name="live", type="Choices", default="API",
              choices=["API", "Memory"],
              help="Live mode to use"),
+
+        dict(name="quota", type="IntParser", default=3600,
+             help="Total number of CPU seconds allowed for this flow."),
     ]
 
     def make_flow_object(self):
@@ -369,6 +441,9 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
                 self.plugin_args.canned_condition]
         elif self.plugin_args.condition:
             flow_obj.condition = self.plugin_args.condition
+
+        # Specify flow quota.
+        flow_obj.quota.user_time = self.plugin_args.quota
 
         return flow_obj
 

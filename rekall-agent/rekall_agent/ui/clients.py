@@ -37,6 +37,10 @@ class SearchClients(common.AbstractControllerCommand):
              help="Exact match on client id"),
         dict(name="hostname",
              help="Partial match on hostname"),
+
+        dict(name="limit", type="IntParser", default=20,
+             help="Number of rows to show."),
+
     ]
 
     table_header = [
@@ -60,22 +64,16 @@ class SearchClients(common.AbstractControllerCommand):
         collection = interrogate.ClientStatisticsCollection.load_from_location(
             self.config.server.client_db_for_server(), session=self.session)
 
-        query = "select * from tbl_default "
-        condition = []
-        condition_value = []
-
+        conditions = {}
         if self.plugin_args.client_id:
-            condition.append("client_id = ?")
-            condition_value.append(self.plugin_args.client_id)
+            conditions["client_id"] = self.plugin_args.client_id
 
         if self.plugin_args.hostname:
-            condition.append("fqdn like ?")
-            condition_value.append("%" + self.plugin_args.hostname + "%")
+            conditions["fqdn like ?"] = (
+                "%" + self.plugin_args.hostname + "%")
 
-        if condition:
-            query += " where " + " and ".join(condition)
-
-        for row in collection.query(query=query, query_args=condition_value):
+        for row in collection.query(
+                limit=self.plugin_args.limit, **conditions):
             yield dict(client_id=row["client_id"],
                        hostname=row["fqdn"],
                        os="%s %s" % (row["system"], row["architecture"]),

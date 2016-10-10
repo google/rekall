@@ -35,6 +35,10 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
     __args = [
         dict(name="path", positional=True, required=True,
              help="A path to the object to display."),
+        dict(name="query",
+             help="If this is a collection, issue this query"),
+        dict(name="limit",
+             help="Limit result to this many rows."),
     ]
 
     def render(self, renderer):
@@ -79,9 +83,12 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
                 headers.append(col_spec)
 
             # If the table is too large we cant wait to auto width it.
-            auto_widths = len(collection) < 1000
+            auto_widths = max(
+                self.plugin_args.limit, len(collection)) < 1000
             renderer.table_header(headers, auto_widths=auto_widths)
-            for row in collection.query(table=table.name):
+            for row in collection.query(
+                    table=table.name, query=self.plugin_args.query,
+                    limit=self.plugin_args.limit):
                 renderer.table_row(*[fn(x or 0) for fn, x in zip(types, row)])
 
 

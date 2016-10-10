@@ -28,6 +28,8 @@ import os
 import re
 import stat
 
+import arrow
+
 from efilter.protocols import associative
 from efilter.protocols import structured
 
@@ -36,7 +38,6 @@ from rekall import obj
 from rekall import registry
 from rekall import utils
 from rekall import plugin
-from rekall.plugins.overlays import basic
 
 
 # Will be registered by OS specific implementations.
@@ -66,10 +67,10 @@ class APIBaseProfile(obj.Profile):
                     os=platform.system())
 
 
-class FileSpec(utils.AttributeDict):
+class FileSpec(utils.SlottedObject):
     """Specification of a file path."""
 
-    __metaclass__ = registry.UniqueObjectIdMetaclass
+    __slots__ = ("name", "filesystem", "path_sep")
 
     def __init__(self, filename, filesystem=u"API", path_sep="/"):
         super(FileSpec, self).__init__()
@@ -87,6 +88,14 @@ class FileSpec(utils.AttributeDict):
 
         else:
             raise TypeError("Filename must be a string or file spec.")
+
+    @property
+    def dirname(self):
+        return os.path.dirname(self.name)
+
+    @property
+    def basename(self):
+        return os.path.basename(self.name)
 
     def components(self):
         return filter(None, self.name.split(self.path_sep))
@@ -189,13 +198,15 @@ class Group(utils.AttributeDict):
         return ""
 
 
-class FileInformation(utils.AttributeDict):
+class FileInformation(utils.SlottedObject):
     """An object representing a file on disk.
 
     This FileInformation uses the API to read data about the file.
     """
 
-    session = None
+    __slots__ = ("session", "st_mode", "st_ino", "st_size",
+                 "st_dev", "st_nlink", "st_uid", "st_gid", "st_mtime",
+                 "st_atime", "st_ctime", "filename")
 
     def __init__(self, session=None, filename=None, **kwargs):
         super(FileInformation, self).__init__(**kwargs)
@@ -220,14 +231,23 @@ class FileInformation(utils.AttributeDict):
         result.st_nlink = s.st_nlink
         result.st_uid = User.from_uid(s.st_uid)
         result.st_gid = Group.from_gid(s.st_gid)
-        result.st_mtime = basic.UnixTimeStamp(
-            name="st_mtime", value=s.st_mtime, session=session)
-        result.st_atime = basic.UnixTimeStamp(
-            name="st_atime", value=s.st_atime, session=session)
-        result.st_ctime = basic.UnixTimeStamp(
-            name="st_ctime", value=s.st_ctime, session=session)
+        result.st_mtime = s.st_mtime
+        result.st_atime = s.st_atime
+        result.st_ctime = s.st_ctime
 
         return result
+
+    @property
+    def mtime(self):
+        return arrow.Arrow.fromtimestamp(self.st_mtime)
+
+    @property
+    def atime(self):
+        return arrow.Arrow.fromtimestamp(self.st_atime)
+
+    @property
+    def ctime(self):
+        return arrow.Arrow.fromtimestamp(self.st_ctime)
 
     def open(self):
         try:

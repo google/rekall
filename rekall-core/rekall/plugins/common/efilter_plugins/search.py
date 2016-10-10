@@ -19,11 +19,8 @@
 """Rekall's search function."""
 
 __author__ = "Adam Sindelar <adamsh@google.com>"
-
 import itertools
-import re
 
-from efilter import api
 from efilter import ast
 from efilter import errors
 from efilter import protocol
@@ -45,6 +42,7 @@ from rekall import plugin
 from rekall import testlib
 from rekall import utils
 from rekall.plugins.overlays import basic
+from rekall.plugins.common.efilter_plugins import helpers
 from rekall.ui import identity as identity_renderer
 
 
@@ -350,6 +348,7 @@ applicative.IApplicative.implicit_static(CommandWrapper)
 
 
 class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
+
     """Abstract base class for plugins that do something with queries.
 
     Provides implementations of the basic EFILTER protocols for selecting and
@@ -387,50 +386,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             raise plugin.PluginError("Could not parse your query %r." % (
                 self.plugin_args.query,))
 
-        self._EXPORTED_EFILTER_FUNCTIONS = self._prepare_efilter_scopes()
-
-    def _prepare_efilter_scopes(self):
-        """Create the callables which can be used in the efilter scopes."""
-
-        # Exported EFilter functions. These can be used within efilter
-        # queries. For example select hex(cmd_address) from dis(0xfa8000895a32).
-        def hex_function(value):
-            """A Function to format the output as a hex string."""
-            if value == None:
-                return
-
-            return "%#x" % value
-
-        def str_function(value):
-            if value == None:
-                return
-
-            return utils.SmartUnicode(value)
-
-        def int_function(value):
-            if value == None:
-                return
-
-            return int(value)
-
-        def noncase_search_function(regex, value):
-            """Case insensitive regex search function."""
-            return bool(re.search(unicode(regex), unicode(value), re.I))
-
-        return dict(
-            hex=api.user_func(
-                hex_function, arg_types=[int], return_type=[str]),
-
-            str=api.user_func(
-                str_function, arg_types=[], return_type=[unicode]),
-
-            int=api.user_func(
-                int_function, arg_types=[], return_type=[int]),
-
-            regex_search=api.user_func(
-                noncase_search_function, arg_types=[unicode, unicode],
-                return_type=[bool]),
-        )
+        self._EXPORTED_EFILTER_FUNCTIONS = helpers._prepare_efilter_scopes()
 
     # IStructured implementation for EFILTER:
     def resolve(self, name):
@@ -1001,5 +957,15 @@ structured.IStructured.implement(
     implementations={
         structured.resolve: lambda d, m: d.get(m),
         structured.getmembers_runtime: lambda d: d.keys(),
+    }
+)
+
+# SlottedObject is similar in functionality to AttributeDict but it is much
+# faster and so it is preferred.
+structured.IStructured.implement(
+    for_type=utils.SlottedObject,
+    implementations={
+        structured.resolve: getattr,
+        structured.getmembers_runtime: lambda d: d.__slots__,
     }
 )

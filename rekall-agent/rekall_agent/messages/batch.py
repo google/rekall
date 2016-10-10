@@ -87,7 +87,7 @@ class AgentWorker(common.AbstractControllerCommand):
                 try:
                     batch_runner.run()
                 except Exception:
-                    pass
+                    self.session.logging.exception("Error running batch")
 
             if not self.plugin_args.loop:
                 break
@@ -132,16 +132,22 @@ class BatchRunner(object):
 
     def _process_ticket(self, ticket_location):
         try:
-            batch = self.batch_cls.from_json(
-                ticket_location.read_file(),
-                session=self.session)
-            with self.lock:
+            batch_data = ticket_location.read_file()
+            if batch_data:
+                batch = self.batch_cls.from_json(
+                    batch_data, session=self.session)
                 batch.process(self.context, ticket_location)
-
         except Exception as e:
             self.session.logging.error(
                 "Invalid message %s: %s", ticket_location.to_path(), e)
 
         finally:
             # Remove the ticket from the batch queue.
-            ticket_location.delete()
+            try:
+                ticket_location.delete()
+            except IOError:
+                # We can sometimes get an IOError here if the client has
+                # uploaded a new generation ticket while we processed this
+                # one. In that case the delete will fail but thats ok because
+                # there is a new ticket to be processed in future.
+                pass
