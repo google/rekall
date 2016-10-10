@@ -466,7 +466,6 @@ class ProgressDispatcher(object):
     """
 
     def __init__(self):
-        self.heap = []
         self.callbacks = {}
 
     def Register(self, key, callback):

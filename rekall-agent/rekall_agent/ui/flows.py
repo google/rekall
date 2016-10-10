@@ -400,6 +400,9 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         dict(name="live", type="Choices", default="API",
              choices=["API", "Memory"],
              help="Live mode to use"),
+
+        dict(name="quota", type="IntParser", default=3600,
+             help="Total number of CPU seconds allowed for this flow."),
     ]
 
     def make_flow_object(self):
@@ -431,6 +434,9 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
                 self.plugin_args.canned_condition]
         elif self.plugin_args.condition:
             flow_obj.condition = self.plugin_args.condition
+
+        # Specify flow quota.
+        flow_obj.quota.user_time = self.plugin_args.quota
 
         return flow_obj
 

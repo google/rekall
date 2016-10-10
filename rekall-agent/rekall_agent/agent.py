@@ -69,6 +69,10 @@ class RekallAgent(common.AbstractAgentCommand):
 
     name = "agent"
 
+    # If we currently running under quota management, this will contain the
+    # quota object.
+    _quota = None
+
     def _get_session(self, session_parameters):
         kwargs = session_parameters.to_primitive(True)
         rekall_session = self.session.clone(**kwargs)
@@ -153,12 +157,22 @@ class RekallAgent(common.AbstractAgentCommand):
                     # Sync the writeback in case we crash.
                     self.config.client.save_writeback()
 
+                    # Start counting resources from now.
+                    self._quota = flow_obj.ticket.quota
+                    self._quota.start()
+
                     self._run_flow(flow_obj)
+
+                    # We ran the flow with no exception - remove transaction.
+                    self.writeback.current_ticket = None
         finally:
             # At least one flow ran - we need to checkpoint the last ran time in
             # persistent agent state so we do not run it again.
             if flows_ran > 0:
                 self.config.client.save_writeback()
+
+            # Stop measuring quotas.
+            self._quota = None
 
         return flows_ran
 
@@ -236,11 +250,22 @@ class RekallAgent(common.AbstractAgentCommand):
 
         return True
 
+    def _check_quota(self, *_, **__):
+        if self._quota and not self._quota.check():
+            # Catch 22: If we exceeded our quota we must turn off quota
+            # management or we wont be able to actually send the error back (due
+            # to lack of quota).
+            self._quota = None
+            raise RuntimeError("Resource Exceeded.")
+
     def collect(self):
         """Main entry point for the Rekall agent.
 
         This never exits.
         """
+        # Register our quota check as a Rekall Session progress handler.
+        self.session.progress.Register("agent", self._check_quota)
+
         self.poll_wait = self.config.client.poll_min
 
         # The writeback is where the agent stores local state.

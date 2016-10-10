@@ -87,7 +87,7 @@ class AgentWorker(common.AbstractControllerCommand):
                 try:
                     batch_runner.run()
                 except Exception:
-                    pass
+                    self.session.logging.exception("Error running batch")
 
             if not self.plugin_args.loop:
                 break

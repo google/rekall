@@ -342,6 +342,9 @@ class GenericSQLiteCollection(CollectionSpec):
             except KeyError:
                 continue
 
+            if value is None:
+                continue
+
             sanitized_row[column.name] = self._allowed_types[
                 column.type or "unicode"](value)
 
