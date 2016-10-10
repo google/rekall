@@ -94,7 +94,8 @@ class VFSLs(common.AbstractControllerCommand):
 
                 self.collections[stat_collection_path] = stat_collection
 
-            for row in list(stat_collection.query(dirname=path)):
+            for row in list(stat_collection.query(
+                    dirname=path, order_by="filename")):
                 mode = response_common.Permissions(row["st_mode"])
                 result = dict(
                     Path=utils.join_path(row["dirname"], row["filename"]),

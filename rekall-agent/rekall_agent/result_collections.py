@@ -393,13 +393,20 @@ class GenericSQLiteCollection(CollectionSpec):
         if query is None:
             query = "select * from tbl_%s" % table.name
             if not kwargs:
-                kwargs[1] = 1
+                kwargs["1"] = 1
 
-            query += " where " + " and ".join(["%s=?" % x for x in kwargs])
+            conditions = []
+            query_args = []
+            for k, v in kwargs.iteritems():
+                query_args.append(v)
+                if "?" in k:
+                    conditions.append(k)
+                else:
+                    conditions.append("%s=?" % k)
+
+            query += " where " + " and ".join(conditions)
             if order_by:
                 query += " order by " + order_by
-
-            query_args = kwargs.values()
 
             if limit is not None:
                 query += " limit %s " % limit

@@ -197,7 +197,7 @@ class HuntStatus(FlowStatus):
 
     @staticmethod
     def _process_flows(_args):
-        tickets, flow_id, session = _args
+        tickets, flow_id, session, flows = _args
         config = session.GetParameter("agent_config")
 
         def _update_flow_info(flow_collection, tickets):
@@ -214,9 +214,7 @@ class HuntStatus(FlowStatus):
                         ticket_data=ticket.to_json(),
                     )
 
-            flow_obj = Flow.from_json(
-                config.server.flows_for_server(flow_id).read_file(),
-                session=session)
+            flow_obj = flows.get(flow_id)
             flow_obj.post_process(tickets)
 
         HuntStatsCollection.transaction(

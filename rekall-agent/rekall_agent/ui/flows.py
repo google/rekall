@@ -28,6 +28,7 @@ from rekall import utils
 from rekall_agent import common
 from rekall_agent import flow
 from rekall_agent import serializer
+from rekall_agent.ui import renderers
 
 
 CANNED_CONDITIONS = dict(
@@ -47,7 +48,7 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
 
     table_header = [
         dict(name="state", width=8),
-        dict(name="flow_id", width=12),
+        dict(name="flow_id", width=14),
         dict(name="type", width=18),
         dict(name="created", width=19),
         dict(name="last_active", width=19),
@@ -106,6 +107,9 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
         rows = list(self.collect_db(collection))
         common.THREADPOOL.map(self._check_pending_flow, rows)
         for row in rows:
+            row["collections"] = [
+                renderers.UILink("gs", x) for x in row["collections"]]
+            row["flow_id"] = renderers.UILink("f", row["flow_id"])
             yield row
 
 
@@ -122,7 +126,9 @@ class AgentControllerShowHunts(AgentControllerShowFlows):
             self.config.server.flow_db_for_server(queue=self.plugin_args.queue),
             session=self.session)
 
-        return self.collect_db(collection)
+        for row in self.collect_db(collection):
+            row["flow_id"] = renderers.UILink("h", row["flow_id"])
+            yield row
 
 
 class SerializedObjectInspectorMixin(object):
@@ -360,7 +366,8 @@ class InspectHunt(InspectFlow):
             for result in ticket.collections:
                 yield dict(Field=ticket.client_id,
                            Time=ticket.timestamp,
-                           Value=result.location.to_path())
+                           Value=renderers.UILink(
+                               "gs", result.location.to_path()))
 
         for row in collection.query(
                 status="Error", limit=self.plugin_args.limit):
