@@ -59,7 +59,7 @@ install_requires = [
     "efilter == 1!1.3",
     "intervaltree == 2.1.0",
     "pycrypto == 2.6.1",
-    "pyelftools == 0.23",
+    "pyelftools == 0.24",
     "pyparsing==2.1.5",
     "pytz == 2016.4",
     "psutil >= 4.0, < 5.0",

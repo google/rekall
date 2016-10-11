@@ -111,8 +111,10 @@ class DIETag(object):
 
     @utils.safe_property
     def name(self):
+        # This node is directly named.
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
+
         elif ("DW_AT_sibling" in self.attributes and
               (self.attributes["DW_AT_sibling"].value + self.die.cu.cu_offset
                in self.types)):
@@ -161,6 +163,13 @@ class DW_TAG_structure_type(DIETag):
         self.members = []
 
     @utils.safe_property
+    def name(self):
+        if "DW_AT_name" in self.attributes:
+            return self.attributes["DW_AT_name"].value
+        else:
+            return "__unnamed_%s" % self.die.offset
+
+    @utils.safe_property
     def size(self):
         try:
             return self.attributes['DW_AT_byte_size'].value
@@ -168,8 +177,17 @@ class DW_TAG_structure_type(DIETag):
             pass
 
     def Definition(self, vtype):
+        # Forward declerations are not interesting.
+        if "DW_AT_declaration" in self.attributes:
+            return
+
+        if self.name in vtype and vtype[self.name][0] != self.size:
+            self.session.logging.warning(
+                "Structs of different sizes but same name")
+
         count = 1
         result = [self.size, {}]
+
         for member in self.members:
             if isinstance(member, DW_TAG_member):
                 name = member.name
