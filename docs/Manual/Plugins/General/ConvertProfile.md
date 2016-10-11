@@ -26,7 +26,7 @@ particular software version. For example, Rekall requires a Linux Kernel profile
 to be able to analyze a memory image of the Linux kernel.
 
 The `convert_profile` plugin converts profiles other formats to the standard
-JSON format used by Relall. There are two main use cases:
+JSON format used by Rekall. There are two main use cases:
 
 1. If you have an old Volatility profile, this plugin will parse that.
 
