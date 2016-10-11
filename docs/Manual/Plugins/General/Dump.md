@@ -1,5 +1,5 @@
 ---
-abstract: "Hexdump an object or memory location.\n\n    You can use this plugin repeateadely\
+abstract: "Hexdump an object or memory location.\n\n    You can use this plugin repeatedly\
   \ to keep dumping more data using the\n     \"p _\" (print last result) operation:\n\
   \n    In [2]: dump 0x814b13b0, address_space=\"K\"\n    ------> dump(0x814b13b0,\
   \ address_space=\"K\")\n    Offset                         Hex                 \
