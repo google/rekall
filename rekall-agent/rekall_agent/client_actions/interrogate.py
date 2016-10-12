@@ -216,7 +216,10 @@ class StartupAction(action.Action):
         self._session.logging.info("Creating a new client_id %s", client_id)
         self._config.client.save_writeback()
 
-    def run(self):
+    def run(self, flow_obj=None):
+        if not self.is_active():
+            return []
+
         if not self._config.client.writeback.client_id:
             self.enroll()
 

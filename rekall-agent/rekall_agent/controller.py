@@ -23,7 +23,13 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """The controller schedules flows on Rekall agents."""
+from rekall.plugins.common import address_resolver
 from rekall_agent import common
+
+
+class ControllerAddressResolver(address_resolver.AddressResolverMixin,
+                                common.AbstractAgentCommand):
+    pass
 
 
 class RekallAgentController(common.AbstractAgentCommand):

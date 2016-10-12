@@ -622,6 +622,17 @@ class SerializedObject(object):
 
         super(SerializedObject, self).__setattr__(item, value)
 
+    def cast(self, target_cls):
+        """Cast the current object into the target class.
+
+        This method forces this object to be converted to the target class. This
+        means that all data fields on this object will be assigned to the target
+        class if it supports these fields. Fields which are not supported by the
+        target class will be ignored.
+        """
+        return target_cls.from_primitive(
+            self.to_primitive(False), session=self._session)
+
 
 class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):
     """A class which produces an ordered dict."""

@@ -255,6 +255,16 @@ class FileInformation(utils.SlottedObject):
         except (IOError, OSError) as e:
             return obj.NoneObject("Unable to open file: %s", e)
 
+    def list_names(self):
+        if not self.st_mode.is_dir():
+            return []
+
+        filename = self.filename.os_path()
+        try:
+            return os.listdir(filename)
+        except (OSError, IOError):
+            return []
+
     def list(self):
         """If this is a directory return a list of children."""
         if not self.st_mode.is_dir():

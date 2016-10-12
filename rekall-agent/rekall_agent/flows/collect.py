@@ -49,9 +49,13 @@ class CollectFlow(flow.Flow):
 
     _collection_name = "collection"
 
+    def set_collection_name(self, name):
+        self._collection_name = name
+
     def expand_collection_name(self):
         return self._collection_name.format(
             timestamp=int(time.time()),
+            flow_id=self.flow_id,
         )
 
     def get_location(self):

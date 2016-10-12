@@ -118,9 +118,9 @@ class ListDirectoryAction(action.Action):
                     yield x
                     new_dirs.append(x["filename"])
 
-                    # os.walk allows us to control recursion by mutating the
-                    # data list.
-                    directories[:] = new_dirs
+                # os.walk allows us to control recursion by mutating the
+                # data list.
+                directories[:] = new_dirs
 
         else:
             for x in helpers.ListFilter().filter(
@@ -128,7 +128,10 @@ class ListDirectoryAction(action.Action):
                     self._process_files(self.path, os.listdir(self.path))):
                 yield x
 
-    def run(self):
+    def run(self, flow_obj=None):
+        if not self.is_active():
+            return []
+
         self._collection = StatEntryCollection(session=self._session)
         self._collection.location = self.vfs_location.copy()
         with self._collection.create_temp_file():

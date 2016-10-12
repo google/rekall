@@ -45,7 +45,9 @@ install_requires = [
     "requests==2.11.1",
     "httplib2==0.9.2",
     "oauth2client==3.0.0",
-    "cryptography==1.3.1",
+    "cryptography==1.4",
+    "filelock==2.0.6",
+    "pathlib==1.0.1"
 ]
 
 data_files = find_data_files("test_data")
