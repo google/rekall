@@ -74,7 +74,8 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
         if (address_space.end() < self.MAX_SIZE and
             address_space.read(0, 1) in "{["):
             try:
-                data = json.loads(address_space.read(0, self.MAX_SIZE))
+                data = json.loads(address_space.read(
+                    0, min(self.MAX_SIZE, address_space.end())))
                 return self.render_json(data, renderer)
             except Exception:
                 pass

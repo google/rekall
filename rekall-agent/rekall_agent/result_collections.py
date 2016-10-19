@@ -315,6 +315,9 @@ class GenericSQLiteCollection(CollectionSpec):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
         self._conn.commit()
         self._conn.close()
         self._flush_cb()

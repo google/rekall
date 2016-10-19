@@ -297,28 +297,6 @@ class GCSLocation(location.Location):
         """
         raise NotImplementedError()
 
-    def _report_error(self, completion_routine, response=None,
-                      message=None):
-        if response:
-            # Only include the text in case of error.
-            if not response.ok:
-                status = location.Status(response.status_code, response.text)
-            else:
-                status = location.Status(response.status_code)
-
-        else:
-            status = location.Status(500, message)
-
-        if response is None or not response.ok:
-            if completion_routine:
-                return completion_routine(status)
-
-            raise IOError(response.text)
-        else:
-            if completion_routine:
-                completion_routine(status)
-
-        return response.ok
 
     def read_file(self, **kw):
         try:
@@ -794,6 +772,7 @@ class GCSSignedPolicyLocation(GCSLocation):
         """Expand the complete path using the client's config."""
         config = self._session.GetParameter("agent_config")
         kwargs["client_id"] = config.client.writeback.client_id
+        kwargs["nonce"] = config.client.nonce
         return self.path_template.format(**kwargs)
 
     def get_canonical(self, **kwargs):
@@ -821,13 +800,13 @@ class GCSSignedPolicyLocation(GCSLocation):
         return url_endpoint, params, headers, key
 
     def upload_file_object(self, fd, completion_routine=None, **kwargs):
-        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
+        url_endpoint, params, headers, base_url = self._get_parameters(**kwargs)
         resp = self.get_requests_session().post(
             url_endpoint, params,
             files=dict(file=GzipWrapper(self._session, fd)),
             headers=headers)
 
         self._session.logging.debug(
-            "Uploaded file: %s (%s bytes)", params["key"], fd.tell())
+            "Uploaded file: %s (%s bytes)", base_url, fd.tell())
 
         return self._report_error(completion_routine, resp)

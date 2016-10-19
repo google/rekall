@@ -26,9 +26,9 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 A location is an object which handles file transfer to a specific place.
 """
-import filelock
 import string
 import os
+import filelock
 from rekall_agent import location
 
 
@@ -90,7 +90,7 @@ class FileLocation(location.Location):
             fd.write(data)
 
     def read_modify_write_local_file(self, modification_cb, *args):
-        self._ensure_dir_exists
+        self._ensure_dir_exists()
         lock = filelock.FileLock(self.to_path() + ".lock")
         try:
             with lock.acquire():

@@ -118,7 +118,10 @@ class BatchRunner(object):
             self.batch_name)
 
         for ticket_stat in queue_location.list_files():
-            ticket_locations.append(ticket_stat.location)
+            # Ticket locations are canonical (i.e. contain no credentials). We
+            # need to get usable locations so we can actually access them.
+            ticket_locations.append(
+                self._config.server.canonical_for_server(ticket_stat.location))
 
         # Nothing to do here.
         if not ticket_locations:

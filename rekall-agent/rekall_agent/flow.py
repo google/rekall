@@ -131,9 +131,11 @@ class FlowStatus(batch.BatchTicket):
         # ensure the ticket is written to the location the server decided in
         # advance. We ignore invalid messages and they will be deleted.
         components = ticket_location.to_path().split("/")
-        if (components[-1] != self.client_id or
-            components[-2] != self.flow_id or
-            components[-3] != self.__class__.__name__):
+        # Example of valid URL:
+        # /bucket/tickets/FlowStatus/F_4f47d99ead/C.4dd70be22bc56fc3/Z021
+        if (components[-2] != self.client_id or
+            components[-3] != self.flow_id or
+            components[-4] != self.__class__.__name__):
             raise IOError("Ticket location unexpected.")
 
         # Just group by client id. We do all the real work in the end() method.
@@ -191,9 +193,9 @@ class FlowStatus(batch.BatchTicket):
 class HuntStatus(FlowStatus):
     def process(self, context, ticket_location):
         components = ticket_location.to_path().split("/")
-        if (components[-1] != self.client_id or
-            components[-2] != self.flow_id or
-            components[-3] != self.__class__.__name__):
+        if (components[-2] != self.client_id or
+            components[-3] != self.flow_id or
+            components[-4] != self.__class__.__name__):
             raise IOError("Ticket location unexpected.")
 
         # Just group by flow id. We do all the real work in the end() method.

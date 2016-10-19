@@ -116,8 +116,8 @@ class Startup(batch.BatchTicket):
         components = ticket_location.to_path().split("/")
 
         # Ensure the ticket location matches the ticket content.
-        if (components[-1] != self.client_id or
-            components[-2] != self.__class__.__name__):
+        if (components[-2] != self.client_id or
+            components[-3] != self.__class__.__name__):
             raise IOError("Ticket location unexpected.")
 
         # Verify the client id and public key match.

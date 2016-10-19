@@ -91,13 +91,16 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
             ticket_location = self.config.server.ticket_for_server(
                 "FlowStatus", row["flow_id"], self.client_id)
 
-            data = ticket_location.read_file()
-            if data:
-                ticket = flow.FlowStatus.from_json(
-                    data, session=self.session)
-                row["state"] = "%s(*)" % ticket.status
-                row["collections"] = [ticket_location.to_path()]
-                row["last_active"] = ticket.timestamp
+            # The client will actually add a nonce to this so we need to find
+            # all subobjects.
+            for sub_object in ticket_location.list_files():
+                data = sub_object.location.read_file()
+                if data:
+                    ticket = flow.FlowStatus.from_json(
+                        data, session=self.session)
+                    row["state"] = "%s(*)" % ticket.status
+                    row["collections"] = [ticket_location.to_path()]
+                    row["last_active"] = ticket.timestamp
 
     def collect(self):
         if not self.client_id:
@@ -474,9 +477,7 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         if not isinstance(args, dict):
             raise plugin.PluginError("args should be a dict")
 
-        flow_obj = flow_cls.from_primitive(
-            args, session=self.session)
-
+        flow_obj = flow_cls.from_primitive(args, session=self.session)
         flow_obj.client_id = self.client_id
         flow_obj.queue = self.plugin_args.queue
         flow_obj.session.live = self.plugin_args.live

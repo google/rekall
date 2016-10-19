@@ -169,8 +169,6 @@ class DW_TAG_structure_type(DIETag):
             pass
 
     def Definition(self, vtype):
-        print self.name, self.die.tag
-
         # Forward declerations are not interesting.
         if "DW_AT_declaration" in self.attributes:
             return
@@ -206,7 +204,6 @@ class DW_TAG_union_type(DW_TAG_structure_type):
         if "DW_AT_sibling" in self.attributes:
             sibling = self.types.get(self.attributes["DW_AT_sibling"].value +
                                      self.die.cu.cu_offset)
-            print sibling.name, sibling.die.tag
             if sibling and sibling.die.tag == "DW_TAG_typedef":
                 return sibling.name
 
