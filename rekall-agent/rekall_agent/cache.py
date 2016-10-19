@@ -103,6 +103,15 @@ class LocalDiskCache(Cache):
                 "Expiring local cache %s", current_generation_path)
             os.unlink(current_generation_path)
 
+            # Trim empty directories.
+            try:
+                dirname = os.path.dirname(current_generation_path)
+                while dirname:
+                    os.rmdir(dirname)
+                    dirname = os.path.dirname(dirname)
+            except (IOError, OSError):
+                pass
+
     def get_generation(self, path):
         """Returns current generation for this path, or None."""
         containing_dir_path = os.path.join(
@@ -152,9 +161,6 @@ class LocalDiskCache(Cache):
         except (IOError, OSError):
             pass
 
-        self._session.logging.debug(
-            "Creating cached file %s", file_path)
-
         count = 0
         with open(file_path, "wb") as outfd:
             if data:
@@ -174,4 +180,29 @@ class LocalDiskCache(Cache):
                     self._session.report_progress("Downloading %s", count)
                     outfd.write(data)
 
+        self._session.logging.debug(
+            "Creating cached file %s (%s bytes)", file_path, count)
+
         return file_path
+
+    def list_files(self, path):
+        containing_dir_path = os.path.join(
+            self.cache_directory, path.lstrip(os.path.sep))
+        try:
+            for root, _, files in os.walk(containing_dir_path):
+                for filename in files:
+                    if filename.startswith("@") and filename.endswith("@"):
+                        generation = filename[1:-1]
+                        subpath = "/" + os.path.relpath(
+                            root, self.cache_directory)
+
+                        s = os.lstat(os.path.join(root, filename))
+                        yield dict(
+                            created=s.st_ctime,
+                            updated=s.st_mtime,
+                            size=s.st_size,
+                            generation=generation,
+                            path=subpath)
+
+        except (IOError, OSError):
+            pass

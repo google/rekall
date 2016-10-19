@@ -13,48 +13,46 @@ from efilter.transforms import solve
 from rekall import utils
 
 
-def _prepare_efilter_scopes():
-    """Create the callables which can be used in the efilter scopes."""
+# Exported EFilter functions. These can be used within efilter
+# queries. For example select hex(cmd_address) from dis(0xfa8000895a32).
+def hex_function(value):
+    """A Function to format the output as a hex string."""
+    if value == None:
+        return
 
-    # Exported EFilter functions. These can be used within efilter
-    # queries. For example select hex(cmd_address) from dis(0xfa8000895a32).
-    def hex_function(value):
-        """A Function to format the output as a hex string."""
-        if value == None:
-            return
+    return "%#x" % value
 
-        return "%#x" % value
+def str_function(value):
+    if value == None:
+        return
 
-    def str_function(value):
-        if value == None:
-            return
+    return utils.SmartUnicode(value)
 
-        return utils.SmartUnicode(value)
+def int_function(value):
+    if value == None:
+        return
 
-    def int_function(value):
-        if value == None:
-            return
+    return int(value)
 
-        return int(value)
+def noncase_search_function(regex, value):
+    """Case insensitive regex search function."""
+    return bool(re.search(unicode(regex), unicode(value), re.I))
 
-    def noncase_search_function(regex, value):
-        """Case insensitive regex search function."""
-        return bool(re.search(unicode(regex), unicode(value), re.I))
 
-    return dict(
-        hex=api.user_func(
-            hex_function, arg_types=[int], return_type=[str]),
+EFILTER_SCOPES = dict(
+    hex=api.user_func(
+        hex_function, arg_types=[int], return_type=[str]),
 
-        str=api.user_func(
-            str_function, arg_types=[], return_type=[unicode]),
+    str=api.user_func(
+        str_function, arg_types=[], return_type=[unicode]),
 
-        int=api.user_func(
-            int_function, arg_types=[], return_type=[int]),
+    int=api.user_func(
+        int_function, arg_types=[], return_type=[int]),
 
-        regex_search=api.user_func(
-            noncase_search_function, arg_types=[unicode, unicode],
-            return_type=[bool]),
-    )
+    regex_search=api.user_func(
+        noncase_search_function, arg_types=[unicode, unicode],
+        return_type=[bool]),
+)
 
 
 class GeneratorRunner(object):
@@ -104,11 +102,9 @@ class EfilterRunner(object):
     {'A': 3, 'B': 6}
     {'A': 4, 'B': 8}
     """
-    def __init__(self):
-        self._scope = _prepare_efilter_scopes()
 
     def resolve(self, name):
-        function = self._scope.get(name)
+        function = EFILTER_SCOPES.get(name)
         if function:
             return function
 
@@ -144,6 +140,9 @@ class ListFilter(EfilterRunner):
           filter_exr: essentially the where clause.
           data: A list of dicts, each dict representing a row.
         """
+        if not filter_exr:
+            return data
+
         self._list = data
         query = "select * from list()"
         if filter_exr:

@@ -23,6 +23,8 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Implements file download client actions."""
+import os
+
 from rekall.plugins.response import common
 from rekall_agent import common as agent_common
 from rekall_agent import location
@@ -42,6 +44,11 @@ class GetFiles(collect.CollectAction):
              doc="A location to store the files.")
     ]
 
+    def get_files_from_row(self, row):
+        """Given a row return all the paths in it."""
+        if isinstance(self.collection, files.StatEntryCollection):
+            yield os.path.join(row["dirname"], row["filename"])
+
     def collect(self):
         """Intercept collected rows and detect any files."""
         self._to_download = []
@@ -55,34 +62,33 @@ class GetFiles(collect.CollectAction):
             # uploaded.
 
             # Try to detect files as any column with an instance of FileSpec.
-            for path in row.itervalues():
-                if isinstance(path, common.FileSpec):
-                    file_info = common.FileInformation.from_stat(
-                        path, session=self._session)
-                    try:
-                        # Its a real file, save it for later uploading.
-                        if not file_info.st_mode.is_dir():
-                            fd = file_info.open()
-                            self._to_download.append(
-                                dict(fd=fd, subpath=path.name))
+            for path in self.get_files_from_row(row):
+                file_info = common.FileInformation.from_stat(
+                    path, session=self._session)
+                try:
+                    # Its a real file, save it for later uploading.
+                    if not file_info.st_mode.is_dir():
+                        fd = file_info.open()
+                        self._to_download.append(
+                            dict(fd=fd, subpath=path))
 
-                            yield row
-                    except IOError:
-                        self._session.logging.info(
-                            "Unable to upload %s", path.filename.name)
+                        yield row
+                except IOError:
+                    self._session.logging.info("Unable to upload %s", path)
 
-    def run(self):
+    def run(self, flow_obj=None):
         """If files were emitted by the collection, upload them all now."""
-        result = super(GetFiles, self).run()
+        if not self.is_active():
+            return []
 
+        result = super(GetFiles, self).run(flow_obj=flow_obj)
         if self._to_download:
-            try:
-                # Wait until all the uploads are done before we return.
-                list(agent_common.THREADPOOL.imap_unordered(
-                    lambda kw: self.location.upload_file_object(**kw),
-                    self._to_download))
-            finally:
-                for kw in self._to_download:
-                    kw["fd"].close()
+            agent_common.THREADPOOL.map(
+                lambda kw: self.location.upload_file_object(**kw),
+                self._to_download)
+
+            for kw in self._to_download:
+                kw["fd"].close()
+                flow_obj.ticket.files.append(self.location.get_canonical(**kw))
 
         return result

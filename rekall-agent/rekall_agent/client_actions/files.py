@@ -29,6 +29,9 @@ These client actions are designed to maintain the client's Virtual File System
 """
 import os
 
+import psutil
+
+from rekall import kb
 from rekall import utils
 from rekall.plugins.common.efilter_plugins import helpers
 
@@ -60,6 +63,64 @@ class StatEntryCollection(result_collections.GenericSQLiteCollection):
     )]
 
 
+class MountPointHook(kb.ParameterHook):
+    # This is linux specific.
+    mode = "mode_live"
+    name = "mount_points"
+    volatile = True
+
+    def _add_to_tree(self, devices, mnt_point, device, fs_type):
+        components = ["/"] + mnt_point.split("/")
+        node = [devices, None]
+        for component in components:
+            if not component:
+                continue
+
+            next_node = node[0].get(component)
+            if next_node is None:
+                next_node = [{}, None]
+                node[0][component] = next_node
+
+            node = next_node
+
+        node[1] = (device, mnt_point, fs_type)
+
+    def calculate(self):
+        """List all the filesystems mounted on the system."""
+        devices = {}
+
+        for partition in psutil.disk_partitions(all=True):
+            self._add_to_tree(
+                devices,
+                partition.mountpoint,
+                partition.device,
+                partition.fstype)
+
+
+def lookup_mount_point(devices, path):
+    """Resolve the mount point that contains the path.
+
+    Args:
+      devices: The Tree as returned by the MountPoints hook.
+
+    Returns:
+     (device, mnt_point, fs_type) tuple.
+    """
+    components = ["/"] + path.split("/")
+    node = [devices, None]
+
+    for component in components:
+        if not component:
+            continue
+
+        if component not in node[0]:
+            return node[1]
+
+        node = node[0][component]
+
+    return node[1]
+
+
 class ListDirectoryAction(action.Action):
     """List a directory and store it in the client's VFS.
 
@@ -72,12 +133,20 @@ class ListDirectoryAction(action.Action):
         dict(name="recursive", type="bool",
              doc="If set we recursively list all directories."),
 
+        dict(name="depth", type="int", default=100,
+             doc="If recursing this is how deep we will go."),
+
         dict(name="vfs_location", type=location.Location,
              doc="The vfs location where we write the collection."),
 
         dict(name="filter",
              doc=("A efilter filter (everything following where clause) "
-                  "to apply."))
+                  "to apply.")),
+
+        dict(name="valid_filesystems", default=[
+            "ext2", "ext3", "ext4", "vfat", "ntfs", "Apple_HFS", "hfs", "msdos"
+        ], repeated=True,
+             doc="The set of valid filesystems we may recurse into."),
     ]
 
     def _process_files(self, root, files):
@@ -118,9 +187,9 @@ class ListDirectoryAction(action.Action):
                     yield x
                     new_dirs.append(x["filename"])
 
-                    # os.walk allows us to control recursion by mutating the
-                    # data list.
-                    directories[:] = new_dirs
+                # os.walk allows us to control recursion by mutating the
+                # data list.
+                directories[:] = new_dirs
 
         else:
             for x in helpers.ListFilter().filter(
@@ -128,7 +197,10 @@ class ListDirectoryAction(action.Action):
                     self._process_files(self.path, os.listdir(self.path))):
                 yield x
 
-    def run(self):
+    def run(self, flow_obj=None):
+        if not self.is_active():
+            return []
+
         self._collection = StatEntryCollection(session=self._session)
         self._collection.location = self.vfs_location.copy()
         with self._collection.create_temp_file():

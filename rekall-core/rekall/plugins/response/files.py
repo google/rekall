@@ -140,7 +140,7 @@ class Component(object):
         self.component = component
         self.component_cache = cache
 
-    def _build_cache(self, file_info):
+    def _build_cache(self, path):
         """Builds a case corrected cache of filenames.
 
         keys are lower cased filenames within the directory file_info. Values
@@ -150,11 +150,8 @@ class Component(object):
         """
         cache = {}
         # Cache not populated
-        for child in file_info.list():
-            basename = os.path.basename(
-                child.filename.name.rstrip(
-                    child.filename.path_sep)).lower()
-            cache.setdefault(basename, []).append(child)
+        for basename in self.listdir(path):
+            cache.setdefault(basename.lower(), []).append(basename)
 
         #self.component_cache.Put(file_info.filename.name, cache)
         return cache
@@ -168,6 +165,12 @@ class Component(object):
     def __str__(self):
         return "%s:%s" % (self.__class__.__name__, self.component)
 
+    def listdir(self, path):
+        try:
+            return os.listdir(path)
+        except (IOError, OSError):
+            return []
+
 
 class LiteralComponent(Component):
 
@@ -177,25 +180,23 @@ class LiteralComponent(Component):
 
         return False
 
-    def filter(self, file_info):
+    def filter(self, path):
         # For case insensitive filesystems we can just try to open the
         # component.
         if self.case_insensitive_filesystem():
-            result = common.FileFactory(
-                file_info.filename.add(self.component),
-                session=self.session)
-            if result:
+            result = os.path.join(path, self.component)
+            if os.path.access(result, os.R_OK):
                 return [result]
 
             return []
 
         key = self.component.lower()
         try:
-            cache = self.component_cache.Get(file_info.filename.name)
+            cache = self.component_cache.Get(path)
         except KeyError:
-            cache = self._build_cache(file_info)
+            cache = self._build_cache(path)
 
-        return cache.get(key, [])
+        return [os.path.join(path, x) for x in cache.get(key, [])]
 
 
 class RegexComponent(Component):
@@ -203,11 +204,11 @@ class RegexComponent(Component):
         super(RegexComponent, self).__init__(*args)
         self.component_re = re.compile(self.component, re.I)
 
-    def filter(self, file_info):
-        for child in file_info.list():
-            basename = os.path.basename(child.filename.name)
-            if self.component_re.match(basename):
-                yield child
+    def filter(self, path):
+        if os.path.isdir(path) and not os.path.islink(path):
+            for basename in self.listdir(path):
+                if self.component_re.match(basename):
+                    yield os.path.join(path, basename)
 
 
 class RecursiveComponent(RegexComponent):
@@ -215,16 +216,23 @@ class RecursiveComponent(RegexComponent):
         super(RecursiveComponent, self).__init__(session, component, cache)
         self.depth = depth
 
-    def filter(self, file_info, depth=0):
+    def filter(self, path, depth=0):
         if depth == self.depth:
             return
 
-        for child in file_info.list():
-            yield child
+        if not os.path.isdir(path):
+            return
 
-            basename = os.path.basename(child.filename.name).lower()
-            if self.component_re.match(basename):
-                for subitem in self.filter(child, depth+1):
+        if os.path.islink(path):
+            return
+
+        for basename in self.listdir(path):
+            subdir = os.path.join(path, basename)
+            yield subdir
+
+            if (self.component_re.match(basename) and os.path.isdir(subdir) and
+                not os.path.islink(subdir)):
+                for subitem in self.filter(subdir, depth+1):
                     yield subitem
 
 
@@ -382,26 +390,21 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
         return components
 
-    def _filter(self, node, file_information):
-        self.session.report_progress("Checking %s", file_information.filename)
+    def _filter(self, node, path):
+        self.session.report_progress("Checking %s", path)
         for component, child_node in node.iteritems():
             # Terminal node - yield the result.
             if not child_node:
-                for item in component.filter(file_information):
-                    yield item
+                for subpath in component.filter(path):
+                    yield subpath
 
             else:
                 # Non - terminal node, walk the subnode recursively.
-                for matching_file_info in component.filter(file_information):
-                    for item in self._filter(child_node, matching_file_info):
-                        yield item
+                for matching_path in component.filter(path):
+                    for subpath in self._filter(child_node, matching_path):
+                        yield subpath
 
     def collect_globs(self, globs):
-        root_spec = common.FileSpec(
-            self.plugin_args.root,
-            filesystem=self.plugin_args.filesystem,
-            path_sep=self.plugin_args.path_sep)
-
         expanded_globs = []
         for glob in globs:
             expanded_globs.extend(self._interpolate_grouping(glob))
@@ -412,9 +415,8 @@ class IRGlob(common.AbstractIRCommandPlugin):
             for component in self.convert_glob_into_path_components(glob):
                 node = node.setdefault(component, {})
 
-        root_file = common.FileFactory(root_spec, session=self.session)
-        for item in self._filter(component_tree, root_file):
-            yield item
+        for path in self._filter(component_tree, self.plugin_args.root):
+            yield common.FileFactory(path, session=self.session)
 
     def collect(self):
         self.component_cache = utils.FastStore(50)

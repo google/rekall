@@ -1153,16 +1153,21 @@ class TextTable(renderer_module.BaseTable):
                 for i, column in enumerate(self.columns):
                     length = 1
                     for row in self.deferred_rows:
-                        # Render everything on the same line
-                        rendered_lines = column.render_row(
-                            row[0][i], nowrap=1).lines
+                        try:
+                            # Render everything on the same line
+                            rendered_lines = column.render_row(
+                                row[0][i], nowrap=1).lines
 
-                        if rendered_lines:
-                            rendered_line = rendered_lines[0]
-                        else:
-                            rendered_line = ""
 
-                        length = max(length, len(rendered_line))
+                            if rendered_lines:
+                                rendered_line = rendered_lines[0]
+                            else:
+                                rendered_line = ""
+
+                            length = max(length, len(rendered_line))
+
+                        except IndexError:
+                            pass
 
                     max_widths.append(length)
 

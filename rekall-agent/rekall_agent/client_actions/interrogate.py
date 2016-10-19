@@ -116,8 +116,8 @@ class Startup(batch.BatchTicket):
         components = ticket_location.to_path().split("/")
 
         # Ensure the ticket location matches the ticket content.
-        if (components[-1] != self.client_id or
-            components[-2] != self.__class__.__name__):
+        if (components[-2] != self.client_id or
+            components[-3] != self.__class__.__name__):
             raise IOError("Ticket location unexpected.")
 
         # Verify the client id and public key match.
@@ -216,7 +216,10 @@ class StartupAction(action.Action):
         self._session.logging.info("Creating a new client_id %s", client_id)
         self._config.client.save_writeback()
 
-    def run(self):
+    def run(self, flow_obj=None):
+        if not self.is_active():
+            return []
+
         if not self._config.client.writeback.client_id:
             self.enroll()
 
