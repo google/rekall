@@ -28,6 +28,7 @@ A location is an object which handles file transfer to a specific place.
 """
 import string
 import os
+import filelock
 from rekall_agent import location
 
 
@@ -63,6 +64,9 @@ class FileLocation(location.Location):
 
         return "".join(result)
 
+    def to_path(self):
+        return self.path
+
     def _ensure_dir_exists(self):
         """Create intermediate directories to the ultimate path."""
         dirname = os.path.dirname(self.path)
@@ -84,6 +88,15 @@ class FileLocation(location.Location):
 
         with open(self.full_path, "wb") as fd:
             fd.write(data)
+
+    def read_modify_write_local_file(self, modification_cb, *args):
+        self._ensure_dir_exists()
+        lock = filelock.FileLock(self.to_path() + ".lock")
+        try:
+            with lock.acquire():
+                modification_cb(self.to_path(), *args)
+        except OSError:
+            modification_cb(self.to_path(), *args)
 
     def upload_local_file(self, local_filename, completion_routine=None,
                           delete=True):

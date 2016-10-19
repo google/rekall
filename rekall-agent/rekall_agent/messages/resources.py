@@ -38,10 +38,15 @@ class Resources(serializer.SerializedObject):
 
     _start_user_time = _start_system_time = _start_wall_time = 0
     _counting = False
+    _proc = None
+
+    def __init__(self, *args, **kwargs):
+        super(Resources, self).__init__(*args, **kwargs)
+        self._proc = psutil.Process()
 
     def start(self):
         """Reset internal resource counters and start measuring."""
-        cpu_times = psutil.cpu_times()
+        cpu_times = self._proc.cpu_times()
 
         self._start_user_time = cpu_times.user
         self._start_system_time = cpu_times.system
@@ -54,7 +59,7 @@ class Resources(serializer.SerializedObject):
         self._counting = False
 
     def update(self):
-        cpu_times = psutil.cpu_times()
+        cpu_times = self._proc.cpu_times()
         if self._counting:
             self.user_time = cpu_times.user - self._start_user_time
             self.system_time = cpu_times.system - self._start_system_time
@@ -77,9 +82,17 @@ class Quota(Resources):
              doc="The resources actually used."),
     ]
 
+    _last_check_time = 0
+
     def start(self):
         self.used.start()
 
     def check(self):
         """Ensure our resource use does not exceed the quota."""
+        now = time.time()
+        # Skip checking if we got called less than 1 seconds ago.
+        if now - self._last_check_time < 1:
+            return True
+
+        self._last_check_time = now
         return self.used.total_time <= self.total_time

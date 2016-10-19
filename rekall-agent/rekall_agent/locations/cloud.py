@@ -76,7 +76,7 @@ class ServiceAccount(serializer.SerializedObject):
     schema = [
         dict(name="type",
              doc="The type of account (should be 'service_account')"),
-        dict(name="private_key"),
+        dict(name="private_key", hidden=True),
         dict(name="client_email"),
     ]
 
@@ -249,7 +249,7 @@ class GCSLocation(location.Location):
         dict(name="bucket",
              doc="Name of the bucket"),
 
-        dict(name="upload", type="choices", default=u"direct",
+        dict(name="upload", type="choices", default=u"direct", hidden=True,
              choices=[u"direct", u"resumable"],
              doc="Type of upload mechanism."),
 
@@ -261,7 +261,7 @@ class GCSLocation(location.Location):
         super(GCSLocation, self).__init__(*args, **kwargs)
         self._cache = self._session.GetParameter("agent_config").server.cache
 
-    def get_canonical(self):
+    def get_canonical(self, **_):
         return GCSLocation.from_keywords(
             session=self._session,
             bucket=self.bucket,
@@ -297,28 +297,6 @@ class GCSLocation(location.Location):
         """
         raise NotImplementedError()
 
-    def _report_error(self, completion_routine, response=None,
-                      message=None):
-        if response:
-            # Only include the text in case of error.
-            if not response.ok:
-                status = location.Status(response.status_code, response.text)
-            else:
-                status = location.Status(response.status_code)
-
-        else:
-            status = location.Status(500, message)
-
-        if response is None or not response.ok:
-            if completion_routine:
-                return completion_routine(status)
-
-            raise IOError(response.text)
-        else:
-            if completion_routine:
-                completion_routine(status)
-
-        return response.ok
 
     def read_file(self, **kw):
         try:
@@ -477,8 +455,8 @@ class GCSOAuth2BasedLocation(GCSLocation):
     allows us to use the full JSON based API.
     """
     schema = [
-        dict(name="headers", type=GCSHeaders),
-        dict(name="generation"),
+        dict(name="headers", type=GCSHeaders, hidden=True),
+        dict(name="generation", hidden=True),
     ]
 
     def _get_parameters(self, if_modified_since=None, generation=None, **_):
@@ -674,15 +652,15 @@ class GCSSignedURLLocation(GCSLocation):
     """A Location object which can be used to access a signed URL."""
 
     schema = [
-        dict(name="method", type="choices", default="GET",
+        dict(name="method", type="choices", default="GET", hidden=True,
              choices=["GET", "POST", "PUT"]),
-        dict(name="signature", type="str",
+        dict(name="signature", type="str", hidden=True,
              doc="The signature to use when accessing the resource."),
-        dict(name="GoogleAccessId",
+        dict(name="GoogleAccessId", hidden=True,
              doc="The email form of the service account id"),
         dict(name="expiration", type="int",
              doc="When the url expires."),
-        dict(name="headers", type=GCSHeaders),
+        dict(name="headers", type=GCSHeaders, hidden=True),
     ]
 
     def _get_parameters(self):
@@ -769,10 +747,10 @@ class GCSSignedPolicyLocation(GCSLocation):
     """A Location object which uses a policy to access a URL."""
 
     schema = [
-        dict(name="policy", type="str",
+        dict(name="policy", type="str", hidden=True,
              doc="The policy document."),
 
-        dict(name="signature", type="str",
+        dict(name="signature", type="str", hidden=True,
              doc="The signature to use when accessing the resource."),
 
         dict(name="path_prefix",
@@ -781,26 +759,27 @@ class GCSSignedPolicyLocation(GCSLocation):
         dict(name="path_template",
              doc="A template from which to expand the complete path."),
 
-        dict(name="GoogleAccessId",
+        dict(name="GoogleAccessId", hidden=True,
              doc="The email form of the service account id"),
 
         dict(name="expiration", type="int",
              doc="When the url expires."),
 
-        dict(name="headers", type=GCSHeaders),
+        dict(name="headers", type=GCSHeaders, hidden=True),
     ]
 
     def expand_path(self, **kwargs):
         """Expand the complete path using the client's config."""
         config = self._session.GetParameter("agent_config")
         kwargs["client_id"] = config.client.writeback.client_id
+        kwargs["nonce"] = config.client.nonce
         return self.path_template.format(**kwargs)
 
-    def get_canonical(self):
+    def get_canonical(self, **kwargs):
         return GCSLocation.from_keywords(
             session=self._session,
             bucket=self.bucket,
-            path=utils.join_path(self.path_prefix, self.expand_path())
+            path=utils.join_path(self.path_prefix, self.expand_path(**kwargs))
         )
 
     def _get_parameters(self, **kwargs):
@@ -821,13 +800,13 @@ class GCSSignedPolicyLocation(GCSLocation):
         return url_endpoint, params, headers, key
 
     def upload_file_object(self, fd, completion_routine=None, **kwargs):
-        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
+        url_endpoint, params, headers, base_url = self._get_parameters(**kwargs)
         resp = self.get_requests_session().post(
             url_endpoint, params,
             files=dict(file=GzipWrapper(self._session, fd)),
             headers=headers)
 
         self._session.logging.debug(
-            "Uploaded file: %s (%s bytes)", params["key"], fd.tell())
+            "Uploaded file: %s (%s bytes)", base_url, fd.tell())
 
         return self._report_error(completion_routine, resp)

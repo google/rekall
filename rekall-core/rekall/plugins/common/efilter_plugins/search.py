@@ -386,12 +386,10 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             raise plugin.PluginError("Could not parse your query %r." % (
                 self.plugin_args.query,))
 
-        self._EXPORTED_EFILTER_FUNCTIONS = helpers._prepare_efilter_scopes()
-
     # IStructured implementation for EFILTER:
     def resolve(self, name):
         """Find and return a CommandWrapper for the plugin 'name'."""
-        function = self._EXPORTED_EFILTER_FUNCTIONS.get(name)
+        function = helpers.EFILTER_SCOPES.get(name)
         if function:
             return function
 
@@ -405,7 +403,7 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
     def getmembers_runtime(self):
         """Get all available plugins."""
         result = dir(self.session.plugins)
-        result += self._EXPORTED_EFILTER_FUNCTIONS.keys()
+        result += helpers.EFILTER_SCOPES.keys()
 
         return frozenset(result)
 

@@ -35,10 +35,10 @@ be possible.
 import re
 import os
 import tempfile
+import threading
 import sqlite3
 
 import arrow
-
 from rekall_agent import location
 from rekall_agent import serializer
 
@@ -57,8 +57,8 @@ class ColumnSpec(serializer.SerializedObject):
 class Table(serializer.SerializedObject):
     schema = [
         dict(name="name", doc="Name of the table."),
-        dict(name="columns", type=ColumnSpec, repeated=True),
-        dict(name="indexes", repeated=True),
+        dict(name="columns", type=ColumnSpec, repeated=True, hidden=True),
+        dict(name="indexes", repeated=True, hidden=True),
     ]
 
 
@@ -75,7 +75,7 @@ class CollectionSpec(serializer.SerializedObject):
         dict(name="type",
              doc="A canonical type name for this collection."),
 
-        dict(name="tables", type=Table, repeated=True,
+        dict(name="tables", type=Table, repeated=True, hidden=True,
              doc="A list of tables in this collection."),
     ]
 
@@ -135,9 +135,9 @@ class GenericSQLiteCollection(CollectionSpec):
 
     def __init__(self, *args, **kwargs):
         super(GenericSQLiteCollection, self).__init__(*args, **kwargs)
+        self._lock = threading.RLock()
 
         self._flush_cb = lambda: None
-
         # Allow the collection to be initialized from an class member.
         if not self.GetMember("tables") and self._tables:
             self.SetMember(
@@ -171,6 +171,16 @@ class GenericSQLiteCollection(CollectionSpec):
         result.load_from_local_file(filename)
 
         return result
+
+    @property
+    def collection_type(self):
+        if self.type:
+            return self.type
+
+        if self.__class__.__name__ != "GenericSQLiteCollection":
+            return self.__class__.__name__
+
+        raise RuntimeError("Collection has no fixed type")
 
     def create_temp_file(self):
         fd, local_filename = tempfile.mkstemp()
@@ -305,6 +315,9 @@ class GenericSQLiteCollection(CollectionSpec):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
         self._conn.commit()
         self._conn.close()
         self._flush_cb()
@@ -353,9 +366,10 @@ class GenericSQLiteCollection(CollectionSpec):
     def insert(self, table=None, row=None, **kwargs):
         table = self._find_table(table)
         sanitized_row = self.sanitize_row(row or kwargs)
-        self._cursor.execute(
-            self._queries[table.name],
-            [sanitized_row.get(x.name) for x in table.columns])
+        with self._lock:
+            self._cursor.execute(
+                self._queries[table.name],
+                [sanitized_row.get(x.name) for x in table.columns])
 
     def replace(self, table=None, condition=None, **kwargs):
         """Replace rows in the table with condition matching.
@@ -369,10 +383,11 @@ class GenericSQLiteCollection(CollectionSpec):
         update_sql += " where " + " and ".join(["%s=?" % x for x in condition])
 
         self._session.logging.debug(
-            "Query (%s): %s (%s)", self.location.to_path(),
-            update_sql, kwargs.values() + condition.values())
+            "Query (%s): %s", self.location.to_path(), update_sql)
 
-        self._cursor.execute(update_sql, kwargs.values() + condition.values())
+        with self._lock:
+            self._cursor.execute(
+                update_sql, kwargs.values() + condition.values())
 
     def __iter__(self):
         return self.query()

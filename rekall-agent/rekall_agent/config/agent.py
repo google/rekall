@@ -23,6 +23,7 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 
 """Defines the basic agent configuration system."""
+import base64
 import json
 import os
 
@@ -177,6 +178,11 @@ class ClientWriteback(serializer.SerializedObject):
     ]
 
 
+class PluginConfiguration(serializer.SerializedObject):
+    """Plugin specific configuration."""
+    schema = []
+
+
 class ClientPolicy(ExternalFileMixin,
                    serializer.SerializedObject):
 
@@ -201,7 +207,17 @@ class ClientPolicy(ExternalFileMixin,
 
         dict(name="poll_max", type="int", default=60,
              doc="How frequently to poll the server."),
+
+        dict(name="plugins", type="PluginConfiguration", repeated=True,
+             doc="Free form plugin specific configuration."),
     ]
+
+    def plugin_config(self, plugin_cls):
+        for plugin in self.plugins:
+            if plugin_cls.__name__ == plugin.__class__.__name__:
+                return plugin
+
+        return plugin_cls(session=self._session)
 
     @property
     def client_id(self):
@@ -244,6 +260,14 @@ class ClientPolicy(ExternalFileMixin,
         with open(self.writeback_path, "wb") as fd:
             fd.write(self._writeback.to_json())
 
+    _nonce = None
+    @property
+    def nonce(self):
+        """Each time a client is started it will get a unique nonce."""
+        if self._nonce is None:
+            self._nonce = base64.urlsafe_b64encode(os.urandom(3))
+
+        return self._nonce
 
 class ServerPolicy(ExternalFileMixin,
                    serializer.SerializedObject):

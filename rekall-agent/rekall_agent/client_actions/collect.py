@@ -54,7 +54,10 @@ class CollectAction(action.Action):
                 query_parameters=self.query_parameters).collect():
             yield match.ordered_dict
 
-    def run(self):
+    def run(self, flow_obj=None):
+        if not self.is_active():
+            return []
+
         # Only a single table is supported in the collection spec.
         if len(self.collection.tables) != 1:
             raise TypeError("Only a single table is supported.")

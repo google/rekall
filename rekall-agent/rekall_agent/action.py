@@ -38,6 +38,10 @@ class Action(serializer.SerializedObject):
     schema = [
         dict(name="flow_id",
              doc="Unique flow name that owns this request."),
+        dict(name="condition",
+             doc="An Efilter condition to evaluate before running."),
+        dict(name="session", type="dict",
+             doc="If provided, runs this action in a dedicated session."),
     ]
 
     # This is the agent's config.
@@ -51,7 +55,21 @@ class Action(serializer.SerializedObject):
     def client_id(self):
         return self._config.client.writeback.client_id
 
-    def run(self):
+    def is_active(self):
+        """Returns true is this action is active."""
+        if self.condition:
+            try:
+                if not list(self._session.plugins.search(self.condition)):
+                    return False
+
+            # If the query failed to run we must ignore this flow.
+            except Exception as e:
+                self._session.logging.exception(e)
+                return False
+
+        return True
+
+    def run(self, flow_obj=None):
         """Called by the client to execute this action.
 
         Returns a list of collections that have been written by this action.

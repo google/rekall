@@ -320,8 +320,10 @@ class SourceType(_FieldDefinitionValidator):
              default=list(definitions.SUPPORTED_OS)),
     ]
 
-    def __init__(self, source_definition):
+    def __init__(self, source_definition, artifact=None):
         attributes = source_definition["attributes"]
+        # The artifact that owns us.
+        self.artifact = artifact
         self.source_definition = source_definition
         self.type_indicator = source_definition["type"]
         self._LoadFieldDefinitions(attributes, self._field_definitions)
@@ -368,8 +370,8 @@ class RekallEFilterArtifacts(SourceType):
              default=REKALL_IMAGE_TYPES),
     ]
 
-    def __init__(self, source_definition):
-        super(RekallEFilterArtifacts, self).__init__(source_definition)
+    def __init__(self, source_definition, **kw):
+        super(RekallEFilterArtifacts, self).__init__(source_definition, **kw)
         for column in self.fields:
             if "name" not in column or "type" not in column:
                 raise errors.FormatError(
@@ -463,7 +465,7 @@ class FileSourceType(LiveModeSourceMixin, SourceType):
             for field in self._FIELDS:
                 name = field["name"]
                 type = RekallEFilterArtifacts.allowed_types[field["type"]]
-                row[name] = type(info[name])
+                row[name] = type(getattr(info, name))
 
             result.add_result(**row)
 
@@ -668,9 +670,9 @@ class ArtifactDefinition(_FieldDefinitionValidator):
             if source_type_name is None:
                 raise errors.FormatError("Source has no type.")
 
-            source_cls = SOURCE_TYPES.get(source_type_name)
+            source_cls = self.source_types.get(source_type_name)
             if source_cls:
-                result.append(source_cls(source))
+                result.append(source_cls(source, artifact=self))
             else:
                 self.unsupported_source_types.append(source_type_name)
 
@@ -715,14 +717,20 @@ class ArtifactDefinition(_FieldDefinitionValidator):
     ]
 
     name = "unknown"
+    source_types = SOURCE_TYPES
 
-    def __init__(self, data):
+    def __init__(self, data, source_types=None):
+        self.source_types = source_types or SOURCE_TYPES
+        self.data = data
         try:
             self._LoadDefinition(data)
         except Exception as e:
             exc_info = sys.exc_info()
             raise errors.FormatError(
                 "Definition %s: %s" % (self.name, e)), None, exc_info[2]
+
+    def set_implementations(self, source_types):
+        return self.__class__(self.data, source_types)
 
     def _LoadDefinition(self, data):
         if not isinstance(data, dict):
@@ -763,15 +771,25 @@ class ArtifactProfile(obj.Profile):
 
     def AddDefinition(self, definition):
         """Add a new definition from a dict."""
-        artifact = ArtifactDefinition(definition)
-        self.definitions.append(artifact)
-        self.definitions_by_name[definition["name"]] = artifact
+        self.definitions.append(definition)
+        self.definitions_by_name[definition["name"]] = definition
 
-    def GetDefinitionByName(self, name):
-        return self.definitions_by_name[name]
+    def GetDefinitionByName(self, name, source_types=None):
+        if source_types is None:
+            source_types = SOURCE_TYPES
 
-    def GetDefinitions(self):
-        return self.definitions
+        definition = self.definitions_by_name[name]
+        return ArtifactDefinition(definition, source_types)
+
+    def GetDefinitions(self, source_types=None):
+        if source_types is None:
+            source_types = SOURCE_TYPES
+
+        for definition in self.definitions:
+            try:
+                yield ArtifactDefinition(definition, source_types)
+            except errors.FormatError:
+                pass
 
 
 class ArtifactsCollector(plugin.TypedProfileCommand,
@@ -957,7 +975,9 @@ class ArtifactsList(plugin.TypedProfileCommand,
              help="If specified show for these OSs, otherwise autodetect "
              "based on the current image."),
         dict(name="labels", type="ArrayStringParser",
-             help="Filter by these labels.")
+             help="Filter by these labels."),
+        dict(name="all", type="Bool",
+             help="Show all artifacts."),
     ]
 
     table_header = [
@@ -978,13 +998,14 @@ class ArtifactsList(plugin.TypedProfileCommand,
 
         for definition in self.session.LoadProfile(
                 "artifacts").GetDefinitions():
-            if not supported_os.intersection(definition.supported_os):
+            if (not self.plugin_args.all and
+                not supported_os.intersection(definition.supported_os)):
                 continue
 
             # Determine the type:
             types = set()
             for source in definition.sources:
-                if source.is_active(session=self.session):
+                if self.plugin_args.all or source.is_active(session=self.session):
                     types.add(source.type_indicator)
 
                     if self.plugin_args.regex.match(definition.name):

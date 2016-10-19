@@ -32,6 +32,7 @@ from rekall.plugins.response import common as response_common
 from rekall_agent import common
 from rekall_agent.client_actions import files
 from rekall_agent.flows import find
+from rekall_agent.ui import renderers
 
 
 class VFSLs(common.AbstractControllerCommand):
@@ -153,4 +154,5 @@ class VFSLs(common.AbstractControllerCommand):
 
         path_components = filter(None, path.split("/"))
         for row in self._collect_one_dir(vfs_index, path_components):
+            row["Path"] = renderers.UILink("vfs", row["Path"])
             yield row

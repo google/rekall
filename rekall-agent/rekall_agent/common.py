@@ -27,6 +27,7 @@ from multiprocessing.pool import ThreadPool
 
 import yaml
 
+from rekall import kb
 from rekall import plugin
 from rekall_agent.config import agent
 
@@ -74,6 +75,8 @@ class AbstractAgentCommand(plugin.TypedProfileCommand,
 
     PHYSICAL_AS_REQUIRED = False
     PROFILE_REQUIRED = False
+
+    mode = "mode_agent"
 
     __args = [
         dict(name="agent_config", required=False,
@@ -124,12 +127,15 @@ class AbstractControllerCommand(AbstractAgentCommand):
              "by the cc() plugin.")
     ]
 
-    @classmethod
-    def is_active(cls, session):
-        return session.GetParameter("agent_mode") != None
-
     def __init__(self, *args, **kwargs):
         super(AbstractControllerCommand, self).__init__(*args, **kwargs)
         self.client_id = (self.plugin_args.client_id or
                           self.session.GetParameter("controller_context") or
                           None)
+
+
+class AgentMode(kb.ParameterHook):
+    name = "mode_agent"
+
+    def calculate(self):
+        return self.session.GetParameter("agent_mode") != None

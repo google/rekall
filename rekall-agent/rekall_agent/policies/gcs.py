@@ -114,6 +114,12 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path=client_id + "/flows.sqlite")
 
+    def manifest_for_server(self):
+        return self.service_account.create_oauth_location(
+            bucket=self.bucket, path="manifest",
+            public=True
+        )
+
     def vfs_index_for_server(self, client_id=None):
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path=utils.join_path(
@@ -177,7 +183,7 @@ class GCSServerPolicy(agent.ServerPolicy):
             bucket=self.bucket,
             path_prefix=utils.join_path(
                 "hunts", hunt_id, "vfs", vfs_type, path_prefix),
-            path_template=path_template,
+            path_template=path_template + "/{nonce}",
             expiration=expiration)
 
     def vfs_prefix_for_client(self, client_id, path="", expiration=None,
@@ -186,7 +192,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket, path_prefix=utils.join_path(
                 client_id, "vfs", vfs_type, path),
-            path_template="{subpath}",
+            path_template="{subpath}/{nonce}",
             expiration=expiration)
 
     def flow_ticket_for_client(self, batch_name, *ticket_names, **kw):
@@ -202,7 +208,7 @@ class GCSServerPolicy(agent.ServerPolicy):
         return self.service_account.create_signed_policy_location(
             bucket=self.bucket,
             path_prefix=utils.join_path("tickets", batch_name, *ticket_names),
-            path_template=path_template,
+            path_template=path_template + "/{nonce}",
             expiration=expiration)
 
     def flow_metadata_collection_for_server(self, client_id):

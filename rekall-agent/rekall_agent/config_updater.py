@@ -25,7 +25,6 @@ __author__ = "Michael Cohen <scudette@google.com>"
 """This plugin implements the config_updater initialization tool.
 """
 import os
-import time
 import yaml
 
 from rekall import plugin
@@ -51,6 +50,13 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
     __args = [
         dict(name="config_dir", positional=True, required=True,
              help="The directory to write configuration files into."),
+
+        dict(name="client_writeback_path",
+             default="/etc/rekall/agent.local.json",
+             help="Path to the local client writeback location"),
+
+        dict(name="labels", type="Array", default=["All"],
+             help="The list of labels."),
     ]
 
     table_header = [
@@ -134,76 +140,8 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
         # Ensure the keys verify before we write them.
         server_certificate.verify(ca_cert.get_public_key())
 
-    def collect(self):
-        """This should be an interactive script."""
-        self.config_dir = self.plugin_args.config_dir
-        if not os.access(self.config_dir, os.R_OK):
-            raise plugin.PluginError("Unable to write to config directory %s" %
-                                     self.config_dir)
-
-        for method in [self.generate_keys,
-                       self.write_config,
-                       self.write_manifest]:
-            for x in method():
-                yield x
-
-        yield dict(Message="Done!")
-
-
-class AgentServerInitializeGCS(AgentServerInitialize):
-    """Initialize the agent server to work in Google Cloud Storage."""
-
-    name = "agent_server_initialize_gcs"
-
-    server_config_template = """
-ca_certificate@file: {ca_cert_filename}
-server:
-  __type__: GCSServerPolicy
-  bucket: {bucket}
-  ticket_bucket: {bucket}
-  service_account@json_file: {service_account}
-  certificate@file: {server_certificate_filename}
-  private_key@file: {server_private_key_filename}
-"""
-    client_config_template = """
-ca_certificate@file: {ca_cert_filename}
-client:
-  __type__: GCSAgentPolicy
-  manifest_location:
-    __type__: GCSUnauthenticatedLocation
-    bucket: {bucket}
-    path: manifest
-
-  writeback_path: {writeback_path}
-  labels:
-    - All
-"""
-
-    manifest_file_template = """
-
-"""
-
-    __args = [
-        dict(name="bucket", required=True,
-             help="The bucket name for the GCS deployment."),
-
-        dict(name="service_account_path", required=True,
-             help="Path to the service account (JSON) credentials"),
-
-        dict(name="client_writeback_path",
-             default="/etc/rekall/agent.local.json",
-             help="Path to the local client writeback location"),
-    ]
-
     def write_config(self):
-        parameters = dict(
-            bucket=self.plugin_args.bucket,
-            service_account=self.plugin_args.service_account_path,
-            server_certificate_filename=self.server_certificate_filename,
-            server_private_key_filename=self.server_private_key_filename,
-            ca_cert_filename=self.ca_cert_filename,
-            writeback_path=self.plugin_args.client_writeback_path,
-        )
+        parameters = self._get_template_parameters()
 
         # The client config should be completely self contained (i.e. without
         # external file references).
@@ -213,6 +151,11 @@ client:
         client_config = agent.Configuration.from_primitive(
             yaml.safe_load(client_config_data), session=self.session)
 
+        labels = self.plugin_args.labels
+        if "All" not in labels:
+            labels.append("All")
+
+        client_config.client.labels = labels
         client_config_filename = os.path.join(
             self.config_dir, self.client_config_filename)
 
@@ -256,7 +199,6 @@ client:
     def write_manifest(self):
         yield dict(Message="Writing manifest file.")
 
-        sa = self.config.server.service_account
         manifest = agent.Manifest.from_keywords(
             session=self.session,
 
@@ -270,13 +212,8 @@ client:
                     startup_message=(
                         interrogate.Startup.from_keywords(
                             session=self.session,
-                            location=sa.create_signed_policy_location(
-                                # Valid for 10 years.
-                                expiration=(time.time() +
-                                            10 * 365 * 24 * 60 * 60),
-                                path_prefix="tickets/Startup/",
-                                path_template="{client_id}",
-                                bucket=self.config.server.bucket
+                            location=self.config.server.flow_ticket_for_client(
+                                "Startup", path_template="{client_id}",
                             )
                         )
                     )
@@ -296,12 +233,131 @@ client:
 
         # Now upload the signed manifest to the bucket. Manifest must be
         # publicly accessible.
-        upload_location = sa.create_oauth_location(
-            path=self.config.client.manifest_location.path,
-            bucket=self.config.client.manifest_location.bucket,
-            public=True)
-
-        yield dict(Message="Writing manifest file to bucket %s path %s" % (
-            upload_location.bucket, upload_location.path))
+        upload_location = self.config.server.manifest_for_server()
+        yield dict(Message="Writing manifest file to %s" % (
+            upload_location.to_path()))
 
         upload_location.write_file(signed_manifest.to_json())
+
+    def collect(self):
+        """This should be an interactive script."""
+        self.config_dir = self.plugin_args.config_dir
+        if not os.access(self.config_dir, os.R_OK):
+            raise plugin.PluginError("Unable to write to config directory %s" %
+                                     self.config_dir)
+
+        for method in [self.generate_keys,
+                       self.write_config,
+                       self.write_manifest]:
+            for x in method():
+                yield x
+
+        yield dict(Message="Done!")
+
+
+class AgentServerInitializeGCS(AgentServerInitialize):
+    """Initialize the agent server to work in Google Cloud Storage."""
+
+    name = "agent_server_initialize_gcs"
+
+    server_config_template = """
+ca_certificate@file: {ca_cert_filename}
+server:
+  __type__: GCSServerPolicy
+  bucket: {bucket}
+  ticket_bucket: {bucket}
+  service_account@json_file: {service_account}
+  certificate@file: {server_certificate_filename}
+  private_key@file: {server_private_key_filename}
+"""
+    client_config_template = """
+ca_certificate@file: {ca_cert_filename}
+client:
+  __type__: GCSAgentPolicy
+  manifest_location:
+    __type__: GCSUnauthenticatedLocation
+    bucket: {bucket}
+    path_prefix: /manifest
+
+  writeback_path: {writeback_path}
+  labels:
+    - All
+"""
+
+    manifest_file_template = """
+
+"""
+
+    __args = [
+        dict(name="bucket", required=True,
+             help="The bucket name for the GCS deployment."),
+
+        dict(name="service_account_path", required=True,
+             help="Path to the service account (JSON) credentials"),
+    ]
+
+    def _get_template_parameters(self):
+        return dict(
+            bucket=self.plugin_args.bucket,
+            service_account=self.plugin_args.service_account_path,
+            server_certificate_filename=self.server_certificate_filename,
+            server_private_key_filename=self.server_private_key_filename,
+            ca_cert_filename=self.ca_cert_filename,
+            writeback_path=self.plugin_args.client_writeback_path,
+        )
+
+
+class AgentServerInitializeLocalHTTP(AgentServerInitialize):
+    """Initialize the agent server to work in Google Cloud Storage."""
+
+    name = "agent_server_initialize_http"
+
+    server_config_template = """
+ca_certificate@file: {ca_cert_filename}
+server:
+  __type__: HTTPServerPolicy
+  base_url: {base_url}
+  certificate@file: {server_certificate_filename}
+  private_key@file: {server_private_key_filename}
+  bind_port: {bind_port}
+  bind_address: {bind_address}
+
+"""
+    client_config_template = """
+ca_certificate@file: {ca_cert_filename}
+client:
+  __type__: HTTPClientPolicy
+  manifest_location:
+    __type__: HTTPLocation
+    base: {base_url}
+    path: /manifest
+
+  writeback_path: {writeback_path}
+  labels: []
+"""
+
+    manifest_file_template = """
+
+"""
+
+    __args = [
+        dict(name="base_url", required=True,
+             help="The publicly accessible URL of the frontend."),
+
+        dict(name="bind_port", type="IntParser", default=8000,
+             help="Port to bind to"),
+
+        dict(name="bind_address", default="127.0.0.1",
+             help="Address to bind to"),
+    ]
+
+    def _get_template_parameters(self):
+        return dict(
+            base_url=self.plugin_args.base_url,
+            bind_port=self.plugin_args.bind_port,
+            bind_address=self.plugin_args.bind_address,
+            server_certificate_filename=self.server_certificate_filename,
+            server_private_key_filename=self.server_private_key_filename,
+            ca_cert_filename=self.ca_cert_filename,
+            writeback_path=self.plugin_args.client_writeback_path,
+        )

@@ -18,6 +18,8 @@
 #
 
 """A parser for dwarf modules which generates vtypes."""
+import logging
+
 from elftools import construct
 from elftools.dwarf import callframe
 from elftools.dwarf import compileunit
@@ -31,7 +33,6 @@ from elftools.dwarf.descriptions import describe_attr_value
 
 from rekall import plugin
 from rekall import utils
-import logging
 
 
 
@@ -115,13 +116,13 @@ class DIETag(object):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
 
-        elif ("DW_AT_sibling" in self.attributes and
-              (self.attributes["DW_AT_sibling"].value + self.die.cu.cu_offset
-               in self.types)):
-            return (self.types[self.attributes["DW_AT_sibling"].value +
-                               self.die.cu.cu_offset].name)
-        else:
-            return "__unnamed_%s" % self.die.offset
+        if "DW_AT_sibling" in self.attributes:
+            sibling = self.types.get(self.attributes["DW_AT_sibling"].value +
+                                     self.die.cu.cu_offset)
+            if sibling and sibling.die.tag == "DW_TAG_typedef":
+                return sibling.name
+
+        return "__unnamed_%s" % self.die.offset
 
     @utils.safe_property
     def type_id(self):
@@ -134,8 +135,6 @@ class DIETag(object):
 
     def Definition(self, vtype):
         """This DW element is given an opportunity to generate a vtype."""
-        pass
-
 
 class DW_TAG_typedef(DIETag):
 
@@ -209,8 +208,14 @@ class DW_TAG_union_type(DW_TAG_structure_type):
     def name(self):
         if "DW_AT_name" in self.attributes:
             return self.attributes["DW_AT_name"].value
-        else:
-            return "__unnamed_%s" % self.die.offset
+
+        if "DW_AT_sibling" in self.attributes:
+            sibling = self.types.get(self.attributes["DW_AT_sibling"].value +
+                                     self.die.cu.cu_offset)
+            if sibling and sibling.die.tag == "DW_TAG_typedef":
+                return sibling.name
+
+        return "__unnamed_%s" % self.die.offset
 
 
 class DW_TAG_pointer_type(DIETag):

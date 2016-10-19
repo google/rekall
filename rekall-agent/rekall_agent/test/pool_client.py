@@ -9,9 +9,6 @@ from rekall import session
 from rekall import yaml_utils
 
 
-logging.getLogger().setLevel(10)
-
-
 parser = argparse.ArgumentParser(description='Rekall Agent Pool Client')
 parser.add_argument('config', help='configuration file.')
 
@@ -19,6 +16,9 @@ parser.add_argument('--state_dir', default="/tmp/",
                     help='Where per client state is stored.')
 
 parser.add_argument('--number', default=10, type=int,
+                    help='Total number of clients to run.')
+
+parser.add_argument('--verbose', action="store_true",
                     help='Total number of clients to run.')
 
 
@@ -44,6 +44,9 @@ def launch_client(_):
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    if args.verbose:
+        logging.getLogger().setLevel(10)
+
     workers = common.LoggingPool(args.number + 10)
     workers.map(
         launch_client,

@@ -306,6 +306,8 @@ class RepeatedHelper(list):
         self.descriptor = descriptor
         self._hooks = []
         self._session = session
+        if not session:
+            raise RuntimeError("Session must be provided.")
 
     def add_update_cb(self, cb):
         self._hooks.append(cb)
@@ -361,7 +363,8 @@ class RepeatedDescriptor(FieldDescriptor):
         return RepeatedHelper(
             self.descriptor_obj,
             [self.descriptor_obj.validate(x, session=session)
-             for x in value])
+             for x in value],
+            session=session)
 
     def to_primitive(self, value):
         return [self.descriptor_obj.to_primitive(x) for x in value]
@@ -375,10 +378,11 @@ class RepeatedDescriptor(FieldDescriptor):
         return RepeatedHelper(
             self.descriptor_obj,
             [self.descriptor_obj.from_primitive(x, session=session)
-             for x in value])
+             for x in value],
+            session=session)
 
     def get_default(self, session=None):
-        return RepeatedHelper(self.descriptor_obj)
+        return RepeatedHelper(self.descriptor_obj, session=session)
 
 
 # This dispatches the class implementing as declared type.
@@ -621,6 +625,17 @@ class SerializedObject(object):
             raise AttributeError("Invalid field %s" % item)
 
         super(SerializedObject, self).__setattr__(item, value)
+
+    def cast(self, target_cls):
+        """Cast the current object into the target class.
+
+        This method forces this object to be converted to the target class. This
+        means that all data fields on this object will be assigned to the target
+        class if it supports these fields. Fields which are not supported by the
+        target class will be ignored.
+        """
+        return target_cls.from_primitive(
+            self.to_primitive(False), session=self._session)
 
 
 class OrderedYamlDict(yaml.YAMLObject, collections.OrderedDict):

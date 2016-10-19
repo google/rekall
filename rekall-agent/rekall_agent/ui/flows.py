@@ -19,6 +19,7 @@
 """Plugins to inspect flows."""
 import base64
 import json
+import os
 
 import arrow
 
@@ -27,7 +28,9 @@ from rekall import utils
 
 from rekall_agent import common
 from rekall_agent import flow
+from rekall_agent import result_collections
 from rekall_agent import serializer
+from rekall_agent.locations import files
 from rekall_agent.ui import renderers
 
 
@@ -88,13 +91,16 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
             ticket_location = self.config.server.ticket_for_server(
                 "FlowStatus", row["flow_id"], self.client_id)
 
-            data = ticket_location.read_file()
-            if data:
-                ticket = flow.FlowStatus.from_json(
-                    data, session=self.session)
-                row["state"] = "%s(*)" % ticket.status
-                row["collections"] = [ticket_location.to_path()]
-                row["last_active"] = ticket.timestamp
+            # The client will actually add a nonce to this so we need to find
+            # all subobjects.
+            for sub_object in ticket_location.list_files():
+                data = sub_object.location.read_file()
+                if data:
+                    ticket = flow.FlowStatus.from_json(
+                        data, session=self.session)
+                    row["state"] = "%s(*)" % ticket.status
+                    row["collections"] = [ticket_location.to_path()]
+                    row["last_active"] = ticket.timestamp
 
     def collect(self):
         if not self.client_id:
@@ -191,8 +197,11 @@ class SerializedObjectInspectorMixin(object):
 
     def _collect_serialized_object(self, flow_obj, depth=0, ignore_fields=None):
         for descriptor in flow_obj.get_descriptors():
-            field = descriptor["name"]
+            # Skip hidden fields if verbosity is low.
+            if self.plugin_args.verbosity < 2 and descriptor.get("hidden"):
+                continue
 
+            field = descriptor["name"]
             # Only show requested fields in non-verbose mode.
             if (not self.plugin_args.verbosity and
                 ignore_fields and field in ignore_fields):
@@ -202,9 +211,8 @@ class SerializedObjectInspectorMixin(object):
                 continue
 
             value = flow_obj.GetMember(field)
-
             if isinstance(value, serializer.SerializedObject):
-                display_value = "(Object)"
+                display_value = "(%s)" % value.__class__.__name__
 
             elif isinstance(value, str):
                 display_value = base64.b64encode(value)
@@ -216,13 +224,13 @@ class SerializedObjectInspectorMixin(object):
                 for x in self._collect_list(value, field, descriptor, depth):
                     yield x
 
-                return
+                continue
 
             elif isinstance(value, dict):
                 for x in self._collect_dict(value, field, descriptor, depth):
                     yield x
 
-                return
+                continue
 
             else:
                 display_value = utils.SmartUnicode(value)
@@ -255,12 +263,9 @@ class InspectFlow(SerializedObjectInspectorMixin,
         dict(name="", cname="divider", type="Divider")
     ] + SerializedObjectInspectorMixin.table_header
 
-    def _get_collection(self):
-        if not self.client_id:
-            raise plugin.PluginError("Client ID must be specified.")
-
+    def _get_collection(self, client_id):
         return flow.FlowStatsCollection.load_from_location(
-            self.config.server.flow_db_for_server(self.client_id),
+            self.config.server.flow_db_for_server(client_id),
             session=self.session)
 
     def get_flow_object(self, flow_id=None):
@@ -272,8 +277,8 @@ class InspectFlow(SerializedObjectInspectorMixin,
             session=self.session)
 
     def collect(self):
-        collection = self._get_collection()
         flow_obj = self.get_flow_object(self.plugin_args.flow_id)
+        collection = self._get_collection(flow_obj.client_id)
 
         yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
         for x in self._explain(flow_obj, ignore_fields=set([
@@ -286,7 +291,6 @@ class InspectFlow(SerializedObjectInspectorMixin,
                                                session=self.session)
 
             yield dict(divider="Flow Status Ticket")
-
             for x in self._explain(ticket, ignore_fields=set([
                     "location", "client_id", "flow_id", "collections"
             ])):
@@ -296,10 +300,20 @@ class InspectFlow(SerializedObjectInspectorMixin,
                 yield dict(divider="Collections")
 
                 for collection in ticket.collections:
+                    link = renderers.UILink(
+                        "gs", collection.location.get_canonical().to_path())
                     yield dict(
                         Field=collection.__class__.__name__,
-                        Value=collection.location.get_canonical().to_path(),
-                        Description="")
+                        Value=link,
+                        Description="", nowrap=True)
+
+            if ticket.files:
+                yield dict(divider="Uploads")
+
+                for upload in ticket.files:
+                    link = renderers.UILink(
+                        "gs", upload.get_canonical().to_path())
+                    yield dict(Value=link, nowrap=True)
 
             if ticket.error:
                 yield dict(divider="Error")
@@ -317,6 +331,8 @@ class InspectHunt(InspectFlow):
     __args = [
         dict(name="limit", type="IntParser", default=20,
              help="Limit of rows to display"),
+        dict(name="graph_clients", type="Bool",
+             help="Also plot a graph of client participation."),
     ]
 
     table_header = [
@@ -331,9 +347,42 @@ class InspectHunt(InspectFlow):
             self.config.server.hunt_db_for_server(self.plugin_args.flow_id),
             session=self.session)
 
+    def graph_clients(self, collection):
+        """Draw a graph of client engagement."""
+        # This is optionally dependent on presence of matplotlib.
+        try:
+            from matplotlib import pyplot
+        except ImportError:
+            raise plugin.PluginError(
+                "You must have matplotlib installed to plot graphs.")
+
+        total_clients = 0
+        base = None
+        data_x = []
+        data_y = []
+        for row in collection.query(order_by="executed"):
+            total_clients += 1
+            if base is None:
+                base = row["executed"]
+            data_x.append(row["executed"] - base)
+            data_y.append(total_clients)
+
+        fig = pyplot.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(data_x, data_y)
+        start_time = arrow.Arrow.fromtimestamp(base)
+        ax.set_title("Clients in Hunt %s" % self.plugin_args.flow_id)
+        ax.set_xlabel("Seconds after %s (%s)" % (
+            start_time.ctime(), start_time.humanize()))
+        ax.set_ylabel("Total Client Count")
+        pyplot.show()
+
     def collect(self):
         collection = self._get_collection()
         flow_obj = self.get_flow_object(self.plugin_args.flow_id)
+
+        if self.plugin_args.graph_clients:
+            self.graph_clients(collection)
 
         yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
         for x in self._explain(flow_obj, ignore_fields=set([
@@ -428,9 +477,7 @@ class AgentControllerRunFlow(SerializedObjectInspectorMixin,
         if not isinstance(args, dict):
             raise plugin.PluginError("args should be a dict")
 
-        flow_obj = flow_cls.from_primitive(
-            args, session=self.session)
-
+        flow_obj = flow_cls.from_primitive(args, session=self.session)
         flow_obj.client_id = self.client_id
         flow_obj.queue = self.plugin_args.queue
         flow_obj.session.live = self.plugin_args.live
@@ -531,3 +578,80 @@ class AgentControllerExplainFlows(common.AbstractControllerCommand):
         flow_cls = flow.Flow.ImplementationByClass(self.plugin_args.flow)
         for x in self._explain(flow_cls):
             yield x
+
+
+class AgentControllerExportCollections(common.AbstractControllerCommand):
+    """Exports all collections from the hunt or flow."""
+    name = "export_collections"
+    __args = [
+        dict(name="flow_id", positional=True, required=True,
+             help="The flow or hunt ID we should export."),
+
+        dict(name="dumpdir", positional=True, required=True,
+             help="The output directory we use export to.")
+    ]
+
+    table_header = [
+        dict(name="Message")
+    ]
+
+    def _collect_hunts(self, flow_obj):
+        hunt_db = flow.HuntStatsCollection.load_from_location(
+            self.config.server.hunt_db_for_server(flow_obj.flow_id),
+            session=self.session)
+
+        collections_by_type = {}
+
+        for row in hunt_db.query():
+            status = flow.HuntStatus.from_json(row["ticket_data"],
+                                               session=self.session)
+            for collection in status.collections:
+                collections_by_type.setdefault(
+                    collection.collection_type, []).append(
+                        (collection, status.client_id))
+
+        # Now create a new collection by type into the output directory.
+        for output_location in common.THREADPOOL.imap_unordered(
+                self._dump_collection,
+                collections_by_type.iteritems()):
+            yield dict(Message=output_location.to_path())
+
+    def _dump_collection(self, args):
+        type, collections = args
+        output_location = files.FileLocation.from_keywords(
+            path=os.path.join(self.plugin_args.dumpdir,
+                              self.plugin_args.flow_id, type),
+            session=self.session)
+
+        # We assume all the collections of the same type are the same so we can
+        # just take the first one as the template for the output collection.
+        output_collection = collections[0][0].copy()
+
+        # Add another column for client_id.
+        output_collection.tables[0].columns.append(
+            result_collections.ColumnSpec.from_keywords(
+                name="client_id", session=self.session))
+        output_collection.location = output_location
+        with output_collection.create_temp_file():
+            common.THREADPOOL.map(
+                self._copy_single_location,
+                ((output_collection, x, y) for x, y in collections))
+
+        return output_location
+
+    def _copy_single_location(self, args):
+        output_collection, canonical_collection, client_id = args
+        collection = canonical_collection.load_from_location(
+            self.config.server.canonical_for_server(
+                canonical_collection.location), session=self.session)
+        for row in collection:
+            output_collection.insert(client_id=client_id, **row)
+
+    def collect(self):
+        flow_obj = flow.Flow.from_json(
+            self.config.server.flows_for_server(
+                self.plugin_args.flow_id).read_file(),
+            session=self.session)
+
+        if flow_obj.is_hunt():
+            return self._collect_hunts(flow_obj)

@@ -117,7 +117,7 @@ class RekallAgent(common.AbstractAgentCommand):
                 action_to_run = action.from_primitive(
                     action.to_primitive(), session=rekall_session)
 
-                for collection in (action_to_run.run() or []):
+                for collection in (action_to_run.run(flow_obj=flow_obj) or []):
                     collection.location = collection.location.get_canonical()
                     flow_obj.ticket.collections.append(collection)
 
@@ -243,7 +243,7 @@ class RekallAgent(common.AbstractAgentCommand):
                     self.config.manifest.rekall_session))
 
             try:
-                action_to_run.run()
+                action_to_run.run(flow_obj=None)
             except Exception as e:
                 self.session.logging.error(
                     "Error running startup action: %s", e)

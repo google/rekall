@@ -607,7 +607,10 @@ class KernelASHook(kb.ParameterHook):
         if self.session.kernel_address_space:
             return self.session.kernel_address_space
 
-        return self.session.plugins.load_as().GetVirtualAddressSpace()
+        try:
+            return self.session.plugins.load_as().GetVirtualAddressSpace()
+        except Exception:
+            return obj.NoneObject("Address space not found")
 
 
 class ProfileHook(kb.ParameterHook):

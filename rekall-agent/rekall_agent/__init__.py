@@ -10,4 +10,5 @@ from rekall_agent import flows
 from rekall_agent import hunts
 from rekall_agent import locations
 from rekall_agent import policies
+from rekall_agent import servers
 from rekall_agent import ui

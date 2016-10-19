@@ -76,6 +76,7 @@ from rekall import plugin
 
 from rekall_agent import action
 from rekall_agent import common
+from rekall_agent import location
 from rekall_agent import result_collections
 from rekall_agent import output_plugin
 from rekall_agent import serializer
@@ -119,6 +120,9 @@ class FlowStatus(batch.BatchTicket):
         dict(name="collections", type=result_collections.CollectionSpec,
              repeated=True,
              doc="The collections produced by the flow."),
+
+        dict(name="files", type=location.Location, repeated=True, hidden=True,
+             doc="The list of files uploaded."),
     ]
 
     def process(self, context, ticket_location):
@@ -127,9 +131,11 @@ class FlowStatus(batch.BatchTicket):
         # ensure the ticket is written to the location the server decided in
         # advance. We ignore invalid messages and they will be deleted.
         components = ticket_location.to_path().split("/")
-        if (components[-1] != self.client_id or
-            components[-2] != self.flow_id or
-            components[-3] != self.__class__.__name__):
+        # Example of valid URL:
+        # /bucket/tickets/FlowStatus/F_4f47d99ead/C.4dd70be22bc56fc3/Z021
+        if (components[-2] != self.client_id or
+            components[-3] != self.flow_id or
+            components[-4] != self.__class__.__name__):
             raise IOError("Ticket location unexpected.")
 
         # Just group by client id. We do all the real work in the end() method.
@@ -187,9 +193,9 @@ class FlowStatus(batch.BatchTicket):
 class HuntStatus(FlowStatus):
     def process(self, context, ticket_location):
         components = ticket_location.to_path().split("/")
-        if (components[-1] != self.client_id or
-            components[-2] != self.flow_id or
-            components[-3] != self.__class__.__name__):
+        if (components[-2] != self.client_id or
+            components[-3] != self.flow_id or
+            components[-4] != self.__class__.__name__):
             raise IOError("Ticket location unexpected.")
 
         # Just group by flow id. We do all the real work in the end() method.
@@ -267,6 +273,10 @@ class Flow(serializer.SerializedObject):
              doc="The total resources the flow is allows to use."),
     ]
 
+    def __init__(self, *args, **kwargs):
+        super(Flow, self).__init__(*args, **kwargs)
+        self._config = self._session.GetParameter("agent_config")
+
     def is_hunt(self):
         """Is this flow running as a hunt?"""
         return self.queue
@@ -291,20 +301,20 @@ class Flow(serializer.SerializedObject):
 
     def start(self):
         """Launch the flow."""
-        self._config = self._session.GetParameter("agent_config")
         self.validate()
-
-        # Make a random flow id.
-        self.flow_id = "F_%s" % os.urandom(5).encode("hex")
-        self.created_time = time.time()
-
-        self.actions = list(self.generate_actions())
 
         # There are some differences in the ways flows and hunts are organized.
         if self.is_hunt():
             self.ticket = HuntStatus(session=self._session)
+            self.flow_id = "H_%s" % os.urandom(5).encode("hex")
+
         else:
             self.ticket = FlowStatus(session=self._session)
+            self.flow_id = "F_%s" % os.urandom(5).encode("hex")
+
+        # Make a random flow id.
+        self.created_time = time.time()
+        self.actions = list(self.generate_actions())
 
         # Create a ticket location for the agent to report progress.
         self.ticket.client_id = self.client_id
