@@ -111,14 +111,15 @@ class VirtualizationNode_TextObjectRenderer(text.TextObjectRenderer):
 
     def __init__(self, *args, **options):
         self.quick = options.pop("quick", False)
+        super(VirtualizationNode_TextObjectRenderer, self).__init__(
+            *args, **options)
 
-        super(VirtualizationNode_TextObjectRenderer, self).__init__(*args, **options)
         self.table = text.TextTable(
             columns=[
-                dict(name="Description", cname="description"),
-                dict(name="Name", cname="name", width=20),
-                dict(name="Valid", cname="valid", type="bool"),
-                dict(name="EPT", cname="ept")],
+                dict(name="description"),
+                dict(name="name", width=20),
+                dict(name="valid", type="bool"),
+                dict(name="ept")],
             renderer=self.renderer,
             session=self.session)
 

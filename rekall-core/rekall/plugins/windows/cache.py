@@ -115,15 +115,15 @@ class EnumerateVacbs(common.WindowsCommandPlugin):
         return self.GetVACBs_Win7()
 
     table_header = [
-        dict(name="_VACB", cname="vacb", style="address"),
-        dict(name="Present", cname='valid', width=7),
-        dict(name="Base", cname="base", style="address"),
-        dict(name="Offset", cname="offset", style="address"),
-        dict(name="Filename", cname="filename"),
+        dict(name="_VACB", style="address"),
+        dict(name='valid', width=7),
+        dict(name="base", style="address"),
+        dict(name="offset", style="address"),
+        dict(name="filename"),
     ]
 
     def column_types(self):
-        return dict(vacb=self.session.profile._VACB(),
+        return dict(_VACB=self.session.profile._VACB(),
                     valid=True,
                     base=0,
                     offset=0,
@@ -232,11 +232,11 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                     phys_address, file_sectors_mapped_in_page * 512))
 
     table_header = [
-        dict(name="Type", cname="type", width=20),
-        dict(name="Phys Offset", cname="p_offset", style="address"),
-        dict(name="File Offset", cname="f_offset", style="address"),
-        dict(name="File Length", cname="f_length", style="address"),
-        dict(name="Filename", cname="filename")
+        dict(name="type", width=20),
+        dict(name="p_offset", style="address"),
+        dict(name="f_offset", style="address"),
+        dict(name="f_length", style="address"),
+        dict(name="filename")
     ]
 
     def column_types(self):
@@ -291,8 +291,11 @@ class DumpFiles(core.DirectoryDumperMixin, common.WinProcessFilter):
                             base_address + offset)
 
                         if phys_address:
-                            yield ("VACB", phys_address, file_offset+offset,
-                                   0x1000, filename)
+                            yield dict(type="VACB",
+                                       p_offset=phys_address,
+                                       f_offset=file_offset+offset,
+                                       f_length=0x1000,
+                                       filename=filename)
 
                             # This writes a sparse file.
                             out_fd.seek(file_offset + offset)

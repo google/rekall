@@ -317,12 +317,12 @@ class StructTextRenderer(text.TextObjectRenderer):
 
         values = []
         for column in self.columns:
-            cname = column.get("cname")
-            if not cname:
+            name = column.get("name")
+            if not name:
                 raise ValueError(
-                    "Column spec %r doesn't specify 'cname'." % column)
+                    "Column spec %r doesn't specify 'name'." % column)
 
-            values.append(getattr(target, cname))
+            values.append(getattr(target, name))
 
         return self.table.get_row(*values)
 

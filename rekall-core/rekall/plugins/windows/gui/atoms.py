@@ -53,12 +53,12 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
     ]
 
     table_header = [
-        dict(name="TableOfs(P)", cname="physical_offset", style="address"),
-        dict(name="AtomOfs(V)", cname="virtual_offset", style="address"),
-        dict(name="Atom", cname="atom", style="address"),
-        dict(name="Refs", cname="refs", width=6),
-        dict(name="Pinned", cname="pinned", width=6),
-        dict(name="Name", cname="name"),
+        dict(name="offset_p", style="address"),
+        dict(name="offset_v", style="address"),
+        dict(name="atom", style="address"),
+        dict(name="refs", width=6),
+        dict(name="pinned", width=6),
+        dict(name="name"),
     ]
 
     scanner_defaults = dict(
@@ -115,11 +115,12 @@ class AtomScan(win32k_core.Win32kPluginMixin, common.PoolScannerPlugin):
                     attr = "obj_offset"
 
                 for atom in sorted(atoms, key=lambda x: getattr(x, attr)):
-                    yield (atom_table.obj_offset,
-                           atom.obj_offset,
-                           atom.Atom, atom.ReferenceCount,
-                           atom.Pinned,
-                           atom.Name)
+                    yield dict(offset_p=atom_table.obj_offset,
+                               offset_v=atom.obj_offset,
+                               atom=atom.Atom,
+                               refs=atom.ReferenceCount,
+                               pinned=atom.Pinned,
+                               name=atom.Name)
 
 
 class Atoms(win32k_core.Win32kPluginMixin,
@@ -147,15 +148,14 @@ class Atoms(win32k_core.Win32kPluginMixin,
 
 
     table_header = [
-        dict(name="Offsetdict(name=P)", cname="physical_offset",
-             style="address"),
-        dict(name="Session", cname="session", width=10),
-        dict(name="WindowStation", cname="windows_station", width=18),
-        dict(name="Atom", cname="atom", style="address"),
-        dict(name="RefCount", cname="ref_count", width=10),
-        dict(name="HIndex", cname="hindex", width=10),
-        dict(name="Pinned", cname="pinned", width=10),
-        dict(name="Name", cname="name"),
+        dict(name="offset_p", style="address"),
+        dict(name="session", width=10),
+        dict(name="windows_station", width=18),
+        dict(name="atom", style="address"),
+        dict(name="ref_count", width=10),
+        dict(name="hindex", width=10),
+        dict(name="pinned", width=10),
+        dict(name="name"),
     ]
 
     def station_atoms(self, station):
@@ -208,11 +208,11 @@ class Atoms(win32k_core.Win32kPluginMixin,
 
     def collect(self):
         for table, atom, window_station, session_id in self.find_atoms():
-            yield (table,
-                   session_id,
-                   window_station.Name,
-                   atom.Atom,
-                   atom.ReferenceCount,
-                   atom.HandleIndex,
-                   atom.Pinned,
-                   atom.Name)
+            yield dict(offset_p=table,
+                       session=session_id,
+                       windows_station=window_station.Name,
+                       atom=atom.Atom,
+                       ref_count=atom.ReferenceCount,
+                       hindex=atom.HandleIndex,
+                       pinned=atom.Pinned,
+                       name=atom.Name)

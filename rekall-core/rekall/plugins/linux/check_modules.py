@@ -50,10 +50,10 @@ class CheckModules(common.LinuxPlugin):
     __name = "check_modules"
 
     table_header = [
-        dict(name="Module", cname="module_addr", style="address"),
-        dict(name="Module Name", cname="module", width=30),
-        dict(name="Ref Count", cname="refcount", width=10, align="c"),
-        dict(name="Known", cname="known"),
+        dict(name="module", style="address"),
+        dict(name="mod_name", width=30),
+        dict(name="ref_count", width=10, align="c"),
+        dict(name="known"),
     ]
 
     @classmethod
@@ -85,5 +85,5 @@ class CheckModules(common.LinuxPlugin):
 
             container_module = basic.container_of(kobj, "module", "mkobj")
 
-            yield (container_module, container_module.name,
-                   ref_count, container_module in modules)
+            yield dict(module=container_module, mod_name=container_module.name,
+                       ref_count=ref_count, known=container_module in modules)

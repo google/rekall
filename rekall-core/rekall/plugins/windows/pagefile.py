@@ -813,9 +813,9 @@ class Pagefiles(common.WindowsCommandPlugin):
 
     table_header = [
         dict(name='_MMPAGING_FILE', style="address"),
-        dict(name='Number', cname='number', align="r", width=3),
-        dict(name='Size (b)', cname='size', align="r", width=10),
-        dict(name='Filename', cname='filename', width=20),
+        dict(name='number', align="r", width=3),
+        dict(name='size', align="r", width=10),
+        dict(name='filename', width=20),
     ]
 
     def collect(self):

@@ -31,7 +31,7 @@ from rekall.plugins.overlays.windows import pe_vtypes
 from rekall.plugins.windows import common
 
 
-class PEInfo(plugin.VerbosityMixIn, plugin.TypedProfileCommand, plugin.Command):
+class PEInfo(plugin.TypedProfileCommand, plugin.Command):
     """Print information about a PE binary."""
 
     __name = "peinfo"

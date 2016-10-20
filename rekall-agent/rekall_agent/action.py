@@ -26,10 +26,11 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 A flow will deliver a number of actions to execute.
 """
+from rekall_agent import common
 from rekall_agent import serializer
 
 
-class Action(serializer.SerializedObject):
+class Action(common.AgentConfigMixin, serializer.SerializedObject):
     """Requests a client action to run on the agent.
 
     Action implementations will extend this message.
@@ -46,10 +47,6 @@ class Action(serializer.SerializedObject):
 
     # This is the agent's config.
     _config = None
-
-    def __init__(self, **kwargs):
-        super(Action, self).__init__(**kwargs)
-        self._config = self._session.GetParameter("agent_config")
 
     @property
     def client_id(self):

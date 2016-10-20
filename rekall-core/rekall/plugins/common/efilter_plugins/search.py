@@ -137,8 +137,7 @@ class FindPlugins(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
     def render(self, renderer):
         renderer.table_header([
-            dict(name="Plugin", cname="plugin", type="Plugin", style="compact",
-                 width=30)
+            dict(name="plugin", type="Plugin", style="compact", width=30)
         ])
 
         for command in self.collect():
@@ -193,9 +192,8 @@ class Collect(plugin.TypedProfileCommand, plugin.ProfileCommand):
     def render(self, renderer):
         renderer.table_header([
             dict(name=self.plugin_args.type_name,
-                 cname=self.plugin_args.type_name,
                  type=self.plugin_args.type_name),
-            dict(name="Producers", cname="producers")
+            dict(name="producers")
         ])
 
         for result in self.collect():
@@ -220,20 +218,15 @@ class Lookup(plugin.TypedProfileCommand, plugin.ProfileCommand):
              help="The target args"),
     ]
 
+    table_header = [
+            dict(name="field")
+    ]
+
     def collect(self):
-        yield [self.session.address_resolver.get_constant_object(
+        yield dict(field=self.session.address_resolver.get_constant_object(
             self.plugin_args.constant,
             target=self.plugin_args.target,
-            target_args=self.plugin_args.target_args)]
-
-    def render(self, renderer):
-        renderer.table_header([
-            dict(name=self.plugin_args.constant, cname="result",
-                 type=self.plugin_args.target)
-        ])
-
-        for row in self.collect():
-            renderer.table_row(*row)
+            target_args=self.plugin_args.target_args))
 
 
 class CommandWrapper(object):
@@ -542,7 +535,7 @@ class Search(EfilterPlugin):
         """Used to render search results if they come from a plugin."""
         columns = []
         for column in table_header or []:
-            column_name = column.get("cname") or column.get("name")
+            column_name = column.get("name")
             columns.append(column_name)
 
             if column_name is None:
@@ -650,7 +643,7 @@ class Search(EfilterPlugin):
             return self._render_plugin_output(renderer, columns, all_rows)
 
         # Sigh. Give up, and render whatever you got, I guess.
-        renderer.table_header([dict(name="Result", cname="result")])
+        renderer.table_header([dict(name="result")])
         return self._render_whatever_i_guess(renderer, all_rows)
 
 
@@ -750,9 +743,8 @@ class Explain(EfilterPlugin):
 
         renderer.section("Type Analysis", width=140)
         renderer.table_header([
-            dict(name="Name", cname="name", type="TreeNode", max_depth=2,
-                 width=60),
-            dict(name="Type", cname="type", width=40)
+            dict(name="name", type="TreeNode", max_depth=2, width=60),
+            dict(name="type", width=40)
         ])
 
         renderer.table_row(self.query.source,
@@ -795,9 +787,8 @@ class Explain(EfilterPlugin):
     def render_query(self, renderer, query):
         """Render a single query object's analysis."""
         renderer.table_header([
-            dict(name="(Return Type) Expression", cname="expression",
-                 type="TreeNode", max_depth=15, width=40),
-            dict(name="Subquery", cname="query", width=100, nowrap=True),
+            dict(name="expression", type="TreeNode", max_depth=15, width=40),
+            dict(name="query", width=100, nowrap=True),
         ])
 
         self._render_node(query, query.root, renderer)

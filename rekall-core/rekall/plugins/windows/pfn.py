@@ -58,7 +58,7 @@ class PFNInfo(common.WindowsCommandPlugin):
     ]
 
     table_header = [
-        dict(name="-", cname="fact", width=25),
+        dict(name="fact", width=25),
         dict(name="Address", style="address"),
         dict(name="Value"),
     ]
@@ -280,7 +280,7 @@ class PtoV(common.WinProcessFilter):
             descriptor.render(renderer)
 
 
-class WinRammap(plugin.VerbosityMixIn, common.WindowsCommandPlugin):
+class WinRammap(common.WindowsCommandPlugin):
     """Scan all physical memory and report page owners."""
 
     name = "rammap"
@@ -293,7 +293,7 @@ class WinRammap(plugin.VerbosityMixIn, common.WindowsCommandPlugin):
     ]
 
     table_header = [
-        dict(name="Phys Address", cname="phys_offset", max_depth=1,
+        dict(name="phys_offset", max_depth=1,
              type="TreeNode", child=dict(style="address", align="l"),
              width=16),
         dict(name="List", width=10),

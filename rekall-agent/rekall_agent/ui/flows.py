@@ -88,7 +88,7 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
         up. We try to show it anyway by checking for the tickets.
         """
         if row["state"] == "Pending":
-            ticket_location = self.config.server.ticket_for_server(
+            ticket_location = self._config.server.ticket_for_server(
                 "FlowStatus", row["flow_id"], self.client_id)
 
             # The client will actually add a nonce to this so we need to find
@@ -107,7 +107,7 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
             raise plugin.PluginError("Client ID must be specified.")
 
         collection = flow.FlowStatsCollection.load_from_location(
-            self.config.server.flow_db_for_server(self.client_id),
+            self._config.server.flow_db_for_server(self.client_id),
             session=self.session)
 
         rows = list(self.collect_db(collection))
@@ -129,7 +129,8 @@ class AgentControllerShowHunts(AgentControllerShowFlows):
 
     def collect(self):
         collection = flow.FlowStatsCollection.load_from_location(
-            self.config.server.flow_db_for_server(queue=self.plugin_args.queue),
+            self._config.server.flow_db_for_server(
+                queue=self.plugin_args.queue),
             session=self.session)
 
         for row in self.collect_db(collection):
@@ -260,12 +261,12 @@ class InspectFlow(SerializedObjectInspectorMixin,
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider")
+        dict(name="divider", type="Divider")
     ] + SerializedObjectInspectorMixin.table_header
 
     def _get_collection(self, client_id):
         return flow.FlowStatsCollection.load_from_location(
-            self.config.server.flow_db_for_server(client_id),
+            self._config.server.flow_db_for_server(client_id),
             session=self.session)
 
     def get_flow_object(self, flow_id=None):
@@ -273,7 +274,7 @@ class InspectFlow(SerializedObjectInspectorMixin,
             flow_id = self.plugin_args.flow_id
 
         return flow.Flow.from_json(
-            self.config.server.flows_for_server(flow_id).read_file(),
+            self._config.server.flows_for_server(flow_id).read_file(),
             session=self.session)
 
     def collect(self):
@@ -336,15 +337,16 @@ class InspectHunt(InspectFlow):
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name="Field", width=20),
         dict(name="Time", width=20),
-        dict(name="Value"),
+        dict(name="Value", width=20),
+        dict(name="Description")
     ]
 
     def _get_collection(self):
         return flow.HuntStatsCollection.load_from_location(
-            self.config.server.hunt_db_for_server(self.plugin_args.flow_id),
+            self._config.server.hunt_db_for_server(self.plugin_args.flow_id),
             session=self.session)
 
     def graph_clients(self, collection):
@@ -597,7 +599,7 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
 
     def _collect_hunts(self, flow_obj):
         hunt_db = flow.HuntStatsCollection.load_from_location(
-            self.config.server.hunt_db_for_server(flow_obj.flow_id),
+            self._config.server.hunt_db_for_server(flow_obj.flow_id),
             session=self.session)
 
         collections_by_type = {}
@@ -642,14 +644,14 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
     def _copy_single_location(self, args):
         output_collection, canonical_collection, client_id = args
         collection = canonical_collection.load_from_location(
-            self.config.server.canonical_for_server(
+            self._config.server.canonical_for_server(
                 canonical_collection.location), session=self.session)
         for row in collection:
             output_collection.insert(client_id=client_id, **row)
 
     def collect(self):
         flow_obj = flow.Flow.from_json(
-            self.config.server.flows_for_server(
+            self._config.server.flows_for_server(
                 self.plugin_args.flow_id).read_file(),
             session=self.session)
 

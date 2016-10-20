@@ -35,25 +35,25 @@ class SearchClients(common.AbstractControllerCommand):
     __args = [
         dict(name="client_id", positional=True, required=False,
              help="Exact match on client id"),
+
         dict(name="hostname",
              help="Partial match on hostname"),
 
         dict(name="limit", type="IntParser", default=20,
              help="Number of rows to show."),
-
     ]
 
     table_header = [
         dict(name="Online"),
-        dict(name="ID", cname="client_id"),
-        dict(name="Host", cname="hostname"),
-        dict(name="OS", cname="os"),
+        dict(name="client_id"),
+        dict(name="hostname"),
+        dict(name="os"),
         dict(name="MAC"),
         dict(name="Usernames"),
-        dict(name="First Seen", cname="first_time"),
-        dict(name="Last Seen", cname="last_time"),
+        dict(name="first_time"),
+        dict(name="last_time"),
         dict(name="Labels"),
-        dict(name="OS Install", cname="install_time"),
+        dict(name="install_time"),
     ]
 
     table_options = dict(
@@ -62,7 +62,7 @@ class SearchClients(common.AbstractControllerCommand):
 
     def collect(self):
         collection = interrogate.ClientStatisticsCollection.load_from_location(
-            self.config.server.client_db_for_server(), session=self.session)
+            self._config.server.client_db_for_server(), session=self.session)
 
         conditions = {}
         if self.plugin_args.client_id:

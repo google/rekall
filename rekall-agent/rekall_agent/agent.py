@@ -103,7 +103,7 @@ class RekallAgent(common.AbstractAgentCommand):
         for action in flow_obj.actions:
             # Make a progress ticket for this action if required.
             flow_obj.ticket.status = "Started"
-            flow_obj.ticket.client_id = self.config.client.writeback.client_id
+            flow_obj.ticket.client_id = self._config.client.writeback.client_id
             flow_obj.ticket.current_action = action
             flow_obj.ticket.timestamp = time.time()
 
@@ -155,7 +155,7 @@ class RekallAgent(common.AbstractAgentCommand):
                     self.writeback.last_flow_time = flow_obj.created_time
 
                     # Sync the writeback in case we crash.
-                    self.config.client.save_writeback()
+                    self._config.client.save_writeback()
 
                     # Start counting resources from now.
                     self._quota = flow_obj.ticket.quota
@@ -169,7 +169,7 @@ class RekallAgent(common.AbstractAgentCommand):
             # At least one flow ran - we need to checkpoint the last ran time in
             # persistent agent state so we do not run it again.
             if flows_ran > 0:
-                self.config.client.save_writeback()
+                self._config.client.save_writeback()
 
             # Stop measuring quotas.
             self._quota = None
@@ -197,7 +197,7 @@ class RekallAgent(common.AbstractAgentCommand):
     def _startup(self):
         """Go through the startup sequence."""
         # Get the manifest file.
-        manifest_data = self.config.client.manifest_location.read_file()
+        manifest_data = self._config.client.manifest_location.read_file()
         if not manifest_data:
             self.session.logging.info("Unable to read manifest file.")
             return False
@@ -209,7 +209,7 @@ class RekallAgent(common.AbstractAgentCommand):
 
         server_cert = signed_manifest.server_certificate
         server_cert.verify(
-            self.config.ca_certificate.get_public_key())
+            self._config.ca_certificate.get_public_key())
 
         # Ok we trust the server, now make sure it signed the data properly.
         server_public_key = server_cert.get_public_key()
@@ -218,7 +218,7 @@ class RekallAgent(common.AbstractAgentCommand):
 
         # Now that we trust the manifest we copy it into our running
         # configuration.
-        self.config.manifest = agent.Manifest.from_json(
+        self._config.manifest = agent.Manifest.from_json(
             signed_manifest.data, session=self.session)
 
         # Did we crash last time?
@@ -230,17 +230,17 @@ class RekallAgent(common.AbstractAgentCommand):
             self.writeback.current_ticket.timestamp = time.time()
             self.writeback.current_ticket.send_message()
             self.writeback.current_ticket = None
-            self.config.client.save_writeback()
+            self._config.client.save_writeback()
 
         # Now run the startup actions.
-        for action in self.config.manifest.startup_actions:
+        for action in self._config.manifest.startup_actions:
             # Run the action with the new session, and report the produced
             # collections. Note that the ticket contains all collections for
             # all actions cumulatively.
             action_to_run = action.from_primitive(
                 action.to_primitive(),
                 session=self._get_session(
-                    self.config.manifest.rekall_session))
+                    self._config.manifest.rekall_session))
 
             try:
                 action_to_run.run(flow_obj=None)
@@ -266,12 +266,12 @@ class RekallAgent(common.AbstractAgentCommand):
         # Register our quota check as a Rekall Session progress handler.
         self.session.progress.Register("agent", self._check_quota)
 
-        self.poll_wait = self.config.client.poll_min
+        self.poll_wait = self._config.client.poll_min
 
         # The writeback is where the agent stores local state.
-        self.writeback = self.config.client.get_writeback()
+        self.writeback = self._config.client.get_writeback()
         self.jobs_locations = [_LocationTracker(x)
-                               for x in self.config.client.get_jobs_queues()]
+                               for x in self._config.client.get_jobs_queues()]
 
         # Startup loop. Spin here until we can verify the server manifest.
         while 1:
@@ -294,12 +294,12 @@ class RekallAgent(common.AbstractAgentCommand):
             # Adjust the poll interval based on what happened.
             if flows_ran:
                 # Switch to fast poll.
-                self.poll_wait = self.config.client.poll_min
+                self.poll_wait = self._config.client.poll_min
             else:
                 # Slowly drift to slow poll
                 self.poll_wait += 5
-                if self.poll_wait > self.config.client.poll_max:
-                    self.poll_wait = self.config.client.poll_max
+                if self.poll_wait > self._config.client.poll_max:
+                    self.poll_wait = self._config.client.poll_max
 
             # Wait a bit for the next poll.
             time.sleep(self.poll_wait)

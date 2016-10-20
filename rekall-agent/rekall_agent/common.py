@@ -22,14 +22,22 @@
 
 __author__ = "Michael Cohen <scudette@google.com>"
 import logging
-import os
 from multiprocessing.pool import ThreadPool
-
-import yaml
-
-from rekall import kb
+from rekall import config
 from rekall import plugin
-from rekall_agent.config import agent
+
+
+config.DeclareOption("agent_configuration", group="Rekall Agent",
+                     help="The Rekall Agent configuration file. When "
+                     "specified Rekall switches to Agent mode.")
+
+
+class AgentConfigMixin(object):
+
+    @property
+    def _config(self):
+        session = getattr(self, "_session", None) or getattr(self, "session")
+        return session.GetParameter("agent_config_obj")
 
 
 class LogExceptions(object):
@@ -68,7 +76,7 @@ THREADPOOL = LoggingPool(100)
 
 
 
-class AbstractAgentCommand(plugin.TypedProfileCommand,
+class AbstractAgentCommand(AgentConfigMixin, plugin.TypedProfileCommand,
                            plugin.Command):
     """All commands running on the rekall agent extend this."""
     __abstract = True
@@ -78,44 +86,7 @@ class AbstractAgentCommand(plugin.TypedProfileCommand,
 
     mode = "mode_agent"
 
-    __args = [
-        dict(name="agent_config", required=False,
-             help="Configuration file for the agent. If not specified, "
-             "configuration is read from the session, or a default local "
-             "configuration is used.")
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super(AbstractAgentCommand, self).__init__(*args, **kwargs)
-        # The configuration file can be given in the session, or specified on
-        # the command line.
-        agent_config = self.session.GetParameter(
-            "agent_config", self.plugin_args.agent_config)
-
-        if not agent_config:
-            raise TypeError("No valid configuration provided.")
-
-        if isinstance(agent_config, basestring):
-            # Set the search path to the location of the configuration
-            # file. This allows @file directives to access files relative to the
-            # main config file.
-            if self.session.GetParameter("config_search_path") == None:
-                self.session.SetParameter(
-                    "config_search_path", [os.path.dirname(agent_config)])
-
-            with open(agent_config, "rb") as fd:
-                self.config = agent.Configuration.from_primitive(
-                    session=self.session, data=yaml.safe_load(fd.read()))
-
-        elif isinstance(agent_config, agent.Configuration):
-            self.config = agent_config
-
-        else:
-            raise TypeError("agent_config must be an instance of "
-                            "agent.Configuration, not %s." % type(
-                                agent_config))
-
-        self.session.SetParameter("agent_config", self.config)
+    __args = []
 
 
 class AbstractControllerCommand(AbstractAgentCommand):
@@ -132,10 +103,3 @@ class AbstractControllerCommand(AbstractAgentCommand):
         self.client_id = (self.plugin_args.client_id or
                           self.session.GetParameter("controller_context") or
                           None)
-
-
-class AgentMode(kb.ParameterHook):
-    name = "mode_agent"
-
-    def calculate(self):
-        return self.session.GetParameter("agent_mode") != None

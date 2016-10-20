@@ -30,7 +30,7 @@ class Banner(common.LinuxPlugin):
 
     __name = "banner"
     table_header = [
-        dict(name="Banner", cname="banner", width=80)
+        dict(name="banner", width=80)
     ]
 
     def collect(self):
@@ -47,9 +47,9 @@ class CpuInfo(common.LinuxPlugin):
     __name = "cpuinfo"
 
     table_header = [
-        dict(name="CPU", cname="processor", width=4),
-        dict(name="Vendor", cname="vendor", width=20),
-        dict(name="Model", cname="model", width=80)
+        dict(name="CPU", width=4),
+        dict(name="vendor", width=20),
+        dict(name="model", width=80)
     ]
 
     def online_cpus(self):
@@ -115,4 +115,5 @@ class CpuInfo(common.LinuxPlugin):
 
     def collect(self):
         for processor, cpu in self.calculate():
-            yield (processor, cpu.x86_vendor_id, cpu.x86_model_id)
+            yield dict(CPU=processor, vendor=cpu.x86_vendor_id,
+                       model=cpu.x86_model_id)

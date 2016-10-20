@@ -135,9 +135,9 @@ class WinDNSCache(common.WindowsCommandPlugin):
 
     table_header = [
         dict(name="Name", type="TreeNode", width=45),
-        dict(name="Record", cname="record", style="address"),
-        dict(name="Type", cname="type", width=16),
-        dict(name="Data", cname="data"),
+        dict(name="record", style="address"),
+        dict(name="type", width=16),
+        dict(name="data"),
     ]
 
     def column_types(self):

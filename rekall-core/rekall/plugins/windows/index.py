@@ -55,9 +55,9 @@ class GuessGUID(common.WindowsCommandPlugin):
     ]
 
     table_header = [
-        dict(name="PID", cname="pid", width=20),
-        dict(name="Session", cname="session", width=20),
-        dict(name="Profile", cname="profile"),
+        dict(name="pid", width=20),
+        dict(name="session", width=20),
+        dict(name="profile"),
     ]
 
     def ScanProfile(self):

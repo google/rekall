@@ -30,10 +30,10 @@ class IOmem(common.LinuxPlugin):
     __name = "iomem"
 
     table_header = [
-        dict(name="Resource", cname="resource", style="address"),
-        dict(name="Start", cname="start", style="address"),
-        dict(name="End", cname="end", style="address"),
-        dict(name="Name", cname="name", type="TreeNode"),
+        dict(name="resource", style="address"),
+        dict(name="start", style="address"),
+        dict(name="end", style="address"),
+        dict(name="name", type="TreeNode"),
     ]
 
     def GetResources(self):

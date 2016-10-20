@@ -36,11 +36,11 @@ class CheckSyscall(common.LinuxPlugin):
     __name = "check_syscall"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="Table Name", cname="table", hidden=True),
-        dict(name="Index", cname="index", style="address"),
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Symbol", cname="symbol", width=80)
+        dict(name="divider", type="Divider"),
+        dict(name="table", hidden=True),
+        dict(name="index", style="address"),
+        dict(name="address", style="address"),
+        dict(name="symbol", width=80)
     ]
 
 

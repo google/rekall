@@ -222,8 +222,8 @@ class WinFindDTB(AbstractWindowsCommandPlugin, core.FindDTB):
 
     table_header = [
         dict(name="_EPROCESS (P)", style="address"),
-        dict(name="DTB", cname="dtv", style="address"),
-        dict(name="Valid", cname="valid", width=10)
+        dict(name="dtv", style="address"),
+        dict(name="valid", width=10)
     ]
 
     def collect(self):
@@ -554,7 +554,6 @@ class WinScanner(scanners.BaseScannerPlugin, WinProcessFilter):
                         data=dict(type=comment, pool=pool))
 
                     run.length = min(run.length, self.plugin_args.limit)
-
                     yield run
 
             # Non paged pool selection.

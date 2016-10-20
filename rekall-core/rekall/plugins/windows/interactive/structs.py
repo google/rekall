@@ -35,6 +35,7 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
 
     __args = [
         dict(name="offset", positional=True, type="SymbolAddress",
+             required=True,
              help="A virtual address to analyze."),
 
         dict(name="search", type="IntParser", default=0x100,
@@ -45,10 +46,10 @@ class AnalyzeStruct(common.WindowsCommandPlugin):
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="Offset", cname="offset", style="address"),
-        dict(name="Alloc Off", cname="pool_offset", style="address"),
-        dict(name="Content", cname="content")
+        dict(name="divider", type="Divider"),
+        dict(name="offset", style="address"),
+        dict(name="pool_offset", style="address"),
+        dict(name="content")
     ]
 
     def SearchForPoolHeader(self, offset, search=0x100):

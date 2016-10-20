@@ -84,18 +84,19 @@ class Mfind(common.LinuxPlugin):
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="Device", cname="device", hidden=True),
-        dict(name="Mount Pt", cname="mount", hidden=True),
-        dict(name="Perms", cname="perms", width=11),
-        dict(name="uid", cname="uid", width=10, align="r"),
-        dict(name="gid", cname="gid", width=10, align="r"),
-        dict(name="size", cname="size", width=14, align="r"),
-        dict(name="mtime", cname="mtime", width=24),
-        dict(name="atime", cname="atime", width=24),
-        dict(name="ctime", cname="ctime", width=24),
-        dict(name="inode", cname="inode", width=10, align="r"),
-        dict(name="path", cname="path"),
+        dict(name="divider", type="Divider"),
+        dict(name="device", hidden=True),
+        dict(name="mount", hidden=True),
+        dict(name="perms", width=11),
+        dict(name="uid", width=10, align="r"),
+        dict(name="gid", width=10, align="r"),
+        dict(name="size", width=14, align="r"),
+        dict(name="mtime", width=24),
+        dict(name="atime", width=24),
+        dict(name="ctime", width=24),
+        dict(name="inode", width=10, align="r"),
+        dict(name="file", hidden=True),
+        dict(name="path"),
     ]
 
 
@@ -227,10 +228,10 @@ class Mcat(core.DirectoryDumperMixin, Mfind):
     __name = "mcat"
 
     table_header = [
-        dict(name="Range start", cname="start", width=12),
-        dict(name="Range end", cname="end", width=12),
+        dict(name="start", width=12),
+        dict(name="end", width=12),
         dict(name="path", width=80),
-        dict(name="Dumped As", cname="dump_name", width=80),
+        dict(name="dump_name", width=80),
     ]
 
     def collect(self):

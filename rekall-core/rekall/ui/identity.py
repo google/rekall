@@ -59,7 +59,6 @@ class IdentityRenderer(renderer_module.BaseRenderer):
                 self.columns.append(column)
             elif isinstance(column, tuple):
                 self.columns.append(dict(name=column[0],
-                                         cname=column[1],
                                          formatstring=column[2]))
             else:
                 raise TypeError("Column spec must be dict or tuple. Got %r."
@@ -70,13 +69,13 @@ class IdentityRenderer(renderer_module.BaseRenderer):
         if isinstance(column, tuple):
             return column[1]
 
-        return column.get("cname", column.get("name"))
+        return column["name"]
 
     def table_row(self, *values, **_):
         row = dict()
         for idx, value in enumerate(values):
-            cname = self._get_column_name(idx)
-            row[cname] = value
+            name = self._get_column_name(idx)
+            row[name] = value
 
         self.rows.append(row)
 

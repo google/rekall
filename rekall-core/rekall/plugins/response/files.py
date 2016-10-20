@@ -261,7 +261,7 @@ class IRGlob(common.AbstractIRCommandPlugin):
     ]
 
     table_header = [
-        dict(name="Path", cname="path", type="FileInformation"),
+        dict(name="path", type="FileInformation"),
     ]
 
     def column_types(self):
@@ -455,10 +455,10 @@ class IRDump(IRGlob):
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name="FileSpec", hidden=True),
-        dict(name="Offset", cname="offset", style="address"),
-        dict(name="Data", cname="hexdump", width=65),
+        dict(name="offset", style="address"),
+        dict(name="hexdump", width=65),
     ]
 
     def collect(self):

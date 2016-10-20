@@ -281,15 +281,15 @@ class TSKFls(AbstractTSKCommandPlugin):
              help="Directory path to print content of")
     ]
 
-    table_header = plugin.PluginHeader(
-        dict(name="Name", cname="name", width=50),
-        dict(name="Inode", cname="inode", width=20),
-        dict(name="Type", cname="type", width=10),
-        dict(name="Size", cname="size", width=10),
+    table_header = [
+        dict(name="name", width=50),
+        dict(name="inode", width=20),
+        dict(name="type", width=10),
+        dict(name="size", width=10),
         dict(name="mtime", hidden=True, width=20),
         dict(name="atime", hidden=True, width=20),
         dict(name="ctime"),
-    )
+    ]
 
     def collect(self):
         dir_path = self.plugin_args.dir_path

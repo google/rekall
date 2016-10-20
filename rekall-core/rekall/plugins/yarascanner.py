@@ -43,8 +43,9 @@ class YaraScanMixin(object):
         dict(name="Owner", width=20),
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
-        dict(name="HexDump", cname="hexdump", hex_width=16,
-             width=67),
+        dict(name="hexdump", hex_width=16, width=67),
+        dict(name="run", hidden=True),
+        dict(name="address_space", hidden=True),
         dict(name="Context"),
     ]
 
@@ -173,12 +174,11 @@ class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
                              help="The length of data to search."),
     ]
 
-    table_header = plugin.PluginHeader(
+    table_header = [
         dict(name="Rule", width=10),
         dict(name="Offset", style="address"),
-        dict(name="HexDump", cname="hexdump", hex_width=16,
-             width=67),
-    )
+        dict(name="hexdump", hex_width=16, width=67),
+    ]
 
     PROFILE_REQUIRED = False
 
@@ -202,12 +202,14 @@ class SimpleYaraScan(YaraScanMixin, plugin.TypedProfileCommand,
                     if count >= self.plugin_args.hits:
                         break
 
-                    yield (match.rule, hit_offset,
-                           utils.HexDumpedString(
-                               self.session.physical_address_space.read(
-                                   hit_offset - self.plugin_args.pre_context,
-                                   self.plugin_args.context +
-                                   self.plugin_args.pre_context)))
+                    yield dict(
+                        Rule=match.rule,
+                        Offset=hit_offset,
+                        hexdump=utils.HexDumpedString(
+                            self.session.physical_address_space.read(
+                                hit_offset - self.plugin_args.pre_context,
+                                self.plugin_args.context +
+                                self.plugin_args.pre_context)))
 
 
 class TestYara(testlib.SimpleTestCase):

@@ -26,6 +26,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 A location is an object which handles file transfer to a specific place.
 """
+from rekall_agent import common
 from rekall_agent import serializer
 
 
@@ -37,7 +38,7 @@ class Status(object):
         self.reason = reason
 
 
-class Location(serializer.SerializedObject):
+class Location(common.AgentConfigMixin, serializer.SerializedObject):
     """A type specifying a location to upload/download files."""
 
     # This one object can represent a number of location types.

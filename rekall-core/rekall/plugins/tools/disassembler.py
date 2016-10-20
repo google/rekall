@@ -323,12 +323,12 @@ class Disassemble(plugin.TypedProfileCommand, plugin.Command):
     ]
 
     table_header = [
-        dict(type="TreeNode", name="Address", cname="cmd_address",
+        dict(type="TreeNode", name="address",
              width=20, child=dict(style="address")),
-        dict(name='Rel', cname="relative_address", style="address", width=5),
-        dict(name='Op Codes', cname="opcode", width=20),
-        dict(name='Instruction', cname="instruction", width=40),
-        dict(name='Comment', cname="comment"),
+        dict(name="rel", style="address", width=5),
+        dict(name="opcode", width=20),
+        dict(name="instruction", width=40),
+        dict(name="comment"),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -458,14 +458,14 @@ class Disassemble(plugin.TypedProfileCommand, plugin.Command):
 
                 if offset - f_offset == 0:
                     yield dict(
-                        cmd_address="------ %s ------\n" % f_name,
+                        address="------ %s ------\n" % f_name,
                         annotation=True)
 
                 if offset - f_offset < 0x1000:
                     relative = offset - f_offset
 
-            yield dict(cmd_address=instruction.address,
-                       relative_address=relative,
+            yield dict(address=instruction.address,
+                       rel=relative,
                        opcode=instruction.hexbytes,
                        instruction=instruction.op_str,
                        comment=instruction.comment, depth=depth)

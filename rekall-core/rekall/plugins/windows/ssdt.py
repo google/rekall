@@ -34,11 +34,11 @@ class WinSSDT(common.WindowsCommandPlugin):
     name = "ssdt"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="Entry Object", cname="entry_obj", hidden=True),
-        dict(name="Entry", cname="entry", style="address"),
-        dict(name="Target", cname="target", style="address"),
-        dict(name="Symbol", cname="symbol")
+        dict(name="divider", type="Divider"),
+        dict(name="entry_obj", hidden=True),
+        dict(name="entry", style="address"),
+        dict(name="target", style="address"),
+        dict(name="symbol")
     ]
 
     def _find_process_context(self, table_ptr, cc):

@@ -453,11 +453,9 @@ class ProfileCommand(Command):
 
 class PluginHeader(object):
     header = None
-    by_cname = None
     by_name = None
 
     def __init__(self, *columns):
-        self.by_cname = {}
         self.by_name = {}
 
         for column in columns:
@@ -467,27 +465,16 @@ class PluginHeader(object):
                                 "using dicts, NOT tuples). Table header %r "
                                 "is invalid." % columns)
 
-            cname = column.get("cname")
-            if cname is None:
-                cname = column.get("name")
-
-            if not cname:
+            name = column.get("name")
+            if not name:
                 raise ValueError(
                     "Plugins declaring table headers ahead of "
-                    "time MUST specify 'cname' or 'name' for each column. "
+                    "time MUST specify 'name' for each column. "
                     "Table header %r is invalid." % (columns,))
 
-            if self.by_cname.get(cname):
-                raise ValueError("Duplicate cname %r! Table header %r is "
-                                 "invalid." % (cname, columns))
+            self.by_name[name] = column
 
-            self.by_cname[cname] = column
-
-            name = column.get("name")
-            if name:
-                self.by_name[name] = column
-
-        self.header = columns
+        self.header = copy.deepcopy(columns)
 
     @utils.safe_property
     def types_in_output(self):
@@ -513,7 +500,7 @@ class PluginHeader(object):
     def fill_dict(self, row):
         """Fills out dict with all the declared columns."""
         for header in self.header:
-            column_name = header.get("cname", header.get("name"))
+            column_name = header["name"]
             if column_name not in row:
                 row[column_name] = None
 
@@ -526,7 +513,7 @@ class PluginHeader(object):
         """
         result = {}
         for idx, header in enumerate(self.header):
-            column_name = header.get("cname", header.get("name"))
+            column_name = header["name"]
 
             try:
                 result[column_name] = row[idx]
@@ -537,11 +524,11 @@ class PluginHeader(object):
 
     @utils.safe_property
     def all_names(self):
-        return set(self.by_cname.iterkeys()) | set(self.by_name.iterkeys())
+        return set(self.by_name.iterkeys())
 
     def find_column(self, name):
-        """Get the column spec in 'name' by either cname or some heuristic."""
-        return self.by_cname.get(name, self.by_name.get(name))
+        """Get the column spec in 'name'."""
+        return self.by_name.get(name)
 
 class ArgsParserMixin(object):
     """A Mixin which provides argument parsing and validation."""
@@ -623,9 +610,21 @@ class TypedProfileCommand(ArgsParserMixin):
     table_header = None
     table_options = {}
 
+    __args = [
+        dict(name="verbosity", default=1, type="IntParser",
+             help="An integer reflecting the amount of desired output: "
+             "0 = quiet, 10 = noisy."),
+    ]
+
     def __init__(self, *pos_args, **kwargs):
+        super(TypedProfileCommand, self).__init__(*pos_args, **kwargs)
         if isinstance(self.table_header, (list, tuple)):
             self.table_header = PluginHeader(*self.table_header)
+
+        # Switch off hidden column when verbosity is high.
+        if self.plugin_args.verbosity > 1:
+            for descriptor in self.table_header:
+                descriptor["hidden"] = False
 
         super(TypedProfileCommand, self).__init__(*pos_args, **kwargs)
 
@@ -669,8 +668,7 @@ class TypedProfileCommand(ArgsParserMixin):
         result = {}
         columns = []
         for column in self.table_header:
-            column_name = column.get(
-                "cname", column.get("name"))
+            column_name = column["name"]
 
             columns.append(column_name)
             result[column_name] = None
@@ -708,6 +706,14 @@ class TypedProfileCommand(ArgsParserMixin):
             else:
                 yield self.table_header.dictify(row)
 
+    # Row members which control some output.
+    ROW_OPTIONS = set(
+        ["depth",
+         "annotation",
+         "highlight",
+         "nowrap",
+         "hex_width"]
+    )
     def render(self, renderer, **options):
         table_options = self.table_options.copy()
         table_options.update(options)
@@ -724,13 +730,18 @@ class TypedProfileCommand(ArgsParserMixin):
                 new_row = []
                 for column in self.table_header:
                     new_row.append(
-                        row.pop(column.get("cname", column.get("name")), None)
+                        row.pop(column["name"], None)
                     )
+
+                if set(row) - self.ROW_OPTIONS:
+                    raise RuntimeError(
+                        "Plugin produced more data than defined columns (%s)." %
+                        (list(row),))
 
                 renderer.table_row(*new_row, **row)
 
     def reflect(self, member):
-        column = self.table_header.by_cname.get(member)
+        column = self.table_header.by_name.get(member)
         if not column:
             raise KeyError("Plugin %r has no column %r." % (self, member))
 
@@ -781,8 +792,7 @@ class Producer(TypedProfileCommand):
     @registry.classproperty
     @registry.memoize
     def table_header(self):
-        return PluginHeader(dict(type=self.type_name, name=self.type_name,
-                                 cname=self.type_name))
+        return PluginHeader(dict(type=self.type_name, name=self.type_name))
 
     def collect(self):
         raise NotImplementedError()
@@ -895,27 +905,6 @@ class PrivilegedMixIn(object):
             raise PluginError(
                 "Live analysis is only available for interactive or "
                 "privileged sessions.")
-
-
-class VerbosityMixIn(object):
-    """Use this mixin to provide a --verbosity option to a plugin.
-
-    If verbosity is > 1, we enable hidden columns.
-    """
-
-    __args = [
-        dict(name="verbosity", default=1, type="IntParser",
-             help="An integer reflecting the amount of desired output: "
-             "0 = quiet, 10 = noisy."),
-    ]
-
-    def __init__(self, *args, **kwargs):
-        super(VerbosityMixIn, self).__init__(*args, **kwargs)
-        table_header = getattr(self, "table_header", None)
-        if table_header and self.plugin_args.verbosity > 1:
-            self.table_header = copy.deepcopy(table_header)
-            for descriptor in self.table_header:
-                descriptor["hidden"] = False
 
 
 class DataInterfaceMixin(object):

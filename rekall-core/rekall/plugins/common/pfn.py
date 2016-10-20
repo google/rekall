@@ -17,7 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-from rekall import plugin
 
 
 class PhysicalAddressContext(object):
@@ -42,7 +41,7 @@ class PhysicalAddressContext(object):
         return "Phys: %#x" % self.address
 
 
-class VADMapMixin(plugin.VerbosityMixIn):
+class VADMapMixin(object):
     """A plugin to display information about virtual address pages."""
 
     name = "vadmap"

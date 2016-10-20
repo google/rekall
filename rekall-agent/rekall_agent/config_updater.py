@@ -73,7 +73,7 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
     def generate_keys(self):
         """Generates various keys if needed."""
         ca_private_key_filename = os.path.join(
-            self.config_dir, self.ca_private_key_filename)
+            self._config_dir, self.ca_private_key_filename)
 
         ca_cert_filename = os.path.join(
             self.config_dir, self.ca_cert_filename)
@@ -190,11 +190,9 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
                 fd.write(server_config_data)
 
         # Now load the server config file.
-        command_plugin = common.AbstractAgentCommand(
-            session=self.session,
-            agent_config=server_config_filename)
-
-        self.config = command_plugin.config
+        self.session.SetParameter("agent_config_obj", None)
+        self.session.SetParameter("agent_configuration", server_config_filename)
+        self._config = self.session.GetParameter("agent_config_obj")
 
     def write_manifest(self):
         yield dict(Message="Writing manifest file.")
@@ -212,7 +210,7 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
                     startup_message=(
                         interrogate.Startup.from_keywords(
                             session=self.session,
-                            location=self.config.server.flow_ticket_for_client(
+                            location=self._config.server.flow_ticket_for_client(
                                 "Startup", path_template="{client_id}",
                             )
                         )
@@ -225,15 +223,15 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
         signed_manifest = agent.SignedManifest.from_keywords(
             session=self.session,
             data=manifest.to_json(),
-            server_certificate=self.config.server.certificate,
+            server_certificate=self._config.server.certificate,
         )
 
-        signed_manifest.signature = self.config.server.private_key.sign(
+        signed_manifest.signature = self._config.server.private_key.sign(
             signed_manifest.data)
 
         # Now upload the signed manifest to the bucket. Manifest must be
         # publicly accessible.
-        upload_location = self.config.server.manifest_for_server()
+        upload_location = self._config.server.manifest_for_server()
         yield dict(Message="Writing manifest file to %s" % (
             upload_location.to_path()))
 

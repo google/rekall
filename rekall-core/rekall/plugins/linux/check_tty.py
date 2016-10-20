@@ -37,9 +37,9 @@ class CheckTTY(common.LinuxPlugin):
     __name = "check_ttys"
 
     table_header = [
-        dict(name="Name", cname="name", width=16),
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Symbol", cname="symbol", width=30)
+        dict(name="name", width=16),
+        dict(name="address", style="address"),
+        dict(name="symbol", width=30)
     ]
 
     @classmethod
@@ -62,7 +62,10 @@ class CheckTTY(common.LinuxPlugin):
                 # inside the tty driver.
                 recv_buf = tty.ldisc.ops.receive_buf
 
-                yield tty.name, recv_buf, resolver.format_address(recv_buf)
+                yield dict(
+                    name=tty.name,
+                    address=recv_buf,
+                    symbol=resolver.format_address(recv_buf))
 
     def collect(self):
         for name, call_addr, sym_name in self.CheckTTYs():

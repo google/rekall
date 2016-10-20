@@ -50,6 +50,7 @@ from cryptography.hazmat.primitives import serialization
 from oauth2client import service_account as service_account_module
 
 from rekall import utils
+from rekall_agent import common
 from rekall_agent import location
 from rekall_agent import serializer
 
@@ -57,7 +58,7 @@ from rekall_agent import serializer
 MAX_BUFF_SIZE = 10*1024*1024
 
 
-class ServiceAccount(serializer.SerializedObject):
+class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
     """A GCS service account is an entity with delegation privileges.
 
     A Service account is used for the creation of GCSSignedURLLocation and
@@ -122,8 +123,7 @@ class ServiceAccount(serializer.SerializedObject):
     def create_oauth_location(self, path="", bucket=None, public=False):
         # If the bucket is not specified take it from the server's config.
         if bucket is None:
-            config = self._session.GetParameter("agent_config")
-            bucket = config.server.bucket
+            bucket = self._config.server.bucket
 
         headers = GCSHeaders(session=self._session)
         if public:
@@ -147,8 +147,7 @@ class ServiceAccount(serializer.SerializedObject):
 
         # If the bucket is not specified take it from the server's config.
         if bucket is None:
-            config = self._session.GetParameter("agent_config")
-            bucket = config.server.bucket
+            bucket = self._config.server.bucket
 
         policy = dict(expiration=arrow.get(expiration).isoformat(),
                       conditions=[
@@ -210,8 +209,7 @@ class ServiceAccount(serializer.SerializedObject):
 
         # If the bucket is not specified take it from the server's config.
         if bucket is None:
-            config = self._session.GetParameter("ServerConfig")
-            bucket = config.client_config.base_location.bucket
+            bucket = self._config.server.base_location.bucket
 
         # Build the signed string according to
         # https://cloud.google.com/storage/docs/access-control/signed-urls#string-components
@@ -259,7 +257,7 @@ class GCSLocation(location.Location):
 
     def __init__(self, *args, **kwargs):
         super(GCSLocation, self).__init__(*args, **kwargs)
-        self._cache = self._session.GetParameter("agent_config").server.cache
+        self._cache = self._config.server.cache
 
     def get_canonical(self, **_):
         return GCSLocation.from_keywords(
@@ -465,10 +463,9 @@ class GCSOAuth2BasedLocation(GCSLocation):
 
         url_endpoint = ('https://storage.googleapis.com/%s' % base_url)
 
-        config = self._session.GetParameter("agent_config")
         headers = self.headers.to_primitive(False)
         headers["Authorization"] = (
-            "Bearer " + config.server.service_account.oauth_token)
+            "Bearer " + self._config.server.service_account.oauth_token)
         headers["Cache-Control"] = "private"
         if if_modified_since:
             headers["If-Modified-Since"] = handlers.format_date_time(
@@ -770,9 +767,8 @@ class GCSSignedPolicyLocation(GCSLocation):
 
     def expand_path(self, **kwargs):
         """Expand the complete path using the client's config."""
-        config = self._session.GetParameter("agent_config")
-        kwargs["client_id"] = config.client.writeback.client_id
-        kwargs["nonce"] = config.client.nonce
+        kwargs["client_id"] = self._config.client.writeback.client_id
+        kwargs["nonce"] = self._config.client.nonce
         return self.path_template.format(**kwargs)
 
     def get_canonical(self, **kwargs):

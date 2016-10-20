@@ -41,10 +41,10 @@ class Handles(common.WinProcessFilter):
     table_header = [
         dict(name="_OBJECT_HEADER", style="address"),
         dict(name="_EPROCESS", type="_EPROCESS"),
-        dict(name="Handle", cname="handle", style="address"),
-        dict(name="Access", cname="access", style="address"),
-        dict(name="Type", cname="obj_type", width=16),
-        dict(name="Details", cname="details")
+        dict(name="handle", style="address"),
+        dict(name="access", style="address"),
+        dict(name="obj_type", width=16),
+        dict(name="details")
     ]
 
     def column_types(self):

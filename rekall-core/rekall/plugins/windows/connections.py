@@ -47,10 +47,10 @@ class Connections(tcpip_vtypes.TcpipPluginMixin,
     mode = "mode_xp"
 
     table_header = [
-        dict(name="Offset (V)", cname="offset_v", style="address"),
-        dict(name="Local Address", cname="local_net_address", width=25),
-        dict(name="Remote Address", cname="remote_net_address", width=25),
-        dict(name="Pid", cname="pid", width=6)
+        dict(name="offset_v", style="address"),
+        dict(name="local_net_address", width=25),
+        dict(name="remote_net_address", width=25),
+        dict(name="pid", width=6)
     ]
 
     def collect(self):
@@ -101,24 +101,24 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
     mode = "mode_xp"
 
     table_header = [
-        dict(name="Offset (V)", cname="offset_v", style="address"),
-        dict(name="PID", cname="pid", width=6, align="r"),
-        dict(name="Port", cname="port", width=6, align="r"),
-        dict(name="Proto", cname="protocol_number", width=6, align="r"),
-        dict(name="Protocol", cname="protocol", width=10),
-        dict(name="Address", cname="address", width=15),
-        dict(name="Create Time", cname="socket_create_time")
+        dict(name="offset_v", style="address"),
+        dict(name="pid", width=6, align="r"),
+        dict(name="port", width=6, align="r"),
+        dict(name="proto", width=6, align="r"),
+        dict(name="protocol", width=10),
+        dict(name="address", width=15),
+        dict(name="create_time")
     ]
 
     def column_types(self):
         sock = self.tcpip_profile._ADDRESS_OBJECT()
         return dict(offset_v=sock,
-                           pid=sock.Pid,
-                           port=sock.LocalPort,
-                           protocol_number=int(sock.Protocol),
-                           protocol=sock.Protocol,
-                           address=sock.LocalIpAddress,
-                           socket_create_time=sock.CreateTime)
+                    pid=sock.Pid,
+                    port=sock.LocalPort,
+                    proto=int(sock.Protocol),
+                    protocol=sock.Protocol,
+                    address=sock.LocalIpAddress,
+                    create_time=sock.CreateTime)
 
     def collect(self):
         AddrObjTable = self.tcpip_profile.get_constant_object(
@@ -144,7 +144,7 @@ class Sockets(tcpip_vtypes.TcpipPluginMixin,
                 yield dict(offset_v=sock,
                            pid=sock.Pid,
                            port=sock.LocalPort,
-                           protocol_number=int(sock.Protocol),
+                           proto=int(sock.Protocol),
                            protocol=sock.Protocol,
                            address=sock.LocalIpAddress,
-                           socket_create_time=sock.CreateTime)
+                           create_time=sock.CreateTime)

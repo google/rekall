@@ -37,14 +37,14 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
     __name = "netstat"
 
     table_header = [
-        dict(name="Offsetdict(name=V)", cname="offset", style="address"),
-        dict(name="Proto", cname="protocol", width=8),
-        dict(name="Local Address", cname="local_addr", width=20),
-        dict(name="Remote Address", cname="remote_addr", width=20),
-        dict(name="State", cname="state", width=16),
-        dict(name="Pid", cname="pid", width=5, align="r"),
-        dict(name="Owner", cname="owner", width=14),
-        dict(name="Created", cname="created", width=7)
+        dict(name="offset", style="address"),
+        dict(name="protocol", width=8),
+        dict(name="local_addr", width=20),
+        dict(name="remote_addr", width=20),
+        dict(name="state", width=16),
+        dict(name="pid", width=5, align="r"),
+        dict(name="owner", width=14),
+        dict(name="created", width=7)
     ]
 
     @classmethod
@@ -78,11 +78,11 @@ class WinNetstat(tcpip_vtypes.TcpipPluginMixin, common.WindowsCommandPlugin):
                             endpoint.RemoteAddress(),
                             endpoint.RemotePort)
 
-                        yield (endpoint,
-                               None,
-                               lendpoint,
-                               rendpoint,
-                               endpoint.State,
-                               endpoint.Owner.pid,
-                               endpoint.Owner.name,
-                               endpoint.CreateTime)
+                        yield dict(offset=endpoint,
+                                   protocol=None,
+                                   local_addr=lendpoint,
+                                   remote_addr=rendpoint,
+                                   state=endpoint.State,
+                                   pid=endpoint.Owner.pid,
+                                   owner=endpoint.Owner.name,
+                                   created=endpoint.CreateTime)

@@ -63,9 +63,9 @@ class XenM2PMapperObjectRenderer(json_renderer.JsonObjectRenderer):
 class TaskStruct_TextObjectRenderer(base_objects.StructTextRenderer):
     renders_type = "task_struct"
     COLUMNS = [
-        dict(name="task_struct", style="address", cname="obj_offset"),
-        dict(name="Name", width=20, align="l", cname="name"),
-        dict(name="PID", width=6, align="r", cname="pid")
+        dict(style="address", name="obj_offset"),
+        dict(width=20, align="l", name="name"),
+        dict(width=6, align="r", name="pid")
     ]
 
 

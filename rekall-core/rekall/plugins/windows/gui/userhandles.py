@@ -60,16 +60,16 @@ class UserHandles(win32k_core.Win32kPluginMixin,
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name="SessionId", hidden=True),
         dict(name="SharedInfo", hidden=True),
-        dict(name="_HANDLEENTRY", cname="handle_entry", style="address"),
-        dict(name="_HEAD", cname="object", style="address"),
-        dict(name="Handle", cname="handle", style="address"),
-        dict(name="bType", cname="type", width=20),
-        dict(name="Flags", cname="flags", width=8, align="c"),
-        dict(name="Thread", cname="thread", width=8, align="c"),
-        dict(name="Process", cname="process"),
+        dict(name="_HANDLEENTRY", style="address"),
+        dict(name="_HEAD", style="address"),
+        dict(name="handle", style="address"),
+        dict(name="type", width=20),
+        dict(name="flags", width=8, align="c"),
+        dict(name="thread", width=8, align="c"),
+        dict(name="process"),
     ]
 
     def handles(self):
@@ -125,8 +125,8 @@ class UserHandles(win32k_core.Win32kPluginMixin,
 
             yield dict(SessionId=session.SessionId,
                        SharedInfo=shared_info,
-                       handle_entry=handle,
-                       object=handle.phead.deref(),
+                       _HANDLEENTRY=handle,
+                       _HEAD=handle.phead.deref(),
                        handle=handle.phead.h or 0,
                        type=handle.bType,
                        flags=handle.bFlags,
@@ -227,6 +227,17 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
 
     name = "messagehooks"
 
+    table_header = [
+        dict(name="tagHOOK", style="address"),
+        dict(name="session"),
+        dict(name="owner", width=30),
+        dict(name="thread", width=30),
+        dict(name="filter", width=15),
+        dict(name="flags", width=10),
+        dict(name="function", style="address"),
+        dict(name="module"),
+    ]
+
     def __init__(self, **kwargs):
         super(WinMessageHooks, self).__init__(**kwargs)
         self.handles = {}
@@ -300,18 +311,7 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
                 key = (s.SessionId.v(), handle.phead.h.v())
                 self.handles[key] = handle
 
-    def render(self, renderer):
-        renderer.table_header(
-            [dict(name="tagHOOK(V)", cname="offset", style="address"),
-             ("Sess", "session", ""),
-             ("Owner", "owner", "30"),
-             ("Thread", "thread", "30"),
-             ("Filter", "filter", "15"),
-             ("Flags", "flags", "10"),
-             dict(name="Function", cname="function", style="address"),
-             ("Module", "module", ""),
-            ])
-
+    def collect(self):
         atoms_plugin = self.session.plugins.atoms()
         for session in self.session.plugins.sessions().session_spaces():
 
@@ -328,15 +328,15 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
                         module_name = self.module_name_from_hook(
                             global_atom_table, session, hook)
 
-                        renderer.table_row(
-                            hook,
-                            station.dwSessionId,
-                            self.get_owner_string(session, hook),
-                            "<any>", hook_name,
-                            hook.flags,
-                            hook.offPfn,
-                            module_name,
-                            )
+                        yield dict(tagHOOK=hook,
+                                   session=station.dwSessionId,
+                                   owner=self.get_owner_string(session, hook),
+                                   thread="<any>",
+                                   filter=hook_name,
+                                   flags=hook.flags,
+                                   function=hook.offPfn,
+                                   module=module_name,
+                        )
 
                     # Now report all thread hooks in this desktop.
                     for thrd in desktop.threads():
@@ -350,12 +350,12 @@ class WinMessageHooks(win32k_core.Win32kPluginMixin,
                             module_name = self.module_name_from_hook(
                                 global_atom_table, session, hook)
 
-                            renderer.table_row(
-                                hook,
-                                session.SessionId,
-                                self.get_owner_string(session, hook),
-                                info, name,
-                                hook.flags,
-                                hook.offPfn,
-                                module_name,
-                                )
+                            yield dict(tagHOOK=hook,
+                                       session=session.SessionId,
+                                       owner=self.get_owner_string(session, hook),
+                                       thread=info,
+                                       filter=name,
+                                       flags=hook.flags,
+                                       function=hook.offPfn,
+                                       module=module_name,
+                            )

@@ -61,16 +61,16 @@ class VAD(common.WinProcessFilter):
 
     table_header = [
         dict(name='_EPROCESS', type="_EPROCESS", hidden=True),
-        dict(name='', cname="divider", type="Divider"),
-        dict(name='VAD', cname='offset', style="address"),
-        dict(name='lev', cname='level', width=3, align="r"),
-        dict(name='Start Addr', cname='start_pfn', style="address"),
-        dict(name='End Addr', cname='end_pfn', style="address"),
+        dict(name="divider", type="Divider"),
+        dict(name='VAD', style="address"),
+        dict(name='lev', width=3, align="r"),
+        dict(name='start', style="address"),
+        dict(name='end', style="address"),
         dict(name='com', width=6, align="r"),
-        dict(name='', cname='type', width=7),
-        dict(name='', cname='executable', width=6),
-        dict(name='Protect', cname='protection', width=20),
-        dict(name='Filename', cname='filename')
+        dict(name='type', width=7),
+        dict(name='exe', width=6),
+        dict(name='protect', width=20),
+        dict(name='filename')
     ]
 
     def __init__(self, *args, **kwargs):
@@ -81,14 +81,14 @@ class VAD(common.WinProcessFilter):
         return dict(
             _EPROCESS=self.session.profile._EPROCESS(),
             divider=self.session.profile._EPROCESS(),
-            offset=self.session.profile._MMVAD(),
-            level=int,
-            start_pfn=self.session.profile.Pointer(),
-            end_pfn=self.session.profile.Pointer(),
+            VAD=self.session.profile._MMVAD(),
+            lev=int,
+            start=self.session.profile.Pointer(),
+            end=self.session.profile.Pointer(),
             com=int,
             type=str,
-            executable=str,
-            protection=self.session.profile.Enumeration(),
+            exe=str,
+            protect=self.session.profile.Enumeration(),
             filename=str)
 
     def find_file(self, addr):

@@ -84,10 +84,10 @@ class DarwinDumpZone(common.AbstractDarwinCommand):
 
     name = "dump_zone"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Offset", cname="offset", style="address"),
-        dict(name="Data", cname="data", width=34)
-    )
+    table_header = [
+        dict(name="offset", style="address"),
+        dict(name="data", width=34)
+    ]
 
     @classmethod
     def args(cls, parser):
@@ -109,9 +109,9 @@ class DarwinDumpZone(common.AbstractDarwinCommand):
             raise ValueError("No such zone %r." % self.zone_name)
 
         for offset in zone.known_offsets:
-            yield (offset,
-                   utils.HexDumpedString(
-                       zone.obj_vm.read(offset, zone.elem_size)))
+            yield dict(offset=offset,
+                       data=utils.HexDumpedString(
+                           zone.obj_vm.read(offset, zone.elem_size)))
 
 
 # All plugins below dump and validate elements from specific zones.

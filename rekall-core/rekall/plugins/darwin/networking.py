@@ -91,9 +91,9 @@ class DarwinNetstat(common.AbstractDarwinCommand):
     @registry.classproperty
     @registry.memoize
     def table_header(cls):  # pylint: disable=no-self-argument
-        header = [dict(name="Socket", cname="socket", type="socket", width=60)]
+        header = [dict(name="socket", type="socket", width=60)]
         for method in cls.methods():
-            header.append(dict(name=method, cname=method, width=12))
+            header.append(dict(name=method, width=12))
 
         return plugin.PluginHeader(*header)
 

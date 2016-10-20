@@ -42,11 +42,11 @@ class CheckProcFops(common.LinuxPlugin):
     ]
 
     table_header = [
-        dict(name="DirEntry", cname="proc_dir_entry", style="address"),
-        dict(name="Path", cname="path", width=50),
-        dict(name="Member", cname="member", width=20),
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Module", cname="module")
+        dict(name="dir_entry", style="address"),
+        dict(name="path", width=50),
+        dict(name="member", width=20),
+        dict(name="address", style="address"),
+        dict(name="module")
     ]
 
     def __init__(self, *args, **kwargs):
@@ -140,7 +140,7 @@ class CheckProcFops(common.LinuxPlugin):
             highlight = None if location else "important"
 
             if highlight or self.plugin_args.all:
-                yield dict(proc_dir_entry=proc_dir_entry,
+                yield dict(dir_entry=proc_dir_entry,
                            path=path, member=member, address=func,
                            module=location, highlight=highlight)
 
@@ -160,10 +160,10 @@ class CheckTaskFops(CheckProcFops, common.LinProcessFilter):
     __name = "check_task_fops"
 
     table_header = [
-        dict(name="Task", cname="task", width=30),
-        dict(name="Member", cname="member", width=30),
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Module", cname="module")
+        dict(name="task", width=30),
+        dict(name="member", width=30),
+        dict(name="address", style="address"),
+        dict(name="module")
     ]
 
     def check_fops(self):

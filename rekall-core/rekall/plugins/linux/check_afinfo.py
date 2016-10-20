@@ -32,10 +32,10 @@ class CheckAFInfo(common.LinuxPlugin):
     __name = "check_afinfo"
 
     table_header = [
-        dict(name="Constant Name", cname="symbol", width=30),
-        dict(name="Member", cname="member", width=30),
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Module", cname="module")
+        dict(name="symbol", width=30),
+        dict(name="member", width=30),
+        dict(name="address", style="address"),
+        dict(name="module")
     ]
 
     def CreateChecks(self):

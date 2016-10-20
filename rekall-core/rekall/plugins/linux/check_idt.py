@@ -35,12 +35,12 @@ class CheckIdt(common.LinuxPlugin):
     __name = "check_idt"
 
     table_header = [
-        dict(name="Index", cname="index", style="address"),
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Type", cname="type", width=18, align="r"),
-        dict(name="Present", cname="present", width=7, align="r"),
-        dict(name="DPL", cname="dpl", width=3, align="r"),
-        dict(name="Symbol", cname="symbol")
+        dict(name="index", style="address"),
+        dict(name="address", style="address"),
+        dict(name="type", width=18, align="r"),
+        dict(name="present", width=7, align="r"),
+        dict(name="dpl", width=3, align="r"),
+        dict(name="symbol")
     ]
 
     def CheckTable(self, table, check_indexes=None):

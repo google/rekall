@@ -96,10 +96,10 @@ class AddressResolverMixin(object):
              help="List of symbols to lookup"),
     ]
 
-    table_header = plugin.PluginHeader(
+    table_header = [
         dict(name="Symbol", width=20),
         dict(name="Offset", width=20, style="address"),
-    )
+    ]
 
     # The name of the plugin.
     name = "address_resolver"

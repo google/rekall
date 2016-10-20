@@ -41,7 +41,6 @@ NOTE: Windows 8 does not have a global atom table any more.
 http://mista.nu/research/smashing_the_atom.pdf
 
 """
-from rekall import plugin
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
 
@@ -87,19 +86,21 @@ class WindowsStations(win32k_core.Win32kPluginMixin,
     def collect(self):
         for window_station in self.stations():
             desktops = [desk.Name for desk in window_station.desktops()]
-            yield (window_station, window_station.Name,
-                   window_station.dwSessionId,
-                   window_station.pGlobalAtomTable,
-                   window_station.Interactive,
-                   desktops)
+            yield dict(WindowStation=window_station,
+                       Name=window_station.Name,
+                       SesId=window_station.dwSessionId,
+                       AtomTable=window_station.pGlobalAtomTable,
+                       Interactive=window_station.Interactive,
+                       Desktops=desktops)
 
 
-class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
+class WinDesktops(WindowsStations):
     """Print information on each desktop."""
 
     __name = "desktops"
 
     table_header = [
+        dict(name="divider", type="Divider"),
         dict(name="tagDESKTOP", style="address"),
         dict(name="Name", width=20),
         dict(name="Sid", width=3),
@@ -113,19 +114,19 @@ class WinDesktops(plugin.VerbosityMixIn, WindowsStations):
     def collect(self):
         for window_station in self.stations():
             for desktop in window_station.desktops():
-                divider = ("Desktop: {0:addr}, Name: {1}\\{2}\n",
-                           desktop,
-                           window_station.Name,
-                           desktop.Name)
+                divider = "Desktop: {0:#x}, Name: {1}\\{2}\n".format(
+                    desktop,
+                    window_station.Name,
+                    desktop.Name)
 
-                divider += ("Heap: {0:addr}, Size: {1:addr}, Base: {2:addr}, "
-                            "Limit: {3:addr}\n",
-                            desktop.pheapDesktop.v(),
-                            (desktop.DeskInfo.pvDesktopLimit.v() -
-                             desktop.DeskInfo.pvDesktopBase.v()),
-                            desktop.DeskInfo.pvDesktopBase,
-                            desktop.DeskInfo.pvDesktopLimit,
-                        )
+                divider += ("Heap: {0:#x}, Size: {1:#x}, Base: {2:#x}, "
+                            "Limit: {3:#x}\n").format(
+                                desktop.pheapDesktop.v(),
+                                (desktop.DeskInfo.pvDesktopLimit.v() -
+                                 desktop.DeskInfo.pvDesktopBase.v()),
+                                desktop.DeskInfo.pvDesktopBase,
+                                desktop.DeskInfo.pvDesktopLimit,
+                            )
 
                 yield dict(divider=divider)
 

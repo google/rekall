@@ -104,7 +104,7 @@ class HTTPLocation(location.Location):
         if not path_prefix.startswith("/"):
             path_prefix = "/" + path_prefix
 
-        config = session.GetParameter("agent_config")
+        config = session.GetParameter("agent_config_obj")
         policy = URLPolicy.from_keywords(
             session=session,
             path_prefix=path_prefix,
@@ -126,7 +126,7 @@ class HTTPLocation(location.Location):
 
     def __init__(self, *args, **kwargs):
         super(HTTPLocation, self).__init__(*args, **kwargs)
-        self._cache = self._session.GetParameter("agent_config").server.cache
+        self._cache = self._config.server.cache
 
     def get_canonical(self, **kwargs):
         return HTTPLocation.from_keywords(
@@ -156,9 +156,8 @@ class HTTPLocation(location.Location):
 
     def expand_path(self, **kwargs):
         """Expand the complete path using the client's config."""
-        config = self._session.GetParameter("agent_config")
-        kwargs["client_id"] = config.client.writeback.client_id
-        kwargs["nonce"] = config.client.nonce
+        kwargs["client_id"] = self._config.client.writeback.client_id
+        kwargs["nonce"] = self._config.client.nonce
         return self.path_template.format(**kwargs)
 
     def to_path(self, **kwargs):

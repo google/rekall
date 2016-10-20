@@ -38,14 +38,14 @@ class WinPsList(common.WinProcessFilter):
     eprocess = None
 
     table_header = [
-        dict(type="_EPROCESS", cname="_EPROCESS"),
-        dict(name="PPID", cname="ppid", width=6, align="r"),
-        dict(name="Thds", cname="thread_count", width=6, align="r"),
-        dict(name="Hnds", cname="handle_count", width=8, align="r"),
-        dict(name="Sess", cname="session_id", width=6, align="r"),
-        dict(name="Wow64", cname="wow64", width=6),
-        dict(name="Start", cname="process_create_time", width=24),
-        dict(name="Exit", cname="process_exit_time", width=24)
+        dict(type="_EPROCESS", name="_EPROCESS"),
+        dict(name="ppid", width=6, align="r"),
+        dict(name="thread_count", width=6, align="r"),
+        dict(name="handle_count", width=8, align="r"),
+        dict(name="session_id", width=6, align="r"),
+        dict(name="wow64", width=6),
+        dict(name="process_create_time", width=24),
+        dict(name="process_exit_time", width=24)
     ]
 
     def column_types(self):
@@ -76,12 +76,12 @@ class WinDllList(common.WinProcessFilter):
     __name = "dlllist"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="_EPROCESS", cname="_EPROCESS", hidden=True),
-        dict(name="Base", cname="module_base", style="address"),
-        dict(name="Size", cname="module_size", style="address"),
-        dict(name="Load Reason/Count", cname="reason", width=30),
-        dict(name="Path", cname="loaded_dll_path"),
+        dict(name="divider", type="Divider"),
+        dict(name="_EPROCESS", hidden=True),
+        dict(name="base", style="address"),
+        dict(name="size", style="address"),
+        dict(name="reason", width=30),
+        dict(name="dll_path"),
     ]
 
     def collect(self):
@@ -98,10 +98,10 @@ class WinDllList(common.WinProcessFilter):
                 yield dict(divider=divider)
 
                 for m in task.get_load_modules():
-                    yield dict(module_base=m.DllBase,
-                               module_size=m.SizeOfImage,
+                    yield dict(base=m.DllBase,
+                               size=m.SizeOfImage,
                                reason=m.LoadReason,
-                               loaded_dll_path=m.FullDllName,
+                               dll_path=m.FullDllName,
                                _EPROCESS=task)
             else:
                 yield dict(divider="Unable to read PEB for task.\n")
@@ -121,14 +121,14 @@ class Threads(common.WinProcessFilter):
     name = "threads"
 
     table_header = [
-        dict(name="_ETHREAD", cname="offset", style="address"),
-        dict(name="PID", cname="pid", align="r", width=6),
-        dict(name="TID", cname="tid", align="r", width=6),
-        dict(name="Start Address", cname="start", style="address"),
-        dict(name="Start Symbol", width=30),
-        dict(name="Process", cname="name", width=16),
-        dict(name="Win32 Start", cname="win32_start", style="address"),
-        dict(name="Win32 Symbol")
+        dict(name="_ETHREAD", style="address"),
+        dict(name="pid", align="r", width=6),
+        dict(name="tid", align="r", width=6),
+        dict(name="start", style="address"),
+        dict(name="start_symbol", width=30),
+        dict(name="Process", width=16),
+        dict(name="win32_start", style="address"),
+        dict(name="win32_start_symb")
     ]
 
     def collect(self):
@@ -141,16 +141,18 @@ class Threads(common.WinProcessFilter):
                 for thread in task.ThreadListHead.list_of_type(
                         "_ETHREAD", "ThreadListEntry"):
 
-                    yield (thread,
-                           thread.Cid.UniqueProcess,
-                           thread.Cid.UniqueThread,
-                           thread.StartAddress,
-                           utils.FormattedAddress(self.session.address_resolver,
-                                                  thread.StartAddress),
-                           task.ImageFileName,
-                           thread.Win32StartAddress,
-                           utils.FormattedAddress(self.session.address_resolver,
-                                                  thread.Win32StartAddress))
+                    yield dict(_ETHREAD=thread,
+                               pid=thread.Cid.UniqueProcess,
+                               tid=thread.Cid.UniqueThread,
+                               start=thread.StartAddress,
+                               start_symbol=utils.FormattedAddress(
+                                   self.session.address_resolver,
+                                   thread.StartAddress),
+                               Process=task.ImageFileName,
+                               win32_start=thread.Win32StartAddress,
+                               win32_start_symb=utils.FormattedAddress(
+                                   self.session.address_resolver,
+                                   thread.Win32StartAddress))
 
 
 class WinMemDump(memmap.MemDumpMixin, common.WinProcessFilter):

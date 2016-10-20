@@ -95,7 +95,7 @@ class Startup(batch.BatchTicket):
 
     @classmethod
     def end(cls, context, session=None):
-        config = session.GetParameter("agent_config")
+        config = session.GetParameter("agent_config_obj")
 
         def _update_client_records(collection, messages):
             for message in messages:

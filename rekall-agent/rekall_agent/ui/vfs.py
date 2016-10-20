@@ -89,7 +89,7 @@ class VFSLs(common.AbstractControllerCommand):
                 stat_collection = self.collections[stat_collection_path]
             except KeyError:
                 stat_collection = files.StatEntryCollection.load_from_location(
-                    self.config.server.location_from_path_for_server(
+                    self._config.server.location_from_path_for_server(
                         stat_collection_path),
                     session=self.session)
 
@@ -136,7 +136,7 @@ class VFSLs(common.AbstractControllerCommand):
 
         # First get the VFS index.
         vfs_index = find.VFSIndex.load_from_location(
-            self.config.server.vfs_index_for_server(self.client_id),
+            self._config.server.vfs_index_for_server(self.client_id),
             session=self.session)
 
         # We use the index to get the best StatEntryCollection() which covers

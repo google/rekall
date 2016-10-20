@@ -34,9 +34,9 @@ class WinPhysicalMap(common.WindowsCommandPlugin):
     __name = "phys_map"
 
     table_header = [
-        dict(name="Phys Start", cname="phys_start", style="address"),
-        dict(name="Phys End", cname="phys_end", style="address"),
-        dict(name="Number of Pages", cname="pages"),
+        dict(name="phys_start", style="address"),
+        dict(name="phys_end", style="address"),
+        dict(name="pages"),
     ]
 
     def collect(self):
@@ -73,9 +73,9 @@ class WinVirtualMap(common.WindowsCommandPlugin):
     __name = "virt_map"
 
     table_header = [
-        dict(name="Virtual Start", cname="virt_start", style="address"),
-        dict(name="Virtual End", cname="virt_end", style="address"),
-        dict(name="Type", cname="type", width=10),
+        dict(name="virt_start", style="address"),
+        dict(name="virt_end", style="address"),
+        dict(name="type", width=10),
     ]
 
     @classmethod
@@ -125,12 +125,11 @@ class Objects(common.WindowsCommandPlugin):
     name = "object_types"
 
     table_header = [
-        dict(name="Type", cname="type", style="address"),
-        dict(name="Index", cname="idx", align="r", width=5),
-        dict(name="Number Objects", cname="TotalNumberOfObjects",
-             align="r", width=15),
-        dict(name="PoolType", cname="PoolType", width=20),
-        dict(name="Name", cname="name")
+        dict(name="type", style="address"),
+        dict(name="index", align="r", width=5),
+        dict(name="NumberOfObjects", align="r", width=15),
+        dict(name="PoolType", width=20),
+        dict(name="name")
     ]
 
     def object_types(self):
@@ -156,11 +155,11 @@ class Objects(common.WindowsCommandPlugin):
 
     def collect(self):
         for obj_type in self.object_types():
-            yield (obj_type,
-                   obj_type.Index,
-                   obj_type.TotalNumberOfObjects,
-                   obj_type.TypeInfo.PoolType,
-                   obj_type.Name)
+            yield dict(type=obj_type,
+                       index=obj_type.Index,
+                       NumberOfObjects=obj_type.TotalNumberOfObjects,
+                       PoolType=obj_type.TypeInfo.PoolType,
+                       name=obj_type.Name)
 
 
 class ImageInfo(common.WindowsCommandPlugin):
@@ -169,8 +168,8 @@ class ImageInfo(common.WindowsCommandPlugin):
     name = "imageinfo"
 
     table_header = [
-        dict(name="Fact", cname="key", width=20),
-        dict(name="Value", cname="value")
+        dict(name="key", width=20),
+        dict(name="value")
     ]
 
     @staticmethod
@@ -212,7 +211,9 @@ class ImageInfo(common.WindowsCommandPlugin):
                 ("Signed Drivers", "g_CiEnabled", "bool"),
             ):
 
-            yield (desc, self.profile.get_constant_object(name, target=type))
+            yield dict(
+                key=desc,
+                value=self.profile.get_constant_object(name, target=type))
 
         # Print kuser_shared things.
         kuser_shared = self.profile.get_constant_object(
@@ -311,9 +312,9 @@ class ObjectTree(common.WindowsCommandPlugin):
     ]
 
     table_header = [
-        dict(name="_OBJECT_HEADER", cname="offset", style="address"),
-        dict(name="Type", cname="type", width=20),
-        dict(name="Name", type="TreeNode"),
+        dict(name="_OBJECT_HEADER", style="address"),
+        dict(name="type", width=20),
+        dict(name="name", type="TreeNode"),
     ]
 
     def GetObjectByName(self, path):
@@ -405,8 +406,8 @@ class ObjectTree(common.WindowsCommandPlugin):
                                          obj_header.Object.CreationTime)
 
             if self.plugin_args.type_regex.search(obj_type):
-                yield dict(offset=obj_header, type=obj_type,
-                           Name=name, depth=depth)
+                yield dict(_OBJECT_HEADER=obj_header, type=obj_type,
+                           name=name, depth=depth)
 
             if obj_type == "Directory":
                 for x in self._collect_directory(

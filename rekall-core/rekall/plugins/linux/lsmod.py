@@ -22,8 +22,6 @@
 @contact:      atcuno@gmail.com
 @organization: Digital Forensics Solutions
 """
-import re
-
 from rekall.plugins.linux import common
 
 
@@ -33,10 +31,10 @@ class Lsmod(common.LinuxPlugin):
     name = "lsmod"
 
     table_header = [
-        dict(name="Virtual", cname="virtual", style="address"),
-        dict(name="Core Start", cname="start", style="address"),
-        dict(name="Total Size", cname="size", width=10),
-        dict(name="Name", cname="name", width=20)
+        dict(name="virtual", style="address"),
+        dict(name="start", style="address"),
+        dict(name="size", width=10),
+        dict(name="name", width=20)
     ]
 
     def get_module_list(self):
@@ -61,9 +59,9 @@ class LsmodSections(common.LinuxPlugin):
     name = "lsmod_sections"
 
     table_header = [
-        dict(name="Name", cname="name", width=20),
-        dict(name="Section", cname="section", width=30),
-        dict(name="Address", cname="address", style="address")
+        dict(name="name", width=20),
+        dict(name="section", width=30),
+        dict(name="address", style="address")
     ]
 
     def get_module_sections(self, module):
@@ -97,9 +95,9 @@ class Lsmod_parameters(common.LinuxPlugin):
     }
 
     table_header = [
-        dict(name="Name", cname="name", width=20),
-        dict(name="Key", cname="key", width=40),
-        dict(name="Value", cname="value", width=20)
+        dict(name="name", width=20),
+        dict(name="key", width=40),
+        dict(name="value", width=20)
     ]
 
     def __init__(self, *args, **kwargs):

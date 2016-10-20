@@ -229,10 +229,8 @@ class ListDirectory(flow.Flow):
         if self.is_hunt():
             return
 
-        config = self._session.GetParameter("agent_config")
-
         VFSIndex.transaction(
-            config.server.vfs_index_for_server(self.client_id),
+            self._config.server.vfs_index_for_server(self.client_id),
             self._update_vfs_index,
             tickets,
             session=self._session)

@@ -31,10 +31,10 @@ class Mount(common.LinuxPlugin):
     __name = "mount"
 
     table_header = [
-        dict(name="Device", cname="virtual", width=50),
-        dict(name="Path", cname="path", width=50),
-        dict(name="Type", cname="type", width=14),
-        dict(name="flags", cname="flags", width=20),
+        dict(name="Device", width=50),
+        dict(name="Path", width=50),
+        dict(name="Type", width=14),
+        dict(name="flags", width=20),
     ]
 
     def get_mount_points(self):
@@ -157,5 +157,7 @@ class Mount(common.LinuxPlugin):
                     additional_flag = "rw"
                 flags_string = ', '.join([additional_flag, flags_string])
 
-            yield (mountpoint.device, mountpoint.name,
-                   mountpoint.fstype, flags_string)
+            yield dict(Device=mountpoint.device,
+                       Path=mountpoint.name,
+                       Type=mountpoint.fstype,
+                       flags=flags_string)

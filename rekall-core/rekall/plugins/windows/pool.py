@@ -75,13 +75,13 @@ class Pools(common.WindowsCommandPlugin):
     _pool_lookup = None
 
     table_header = [
-        dict(name="Desc", cname="descriptor", width=20, style="address"),
-        dict(name="Type", cname="type", width=20),
-        dict(name="Index", cname="index", width=5),
-        dict(name="Size", cname="total_bytes", width=10, align="r"),
-        dict(name="Start", cname="start", style="address"),
-        dict(name="End", cname="end", style="address"),
-        dict(name="Comment", cname="comment")
+        dict(name="descriptor", width=20, style="address"),
+        dict(name="type", width=20),
+        dict(name="index", width=5),
+        dict(name="size", width=10, align="r"),
+        dict(name="start", style="address"),
+        dict(name="end", style="address"),
+        dict(name="comment")
     ]
 
     def find_non_paged_pool(self):
@@ -281,13 +281,13 @@ class Pools(common.WindowsCommandPlugin):
     def collect(self):
         descriptors = self.find_all_pool_descriptors()
         for desc in sorted(descriptors):
-            yield (desc,
-                   desc.PoolType,
-                   desc.PoolIndex,
-                   desc.m("TotalBytes") or desc.TotalPages * 0x1000,
-                   desc.PoolStart,
-                   desc.PoolEnd,
-                   getattr(desc, "Comment", ""))
+            yield dict(descriptor=desc,
+                       type=desc.PoolType,
+                       index=desc.PoolIndex,
+                       size=desc.m("TotalBytes") or desc.TotalPages * 0x1000,
+                       start=desc.PoolStart,
+                       end=desc.PoolEnd,
+                       comment=getattr(desc, "Comment", ""))
 
 
 class PoolTracker(common.WindowsCommandPlugin):
@@ -296,11 +296,11 @@ class PoolTracker(common.WindowsCommandPlugin):
     name = "pool_tracker"
 
     table_header = [
-        dict(name="Tag", cname="tag", width=4),
-        dict(name="NP Alloc", cname="nonpaged", width=20, align="r"),
-        dict(name="NP Bytes", cname="nonpaged_bytes", width=10, align="r"),
-        dict(name="P Alloc", cname="paged", width=20, align="r"),
-        dict(name="P Bytes", cname="paged_bytes", width=10, align="r"),
+        dict(name="tag", width=4),
+        dict(name="nonpaged", width=20, align="r"),
+        dict(name="nonpaged_bytes", width=10, align="r"),
+        dict(name="paged", width=20, align="r"),
+        dict(name="paged_bytes", width=10, align="r"),
     ]
 
     def collect(self):

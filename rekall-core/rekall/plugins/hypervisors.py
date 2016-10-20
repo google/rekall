@@ -523,7 +523,7 @@ class VirtualMachine(object):
             self.host_rip, self.ept)
 
 
-class VmScan(plugin.PhysicalASMixin, plugin.VerbosityMixIn,
+class VmScan(plugin.PhysicalASMixin,
              plugin.TypedProfileCommand, plugin.Command):
     """Scan the physical memory attempting to find hypervisors.
 

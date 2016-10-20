@@ -49,16 +49,16 @@ class DarwinLsof(common.AbstractDarwinCommand):
 
     name = "lsof"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Process", cname="proc", type="proc",
+    table_header = [
+        dict(name="proc", type="proc",
              columns=[
-                 dict(name="Command", cname="command", width=16),
-                 dict(name="PID", cname="pid", width=8),
-                 dict(name="UID", cname="p_uid", width=8)
+                 dict(name="command", width=16),
+                 dict(name="pid", width=8),
+                 dict(name="p_uid", width=8)
              ]),
-        dict(name="FD", cname="fd", width=5),
-        dict(name="Handle", cname="fileproc", type="fileproc")
-    )
+        dict(name="fd", width=5),
+        dict(name="fileproc", type="fileproc")
+    ]
 
     def collect(self):
         procs = self.session.plugins.collect("proc").collect()

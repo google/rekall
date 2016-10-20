@@ -214,12 +214,12 @@ class DarwinSysctl(common.AbstractDarwinCommand):
                 yield oid
 
     table_header = [
-        dict(name="Name", cname="name", width=45),
-        dict(name="MIB", cname="mib", width=16),
-        dict(name="Perms", cname="perms", width=6),
-        dict(name="Handler", cname="handler", style="address"),
-        dict(name="Symbol", cname="symbol", width=40),
-        dict(name="Value", cname="value")
+        dict(name="name", width=45),
+        dict(name="mib", width=16),
+        dict(name="perms", width=6),
+        dict(name="handler", style="address"),
+        dict(name="symbol", width=40),
+        dict(name="value")
     ]
 
     def column_types(self):

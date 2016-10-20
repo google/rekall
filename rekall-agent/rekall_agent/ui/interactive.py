@@ -59,7 +59,7 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
         if self.offset is None:
             self.offset = self.plugin_args.offset
 
-        location = self.config.server.location_from_path_for_server(
+        location = self._config.server.location_from_path_for_server(
             self.plugin_args.path)
 
         local_filename = location.get_local_filename()
@@ -121,7 +121,7 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
             types = []
             headers = []
             for column in table.columns:
-                col_spec = dict(name=column.name, cname=column.name)
+                col_spec = dict(name=column.name)
                 if column.type == "int":
                     col_spec["align"] = "r"
 
@@ -163,7 +163,7 @@ class AgentControllerStoreLs(common.AbstractControllerCommand):
     ]
 
     def collect(self):
-        location = self.config.server.location_from_path_for_server(
+        location = self._config.server.location_from_path_for_server(
             self.plugin_args.path)
 
         for stat in location.list_files(max_results=self.plugin_args.limit):

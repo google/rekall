@@ -84,7 +84,7 @@ class DataExportRenderer(json_renderer.JsonRenderer):
             if object_renderer is not None:
                 column_spec["type"] = object_renderer
 
-            column_name = column_spec.get("cname", column_spec.get("name"))
+            column_name = column_spec["name"]
             if column_name:
                 result[column_name] = self.encoder.Encode(
                     arg, **column_spec)

@@ -42,10 +42,10 @@ class Sessions(common.WinProcessFilter):
     __name = "sessions"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="SessId", cname="session_id", hidden=True),
-        dict(name="Process", cname="process", width=40),
-        dict(name="Module Image In Session", cname="image"),
+        dict(name="divider", type="Divider"),
+        dict(name="session_id", hidden=True),
+        dict(name="process", width=40),
+        dict(name="image"),
     ]
 
     def session_spaces(self):

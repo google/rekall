@@ -223,10 +223,10 @@ class DLLDump(ProcExeDump):
     ]
 
     table_header = [
-        dict(name="_EPROCESS", cname="eprocess"),
-        dict(name="Base", cname="base", style="address"),
-        dict(name="Module", cname="module", width=20),
-        dict(name="Dump File", cname="filename")
+        dict(name="_EPROCESS"),
+        dict(name="base", style="address"),
+        dict(name="module", width=20),
+        dict(name="filename")
     ]
 
     def collect(self):
@@ -250,8 +250,10 @@ class DLLDump(ProcExeDump):
                         task.UniqueProcessId, process_offset, module.DllBase,
                         utils.EscapeForFilesystem(base_name))
 
-                    yield (task, module.DllBase, module.BaseDllName,
-                           dump_file)
+                    yield dict(_EPROCESS=task,
+                               base=module.DllBase,
+                               module=module.BaseDllName,
+                               filename=dump_file)
 
                     # Use the procdump module to dump out the binary:
                     with self.session.GetRenderer().open(

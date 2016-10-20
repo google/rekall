@@ -38,12 +38,12 @@ class IRMaps(processes.APIProcessFilter):
 
     table_header = [
         dict(name='proc', type="proc", hidden=True),
-        dict(name='', cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name='Map', hidden=True),
-        dict(name='Start Addr', cname='start', style="address"),
-        dict(name='End Addr', cname='end', style="address"),
-        dict(name='Perms', cname='perms', width=4),
-        dict(name='Filename', cname='filename')
+        dict(name='start', style="address"),
+        dict(name='end', style="address"),
+        dict(name='perms', width=4),
+        dict(name='filename')
     ]
 
     def generate_maps(self, pid):

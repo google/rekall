@@ -58,13 +58,14 @@ class DarwinTerminals(common.AbstractDarwinCommand):
 
     name = "terminals"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Session", type="session", cname="session",
-             columns=[dict(name="Session ID", cname="s_sid")]),
-        dict(name="Terminal", type="tty", cname="tty")
-    )
+    table_header = [
+        dict(type="session", name="session",
+             columns=[dict(name="s_sid")]),
+        dict(type="tty", name="tty")
+    ]
 
     def collect(self):
         for session in self.session.plugins.sessions().produce():
             if session.s_ttyp:
-                yield [session, session.s_ttyp]
+                yield dict(session=session,
+                           tty=session.s_ttyp)

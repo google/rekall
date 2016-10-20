@@ -164,11 +164,11 @@ class APIPslist(APIProcessFilter):
         dict(name="proc", hidden=True),
         dict(name="Name", width=30),
         dict(name="pid", width=6, align="r"),
-        dict(name="PPID", cname="ppid", width=6, align="r"),
-        dict(name="Thds", cname="thread_count", width=6, align="r"),
-        dict(name="Hnds", cname="handle_count", width=8, align="r"),
-        dict(name="Wow64", cname="wow64", width=6),
-        dict(name="Start", cname="start_time", width=24),
+        dict(name="ppid", width=6, align="r"),
+        dict(name="Thds", width=6, align="r"),
+        dict(name="Hnds", width=8, align="r"),
+        dict(name="wow64", width=6),
+        dict(name="start", width=24),
         dict(name="binary"),
     ]
 
@@ -186,10 +186,10 @@ class APIPslist(APIProcessFilter):
                     Name=proc.name,
                     pid=proc.pid,
                     ppid=proc.ppid,
-                    thread_count=proc.num_threads,
-                    handle_count=proc.num_handles,
+                    Thds=proc.num_threads,
+                    Hnds=proc.num_handles,
                     wow64=self.is_wow64(proc),
-                    start_time=proc.start_time,
+                    start=proc.start_time,
                     binary=proc.exe)
 
     def collect(self):

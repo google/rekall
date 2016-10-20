@@ -17,7 +17,7 @@ class ClientAcionTest(testlib.RekallBaseUnitTestCase):
     def setUp(self):
         self.session = self.MakeUserSession()
         self.session.SetParameter(
-            "agent_config",
+            "agent_config_obj",
             agent.Configuration(session=self.session))
 
     def encode_baseline(self, data):

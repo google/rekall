@@ -62,17 +62,17 @@ class PrivilegesHook(common.AbstractWindowsParameterHook):
         return result
 
 
-class Privileges(plugin.VerbosityMixIn, common.WinProcessFilter):
+class Privileges(common.WinProcessFilter):
     """Prints process privileges."""
 
     name = "privileges"
 
-    table_header = plugin.PluginHeader(
+    table_header = [
         dict(name="Process", type="_EPROCESS"),
         dict(name="Value", width=3, align="r"),
         dict(name="Privileges", width=40),
         dict(name="Attributes", type="list")
-    )
+    ]
 
     def collect(self):
         privilege_table = self.session.GetParameter("privilege_table")

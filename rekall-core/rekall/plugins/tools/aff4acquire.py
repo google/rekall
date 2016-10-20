@@ -696,7 +696,7 @@ class TestAFF4Acquire(testlib.SimpleTestCase):
         self.assertEqual(previous, current)
 
 
-class AFF4Ls(plugin.VerbosityMixIn, AbstractAFF4Plugin):
+class AFF4Ls(AbstractAFF4Plugin):
     """List the content of an AFF4 file."""
 
     name = "aff4ls"

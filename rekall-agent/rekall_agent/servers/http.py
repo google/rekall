@@ -277,13 +277,14 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
     READ_BLOCK_SIZE = 10 * 1024 * 1024
     protocol_version = "HTTP/1.1"
 
+    public = False
+
     def __init__(self, request, client_address, server, **kwargs):
         self.session = server.session
-        self.config = self.session.GetParameter("agent_config")
-        self.public = False
+        self._config = self.session.GetParameter("agent_config_obj")
         self._cache = cache.LocalDiskCache.from_keywords(
             session=self.session,
-            cache_directory=self.config.server.root_directory)
+            cache_directory=self._config.server.root_directory)
         super(RekallHTTPServerHandler, self).__init__(
             request, client_address, server, **kwargs)
 
@@ -298,7 +299,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             policy_data = base64.b64decode(policy_data)
             signature = base64.b64decode(signature)
 
-            self.config.server.private_key.public_key().verify(
+            self._config.server.private_key.public_key().verify(
                 policy_data, signature)
 
             policy = http.URLPolicy.from_json(policy_data, session=self.session)
@@ -354,7 +355,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
                     generation=row["generation"],
                     location=http.HTTPLocation.from_keywords(
                         session=self.session,
-                        base=self.config.server.base_url,
+                        base=self._config.server.base_url,
                         path_prefix=row["path"],
                         )
                     ).to_primitive())
@@ -518,7 +519,8 @@ class RekallHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 def CreateServer(session=None):
     """Start frontend http server."""
-    config = session.GetParameter("agent_config")
+    config = session.GetParameter("agent_config_obj")
+    httpd = None
     for port in range(config.server.bind_port, config.server.port_max + 1):
         server_address = (config.server.bind_address, port)
         try:
@@ -532,6 +534,9 @@ def CreateServer(session=None):
                     "Port %s in use, trying %s", port, port + 1)
             else:
                 raise
+
+    if not httpd:
+        raise RuntimeError("Unable to create http server.")
 
     sa = httpd.socket.getsockname()
     session.logging.info("Serving HTTP on %s port %d ...", sa[0], sa[1])

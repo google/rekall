@@ -101,14 +101,14 @@ class WinNetscan(tcpip_vtypes.TcpipPluginMixin,
     __name = "netscan"
 
     table_header = [
-        dict(name="Offsetdict(P)", cname="offset", style="address"),
-        dict(name="Proto", cname="protocol", width=8),
-        dict(name="Local Address", cname="local_addr", width=20),
-        dict(name="Remote Address", cname="remote_addr", width=30),
-        dict(name="State", cname="state", width=16),
-        dict(name="Pid", cname="pid", width=5, align="r"),
-        dict(name="Owner", cname="owner", width=14),
-        dict(name="Created", cname="created")
+        dict(name="offset", style="address"),
+        dict(name="protocol", width=8),
+        dict(name="local_addr", width=20),
+        dict(name="remote_addr", width=30),
+        dict(name="state", width=16),
+        dict(name="pid", width=5, align="r"),
+        dict(name="owner", width=14),
+        dict(name="created")
     ]
 
     scanner_defaults = dict(

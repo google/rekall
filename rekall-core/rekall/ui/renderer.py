@@ -352,7 +352,6 @@ class BaseTable(object):
             # which is more expressive but more verbose.
             if isinstance(column, (tuple, list)):
                 column = dict(name=column[0],
-                              cname=column[1],
                               formatstring=column[2])
 
             self.column_specs.append(column)

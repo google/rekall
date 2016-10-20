@@ -33,8 +33,8 @@ class CheckCreds(common.LinProcessFilter):
     __name = "check_creds"
 
     table_header = [
-        dict(name="task", cname="task", width=40),
-        dict(name="Cred", cname="cred", style="address"),
+        dict(name="task", width=40),
+        dict(name="cred", style="address"),
     ]
 
     @classmethod

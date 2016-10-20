@@ -37,11 +37,11 @@ class Modules(common.WindowsCommandPlugin):
     ]
 
     table_header = [
-        dict(name="_LDR_DATA_TABLE_ENTRY", cname="offset_v", style="address"),
-        dict(name="Name", cname="file_name", width=20),
-        dict(name='Base', cname="module_base", style="address"),
-        dict(name='Size', cname="module_size", style="address"),
-        dict(name='File', cname="path")
+        dict(name="_LDR_DATA_TABLE_ENTRY", style="address"),
+        dict(name="name", width=20),
+        dict(name="base", style="address"),
+        dict(name="size", style="address"),
+        dict(name="path")
     ]
 
     def lsmod(self):
@@ -66,11 +66,12 @@ class Modules(common.WindowsCommandPlugin):
         object_tree_plugin = self.session.plugins.object_tree()
 
         for module in self.lsmod():
-            yield (module,
-                   module.BaseDllName,
-                   module.DllBase,
-                   module.SizeOfImage,
-                   object_tree_plugin.FileNameWithDrive(module.FullDllName.v()))
+            yield dict(_LDR_DATA_TABLE_ENTRY=module,
+                       name=module.BaseDllName,
+                       base=module.DllBase,
+                       size=module.SizeOfImage,
+                       path=object_tree_plugin.FileNameWithDrive(
+                           module.FullDllName.v()))
 
 
 class RSDSScanner(scan.BaseScanner):
@@ -87,10 +88,10 @@ class ModVersions(Modules):
     __name = "version_modules"
 
     table_header = [
-        dict(name="Offset (V)", cname="offset_v", style="address"),
-        dict(name="Name", cname="file_name", width=20),
-        dict(name='GUID/Version', cname="guid", width=33),
-        dict(name="PDB", cname="pdb")
+        dict(name="offset_v", style="address"),
+        dict(name="name", width=20),
+        dict(name="guid", width=33),
+        dict(name="pdb")
     ]
 
     def ScanVersions(self):
@@ -109,10 +110,10 @@ class ModVersions(Modules):
 
     def collect(self):
         for module, rsds, guid in self.ScanVersions():
-            yield (rsds,
-                   module.BaseDllName,
-                   guid,
-                   rsds.Filename)
+            yield dict(offset_v=rsds,
+                       name=module.BaseDllName,
+                       guid=guid,
+                       pdb=rsds.Filename)
 
 
 class VersionScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
@@ -133,9 +134,9 @@ class VersionScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
     ]
 
     table_header = [
-        dict(name="Offset (P)", cname="offset_p", style="address"),
-        dict(name='GUID/Version', cname="guid", width=33),
-        dict(name="PDB", cname="pdb", width=30)
+        dict(name="offset", style="address"),
+        dict(name="guid", width=33),
+        dict(name="pdb", width=30)
     ]
 
     def __init__(self, *args, **kwargs):
@@ -170,7 +171,7 @@ class VersionScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
 
     def collect(self):
         for rsds, guid in self.ScanVersions():
-            yield (rsds, guid, rsds.Filename)
+            yield dict(offset=rsds, guid=guid, pdb=rsds.Filename)
 
 
 class UnloadedModules(common.WindowsCommandPlugin):
@@ -183,10 +184,10 @@ class UnloadedModules(common.WindowsCommandPlugin):
     name = "unloaded_modules"
 
     table_header = [
-        dict(name="Name", cname="name", width=20),
-        dict(name="Start", cname="start", style="address"),
-        dict(name="End", cname="end", style="address"),
-        dict(name="Time", cname="time")
+        dict(name="name", width=20),
+        dict(name="start", style="address"),
+        dict(name="end", style="address"),
+        dict(name="time")
     ]
 
     def collect(self):

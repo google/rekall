@@ -60,9 +60,9 @@ class Arp(common.LinuxPlugin):
     __name = "arp"
 
     table_header = [
-        dict(name="IP Address", cname="ip", width=45, align="r"),
-        dict(name="MAC", cname="mac", width=20, align="r"),
-        dict(name="Device", cname="dev", width=15, align="r")
+        dict(name="ip", width=45, align="r"),
+        dict(name="mac", width=20, align="r"),
+        dict(name="dev", width=15, align="r")
     ]
 
     def __init__(self, **kwargs):
@@ -141,7 +141,7 @@ class Arp(common.LinuxPlugin):
             mac = ":".join(["%.02x" % x for x in neighbour.ha])
             devname = neighbour.dev.name
 
-            yield ip, mac, devname
+            yield dict(ip=ip, mac=mac, dev=devname)
 
             neighbour = neighbour.next.deref()
 
@@ -149,5 +149,5 @@ class Arp(common.LinuxPlugin):
                 break
 
     def collect(self):
-        for ip, mac, devname in self.get_handle_tables():
-            yield (ip, mac, devname)
+        for x in self.get_handle_tables():
+            yield x

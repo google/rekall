@@ -150,12 +150,12 @@ class APIVad(processes.APIProcessFilter):
 
     table_header = [
         dict(name='proc', type="proc", hidden=True),
-        dict(name='', cname="divider", type="Divider"),
+        dict(name="divider", type="Divider"),
         dict(name='VAD', hidden=True),
-        dict(name='Start Addr', cname='start_pfn', style="address"),
-        dict(name='End Addr', cname='end_pfn', style="address"),
-        dict(name='Protect', cname='protection', width=4),
-        dict(name='Filename', cname='filename')
+        dict(name='start', style="address"),
+        dict(name='end', style="address"),
+        dict(name='Protect', width=4),
+        dict(name='filename')
     ]
 
     def generate_vads(self, pid):
@@ -253,9 +253,9 @@ class APIVad(processes.APIProcessFilter):
 
                 yield dict(proc=proc,
                            VAD=vad,
-                           start_pfn=vad.start,
-                           end_pfn=vad.end,
-                           protection=MEMORY_PROTECTIONS.get(
+                           start=vad.start,
+                           end=vad.end,
+                           Protect=MEMORY_PROTECTIONS.get(
                                vad.protection),
                            filename=vad.filename)
 

@@ -27,10 +27,11 @@ import os
 
 from rekall import cache
 from rekall import plugin
+from rekall_agent import common
 from rekall_agent import serializer
 
 
-class Cache(serializer.SerializedObject):
+class Cache(common.AgentConfigMixin, serializer.SerializedObject):
     """Base cache which does nothing."""
 
     def update_local_file_generation(self, path, generation, local_filename):
@@ -60,7 +61,6 @@ class LocalDiskCache(Cache):
 
     def __init__(self, *args, **kwargs):
         super(LocalDiskCache, self).__init__(*args, **kwargs)
-        self._config = self._session.GetParameter("agent_config")
         if not self.cache_directory:
             self.cache_directory = cache.GetCacheDir(self._session)
             if not self.cache_directory:

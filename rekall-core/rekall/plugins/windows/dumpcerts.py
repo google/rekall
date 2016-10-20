@@ -103,10 +103,11 @@ class CertScan(plugin.PhysicalASMixin, plugin.TypedProfileCommand,
     default_dump_dir = None
 
     table_header = [
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Type", cname="type", width=10),
-        dict(name="Length", cname="length", width=10),
-        dict(name="Description", cname="description"),
+        dict(name="address", style="address"),
+        dict(name="type", width=10),
+        dict(name="length", width=10),
+        dict(name="data", hidden=True),
+        dict(name="description"),
     ]
 
     def collect(self):
@@ -130,10 +131,10 @@ class CertDump(core.DirectoryDumperMixin, CertScan):
     name = "simple_certdump"
 
     table_header = [
-        dict(name="Address", cname="address", style="address"),
-        dict(name="Type", cname="type", width=10),
+        dict(name="address", style="address"),
+        dict(name="type", width=10),
         dict(name="Filename", width=30),
-        dict(name="Description", cname="description"),
+        dict(name="description"),
     ]
 
     def collect(self):
@@ -161,8 +162,9 @@ class CertYaraScan(yarascanner.YaraScanMixin, common.WinScanner):
     table_header = [
         dict(name="Owner", width=20),
         dict(name="Offset", style="address"),
-        dict(name="Type", cname="type", width=10),
-        dict(name="Description", cname="description", width=80),
+        dict(name="type", width=10),
+        dict(name="description", width=80),
+        dict(name="data", hidden=True),
         dict(name="Context"),
     ]
 

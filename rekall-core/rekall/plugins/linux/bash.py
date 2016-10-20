@@ -127,10 +127,10 @@ class BashHistory(common.LinProcessFilter):
     ]
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="Task", cname="task", hidden=True),
-        dict(name="Timestamp", cname="timestamp", width=24),
-        dict(name="Command", cname="command"),
+        dict(name="divider", type="Divider"),
+        dict(name="task", hidden=True),
+        dict(name="timestamp", width=24),
+        dict(name="command"),
     ]
 
     def __init__(self, *args, **kwargs):

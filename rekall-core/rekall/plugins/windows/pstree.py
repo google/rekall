@@ -22,11 +22,10 @@
 
 """pstree example file"""
 
-from rekall import plugin
 from rekall.plugins.windows import common
 
 
-class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
+class PSTree(common.WinProcessFilter):
     """Print process list as a tree"""
 
     __name = "pstree"
@@ -34,10 +33,10 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
     table_header = [
         dict(name="_EPROCESS", type="TreeNode", max_depth=5, child=dict(
             type="_EPROCESS", style="light")),
-        dict(name="PPid", cname="ppid", width=6, align="r"),
-        dict(name="Thds", cname="thd_count", width=6, align="r"),
-        dict(name="Hnds", cname="hnd_count", width=6, align="r"),
-        dict(name="Time", cname="process_create_time", width=24),
+        dict(name="ppid", width=6, align="r"),
+        dict(name="thd_count", width=6, align="r"),
+        dict(name="hnd_count", width=6, align="r"),
+        dict(name="create_time", width=24),
         dict(name="cmd", width=40, hidden=True),
         dict(name="path", width=40, hidden=True),
         dict(name="audit", width=40, hidden=True),
@@ -77,11 +76,11 @@ class PSTree(plugin.VerbosityMixIn, common.WinProcessFilter):
                     ppid=task.InheritedFromUniqueProcessId,
                     thd_count=task.ActiveThreads,
                     hnd_count=task.ObjectTable.m("HandleCount"),
-                    process_create_time=task.CreateTime,
+                    create_time=task.CreateTime,
                     cmd=process_params.CommandLine,
                     path=process_params.ImagePathName,
                     audit=task.SeAuditProcessCreationInfo.ImageFileName.Name,
-                    depth=pad, parent=pid)
+                    depth=pad)
 
                 process_dict.pop(task.pid, None)
                 for x in draw_children(pad + 1, task.pid):

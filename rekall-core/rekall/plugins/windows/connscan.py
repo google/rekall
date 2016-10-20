@@ -48,14 +48,12 @@ class ConnScan(tcpip_vtypes.TcpipPluginMixin,
 
     __name = "connscan"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Offset(P)", cname="offset_p", style="address"),
-        dict(name="Local Address", cname="local_net_address",
-             align="l", width=25),
-        dict(name="Remote Address", cname="remote_net_address",
-             align="l", width=25),
-        dict(name="Pid", cname="pid", width=10, align="r")
-    )
+    table_header = [
+        dict(name="offset_p", style="address"),
+        dict(name="local_net_address", align="l", width=25),
+        dict(name="remote_net_address", align="l", width=25),
+        dict(name="pid", width=10, align="r")
+    ]
 
     scanner_defaults = dict(
         scan_physical=True

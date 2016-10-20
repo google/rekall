@@ -95,21 +95,21 @@ class EPROCESS_TextObjectRenderer(text.TextObjectRenderer):
         if self.output_style == "full":
             self.table = text.TextTable(
                 columns=[
-                    dict(name=self.name, cname="eprocess",
+                    dict(name=self.name,
                          formatstring="[addrpad]"),
-                    dict(name="Name", cname="name", width=20),
-                    dict(name="FullPath", cname="fullpath", width=60),
-                    dict(name="PID", cname="pid", width=5, align="r"),
-                    dict(name="Parent PID", cname="ppid", width=5, align="r")],
+                    dict(name="name", width=20),
+                    dict(name="fullpath", width=60),
+                    dict(name="pid", width=5, align="r"),
+                    dict(name="ppid", width=5, align="r")],
                 renderer=self.renderer,
                 session=self.session)
         else:
             self.table = text.TextTable(
                 columns=[
-                    dict(name=self.name, cname="eprocess",
+                    dict(name=self.name,
                          formatstring="[addrpad]"),
-                    dict(name="Name", cname="name", width=20),
-                    dict(name="PID", cname="pid", width=5, align="r")],
+                    dict(name="name", width=20),
+                    dict(name="pid", width=5, align="r")],
                 renderer=self.renderer,
                 session=self.session)
 

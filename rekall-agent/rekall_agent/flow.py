@@ -143,7 +143,7 @@ class FlowStatus(batch.BatchTicket):
 
     @classmethod
     def end(cls, context, session=None):
-        config = session.GetParameter("agent_config")
+        config = session.GetParameter("agent_config_obj")
 
         # Read all the flow objects for the tickets at once before we take the
         # lock.
@@ -168,7 +168,7 @@ class FlowStatus(batch.BatchTicket):
     @staticmethod
     def _process_flows(_args):
         tickets, client_id, session, flows = _args
-        config = session.GetParameter("agent_config")
+        config = session.GetParameter("agent_config_obj")
 
         def _update_flow_info(flow_collection, tickets):
             """Update the collection atomically."""
@@ -228,7 +228,7 @@ class HuntStatus(FlowStatus):
             _update_flow_info, tickets, session=session)
 
 
-class Flow(serializer.SerializedObject):
+class Flow(common.AgentConfigMixin, serializer.SerializedObject):
     """A Flow is a sequence of client actions.
 
     To launch a flow simply build a Flow object and call its start() method.
@@ -272,10 +272,6 @@ class Flow(serializer.SerializedObject):
         dict(name="quota", type=resources.Quota,
              doc="The total resources the flow is allows to use."),
     ]
-
-    def __init__(self, *args, **kwargs):
-        super(Flow, self).__init__(*args, **kwargs)
-        self._config = self._session.GetParameter("agent_config")
 
     def is_hunt(self):
         """Is this flow running as a hunt?"""

@@ -96,7 +96,7 @@ class Describe(plugin.TypedProfileCommand, plugin.ProfileCommand):
 
         column_types = instance.column_types()
         for i, column in enumerate(table_header):
-            column_name = column.get("cname", column.get("name"))
+            column_name = column["name"]
             if isinstance(column_types, dict):
                 column_type_instance = column_types.get(column_name)
             else:

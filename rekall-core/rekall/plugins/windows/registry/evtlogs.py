@@ -27,15 +27,13 @@
 @contact:      jamie.levy@gmail.com
 @organization: Volatile Systems
 """
-from rekall import plugin
+import ntpath
+
 from rekall import obj
 from rekall import scan
 from rekall import utils
 from rekall.plugins.windows.registry import registry
 from rekall.plugins.windows.registry import getsids
-
-import ntpath
-
 
 # for more information on Event Log structures see WFA 2E pg 260-263 by Harlan
 # Carvey
@@ -188,7 +186,7 @@ class EVTScanner(scan.BaseScanner):
                 yield event
 
 
-class EvtLogs(plugin.VerbosityMixIn, registry.RegistryPlugin):
+class EvtLogs(registry.RegistryPlugin):
     """Extract Windows Event Logs (XP/2003 only)"""
 
     name = "evtlogs"

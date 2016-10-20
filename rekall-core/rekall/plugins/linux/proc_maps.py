@@ -36,16 +36,16 @@ class ProcMaps(common.LinProcessFilter):
     __name = "maps"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="Task", cname="task", hidden=True),
-        dict(name="Start", cname="start", style="address"),
-        dict(name="End", cname="end", style="address"),
-        dict(name="Flags", cname="flags", width=6),
-        dict(name="Pgoff", cname="pgoff", style="address"),
-        dict(name="Major", cname="major", width=6),
-        dict(name="Minor", cname="minor", width=6),
-        dict(name="Inode", cname="inode", width=13),
-        dict(name="File Path", cname="file_path"),
+        dict(name="divider", type="Divider"),
+        dict(name="task", hidden=True),
+        dict(name="start", style="address"),
+        dict(name="end", style="address"),
+        dict(name="flags", width=6),
+        dict(name="pgoff", style="address"),
+        dict(name="major", width=6),
+        dict(name="minor", width=6),
+        dict(name="inode", width=13),
+        dict(name="file_path"),
     ]
 
 

@@ -95,20 +95,20 @@ class AgentWorker(common.AbstractControllerCommand):
             time.sleep(self.plugin_args.loop)
 
 
-class BatchRunner(object):
+class BatchRunner(common.AgentConfigMixin):
     """Runs through a single batch processing job."""
 
     def __init__(self, session, batch_name=None, batch_cls=None):
         self.session = session
         self.batch_cls = (batch_cls or
                           BatchTicket.ImplementationByClass(batch_name))
-        self._config = self.session.GetParameter("agent_config")
         if not self.batch_cls:
             raise RuntimeError(
                 "Batch implementation %s not known." % batch_name)
 
         self.batch_name = batch_name or batch_cls.__name__
         self.lock = threading.RLock()
+        super(BatchRunner, self).__init__()
 
     def run(self):
         """Generates tickets from the batch queue."""

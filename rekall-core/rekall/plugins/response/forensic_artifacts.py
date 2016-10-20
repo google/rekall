@@ -826,8 +826,8 @@ class ArtifactsCollector(plugin.TypedProfileCommand,
     ]
 
     table_header = [
-        dict(name="Divider", cname="divider", type="Divider"),
-        dict(name="Result", cname="result"),
+        dict(name="divider", type="Divider"),
+        dict(name="result"),
     ]
 
     table_options = dict(

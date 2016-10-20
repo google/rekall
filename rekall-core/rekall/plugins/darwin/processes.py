@@ -34,26 +34,26 @@ class DarwinPslist(common.ProcessFilterMixin,
                    common.AbstractDarwinCommand):
     name = "pslist"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Process", width=40, cname="proc", type="proc"),
-        dict(name="Alive", width=8, cname="alive"),
-        dict(name="PPID", cname="ppid", width=6),
-        dict(name="UID", cname="uid", width=6),
-        dict(name="64-bit", cname="64bit", width=6),
-        dict(name="Start Time", cname="start_time", width=30, style="short"),
-        dict(name="CR3", cname="cr3", width=15, style="address")
-    )
+    table_header = [
+        dict(width=40, name="proc", type="proc"),
+        dict(width=8, name="alive"),
+        dict(name="ppid", width=6),
+        dict(name="uid", width=6),
+        dict(name="is64bit", width=6),
+        dict(name="start_time", width=30, style="short"),
+        dict(name="cr3", width=15, style="address")
+    ]
 
     def collect(self):
         for proc in self.filter_processes():
-            yield (
-                proc,
-                proc.obj_producers != {"dead_procs"},
-                proc.p_ppid,
-                proc.p_uid,
-                proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT",
-                proc.p_start.as_datetime(),
-                proc.task.map.pmap.pm_cr3
+            yield dict(
+                proc=proc,
+                alive=proc.obj_producers != {"dead_procs"},
+                ppid=proc.p_ppid,
+                uid=proc.p_uid,
+                is64bit=proc.task.map.pmap.pm_task_map == "TASK_MAP_64BIT",
+                start_time=proc.p_start.as_datetime(),
+                cr3=proc.task.map.pmap.pm_cr3
             )
 
 
@@ -65,10 +65,10 @@ class DarwinPsxView(common.ProcessFilterMixin,
     @registry.classproperty
     @registry.memoize
     def table_header(cls):
-        header = [dict(name="Process", width=40, cname="proc", type="proc")]
+        header = [dict(width=40, name="proc", type="proc")]
 
         for method in cls.methods():
-            header.append(dict(name=method, cname=method, width=8))
+            header.append(dict(name=method, width=8))
 
         return plugin.PluginHeader(*header)
 
@@ -85,13 +85,13 @@ class DarwinPsxView(common.ProcessFilterMixin,
 class DarwinPsTree(common.AbstractDarwinCommand):
     name = "pstree"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Depth", cname="depth", type="DepthIndicator", width=10),
-        dict(name="PID", cname="pid", width=6),
-        dict(name="PPID", cname="ppid", width=6),
-        dict(name="UID", cname="uid", width=6),
-        dict(name="Name", cname="name", width=30)
-    )
+    table_header = [
+        dict(name="depth", type="DepthIndicator", width=10),
+        dict(name="pid", width=6),
+        dict(name="ppid", width=6),
+        dict(name="uid", width=6),
+        dict(name="name", width=30)
+    ]
 
     def collect(self):
         # Get the first process from pslist.

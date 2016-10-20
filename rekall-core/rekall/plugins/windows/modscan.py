@@ -60,11 +60,11 @@ class ModScan(common.PoolScannerPlugin):
     __name = "modscan"
 
     table_header = [
-        dict(name="Offsetdict(P)", cname="offset", style="address"),
-        dict(name="Name", cname="name", width=20),
-        dict(name="Base", cname="base", style="address"),
-        dict(name="Size", cname="size", style="address"),
-        dict(name="File", cname="file")
+        dict(name="offset", style="address"),
+        dict(name="name", width=20),
+        dict(name="base", style="address"),
+        dict(name="size", style="address"),
+        dict(name="file")
     ]
 
     scanner_defaults = dict(
@@ -123,14 +123,14 @@ class ThrdScan(common.PoolScannerPlugin):
     __name = "thrdscan"
 
     table_header = [
-        dict(name="Offsetdict(P)", cname="offset", style="address"),
-        dict(name="PID", cname="pid", width=6, align="r"),
-        dict(name="TID", cname="tid", width=6, align="r"),
-        dict(name="Start Address", cname="start", style="address"),
-        dict(name="Create Time", cname="create_time", width=24),
-        dict(name="Exit Time", cname="exit_time", width=24),
-        dict(name="Process", cname="name", width=16),
-        dict(name="Symbol", cname="symbol"),
+        dict(name="offset", style="address"),
+        dict(name="pid", width=6, align="r"),
+        dict(name="tid", width=6, align="r"),
+        dict(name="start", style="address"),
+        dict(name="create_time", width=24),
+        dict(name="exit_time", width=24),
+        dict(name="name", width=16),
+        dict(name="symbol"),
     ]
 
     scanner_defaults = dict(

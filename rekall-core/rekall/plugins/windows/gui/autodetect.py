@@ -33,10 +33,10 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
     name = "win32k_autodetect"
 
     table_header = [
-        dict(name="", cname="divider", type="Divider"),
-        dict(name="field", cname="field", width=20),
-        dict(name="offset", cname="offset", style="address"),
-        dict(name="Definition", cname="definition")
+        dict(name="divider", type="Divider"),
+        dict(name="field", width=20),
+        dict(name="offset", style="address"),
+        dict(name="definition")
     ]
 
 
@@ -58,7 +58,7 @@ class Win32kAutodetect(common.WindowsCommandPlugin):
     def GetWin32kOverlay(self, win32k_profile):
         # Make a temporary profile to work with.
         self.temp_profile = win32k_profile
-        self.analyze_struct = self.session.plugins.analyze_struct()
+        self.analyze_struct = self.session.plugins.analyze_struct(0)
 
         # Start off with an empty overlay.
         overlay = dict(tagDESKTOP=[None, {}],

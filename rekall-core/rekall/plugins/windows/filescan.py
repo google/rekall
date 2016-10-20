@@ -27,7 +27,6 @@
 @contact:      a.schuster@forensikblog.de
 @organization: http://computer.forensikblog.de/en/
 """
-from rekall import plugin
 from rekall.plugins.windows import common
 
 
@@ -55,13 +54,13 @@ class FileScan(common.PoolScannerPlugin):
     __name = "filescan"
 
     table_header = [
-        dict(name=' ', cname='allocated', width=1),
-        dict(name='Offset', cname="offset_p", style="address"),
-        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
-        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
-        dict(name='Access', cname="access", width=6),
+        dict(name='a', width=1),
+        dict(name="offset", style="address"),
+        dict(name="ptr_no", width=6, align="r"),
+        dict(name="hnd_no", width=3, align="r"),
+        dict(name="access", width=6),
         dict(name='Owner', type="_EPROCESS"),
-        dict(name='Name', cname="path")
+        dict(name="path")
     ]
 
     scanner_defaults = dict(
@@ -99,13 +98,13 @@ class FileScan(common.PoolScannerPlugin):
                     filename = file_obj.file_name_with_drive(
                         vm=self.kernel_address_space)
 
-                    yield ('F' if pool_obj.FreePool else "",
-                           file_obj.obj_offset,
-                           object_obj.PointerCount,
-                           object_obj.HandleCount,
-                           file_obj.AccessString,
-                           owner_process,
-                           filename)
+                    yield dict(a='F' if pool_obj.FreePool else "",
+                               offset=file_obj.obj_offset,
+                               ptr_no=object_obj.PointerCount,
+                               hnd_no=object_obj.HandleCount,
+                               access=file_obj.AccessString,
+                               Owner=owner_process,
+                               path=filename)
 
 
 class PoolScanDriver(common.PoolScanner):
@@ -135,15 +134,15 @@ class DriverScan(common.PoolScannerPlugin):
     __name = "driverscan"
 
     table_header = [
-        dict(name=' ', cname='allocated', width=1),
-        dict(name='Offset', cname="offset_p", style="address"),
-        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
-        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
-        dict(name='Start', cname="driver_start", style="address"),
-        dict(name='Size', cname="driver_size", style="address"),
-        dict(name='Service Key', cname="driver_servicekey", width=20),
-        dict(name='Name', cname="driver_name", width=12),
-        dict(name='Driver Name', cname="path")
+        dict(name='a', width=1),
+        dict(name="offset", style="address"),
+        dict(name="ptr_no", width=6, align="r"),
+        dict(name="hnd_no", width=3, align="r"),
+        dict(name="start", style="address"),
+        dict(name="size", style="address"),
+        dict(name="servicekey", width=20),
+        dict(name="name", width=12),
+        dict(name="path")
     ]
 
     scanner_defaults = dict(
@@ -168,17 +167,18 @@ class DriverScan(common.PoolScannerPlugin):
                     extension_obj = self.profile._DRIVER_EXTENSION(
                         driver_obj.obj_end, vm=run.address_space)
 
-                    yield ('F' if pool_obj.FreePool else "",
-                           driver_obj.obj_offset,
-                           object_obj.PointerCount,
-                           object_obj.HandleCount,
-                           driver_obj.DriverStart,
-                           driver_obj.DriverSize,
-                           extension_obj.ServiceKeyName.v(
-                               vm=self.kernel_address_space),
-                           object_name,
-                           driver_obj.DriverName.v(
-                               vm=self.kernel_address_space))
+                    yield dict(a='F' if pool_obj.FreePool else "",
+                               offset=driver_obj.obj_offset,
+                               ptr_no=object_obj.PointerCount,
+                               hnd_no=object_obj.HandleCount,
+                               start=driver_obj.DriverStart,
+                               size=driver_obj.DriverSize,
+                               servicekey=extension_obj.ServiceKeyName.v(
+                                   vm=self.kernel_address_space),
+                               name=object_name,
+                               path=driver_obj.DriverName.v(
+                                   vm=self.kernel_address_space)
+                    )
 
 
 class PoolScanSymlink(common.PoolScanner):
@@ -203,13 +203,13 @@ class SymLinkScan(common.PoolScannerPlugin):
     __name = "symlinkscan"
 
     table_header = [
-        dict(name=' ', cname='allocated', width=1),
-        dict(name='Offset', cname="offset_p", style="address"),
-        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
-        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
-        dict(name='Creation time', cname="symlink_creation_time", width=24),
-        dict(name='From', cname="symlink_from"),
-        dict(name='To', cname="symlink_to", width=60),
+        dict(name='a', width=1),
+        dict(name="offset", style="address"),
+        dict(name="ptr_no", width=6, align="r"),
+        dict(name="hnd_no", width=3, align="r"),
+        dict(name="creation_time", width=24),
+        dict(name="from_link"),
+        dict(name="to_link", width=60),
     ]
 
     scanner_defaults = dict(
@@ -232,13 +232,14 @@ class SymLinkScan(common.PoolScannerPlugin):
                     link_obj = self.profile._OBJECT_SYMBOLIC_LINK(
                         object_obj.obj_end, vm=run.address_space)
 
-                    yield ('F' if pool_obj.FreePool else "",
-                           link_obj.obj_offset,
-                           object_obj.PointerCount,
-                           object_obj.HandleCount,
-                           link_obj.CreationTime or '',
-                           object_name,
-                           link_obj.LinkTarget.v(vm=self.kernel_address_space))
+                    yield dict(a='F' if pool_obj.FreePool else "",
+                               offset=link_obj.obj_offset,
+                               ptr_no=object_obj.PointerCount,
+                               hnd_no=object_obj.HandleCount,
+                               creation_time=link_obj.CreationTime or '',
+                               from_link=object_name,
+                               to_link=link_obj.LinkTarget.v(
+                                   vm=self.kernel_address_space))
 
 
 class PoolScanMutant(PoolScanDriver):
@@ -259,20 +260,20 @@ class PoolScanMutant(PoolScanDriver):
             ]
 
 
-class MutantScan(plugin.VerbosityMixIn, common.PoolScannerPlugin):
+class MutantScan(common.PoolScannerPlugin):
     "Scan for mutant objects _KMUTANT "
 
     __name = "mutantscan"
 
     table_header = [
-        dict(name=' ', cname='allocated', width=1),
-        dict(name='Offset', cname="offset_p", style="address"),
-        dict(name='#Ptr', cname="ptr_count", width=6, align="r"),
-        dict(name='#Hnd', cname="hnd_count", width=3, align="r"),
-        dict(name='Signal', cname="mutant_signal", width=6),
-        dict(name='Thread', cname="mutant_thread", style="address"),
-        dict(name='CID', cname="cid", width=9, align="r"),
-        dict(name='Name', cname="mutant_name")
+        dict(name='a', width=1),
+        dict(name="offset", style="address"),
+        dict(name="ptr_no", width=6, align="r"),
+        dict(name="hnd_no", width=3, align="r"),
+        dict(name="signal", width=6),
+        dict(name="thread", style="address"),
+        dict(name="cid", width=9, align="r"),
+        dict(name="name")
     ]
 
     scanner_defaults = dict(
@@ -307,15 +308,15 @@ class MutantScan(plugin.VerbosityMixIn, common.PoolScannerPlugin):
                     else:
                         CID = ""
 
-                    yield ('F' if pool_obj.FreePool else "",
-                           mutant.obj_offset,
-                           object_obj.PointerCount,
-                           object_obj.HandleCount,
-                           mutant.Header.SignalState,
-                           mutant.OwnerThread,
-                           CID,
-                           object_obj.NameInfo.Name.v(
-                               vm=self.kernel_address_space))
+                    yield dict(a='F' if pool_obj.FreePool else "",
+                               offset=mutant.obj_offset,
+                               ptr_no=object_obj.PointerCount,
+                               hnd_no=object_obj.HandleCount,
+                               signal=mutant.Header.SignalState,
+                               thread=mutant.OwnerThread,
+                               cid=CID,
+                               name=object_obj.NameInfo.Name.v(
+                                   vm=self.kernel_address_space))
 
 
 class PoolScanProcess(common.PoolScanner):
@@ -384,16 +385,16 @@ class PSScan(common.WinScanner):
 
     name = "psscan"
 
-    table_header = plugin.PluginHeader(
-        dict(name=' ', cname='allocated', width=1),
-        dict(name='_EPROCESS (P)', cname="offset_p", type="_EPROCESS"),
-        dict(name='Offset(V)', cname="offset_v", style="address"),
-        dict(name='PPID', cname="ppid", width=6, align="r"),
-        dict(name='PDB', cname="pdb", style="address"),
-        dict(name='Stat', cname='stat', width=4),
-        dict(name='Time created', cname="process_create_time", width=24),
-        dict(name='Time exited', cname="process_exit_time", width=24),
-    )
+    table_header = [
+        dict(name='a', width=1),
+        dict(name="offset_p", type="_EPROCESS"),
+        dict(name="offset_v", style="address"),
+        dict(name="ppid", width=6, align="r"),
+        dict(name="pdb", style="address"),
+        dict(name='stat', width=4),
+        dict(name="create_time", width=24),
+        dict(name="exit_time", width=24),
+    ]
 
     # Only bother to scan non paged pool by default.
     scanner_defaults = dict(
@@ -436,11 +437,11 @@ class PSScan(common.WinScanner):
                 if eprocess.UniqueProcessId in known_pids:
                     known += "P"
 
-                yield('F' if pool_obj.FreePool else "",
-                      eprocess,
-                      virtual_eprocess.obj_offset,
-                      eprocess.InheritedFromUniqueProcessId,
-                      eprocess.Pcb.DirectoryTableBase,
-                      known,
-                      eprocess.CreateTime or '',
-                      eprocess.ExitTime or '')
+                yield dict(a='F' if pool_obj.FreePool else "",
+                           offset_p=eprocess,
+                           offset_v=virtual_eprocess.obj_offset,
+                           ppid=eprocess.InheritedFromUniqueProcessId,
+                           pdb=eprocess.Pcb.DirectoryTableBase,
+                           stat=known,
+                           create_time=eprocess.CreateTime or '',
+                           exit_time=eprocess.ExitTime or '')

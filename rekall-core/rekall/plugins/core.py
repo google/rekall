@@ -682,7 +682,7 @@ class DT(plugin.TypedProfileCommand, plugin.ProfileCommand):
                  child=dict(style="address", width=width+5),
                  align="l"),
             ("Field", "field", "30"),
-            dict(name="Content", cname="content", style="typed")])
+            dict(name="content", style="typed")])
 
         self._render_Struct(renderer, struct)
 
@@ -850,9 +850,9 @@ class Dump(plugin.TypedProfileCommand, plugin.Command):
     ]
 
     table_header = [
-        dict(name="Offset", cname="offset", style="address"),
-        dict(name="Data", cname="hexdump", width=65),
-        dict(name="Comment", cname="comment", width=40)
+        dict(name="offset", style="address"),
+        dict(name="hexdump", width=65),
+        dict(name="comment", width=40)
     ]
 
     def column_types(self):

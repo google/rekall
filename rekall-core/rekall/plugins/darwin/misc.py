@@ -22,7 +22,6 @@ import hashlib
 import re
 
 from rekall import obj
-from rekall import plugin
 from rekall.plugins import core
 from rekall.plugins.darwin import common
 from rekall.plugins.renderers import visual_aides
@@ -187,15 +186,15 @@ class DarwinBootParameters(common.AbstractDarwinCommand):
 
     name = "boot_cmdline"
 
-    table_header = plugin.PluginHeader(
-        dict(name="Command Line", cname="cmdline", type="str"),
-    )
+    table_header = [
+        dict(name="cmdline", type="str"),
+    ]
 
     def collect(self):
         boot_args = self.profile.get_constant_object(
             "_PE_state", "PE_state").bootArgs
 
-        yield [boot_args.CommandLine.cast("String")]
+        yield dict(cmdline=boot_args.CommandLine.cast("String"))
 
 
 class DarwinSetProcessContext(core.SetProcessContextMixin,

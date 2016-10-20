@@ -194,9 +194,9 @@ class ShimCacheMem(common.AbstractWindowsCommandPlugin):
 
     table_header = [
         dict(name="Shim", style="address"),
-        dict(name="Last Modified", cname="last_mod", width=30),
-        dict(name="Last Update", cname="last_update", hidden=True),
-        dict(name="File Size", cname="size", width=10),
+        dict(name="last_mod", width=30),
+        dict(name="last_update", hidden=True),
+        dict(name="size", width=10),
         dict(name="Path")
     ]
 

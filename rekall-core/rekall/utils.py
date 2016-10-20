@@ -77,9 +77,9 @@ def Hexdump(data, width=16):
 
 def WriteHexdump(renderer, data, base=0, width=16):
     """Write the hexdump to the fd."""
-    renderer.table_header([dict(name='Offset', cname="offset", style="address"),
-                           dict(name='Hex', cname="hex", width=width * 3),
-                           dict(name='Data', cname='data', width=width)])
+    renderer.table_header([dict(name="offset", style="address"),
+                           dict(name="hex", width=width * 3),
+                           dict(name='data', width=width)])
 
     for offset, hexdata, translated_data in Hexdump(data):
         renderer.table_row(base + offset, hexdata, "".join(translated_data))

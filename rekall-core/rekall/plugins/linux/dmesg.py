@@ -32,10 +32,10 @@ class LinuxDmesg(common.LinuxPlugin):
     __name = "dmesg"
 
     table_header = [
-        dict(name="Timestamp", cname="timestamp", width=16),
-        dict(name="Facility", cname="facility", width=2),
-        dict(name="Level", cname="level", width=2),
-        dict(name="Message", cname="message", width=80)
+        dict(name="timestamp", width=16),
+        dict(name="facility", width=2),
+        dict(name="level", width=2),
+        dict(name="message", width=80)
     ]
 
     def collect(self):

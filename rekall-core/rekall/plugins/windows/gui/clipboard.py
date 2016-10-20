@@ -18,28 +18,26 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 from rekall import obj
-from rekall import plugin
 from rekall.plugins.windows import common
 from rekall.plugins.windows.gui import win32k_core
 from rekall.plugins.windows.gui import constants
 
 
 
-class Clipboard(plugin.VerbosityMixIn,
-                win32k_core.Win32kPluginMixin,
+class Clipboard(win32k_core.Win32kPluginMixin,
                 common.WinProcessFilter):
     """Extract the contents of the windows clipboard"""
 
     __name = "clipboard"
 
     table_header = [
-        dict(name="Session", cname="session", width=10),
-        dict(name="WindowStation", cname="window_station", width=12),
-        dict(name="Format", cname="format", width=18),
-        dict(name="Handle", cname="handle", style="address"),
-        dict(name="Object", cname="object", style="address"),
-        dict(name="Data", cname="data", width=50),
-        dict(name="HexDump", cname="hexdump", hidden=True),
+        dict(name="session", width=10),
+        dict(name="window_station", width=12),
+        dict(name="format", width=18),
+        dict(name="handle", style="address"),
+        dict(name="object", style="address"),
+        dict(name="data", width=50),
+        dict(name="hexdump", hidden=True),
     ]
 
     def calculate(self):
