@@ -28,7 +28,7 @@ from rekall_agent import common
 
 
 class ControllerAddressResolver(address_resolver.AddressResolverMixin,
-                                common.AbstractAgentCommand):
+                                common.AbstractControllerCommand):
     pass
 
 
@@ -84,6 +84,12 @@ class RekallAgentControllerClientContext(common.AbstractControllerCommand):
         self.session.SetCache(
             "controller_context", client_id, volatile=False)
         self.session.logging.debug(message)
+
+        # Set the session name to this client.
+        if client_id:
+            self.session.session_name = client_id
+        else:
+            self.session.session_name = "Rekall Agent"
 
         return message
 

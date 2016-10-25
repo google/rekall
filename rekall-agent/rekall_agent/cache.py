@@ -185,6 +185,20 @@ class LocalDiskCache(Cache):
 
         return file_path
 
+    def stat(self, path):
+        generation = self.get_generation(path)
+        if generation:
+            subpath = self.get_local_file(path, generation)
+            s = os.lstat(subpath)
+
+            return dict(
+                created=s.st_ctime,
+                updated=s.st_mtime,
+                size=s.st_size,
+                generation=generation,
+                path=path)
+
+
     def list_files(self, path):
         containing_dir_path = os.path.join(
             self.cache_directory, path.lstrip(os.path.sep))

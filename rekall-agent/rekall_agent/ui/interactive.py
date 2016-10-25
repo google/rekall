@@ -21,7 +21,6 @@ import json
 
 import arrow
 
-from rekall import utils
 from rekall import yaml_utils
 from rekall.plugins.addrspaces import standard
 from rekall_agent import common

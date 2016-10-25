@@ -36,6 +36,20 @@ class AgentMode(kb.ParameterHook):
         return self.session.GetParameter("agent_config_obj") != None
 
 
+class ClientAgentMode(kb.ParameterHook):
+    name = "mode_client"
+
+    def calculate(self):
+        return self.session.GetParameter("agent_mode") == "client"
+
+
+class AgentControllerMode(kb.ParameterHook):
+    name = "mode_controller"
+
+    def calculate(self):
+        return self.session.GetParameter("agent_mode") == "controller"
+
+
 class AgentConfigHook(kb.ParameterHook):
     name = "agent_config_obj"
 

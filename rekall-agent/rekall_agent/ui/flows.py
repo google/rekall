@@ -20,6 +20,7 @@
 import base64
 import json
 import os
+import time
 
 import arrow
 
@@ -94,12 +95,14 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
             # The client will actually add a nonce to this so we need to find
             # all subobjects.
             for sub_object in ticket_location.list_files():
-                data = sub_object.location.read_file()
+                # The subobject is a canonical path, we need to authorize it.
+                data = self._config.server.canonical_for_server(
+                    sub_object.location).read_file()
                 if data:
                     ticket = flow.FlowStatus.from_json(
                         data, session=self.session)
                     row["state"] = "%s(*)" % ticket.status
-                    row["collections"] = [ticket_location.to_path()]
+                    row["collections"] = [sub_object.location.to_path()]
                     row["last_active"] = ticket.timestamp
 
     def collect(self):
@@ -160,6 +163,9 @@ class SerializedObjectInspectorMixin(object):
 
         elif isinstance(obj, basestring):
             yield dict(Value=obj)
+
+        elif isinstance(obj, list):
+            yield dict(Value=", ".join(obj))
 
         else:
             raise RuntimeError("Unable to render object %r" % obj)
@@ -408,6 +414,7 @@ class InspectHunt(InspectFlow):
                        "select count(*) as c from tbl_default "
                        "where status = 'Error'"))[0]["c"])
 
+        total = 0
         yield dict(divider="Results")
         for row in collection.query(
                 status="Done", limit=self.plugin_args.limit):
@@ -415,10 +422,34 @@ class InspectHunt(InspectFlow):
                                                session=self.session)
 
             for result in ticket.collections:
+                if total > self.plugin_args.limit:
+                    break
+
                 yield dict(Field=ticket.client_id,
                            Time=ticket.timestamp,
                            Value=renderers.UILink(
-                               "gs", result.location.to_path()))
+                               "gs", result.location.to_path()),
+                           nowrap=True)
+                total += 1
+
+        yield dict(divider="Uploads")
+
+        total = 0
+        for row in collection.query(
+                status="Done", limit=self.plugin_args.limit):
+            ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                               session=self.session)
+
+            for result in ticket.files:
+                if total > self.plugin_args.limit:
+                    break
+
+                yield dict(Field=ticket.client_id,
+                           Time=ticket.timestamp,
+                           Value=renderers.UILink(
+                               "gs", result.to_path()),
+                           nowrap=True)
+                total += 1
 
         for row in collection.query(
                 status="Error", limit=self.plugin_args.limit):
@@ -427,7 +458,7 @@ class InspectHunt(InspectFlow):
 
             yield dict(Field=ticket.client_id,
                        Time=ticket.timestamp,
-                       Value=ticket.error)
+                       Value=ticket.error, nowrap=True)
 
 
 class AgentControllerRunFlow(SerializedObjectInspectorMixin,
@@ -584,7 +615,7 @@ class AgentControllerExplainFlows(common.AbstractControllerCommand):
 
 class AgentControllerExportCollections(common.AbstractControllerCommand):
     """Exports all collections from the hunt or flow."""
-    name = "export_collections"
+    name = "export"
     __args = [
         dict(name="flow_id", positional=True, required=True,
              help="The flow or hunt ID we should export."),
@@ -594,6 +625,7 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
     ]
 
     table_header = [
+        dict(name="divider", type="Divider"),
         dict(name="Message")
     ]
 
@@ -603,7 +635,7 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
             session=self.session)
 
         collections_by_type = {}
-
+        uploads = []
         for row in hunt_db.query():
             status = flow.HuntStatus.from_json(row["ticket_data"],
                                                session=self.session)
@@ -611,18 +643,68 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
                 collections_by_type.setdefault(
                     collection.collection_type, []).append(
                         (collection, status.client_id))
+                uploads.extend(status.files)
 
+        yield dict(divider="Exporting Collections")
         # Now create a new collection by type into the output directory.
         for output_location in common.THREADPOOL.imap_unordered(
                 self._dump_collection,
                 collections_by_type.iteritems()):
             yield dict(Message=output_location.to_path())
 
+        yield dict(divider="Exporting files")
+        for output_location in common.THREADPOOL.imap_unordered(
+                self._dump_uploads,
+                uploads):
+            yield dict(Message=output_location.to_path())
+
+    def _collect_flows(self, flow_obj):
+        flow_db = flow.FlowStatsCollection.load_from_location(
+            self._config.server.flow_db_for_server(flow_obj.client_id),
+            session=self.session)
+
+        collections_by_type = {}
+        uploads = []
+        for row in flow_db.query(flow_id=flow_obj.flow_id):
+            status = flow.FlowStatus.from_json(row["ticket_data"],
+                                               session=self.session)
+            for collection in status.collections:
+                collections_by_type.setdefault(
+                    collection.collection_type, []).append(
+                        (collection, status.client_id))
+            uploads.extend(status.files)
+
+        yield dict(divider="Exporting Collections")
+        # Now create a new collection by type into the output directory.
+        for output_location in common.THREADPOOL.imap_unordered(
+                self._dump_collection,
+                collections_by_type.iteritems()):
+            yield dict(Message=output_location.to_path())
+
+        yield dict(divider="Exporting files")
+        for output_location in common.THREADPOOL.imap_unordered(
+                self._dump_uploads,
+                uploads):
+            yield dict(Message=output_location.to_path())
+
+    def _dump_uploads(self, download_location):
+        output_location = files.FileLocation.from_keywords(
+            path=os.path.join(self.plugin_args.dumpdir,
+                              self.flow_id, "files",
+                              download_location.to_path()),
+            session=self.session)
+
+        local_filename = self._config.server.canonical_for_server(
+            download_location).get_local_filename()
+        output_location.upload_local_file(local_filename)
+
+        return output_location
+
     def _dump_collection(self, args):
         type, collections = args
         output_location = files.FileLocation.from_keywords(
             path=os.path.join(self.plugin_args.dumpdir,
-                              self.plugin_args.flow_id, type),
+                              self.flow_id, "collections", type),
             session=self.session)
 
         # We assume all the collections of the same type are the same so we can
@@ -650,10 +732,50 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
             output_collection.insert(client_id=client_id, **row)
 
     def collect(self):
+        self.flow_id = self.plugin_args.flow_id
+        if self.flow_id.startswith("f:") or self.flow_id.startswith("h:"):
+            self.flow_id = self.flow_id[2:]
+
         flow_obj = flow.Flow.from_json(
-            self._config.server.flows_for_server(
-                self.plugin_args.flow_id).read_file(),
+            self._config.server.flows_for_server(self.flow_id).read_file(),
             session=self.session)
 
         if flow_obj.is_hunt():
             return self._collect_hunts(flow_obj)
+
+        else:
+            return self._collect_flows(flow_obj)
+
+        return []
+
+
+class FlowLauncherAndWaiterMixin(object):
+    """A mixin to implement launching and waiting for flows to complete."""
+
+    def launch_and_wait(self, flow_obj):
+        """A Generator of messages."""
+        flow_db_location = self._config.server.flow_db_for_server(
+            self.client_id)
+
+        flow_db_stat = flow_db_location.stat()
+
+        flow_obj.start()
+
+        # Wait until the flow arrives.
+        while 1:
+            new_stat = flow_db_location.stat()
+            if new_stat.generation > flow_db_stat.generation:
+                with flow.FlowStatsCollection.load_from_location(
+                        flow_db_location, session=self.session) as flow_db:
+
+                    tickets = []
+                    for row in flow_db.query(flow_id=flow_obj.flow_id):
+                        if row["status"] in ["Done", "Error"]:
+                            tickets.append(
+                                flow.FlowStatus.from_json(row["ticket_data"],
+                                                          session=self.session))
+
+                    if tickets:
+                        return tickets
+
+            time.sleep(2)

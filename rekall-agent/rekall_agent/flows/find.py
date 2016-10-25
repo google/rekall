@@ -105,7 +105,7 @@ class FileFinderFlow(collect.CollectFlow):
         columns = ["%s as %s" % (v, k) for k, v in column_spec.items()]
 
         result = (
-            "select %s from stat(paths: (glob(?).path.filename.name))" %
+            "select %s from stat(paths: (glob({globs}).path.filename.name))" %
             ",".join(columns))
 
         # Filter conditions are specified.
@@ -137,7 +137,7 @@ class FileFinderFlow(collect.CollectFlow):
         yield download.GetFiles.from_keywords(
             session=self._session,
             query=self.create_query(collection),
-            query_parameters=self.globs,
+            query_parameters=dict(globs=self.globs),
             collection=collection,
             location=location
         )

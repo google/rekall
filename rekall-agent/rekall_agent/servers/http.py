@@ -81,7 +81,8 @@ class HTTPServerPolicy(agent.ServerPolicy):
         if queue:
             return http.HTTPLocation.New(
                 session=self._session,
-                path_prefix="labels/%s/jobs" % queue,
+                path_prefix="labels/%s/jobs/%s" % (
+                    queue, self._config.client.secret),
                 public=True)
 
         # The client's jobs queue itself is publicly readable since the client
@@ -115,6 +116,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
 
     def vfs_index_for_server(self, client_id=None):
         return http.HTTPLocation.New(
+            session=self._session,
             path_prefix=utils.join_path(client_id, "vfs.index"))
 
     def hunt_db_for_server(self, hunt_id):
@@ -265,7 +267,10 @@ class HTTPClientPolicy(agent.ClientPolicy):
                 http.HTTPLocation.from_keywords(
                     session=self._session,
                     base=self.manifest_location.base,
-                    path_prefix=utils.join_path("labels", label, "jobs"))
+                    # Make sure to append the secret to the unauthenticated
+                    # queues to prevent public (non deployment) access.
+                    path_prefix=utils.join_path(
+                        "labels", label, "jobs", self.secret))
             )
 
         return result
@@ -344,9 +349,41 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         self.session.logging.info(format, *args)
 
     def serve_api(self, path, params):
+        if params["action"] == ["stat"]:
+            row = self._cache.stat(path)
+            if not row:
+                self.send_error(404)
+                return
+
+            result = location.LocationStat.from_keywords(
+                session=self.session,
+                created=row["created"],
+                updated=row["updated"],
+                size=row["size"],
+                generation=row["generation"],
+                location=http.HTTPLocation.from_keywords(
+                    session=self.session,
+                    base=self._config.server.base_url,
+                    path_prefix=row["path"],
+                )
+            )
+            data = result.to_json()
+            self.send_response(200)
+            self.send_header("Content-Length", len(data))
+            self.end_headers()
+            self.wfile.write(data)
+            return
+
         if params["action"] == ["list"]:
+            limit = 100
+            if "limit" in params:
+                limit = int(params["limit"][0])
+
             result = []
-            for row in self._cache.list_files(path):
+            for i, row in enumerate(self._cache.list_files(path)):
+                if i > limit:
+                    break
+
                 result.append(location.LocationStat.from_keywords(
                     session=self.session,
                     created=row["created"],
@@ -416,38 +453,71 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
                     self.wfile.write(data)
         except (IOError, AttributeError):
-            self.send_error(500)
+            self.send_error(500, close=True)
 
     def do_PUT(self):
         if self.authenticate("PUT"):
             try:
-                self._direct_upload_file()
+                if self.headers.get("Transfer-Encoding") == "chunked":
+                    self._chunked_upload_file()
+                else:
+                    self._direct_upload_file()
             except Exception:
-                self.send_error(500)
+                self.send_error(500, close=True)
         else:
             self.send_error(403)
 
     def _get_generation_from_timestamp(self, timestamp):
         return str(int(timestamp * 1e6))
 
-    def _direct_upload_file(self):
+    def _copy_bytes(self, infd, outfd, length):
+        """Copy bytes from infd to outfd."""
+        while 1:
+            to_read = min(length, self.READ_BLOCK_SIZE)
+            if to_read == 0:
+                return
+
+            data = infd.read(to_read)
+            if not data:
+                return
+
+            os.write(outfd, data)
+            length -= len(data)
+
+    def _chunked_upload_file(self):
         # First upload the file to a temp directory, then move it into place at
         # once.
         fd, local_filename = tempfile.mkstemp()
         try:
             count = 0
-            to_read = int(self.headers["content-length"])
+            while 1:
+                line = self.rfile.readline()
 
-            while to_read:
-                data = self.rfile.read(min(self.READ_BLOCK_SIZE, to_read))
-                if not data:
+                # We do not support chunked extensions, just ignore them.
+                chunk_size = int(line.split(";")[0], 16)
+                if chunk_size == 0:
                     break
-                os.write(fd, data)
-                to_read -= len(data)
-                count += len(data)
+
+                # Copy the chunk into the file store.
+                self._copy_bytes(self.rfile, fd, chunk_size)
+                count += chunk_size
+
+                # Chunk is followed by \r\n.
+                lf = self.rfile.read(2)
+                if lf != "\r\n":
+                    raise IOError("Unable to parse chunk.")
+
+            # Skip entity headers.
+            for header in self.rfile.readline():
+                if not header:
+                    break
         finally:
             os.close(fd)
 
+        self._move_file_into_place(local_filename)
+        self.session.logging.debug("Uploaded %s (%s)", self.path, count)
+
+    def _move_file_into_place(self, local_filename):
         # This is the new generation.
         generation = self._get_generation_from_timestamp(time.time())
         # Where shall we put the path.
@@ -470,13 +540,25 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         self._cache.update_local_file_generation(
             path, generation, local_filename)
 
-        self.session.logging.debug("Uploaded %s (%s)", self.path, count)
         self.send_response(200)
         self.send_header("Content-Length", 0)
         self.send_header("ETag", '"%s"' % generation)
         self.end_headers()
 
-    def send_error(self, code, message=None):
+    def _direct_upload_file(self):
+        # First upload the file to a temp directory, then move it into place at
+        # once.
+        fd, local_filename = tempfile.mkstemp()
+        try:
+            count = 0
+            to_read = int(self.headers["content-length"])
+            self._copy_bytes(self.rfile, fd, to_read)
+        finally:
+            os.close(fd)
+        self._move_file_into_place(local_filename)
+        self.session.logging.debug("Uploaded %s (%s)", self.path, count)
+
+    def send_error(self, code, message=None, close=True):
         try:
             short, long = self.responses[code]
         except KeyError:
@@ -490,6 +572,9 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         self.send_response(code, message)
         self.send_header("Content-Type", self.error_content_type)
         self.send_header('Content-Length', str(len(content)))
+        if close:
+            self.send_header('Connection', "close")
+
         self.end_headers()
         if self.command != 'HEAD' and code >= 200 and code not in (204, 304):
             self.wfile.write(content)
@@ -545,7 +630,7 @@ def CreateServer(session=None):
 
 class RekallAgentHTTPServer(common.AbstractAgentCommand):
     """A plugin to create a front end server."""
-    name = "agent_http_server"
+    name = "http_server"
 
     __args = [
     ]

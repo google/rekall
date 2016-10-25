@@ -31,6 +31,7 @@ import arrow
 
 from rekall import obj
 from rekall_agent import action
+from rekall_agent import common
 from rekall_agent import cache
 from rekall_agent import crypto
 from rekall_agent import location
@@ -184,6 +185,7 @@ class PluginConfiguration(serializer.SerializedObject):
 
 
 class ClientPolicy(ExternalFileMixin,
+                   common.AgentConfigMixin,
                    serializer.SerializedObject):
 
     """The persistent state of the agent."""
@@ -210,6 +212,11 @@ class ClientPolicy(ExternalFileMixin,
 
         dict(name="plugins", type="PluginConfiguration", repeated=True,
              doc="Free form plugin specific configuration."),
+
+        dict(name="secret", default="",
+             doc="A shared secret between the client and server. "
+             "This is used to share data with all clients but "
+             "hide it from others.")
     ]
 
     def plugin_config(self, plugin_cls):
@@ -223,32 +230,24 @@ class ClientPolicy(ExternalFileMixin,
     def client_id(self):
         return self.writeback.client_id
 
-    @classmethod
-    def from_primitive(cls, data, session=None):
-        """Automatically handle loading the writeback location.
-
-        The client configuration can be merged with a local writeback
-        object. Clients use this local file to store state.
-        """
-        result = super(ClientPolicy, cls).from_primitive(data, session=session)
-        result.set_writeback(ClientWriteback(session=session))
-        if result.writeback_path:
-            try:
-                session.logging.debug(
-                    "Will load writeback from %s", result.writeback_path)
-                with open(result.writeback_path, "rb") as fd:
-                    result.set_writeback(ClientWriteback.from_primitive(
-                        session=session, data=json.loads(fd.read())))
-            except (IOError, TypeError, AttributeError):
-                pass
-
-        return result
-
     @property
     def writeback(self):
+        if self._writeback == None:
+            self._writeback = self.get_writeback()
+
         return self._writeback
 
     def get_writeback(self):
+        if self._writeback == None  and self.writeback_path:
+            try:
+                self._session.logging.debug(
+                    "Will load writeback from %s", self.writeback_path)
+                with open(self.writeback_path, "rb") as fd:
+                    self._writeback = ClientWriteback.from_primitive(
+                        session=self._session, data=json.loads(fd.read()))
+            except (IOError, TypeError, AttributeError, ValueError):
+                self._writeback = ClientWriteback(session=self._session)
+
         return self._writeback
 
     def set_writeback(self, value):
@@ -270,6 +269,7 @@ class ClientPolicy(ExternalFileMixin,
         return self._nonce
 
 class ServerPolicy(ExternalFileMixin,
+                   common.AgentConfigMixin,
                    serializer.SerializedObject):
     """The configuration of all server side batch jobs.
 

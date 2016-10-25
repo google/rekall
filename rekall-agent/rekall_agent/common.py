@@ -90,6 +90,8 @@ class AbstractAgentCommand(AgentConfigMixin, plugin.TypedProfileCommand,
 
 
 class AbstractControllerCommand(AbstractAgentCommand):
+    mode = "mode_controller"
+
     __abstract = True
 
     __args = [
@@ -98,8 +100,13 @@ class AbstractControllerCommand(AbstractAgentCommand):
              "by the cc() plugin.")
     ]
 
+    CLIENT_REQUIRED = False
+
     def __init__(self, *args, **kwargs):
         super(AbstractControllerCommand, self).__init__(*args, **kwargs)
         self.client_id = (self.plugin_args.client_id or
                           self.session.GetParameter("controller_context") or
                           None)
+
+        if self.CLIENT_REQUIRED and not self.client_id:
+            raise plugin.PluginError("Client ID is required.")

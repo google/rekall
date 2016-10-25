@@ -154,7 +154,7 @@ class FlowStatus(batch.BatchTicket):
         flows = {}
         for flow_data in common.THREADPOOL.map(
                 lambda f: config.server.flows_for_server(f).read_file(),
-                flow_ids):
+                set(flow_ids)):
             flow_obj = Flow.from_json(flow_data, session=session)
             flows[flow_obj.flow_id] = flow_obj
 
@@ -204,7 +204,7 @@ class HuntStatus(FlowStatus):
     @staticmethod
     def _process_flows(_args):
         tickets, flow_id, session, flows = _args
-        config = session.GetParameter("agent_config")
+        config = session.GetParameter("agent_config_obj")
 
         def _update_flow_info(flow_collection, tickets):
             """Update the collection atomically."""

@@ -33,10 +33,10 @@ def launch_client(_):
     with open(config_file_name, "wb") as fd:
         fd.write(yaml_utils.safe_dump(config))
 
-    rekall_session = session.Session()
+    rekall_session = session.Session(agent_configuration=config_file_name)
     agent_plugin = agent.RekallAgent(
         session=rekall_session,
-        agent_config=config_file_name)
+    )
 
     # This does not exit.
     agent_plugin.collect()

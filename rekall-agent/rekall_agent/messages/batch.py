@@ -59,7 +59,7 @@ class BatchTicket(serializer.SerializedObject):
 
 
 class AgentWorker(common.AbstractControllerCommand):
-    name = "agent_worker"
+    name = "worker"
 
     __args = [
         dict(name="batches", type="ChoiceArray", positional=True,

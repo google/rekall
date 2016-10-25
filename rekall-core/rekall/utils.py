@@ -536,6 +536,9 @@ class SlottedObject(object):
         for k in self.__slots__:
             setattr(self, k, None)
 
+    def keys(self):
+        return [x for x in dir(self) if not x.startswith("_")]
+
 
 class AttributeDict(dict):
     """A dict that can be accessed via attributes.

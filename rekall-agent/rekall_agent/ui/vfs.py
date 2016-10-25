@@ -32,15 +32,21 @@ from rekall.plugins.response import common as response_common
 from rekall_agent import common
 from rekall_agent.client_actions import files
 from rekall_agent.flows import find
+from rekall_agent.ui import flows
 from rekall_agent.ui import renderers
 
 
-class VFSLs(common.AbstractControllerCommand):
+class VFSLs(flows.FlowLauncherAndWaiterMixin,
+            common.AbstractControllerCommand):
     name = "vfs_ls"
 
     __args = [
         dict(name="path", positional=True, required=False, default="/",
              help="The path to list."),
+
+        dict(name="refresh", type="Bool",
+             help="If set we issue a new flow request to the client and wait "
+             "until it completes."),
 
         dict(name="recursive", type="Bool",
              help="Recurse into subdirs."),
@@ -79,7 +85,9 @@ class VFSLs(common.AbstractControllerCommand):
 
             # e.g. path_components = /home/
             #      collection_path_components = /home/scudette/
-            elif len(collection_path_components) > len(path_components):
+            elif (len(collection_path_components) > len(path_components) and
+                  collection_path_components[:len(path_components)] ==
+                  path_components):
                 virtual_directories.add(collection_path_components[
                     len(path_components)])
 
@@ -133,6 +141,20 @@ class VFSLs(common.AbstractControllerCommand):
 
         if not self.client_id:
             raise plugin.PluginError("Client ID expected.")
+
+        # If the user asks for fresh data then launch the flow and wait for it
+        # to finish.
+        if self.plugin_args.refresh:
+            flow_obj = self.session.plugins.launch_flow(
+                flow="ListDirectory",
+                args=dict(
+                    path=path,
+                    recursive=self.plugin_args.recursive,
+                )
+            ).make_flow_object()
+
+            # Wait until the list directory is completed.
+            self.launch_and_wait(flow_obj)
 
         # First get the VFS index.
         vfs_index = find.VFSIndex.load_from_location(

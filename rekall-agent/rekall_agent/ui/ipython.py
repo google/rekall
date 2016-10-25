@@ -87,6 +87,10 @@ class RekallAgentMagics(magic.Magics):
     def vfs(self, line, cell=None):
         return self._RunPlugin("vfs_ls", line)
 
+    @magic.line_cell_magic
+    def fetch(self, line, cell=None):
+        """Start FileFinder with download and view results."""
+        return self._RunPlugin("fetch", line)
 
 
 ipython_support.REGISTERED_MAGICS.append(RekallAgentMagics)

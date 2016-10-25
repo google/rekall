@@ -77,6 +77,9 @@ class RekallAgent(common.AbstractAgentCommand):
         kwargs = session_parameters.to_primitive(True)
         rekall_session = self.session.clone(**kwargs)
 
+        # Pass the agent config to the child session.
+        rekall_session.SetParameter("agent_config_obj", self._config)
+
         # Make sure progress dispatches are propagated.
         rekall_session.progress = self.session.progress
 
@@ -258,6 +261,10 @@ class RekallAgent(common.AbstractAgentCommand):
             self._quota = None
             raise RuntimeError("Resource Exceeded.")
 
+    @utils.safe_property
+    def writeback(self):
+        return self._config.client.writeback
+
     def collect(self):
         """Main entry point for the Rekall agent.
 
@@ -265,13 +272,9 @@ class RekallAgent(common.AbstractAgentCommand):
         """
         # Register our quota check as a Rekall Session progress handler.
         self.session.progress.Register("agent", self._check_quota)
+        self.session.SetParameter("agent_mode", "client")
 
         self.poll_wait = self._config.client.poll_min
-
-        # The writeback is where the agent stores local state.
-        self.writeback = self._config.client.get_writeback()
-        self.jobs_locations = [_LocationTracker(x)
-                               for x in self._config.client.get_jobs_queues()]
 
         # Startup loop. Spin here until we can verify the server manifest.
         while 1:
@@ -282,6 +285,11 @@ class RekallAgent(common.AbstractAgentCommand):
                 self.session.logging.exception("Error: %s", e)
 
             time.sleep(60)
+
+        # Must be done after the startup sequence in case enrollment changes
+        # client id and therefore changes the job queues.
+        self.jobs_locations = [_LocationTracker(x)
+                               for x in self._config.client.get_jobs_queues()]
 
         # Spin here running jobs.
         while 1:

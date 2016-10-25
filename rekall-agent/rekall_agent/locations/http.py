@@ -228,9 +228,10 @@ class HTTPLocation(location.Location):
 
         return response.ok
 
-    def list_files(self, **kw):
+    def list_files(self, max_results=100, **kw):
         url_endpoint, params, headers, _ = self._get_parameters(**kw)
         params["action"] = "list"
+        params["limit"] = max_results
         resp = self.get_requests_session().get(
             url_endpoint, params=params, headers=headers)
 
@@ -238,6 +239,16 @@ class HTTPLocation(location.Location):
             for stat in json.loads(resp.text):
                 yield location.LocationStat.from_primitive(
                     stat, session=self._session)
+
+    def stat(self, **kw):
+        url_endpoint, params, headers, _ = self._get_parameters(**kw)
+        params["action"] = "stat"
+        resp = self.get_requests_session().get(
+            url_endpoint, params=params, headers=headers)
+
+        if resp.ok:
+            return location.LocationStat.from_primitive(
+                json.loads(resp.text), session=self._session)
 
     def delete(self, completion_routine=None, **kw):
         url_endpoint, params, headers, _ = self._get_parameters(**kw)

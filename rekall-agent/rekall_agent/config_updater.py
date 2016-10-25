@@ -29,7 +29,6 @@ import yaml
 
 from rekall import plugin
 from rekall import yaml_utils
-from rekall_agent import common
 from rekall_agent import crypto
 
 from rekall_agent.config import agent
@@ -69,11 +68,12 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
     server_certificate_filename = "server.certificate.pem"
     client_config_filename = "client.config.yaml"
     server_config_filename = "server.config.yaml"
+    _secret = os.urandom(5).encode("hex")
 
     def generate_keys(self):
         """Generates various keys if needed."""
         ca_private_key_filename = os.path.join(
-            self._config_dir, self.ca_private_key_filename)
+            self.config_dir, self.ca_private_key_filename)
 
         ca_cert_filename = os.path.join(
             self.config_dir, self.ca_cert_filename)
@@ -190,9 +190,11 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
                 fd.write(server_config_data)
 
         # Now load the server config file.
-        self.session.SetParameter("agent_config_obj", None)
         self.session.SetParameter("agent_configuration", server_config_filename)
-        self._config = self.session.GetParameter("agent_config_obj")
+        self._config = self.session.GetParameter(
+            "agent_config_obj", cached=False)
+        if self._config == None:
+            raise RuntimeError("Unable to parse provided configuration.")
 
     def write_manifest(self):
         yield dict(Message="Writing manifest file.")
@@ -302,6 +304,7 @@ client:
             server_private_key_filename=self.server_private_key_filename,
             ca_cert_filename=self.ca_cert_filename,
             writeback_path=self.plugin_args.client_writeback_path,
+            secret=self._secret,
         )
 
 
@@ -311,27 +314,48 @@ class AgentServerInitializeLocalHTTP(AgentServerInitialize):
     name = "agent_server_initialize_http"
 
     server_config_template = """
-ca_certificate@file: {ca_cert_filename}
 server:
+  # The controller will use the stand alone HTTP server to exchange messages.
   __type__: HTTPServerPolicy
+
+  # Base URL for file transfer.
   base_url: {base_url}
+
+  # This is the server certificate.
   certificate@file: {server_certificate_filename}
+
+  # The server's private key.
   private_key@file: {server_private_key_filename}
+
+  # HTTP server will bind to this port and address.
   bind_port: {bind_port}
   bind_address: {bind_address}
 
 """
     client_config_template = """
+# CA Certificate used to verify server keys.
 ca_certificate@file: {ca_cert_filename}
 client:
+  # Client will use stand alone HTTP server.
   __type__: HTTPClientPolicy
+
+  # Installation manifest is read from this location.
   manifest_location:
     __type__: HTTPLocation
     base: {base_url}
-    path: /manifest
+    path_prefix: /manifest
 
+  # The client will write state data to this path.
   writeback_path: {writeback_path}
+
+  # List of label queues for the client to poll for hunts on.
   labels: []
+
+  # Client/Server shared secret for this installation.
+  secret: {secret}
+
+  # Client will poll at most every this many seconds.
+  poll_max: 60
 """
 
     manifest_file_template = """
@@ -358,4 +382,5 @@ client:
             server_private_key_filename=self.server_private_key_filename,
             ca_cert_filename=self.ca_cert_filename,
             writeback_path=self.plugin_args.client_writeback_path,
+            secret=self._secret,
         )

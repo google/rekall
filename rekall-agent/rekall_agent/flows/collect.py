@@ -42,7 +42,10 @@ class CollectFlow(flow.Flow):
     # being the Rekall live mode and value being the query to run in that
     # mode. The mode is selected from the Flow.session.live parameter.
     _query = {}
-    _query_parameters = []
+
+    schema = [
+        dict(name="query_parameters", type="dict"),
+    ]
 
     # The columns to add to the collection spec.
     _columns = []
@@ -83,7 +86,7 @@ class CollectFlow(flow.Flow):
         yield collect_action.CollectAction.from_keywords(
             session=self._session,
             query=self._query,
-            query_parameters=self._query_parameters,
+            query_parameters=self.query_parameters,
             collection=collection
         )
 
@@ -92,7 +95,7 @@ class ListProcessesFlow(CollectFlow):
     """Collect data about all processes."""
     _query = dict(
         mode_live_api=(
-            "select Name as name, pid, ppid, start_time from pslist()"),
+            "select Name as name, pid, ppid, start from pslist()"),
         mode_linux_memory=(
             "select proc.name, proc.pid, ppid, start_time from pslist()")
     )
@@ -104,4 +107,4 @@ class ListProcessesFlow(CollectFlow):
         dict(name="ppid", type="int"),
         dict(name="start_time", type="epoch"),
     ]
-    _collection_name = "pslist_{timestamp}"
+    _collection_name = "pslist"

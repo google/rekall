@@ -45,9 +45,6 @@ class Action(common.AgentConfigMixin, serializer.SerializedObject):
              doc="If provided, runs this action in a dedicated session."),
     ]
 
-    # This is the agent's config.
-    _config = None
-
     @property
     def client_id(self):
         return self._config.client.writeback.client_id

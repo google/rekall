@@ -474,10 +474,15 @@ class SerializedObject(object):
 
     @classmethod
     def from_keywords(cls, session=None, **kwargs):
-        result = cls(session=session)
-        for k, v in kwargs.iteritems():
-            result.SetMember(k, v)
+        try:
+            tmp = session._strict_serialization
+            session._strict_serialization = True
 
+            result = cls(session=session)
+            for k, v in kwargs.iteritems():
+                result.SetMember(k, v)
+        finally:
+            session._strict_serialization = tmp
         return result
 
     def copy(self):
@@ -527,8 +532,18 @@ class SerializedObject(object):
             value = self._descriptors[name].validate(
                 value, session=self._session)
         except ValueError as e:
-            raise ValueError("While validating %s.%s: %s" % (
-                self.__class__.__name__, name, e))
+            # When decoding old data, we do not want to raise an error if the
+            # field is invalid. This can happen if the field definition has
+            # since changed In that case we would rather set the field to None
+            # than to have invalid data in that field.
+
+            # When used normally, this code should raise because it is called
+            # during member assignments.
+            if self._session._strict_serialization:
+                raise ValueError("While validating %s.%s: %s" % (
+                    self.__class__.__name__, name, e))
+
+            value = None
         self._data[name] = value
 
     def set_unknown(self, k, v):

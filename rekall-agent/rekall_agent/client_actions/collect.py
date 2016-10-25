@@ -32,7 +32,7 @@ class CollectAction(action.Action):
         dict(name="query", type="dict",
              doc="The dotty/EFILTER query to run."),
 
-        dict(name="query_parameters", repeated=True, type="unicode",
+        dict(name="query_parameters", type="dict",
              doc="Positional parameters for parametrized queries."),
 
         dict(name="collection", type=result_collections.CollectionSpec,
