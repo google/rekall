@@ -7,6 +7,6 @@ Standards-Version: 3.9.5
 
 Package: rekall-forensic
 Architecture: any
-Depends: ${python:Depends}, ${misc:Depends}, libdistorm64-1
+Depends: ${python:Depends}, ${misc:Depends}
 Description: Rekall Memory Forensics is a framework for memory analysis.
   More information at http://www.rekall-forensic.com/

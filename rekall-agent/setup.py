@@ -47,10 +47,12 @@ install_requires = [
     "oauth2client==3.0.0",
     "cryptography==1.4",
     "filelock==2.0.6",
-    "pathlib==1.0.1"
+    "pathlib==1.0.1",
+    "portpicker==1.1.1"
 ]
 
-data_files = find_data_files("test_data")
+data_files = (find_data_files("test_data") +
+              find_data_files("messages"))
 
 
 class CleanCommand(Command):

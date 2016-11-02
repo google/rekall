@@ -105,7 +105,7 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
 
             for row in list(stat_collection.query(
                     dirname=path, order_by="filename")):
-                mode = response_common.Permissions(row["st_mode"])
+                mode = response_common.Permissions(row["st_mode"] or 0)
                 result = dict(
                     Path=utils.join_path(row["dirname"], row["filename"]),
                     st_mode=mode,

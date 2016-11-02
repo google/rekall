@@ -58,11 +58,13 @@ class BatchTicket(serializer.SerializedObject):
         """Called once on each instance to process this instance."""
 
 
-class AgentWorker(common.AbstractControllerCommand):
+class AgentWorker(common.AbstractAgentCommand):
     name = "worker"
 
     __args = [
-        dict(name="batches", type="ChoiceArray", positional=True,
+        dict(name="batches", type="ChoiceArray",
+             required=False, default=utils.JITIteratorCallable(
+                 utils.get_all_subclasses, BatchTicket),
              choices=utils.JITIteratorCallable(
                  utils.get_all_subclasses, BatchTicket),
              help="One or more batch jobs to run."),

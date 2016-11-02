@@ -7,7 +7,7 @@ from rekall.plugins.response import files
 from rekall.plugins.response import interpolators
 from rekall.plugins.response import processes
 from rekall.plugins.response import renderers
-from rekall.plugins.response import yara
+from rekall.plugins.response import yarascan
 
 if platform.system() == "Windows":
     from rekall.plugins.response import registry

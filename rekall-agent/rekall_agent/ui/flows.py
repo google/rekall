@@ -764,7 +764,7 @@ class FlowLauncherAndWaiterMixin(object):
         # Wait until the flow arrives.
         while 1:
             new_stat = flow_db_location.stat()
-            if new_stat.generation > flow_db_stat.generation:
+            if flow_db_stat and new_stat.generation > flow_db_stat.generation:
                 with flow.FlowStatsCollection.load_from_location(
                         flow_db_location, session=self.session) as flow_db:
 

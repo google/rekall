@@ -6,15 +6,17 @@ from rekall_agent import crypto
 class TestWritableAgentFile(testlib.RekallBaseUnitTestCase):
 
     def testAgentFile(self):
-        self.session = self.MakeUserSession()
-        readers_private_key = crypto.RSAPrivateKey().generate_key()
-        writers_private_key = crypto.RSAPrivateKey().generate_key()
+        readers_private_key = crypto.RSAPrivateKey(
+            session=self.session).generate_key()
+        writers_private_key = crypto.RSAPrivateKey(
+            session=self.session).generate_key()
 
         filename = "/tmp/foo.tmp"
         fd = crypto.WritableAgentFile(
             filename, session=self.session,
             readers_public_key=readers_private_key.public_key(),
-            writers_private_key=writers_private_key)
+            writers_private_key=writers_private_key,
+            )
         fd.write_encrypted_data("hello world")
         fd.write_encrypted_data("goodbye world")
         fd.close()

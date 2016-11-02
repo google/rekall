@@ -34,7 +34,7 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
     """Test the serializer framework."""
 
     def testFieldValidation(self):
-        test_obj = TestObject1()
+        test_obj = TestObject1(session=self.session)
         # Should not be allowed to set a string.
         with self.assertRaises(ValueError):
             test_obj.C1 = "Hello"
@@ -47,11 +47,12 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
         self.assertEqual(test_obj.C1, 20)
 
     def testNestedFields(self):
-        test_obj = TestObject2()
+        test_obj = TestObject2(session=self.session)
         test_obj.N1.C1 = 10
 
         self.assertEqual(test_obj.N1.C1, 10)
-        self.check_serialization(test_obj, {'N1': {'C1': 10L}})
+        self.check_serialization(
+            test_obj, {'N1': {'C1': 10L, '__type__': 'TestObject1'}})
 
     def testUnknownFields(self):
         """Test handling of unknown fields.
@@ -64,7 +65,7 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
         {"C1": 5, "U1": "foobar"}
         """
         # This should parse properly.
-        obj = TestObject1.from_json(json_blob)
+        obj = TestObject1.from_json(json_blob, session=self.session)
 
         self.assertEqual(obj._unknowns["U1"], "foobar")
 
@@ -74,21 +75,23 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
 
         # Ensure unknowns get re-serialized.
         self.assertEqual(obj.to_primitive(),
-                         dict(C1=5, U1="foobar"))
+                         dict(C1=5, U1="foobar", __type__="TestObject1"))
 
     def check_serialization(self, test_obj, primitive):
-        self.assertEqual(test_obj.to_primitive(), primitive)
+        self.assertEqual(test_obj.to_primitive(with_type=False), primitive)
 
-        self.assertEqual(test_obj.__class__.from_primitive(primitive),
-                         test_obj)
+        self.assertEqual(
+            test_obj.__class__.from_primitive(
+                primitive, session=self.session),
+            test_obj)
 
         self.assertEqual(test_obj.__class__.from_primitive(
-            primitive).to_primitive(),
+            primitive, session=self.session).to_primitive(with_type=False),
                          primitive)
 
 
     def testRepeatedField(self):
-        test_obj = TestObject1()
+        test_obj = TestObject1(session=self.session)
 
         with self.assertRaises(ValueError):
             test_obj.R1.append(10)
@@ -100,13 +103,13 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
 
     def testStringSerialization(self):
         """Makes sure that serializing a string field base64 encodes it."""
-        test_obj = TestObject1()
+        test_obj = TestObject1(session=self.session)
         test_obj.C2 = "hello"
 
         with self.assertRaises(ValueError):
             test_obj.C2 = 10
 
-        TestObject1.from_primitive({'C2': 'aGVsbG8=\n'})
+        TestObject1.from_primitive({'C2': 'aGVsbG8=\n'}, session=self.session)
 
         self.check_serialization(test_obj, {'C2': 'aGVsbG8=\n'})
 
@@ -127,9 +130,10 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
         restore the correct type in the N1 field.
         """
         # A derived object inherits all the base object's fields.
-        test_obj = ExtendedTestObject1.from_keywords(extra="foo", C1=5)
+        test_obj = ExtendedTestObject1.from_keywords(extra="foo", C1=5,
+                                                     session=self.session)
 
-        container = TestObject2()
+        container = TestObject2(session=self.session)
 
         # Can not assign an int to this field - it is still strongly typed.
         with self.assertRaises(ValueError):
@@ -152,7 +156,7 @@ class TestSerializer(testlib.RekallBaseUnitTestCase):
         json_data = container.to_json()
 
         # When decoding we receive the correct type in this field.
-        decoded = TestObject2.from_json(json_data)
+        decoded = TestObject2.from_json(json_data, session=self.session)
 
         self.assertTrue(type(decoded.N1), ExtendedTestObject1)
 

@@ -65,6 +65,7 @@ class TestCollectClientAction(testlib.RekallBaseUnitTestCase):
 
     def setUp(self):
         self.session = self.MakeUserSession()
+        self.session.SetParameter("agent_config_data", "{}")
 
     def testCollectionAction(self):
         # The path where we want the collection to finally reside.
@@ -84,19 +85,23 @@ class TestCollectClientAction(testlib.RekallBaseUnitTestCase):
         )
 
         # Create a request to the agect_collection.
-        request = collect.CollectActionRequest.from_keywords(
+        request = collect.CollectAction.from_keywords(
             session=self.session,
-            query="select c1, c2, c3 from test_collection_plugin()",
+            query=dict(
+                mode_agent="select c1, c2, c3 from test_collection_plugin()"),
             collection=collection,
         )
 
         # Run the plugin and collect the output.
-        collect.CollectAction(request, session=self.session).collect()
+        collections = list(request.run())
+
+        self.assertEqual(len(collections), 1)
+        self.assertEqual(collections[0].location.path, final_path)
 
         # Now check that the collection is complete with direct SQL.
         conn = sqlite3.connect(final_path)
-        data = list(conn.execute("select * from tbl_default"))
 
+        data = list(conn.execute("select * from tbl_default"))
         self.assertEqual(len(data), 2)
         self.assertEqual(data, FAKE_DATA)
 

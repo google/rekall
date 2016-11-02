@@ -27,6 +27,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 These client actions are designed to maintain the client's Virtual File System
 (VFS) view.
 """
+import re
 import os
 
 import psutil
@@ -149,11 +150,48 @@ class ListDirectoryAction(action.Action):
              doc="The set of valid filesystems we may recurse into."),
     ]
 
+    def normalize_path(self, path):
+        return path.replace("\\", "/")
+
+    drive_re = re.compile("/([a-zA-Z]:)(.*)")
+    def splitdrive(self, path):
+        m = self.drive_re.match(path)
+        if m:
+            return m.group(1), m.group(2) or "/"
+
+        return "", path or "/"
+
+    def listdir(self, root):
+        drive, path = self.splitdrive(root)
+        if not drive:
+            from rekall.plugins.response import windows
+
+            for drive in windows.get_drives():
+                yield drive + os.path.sep
+
+        else:
+            for x in os.listdir(path):
+                yield x
+
     def _process_files(self, root, files):
+        drive, path = self.splitdrive(root)
+        if not drive:
+            from rekall.plugins.response import windows
+
+            for drive in windows.get_drives():
+                yield dict(filename=self.normalize_path(drive + os.path.sep),
+                           dirname="/", st_mode=0775)
+
+            return
+
         root = utils.normpath(root)
         for f in files:
             path = os.path.join(root, f)
-            result = dict(filename=f, dirname=root)
+            result = dict(
+                filename=self.normalize_path(f),
+                dirname=self.normalize_path(root),
+                st_mode=0)
+
             try:
                 s = os.lstat(path)
                 result["st_mode"] = s.st_mode
@@ -194,7 +232,7 @@ class ListDirectoryAction(action.Action):
         else:
             for x in helpers.ListFilter().filter(
                     self.filter,
-                    self._process_files(self.path, os.listdir(self.path))):
+                    self._process_files(self.path, self.listdir(self.path))):
                 yield x
 
     def run(self, flow_obj=None):

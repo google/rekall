@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 """A local cache implementation."""
 import os
+import shutil
 
 from rekall import cache
 from rekall import plugin
@@ -90,8 +91,14 @@ class LocalDiskCache(Cache):
 
                 os.unlink(current_generation_path)
 
-        # Move the local_filename into the position it needs to be in.
-        os.renames(local_filename, destination)
+        # Move the local_filename into the position it needs to be
+        # in. Ensure the output directory exists.
+        try:
+            os.makedirs(os.path.dirname(destination))
+        except (OSError, IOError):
+            pass
+
+        shutil.move(local_filename, destination)
 
     def expire(self, path):
         current_generation = self.get_generation(path)
@@ -190,7 +197,6 @@ class LocalDiskCache(Cache):
         if generation:
             subpath = self.get_local_file(path, generation)
             s = os.lstat(subpath)
-
             return dict(
                 created=s.st_ctime,
                 updated=s.st_mtime,

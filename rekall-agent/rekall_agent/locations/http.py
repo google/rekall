@@ -31,6 +31,7 @@ import StringIO
 import os
 import tempfile
 import time
+import urllib
 from wsgiref import handlers
 
 import requests
@@ -48,15 +49,15 @@ class URLPolicy(serializer.SerializedObject):
         dict(name="path_prefix",
              doc="The path prefix to enforce."),
 
-        dict(name="path_template", default="/",
+        dict(name="path_template", default="",
              doc="The path template to expand."),
 
         dict(name="expires", type="epoch",
              doc="When does this policy expire"),
 
-        dict(name="methods", type="choices", repeated=True,
-             choices=["GET", "POST", "PUT"],
-             doc="The allowed methods for this operation."),
+        dict(name="access", type="choices", repeated=True, default=["READ"],
+             choices=["READ", "WRITE", "LIST"],
+             doc="The allowed access pattern for this operation."),
 
         dict(name="public", type="bool",
              doc="If set the uploaded object will be public."),
@@ -76,7 +77,6 @@ class HTTPLocation(location.Location):
 
         dict(name="path_prefix",
              doc="The path to load"),
-
         dict(name="path_template", default="/",
              doc="The path template to expand."),
 
@@ -88,17 +88,21 @@ class HTTPLocation(location.Location):
 
         dict(name="path_template",
              doc="A template from which to expand the complete path."),
+
+        dict(name="access", type="choices", repeated=True, default=["READ"],
+             choices=["READ", "WRITE", "LIST"],
+             doc="The allowed access pattern for this operation."),
     ]
 
     @classmethod
-    def New(cls, path_prefix=None, methods=None, session=None, expiration=None,
-            path_template="/", public=False):
+    def New(cls, path_prefix=None, access=None, session=None, expiration=None,
+            path_template="", public=False):
         if expiration is None:
             expiration = time.time() + 60 * 60 * 24 * 7
 
         # By default we give read/write access.
-        if methods is None:
-            methods = ["GET", "PUT"]
+        if access is None:
+            access = ["READ", "WRITE"]
 
         # Make sure paths are always anchored.
         if not path_prefix.startswith("/"):
@@ -111,7 +115,7 @@ class HTTPLocation(location.Location):
             path_template=path_template,
             expires=expiration,
             public=public,
-            methods=methods)
+            access=access)
 
         policy_data = policy.to_json()
         signature = config.server.private_key.sign(policy_data)
@@ -122,6 +126,7 @@ class HTTPLocation(location.Location):
             path_prefix=path_prefix,
             policy=policy_data,
             path_template=path_template,
+            access=access,
             signature=signature)
 
     def __init__(self, *args, **kwargs):
@@ -154,10 +159,15 @@ class HTTPLocation(location.Location):
 
         return requests_session
 
-    def expand_path(self, **kwargs):
+    def expand_path(self, subpath="", **kwargs):
         """Expand the complete path using the client's config."""
         kwargs["client_id"] = self._config.client.writeback.client_id
         kwargs["nonce"] = self._config.client.nonce
+        #kwargs["subpath"] = urllib.quote_plus(
+        #    subpath.replace("\\", "/"), safe="/")
+
+        kwargs["subpath"] = subpath
+
         return self.path_template.format(**kwargs)
 
     def to_path(self, **kwargs):
@@ -180,6 +190,9 @@ class HTTPLocation(location.Location):
         return base_url, {}, headers, path
 
     def read_file(self, **kw):
+        if "READ" not in self.access:
+            raise IOError("HTTPLocation is not created for reading.")
+
         url_endpoint, _, headers, _ = self._get_parameters(**kw)
 
         resp = self.get_requests_session().get(
@@ -191,6 +204,9 @@ class HTTPLocation(location.Location):
         return ""
 
     def write_file(self, data, **kwargs):
+        if "WRITE" not in self.access:
+            raise IOError("HTTPLocation is not created for writing.")
+
         return self.upload_file_object(StringIO.StringIO(data), **kwargs)
 
     def upload_file_object(self, fd, completion_routine=None, **kwargs):

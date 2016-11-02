@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 # Rekall Memory Forensics
 # Copyright 2016 Google Inc. All Rights Reserved.
 #
@@ -20,21 +18,22 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 #
 
-__author__ = "Michael Cohen <scudette@google.com>"
-
 """Location handlers for the Cloud.
 
 This module provides the ability to write to Google Cloud Storage in various
 ways.
 """
+
 import base64
 import contextlib
 import json
 import gzip
 import os
+import rfc822
 import StringIO
 import tempfile
 import time
+
 from wsgiref import handlers
 
 import arrow
@@ -53,6 +52,8 @@ from rekall import utils
 from rekall_agent import common
 from rekall_agent import location
 from rekall_agent import serializer
+
+__author__ = "Michael Cohen <scudette@google.com>"
 
 
 MAX_BUFF_SIZE = 10*1024*1024
@@ -130,7 +131,8 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
             headers.SetMember("x-goog-acl", "public-read")
 
         return GCSOAuth2BasedLocation.from_keywords(
-            session=self._session, bucket=bucket, path=path, headers=headers)
+            session=self._session, bucket=bucket, path=path,
+            headers=headers)
 
     def create_signed_policy_location(self, expiration=None, path_prefix=None,
                                       bucket=None, path_template=None):
@@ -176,7 +178,7 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
         """A Factory for GCSSignedURLLocation() instances.
 
         Args:
-          mode: Can be "r" for reading, "w" for writing or "a" for file upload.
+          mode: Can be "r" for reading, "w" for writing.
           expiration: When this URL should expire. By default 1 hour.
           path: The path within the bucket for the object.
           bucket: The bucket name.
@@ -209,7 +211,7 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
 
         # If the bucket is not specified take it from the server's config.
         if bucket is None:
-            bucket = self._config.server.base_location.bucket
+            bucket = self._config.server.bucket
 
         # Build the signed string according to
         # https://cloud.google.com/storage/docs/access-control/signed-urls#string-components
@@ -220,9 +222,6 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
         components.append(str(int(expiration))) # Expiration
         for k, v in sorted(headers.to_primitive(False).iteritems()):
             components.append("%s:%s" % (k, v))
-
-        if upload == "resumable":
-            components.append("x-goog-resumable:start")
 
         base_url = "/" + utils.join_path(bucket, path)
 
@@ -237,7 +236,8 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
             bucket=bucket,
             path=path,
             method=method,
-            headers=headers
+            headers=headers,
+            upload=upload,
             )
 
 
@@ -331,7 +331,7 @@ class GCSLocation(location.Location):
         params["uploadType"] = "resumable"
 
         headers["x-goog-resumable"] = "start"
-        headers["Content-Length"] = 0
+        headers["Content-Length"] = "0"
 
         resp = self.get_requests_session().post(
             url_endpoint, params=params, headers=headers)
@@ -354,7 +354,7 @@ class GCSLocation(location.Location):
 
             headers = {
 
-        "Content-Length": len(data),
+        "Content-Length": str(len(data)),
                 "Content-Range": "bytes %d-%d/%d" % (
                     offset, offset + len(data) -1, file_length)
             }
@@ -371,7 +371,7 @@ class GCSLocation(location.Location):
             return self._upload_direct(
                 fd, completion_routine=completion_routine, **kwargs)
 
-            # Resumable upload
+        # Resumable upload
         elif self.upload == "resumable":
             self._upload_resumable(
                 fd, completion_routine=completion_routine, **kwargs)
@@ -435,6 +435,28 @@ class GCSLocation(location.Location):
     def to_path(self):
         return utils.join_path(self.bucket, self.path)
 
+    def _report_error(self, completion_routine, response=None,
+                      message=None):
+        if response:
+            # Only include the text in case of error.
+            if not response.ok:
+                status = location.Status(response.status_code, response.text)
+            else:
+                status = location.Status(response.status_code)
+
+        else:
+            status = location.Status(500, message)
+
+        if response is None or not response.ok:
+            if completion_routine:
+                return completion_routine(status)
+
+            raise IOError(response.text)
+        else:
+            if completion_routine:
+                completion_routine(status)
+
+        return response.ok
 
 class GCSHeaders(serializer.SerializedObject):
 
@@ -567,6 +589,22 @@ class GCSOAuth2BasedLocation(GCSLocation):
                 fd.write(new_data)
 
         self.read_modify_write_local_file(cb, modification_cb, *args)
+
+    def stat(self, **kwargs):
+        """Gets information about an object."""
+        url_endpoint, params, headers, _ = self._get_parameters(**kwargs)
+        resp = self.get_requests_session().head(
+            url_endpoint, params=params, headers=headers)
+
+        if resp.ok:
+            return location.LocationStat.from_keywords(
+                session=self._session,
+                location=self,
+                size=resp.headers["x-goog-stored-content-length"],
+                generation=resp.headers["x-goog-generation"],
+                created=arrow.Arrow(*(rfc822.parsedate(
+                    resp.headers["Last-Modified"])[:7])).timestamp,
+           )
 
     def delete(self, completion_routine=None, **kwargs):
         """Deletes the current location."""
@@ -765,10 +803,12 @@ class GCSSignedPolicyLocation(GCSLocation):
         dict(name="headers", type=GCSHeaders, hidden=True),
     ]
 
-    def expand_path(self, **kwargs):
+    def expand_path(self, subpath="", **kwargs):
         """Expand the complete path using the client's config."""
         kwargs["client_id"] = self._config.client.writeback.client_id
         kwargs["nonce"] = self._config.client.nonce
+        kwargs["subpath"] = subpath
+
         return self.path_template.format(**kwargs)
 
     def get_canonical(self, **kwargs):

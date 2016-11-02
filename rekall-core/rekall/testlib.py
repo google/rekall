@@ -153,6 +153,9 @@ class RekallBaseUnitTestCase(unittest.TestCase):
         if cls.temp_directory:
             shutil.rmtree(cls.temp_directory, True)
 
+    def setUp(self):
+        self.session = self.MakeUserSession()
+
     def LaunchExecutable(self, config_options):
         """Launches the rekall executable with the config specified.
 

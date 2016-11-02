@@ -27,6 +27,9 @@ The following is adapted from:
     > Tree status URL:
     > ViewVC URL:
 
+## Step 2d: Authenticate with Google.
+    > depot-tools-auth login https://codereview.chromium.org
+
 ## Step 3: Create a branch for your new changes
 
 Pick a branch name not existing locally nor in the remote repo, we recommend

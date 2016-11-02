@@ -47,7 +47,8 @@ class GetFiles(collect.CollectAction):
     def get_files_from_row(self, row):
         """Given a row return all the paths in it."""
         if isinstance(self.collection, files.StatEntryCollection):
-            yield os.path.join(row["dirname"], row["filename"])
+            yield os.path.join(unicode(row["dirname"]),
+                               unicode(row["filename"]))
 
     def collect(self):
         """Intercept collected rows and detect any files."""

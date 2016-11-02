@@ -41,7 +41,6 @@ import datetime
 import struct
 import time
 import hashlib
-import hashlib
 import os
 
 from cryptography import exceptions
@@ -115,13 +114,13 @@ class WritableAgentFile(object):
             filename=filename, session=session, mode="w+b")
         self.session = session
         self.profile = AgentProfile(session=session)
-        self.cipher = CipherProperties().generate_keys()
+        self.cipher = CipherProperties(session=session).generate_keys()
         self.readers_public_key = readers_public_key
         self.writers_private_key = writers_private_key
 
         # Cipher is encrypted with the reader's public key - only the reader can
         # read it. It is also signed with the sender's private key.
-        signature = Signature()
+        signature = Signature(session=session)
         cipher_plain_text = self.cipher.to_json()
         signature.encrypted_cipher = readers_public_key.encrypt(
             cipher_plain_text)
@@ -150,7 +149,7 @@ class WritableAgentFile(object):
         part.Data = data
 
     def close(self):
-        result = HMAC()
+        result = HMAC(session=self.session)
         result.hmac = self.hmac.finalize()
         self.write_part(result.to_json(), "HMAC")
         self.fd.close()
@@ -205,15 +204,18 @@ class ReadableAgentFile(object):
         self.offset = part.Data.obj_end
         if part.PartType == "EncryptedCipher":
             serialized_signature = part.Data.v()
-            signature = Signature.from_json(serialized_signature)
+            signature = Signature.from_json(
+                serialized_signature,
+                session=self.session)
             decrypted_cipher = self.readers_private_key.decrypt(
                 signature.encrypted_cipher)
 
             if not self.writers_public_key.verify(
-                    signature.signature, decrypted_cipher):
+                    decrypted_cipher, signature.signature):
                 raise CipherError("Message does not verify")
 
-            self.cipher = CipherProperties.from_json(decrypted_cipher)
+            self.cipher = CipherProperties.from_json(
+                decrypted_cipher, session=self.session)
             self.hmac = hmac.HMAC(self.cipher.hmac_key.RawBytes(),
                                   hashes.SHA256(),
                                   backend=openssl.backend)
@@ -230,7 +232,8 @@ class ReadableAgentFile(object):
             return plain_text
 
         elif part.PartType == "HMAC":
-            serialized_hmac = HMAC.from_json(part.Data.v())
+            serialized_hmac = HMAC.from_json(
+                part.Data.v(), session=self.session)
             if self.hmac.finalize() != serialized_hmac.hmac:
                 raise CipherError("HMAC did not verify.")
             self.hmac_verified = True
@@ -359,10 +362,11 @@ class RSAPublicKey(serializer.SerializedObject):
         return "C.%s" % (hashlib.sha256(mpi_format).digest()[:8].encode("hex"))
 
     def __str__(self):
-        return self.to_json
+        return self.to_json()
 
     def __repr__(self):
-        return "<%s (%s)>" % (self.__class__.__name__, id(self))
+        digest = hashlib.sha256(self.to_primitive()).hexdigest()
+        return "<%s (%s)>" % (self.__class__.__name__, digest)
 
     def __nonzero__(self):
         return bool(self._value)

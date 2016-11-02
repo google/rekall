@@ -21,9 +21,10 @@
 #
 """This is a windows specific address space."""
 import os
-import pywintypes
 import struct
 import weakref
+
+import pywintypes
 import win32file
 
 from rekall import addrspace
@@ -246,6 +247,11 @@ class WinPmemAddressSpace(Win32AddressSpace):
             self.session.SetCache("kernel_base", kernel_base, volatile=False)
 
     def _map_raw_filename(self, filename):
+        # Parsing the NTFS can be expensive so we only do it when the user
+        # specifically wanted to be thorough.
+        if self.session.GetParameter("performance") != "thorough":
+            return
+
         drive, base_filename = os.path.splitdrive(filename)
         if not drive:
             return
@@ -254,7 +260,7 @@ class WinPmemAddressSpace(Win32AddressSpace):
             ntfs_session = self.filesystems[drive]
         except KeyError:
             ntfs_session = self.filesystems[drive] = self.session.add_session(
-                filename=r"\\.\%s" % drive, verbose=True,
+                filename=r"\\.\%s" % drive, verbose=True, autodetect=[],
                 profile="ntfs")
 
         # Stat the MFT inode (MFT 2).

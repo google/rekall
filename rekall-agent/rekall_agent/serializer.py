@@ -382,6 +382,9 @@ class RepeatedDescriptor(FieldDescriptor):
             session=session)
 
     def get_default(self, session=None):
+        if "default" in self.descriptor:
+            return self.descriptor["default"][:]
+
         return RepeatedHelper(self.descriptor_obj, session=session)
 
 
@@ -474,15 +477,18 @@ class SerializedObject(object):
 
     @classmethod
     def from_keywords(cls, session=None, **kwargs):
+        if session is None:
+            raise ValueError("Session must be provided.")
+
         try:
-            tmp = session._strict_serialization
-            session._strict_serialization = True
+            tmp = session._unstrict_serialization
+            session._unstrict_serialization = True
 
             result = cls(session=session)
             for k, v in kwargs.iteritems():
                 result.SetMember(k, v)
         finally:
-            session._strict_serialization = tmp
+            session._unstrict_serialization = tmp
         return result
 
     def copy(self):
@@ -539,7 +545,7 @@ class SerializedObject(object):
 
             # When used normally, this code should raise because it is called
             # during member assignments.
-            if self._session._strict_serialization:
+            if not self._session._unstrict_serialization:
                 raise ValueError("While validating %s.%s: %s" % (
                     self.__class__.__name__, name, e))
 
@@ -599,6 +605,9 @@ class SerializedObject(object):
 
         if isinstance(data, SerializedObject):
             return data
+
+        if not isinstance(data, dict):
+            raise ValueError("Must be initialized from dict")
 
         cls_type = data.get("__type__", cls.__name__)
         data_cls = cls.ImplementationByClass(cls_type)

@@ -33,6 +33,7 @@ import os
 import urlparse
 import tempfile
 import time
+import urllib
 
 from email import utils as email_utils
 
@@ -65,7 +66,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         dict(name="bind_address", default="127.0.0.1",
              doc="The address to bind to"),
 
-        # GCS server must use a local cache.
+        # HTTP server locations must use a local cache.
         dict(name="cache", type=cache.LocalDiskCache,
              doc="Local cache to use."),
     ]
@@ -144,8 +145,9 @@ class HTTPServerPolicy(agent.ServerPolicy):
     def ticket_for_server(self, batch_name, *args):
         """The location of the ticket queue for this batch."""
         return http.HTTPLocation.New(
-            session=self._session,
-            path_prefix=utils.join_path("tickets", batch_name, *args))
+            session=self._session, access=["READ", "LIST"],
+            path_prefix=utils.join_path("tickets", batch_name, *args),
+            path_template="/")
 
     def canonical_for_server(self, location):
         """Convert a canonical location to a server usable one.
@@ -163,7 +165,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         Passed to the agent to write on client VFS.
         """
         return http.HTTPLocation.New(
-            session=self._session,
+            session=self._session, access=["READ", "LIST"],
             path_prefix=utils.join_path(client_id, "vfs", vfs_type, path))
 
 
@@ -183,7 +185,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         {bucket_name}/{object_path}
         """
         if not path:
-            path = self.path
+            path = "/"
 
         return http.HTTPLocation.New(
             session=self._session,
@@ -194,7 +196,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
                                  path_template="{client_id}"):
         return http.HTTPLocation.New(
             session=self._session,
-            methods=["PUT"],
+            access=["WRITE"],
             path_prefix=utils.join_path(
                 "hunts", hunt_id, "vfs", vfs_type, path_prefix),
             path_template=path_template + "/{nonce}",
@@ -205,7 +207,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         """Returns a Location suitable for storing a path using the prefix."""
         return http.HTTPLocation.New(
             session=self._session,
-            methods=["PUT"],
+            access=["WRITE"],
             path_prefix=utils.join_path(
                 client_id, "vfs", vfs_type, path),
             path_template="{subpath}/{nonce}",
@@ -223,7 +225,7 @@ class HTTPServerPolicy(agent.ServerPolicy):
         path_template = kw.pop("path_template", None)
         return http.HTTPLocation.New(
             session=self._session,
-            methods=["PUT"],
+            access=["WRITE"],
             path_prefix=utils.join_path("tickets", batch_name, *ticket_names),
             path_template=path_template + "/{nonce}",
             expiration=expiration)
@@ -235,15 +237,15 @@ class HTTPServerPolicy(agent.ServerPolicy):
         Passed to the agent to write on client VFS.
         """
         if mode == "r":
-            methods = ["GET"]
+            access = ["READ"]
         elif mode == "w":
-            methods = ["PUT"]
+            access = ["WRITE"]
         else:
             raise ValueError("Invalid mode")
 
         return http.HTTPLocation.New(
             session=self._session,
-            methods=methods,
+            access=access,
             path_prefix=utils.join_path(client_id, "vfs", vfs_type, path),
             expiration=expiration)
 
@@ -293,7 +295,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         super(RekallHTTPServerHandler, self).__init__(
             request, client_address, server, **kwargs)
 
-    def authenticate(self, method):
+    def authenticate(self, access):
         """Authenticate the request before we do anything."""
         policy_data = self.headers.get("x-rekall-policy")
         signature = self.headers.get("x-rekall-signature")
@@ -312,31 +314,52 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             return False
 
         # Verify the hmac.
-        if (method not in policy.methods or
-            not self.path.startswith(policy.path_prefix) or
+        if (access not in policy.access or
+            not self.base_path.startswith(policy.path_prefix) or
             arrow.Arrow.utcnow() > policy.expires):
-            self.session.logging.debug("Policy mismatch: %s" % policy)
+            self.session.logging.debug("Policy mismatch (%s): %s" % (
+                self.base_path, policy))
+            return False
+
+        # If the policy does not allow a template then path must match
+        # exactly.
+        if (policy.path_template == "" and
+            self.base_path != policy.path_prefix):
+            self.session.logging.debug("Policy mismatch (%s): %s" % (
+                self.base_path, policy))
             return False
 
         self.public = policy.public
 
         return True
 
+    def _parse_qs(self):
+        if "?" in self.path:
+            self.base_path, qs = self.path.split("?", 1)
+            self.params = urlparse.parse_qs(qs)
+        else:
+            self.params = {}
+            self.base_path = self.path
+
+        # base path is a unicode string so we must decode it from self.path.
+        self.base_path = urllib.unquote(self.base_path).decode(
+            "utf8", "ignore")
+
     def do_GET(self):
         """Serve the server pem with GET requests."""
-        if self.authenticate("GET"):
-            if "?" in self.path:
-                path, qs = self.path.split("?", 1)
-                params = urlparse.parse_qs(qs)
-                if "action" in params:
-                    self.serve_api(path, params)
-                    return
+        self._parse_qs()
 
-            self.serve_static(self.path)
+        # This is an API call.
+        if "action" in self.params:
+            self.serve_api(self.base_path, self.params)
+            return
+
+        if self.authenticate("READ"):
+            self.serve_static(self.base_path)
             return
 
         else:
-            public_path = utils.join_path(".public", self.path)
+            public_path = utils.join_path(".public", self.base_path)
             generation = self._cache.get_generation(public_path)
             if generation:
                 self.serve_static(public_path)
@@ -350,6 +373,11 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
 
     def serve_api(self, path, params):
         if params["action"] == ["stat"]:
+            if not self.authenticate("READ"):
+                self.send_error(
+                    403, "You are not authorized to view this location.")
+                return
+
             row = self._cache.stat(path)
             if not row:
                 self.send_error(404)
@@ -375,6 +403,18 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             return
 
         if params["action"] == ["list"]:
+            # When listing an object we force a / onto the end to
+            # prevent partial matches on non directory boundary.
+            if self.base_path and self.base_path[-1] != "/":
+                self.base_path += "/"
+
+            # Listing directories requires explicit permission which
+            # is different from just READ.
+            if not self.authenticate("LIST"):
+                self.send_error(
+                    403, "You are not authorized to list this location.")
+                return
+
             limit = 100
             if "limit" in params:
                 limit = int(params["limit"][0])
@@ -405,6 +445,11 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             return
 
         elif params["action"] == ["delete"]:
+            if not self.authenticate("WRITE"):
+                self.send_error(
+                    403, "You are not authorized to delete this location.")
+                return
+
             self._cache.expire(path)
             self.send_response(200)
             self.send_header("Content-Length", 0)
@@ -456,7 +501,9 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             self.send_error(500, close=True)
 
     def do_PUT(self):
-        if self.authenticate("PUT"):
+        self._parse_qs()
+
+        if self.authenticate("WRITE"):
             try:
                 if self.headers.get("Transfer-Encoding") == "chunked":
                     self._chunked_upload_file()
@@ -515,13 +562,13 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             os.close(fd)
 
         self._move_file_into_place(local_filename)
-        self.session.logging.debug("Uploaded %s (%s)", self.path, count)
+        self.session.logging.debug("Uploaded %s (%s)", self.base_path, count)
 
     def _move_file_into_place(self, local_filename):
         # This is the new generation.
         generation = self._get_generation_from_timestamp(time.time())
         # Where shall we put the path.
-        path = self.path
+        path = self.base_path
         if self.public:
             path = utils.join_path(".public", path)
 
@@ -556,7 +603,7 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
         finally:
             os.close(fd)
         self._move_file_into_place(local_filename)
-        self.session.logging.debug("Uploaded %s (%s)", self.path, count)
+        self.session.logging.debug("Uploaded %s (%s)", self.base_path, count)
 
     def send_error(self, code, message=None, close=True):
         try:
@@ -588,6 +635,9 @@ class RekallHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
     address_family = socket.AF_INET6
     protocol_version = "HTTP/1.1"
+
+    # Make sure its easier to kill the server.
+    daemon_threads = True
 
     def __init__(self, server_address, handler, *args, **kwargs):
         self.session = kwargs.pop("session")
