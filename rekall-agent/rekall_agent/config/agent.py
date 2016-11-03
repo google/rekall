@@ -317,6 +317,9 @@ class Configuration(ExternalFileMixin,
              doc="The installation manifest. Will be fetched from "
              "client.manifest_location"),
 
+        dict(name="signed_manifest", type=SignedManifest,
+             doc="The signed manifest."),
+
         dict(name="ca_certificate", type=crypto.X509Ceritifcate,
              doc="The certificate of the CA. Clients have this certificate "
              "hard coded and only trust data signed by it.")

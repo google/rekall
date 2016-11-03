@@ -41,7 +41,7 @@ def find_data_files(source):
     return result
 
 install_requires = [
-    "rekall-core >= 1.5.0, < 1.6",
+    "rekall-core >= 1.6.0rc1, < 1.7",
     "requests==2.11.1",
     "httplib2==0.9.2",
     "oauth2client==3.0.0",

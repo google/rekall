@@ -296,13 +296,26 @@ class GCSLocation(location.Location):
         raise NotImplementedError()
 
 
-    def read_file(self, **kw):
-        try:
-            local_filename = self.get_local_filename(**kw)
-            with open(local_filename, "rb") as fd:
-                return fd.read(MAX_BUFF_SIZE)
-        except IOError:
-            return ""
+    def read_file(self, completion_routine=None, **kw):
+        if self._cache:
+            try:
+                local_filename = self.get_local_filename(**kw)
+                with open(local_filename, "rb") as fd:
+                    return fd.read(MAX_BUFF_SIZE)
+            except IOError:
+                return ""
+
+        # We need to download the file.
+        url_endpoint, params, headers, _ = self._get_parameters(
+            **kw)
+
+        resp = self.get_requests_session().get(
+            url_endpoint, params=params, headers=headers)
+
+        if not resp.ok:
+            return self._report_error(completion_routine, resp)
+
+        return resp.content
 
     def write_file(self, data, **kwargs):
         return self.upload_file_object(StringIO.StringIO(data), **kwargs)

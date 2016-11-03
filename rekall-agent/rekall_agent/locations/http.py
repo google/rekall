@@ -119,6 +119,9 @@ class HTTPLocation(location.Location):
 
         policy_data = policy.to_json()
         signature = config.server.private_key.sign(policy_data)
+        base = config.server.base_url
+        if not base:
+            raise RuntimeError("Unable to determine deployment base url.")
 
         return HTTPLocation.from_keywords(
             session=session,

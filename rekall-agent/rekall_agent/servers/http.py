@@ -111,8 +111,19 @@ class HTTPServerPolicy(agent.ServerPolicy):
 
     def manifest_for_server(self):
         return http.HTTPLocation.New(
-            session=self._session, path_prefix="/manifest",
-            public=True,
+            session=self._session,
+            path_prefix="/",
+            path_template="?action=manifest",
+            access=["READ"]
+        )
+
+    def manifest_for_client(self):
+        return http.HTTPLocation.New(
+            session=self._session,
+            expiration=time.time() + 365 * 24 * 60 *60,
+            path_prefix="/",
+            path_template="?action=manifest",
+            access=["READ"],
         )
 
     def vfs_index_for_server(self, client_id=None):
@@ -454,6 +465,20 @@ class RekallHTTPServerHandler(BaseHTTPServer.BaseHTTPRequestHandler, object):
             self.send_response(200)
             self.send_header("Content-Length", 0)
             self.end_headers()
+            return
+
+        elif params["action"] == ["manifest"]:
+            # Ensure client has READ access to the manifest file.
+            if not self.authenticate("READ"):
+                self.send_error(
+                    403, "You are not authorized.")
+                return
+
+            self.send_response(200)
+            data = self._config.signed_manifest.to_json()
+            self.send_header("Content-Length", len(data))
+            self.end_headers()
+            self.wfile.write(data)
             return
 
         else:

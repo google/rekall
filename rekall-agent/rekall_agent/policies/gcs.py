@@ -53,6 +53,7 @@ Main policy:
 
 """
 import pathlib
+import time
 
 from rekall import utils
 
@@ -117,7 +118,12 @@ class GCSServerPolicy(agent.ServerPolicy):
     def manifest_for_server(self):
         return self.service_account.create_oauth_location(
             bucket=self.bucket, path="manifest",
-            public=True
+        )
+
+    def manifest_for_client(self):
+        return self.service_account.create_signed_url_location(
+            bucket=self.bucket, path="manifest", mode="r",
+            expiration = time.time() + 60 * 60 * 24 * 365,
         )
 
     def vfs_index_for_server(self, client_id=None):
