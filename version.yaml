@@ -5,7 +5,7 @@ dependent_versions:
 - rekall-gui/_version.py
 - tools/layout_expert/layout_expert/_version.py
 version_data:
-  codename: Furka
-  post: '1'
+  codename: Gotthard
+  post: '0'
   rc: '0'
-  version: 1.5.3
+  version: 1.6.0

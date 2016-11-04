@@ -12,10 +12,10 @@ def get_versions():
 def raw_versions():
     return json.loads("""
 {
-    "codename": "Furka",
-    "version": "1.5.3",
-    "post": "0",
-    "rc": "2"
+    "codename": "Gotthard", 
+    "version": "1.6.0", 
+    "post": "0", 
+    "rc": "0"
 }
 """)
 
