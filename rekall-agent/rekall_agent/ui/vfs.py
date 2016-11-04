@@ -93,37 +93,32 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
 
         # We found a collection that contains this path.
         if stat_collection_path:
-            try:
-                stat_collection = self.collections[stat_collection_path]
-            except KeyError:
-                stat_collection = files.StatEntryCollection.load_from_location(
+            with files.StatEntryCollection.load_from_location(
                     self._config.server.location_from_path_for_server(
                         stat_collection_path),
-                    session=self.session)
+                    session=self.session) as stat_collection:
 
-                self.collections[stat_collection_path] = stat_collection
+                for row in list(stat_collection.query(
+                        dirname=path, order_by="filename")):
+                    mode = response_common.Permissions(row["st_mode"] or 0)
+                    result = dict(
+                        Path=utils.join_path(row["dirname"], row["filename"]),
+                        st_mode=mode,
+                        st_size=row["st_size"],
+                        st_mtime=arrow.get(row["st_mtime"]),
+                        st_atime=arrow.get(row["st_atime"]),
+                        st_ctime=arrow.get(row["st_ctime"]),
+                    )
 
-            for row in list(stat_collection.query(
-                    dirname=path, order_by="filename")):
-                mode = response_common.Permissions(row["st_mode"] or 0)
-                result = dict(
-                    Path=utils.join_path(row["dirname"], row["filename"]),
-                    st_mode=mode,
-                    st_size=row["st_size"],
-                    st_mtime=arrow.get(row["st_mtime"]),
-                    st_atime=arrow.get(row["st_atime"]),
-                    st_ctime=arrow.get(row["st_ctime"]),
-                )
+                    for field in "st_ino st_dev st_nlink st_uid st_gid".split():
+                        result[field] = row[field]
 
-                for field in "st_ino st_dev st_nlink st_uid st_gid".split():
-                    result[field] = row[field]
+                    yield result
 
-                yield result
-
-                if self.plugin_args.recursive and mode.is_dir():
-                    for row in self._collect_one_dir(
-                            vfs_index, path_components + [row["filename"]]):
-                        yield row
+                    if self.plugin_args.recursive and mode.is_dir():
+                        for row in self._collect_one_dir(
+                                vfs_index, path_components + [row["filename"]]):
+                            yield row
 
         else:
             for directory in virtual_directories:
@@ -137,8 +132,6 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
 
     def collect(self):
         path = utils.normpath(self.plugin_args.path)
-        self.collections = {}
-
         if not self.client_id:
             raise plugin.PluginError("Client ID expected.")
 
@@ -157,24 +150,25 @@ class VFSLs(flows.FlowLauncherAndWaiterMixin,
             self.launch_and_wait(flow_obj)
 
         # First get the VFS index.
-        vfs_index = find.VFSIndex.load_from_location(
-            self._config.server.vfs_index_for_server(self.client_id),
-            session=self.session)
+        with find.VFSIndex.load_from_location(
+                self._config.server.vfs_index_for_server(self.client_id),
+                session=self.session) as vfs_index:
 
-        # We use the index to get the best StatEntryCollection() which covers
-        # the requested path. There are three possible cases:
+            # We use the index to get the best StatEntryCollection() which
+            # covers the requested path. There are three possible cases:
 
-        # 1) All the existing StatEntryCollection()s start at a directory deeper
-        #    than path. In this case we emulate the directories of all existing
-        #    collections' starting paths.
+            # 1) All the existing StatEntryCollection()s start at a directory
+            #    deeper than path. In this case we emulate the directories of
+            #    all existing collections' starting paths.
 
-        # 2) The requested path begins with the starting path of one or more
-        #    StatEntryCollection()s. This means these collections contain it.
+            # 2) The requested path begins with the starting path of one or more
+            #    StatEntryCollection()s. This means these collections contain
+            #    it.
 
-        # 3) path is longer than all StatEntryCollection()'s starting paths
-        #    plus their depth.
+            # 3) path is longer than all StatEntryCollection()'s starting paths
+            #    plus their depth.
 
-        path_components = filter(None, path.split("/"))
-        for row in self._collect_one_dir(vfs_index, path_components):
-            row["Path"] = renderers.UILink("vfs", row["Path"])
-            yield row
+            path_components = filter(None, path.split("/"))
+            for row in self._collect_one_dir(vfs_index, path_components):
+                row["Path"] = renderers.UILink("vfs", row["Path"])
+                yield row

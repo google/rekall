@@ -24,6 +24,7 @@ __author__ = "Michael Cohen <scudette@google.com>"
 
 """This plugin implements the config_updater initialization tool.
 """
+import time
 import os
 import yaml
 
@@ -180,6 +181,7 @@ class AgentServerInitialize(plugin.TypedProfileCommand, plugin.Command):
                             session=self.session,
                             location=config.server.flow_ticket_for_client(
                                 "Startup", path_template="{client_id}",
+                                expiration=time.time() + 60 * 60  * 24 * 365,
                             )
                         )
                     )

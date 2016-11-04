@@ -31,6 +31,7 @@ import gzip
 import os
 import rfc822
 import StringIO
+import urllib
 import tempfile
 import time
 
@@ -223,6 +224,7 @@ class ServiceAccount(common.AgentConfigMixin, serializer.SerializedObject):
         for k, v in sorted(headers.to_primitive(False).iteritems()):
             components.append("%s:%s" % (k, v))
 
+        path = urllib.quote(path, safe="/:")
         base_url = "/" + utils.join_path(bucket, path)
 
         components.append(base_url)  # Canonicalized_Resource

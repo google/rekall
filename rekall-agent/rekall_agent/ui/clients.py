@@ -61,23 +61,24 @@ class SearchClients(common.AbstractControllerCommand):
     )
 
     def collect(self):
-        collection = interrogate.ClientStatisticsCollection.load_from_location(
-            self._config.server.client_db_for_server(), session=self.session)
+        with interrogate.ClientStatisticsCollection.load_from_location(
+                self._config.server.client_db_for_server(),
+                session=self.session) as collection:
 
-        conditions = {}
-        if self.plugin_args.client_id:
-            conditions["client_id"] = self.plugin_args.client_id
+            conditions = {}
+            if self.plugin_args.client_id:
+                conditions["client_id"] = self.plugin_args.client_id
 
-        if self.plugin_args.hostname:
-            conditions["fqdn like ?"] = (
-                "%" + self.plugin_args.hostname + "%")
+            if self.plugin_args.hostname:
+                conditions["fqdn like ?"] = (
+                    "%" + self.plugin_args.hostname + "%")
 
-        for row in collection.query(
-                limit=self.plugin_args.limit, **conditions):
-            yield dict(client_id=row["client_id"],
-                       hostname=row["fqdn"],
-                       os="%s %s" % (row["system"], row["architecture"]),
-                       last_time=basic.UnixTimeStamp(
-                           session=self.session,
-                           value=row["agent_start_time"])
-            )
+            for row in collection.query(
+                    limit=self.plugin_args.limit, **conditions):
+                yield dict(client_id=row["client_id"],
+                           hostname=row["fqdn"],
+                           os="%s %s" % (row["system"], row["architecture"]),
+                           last_time=basic.UnixTimeStamp(
+                               session=self.session,
+                               value=row["agent_start_time"])
+                )

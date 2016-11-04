@@ -112,34 +112,33 @@ class AgentControllerShowFile(common.AbstractControllerCommand):
         renderer.table_row(yaml_utils.safe_dump(data))
 
     def render_sqlite(self, location, renderer):
-        collection = (
-            result_collections.GenericSQLiteCollection.load_from_location(
-                location, session=self.session)
-        )
-        for table in collection.tables:
-            types = []
-            headers = []
-            for column in table.columns:
-                col_spec = dict(name=column.name)
-                if column.type == "int":
-                    col_spec["align"] = "r"
+        with result_collections.GenericSQLiteCollection.load_from_location(
+                location, session=self.session) as collection:
+            for table in collection.tables:
+                types = []
+                headers = []
+                for column in table.columns:
+                    col_spec = dict(name=column.name)
+                    if column.type == "int":
+                        col_spec["align"] = "r"
 
-                if column.type == "epoch":
-                    types.append(arrow.Arrow.fromtimestamp)
+                    if column.type == "epoch":
+                        types.append(arrow.Arrow.fromtimestamp)
 
-                else:
-                    types.append(lambda x: x)
+                    else:
+                        types.append(lambda x: x)
 
-                headers.append(col_spec)
+                    headers.append(col_spec)
 
-            # If the table is too large we cant wait to auto width it.
-            auto_widths = max(
-                self.plugin_args.limit, len(collection)) < 1000
-            renderer.table_header(headers, auto_widths=auto_widths)
-            for row in collection.query(
-                    table=table.name, query=self.plugin_args.query,
-                    limit=self.plugin_args.limit):
-                renderer.table_row(*[fn(x or 0) for fn, x in zip(types, row)])
+                # If the table is too large we cant wait to auto width it.
+                auto_widths = max(
+                    self.plugin_args.limit, len(collection)) < 1000
+                renderer.table_header(headers, auto_widths=auto_widths)
+                for row in collection.query(
+                        table=table.name, query=self.plugin_args.query,
+                        limit=self.plugin_args.limit):
+                    renderer.table_row(
+                        *[fn(x or 0) for fn, x in zip(types, row)])
 
 
 class AgentControllerStoreLs(common.AbstractControllerCommand):

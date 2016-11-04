@@ -41,13 +41,12 @@ class MergeHuntCollections(OutputPlugin):
 
     def _copy_collections(self, dest_collection, data):
         for collection, client_id in data:
-            src_collection = collection.load_from_location(
-                self._config.server.canonical_for_server(
-                    collection.location),
-                session=self._session)
-
-            for row in src_collection.query():
-                dest_collection.insert(client_id=client_id, **row)
+            with collection.load_from_location(
+                    self._config.server.canonical_for_server(
+                        collection.location),
+                    session=self._session) as src_collection:
+                for row in src_collection.query():
+                    dest_collection.insert(client_id=client_id, **row)
 
     def post_process(self, flow_obj, tickets):
         self._config = self._session.GetParameter("agent_config")

@@ -172,7 +172,7 @@ class LiteralComponent(Component):
         # For case insensitive filesystems we can just try to open the
         # component.
         if self.case_insensitive_filesystem():
-            result_pathspec = path.append(self.component)
+            result_pathspec = path.add(self.component)
             stat = self.stat(result_pathspec)
             if stat:
                 return [stat.filename]
@@ -204,6 +204,7 @@ class RegexComponent(Component):
             return
 
         if stat.st_mode.is_dir() and not stat.st_mode.is_link():
+            self.session.report_progress("Searching %s", path)
             for basename in stat.list_names():
                 if self.component_re.match(basename):
                     yield stat.filename.add(basename)
@@ -215,6 +216,8 @@ class RecursiveComponent(RegexComponent):
         self.depth = depth
 
     def filter(self, path, depth=0):
+        self.session.report_progress("Recursing into %s", path)
+
         # TODO: Deal with cross devices.
         if depth >= self.depth:
             return
@@ -231,7 +234,8 @@ class RecursiveComponent(RegexComponent):
                 yield stat.filename
 
             for basename in stat.list_names():
-                if self.component_re.match(basename) and not stat.st_mode.is_link():
+                if (self.component_re.match(basename) and
+                    not stat.st_mode.is_link()):
                     subdir = stat.filename.add(basename)
                     yield subdir
 
@@ -255,8 +259,6 @@ class IRGlob(common.AbstractIRCommandPlugin):
         dict(name="case_insensitive", default=True, type="Bool",
              help="Globs will be case insensitive."),
         dict(name="path_sep",
-             # Default path seperator is platform dependent.
-             default="\\" if platform.system() == "Windows" else "/",
              help="Path separator character (/ or \\)"),
         dict(name="filesystem", choices=common.FILE_SPEC_DISPATCHER,
              type="Choices", default="API",
@@ -282,6 +284,11 @@ class IRGlob(common.AbstractIRCommandPlugin):
     def __init__(self, *args, **kwargs):
         super(IRGlob, self).__init__(*args, **kwargs)
         self.component_cache = utils.FastStore(50)
+
+        # Default path seperator is platform dependent.
+        if not self.plugin_args.path_sep:
+            self.plugin_args.path_sep = (
+                "\\" if platform.system() == "Windows" else "/")
 
         # By default use the root of the filesystem.
         if self.plugin_args.root is None:
@@ -399,7 +406,6 @@ class IRGlob(common.AbstractIRCommandPlugin):
 
     def _filter(self, node, path):
         """Path is the pathspec of the path we begin evaluation with."""
-        self.session.report_progress("Checking %s", path)
         for component, child_node in node.iteritems():
             # Terminal node - yield the result.
             if not child_node:

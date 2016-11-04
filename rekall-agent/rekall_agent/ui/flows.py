@@ -109,17 +109,16 @@ class AgentControllerShowFlows(common.AbstractControllerCommand):
         if not self.client_id:
             raise plugin.PluginError("Client ID must be specified.")
 
-        collection = flow.FlowStatsCollection.load_from_location(
-            self._config.server.flow_db_for_server(self.client_id),
-            session=self.session)
-
-        rows = list(self.collect_db(collection))
-        common.THREADPOOL.map(self._check_pending_flow, rows)
-        for row in rows:
-            row["collections"] = [
-                renderers.UILink("gs", x) for x in row["collections"]]
-            row["flow_id"] = renderers.UILink("f", row["flow_id"])
-            yield row
+        with flow.FlowStatsCollection.load_from_location(
+                self._config.server.flow_db_for_server(self.client_id),
+                session=self.session) as collection:
+            rows = list(self.collect_db(collection))
+            common.THREADPOOL.map(self._check_pending_flow, rows)
+            for row in rows:
+                row["collections"] = [
+                    renderers.UILink("gs", x) for x in row["collections"]]
+                row["flow_id"] = renderers.UILink("f", row["flow_id"])
+                yield row
 
 
 class AgentControllerShowHunts(AgentControllerShowFlows):
@@ -131,14 +130,13 @@ class AgentControllerShowHunts(AgentControllerShowFlows):
     ]
 
     def collect(self):
-        collection = flow.FlowStatsCollection.load_from_location(
-            self._config.server.flow_db_for_server(
-                queue=self.plugin_args.queue),
-            session=self.session)
-
-        for row in self.collect_db(collection):
-            row["flow_id"] = renderers.UILink("h", row["flow_id"])
-            yield row
+        with flow.FlowStatsCollection.load_from_location(
+                self._config.server.flow_db_for_server(
+                    queue=self.plugin_args.queue),
+                session=self.session) as collection:
+            for row in self.collect_db(collection):
+                row["flow_id"] = renderers.UILink("h", row["flow_id"])
+                yield row
 
 
 class SerializedObjectInspectorMixin(object):
@@ -285,50 +283,50 @@ class InspectFlow(SerializedObjectInspectorMixin,
 
     def collect(self):
         flow_obj = self.get_flow_object(self.plugin_args.flow_id)
-        collection = self._get_collection(flow_obj.client_id)
+        with self._get_collection(flow_obj.client_id) as collection:
+            yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
 
-        yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
-        for x in self._explain(flow_obj, ignore_fields=set([
-                "ticket", "actions"
-        ])):
-            yield x
-
-        for row in collection.query(flow_id=self.plugin_args.flow_id):
-            ticket = flow.FlowStatus.from_json(row["ticket_data"],
-                                               session=self.session)
-
-            yield dict(divider="Flow Status Ticket")
-            for x in self._explain(ticket, ignore_fields=set([
-                    "location", "client_id", "flow_id", "collections"
+            for x in self._explain(flow_obj, ignore_fields=set([
+                    "ticket", "actions"
             ])):
                 yield x
 
-            if ticket.collections:
-                yield dict(divider="Collections")
+            for row in collection.query(flow_id=self.plugin_args.flow_id):
+                ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                                   session=self.session)
 
-                for collection in ticket.collections:
-                    link = renderers.UILink(
-                        "gs", collection.location.get_canonical().to_path())
-                    yield dict(
-                        Field=collection.__class__.__name__,
-                        Value=link,
-                        Description="", nowrap=True)
+                yield dict(divider="Flow Status Ticket")
+                for x in self._explain(ticket, ignore_fields=set([
+                        "location", "client_id", "flow_id", "collections"
+                ])):
+                    yield x
 
-            if ticket.files:
-                yield dict(divider="Uploads")
+                if ticket.collections:
+                    yield dict(divider="Collections")
 
-                for upload in ticket.files:
-                    link = renderers.UILink(
-                        "gs", upload.get_canonical().to_path())
-                    yield dict(Value=link, nowrap=True)
+                    for collection in ticket.collections:
+                        link = renderers.UILink(
+                            "gs", collection.location.get_canonical().to_path())
+                        yield dict(
+                            Field=collection.__class__.__name__,
+                            Value=link,
+                            Description="", nowrap=True)
 
-            if ticket.error:
-                yield dict(divider="Error")
-                yield dict(Field="ticket.error", Value=ticket.error)
+                if ticket.files:
+                    yield dict(divider="Uploads")
 
-            if ticket.backtrace:
-                yield dict(divider="Backtrace")
-                yield dict(Field="ticket.backtrace", Value=ticket.backtrace)
+                    for upload in ticket.files:
+                        link = renderers.UILink(
+                            "gs", upload.get_canonical().to_path())
+                        yield dict(Value=link, nowrap=True)
+
+                if ticket.error:
+                    yield dict(divider="Error")
+                    yield dict(Field="ticket.error", Value=ticket.error)
+
+                if ticket.backtrace:
+                    yield dict(divider="Backtrace")
+                    yield dict(Field="ticket.backtrace", Value=ticket.backtrace)
 
 
 
@@ -386,79 +384,79 @@ class InspectHunt(InspectFlow):
         pyplot.show()
 
     def collect(self):
-        collection = self._get_collection()
-        flow_obj = self.get_flow_object(self.plugin_args.flow_id)
+        with self._get_collection() as collection:
+            flow_obj = self.get_flow_object(self.plugin_args.flow_id)
 
-        if self.plugin_args.graph_clients:
-            self.graph_clients(collection)
+            if self.plugin_args.graph_clients:
+                self.graph_clients(collection)
 
-        yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
-        for x in self._explain(flow_obj, ignore_fields=set([
-                "ticket", "actions"
-        ])):
-            yield x
+            yield dict(divider="Flow Object (%s)" % flow_obj.__class__.__name__)
+            for x in self._explain(flow_obj, ignore_fields=set([
+                    "ticket", "actions"
+            ])):
+                yield x
 
-        yield dict(divider="Summary")
-        yield dict(Field="Total Clients",
-                   Value=list(collection.query(
-                       "select count(*) as c from tbl_default"
-                   ))[0]["c"])
+            yield dict(divider="Summary")
+            yield dict(Field="Total Clients",
+                       Value=list(collection.query(
+                           "select count(*) as c from tbl_default"
+                       ))[0]["c"])
 
-        yield dict(Field="Successful Clients",
-                   Value=list(collection.query(
-                       "select count(*) as c from tbl_default "
-                       "where status = 'Done'"))[0]["c"])
+            yield dict(Field="Successful Clients",
+                       Value=list(collection.query(
+                           "select count(*) as c from tbl_default "
+                           "where status = 'Done'"))[0]["c"])
 
-        yield dict(Field="Errors Clients",
-                   Value=list(collection.query(
-                       "select count(*) as c from tbl_default "
-                       "where status = 'Error'"))[0]["c"])
+            yield dict(Field="Errors Clients",
+                       Value=list(collection.query(
+                           "select count(*) as c from tbl_default "
+                           "where status = 'Error'"))[0]["c"])
 
-        total = 0
-        yield dict(divider="Results")
-        for row in collection.query(
-                status="Done", limit=self.plugin_args.limit):
-            ticket = flow.FlowStatus.from_json(row["ticket_data"],
-                                               session=self.session)
+            total = 0
+            yield dict(divider="Results")
+            for row in collection.query(
+                    status="Done", limit=self.plugin_args.limit):
+                ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                                   session=self.session)
 
-            for result in ticket.collections:
-                if total > self.plugin_args.limit:
-                    break
+                for result in ticket.collections:
+                    if total > self.plugin_args.limit:
+                        break
+
+                    yield dict(Field=ticket.client_id,
+                               Time=ticket.timestamp,
+                               Value=renderers.UILink(
+                                   "gs", result.location.to_path()),
+                               nowrap=True)
+                    total += 1
+
+            yield dict(divider="Uploads")
+
+            total = 0
+            for row in collection.query(
+                    status="Done", limit=self.plugin_args.limit):
+                ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                                   session=self.session)
+
+                for result in ticket.files:
+                    if total > self.plugin_args.limit:
+                        break
+
+                    yield dict(Field=ticket.client_id,
+                               Time=ticket.timestamp,
+                               Value=renderers.UILink(
+                                   "gs", result.to_path()),
+                               nowrap=True)
+                    total += 1
+
+            for row in collection.query(
+                    status="Error", limit=self.plugin_args.limit):
+                ticket = flow.FlowStatus.from_json(row["ticket_data"],
+                                                   session=self.session)
 
                 yield dict(Field=ticket.client_id,
                            Time=ticket.timestamp,
-                           Value=renderers.UILink(
-                               "gs", result.location.to_path()),
-                           nowrap=True)
-                total += 1
-
-        yield dict(divider="Uploads")
-
-        total = 0
-        for row in collection.query(
-                status="Done", limit=self.plugin_args.limit):
-            ticket = flow.FlowStatus.from_json(row["ticket_data"],
-                                               session=self.session)
-
-            for result in ticket.files:
-                if total > self.plugin_args.limit:
-                    break
-
-                yield dict(Field=ticket.client_id,
-                           Time=ticket.timestamp,
-                           Value=renderers.UILink(
-                               "gs", result.to_path()),
-                           nowrap=True)
-                total += 1
-
-        for row in collection.query(
-                status="Error", limit=self.plugin_args.limit):
-            ticket = flow.FlowStatus.from_json(row["ticket_data"],
-                                               session=self.session)
-
-            yield dict(Field=ticket.client_id,
-                       Time=ticket.timestamp,
-                       Value=ticket.error, nowrap=True)
+                           Value=ticket.error, nowrap=True)
 
 
 class AgentControllerRunFlow(SerializedObjectInspectorMixin,
@@ -630,62 +628,60 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
     ]
 
     def _collect_hunts(self, flow_obj):
-        hunt_db = flow.HuntStatsCollection.load_from_location(
-            self._config.server.hunt_db_for_server(flow_obj.flow_id),
-            session=self.session)
+        with flow.HuntStatsCollection.load_from_location(
+                self._config.server.hunt_db_for_server(flow_obj.flow_id),
+                session=self.session) as hunt_db:
+            collections_by_type = {}
+            uploads = []
+            for row in hunt_db.query():
+                status = flow.HuntStatus.from_json(row["ticket_data"],
+                                                   session=self.session)
+                for collection in status.collections:
+                    collections_by_type.setdefault(
+                        collection.collection_type, []).append(
+                            (collection, status.client_id))
+                    uploads.extend(status.files)
 
-        collections_by_type = {}
-        uploads = []
-        for row in hunt_db.query():
-            status = flow.HuntStatus.from_json(row["ticket_data"],
-                                               session=self.session)
-            for collection in status.collections:
-                collections_by_type.setdefault(
-                    collection.collection_type, []).append(
-                        (collection, status.client_id))
-                uploads.extend(status.files)
+            yield dict(divider="Exporting Collections")
+            # Now create a new collection by type into the output directory.
+            for output_location in common.THREADPOOL.imap_unordered(
+                    self._dump_collection,
+                    collections_by_type.iteritems()):
+                yield dict(Message=output_location.to_path())
 
-        yield dict(divider="Exporting Collections")
-        # Now create a new collection by type into the output directory.
-        for output_location in common.THREADPOOL.imap_unordered(
-                self._dump_collection,
-                collections_by_type.iteritems()):
-            yield dict(Message=output_location.to_path())
-
-        yield dict(divider="Exporting files")
-        for output_location in common.THREADPOOL.imap_unordered(
-                self._dump_uploads,
-                uploads):
-            yield dict(Message=output_location.to_path())
+            yield dict(divider="Exporting files")
+            for output_location in common.THREADPOOL.imap_unordered(
+                    self._dump_uploads,
+                    uploads):
+                yield dict(Message=output_location.to_path())
 
     def _collect_flows(self, flow_obj):
-        flow_db = flow.FlowStatsCollection.load_from_location(
-            self._config.server.flow_db_for_server(flow_obj.client_id),
-            session=self.session)
+        with flow.FlowStatsCollection.load_from_location(
+                self._config.server.flow_db_for_server(flow_obj.client_id),
+                session=self.session) as flow_db:
+            collections_by_type = {}
+            uploads = []
+            for row in flow_db.query(flow_id=flow_obj.flow_id):
+                status = flow.FlowStatus.from_json(row["ticket_data"],
+                                                   session=self.session)
+                for collection in status.collections:
+                    collections_by_type.setdefault(
+                        collection.collection_type, []).append(
+                            (collection, status.client_id))
+                uploads.extend(status.files)
 
-        collections_by_type = {}
-        uploads = []
-        for row in flow_db.query(flow_id=flow_obj.flow_id):
-            status = flow.FlowStatus.from_json(row["ticket_data"],
-                                               session=self.session)
-            for collection in status.collections:
-                collections_by_type.setdefault(
-                    collection.collection_type, []).append(
-                        (collection, status.client_id))
-            uploads.extend(status.files)
+            yield dict(divider="Exporting Collections")
+            # Now create a new collection by type into the output directory.
+            for output_location in common.THREADPOOL.imap_unordered(
+                    self._dump_collection,
+                    collections_by_type.iteritems()):
+                yield dict(Message=output_location.to_path())
 
-        yield dict(divider="Exporting Collections")
-        # Now create a new collection by type into the output directory.
-        for output_location in common.THREADPOOL.imap_unordered(
-                self._dump_collection,
-                collections_by_type.iteritems()):
-            yield dict(Message=output_location.to_path())
-
-        yield dict(divider="Exporting files")
-        for output_location in common.THREADPOOL.imap_unordered(
-                self._dump_uploads,
-                uploads):
-            yield dict(Message=output_location.to_path())
+            yield dict(divider="Exporting files")
+            for output_location in common.THREADPOOL.imap_unordered(
+                    self._dump_uploads,
+                    uploads):
+                yield dict(Message=output_location.to_path())
 
     def _dump_uploads(self, download_location):
         output_location = files.FileLocation.from_keywords(
@@ -725,11 +721,12 @@ class AgentControllerExportCollections(common.AbstractControllerCommand):
 
     def _copy_single_location(self, args):
         output_collection, canonical_collection, client_id = args
-        collection = canonical_collection.load_from_location(
-            self._config.server.canonical_for_server(
-                canonical_collection.location), session=self.session)
-        for row in collection:
-            output_collection.insert(client_id=client_id, **row)
+        with canonical_collection.load_from_location(
+                self._config.server.canonical_for_server(
+                    canonical_collection.location),
+                session=self.session) as collection:
+            for row in collection:
+                output_collection.insert(client_id=client_id, **row)
 
     def collect(self):
         self.flow_id = self.plugin_args.flow_id
@@ -767,7 +764,6 @@ class FlowLauncherAndWaiterMixin(object):
             if flow_db_stat and new_stat.generation > flow_db_stat.generation:
                 with flow.FlowStatsCollection.load_from_location(
                         flow_db_location, session=self.session) as flow_db:
-
                     tickets = []
                     for row in flow_db.query(flow_id=flow_obj.flow_id):
                         if row["status"] in ["Done", "Error"]:

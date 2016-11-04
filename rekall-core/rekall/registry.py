@@ -48,8 +48,8 @@ def memoize(f):
     cache = {}
 
     def helper(*args):
-        cached = cache.get(args)
-        if cached:
+        cached = cache.get(args, memoize)
+        if cached is not memoize:
             return cached
 
         cached = f(*args)

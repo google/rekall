@@ -368,8 +368,9 @@ class EfilterPlugin(plugin.TypedProfileCommand, plugin.Command):
             self.query = q.Query(self.plugin_args.query,
                                  params=self.plugin_args.query_parameters)
         except errors.EfilterError as error:
-            self.query_error = error
-            self.query = None
+            raise plugin.PluginError("Could not parse your query %r: %s." % (
+                self.plugin_args.query, error))
+
         except Exception:
             # I am using a broad except here to make sure we always display a
             # friendly error message. EFILTER will usually raise a friendly
@@ -954,7 +955,17 @@ structured.IStructured.implement(
 structured.IStructured.implement(
     for_type=utils.SlottedObject,
     implementations={
-        structured.resolve: getattr,
+        structured.resolve: lambda s, m: getattr(s, m, None),
         structured.getmembers_runtime: lambda d: d.__slots__,
+    }
+)
+
+# If a None appears as a field but we wanted to dereference it we should just
+# ignore the error and propagate the None.
+structured.IStructured.implement(
+    for_type=type(None),
+    implementations={
+        structured.resolve: lambda x: None,
+        structured.getmembers_runtime: lambda x: [],
     }
 )

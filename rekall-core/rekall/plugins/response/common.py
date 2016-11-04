@@ -25,7 +25,6 @@
 __author__ = "Michael Cohen <scudette@google.com>"
 import platform
 import os
-import re
 import stat
 
 import arrow
@@ -72,7 +71,9 @@ class FileSpec(utils.SlottedObject):
 
     __slots__ = ("name", "filesystem", "path_sep")
 
-    def __init__(self, filename, filesystem=u"API", path_sep="/"):
+    default_path_sep = "\\" if platform.system() == "Windows" else "/"
+
+    def __init__(self, filename, filesystem=u"API", path_sep=None):
         super(FileSpec, self).__init__()
 
         if isinstance(filename, FileSpec):
@@ -84,7 +85,7 @@ class FileSpec(utils.SlottedObject):
         elif isinstance(filename, basestring):
             self.name = unicode(filename)
             self.filesystem = filesystem
-            self.path_sep = path_sep
+            self.path_sep = path_sep or self.default_path_sep
 
         else:
             raise TypeError("Filename must be a string or file spec.")
@@ -108,6 +109,8 @@ class FileSpec(utils.SlottedObject):
     def os_path(self):
         """Get a path suitable to be used with os APIs."""
         result = os.path.sep.join(self.components())
+        # On unix systems we anchor at root but on windows the drive
+        # name should be first.
         if os.path.sep == "/":
             result = "/" + result
 
@@ -135,8 +138,10 @@ class FileSpec(utils.SlottedObject):
                         filesystem=self.filesystem)
 
 
-class User(utils.AttributeDict):
+class User(utils.SlottedObject):
     """A class to represent a user."""
+
+    __slots__ = ("session", "uid", "username", "homedir", "shell")
 
     @classmethod
     @registry.memoize
@@ -169,8 +174,10 @@ class User(utils.AttributeDict):
         return ""
 
 
-class Group(utils.AttributeDict):
+class Group(utils.SlottedObject):
     """A class to represent a user."""
+
+    __slots__ = ("session", "gid", "group_name")
 
     @classmethod
     @registry.memoize

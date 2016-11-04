@@ -39,6 +39,7 @@ import threading
 import sqlite3
 
 import arrow
+from rekall import registry
 from rekall_agent import location
 from rekall_agent import serializer
 
@@ -300,12 +301,10 @@ class GenericSQLiteCollection(CollectionSpec):
                                         cls(session=session))
 
         def _read_modify_write(filename, session):
-            collection = cls.load_from_location(
-                filename=filename, default_collection=default_collection,
-                session=session)
-
             # with forces cursors to be committed.
-            with collection:
+            with cls.load_from_location(
+                    filename=filename, default_collection=default_collection,
+                    session=session) as collection:
                 callback(collection, *args)
 
         collection_location.read_modify_write_local_file(
@@ -322,6 +321,7 @@ class GenericSQLiteCollection(CollectionSpec):
         self._conn.close()
         self._flush_cb()
 
+    @registry.memoize
     def _find_table(self, table=None):
         if isinstance(table, basestring):
             for i in self.tables:
@@ -350,15 +350,16 @@ class GenericSQLiteCollection(CollectionSpec):
         # The EFilter query must name the columns exactly the same as the
         # collection spec.
         for column in table.columns:
+            name = str(column.name)
             try:
-                value = row[str(column.name)]
+                value = row[name]
             except KeyError:
                 continue
 
             if value is None:
                 continue
 
-            sanitized_row[column.name] = self._allowed_types[
+            sanitized_row[name] = self._allowed_types[
                 column.type or "unicode"](value)
 
         return sanitized_row

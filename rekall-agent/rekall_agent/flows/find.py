@@ -78,6 +78,9 @@ class FileFinderFlow(collect.CollectFlow):
 
         dict(name="download", type="bool", user=True,
              doc="Should we download the file?"),
+
+        dict(name="path_sep",
+             doc="Glob path separator"),
     ]
 
     def validate(self):
@@ -94,18 +97,18 @@ class FileFinderFlow(collect.CollectFlow):
         # This code just saves some typing :-).
         column_spec = collections.OrderedDict()
         for x in collection.tables[0].columns:
-            column_spec[x.name] = "Path.%s" % x.name
+            column_spec[x.name] = "path.%s" % x.name
 
-        column_spec["dirname"] = "Path.filename.dirname"
-        column_spec["filename"] = "Path.filename.basename"
-        column_spec["st_mode_str"] = "str(Path.st_mode)"
-        column_spec["st_uid"] = "Path.st_uid.uid"
-        column_spec["st_gid"] = "Path.st_gid.gid"
+        column_spec["dirname"] = "path.filename.dirname"
+        column_spec["filename"] = "path.filename.basename"
+        column_spec["st_mode_str"] = "str(path.st_mode)"
+        column_spec["st_uid"] = "path.st_uid.uid"
+        column_spec["st_gid"] = "path.st_gid.gid"
 
         columns = ["%s as %s" % (v, k) for k, v in column_spec.items()]
 
         result = (
-            "select %s from stat(paths: (glob({globs}).path.filename.name))" %
+            "select %s from glob({globs}, path_sep: {path_sep})" %
             ",".join(columns))
 
         # Filter conditions are specified.
@@ -137,7 +140,8 @@ class FileFinderFlow(collect.CollectFlow):
         yield download.GetFiles.from_keywords(
             session=self._session,
             query=self.create_query(collection),
-            query_parameters=dict(globs=self.globs),
+            query_parameters=dict(globs=self.globs,
+                                  path_sep=self.path_sep),
             collection=collection,
             location=location
         )
@@ -188,7 +192,7 @@ class ListDirectory(flow.Flow):
         dict(name="path", user=True,
              doc="The name of the directory to list."),
 
-        dict(name="recursive", type="bool", user=True,
+        dict(name="depth", type="int", default=1, user=True,
              doc="If set we recursively list all directories."),
     ]
 
@@ -213,7 +217,7 @@ class ListDirectory(flow.Flow):
         yield files.ListDirectoryAction.from_keywords(
             session=self._session,
             path=self.path,
-            recursive=self.recursive,
+            depth=self.depth,
             vfs_location=self.get_location(),
         )
 
