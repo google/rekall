@@ -1,6 +1,11 @@
 ---
 abstract: Checks if the system call table has been altered.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CheckSyscall
 epydoc: rekall.plugins.linux.check_syscall.CheckSyscall-class.html
 layout: plugin

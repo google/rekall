@@ -7,7 +7,12 @@ args: {minimal_match: 'The minimal number of comparison points to be considered.
 
     * Default: 1', module: 'The name of the module to guess. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: GuessGUID
 epydoc: rekall.plugins.windows.index.GuessGUID-class.html
 layout: plugin

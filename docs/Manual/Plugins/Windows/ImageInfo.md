@@ -1,6 +1,11 @@
 ---
 abstract: List overview information about this image.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ImageInfo
 epydoc: rekall.plugins.windows.misc.ImageInfo-class.html
 layout: plugin

@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -702,7 +762,10 @@ ript>
 <li>MIPS</li>
 </ul>
 </li>
-</ul></td></tr><tr><td><p>offset</p></td><td><p>An offset to disassemble. This can also be the name of a symbol with an optional offset. For example: tcpip!TcpCovetNetBufferList. (type: SymbolAddress)</p></td></tr>
+</ul></td></tr><tr><td><p>offset</p></td><td><p>An offset to disassemble. This can also be the name of a symbol with an optional offset. For example: tcpip!TcpCovetNetBufferList. (type: SymbolAddress)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -742,7 +805,7 @@ ript>
 pointer obfuscation that Patch Guard uses on 64 bit Windows 7. We can see the
 names of the symbols used and their current values, as well as the name of
 internally called functions.</p>
-<pre class="highlight"><code>win7.elf 23:48:14&gt; dis &quot;nt!KiSetTimerEx&quot;
+<div class="highlight"><pre><span></span>win7.elf 23:48:14&gt; dis &quot;nt!KiSetTimerEx&quot;
 -----------------&gt; dis(&quot;nt!KiSetTimerEx&quot;)
    Address      Rel Op Codes             Instruction                    Comment
 -------------- ---- -------------------- ------------------------------ -------
@@ -776,7 +839,8 @@ internally called functions.</p>
 0xf8000269d550   60 33d2                 XOR EDX, EDX
 0xf8000269d552   62 488bce               MOV RCX, RSI
 0xf8000269d555   65 e8f6b0ffff           CALL 0xf80002698650            nt!KiCancelTimer
-0xf8000269d55a   6A 48895e30             MOV [RSI+0x30], RBX</code></pre>
+0xf8000269d55a   6A 48895e30             MOV [RSI+0x30], RBX
+</pre></div>
 
 <p>
 

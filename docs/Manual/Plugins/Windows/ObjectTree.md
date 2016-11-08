@@ -5,7 +5,12 @@ args: {type_regex: 'Filter the type of objects shown. (type: RegEx)
 
 
 
-    * Default: .'}
+    * Default: .', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ObjectTree
 epydoc: rekall.plugins.windows.misc.ObjectTree-class.html
 layout: plugin

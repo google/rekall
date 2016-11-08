@@ -448,7 +448,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>all</p></td><td><p>Specify to see all the fops, even if they are known. (type: Boolean)</p></td></tr>
+<tr><td><p>all</p></td><td><p>Specify to see all the fops, even if they are known. (type: Boolean)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -467,11 +470,12 @@ pointer resides within a known module or the kernel image.</p>
 </ul>
 <h3>Sample output</h3>
 <p>Expect blank output on clean systems.</p>
-<pre class="highlight"><code>pmem 15:44:30&gt; check_proc_fops
+<div class="highlight"><pre><span></span>pmem 15:44:30&gt; check_proc_fops
 -------------&gt; check_proc_fops()
    DirEntry    Path                                               Member                  Address     Module              
 -------------- -------------------------------------------------- -------------------- -------------- --------------------
-pmem 15:44:35&gt; </code></pre>
+pmem 15:44:35&gt; 
+</pre></div>
 
 <p>
 

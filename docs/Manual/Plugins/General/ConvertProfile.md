@@ -13,7 +13,12 @@ args: {converter: 'The name of the converter to use. If not specified autoguess.
 
     ', source: 'Filename of profile to read. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ConvertProfile
 epydoc: rekall.plugins.tools.profile_tool.ConvertProfile-class.html
 layout: plugin

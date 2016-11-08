@@ -1,6 +1,11 @@
 ---
 abstract: Prints the Linux banner information.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Banner
 epydoc: rekall.plugins.linux.cpuinfo.Banner-class.html
 layout: plugin

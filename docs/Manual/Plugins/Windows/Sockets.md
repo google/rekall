@@ -5,7 +5,12 @@ abstract: "\n    Print list of open sockets. [Windows xp only]\n    ------------
   \ all sockets before hibernating.\n\n    _ADDRESS_OBJECT are arranged in a hash\
   \ table found by the _AddrObjTable\n    symbol. The hash table has a size found\
   \ by the _AddrObjTableSize symbol.\n    "
-args: {tcpip_guid: Force this profile to be used for tcpip.}
+args: {tcpip_guid: Force this profile to be used for tcpip., verbosity: 'An integer
+    reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Sockets
 epydoc: rekall.plugins.windows.connections.Sockets-class.html
 layout: plugin

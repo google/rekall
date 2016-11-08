@@ -4,7 +4,12 @@ abstract: "A mixin for those plugins requiring a physical address space.\n\n    
   \ If not\n            specified we use the following options:\n\n            1)\
   \ session.physical_address_space,\n\n            2) Guess using the load_as() plugin,\n\
   \n            3) Use session.kernel_address_space.base.\n\n        "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Hostname
 epydoc: rekall.plugins.linux.common.Hostname-class.html
 layout: plugin

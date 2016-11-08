@@ -1,7 +1,12 @@
 ---
 abstract: "Print kernel timers and associated module DPCs.\n\n    Ref:\n    http://computer.forensikblog.de/en/2011/10/timers-and-times.html\n\
   \    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Timers
 epydoc: rekall.plugins.windows.malware.timers.Timers-class.html
 layout: plugin

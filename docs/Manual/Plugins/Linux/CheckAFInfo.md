@@ -1,6 +1,11 @@
 ---
 abstract: Verifies the operation function pointers of network protocols.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CheckAFInfo
 epydoc: rekall.plugins.linux.check_afinfo.CheckAFInfo-class.html
 layout: plugin

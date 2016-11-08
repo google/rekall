@@ -471,25 +471,7 @@ the image format and the profile required. To support this, Rekall has an
 autodetection plugin system. A detector class simply registers by extending
 <code>guess_profile.DetectionMethod</code>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">NTFSDetector</span></span><span style="color: #990000">(</span>guess_profile<span style="color: #990000">.</span>DetectionMethod<span style="color: #990000">):</span>
-    name <span style="color: #990000">=</span> <span style="color: #FF0000">"ntfs"</span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">Offsets</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
-        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]</span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">DetectFromHit</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> hit<span style="color: #990000">,</span> _<span style="color: #990000">,</span> address_space<span style="color: #990000">):</span>
-        ntfs_profile <span style="color: #990000">=</span> self<span style="color: #990000">.</span>session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">LoadProfile</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"ntfs"</span><span style="color: #990000">)</span>
-        <span style="font-weight: bold"><span style="color: #0000FF">try</span></span><span style="color: #990000">:</span>
-            ntfs <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">NTFS</span></span><span style="color: #990000">(</span>address_space<span style="color: #990000">=</span>address_space<span style="color: #990000">,</span> session<span style="color: #990000">=</span>self<span style="color: #990000">.</span>session<span style="color: #990000">)</span>
-            self<span style="color: #990000">.</span>session<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">SetParameter</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"ntfs"</span><span style="color: #990000">,</span> ntfs<span style="color: #990000">)</span>
-
-            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> ntfs_profile
-        <span style="font-weight: bold"><span style="color: #0000FF">except</span></span> NTFSParseError<span style="color: #990000">:</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>The detector can provide a string on which to fire, or a list of offsets to
 check in its Offsets() method. The framework will then call it when a hit is
 found.</p></div>
@@ -507,53 +489,12 @@ data. Address Spaces typically layer on top of other address spaces. Hence we
 can implement the <code>FixupAddressSpace</code> so it can be layered on top of another
 address space:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">FixupAddressSpace</span></span><span style="color: #990000">(</span>addrspace<span style="color: #990000">.</span>BaseAddressSpace<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">    """An address space to implement record fixup."""</span></span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> fixup_magic<span style="color: #990000">,</span> fixup_table<span style="color: #990000">,</span> base_offset<span style="color: #990000">,</span> length<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-        <span style="font-weight: bold"><span style="color: #000000">super</span></span><span style="color: #990000">(</span>FixupAddressSpace<span style="color: #990000">,</span> self<span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(**</span>kwargs<span style="color: #990000">)</span>
-        self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">as_assert</span></span><span style="color: #990000">(</span>self<span style="color: #990000">.</span>base <span style="font-weight: bold"><span style="color: #0000FF">is</span></span> <span style="font-weight: bold"><span style="color: #0000FF">not</span></span> None<span style="color: #990000">,</span> <span style="color: #FF0000">"Address space must be stacked."</span><span style="color: #990000">)</span>
-        self<span style="color: #990000">.</span>base_offset <span style="color: #990000">=</span> base_offset
-        self<span style="color: #990000">.</span>fixup_table <span style="color: #990000">=</span> fixup_table
-        self<span style="color: #990000">.</span>fixup_magic <span style="color: #990000">=</span> fixup_magic
-
-        <span style="font-style: italic"><span style="color: #9A1900"># We read the entire region into a mutable buffer then apply the fixups.</span></span>
-        self<span style="color: #990000">.</span>buffer <span style="color: #990000">=</span> array<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"c"</span><span style="color: #990000">,</span> self<span style="color: #990000">.</span>base<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span>base_offset<span style="color: #990000">,</span> length<span style="color: #990000">))</span>
-        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> i<span style="color: #990000">,</span> fixup_value <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> <span style="font-weight: bold"><span style="color: #000000">enumerate</span></span><span style="color: #990000">(</span>fixup_table<span style="color: #990000">):</span>
-            fixup_offset <span style="color: #990000">=</span> <span style="color: #990000">(</span>i<span style="color: #990000">+</span><span style="color: #993399">1</span><span style="color: #990000">)</span> <span style="color: #990000">*</span> <span style="color: #993399">512</span> <span style="color: #990000">-</span> <span style="color: #993399">2</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">(</span>self<span style="color: #990000">.</span>buffer<span style="color: #990000">[</span>fixup_offset<span style="color: #990000">:</span>fixup_offset<span style="color: #990000">+</span><span style="color: #993399">2</span><span style="color: #990000">].</span><span style="font-weight: bold"><span style="color: #000000">tostring</span></span><span style="color: #990000">()</span> <span style="color: #990000">!=</span>
-                    fixup_magic<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">v</span></span><span style="color: #990000">()):</span>
-                <span style="font-weight: bold"><span style="color: #0000FF">raise</span></span> <span style="font-weight: bold"><span style="color: #000000">NTFSParseError</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Fixup error"</span><span style="color: #990000">)</span>
-
-            self<span style="color: #990000">.</span>buffer<span style="color: #990000">[</span>fixup_offset<span style="color: #990000">:</span>fixup_offset<span style="color: #990000">+</span><span style="color: #993399">2</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> array<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">array</span></span><span style="color: #990000">(</span>
-                <span style="color: #FF0000">"c"</span><span style="color: #990000">,</span> fixup_value<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">v</span></span><span style="color: #990000">())</span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> address<span style="color: #990000">,</span> length<span style="color: #990000">):</span>
-        buffer_offset <span style="color: #990000">=</span> address <span style="color: #990000">-</span> self<span style="color: #990000">.</span>base_offset
-        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> self<span style="color: #990000">.</span>buffer<span style="color: #990000">[</span>buffer_offset<span style="color: #990000">:</span>buffer_offset<span style="color: #990000">+</span>length<span style="color: #990000">].</span><span style="font-weight: bold"><span style="color: #000000">tostring</span></span><span style="color: #990000">()</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>We can then apply the fixup to arbitary structures. The below code will
 automatically apply the fixup every time we instantiate an <code>MFT_ENTRY</code>
 struct. Therefore the fixups become completely transparent now:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">MFT_ENTRY</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>Struct<span style="color: #990000">):</span>
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-        <span style="font-weight: bold"><span style="color: #000000">super</span></span><span style="color: #990000">(</span>MFT_ENTRY<span style="color: #990000">,</span> self<span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(**</span>kwargs<span style="color: #990000">)</span>
-
-        <span style="font-style: italic"><span style="color: #9A1900"># We implement fixup by wrapping the base address space with a fixed</span></span>
-        <span style="font-style: italic"><span style="color: #9A1900"># one:</span></span>
-        self<span style="color: #990000">.</span>obj_vm <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">FixupAddressSpace</span></span><span style="color: #990000">(</span>fixup_magic<span style="color: #990000">=</span>self<span style="color: #990000">.</span>fixup_magic<span style="color: #990000">,</span>
-                                        fixup_table<span style="color: #990000">=</span>self<span style="color: #990000">.</span>fixup_table<span style="color: #990000">,</span>
-                                        base_offset<span style="color: #990000">=</span>self<span style="color: #990000">.</span>obj_offset<span style="color: #990000">,</span>
-                                        length<span style="color: #990000">=</span>self<span style="color: #990000">.</span>mft_entry_allocated<span style="color: #990000">,</span>
-                                        base<span style="color: #990000">=</span>self<span style="color: #990000">.</span>obj_vm<span style="color: #990000">)</span></tt></pre></div></div>
+<div class="content"></div></div>
 </div>
 <div class="sect2">
 <h3 id="_runlists">2.3. Runlists</h3>
@@ -569,34 +510,7 @@ in general all one has to do is derive an address space from the
 collection. The following shows the simplified implementation ignoring
 compression.</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">RunListAddressSpace</span></span><span style="color: #990000">(</span>addrspace<span style="color: #990000">.</span>RunBasedAddressSpace<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">    """An address space which is initialized from a runlist."""</span></span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> run_list<span style="color: #990000">,</span> cluster_size<span style="color: #990000">=</span>None<span style="color: #990000">,</span> size<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-        <span style="font-weight: bold"><span style="color: #000000">super</span></span><span style="color: #990000">(</span>RunListAddressSpace<span style="color: #990000">,</span> self<span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(**</span>kwargs<span style="color: #990000">)</span>
-        self<span style="color: #990000">.</span>PAGE_SIZE <span style="color: #990000">=</span> cluster_size <span style="font-weight: bold"><span style="color: #0000FF">or</span></span> self<span style="color: #990000">.</span>session<span style="color: #990000">.</span>cluster_size
-        self<span style="color: #990000">.</span>compression_unit_size <span style="color: #990000">=</span> <span style="color: #993399">16</span> <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE
-        self<span style="color: #990000">.</span>_end <span style="color: #990000">=</span> size
-
-        <span style="font-style: italic"><span style="color: #9A1900"># In clusters.</span></span>
-        file_offset <span style="color: #990000">=</span> <span style="color: #993399">0</span>
-        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> range_start<span style="color: #990000">,</span> range_length <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> run_list<span style="color: #990000">:</span>
-            self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">_store_run</span></span><span style="color: #990000">(</span>
-                file_offset<span style="color: #990000">,</span> range_start<span style="color: #990000">,</span> uncompressed_range_length<span style="color: #990000">)</span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">_store_run</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> file_offset<span style="color: #990000">,</span> range_start<span style="color: #990000">,</span> length<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        """Store a new run with all items given in self.PAGE_SIZE."""</span></span>
-        self<span style="color: #990000">.</span>runs<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">insert</span></span><span style="color: #990000">(</span>
-            <span style="color: #990000">[</span>file_offset <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE<span style="color: #990000">,</span>
-             range_start <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE<span style="color: #990000">,</span>
-             length <span style="color: #990000">*</span> self<span style="color: #990000">.</span>PAGE_SIZE<span style="color: #990000">,</span>
-             False<span style="color: #990000">])</span>
-<span style="color: #990000">...</span>
-</tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Once the mapping is defined, the address space takes care of efficiently
 locating and using the correct run for arbitrary read operations.</p></div>
 </div>
@@ -607,59 +521,7 @@ memory. There is a mechanism to extend these and provide methods for these
 structs. The methods can be used to define a kind of API for accessing other
 data. For example, we can attach convenience methods to an <code>MFT_ENTRY</code>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">MFT_ENTRY</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>Struct<span style="color: #990000">):</span>
-
-    @property
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">attributes</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        """Iterate over all attributes, even ones in $ATTRIBUTE_LIST."""</span></span>
-        seen <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">set</span></span><span style="color: #990000">()</span>
-
-        <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> attribute <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> self<span style="color: #990000">.</span>_attributes<span style="color: #990000">:</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> attribute<span style="color: #990000">.</span>type <span style="color: #990000">==</span> <span style="color: #993399">0xFFFFFFFF</span><span style="color: #990000">:</span>
-                <span style="font-weight: bold"><span style="color: #0000FF">break</span></span>
-
-            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> attribute <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> seen<span style="color: #990000">:</span>
-                <span style="font-weight: bold"><span style="color: #0000FF">continue</span></span>
-
-            seen<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">add</span></span><span style="color: #990000">(</span>attribute<span style="color: #990000">)</span>
-            yield attribute
-
-            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> attribute<span style="color: #990000">.</span>type <span style="color: #990000">==</span> <span style="color: #FF0000">"$ATTRIBUTE_LIST"</span><span style="color: #990000">:</span>
-                <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> sub_attr <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> attribute<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">DecodeAttribute</span></span><span style="color: #990000">():</span>
-                    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> sub_attr<span style="color: #990000">.</span>mftReference <span style="color: #990000">==</span> self<span style="color: #990000">.</span>mft_entry<span style="color: #990000">:</span>
-                        <span style="font-weight: bold"><span style="color: #0000FF">continue</span></span>
-
-                    result <span style="color: #990000">=</span> sub_attr<span style="color: #990000">.</span>attribute
-                    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> result <span style="font-weight: bold"><span style="color: #0000FF">in</span></span> seen<span style="color: #990000">:</span>
-                        <span style="font-weight: bold"><span style="color: #0000FF">continue</span></span>
-
-                    yield result
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">open_file</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        """Returns an address space which maps the content of the file's data.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">        If this MFT does not contain any $DATA streams, returns a NoneObject().</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">        The returned address space is formed by joining all $DATA streams' run</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        lists in this MFT into a contiguous mapping.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
-        <span style="color: #990000">....</span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">list_files</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        """List the files contained in this directory.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">        Note that any file can contain other files (i.e. be a directory) if it</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        has an $I30 stream. Thats is directories may also contain data and</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        behave as files!</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">        Returns:</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">          An iterator over all INDEX_RECORD_ENTRY.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
-        <span style="color: #990000">....</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>The above is a sample of some of the convenience methods attached to the
 <code>MFT_ENTRY</code>. The first combines the attributes defined within the MFT with those
 defined inside the <code>$ATTRIBUTE_LIST</code> attribute (Typically an MFT will start with
@@ -843,7 +705,7 @@ C implementation in future.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-23 17:14:43 AEST
+Last updated 2016-11-08 10:46:12 PST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

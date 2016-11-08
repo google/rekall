@@ -8,7 +8,12 @@ args: {dump_dir: 'Path suitable for dumping files. (type: String)
     ', pdb_filename: 'The filename of the executable to get the PDB file for. (type:
     String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: FetchPDB
 epydoc: rekall.plugins.tools.mspdb.FetchPDB-class.html
 layout: plugin

@@ -24,7 +24,12 @@ args: {dump_dir: 'Path suitable for dumping files. (type: String)
 
     ', regex: 'A regular expression to filter VAD filenames. (type: RegEx)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: VADDump
 epydoc: rekall.plugins.windows.vadinfo.VADDump-class.html
 layout: plugin

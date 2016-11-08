@@ -1,6 +1,11 @@
 ---
 abstract: Gathers active interfaces.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Ifconfig
 epydoc: rekall.plugins.linux.ifconfig.Ifconfig-class.html
 layout: plugin

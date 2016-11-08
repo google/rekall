@@ -15,7 +15,12 @@ args: {all: 'Use the entire range of address space. (type: Boolean)
 
     ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: DarwinMemMap
 epydoc: rekall.plugins.darwin.processes.DarwinMemMap-class.html
 layout: plugin

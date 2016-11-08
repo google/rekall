@@ -444,6 +444,18 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <p>The plugin identifies the location of each function pointer of different
 network protocols. If located within the kernel or a loaded module, rekall
@@ -451,7 +463,7 @@ will give such information as well as its kernel-space address.</p>
 <p>If malware dynamically allocates memory and copies code there to handle
 these functions, the Module column will appear as Unknown.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 13:51:35&gt; check_afinfo
+<div class="highlight"><pre><span></span>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 13:51:35&gt; check_afinfo
 -----------------------------------------------------------------------&gt; check_afinfo()
 Constant Name                  Member                            Address     Module
 ------------------------------ ------------------------------ -------------- --------------------
@@ -473,7 +485,8 @@ udplite4_seq_afinfo            seq_fops.release               0xffff812157d0 Ker
 udp4_seq_afinfo                seq_ops.show                   0xffff8164f9e0 Kernel
 udp4_seq_afinfo                seq_fops.llseek                0xffff811c9250 Kernel
 udp4_seq_afinfo                seq_fops.read                  0xffff811c9460 Kernel
-udp4_seq_afinfo                seq_fops.release               0xffff812157d0 Kernel</code></pre>
+udp4_seq_afinfo                seq_fops.release               0xffff812157d0 Kernel
+</pre></div>
 
 <p>
 

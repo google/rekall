@@ -207,12 +207,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#dead_procs' class="category-link">
-            dead_procs
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#dmesg' class="category-link">
             dmesg
           </a>
@@ -243,26 +237,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#ifconfig' class="category-link">
-            ifconfig
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#ip_filters' class="category-link">
             ip_filters
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#list_files' class="category-link">
-            list_files
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#list_zones' class="category-link">
-            list_zones
           </a>
         </li>
         
@@ -321,18 +297,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#pslist' class="category-link">
-            pslist
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#pstree' class="category-link">
-            pstree
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#psxview' class="category-link">
             psxview
           </a>
@@ -341,12 +305,6 @@ ript>
         <li classes=''>
           <a href='#route' class="category-link">
             route
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#sessions' class="category-link">
-            sessions
           </a>
         </li>
         
@@ -412,7 +370,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>

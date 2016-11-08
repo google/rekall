@@ -11,7 +11,12 @@ args: {hive-offsets: 'A list of hive offsets as found by hivelist. If not provid
 
 
 
-    * Default: False'}
+    * Default: False', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: PrintKey
 epydoc: rekall.plugins.windows.registry.printkey.PrintKey-class.html
 layout: plugin

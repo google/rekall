@@ -4,7 +4,12 @@ abstract: "Enumerate callback routines.\n\n    This plugin just enumerates insta
   \  This plugin is loosely based on the original Volatility plugin of the same\n\
   \    name but much expanded using new information.\n\n    Reference:\n    <http://www.codemachine.com/notes.html>\n\
   \    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Callbacks
 epydoc: rekall.plugins.windows.malware.callbacks.Callbacks-class.html
 layout: plugin

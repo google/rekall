@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         
         <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes='active'>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -303,8 +369,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/FetchPDB.html">
-          fetch_pdb
+       <a href="/docs/Manual/Plugins/General/Explain.html">
+          explain
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -328,7 +394,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.E01 in current directory. (type: String)</p></td></tr>
+<tr><td><p>destination</p></td><td><p>The destination file to create. If not specified we write output.E01 in current directory. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -343,9 +412,10 @@ or to convert a memory image from another format to EWF format.</p>
 not necessarily interchangeable with other implementations. We usually recommend
 using <code>aff4acquire</code> over <code>ewfacquire</code> because the AFF4 format can contain
 multiple streams and can also keep important metadata.</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 23:02:22&gt; ewfacquire destination=&quot;/tmp/test.E01&quot;
+<div class="highlight"><pre><span></span>[1] win7.elf 23:02:22&gt; ewfacquire destination=&quot;/tmp/test.E01&quot;
 ---------------------&gt; ewfacquire(destination=&quot;/tmp/test.E01&quot;)
- Writing 352Mb</code></pre>
+ Writing 352Mb
+</pre></div>
 
 <p>
 
@@ -363,8 +433,8 @@ multiple streams and can also keep important metadata.</p>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/FetchPDB.html">
-          fetch_pdb
+       <a href="/docs/Manual/Plugins/General/Explain.html">
+          explain
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

@@ -207,12 +207,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#dead_procs' class="category-link">
-            dead_procs
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#dmesg' class="category-link">
             dmesg
           </a>
@@ -243,26 +237,8 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#ifconfig' class="category-link">
-            ifconfig
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#ip_filters' class="category-link">
             ip_filters
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#list_files' class="category-link">
-            list_files
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#list_zones' class="category-link">
-            list_zones
           </a>
         </li>
         
@@ -321,18 +297,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#pslist' class="category-link">
-            pslist
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#pstree' class="category-link">
-            pstree
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#psxview' class="category-link">
             psxview
           </a>
@@ -341,12 +305,6 @@ ript>
         <li classes=''>
           <a href='#route' class="category-link">
             route
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#sessions' class="category-link">
-            sessions
           </a>
         </li>
         
@@ -396,6 +354,9 @@ ript>
 <tr><td><p>symbol</p></td><td><p>List of symbols to lookup (type: ArrayString)</p>
 <ul>
 <li>Default: </li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -417,6 +378,18 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 
 </div>
@@ -432,6 +405,18 @@ ript>
 <h2>Prints the kernel command line.</h2>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -449,6 +434,18 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 
 </div>
@@ -465,21 +462,17 @@ ript>
 </div>
 
 
-
-
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
 </div>
-
-<h1 id="dead_procs" class="anchor">dead_procs</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.zones.DarwinDeadProcesses-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>Show deallocated processes which still exist in the zone allocator.</h2>
-</div>
-
 
 
 
@@ -496,6 +489,18 @@ ript>
 <h2>Print the kernel debug messages.</h2>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -517,7 +522,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>zone</p></td><td><ul>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>zone</p></td><td><ul>
 <li>Default: buf.512</li>
 </ul></td></tr>
 </tbody>
@@ -544,7 +552,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -606,22 +617,6 @@ used for validation) for manual review, in case there are false positives.</p>
 
 </div>
 
-<h1 id="ifconfig" class="anchor">ifconfig</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.networking.DarwinIFConfig-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>List network interface information.</h2>
-</div>
-
-
-
-
-</div>
-
 <h1 id="ip_filters" class="anchor">ip_filters</h1>
 
 <a class="btn btn-default epydoc_link"
@@ -634,46 +629,17 @@ used for validation) for manual review, in case there are false positives.</p>
 </div>
 
 
-
-
-</div>
-
-<h1 id="list_files" class="anchor">list_files</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.files.DarwinListFiles-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>List all files that can be identified in the image.</h2>
-</div>
-
-
 <h3>Plugin Arguments</h3>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>vm_kernel_slide</p></td><td><p>OS X 10.8 and later: kernel ASLR slide.</p></td></tr><tr><td><p>dtb</p></td><td><p>The DTB physical address.</p></td></tr>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
-
-
-
-</div>
-
-<h1 id="list_zones" class="anchor">list_zones</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.zones.DarwinListZones-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>List all the allocation zones.</h2>
-</div>
-
 
 
 
@@ -690,6 +656,18 @@ used for validation) for manual review, in case there are false positives.</p>
 <h2>Lists all kernel modules.</h2>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -711,6 +689,18 @@ of the resource pointed to from the fileproc (e.g. vnode, socket, pipe&hellip;).
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 
 </div>
@@ -726,6 +716,18 @@ of the resource pointed to from the fileproc (e.g. vnode, socket, pipe&hellip;).
 <h2>Show information about this machine.</h2>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -747,7 +749,10 @@ of the resource pointed to from the fileproc (e.g. vnode, socket, pipe&hellip;).
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+<tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -767,6 +772,18 @@ of the resource pointed to from the fileproc (e.g. vnode, socket, pipe&hellip;).
 <h2>Show mount points.</h2>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -792,6 +809,18 @@ found using some of the methods available.</p>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 
 </div>
@@ -808,6 +837,18 @@ found using some of the methods available.</p>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 
 </div>
@@ -823,6 +864,18 @@ found using some of the methods available.</p>
 <h2>Prints the EFI boot physical memory map.</h2>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 
@@ -844,44 +897,13 @@ found using some of the methods available.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+<tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
-
-
-
-</div>
-
-<h1 id="pslist" class="anchor">pslist</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.pslist.DarwinPsList-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2></h2>
-</div>
-
-
-
-
-</div>
-
-<h1 id="pstree" class="anchor">pstree</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.pslist.DawrinPSTree-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>Shows the parent/child relationship between processes.</h2>
-<p>This plugin prints a parent/child relationship tree by walking the
-proc.p_children list.</p>
-</div>
-
 
 
 
@@ -905,7 +927,10 @@ proc.p_children list.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+<tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -926,21 +951,17 @@ proc.p_children list.</p>
 </div>
 
 
-
-
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
 </div>
-
-<h1 id="sessions" class="anchor">sessions</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.darwin.pslist.DarwinListSessions-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>Enumerate sessions.</h2>
-</div>
-
 
 
 
@@ -975,6 +996,18 @@ structs can be on the following types:</p>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 
 </div>
@@ -995,7 +1028,10 @@ structs can be on the following types:</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc</p></td><td><p>Kernel addresses of proc structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -1038,7 +1074,10 @@ structs can be on the following types:</p>
 </ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for. (type: String)</p></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression. (type: String)</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read. (type: String)</p></td></tr>
+</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression. (type: String)</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>

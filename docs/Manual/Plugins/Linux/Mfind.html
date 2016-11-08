@@ -451,6 +451,9 @@ ript>
 <tr><td><p>device</p></td><td><p>Name of the device to match. (type: String)</p></td></tr><tr><td><p>path</p></td><td><p>Path to the file. (type: String)</p>
 <ul>
 <li>Default: /</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -460,7 +463,7 @@ ript>
 <p><code>mfind</code> can and will find multiple files if more than one file potentially matches the path.
 You can use the <code>--device</code> parameter to filter out by device name if you want to target a specific mountpoint.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>[1] Linux-3.2.0-4-686-pae.E01 12:56:58&gt; mfind &quot;/etc/passd&quot;
+<div class="highlight"><pre><span></span>[1] Linux-3.2.0-4-686-pae.E01 12:56:58&gt; mfind &quot;/etc/passd&quot;
 --------------------------------------&gt; mfind(&quot;/etc/passd&quot;)
 [1] Linux-3.2.0-4-686-pae.E01 12:58:00&gt; mfind &quot;/etc/passwd&quot;
 --------------------------------------&gt; mfind(&quot;/etc/passwd&quot;)
@@ -479,7 +482,8 @@ drwxr-xr-x           0          0              0 2014-11-28 11:40:08+0000 2014-1
 Files on device udev mounted at /dev.
    Perms       uid        gid          size               mtime                    atime                    ctime             inode                                path
 ----------- ---------- ---------- -------------- ------------------------ ------------------------ ------------------------ ---------- ------------------------------------------------------------
-drwxr-xr-x           0          0             40 2014-11-28 11:40:08+0000 2014-11-28 11:40:08+0000 2014-11-28 11:40:08+0000       1137 /dev/pts</code></pre>
+drwxr-xr-x           0          0             40 2014-11-28 11:40:08+0000 2014-11-28 11:40:08+0000 2014-11-28 11:40:08+0000       1137 /dev/pts
+</pre></div>
 
 <p>
 

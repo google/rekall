@@ -10,7 +10,12 @@ args: {history_buffers: 'Value of history buffer size. See HKEY_CURRENT_USER\Con
 
 
 
-    * Default: 50'}
+    * Default: 50', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ConsoleScan
 epydoc: rekall.plugins.windows.malware.cmdhistory.ConsoleScan-class.html
 layout: plugin

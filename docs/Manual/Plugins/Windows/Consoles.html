@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -684,6 +744,18 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <p>Similar to <a href="CmdScan.html">cmdscan</a> the consoles plugin finds commands that
 attackers typed into cmd.exe or executed via backdoors. However, instead of
@@ -707,78 +779,79 @@ exactly what the attacker saw, including all files and directories listed by the
 undocumented code. We are working on improving the situation here but there is a
 moderate chance that it will produce no results or garbage results.</p>
 <h3>Sample Output</h3>
-<pre class="highlight"><code>win7.elf 22:23:10&gt; consoles
-**************************************************
-ConsoleProcess: conhost.exe Pid: 2652
-Console: 0xffd96200 CommandHistorySize: 50
-HistoryBufferCount: 4 HistoryBufferMax: 4
-OriginalTitle: Console2 command window
-Title: Administrator: Console2 command window - vol.exe  --profile Win7SP1x64 --file \\.\pmem
-AttachedProcess: vol.exe Pid: 2920 Handle: 0xd8
-AttachedProcess: vol.exe Pid: 2912 Handle: 0xd4
-AttachedProcess: cmd.exe Pid: 2644 Handle: 0x5c
-----
-CommandHistory: 0xb4410 Application: vol.exe Flags: Allocated
-CommandCount: 0 LastAdded: -1 LastDisplayed: -1
-FirstCommand: 0 CommandCountMax: 50
-ProcessHandle: 0xd8
-----
-CommandHistory: 0xb40c0 Application: vol.exe Flags: Allocated
-CommandCount: 0 LastAdded: -1 LastDisplayed: -1
-FirstCommand: 0 CommandCountMax: 50
-ProcessHandle: 0xd4
-----
-CommandHistory: 0xb3ee0 Application: winpmem_1.1-write.exe Flags:
-CommandCount: 0 LastAdded: -1 LastDisplayed: -1
-FirstCommand: 0 CommandCountMax: 50
-ProcessHandle: 0x0
-----
-CommandHistory: 0x7ea40 Application: cmd.exe Flags: Allocated, Reset
-CommandCount: 3 LastAdded: 2 LastDisplayed: 2
-FirstCommand: 0 CommandCountMax: 50
-ProcessHandle: 0x5c
-Cmd #0 at 0x5ea70: cd \Users\a\Desktop
-Cmd #1 at 0x5b920: winpmem_1.1-write.exe -w -l
-Cmd #2 at 0xb3e70: vol.exe --profile Win7SP1x64 --file \\.\pmem
-----
-Screen 0x60ef0 X:117 Y:500
-Dump:
-Microsoft Windows [Version 6.1.7600]
-Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+<div class="highlight"><pre><span></span><span class="n">win7</span><span class="p">.</span><span class="n">elf</span> <span class="mi">22</span><span class="o">:</span><span class="mi">23</span><span class="o">:</span><span class="mi">10</span><span class="o">&gt;</span> <span class="n">consoles</span>
+<span class="o">**************************************************</span>
+<span class="nl">ConsoleProcess</span><span class="p">:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Pid</span><span class="p">:</span> <span class="mi">2652</span>
+<span class="nl">Console</span><span class="p">:</span> <span class="mh">0xffd96200</span> <span class="nl">CommandHistorySize</span><span class="p">:</span> <span class="mi">50</span>
+<span class="nl">HistoryBufferCount</span><span class="p">:</span> <span class="mi">4</span> <span class="nl">HistoryBufferMax</span><span class="p">:</span> <span class="mi">4</span>
+<span class="nl">OriginalTitle</span><span class="p">:</span> <span class="n">Console2</span> <span class="n">command</span> <span class="n">window</span>
+<span class="nl">Title</span><span class="p">:</span> <span class="nl">Administrator</span><span class="p">:</span> <span class="n">Console2</span> <span class="n">command</span> <span class="n">window</span> <span class="o">-</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span>  <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+<span class="nl">AttachedProcess</span><span class="p">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Pid</span><span class="p">:</span> <span class="mi">2920</span> <span class="nl">Handle</span><span class="p">:</span> <span class="mh">0xd8</span>
+<span class="nl">AttachedProcess</span><span class="p">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Pid</span><span class="p">:</span> <span class="mi">2912</span> <span class="nl">Handle</span><span class="p">:</span> <span class="mh">0xd4</span>
+<span class="nl">AttachedProcess</span><span class="p">:</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Pid</span><span class="p">:</span> <span class="mi">2644</span> <span class="nl">Handle</span><span class="p">:</span> <span class="mh">0x5c</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory</span><span class="p">:</span> <span class="mh">0xb4410</span> <span class="nl">Application</span><span class="p">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Flags</span><span class="p">:</span> <span class="n">Allocated</span>
+<span class="nl">CommandCount</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">LastAdded</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="nl">LastDisplayed</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">CommandCountMax</span><span class="p">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle</span><span class="p">:</span> <span class="mh">0xd8</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory</span><span class="p">:</span> <span class="mh">0xb40c0</span> <span class="nl">Application</span><span class="p">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Flags</span><span class="p">:</span> <span class="n">Allocated</span>
+<span class="nl">CommandCount</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">LastAdded</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="nl">LastDisplayed</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">CommandCountMax</span><span class="p">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle</span><span class="p">:</span> <span class="mh">0xd4</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory</span><span class="p">:</span> <span class="mh">0xb3ee0</span> <span class="nl">Application</span><span class="p">:</span> <span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Flags</span><span class="p">:</span>
+<span class="nl">CommandCount</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">LastAdded</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="nl">LastDisplayed</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+<span class="nl">FirstCommand</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">CommandCountMax</span><span class="p">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle</span><span class="p">:</span> <span class="mh">0x0</span>
+<span class="o">----</span>
+<span class="nl">CommandHistory</span><span class="p">:</span> <span class="mh">0x7ea40</span> <span class="nl">Application</span><span class="p">:</span> <span class="n">cmd</span><span class="p">.</span><span class="n">exe</span> <span class="nl">Flags</span><span class="p">:</span> <span class="n">Allocated</span><span class="p">,</span> <span class="n">Reset</span>
+<span class="nl">CommandCount</span><span class="p">:</span> <span class="mi">3</span> <span class="nl">LastAdded</span><span class="p">:</span> <span class="mi">2</span> <span class="nl">LastDisplayed</span><span class="p">:</span> <span class="mi">2</span>
+<span class="nl">FirstCommand</span><span class="p">:</span> <span class="mi">0</span> <span class="nl">CommandCountMax</span><span class="p">:</span> <span class="mi">50</span>
+<span class="nl">ProcessHandle</span><span class="p">:</span> <span class="mh">0x5c</span>
+<span class="n">Cmd</span> <span class="err">#</span><span class="mi">0</span> <span class="n">at</span> <span class="mh">0x5ea70</span><span class="o">:</span> <span class="n">cd</span> <span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span>
+<span class="n">Cmd</span> <span class="err">#</span><span class="mi">1</span> <span class="n">at</span> <span class="mh">0x5b920</span><span class="o">:</span> <span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">w</span> <span class="o">-</span><span class="n">l</span>
+<span class="n">Cmd</span> <span class="err">#</span><span class="mi">2</span> <span class="n">at</span> <span class="mh">0xb3e70</span><span class="o">:</span> <span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+<span class="o">----</span>
+<span class="n">Screen</span> <span class="mh">0x60ef0</span> <span class="nl">X</span><span class="p">:</span><span class="mi">117</span> <span class="nl">Y</span><span class="p">:</span><span class="mi">500</span>
+<span class="nl">Dump</span><span class="p">:</span>
+<span class="n">Microsoft</span> <span class="n">Windows</span> <span class="p">[</span><span class="n">Version</span> <span class="mf">6.1.7600</span><span class="p">]</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2009</span> <span class="n">Microsoft</span> <span class="n">Corporation</span><span class="p">.</span>  <span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="p">.</span>
 
-C:\Windows\system32&gt;cd \Users\a\Desktop
+<span class="nl">C</span><span class="p">:</span><span class="err">\</span><span class="n">Windows</span><span class="err">\</span><span class="n">system32</span><span class="o">&gt;</span><span class="n">cd</span> <span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span>
 
-C:\Users\a\Desktop&gt;winpmem_1.1-write.exe -w -l
-Will enable write mode
-Loaded Driver.
+<span class="nl">C</span><span class="p">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span><span class="o">&gt;</span><span class="n">winpmem_1</span><span class="mf">.1</span><span class="o">-</span><span class="n">write</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">w</span> <span class="o">-</span><span class="n">l</span>
+<span class="n">Will</span> <span class="n">enable</span> <span class="n">write</span> <span class="n">mode</span>
+<span class="n">Loaded</span> <span class="n">Driver</span><span class="p">.</span>
 
-C:\Users\a\Desktop&gt;vol.exe --profile Win7SP1x64 --file \\.\pmem
-Python 2.7.3 (default, Apr 10 2012, 23:31:26) [MSC v.1500 32 bit (Intel)]
-Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+<span class="nl">C</span><span class="p">:</span><span class="err">\</span><span class="n">Users</span><span class="err">\</span><span class="n">a</span><span class="err">\</span><span class="n">Desktop</span><span class="o">&gt;</span><span class="n">vol</span><span class="p">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">profile</span> <span class="n">Win7SP1x64</span> <span class="o">--</span><span class="n">file</span> <span class="err">\\</span><span class="p">.</span><span class="err">\</span><span class="n">pmem</span>
+<span class="n">Python</span> <span class="mf">2.7.3</span> <span class="p">(</span><span class="k">default</span><span class="p">,</span> <span class="n">Apr</span> <span class="mi">10</span> <span class="mi">2012</span><span class="p">,</span> <span class="mi">23</span><span class="o">:</span><span class="mi">31</span><span class="o">:</span><span class="mi">26</span><span class="p">)</span> <span class="p">[</span><span class="n">MSC</span> <span class="n">v</span><span class="mf">.1500</span> <span class="mi">32</span> <span class="n">bit</span> <span class="p">(</span><span class="n">Intel</span><span class="p">)]</span>
+<span class="n">Type</span> <span class="s">&quot;copyright&quot;</span><span class="p">,</span> <span class="s">&quot;credits&quot;</span> <span class="n">or</span> <span class="s">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="p">.</span>
 
-IPython 0.12.1 -- An enhanced Interactive Python.
-?         -&gt; Introduction and overview of IPython's features.
-%quickref -&gt; Quick reference.
-help      -&gt; Python's own help system.
-object?   -&gt; Details about 'object', use 'object??' for extra details.
+<span class="n">IPython</span> <span class="mf">0.12.1</span> <span class="o">--</span> <span class="n">An</span> <span class="n">enhanced</span> <span class="n">Interactive</span> <span class="n">Python</span><span class="p">.</span>
+<span class="o">?</span>         <span class="o">-&gt;</span> <span class="n">Introduction</span> <span class="n">and</span> <span class="n">overview</span> <span class="n">of</span> <span class="n">IPython</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">features</span><span class="p">.</span>
+<span class="nf">%quickref</span> <span class="o">-&gt;</span> <span class="n">Quick</span> <span class="n">reference</span><span class="p">.</span>
+<span class="n">help</span>      <span class="o">-&gt;</span> <span class="n">Python</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">own</span> <span class="n">help</span> <span class="n">system</span><span class="p">.</span>
+<span class="n">object</span><span class="o">?</span>   <span class="o">-&gt;</span> <span class="n">Details</span> <span class="n">about</span> <span class="err">&#39;</span><span class="n">object</span><span class="err">&#39;</span><span class="p">,</span> <span class="n">use</span> <span class="err">&#39;</span><span class="n">object</span><span class="o">??</span><span class="err">&#39;</span> <span class="k">for</span> <span class="n">extra</span> <span class="n">details</span><span class="p">.</span>
 
 
-The Volatility Memory Forensic Framework technology preview (3.0_tp2).
+<span class="n">The</span> <span class="n">Volatility</span> <span class="n">Memory</span> <span class="n">Forensic</span> <span class="n">Framework</span> <span class="n">technology</span> <span class="n">preview</span> <span class="p">(</span><span class="mf">3.0</span><span class="n">_tp2</span><span class="p">).</span>
 
-NOTE: This is pre-release software and is provided for evauation only. Please
-check at http://volatility.googlecode.com/ for officially supported versions.
+<span class="nl">NOTE</span><span class="p">:</span> <span class="n">This</span> <span class="n">is</span> <span class="n">pre</span><span class="o">-</span><span class="n">release</span> <span class="n">software</span> <span class="n">and</span> <span class="n">is</span> <span class="n">provided</span> <span class="k">for</span> <span class="n">evauation</span> <span class="n">only</span><span class="p">.</span> <span class="n">Please</span>
+<span class="n">check</span> <span class="n">at</span> <span class="nl">http</span><span class="p">:</span><span class="c1">//volatility.googlecode.com/ for officially supported versions.</span>
 
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License.
-Win7SP1x64:pmem 07:41:08&gt; pslist
-------------------------&gt; pslist()
-  Offset (V)   Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                Exit
+<span class="n">This</span> <span class="n">program</span> <span class="n">is</span> <span class="n">free</span> <span class="n">software</span><span class="p">;</span> <span class="n">you</span> <span class="n">can</span> <span class="n">redistribute</span> <span class="n">it</span> <span class="n">and</span><span class="o">/</span><span class="n">or</span> <span class="n">modify</span> <span class="n">it</span> <span class="n">under</span>
+<span class="n">the</span> <span class="n">terms</span> <span class="n">of</span> <span class="n">the</span> <span class="n">GNU</span> <span class="n">General</span> <span class="n">Public</span> <span class="n">License</span><span class="p">.</span>
+<span class="nl">Win7SP1x64</span><span class="p">:</span><span class="n">pmem</span> <span class="mo">07</span><span class="o">:</span><span class="mi">41</span><span class="o">:</span><span class="mi">08</span><span class="o">&gt;</span> <span class="n">pslist</span>
+<span class="o">------------------------&gt;</span> <span class="n">pslist</span><span class="p">()</span>
+  <span class="n">Offset</span> <span class="p">(</span><span class="n">V</span><span class="p">)</span>   <span class="n">Name</span>                    <span class="n">PID</span>   <span class="n">PPID</span>   <span class="n">Thds</span>     <span class="n">Hnds</span>   <span class="n">Sess</span>  <span class="n">Wow64</span> <span class="n">Start</span>                <span class="n">Exit</span>
 
--------------- -------------------- ------ ------ ------ -------- ------ ------ -------------------- ----------------
-----
-0xfa80008959e0 System                    4      0     85      502 ------  False 2012-10-01 21:39:51  -
+<span class="o">--------------</span> <span class="o">--------------------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------</span> <span class="o">------</span> <span class="o">------</span> <span class="o">--------------------</span> <span class="o">----------------</span>
+<span class="o">----</span>
+<span class="mh">0xfa80008959e0</span> <span class="n">System</span>                    <span class="mi">4</span>      <span class="mi">0</span>     <span class="mi">85</span>      <span class="mi">502</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span>  <span class="o">-</span>
 
-0xfa8001994310 smss.exe                272      4      2       29 ------  False 2012-10-01 21:39:51  -</code></pre>
+<span class="mh">0xfa8001994310</span> <span class="n">smss</span><span class="p">.</span><span class="n">exe</span>                <span class="mi">272</span>      <span class="mi">4</span>      <span class="mi">2</span>       <span class="mi">29</span> <span class="o">------</span>  <span class="n">False</span> <span class="mi">2012</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mo">01</span> <span class="mi">21</span><span class="o">:</span><span class="mi">39</span><span class="o">:</span><span class="mi">51</span>  <span class="o">-</span>
+</pre></div>
 
 <p>
 

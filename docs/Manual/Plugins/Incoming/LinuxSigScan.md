@@ -18,7 +18,12 @@ args: {method: "Method to list processes (Default uses all methods). (type: Choi
     * Default: False', signature: The signature(s) to scan for. Format is 000102*0506*AAFF,
   task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: LinuxSigScan
 epydoc: rekall.plugins.linux.sigscan.LinuxSigScan-class.html
 layout: plugin

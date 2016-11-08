@@ -13,7 +13,12 @@ args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
     * Default: ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
-    ', win32k_profile: Force this profile to be used for Win32k.}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', win32k_profile: Force this profile to be used for Win32k.}
 class_name: WinEventHooks
 epydoc: rekall.plugins.windows.gui.userhandles.WinEventHooks-class.html
 layout: plugin

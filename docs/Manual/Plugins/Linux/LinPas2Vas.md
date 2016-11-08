@@ -10,7 +10,12 @@ args: {method: "Method to list processes (Default uses all methods). (type: Choi
 
     ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: LinPas2Vas
 epydoc: rekall.plugins.linux.pas2kas.LinPas2Vas-class.html
 layout: plugin

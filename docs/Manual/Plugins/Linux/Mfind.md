@@ -6,7 +6,12 @@ args: {device: 'Name of the device to match. (type: String)
 
 
 
-    * Default: /'}
+    * Default: /', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Mfind
 epydoc: rekall.plugins.linux.fs.Mfind-class.html
 layout: plugin

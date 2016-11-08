@@ -1,6 +1,11 @@
 ---
 abstract: ' Checks if the IDT has been altered '
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CheckIdt
 epydoc: rekall.plugins.linux.check_idt.CheckIdt-class.html
 layout: plugin

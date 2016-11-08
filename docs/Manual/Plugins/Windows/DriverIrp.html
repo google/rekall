@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -653,9 +713,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WinDllList.html">
+       <a href="/docs/Manual/Plugins/Windows/WinDNSCache.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         dlllist
+         dns_cache
        </a>
     </li>
   </ul>
@@ -691,6 +751,9 @@ ript>
 <tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search in each selected region. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -760,7 +823,7 @@ directly parse kernel driver structures.</p>
 <h3>Sample output</h3>
 <p>In the below we see that the pmem driver handles the <strong>IRP_MJ_CREATE</strong>,
 <strong>IRP_MJ_CLOSE</strong>, <strong>IRP_MJ_READ</strong> and <strong>IRP_MJ_DEVICE_CONTROL</strong> IRP types.</p>
-<pre class="highlight"><code>win8.1.raw 16:15:36&gt; driverirp regex=&quot;pmem&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 16:15:36&gt; driverirp regex=&quot;pmem&quot;
 -------------------&gt; driverirp(regex=&quot;pmem&quot;)
 **************************************************
 DriverName: pmem
@@ -796,7 +859,8 @@ DriverStartIo: 0x0
   24 IRP_MJ_DEVICE_CHANGE                 0xf802d31131b8 \SystemRoot\system32\ntoskrnl.exe
   25 IRP_MJ_QUERY_QUOTA                   0xf802d31131b8 \SystemRoot\system32\ntoskrnl.exe
   26 IRP_MJ_SET_QUOTA                     0xf802d31131b8 \SystemRoot\system32\ntoskrnl.exe
-  27 IRP_MJ_PNP                           0xf802d31131b8 \SystemRoot\system32\ntoskrnl.exe</code></pre>
+  27 IRP_MJ_PNP                           0xf802d31131b8 \SystemRoot\system32\ntoskrnl.exe
+</pre></div>
 
 <p>
 
@@ -804,9 +868,9 @@ DriverStartIo: 0x0
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WinDllList.html">
+       <a href="/docs/Manual/Plugins/Windows/WinDNSCache.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         dlllist
+         dns_cache
        </a>
     </li>
   </ul>

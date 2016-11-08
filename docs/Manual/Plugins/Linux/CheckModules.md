@@ -9,7 +9,12 @@ abstract: "Compares module list to sysfs info, if available.\n\n    Sysfs contai
   \ the struct\n    module with the list of known modules (which is obtained by traversing\
   \ the\n    module's list member). So if a module were to simply unlink itself from\
   \ the\n    list, it would still be found by its reference from sysfs.\n    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CheckModules
 epydoc: rekall.plugins.linux.check_modules.CheckModules-class.html
 layout: plugin

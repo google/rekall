@@ -244,7 +244,10 @@ registry keys from memory.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -253,7 +256,7 @@ registry keys from memory.</p>
 <p>The getservicesids command calculates the SIDs for services on a machine. The
 service names are taken from the registry (&ldquo;SYSTEM\CurrentControlSet\Services&rdquo;)</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>win8.1.raw 16:58:23&gt; getservicesids
+<div class="highlight"><pre><span></span>win8.1.raw 16:58:23&gt; getservicesids
 -------------------&gt; getservicesids()
 SID                                                                    Service Name
 ---------------------------------------------------------------------- ------------
@@ -268,7 +271,8 @@ S-1-5-80-799694863-4024754253-4060439485-3284853837-2852070736         1394ohci
 S-1-5-80-3459415445-2224257447-3423677131-2829651752-4257665947        3ware
 S-1-5-80-550892281-1246201444-2906082186-2301917840-2280485454         ACPI
 S-1-5-80-2670625634-2386107419-4204951937-4094372046-2600379021        acpiex
-S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr</code></pre>
+S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr
+</pre></div>
 </div>
 
 <h1 id="hivedump" class="anchor">hivedump</h1>
@@ -287,7 +291,10 @@ S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr<
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -312,7 +319,10 @@ S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr<
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -343,6 +353,9 @@ S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr<
 </ul></td></tr><tr><td><p>recursive</p></td><td><p>If set print the entire subtree. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -368,7 +381,10 @@ S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr<
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -393,7 +409,10 @@ S-1-5-80-3267050047-1503497915-401953950-2662906978-1179039408         acpipagr<
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -422,7 +441,10 @@ samparse.pl from RegRipper.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr>
+<tr><td><p>hive-offsets</p></td><td><p>A list of hive offsets as found by hivelist. If not provided we call hivelist ourselves and list the keys on all hives. (type: ArrayIntParser)</p></td></tr><tr><td><p>hive_regex</p></td><td><p>A regex to filter hive names.If not provided we use all hives.</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>

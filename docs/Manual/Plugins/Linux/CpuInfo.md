@@ -1,6 +1,11 @@
 ---
 abstract: Prints information about each active processor.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CpuInfo
 epydoc: rekall.plugins.linux.cpuinfo.CpuInfo-class.html
 layout: plugin

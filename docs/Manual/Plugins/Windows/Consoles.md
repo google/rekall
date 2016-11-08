@@ -1,6 +1,11 @@
 ---
 abstract: Enumerate command consoles.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Consoles
 epydoc: rekall.plugins.windows.malware.cmdhistory.Consoles-class.html
 layout: plugin

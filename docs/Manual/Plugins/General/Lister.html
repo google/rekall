@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         
         <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes=''>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -303,8 +369,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/Printer.html">
-          p
+       <a href="/docs/Manual/Plugins/General/Live.html">
+          live
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -329,7 +395,7 @@ ript>
 <code>l</code> plugin to quickly print each value in the list.</p>
 <p>In the below example we instantiate the PsActiveProcessHeadHook and walk the
 list of processes (this is one of the <code>pslist</code> methods).</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 23:48:12&gt; head = session.profile.get_constant_object(&quot;PsActiveProcessHead&quot;, &quot;_LIST_ENTRY&quot;)
+<div class="highlight"><pre><span></span>[1] win7.elf 23:48:12&gt; head = session.profile.get_constant_object(&quot;PsActiveProcessHead&quot;, &quot;_LIST_ENTRY&quot;)
 
 [1] win7.elf 23:48:32&gt; l head.list_of_type(&quot;_EPROCESS&quot;, &quot;ActiveProcessLinks&quot;)
 ---------------------&gt; l(head.list_of_type(&quot;_EPROCESS&quot;, &quot;ActiveProcessLinks&quot;))
@@ -341,7 +407,8 @@ list of processes (this is one of the <code>pslist</code> methods).</p>
   0x178 RundownProtect               [_EX_RUNDOWN_REF RundownProtect] @ 0xFA8000895B58
   0x180 UniqueProcessId               [unsigned int:UniqueProcessId]: 0x00000004
   0x188 ActiveProcessLinks           [_LIST_ENTRY ActiveProcessLinks] @ 0xFA8000895B68
-  ....</code></pre>
+  ....
+</pre></div>
 
 <p>
 
@@ -359,8 +426,8 @@ list of processes (this is one of the <code>pslist</code> methods).</p>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/Printer.html">
-          p
+       <a href="/docs/Manual/Plugins/General/Live.html">
+          live
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

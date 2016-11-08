@@ -277,7 +277,10 @@ obtain the string it identifies by querying the global atom table.</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>win32k_profile</p></td><td><p>Force this profile to be used for Win32k.</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -286,7 +289,7 @@ obtain the string it identifies by querying the global atom table.</p>
 <p>Using this plugin you can find registered window messages, rogue injected DLL
 paths, window class names, etc.</p>
 <p>Sample output:</p>
-<pre class="highlight"><code>  Offset(P)    Session    WindowStation           Atom      RefCount   HIndex     Pinned     Name
+<div class="highlight"><pre><span></span>  Offset(P)    Session    WindowStation           Atom      RefCount   HIndex     Pinned     Name
 -------------- ---------- ------------------ -------------- ---------- ---------- ---------- ----
 0xf8a002871020 0          WinSta0                    0xc001 1          1          True       StdExit
 0xf8a002871020 0          WinSta0                    0xc002 1          2          True       StdNewDocument
@@ -308,7 +311,8 @@ paths, window class names, etc.</p>
 0xf8a002811020 0          ------------------         0xc046 2          70         False      MSUIM.Msg.MuiMgrDirtyUpdate
 0xf8a002811020 0          ------------------         0xc047 1          71         False      C:\Windows\system32\wls0wndh.dll
 0xf8a002811020 0          ------------------         0xc048 27         72         False      {FB8F0821-0164-101B-84ED-08002B2EC713}
-0xf8a002811020 0          ------------------         0xc049 2          73         False      MMDEVAPI</code></pre>
+0xf8a002811020 0          ------------------         0xc049 2          73         False      MMDEVAPI
+</pre></div>
 
 <p>
 

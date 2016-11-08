@@ -444,6 +444,18 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <p>The Linux kernel can notify modules on certain events. This is done by subscribing to a notifier chain.
 A notifier chain is an ordered list of functions the kernel will call when an event is triggered.</p>
@@ -452,9 +464,10 @@ A notifier chain is an ordered list of functions the kernel will call when an ev
  - <code>vt_notifier_list</code>, which is used to notify when there&rsquo;s events on a virtual terminal and could be used to assist in monitoring ttys.</p>
 <p>Normally, no callbacks will be registered in any of these notifier chains and Rekall will produce no output.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>$ PYTHONPATH=. python rekall/rekal.py -f Linux-3.2.0-4-686-pae.E01 --profile_path ../my-profiles/ https://raw.githubusercontent.com/google/rekall-profiles/master/ - notifier_chains
+<div class="highlight"><pre><span></span>$ <span class="nv">PYTHONPATH</span><span class="o">=</span>. python rekall/rekal.py -f Linux-3.2.0-4-686-pae.E01 --profile_path ../my-profiles/ https://raw.githubusercontent.com/google/rekall-profiles/master/ - notifier_chains
       Chain symbol        Index Priority  Address          Module                         Symbol                 
-------------------------- ----- -------- ---------- -------------------- ----------------------------------------</code></pre>
+------------------------- ----- -------- ---------- -------------------- ----------------------------------------
+</pre></div>
 
 <p>
 

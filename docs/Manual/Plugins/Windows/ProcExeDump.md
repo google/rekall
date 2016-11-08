@@ -17,7 +17,12 @@ args: {dump_dir: 'Path suitable for dumping files. (type: String)
 
     * Default: ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ProcExeDump
 epydoc: rekall.plugins.windows.procdump.ProcExeDump-class.html
 layout: plugin

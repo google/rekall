@@ -6,7 +6,12 @@ abstract: "Renders a json rendering file, as produced by the JsonRenderer.\n\n  
   \ the proper decoding of the JSON encoded output.\n    "
 args: {file: 'The filename to parse. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: JSONParser
 epydoc: rekall.plugins.tools.json_tools.JSONParser-class.html
 layout: plugin

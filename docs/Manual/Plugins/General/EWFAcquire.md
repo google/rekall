@@ -3,7 +3,12 @@ abstract: Copy the physical address space to an EWF file.
 args: {destination: 'The destination file to create. If not specified we write output.E01
     in current directory. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: EWFAcquire
 epydoc: rekall.plugins.tools.ewf.EWFAcquire-class.html
 layout: plugin

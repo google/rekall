@@ -1,6 +1,11 @@
 ---
 abstract: Gathers loaded kernel modules.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Lsmod
 epydoc: rekall.plugins.linux.lsmod.Lsmod-class.html
 layout: plugin

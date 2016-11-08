@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -691,6 +751,9 @@ ript>
 <tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search in each selected region. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -730,6 +793,9 @@ ript>
 </ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -749,7 +815,7 @@ that have been hidden/unlinked by rootkits.</p>
 <h3>Sample output</h3>
 <p>In this example we can identify the pmem driver which was loaded from a
 temporary location.</p>
-<pre class="highlight"><code>win8.1.raw 23:27:24&gt; modscan
+<div class="highlight"><pre><span></span>win8.1.raw 23:27:24&gt; modscan
 -------------------&gt; modscan()
   Offset(P)    Name                      Base           Size      File
 -------------- -------------------- -------------- -------------- ----
@@ -772,7 +838,8 @@ temporary location.</p>
 0x00003d18c850 HTTP.sys             0xf80002043000        0xfa000 \SystemRoot\system32\drivers\HTTP.sys
 0x00003d29b010 pmeA86F.tmp          0xf800025ca000        0x10000 \??\C:\Users\test\AppData\Local\Temp\pmeA86F.tmp
 0x00003d655520 HdAudio.sys          0xf80001d45000        0x66000 \SystemRoot\system32\drivers\HdAudio.sys
-0x00003d6593e0 tunnel.sys           0xf800024ae000        0x2d000 \SystemRoot\system32\DRIVERS\tunnel.sys</code></pre>
+0x00003d6593e0 tunnel.sys           0xf800024ae000        0x2d000 \SystemRoot\system32\DRIVERS\tunnel.sys
+</pre></div>
 
 <p>
 

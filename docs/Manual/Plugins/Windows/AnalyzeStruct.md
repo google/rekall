@@ -10,7 +10,12 @@ args: {offset: 'A virtual address to analyze. (type: SymbolAddress)
 
 
 
-    * Default: 256'}
+    * Default: 256', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: AnalyzeStruct
 epydoc: rekall.plugins.windows.interactive.structs.AnalyzeStruct-class.html
 layout: plugin

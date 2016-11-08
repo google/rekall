@@ -27,7 +27,12 @@ args: {destination: 'The destination path to write the crash dump. (type: String
 
     ', rebuild: 'Rebuild the KDBG data block. (type: Boolean)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Raw2Dump
 epydoc: rekall.plugins.windows.crashinfo.Raw2Dump-class.html
 layout: plugin

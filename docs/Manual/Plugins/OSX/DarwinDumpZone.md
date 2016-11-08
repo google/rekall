@@ -1,6 +1,11 @@
 ---
 abstract: Dumps an allocation zone's contents.
-args: {zone: '
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', zone: '
 
 
     * Default: buf.512'}

@@ -1,6 +1,11 @@
 ---
 abstract: Lists the mount points.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Mount
 epydoc: rekall.plugins.linux.mount.Mount-class.html
 layout: plugin

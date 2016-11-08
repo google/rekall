@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         
         <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes=''>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -321,7 +387,7 @@ ript>
 
 <div class="abstract">
 <h2>Hexdump an object or memory location.</h2>
-<p>You can use this plugin repeatedly to keep dumping more data using the
+<p>You can use this plugin repeateadely to keep dumping more data using the
  &ldquo;p _&rdquo; (print last result) operation:</p>
 <p>In [2]: dump 0x814b13b0, address_space=&rdquo;K&rdquo;
 ------&gt; dump(0x814b13b0, address_space=&rdquo;K&rdquo;)
@@ -346,7 +412,10 @@ Offset                         Hex                              Data
 <tr><td><p>address_space</p></td><td><p>The address space to use. (type: AddressSpace)</p></td></tr><tr><td><p>data</p></td><td><p>Dump this string instead. (type: String)</p></td></tr><tr><td><p>length</p></td><td><p>Maximum length to dump. (type: IntParser)</p></td></tr><tr><td><p>offset</p></td><td><p>An offset to hexdump. (type: SymbolAddress)</p>
 <ul>
 <li>Default: 0</li>
-</ul></td></tr><tr><td><p>rows</p></td><td><p>Number of bytes per row (type: IntParser)</p></td></tr><tr><td><p>width</p></td><td><p>Number of bytes per row (type: IntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>rows</p></td><td><p>Number of bytes per row (type: IntParser)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>width</p></td><td><p>Number of bytes per row (type: IntParser)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -361,7 +430,7 @@ enabled, known symbols are highlighted in different colors both in the comment
 field and inside the hexdump area itself.</p>
 <p>In the below example we dump the &lsquo;SeTcbPrivilege&rsquo; symbol from the nt
 kernel. Also shown are other symbols located in the vicinity.</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 22:32:36&gt; dump &quot;nt!SeTcbPrivilege&quot;
+<div class="highlight"><pre><span></span>[1] win7.elf 22:32:36&gt; dump &quot;nt!SeTcbPrivilege&quot;
 ---------------------&gt; dump(&quot;nt!SeTcbPrivilege&quot;)
 Offset                                   Data                                                Comment
 -------------- ----------------------------------------------------------------- ----------------------------------------
@@ -369,7 +438,8 @@ Offset                                   Data                                   
 0xf80002b590c8 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00  ................ nt!VfRandomVerifiedDrivers, nt!TunnelMaxEntries, nt!ExpBootLicensingData
 0xf80002b590d8 bc 00 00 00 00 10 00 00 00 00 ff 07 80 f8 ff ff  ................ nt!ExpLicensingDescriptorsCount, nt!CmpStashBufferSize, nt!ExpLicensingView
 0xf80002b590e8 e8 f5 00 00 a0 f8 ff ff e8 45 7a 05 a0 f8 ff ff  .........Ez..... nt!CmpHiveListHead
-0xf80002b590f8 1c 00 00 00 80 f9 ff ff 16 00 00 00 00 00 00 00  ................ nt!NlsAnsiToUnicodeData, nt!SeSystemEnvironmentPrivilege</code></pre>
+0xf80002b590f8 1c 00 00 00 80 f9 ff ff 16 00 00 00 00 00 00 00  ................ nt!NlsAnsiToUnicodeData, nt!SeSystemEnvironmentPrivilege
+</pre></div>
 
 <p>
 

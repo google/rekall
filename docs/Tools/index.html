@@ -342,7 +342,7 @@ a special AFF4 library (but the <code>pyaff4</code> library can also be used).</
 means we can actually use the regular zip program to inspect an AFF4 volume.</p>
 <p>The following is an image of a Windows Server 2003 system, acquired together
 with the pagefile. As you can see it is just a zip file:</p>
-<div class="highlight"><pre><span class="nv">$ </span>unzip -l images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
+<div class="highlight"><pre><span></span>$ unzip -l images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
 
 Archive:  images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
 aff4://4928ef44-6579-496c-a53e-2ad34d98b7ed
@@ -370,10 +370,11 @@ aff4://4928ef44-6579-496c-a53e-2ad34d98b7ed
 <p>We can see that the AFF4 volume is denoted by a globally unique name
 <code>aff4://4928ef44-6579-496c-a53e-2ad34d98b7ed</code>. This is called the AFF4 URN and
 uniquely identifies this volume. The metadata is stored in this volume&rsquo;s archive
-member called &ldquo;information.turtle&rdquo;. We also see a number of streams - The<code>PhysicalMemory</code> is the memory stream of the machine&rsquo;s physical memory,
+member called &ldquo;information.turtle&rdquo;. We also see a number of streams - The
+<code>PhysicalMemory</code> is the memory stream of the machine&rsquo;s physical memory,
 &ldquo;c%3a/pagefile.sys&rdquo; is the stream corresponding with the machine&rsquo;s pagefile.</p>
 <p>Lets examine the metadata stored in the information.turtle archive member:</p>
-<div class="highlight"><pre>$ unzip -p images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4 information.turtle
+<div class="highlight"><pre><span></span>$ unzip -p images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4 information.turtle
 @base <span class="nt">&lt;aff4:</span><span class="err">//4928ef44-6579-496c-a53e-2ad34d98b7ed</span><span class="nt">&gt;</span> .
 @prefix rdf: <span class="nt">&lt;http:</span><span class="err">//www.w3.org/1999/02/22-rdf-syntax-ns#</span><span class="nt">&gt;</span> .
 @prefix aff4: <span class="nt">&lt;http:</span><span class="err">//aff4.org/Schema#</span><span class="nt">&gt;</span> .
@@ -427,7 +428,7 @@ all imagers for basic manipulation of all AFF4 volumes. Hence we will discuss
 these common features here. Below we discuss some of the differences in the
 implementations between the operating systems.</p>
 <p>Lets consider the output from the &ndash;help command:</p>
-<div class="highlight"><pre>$ linpmem --help
+<div class="highlight"><pre><span></span>$ linpmem --help
 USAGE:
 
    linpmem  [--elf] [-m] [-p <span class="err">&lt;</span>/path/to/pagefile&gt;] ...  [-V] [-d] [-v] [-t]
@@ -527,7 +528,7 @@ Where:
 <h2>Inspecting an AFF4 Volume.</h2>
 <p>The tool can examine an AFF4 volume as we have seen previously. It actually
 loads the provided AFF4 volume and outputs a common view of all known objects.</p>
-<div class="highlight"><pre><span class="nv">$ </span>linpmem -V images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
+<div class="highlight"><pre><span></span>$ linpmem -V images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
 @prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
 @prefix aff4: &lt;http://aff4.org/Schema#&gt; .
 @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt; .
@@ -565,7 +566,7 @@ loads the provided AFF4 volume and outputs a common view of all known objects.</
 <p>We can extract one of the streams to a file. This is sometimes useful for using
 tools which do not support AFF4 natively. For example, we can extract the
 pagefile into the /tmp/ directory:</p>
-<div class="highlight"><pre><span class="nv">$ </span>linpmem --export /c:/pagefile.sys --output /tmp/pagefile.sys images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
+<div class="highlight"><pre><span></span>$ linpmem --export /c:/pagefile.sys --output /tmp/pagefile.sys images/Windows_Server-2003-R2_SP2-English-32Bit-Base-2015.02.11.aff4
 
 Extracting aff4://4928ef44-6579-496c-a53e-2ad34d98b7ed/c:/pagefile.sys into file:///tmp/pagefile.sys
  Reading 0xa00000  10MiB / 512MiB 0MiB/s
@@ -589,7 +590,7 @@ flag explicitly allows pmem to truncate the output file (this will delete all
 current content of the volume).</p>
 <p>For example, the following will add files in /bin/* to the AFF4 volume (without
 overwriting it).</p>
-<div class="highlight"><pre><span class="nv">$ </span>linpmem -i /bin/* -o /tmp/test.aff4
+<div class="highlight"><pre><span></span>$ linpmem -i /bin/* -o /tmp/test.aff4
 
 Adding /bin/bash as file:///bin/bash
 Adding /bin/bsd-csh as file:///bin/bsd-csh
@@ -625,7 +626,7 @@ technique is in fact more stable than using the APIs and it is actually the only
 reliable way that access to physical memory is achievable on OSX. We therefore
 decided to make this the default acquisition mode on both Windows and OSX.</p>
 <p>To acquire memory all one needs to do is to specify the output volume:</p>
-<div class="highlight"><pre>C:\Users\mic&gt;winpmem_2.0.1.exe -o test.aff4
+<div class="highlight"><pre><span></span>C:\Users\mic&gt;winpmem_2.0.1.exe -o test.aff4
 Driver Unloaded.
 CR3: 0x0000187000
  2 memory ranges:
@@ -650,7 +651,7 @@ Driver Unloaded.
 binaries. You can also choose the snappy compression (<code>--compression snappy</code>)
 for a faster compression algorithm.</p>
 <p>Now we can use rekall to analyze this image:</p>
-<div class="highlight"><pre>C:\Users\mic&gt;&quot;c:\Program Files\Rekall\rekal.exe&quot; -f test.aff4
+<div class="highlight"><pre><span></span>C:\Users\mic&gt;&quot;c:\Program Files\Rekall\rekal.exe&quot; -f test.aff4
 
 ----------------------------------------------------------------------------
 The Rekall Memory Forensic framework 1.3.2 (Dammastock).
@@ -699,9 +700,9 @@ owned by root with group wheel, otherwise <code>kextload</code> will refuse to i
 kernel module.</p>
 <p>Next we simply load the driver using <code>kextload</code> and run the acquisition tool to
 create the AFF4 volume.</p>
-<div class="highlight"><pre><span class="nv">$ </span>sudo bash
+<div class="highlight"><pre><span></span>$ sudo bash
 Password:
-<span class="c"># unzip osxpmem_2.0.1.zip</span>
+<span class="c1"># unzip osxpmem_2.0.1.zip</span>
 Archive:  osxpmem_2.0.1.zip
    creating: osxpmem.app/
    creating: osxpmem.app/libs/
@@ -733,8 +734,8 @@ Archive:  osxpmem_2.0.1.zip
   inflating: osxpmem.app/MacPmem.kext/Contents/MacOS/MacPmem
   inflating: osxpmem.app/osxpmem
   inflating: osxpmem.app/README.md
-<span class="c"># kextload osxpmem.app/MacPmem.kext/</span>
-<span class="c"># ./osxpmem.app/osxpmem -o /tmp/test.aff4</span>
+<span class="c1"># kextload osxpmem.app/MacPmem.kext/</span>
+<span class="c1"># ./osxpmem.app/osxpmem -o /tmp/test.aff4</span>
 Imaging memory
 E0424 16:26:04.297508 <span class="m">2091074320</span> osxpmem.cc:138<span class="o">]</span> Range <span class="m">0</span> 581632
 E0424 16:26:04.297526 <span class="m">2091074320</span> osxpmem.cc:138<span class="o">]</span> Range <span class="m">589824</span> 65536
@@ -752,7 +753,7 @@ Resources/Dutch.lproj/
 Adding /System/Library/Extensions/ALF.kext/Contents/Resources/English.lproj/ as file:///System/Library/Extensions/ALF.kext/Content
 s/Resources/English.lproj/
 ...
-<span class="c"># cat /dev/pmem_info | head</span>
+<span class="c1"># cat /dev/pmem_info | head</span>
 %YAML 1.2
 ---
 meta:
@@ -770,7 +771,7 @@ meta:
   kernel_version: <span class="s2">&quot;Darwin Kernel Version 13.4.0: Wed Mar 18 16:20:14 PDT 2015; root:xnu-2422.115.14~1/RELEASE_X86_64&quot;</span>
 records:
   - purpose: <span class="s2">&quot;(PCI) IGPU/0&quot;</span>
-    <span class="nb">type</span>: <span class="s2">&quot;pci_range&quot;</span>
+    type: <span class="s2">&quot;pci_range&quot;</span>
     pci_type: <span class="s2">&quot;PCIUnknownMemory&quot;</span>
     start: 4768923648
     length: 4194304

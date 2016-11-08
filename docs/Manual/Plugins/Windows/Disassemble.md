@@ -20,7 +20,12 @@ args: {address_space: 'The address space to use. (type: AddressSpace)
     to disassemble. This can also be the name of a symbol with an optional offset.
     For example: tcpip!TcpCovetNetBufferList. (type: SymbolAddress)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Disassemble
 epydoc: rekall.plugins.tools.disassembler.Disassemble-class.html
 layout: plugin

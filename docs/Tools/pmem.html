@@ -263,7 +263,7 @@ will find the tool released in two versions:</p>
 </ul>
 <p>IMPORTANT: The recommended version for regular use is the one without write
 support. The version with write support can not be used on a regular system.</p>
-<div class="highlight"><pre><span class="nl">c</span><span class="p">:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">h</span>
+<div class="highlight"><pre><span></span><span class="nl">c</span><span class="p">:</span><span class="err">\</span><span class="p">..</span><span class="o">&gt;</span> <span class="n">winpmem_1</span><span class="mf">.6.0</span><span class="p">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">h</span>
 <span class="n">Winpmem</span> <span class="o">-</span> <span class="n">A</span> <span class="n">memory</span> <span class="n">imager</span> <span class="k">for</span> <span class="n">windows</span><span class="p">.</span>
 <span class="n">Copyright</span> <span class="n">Michael</span> <span class="n">Cohen</span> <span class="p">(</span><span class="n">scudette</span><span class="p">@</span><span class="n">gmail</span><span class="p">.</span><span class="n">com</span><span class="p">)</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
 
@@ -297,20 +297,20 @@ support. The version with write support can not be used on a regular system.</p>
 
 <h3>Examples</h3>
 <p>Writes a raw image to physmem.raw</p>
-<div class="highlight"><pre>winpmem_1.6.0.exe physmem.raw
+<div class="highlight"><pre><span></span>winpmem_1.6.0.exe physmem.raw
 </pre></div>
 
 
 <p>Writes a crashdump file to netcat for network transport. Output is supressed
 here because STDOUT is redirected.</p>
-<div class="highlight"><pre>winpmem_1.5.2.exe -d - | nc 192.168.1.1 80
+<div class="highlight"><pre><span></span>winpmem_1.5.2.exe -d - | nc 192.168.1.1 80
 </pre></div>
 
 
 <p>Normally the driver will be automatically unloaded after the image is
 acquired. To allow Rekall to attach to the raw device for live analysis, we need
 to load the driver and exit:</p>
-<div class="highlight"><pre>c:\..&gt; winpmem.exe -l
+<div class="highlight"><pre><span></span>c:\..&gt; winpmem.exe -l
 Loaded Driver.
 c:\..&gt; rekal -f \\.\pmem
 </pre></div>
@@ -319,18 +319,18 @@ c:\..&gt; rekal -f \\.\pmem
 <p>NOTE: Rekall does not usually need a profile when running on a windows image
 since it is autodetected.</p>
 <p>To unload the driver and exit:</p>
-<div class="highlight"><pre>c:\..&gt; winpmem.exe -u
+<div class="highlight"><pre><span></span>c:\..&gt; winpmem.exe -u
 Driver Unloaded.
 </pre></div>
 
 
 <p>To acquire a raw image using the MmMapIoSpace method:</p>
-<div class="highlight"><pre>c:\..&gt; winpmem_1.5.2.exe -1 myimage.raw
+<div class="highlight"><pre><span></span>c:\..&gt; winpmem_1.5.2.exe -1 myimage.raw
 </pre></div>
 
 
 <p>To acquire an image in crashdump format:</p>
-<div class="highlight"><pre>c:\..&gt;winpmem_1.6.0.exe -d c:\temp\test.dmp
+<div class="highlight"><pre><span></span>c:\..&gt;winpmem_1.6.0.exe -d c:\temp\test.dmp
 Driver Unloaded.
 Loaded Driver C:\Users\mic\AppData\Local\Temp\win6C6.tmp.
 Will write a crash dump file
@@ -358,7 +358,7 @@ Driver Unloaded.
 reading. This capability is a great learning tool since many rootkit hiding
 techniques can be emulated by writing to memory directly. For example the
 following Rekall session illustrates changing the name of the binary:</p>
-<div class="highlight"><pre>c:..&gt; rekal -f \\.\pmem
+<div class="highlight"><pre><span></span>c:..&gt; rekal -f \\.\pmem
 
 WinXPSP2x86:pmem 03:10:40&gt; task = session.profile._EPROCESS(0x82079c18)
 WinXPSP2x86:pmem 03:10:57&gt; task.ImageFileName
@@ -375,7 +375,7 @@ certificate) can not load on a regular system due to them being test self
 signed. You can allow the unsigned drivers to be loaded on a test system by
 issuing (see
 http://msdn.microsoft.com/en-us/library/windows/hardware/ff553484(v=vs.85).aspx):</p>
-<div class="highlight"><pre>Bcdedit.exe -set TESTSIGNING ON
+<div class="highlight"><pre><span></span>Bcdedit.exe -set TESTSIGNING ON
 </pre></div>
 
 
@@ -385,13 +385,13 @@ that this machine is configured for test signed drivers.</p>
 restrictions.</p>
 <p>Once the correct driver is loaded, Write support must also be enabled at load
 time using the -w switch:</p>
-<div class="highlight"><pre>winpmem_write-1.5.2.exe -w -l
+<div class="highlight"><pre><span></span>winpmem_write-1.5.2.exe -w -l
 </pre></div>
 
 
 <p>This will load the drivers and turn on write support. Then we can run rekall
 interactively, as usual on the raw device:</p>
-<div class="highlight"><pre>rekal --profile Win7SP1x64 --file \\.\pmem
+<div class="highlight"><pre><span></span>rekal --profile Win7SP1x64 --file \\.\pmem
 </pre></div>
 
 

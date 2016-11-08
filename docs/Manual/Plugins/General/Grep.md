@@ -17,7 +17,12 @@ args: {address_space: 'Name of the address_space to search. (type: AddressSpace)
 
 
 
-    * Default: 0'}
+    * Default: 0', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Grep
 epydoc: rekall.plugins.core.Grep-class.html
 layout: plugin

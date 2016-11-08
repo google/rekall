@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -663,8 +723,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CheckPEHooks.html">
-          check_pehooks
+       <a href="/docs/Manual/Plugins/Windows/WindowsSetProcessContext.html">
+          cc
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -690,6 +750,18 @@ name but much expanded using new information.</p>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <p>The Windows kernel has a facility to register callbacks for certain events. This
 is often misused by malware in order to gain persistence. The <code>callbacks</code> plugin
@@ -704,7 +776,7 @@ approximately as their distance from the module&rsquo;s export table.</p>
 instruct the address resolver to download the profile from the Microsoft symbol
 server. Once the profile is downloaded, Rekall can determine the exact function
 name registered (wdf01000!FxpBugCheckCallback).</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 00:59:59&gt; callbacks
+<div class="highlight"><pre><span></span>[1] win7.elf 00:59:59&gt; callbacks
 ---------------------&gt; callbacks()
                 Type                     Offset        Callback                          Symbol                       Details
 ------------------------------------ -------------- -------------- -------------------------------------------------- -------
@@ -747,7 +819,8 @@ nt!KeBugCheckCallbackListHead        0xfa80019a1ea0 0xf880014548f0 ndis!NdisGetS
 nt!KeBugCheckCallbackListHead        0xf80002c25400 0xf80002c0eef4 hal!HalQueryMaximumProcessorCount+0x54c            ACPI x64
 nt!KeBugCheckReasonCallbackListHead  0xfa80026549f8 0xf88000efd054 wdf01000!FxpBugCheckCallback                       PEAUTH
 nt!KeBugCheckReasonCallbackListHead  0xfa8000927f88 0xf88000efd054 wdf01000!FxpBugCheckCallback                       monitor
-nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40                                      mouhid</code></pre>
+nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40                                      mouhid
+</pre></div>
 
 <p>
 
@@ -765,8 +838,8 @@ nt!KeBugCheckReasonCallbackListHead  0xfa80021f54b0 0xf88003edaf40 mouhid+0x3f40
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/CheckPEHooks.html">
-          check_pehooks
+       <a href="/docs/Manual/Plugins/Windows/WindowsSetProcessContext.html">
+          cc
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

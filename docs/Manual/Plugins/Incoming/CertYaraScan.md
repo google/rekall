@@ -15,8 +15,13 @@ args: {binary_string: 'A binary string (encoded as hex) to search for. e.g. 0001
 
 
 
-    * Default: 1000000', method: "Method to list processes. (type: ChoiceArray)\n\n\
-    \n* Valid Choices:\n    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n\
+    * Default: 1000000', limit: 'The length of data to search in each selected region.
+    (type: IntParser)
+
+
+
+    * Default: 18446744073709551616', method: "Method to list processes. (type: ChoiceArray)\n\
+    \n\n* Valid Choices:\n    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n\
     \    - Sessions\n    - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable,\
     \ Sessions, Handles", pids: 'One or more pids of processes to select. (type: ArrayIntParser)
 
@@ -64,9 +69,14 @@ args: {binary_string: 'A binary string (encoded as hex) to search for. e.g. 0001
 
     * Default: False', string: 'A verbatim string to search for. (type: String)
 
-    ', yara_expression: " (type: String)\n\n\n* Default: \nrule x509 {\n  strings:\
-    \ $a = {30 82 ?? ?? 30 82 ?? ??} condition: $a\n}\nrule pkcs {\n  strings: $a\
-    \ = {30 82 ?? ?? 02 01 00} condition: $a\n}\n", yara_file: ' (type: String)
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', yara_expression: " (type: String)\n\n\n* Default: \nrule x509 {\n\
+    \  strings: $a = {30 82 ?? ?? 30 82 ?? ??} condition: $a\n}\nrule pkcs {\n  strings:\
+    \ $a = {30 82 ?? ?? 02 01 00} condition: $a\n}\n", yara_file: ' (type: String)
 
     '}
 class_name: CertYaraScan

@@ -5,7 +5,12 @@ args: {max_history: 'Value of history buffer size. See HKEY_CURRENT_USER\Console
 
 
 
-    * Default: 50'}
+    * Default: 50', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CmdScan
 epydoc: rekall.plugins.windows.malware.cmdhistory.CmdScan-class.html
 layout: plugin

@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -709,14 +769,17 @@ ript>
 </ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>size</p></td><td><p>Size of memory to scan (type: IntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>size</p></td><td><p>Size of memory to scan (type: IntParser)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
 
 
 <h3>Sample output</h3>
-<pre class="highlight"><code>win8.1.raw 18:30:34&gt; impscan proc_regex=&quot;dwm.exe&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 18:30:34&gt; impscan proc_regex=&quot;dwm.exe&quot;
 -------------------&gt; impscan(proc_regex=&quot;dwm.exe&quot;)
 **************************************************
 Process dwm.exe PID 692
@@ -750,7 +813,8 @@ Process dwm.exe PID 692
 0x7ff7474fa208 0x7ff87c9ac960 KERNELBASE.dll       684
 0x7ff7474fa218 0x7ff87c9a14e0 KERNELBASE.dll       554
 0x7ff7474fa230 0x7ff87edd3184 KERNEL32.DLL         GetStartupInfoW
-0x7ff7474fa238 0x7ff87edd3074 KERNEL32.DLL         SetPriorityClass</code></pre>
+0x7ff7474fa238 0x7ff87edd3074 KERNEL32.DLL         SetPriorityClass
+</pre></div>
 
 <p>
 

@@ -10,7 +10,12 @@ args: {device: 'Name of the device to match. (type: String)
 
     ', unallocated: 'Show files that have no inode information. (type: Boolean)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Mls
 epydoc: rekall.plugins.linux.fs.Mls-class.html
 layout: plugin

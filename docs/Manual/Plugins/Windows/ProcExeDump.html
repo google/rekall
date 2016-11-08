@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -476,6 +506,12 @@ ript>
           </a>
         </li>
         
+        <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
         <li classes='active'>
           <a href='#procdump' class="category-link">
             procdump
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -653,9 +713,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/Pools.html">
+       <a href="/docs/Manual/Plugins/Windows/Privileges.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         pools
+         privileges
        </a>
     </li>
   </ul>
@@ -709,7 +769,10 @@ ript>
 </ul></td></tr><tr><td><p>out_fd</p></td><td><p>A file like object to write the output. (type: String)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -720,11 +783,12 @@ equivalent to calling <strong>pedump</strong> with an image base corresponding t
 section of the main process executable.</p>
 <p>The <strong>procdump</strong> plugin is a thin wrapper around the <strong>pedump</strong> plugin.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>win7.elf 14:42:55&gt; procdump proc_regex=&quot;csrss&quot;, dump_dir=&quot;/tmp/&quot;
+<div class="highlight"><pre><span></span>win7.elf 14:42:55&gt; procdump proc_regex=&quot;csrss&quot;, dump_dir=&quot;/tmp/&quot;
 **************************************************
 Dumping csrss.exe, pid: 348    output: executable.csrss_exe_348.exe
 **************************************************
-Dumping csrss.exe, pid: 396    output: executable.csrss_exe_396.exe</code></pre>
+Dumping csrss.exe, pid: 396    output: executable.csrss_exe_396.exe
+</pre></div>
 
 <p>
 
@@ -732,9 +796,9 @@ Dumping csrss.exe, pid: 396    output: executable.csrss_exe_396.exe</code></pre>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/Pools.html">
+       <a href="/docs/Manual/Plugins/Windows/Privileges.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         pools
+         privileges
        </a>
     </li>
   </ul>

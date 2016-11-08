@@ -8,7 +8,12 @@ args: {address_space: 'The address space to use. (type: AddressSpace)
 
     ', out_file: 'The file name to write. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: PEDump
 epydoc: rekall.plugins.windows.procdump.PEDump-class.html
 layout: plugin

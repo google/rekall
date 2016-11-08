@@ -8,7 +8,12 @@ args: {method: "Method to list processes (Default uses all methods). (type: Choi
 
     ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ProcMaps
 epydoc: rekall.plugins.linux.proc_maps.ProcMaps-class.html
 layout: plugin

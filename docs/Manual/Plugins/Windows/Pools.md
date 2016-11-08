@@ -4,7 +4,12 @@ abstract: "Prints information about system pools.\n\n    Ref:\n    http://illmat
   \    https://immunityinc.com/infiltrate/archives/kernelpool_infiltrate2011.pdf\n\
   \    http://gate.upm.ro/os/LABs/Windows_OS_Internals_Curriculum_Resource_Kit-ACADEMIC/WindowsResearchKernel-WRK/WRK-v1.2/base/ntos/ex/pool.c\n\
   \    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Pools
 epydoc: rekall.plugins.windows.pool.Pools-class.html
 layout: plugin

@@ -247,19 +247,21 @@ analysis out of the box.</p>
 manager. We support running Rekall under a virtualenv environment (This
 guarantees that the exact versions of all dependencies are met).</p>
 <p>Simply type (for example on Linux):</p>
-<pre class="highlight"><code class="language-sh">$ virtualenv  /tmp/MyEnv
+<div class="highlight"><pre><span></span>$ virtualenv  /tmp/MyEnv
 New python executable in /tmp/MyEnv/bin/python
 Installing setuptools, pip...done.
-$ source /tmp/MyEnv/bin/activate
+$ <span class="nb">source</span> /tmp/MyEnv/bin/activate
 $ pip install --upgrade setuptools pip wheel
-$ pip install rekall</code></pre>
+$ pip install rekall
+</pre></div>
 
 
 <p>To have all the dependencies installed. You still need to have python and pip
 installed first.</p>
 <p>To be able to run the ipython notebook, you will need to install the rekall-gui
 package:</p>
-<pre class="highlight"><code class="language-sh">$ pip install rekall-gui</code></pre>
+<div class="highlight"><pre><span></span>$ pip install rekall-gui
+</pre></div>
 
 
 <p>For windows, Rekall is also available as a self contained installer
@@ -273,21 +275,22 @@ of python dependencies the only configuration which is supported is installing
 Rekall via virtualenv. This is the only way that guarantees that all of Rekall&rsquo;s
 dependencies are installed with their correct versions. Although it is possible
 to install Rekall to the system python this is fragile and likely to break.</p>
-<pre class="highlight"><code class="language-sh"># You might need to install virtualenv:
+<div class="highlight"><pre><span></span><span class="c1"># You might need to install virtualenv:</span>
 $ sudo apt-get install python-virtualenv
 
-# This will build a new empty python environment.
+<span class="c1"># This will build a new empty python environment.</span>
 $ virtualenv /tmp/Test
 
-# Now we switch to the environment - all python code runs from here.
-$ source /tmp/Test/bin/activate
+<span class="c1"># Now we switch to the environment - all python code runs from here.</span>
+$ <span class="nb">source</span> /tmp/Test/bin/activate
 
-# For development run the devel version
+<span class="c1"># For development run the devel version</span>
 $ git clone https://github.com/google/rekall.git
 
-# Install the rekall-core and rekall from its directory.
+<span class="c1"># Install the rekall-core and rekall from its directory.</span>
 $ pip install --editable ./rekall-core
-$ pip install --editable .</code></pre>
+$ pip install --editable .
+</pre></div>
 
 
 <p>When done you can just remove the <code>/tmp/Test</code> directory.</p>
@@ -296,7 +299,8 @@ $ pip install --editable .</code></pre>
 <h2>Mailing Lists</h2>
 <p>Mailing lists to support the users and developers of Rekall
 can be found at the following address:</p>
-<pre class="highlight"><code>rekall-discuss@googlegroups.com</code></pre>
+<div class="highlight"><pre><span></span>rekall-discuss@googlegroups.com
+</pre></div>
 
 
 <h2>Licensing and Copyright</h2>

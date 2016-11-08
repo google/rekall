@@ -1,6 +1,11 @@
 ---
 abstract: Enumerate the SSDT.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: WinSSDT
 epydoc: rekall.plugins.windows.ssdt.WinSSDT-class.html
 layout: plugin

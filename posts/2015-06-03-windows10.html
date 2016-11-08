@@ -1382,24 +1382,7 @@ start of the header). It then fetches a cookie from the symbol
 <code>object_types</code>). So the <code>_OBJECT_HEADER.TypeIndex</code> field is obfuscated. We can
 de-obfuscate the field automatically by adding an object <code>@property</code>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">_OBJECT_HEADER</span></span><span style="color: #990000">(</span>common<span style="color: #990000">.</span>_OBJECT_HEADER<span style="color: #990000">):</span>
-    @property
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">TypeIndex</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
-        cookie <span style="color: #990000">=</span> self<span style="color: #990000">.</span>obj_profile<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">get_constant_object</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"ObHeaderCookie"</span><span style="color: #990000">,</span> target<span style="color: #990000">=</span><span style="color: #FF0000">"byte"</span><span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">v</span></span><span style="color: #990000">()</span>
-
-        <span style="font-style: italic"><span style="color: #9A1900"># Windows 7 has no cookie.</span></span>
-        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> cookie <span style="color: #990000">==</span> None<span style="color: #990000">:</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">m</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"TypeIndex"</span><span style="color: #990000">)</span>
-
-        <span style="font-style: italic"><span style="color: #9A1900"># Windows 10 xors the virtual address into this field so we need to use</span></span>
-        <span style="font-style: italic"><span style="color: #9A1900"># the virtual address to decode it.</span></span>
-        vaddr <span style="color: #990000">=</span> self<span style="color: #990000">.</span>obj_offset
-
-        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #990000">((</span>vaddr <span style="color: #990000">&gt;&gt;</span> <span style="color: #993399">8</span><span style="color: #990000">)</span> <span style="color: #990000">^</span> cookie <span style="color: #990000">^</span> <span style="font-weight: bold"><span style="color: #000000">int</span></span><span style="color: #990000">(</span>self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">m</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"TypeIndex"</span><span style="color: #990000">)))</span> <span style="color: #990000">&amp;</span> <span style="color: #993399">0xFF</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>We simply retrieve the cookie using the profile (Rekall profiles have full
 symbol information) and then retrieve the original <code>TypeIndex</code> fields with the
 <strong>m()</strong> method. This automatically de-obfuscates the field whenever it is
@@ -1560,7 +1543,7 @@ released!</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-06-10 22:32:17 CEST
+Last updated 2016-11-08 10:46:09 PST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

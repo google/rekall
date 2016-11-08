@@ -1,5 +1,5 @@
 ---
-abstract: "Hexdump an object or memory location.\n\n    You can use this plugin repeatedly\
+abstract: "Hexdump an object or memory location.\n\n    You can use this plugin repeateadely\
   \ to keep dumping more data using the\n     \"p _\" (print last result) operation:\n\
   \n    In [2]: dump 0x814b13b0, address_space=\"K\"\n    ------> dump(0x814b13b0,\
   \ address_space=\"K\")\n    Offset                         Hex                 \
@@ -24,7 +24,12 @@ args: {address_space: 'The address space to use. (type: AddressSpace)
 
     * Default: 0', rows: 'Number of bytes per row (type: IntParser)
 
-    ', width: 'Number of bytes per row (type: IntParser)
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', width: 'Number of bytes per row (type: IntParser)
 
     '}
 class_name: Dump

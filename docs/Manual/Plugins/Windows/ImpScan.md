@@ -20,7 +20,12 @@ args: {base: 'Base address in process memory if --pid is supplied, otherwise an 
 
     ', size: 'Size of memory to scan (type: IntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: ImpScan
 epydoc: rekall.plugins.windows.malware.impscan.ImpScan-class.html
 layout: plugin

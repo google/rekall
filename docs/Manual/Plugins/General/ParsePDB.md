@@ -11,7 +11,12 @@ args: {concise: 'Specify this to emit less detailed information. (type: Boolean)
     ', profile_class: 'The name of the profile implementation. Default name is derived
     from the pdb filename. (type: String)
 
-    ', windows_version: 'The windows version (major.minor.revision) corresponding
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', windows_version: 'The windows version (major.minor.revision) corresponding
     with this PDB. For example, Windows 7 should be given as 6.1 (type: String)
 
     '}

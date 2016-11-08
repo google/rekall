@@ -459,7 +459,10 @@ ript>
 <li>
 <p>Default: InitTask</p>
 </li>
-</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -468,19 +471,20 @@ ript>
 <p>Rekall walks the process table and dereferences each of the <code>task.files.fds</code> for each
 kernel task.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware\(Win7x64+Ubuntu686,Ubuntu64\)_VBox\(XPSP3x86\).ram  --ept 0x00017725001e - lsof 
-[...]
-libvirtd             1199            0       13 -                       0 -        -   
-libvirtd             1199            0       14            0            0        0 socket:/NETLINK[0]
-libvirtd             1199            0       15            0            0    12987 socket:/UNIX[12987]
-libvirtd             1199            0       16 -                       0 -        proc
-libvirtd             1199            0       17            0            0        0 socket:/NETLINK[0]
-libvirtd             1199            0       18            0            0     8902 /run/libvirt/network/nwfilter.leases
-libvirtd             1199            0       19            0            0     7861 -   
-bash                 1335            0        0 -                       0 -        -   
-bash                 1335            0        1 -                       0 -        -   
-bash                 1335            0        2 -                       0 -        -   
-bash                 1335            0      255 -                       0 -        -   </code></pre>
+<div class="highlight"><pre><span></span>$ python rekall/rekal.py -f ~/memory_images/Windows7_VMware<span class="se">\(</span>Win7x64+Ubuntu686,Ubuntu64<span class="se">\)</span>_VBox<span class="se">\(</span>XPSP3x86<span class="se">\)</span>.ram  --ept 0x00017725001e - lsof 
+<span class="o">[</span>...<span class="o">]</span>
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">13</span> -                       <span class="m">0</span> -        -   
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">14</span>            <span class="m">0</span>            <span class="m">0</span>        <span class="m">0</span> socket:/NETLINK<span class="o">[</span>0<span class="o">]</span>
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">15</span>            <span class="m">0</span>            <span class="m">0</span>    <span class="m">12987</span> socket:/UNIX<span class="o">[</span>12987<span class="o">]</span>
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">16</span> -                       <span class="m">0</span> -        proc
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">17</span>            <span class="m">0</span>            <span class="m">0</span>        <span class="m">0</span> socket:/NETLINK<span class="o">[</span>0<span class="o">]</span>
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">18</span>            <span class="m">0</span>            <span class="m">0</span>     <span class="m">8902</span> /run/libvirt/network/nwfilter.leases
+libvirtd             <span class="m">1199</span>            <span class="m">0</span>       <span class="m">19</span>            <span class="m">0</span>            <span class="m">0</span>     <span class="m">7861</span> -   
+bash                 <span class="m">1335</span>            <span class="m">0</span>        <span class="m">0</span> -                       <span class="m">0</span> -        -   
+bash                 <span class="m">1335</span>            <span class="m">0</span>        <span class="m">1</span> -                       <span class="m">0</span> -        -   
+bash                 <span class="m">1335</span>            <span class="m">0</span>        <span class="m">2</span> -                       <span class="m">0</span> -        -   
+bash                 <span class="m">1335</span>            <span class="m">0</span>      <span class="m">255</span> -                       <span class="m">0</span> -        -   
+</pre></div>
 
 <p>
 

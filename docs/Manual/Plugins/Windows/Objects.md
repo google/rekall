@@ -1,6 +1,11 @@
 ---
 abstract: Displays all object Types on the system.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Objects
 epydoc: rekall.plugins.windows.misc.Objects-class.html
 layout: plugin

@@ -8,7 +8,12 @@ args: {method: "Method to list processes (Default uses all methods). (type: Choi
 
     ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    ', virtual_address: 'The Virtual Address to examine. (type: SymbolAddress)
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', virtual_address: 'The Virtual Address to examine. (type: SymbolAddress)
 
     '}
 class_name: LinVtoP

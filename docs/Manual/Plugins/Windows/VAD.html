@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -641,6 +695,12 @@ ript>
         <li classes=''>
           <a href='#yarascan' class="category-link">
             yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
           </a>
         </li>
         </ul></ul>
@@ -710,7 +770,10 @@ ript>
 </ul></td></tr><tr><td><p>offset</p></td><td><p>Only print the vad corresponding to this offset. (type: IntParser)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A regular expression to filter VAD filenames. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A regular expression to filter VAD filenames. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -745,7 +808,7 @@ properties.</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<pre class="highlight"><code>win7_trial_64bit.dmp.E01 23:10:34&gt; vad 1232
+<div class="highlight"><pre><span></span>win7_trial_64bit.dmp.E01 23:10:34&gt; vad 1232
 **************************************************
 Pid: 1232 grrservice.exe
      VAD       lev     start           end        com -       -      Protect              Filename
@@ -791,7 +854,8 @@ Pid: 1232 grrservice.exe
 0xfa8002083800 5         0x7efdf        0x7efdf    1 Private        READWRITE
 0xfa800208b260 6         0x7efe0        0x7f0df    0 Mapped         READONLY             Pagefile-backed section
 0xfa800207c840 4         0x7ffe0        0x7ffef   -1 Private        READONLY
-0xfa80020810b0 5         0x7fff0     0x7fffffef   -1 Private        READONLY</code></pre>
+0xfa80020810b0 5         0x7fff0     0x7fffffef   -1 Private        READONLY
+</pre></div>
 
 <p>
 

@@ -6,7 +6,12 @@ args: {dwarf_filename: 'The filename of the PDB file. (type: String)
 
 
 
-    * Default: Linux64'}
+    * Default: Linux64', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: DwarfParser
 epydoc: rekall.plugins.overlays.linux.dwarfparser.DwarfParser-class.html
 layout: plugin

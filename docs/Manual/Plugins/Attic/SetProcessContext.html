@@ -182,6 +182,12 @@ ript>
           </a>
         </li>
         
+        <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
         <li classes='active'>
           <a href='#cc' class="category-link">
             cc
@@ -315,6 +321,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#pslist' class="category-link">
+            pslist
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#pstree' class="category-link">
             pstree
           </a>
@@ -401,9 +413,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Attic/EntityAnalyze.html">
+       <a href="/docs/Manual/Plugins/Attic/IRSetProcessContext.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         analyze
+         cc
        </a>
     </li>
   </ul>
@@ -457,7 +469,7 @@ to load the correct <code>process context</code>. Each process context:</p>
 </li>
 </ul>
 <p>This plugin can be used programmatically as a context manager:</p>
-<div class="highlight"><pre>cc = session.plugins.cc()
+<div class="highlight"><pre><span></span>cc = session.plugins.cc()
 with cc:
    cc.SetProcessContext(eprocess)
 
@@ -476,7 +488,7 @@ with cc:
 <h3>Sample output</h3>
 <p>This plugin has no visible effects, except that after running it, the session&rsquo;s
 default address space is changed.</p>
-<div class="highlight"><pre><span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mo">00</span><span class="o">:</span><span class="mi">08</span><span class="o">:</span><span class="mi">34</span><span class="o">&gt;</span> <span class="n">cc</span> <span class="mi">3060</span>
+<div class="highlight"><pre><span></span><span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mo">00</span><span class="o">:</span><span class="mi">08</span><span class="o">:</span><span class="mi">34</span><span class="o">&gt;</span> <span class="n">cc</span> <span class="mi">3060</span>
 <span class="nl">DEBUG</span><span class="p">:</span><span class="nl">root</span><span class="p">:</span><span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="nl">context</span><span class="p">:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="p">(</span><span class="n">Pid</span> <span class="mi">3060</span><span class="mh">@0xfa8000bbd060</span><span class="p">)</span>
 <span class="n">Switching</span> <span class="n">to</span> <span class="n">process</span> <span class="nl">context</span><span class="p">:</span> <span class="n">conhost</span><span class="p">.</span><span class="n">exe</span> <span class="p">(</span><span class="n">Pid</span> <span class="mi">3060</span><span class="mh">@0xfa8000bbd060</span><span class="p">)</span>
 <span class="n">win7_trial_64bit</span><span class="p">.</span><span class="n">dmp</span><span class="p">.</span><span class="n">E01</span> <span class="mo">00</span><span class="o">:</span><span class="mi">08</span><span class="o">:</span><span class="mi">36</span><span class="o">&gt;</span> <span class="n">session</span><span class="p">.</span><span class="n">GetParameter</span><span class="p">(</span><span class="s">&quot;process_context&quot;</span><span class="p">)</span>
@@ -491,9 +503,9 @@ default address space is changed.</p>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Attic/EntityAnalyze.html">
+       <a href="/docs/Manual/Plugins/Attic/IRSetProcessContext.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         analyze
+         cc
        </a>
     </li>
   </ul>

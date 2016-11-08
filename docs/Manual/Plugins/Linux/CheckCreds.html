@@ -459,7 +459,10 @@ ript>
 <li>
 <p>Default: InitTask</p>
 </li>
-</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -476,7 +479,7 @@ credentials (most often ID 0: <code>root</code>).</p>
 structure is being reused, you&rsquo;ll see more than one line of output with the
 same <code>cred</code> address.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 15:40:12&gt; check_creds
+<div class="highlight"><pre><span></span>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 15:40:12&gt; check_creds
 -----------------------------------------------------------------------&gt; check_creds()
      Cred      PID      Command             
 -------------- -------- --------------------
@@ -497,7 +500,8 @@ same <code>cred</code> address.</p>
 0x88003b9dee40 1049     getty               
 0x88003c1a78c0 1176     whoopsie            
 0x88003c69a480 1486     dnsmasq             
-0x88003cbc1440 1199     libvirtd            </code></pre>
+0x88003cbc1440 1199     libvirtd            
+</pre></div>
 
 <p>
 

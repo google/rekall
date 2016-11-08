@@ -1331,21 +1331,7 @@ memory image, and deducing higher level constructs from the low level "ones and
 zeros" in memory.</p></div>
 <div class="paragraph"><p>For example, if a C program defines the following struct:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">typedef</span></span> <span style="color: #009900">unsigned</span> <span style="color: #009900">char</span> uchar<span style="color: #990000">;</span>
-<span style="font-weight: bold"><span style="color: #0000FF">enum</span></span> <span style="color: #FF0000">{</span>
-  OPT1<span style="color: #990000">,</span>
-  OPT2
-<span style="color: #FF0000">}</span> options<span style="color: #990000">;</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">foobar</span> <span style="color: #FF0000">{</span>
-    <span style="font-weight: bold"><span style="color: #0000FF">enum</span></span> <span style="color: #008080">options</span> flags<span style="color: #990000">;</span>
-    <span style="color: #009900">short</span> <span style="color: #009900">int</span> bar<span style="color: #990000">;</span>
-    <span style="color: #008080">uchar</span> <span style="color: #990000">*</span>foo<span style="color: #990000">;</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>What should the memory layout be? The answer is not so simple - it depends on
 many things such as the compiler used, architecture etc. For example, the
 compiler might enforce an alignment on the struct members by inserting padding
@@ -1448,77 +1434,14 @@ memory layout. We use the object system to instantiate high level classes (with
 behaviours at specified memory addresses). The Rekall <code>object system</code> is built
 on top of the base class found in <code>rekall.obj.BaseObject()</code>:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">BaseObject</span></span><span style="color: #990000">(</span>object<span style="color: #990000">):</span>
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> theType<span style="color: #990000">=</span>None<span style="color: #990000">,</span> offset<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">,</span> vm<span style="color: #990000">=</span>None<span style="color: #990000">,</span> profile<span style="color: #990000">=</span>None<span style="color: #990000">,</span>
-                 parent<span style="color: #990000">=</span>None<span style="color: #990000">,</span> name<span style="color: #990000">=</span><span style="color: #FF0000">''</span><span style="color: #990000">,</span> context<span style="color: #990000">=</span>None<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        """Constructor for Base object.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">        Args:</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          theType: The name of the type of this object. This different</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">             from the class name, since the same class may implement many types</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">             (e.g. Struct implements every instance in the vtype definition).</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          offset: The offset within the address space to this object exists.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          vm: The address space this object uses to read itself from.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          profile: The profile this object may use to dereference other</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">           types.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          parent: The object which created this object.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          name: The name of this object.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          context: An opaque dict which is passed to all objects created from</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">            this object. This dict may contain context specific information</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">            which each derived instance can use.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">          kwargs: Arbitrary args this object may accept - these can be passed in</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">             the vtype language definition.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
-<span style="color: #990000">....</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>So in order to instantiate a Rekall object, we need to provide at a minimum an
 address space to read and an offset of where in the address space to read. More
 complex objects may require more parameters. For example, to define a <code>Struct</code>
 class we also need to provide the list of members and the total size of the
 struct:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">Struct</span></span><span style="color: #990000">(</span>BaseAddressComparisonMixIn<span style="color: #990000">,</span> BaseObject<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">    """ A Struct is an object which represents a c struct</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">    Structs have members at various fixed relative offsets from our own base</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">    offset.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">    """</span></span>
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> members <span style="color: #990000">=</span> None<span style="color: #990000">,</span> struct_size <span style="color: #990000">=</span> <span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-       <span style="color: #990000">....</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">String</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>StringProxyMixIn<span style="color: #990000">,</span> obj<span style="color: #990000">.</span>NativeType<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">    """Class for dealing with Null terminated C Strings.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">    """</span></span>
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> length <span style="color: #990000">=</span> <span style="color: #993399">1024</span><span style="color: #990000">,</span> term<span style="color: #990000">=</span><span style="color: #FF0000">"\x00"</span><span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-        <span style="color: #990000">....</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">Pointer</span></span><span style="color: #990000">(</span>NativeType<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">    """A pointer reads an 'address' object from the address space."""</span></span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">__init__</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> target<span style="color: #990000">=</span>None<span style="color: #990000">,</span> target_args<span style="color: #990000">=</span>None<span style="color: #990000">,</span> value<span style="color: #990000">=</span>None<span style="color: #990000">,</span> <span style="color: #990000">**</span>kwargs<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        """Constructor.</span></span>
-
-<span style="font-style: italic"><span style="color: #9A1900">        Args:</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">           target: The name of the target object (A string). We use the profile</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">             to instantiate it.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">           target_args: The target will receive these as kwargs.</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        """</span></span>
-        <span style="color: #990000">....</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>In the above examples of Rekall objects, new keyword args are introduced which
 are specific for each new type. Note in particular the use the keyword arg
 <code>target</code> and <code>target_args</code> which by convention are used for any class which will
@@ -1541,56 +1464,7 @@ really a data driven description of how to create instances of the <code>Struct(
 class.</p></div>
 <div class="paragraph"><p>The precise format of a <code>vtype language</code> struct definition is as follows:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900">#     <img alt="1" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" />            <img alt="2" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></span></span>
-<span style="color: #FF0000">"Struct Name"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>Struct Size<span style="color: #990000">:</span> <span style="color: #990000">{</span>
-<span style="font-style: italic"><span style="color: #9A1900">#        <img alt="3" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
-JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
-7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
-Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
-cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
-NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
-SUVORK5CYII=" />             <img alt="4" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
-HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
-ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
-6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
-QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
-YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
-QmCC" />            <img alt="5" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB2SURBVHja
-FY6hEcQwDAQPChqGGhoaqgWX8PUYBhqGBn4rX0JooKDh/UlsZ3b2BJKXH8XPTYLh1lpt1h+BwxkR
-A23jhsCQd2IkfH9T3HEkzPFegCXUKSUSpJUPsN7UFOgc9VkZUBoz9l0yrVHZarUcJZeb9XznDyNb
-Ny9CX3/7AAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jp
-c3R5QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlAGZlNjkwNDYzMzc5
-ZWIyNWU1NjJmY2M4Y2M5YjNjN2Uw37I5ngAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElF
-TkSuQmCC" />             <img alt="6" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB9SURBVHja
-FY0hEsMwDAQXChaaBgoG+guB/UZhvlAYWFhqmCeUBvoJoYaCgqrMbudu9oiI86m6tQyEb1AU6kjI
-3GxcQnVO2K0Uq/Ahi6tpFWClwLDe+wNkwt0R2yfk7Negv+csw8uWZR4c+NS4Z6FOTKmkTO88Df9W
-kfXwiD+zczjqCrgbWQAAAEN0RVh0U29mdHdhcmUAQCgjKUltYWdlTWFnaWNrIDQuMi44IDk5LzA4
-LzAxIGNyaXN0eUBteXN0aWMuZXMuZHVwb250LmNvbZG6IbgAAAAqdEVYdFNpZ25hdHVyZQBkMjVk
-NzE3NmQ2N2EwMzhhZmMxYzU2NTU4ZTNkZmIxYf0Q9bUAAAAOdEVYdFBhZ2UAMTJ4MTIrMCswhG27
-fQAAAABJRU5ErkJggg==" /></span></span>
-    <span style="color: #FF0000">"Member name"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>Member Offset<span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Class Name"</span><span style="color: #990000">,</span> Keyword Args<span style="color: #990000">]],</span>
-   <span style="color: #990000">}]</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1672,57 +1546,7 @@ Struct members are simply names of object classes (inherited from
 </ul></div>
 <div class="paragraph"><p>The following is an example of a vtype definition generated from debugging symbols:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>  <span style="color: #FF0000">'_EPROCESS'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x270</span><span style="color: #990000">,</span> <span style="color: #990000">{</span>                                          <span style="font-style: italic"><span style="color: #9A1900">#<img alt="1" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
-VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
-gE0tIWQ+sBcwKM8qoD/wB5wGL8hjfdzWrh01GRp1hInGjDoXwHgsFuzBVLQAAABDdEVYdFNvZnR3
-YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBjcmlzdHlAbXlzdGljLmVzLmR1cG9u
-dC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUANThhMDcyZTA3MGRhMjJmNjEzNWNiZDNlNDE0NTQ2
-ZjloaiHtAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAASUVORK5CYII=" /></span></span>
-    <span style="color: #FF0000">'Pcb'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_KPROCESS'</span><span style="color: #990000">]],</span>                                  <span style="font-style: italic"><span style="color: #9A1900">#<img alt="2" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB7SURBVHja
-HY6hFcMwDEQ/NDQsNSwU9Apdo7Cw0CsIBoZmhKzQEQJLDQsFVclHpHu693W429Zr7bu541Pg3kCm
-Y0K75u9TEUPhuGgWU4mQDvieEaSQEnsT6zKPeZY0EUNtrHMCXvYUuSUg0PsMjUSvpysUT6OOSil9
-izp/VNk1YJ8vf6MAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8w
-MSBjcmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBlYWU1
-MjljOTRhN2Y0N2RlY2NmYWRhMjhhY2I5ZGblb7ENAAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30A
-AAAASUVORK5CYII=" /></span></span>
-    <span style="color: #FF0000">'ProcessLock'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x80</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_EX_PUSH_LOCK'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'CreateTime'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x88</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LARGE_INTEGER'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'ExitTime'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x90</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LARGE_INTEGER'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'RundownProtect'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x98</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_EX_RUNDOWN_REF'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'UniqueProcessId'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0x9c</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Pointer'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>target<span style="color: #990000">=</span><span style="color: #FF0000">"Void"</span><span style="color: #990000">)]],</span>  <span style="font-style: italic"><span style="color: #9A1900">#<img alt="3" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAAB4SURBVHja
-JU6rFcNADBM09BqBhl6ltDCwKxQeDOwKB7tGYGCoYaChK6cmlt7TD1W5uap/sgoVBnEXWBTSoOdx
-7gpLDOAVorWC0ABdcBPqwZtx8Muf+DPXJpQ96Nu/LSMYl/n17oCOnplTOrpiwW3sUs4ZJmob5/wA
-Ubg1Y/zrjUwAAABDdEVYdFNvZnR3YXJlAEAoIylJbWFnZU1hZ2ljayA0LjIuOCA5OS8wOC8wMSBj
-cmlzdHlAbXlzdGljLmVzLmR1cG9udC5jb22RuiG4AAAAKnRFWHRTaWduYXR1cmUAODBiYmRhMjcy
-NmRkYWNlOGFiOGEwMWY1OWRlMmViZGII/Q51AAAADnRFWHRQYWdlADEyeDEyKzArMIRtu30AAAAA
-SUVORK5CYII=" /></span></span>
-    <span style="color: #FF0000">'ActiveProcessLinks'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xa0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LIST_ENTRY'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'QuotaUsage'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xa8</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>                          <span style="font-style: italic"><span style="color: #9A1900">#<img alt="4" src="data:image/png;base64,
-iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABzSURBVHja
-HY0hEoUwEEMjkZVYZGVlr1CJxCKRXKPyy28reyVsZeXKsCFi573ZzAQk+x5jaQ6gFQAxIA8XceEN
-ZEN3DkOCH/TobUoSVuAYwSSLyzbvaHWVFJxUmmp+PF+twrLkuXzLwPmZ8+OjtH8KS6pGvuoGNo5b
-6rzDAAAAQ3RFWHRTb2Z0d2FyZQBAKCMpSW1hZ2VNYWdpY2sgNC4yLjggOTkvMDgvMDEgY3Jpc3R5
-QG15c3RpYy5lcy5kdXBvbnQuY29tkbohuAAAACp0RVh0U2lnbmF0dXJlADlmODJmY2FjOWUwMzlj
-YmRiNzIzODBhNDU5MTMyNGY1gLv4dgAAAA50RVh0UGFnZQAxMngxMiswKzCEbbt9AAAAAElFTkSu
-QmCC" /></span></span>
-                   target<span style="color: #990000">=</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">,</span>
-                   count<span style="color: #990000">=</span><span style="color: #993399">3</span>
-                   <span style="color: #990000">)]],</span>
-    <span style="color: #FF0000">'QuotaPeak'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xb4</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span>  <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-                   target<span style="color: #990000">=</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">,</span>
-                   count<span style="color: #990000">=</span><span style="color: #993399">3</span>
-                   <span style="color: #990000">)]],</span>
-    <span style="color: #FF0000">'CommitCharge'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xc0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'PeakVirtualSize'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xc4</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'VirtualSize'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xc8</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned long'</span><span style="color: #990000">]],</span>
-    <span style="color: #FF0000">'SessionProcessLinks'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span> <span style="color: #993399">0xcc</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'_LIST_ENTRY'</span><span style="color: #990000">]],</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="colist arabic"><table>
 <tr><td><img alt="1" src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAAAAABzHgM7AAAAAmJLR0QAAKqNIzIAAABjSURBVHja
 VY6xDcAwCAS/pPQaLim9QmajdOk2I2SNrMEIlARIoigU8Cek/4e7zdHaWOYOVwaoA6wOCw05Y7FB
@@ -1768,29 +1592,10 @@ of type <em>unsigned long</em>.
 <h3 id="_overlaying">4.2. Overlaying</h3>
 <div class="paragraph"><p>Rekall aims to specify semantic information about each field type. That means that we are really looking for the meaning behind each field, not just the mechanics of how to parse it. For example, the following struct may be defined in C:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #0000FF">struct</span></span> <span style="color: #008080">module</span>
-<span style="color: #FF0000">{</span>
-<span style="color: #990000">...</span>
-         <span style="font-style: italic"><span style="color: #9A1900">/* Unique handle for this module */</span></span>
-         <span style="color: #009900">char</span> name<span style="color: #990000">[</span>MODULE_NAME_LEN<span style="color: #990000">];</span>
-<span style="color: #990000">...</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>The debugging symbols will generate for this field an array of char objects:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="color: #FF0000">"module"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0x2FF</span><span style="color: #990000">,</span> <span style="color: #990000">{</span>
-  <span style="color: #FF0000">'name'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0x4F</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-          target<span style="color: #990000">=</span><span style="color: #FF0000">'char'</span><span style="color: #990000">,</span>
-          count<span style="color: #990000">=</span><span style="color: #993399">60</span>
-         <span style="color: #990000">)]]</span>
-<span style="color: #990000">}]</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>However, while technically correct, this is not semantically correct. We know
 that the array of char objects should really be interpreted as a null terminated
 unicode string in UTF8. We know that the offset of this field is correct though,
@@ -1799,13 +1604,7 @@ just that its meaning according to the debug symbols is inaccurate.</p></div>
 the values of lower layers. In this case we load the debug generated vtype
 first, then we load an overlay like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>    <span style="color: #FF0000">'module'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">{</span>
-            <span style="color: #FF0000">'name'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None <span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'UnicodeString'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>length <span style="color: #990000">=</span> <span style="color: #993399">60</span><span style="color: #990000">)]],</span>
-            <span style="color: #990000">}],</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Over the top. The overlay may specify a value of None for the offset, or the
 struct size positions. This will allow these values to "bubble up" from the
 lower level description. However, specifying a new class name will override the
@@ -1818,18 +1617,7 @@ overlay.</p></div>
 encouraged since it leads to semantically readable code which exactly describes
 the nature of the memory objects. For example:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>    <span style="color: #FF0000">'module'</span> <span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">{</span>
-            <span style="color: #FF0000">'name'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None <span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'UnicodeString'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>length <span style="color: #990000">=</span> <span style="color: #993399">60</span><span style="color: #990000">)]],</span>
-            <span style="color: #FF0000">'kp'</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'Pointer'</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-                        target<span style="color: #990000">=</span><span style="color: #FF0000">'Array'</span><span style="color: #990000">,</span>
-                        target_args<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-                            target<span style="color: #990000">=</span><span style="color: #FF0000">'kernel_param'</span><span style="color: #990000">,</span>
-                            count<span style="color: #990000">=</span><span style="font-weight: bold"><span style="color: #0000FF">lambda</span></span> x<span style="color: #990000">:</span> x<span style="color: #990000">.</span>num_kp<span style="color: #990000">))]],</span>
-            <span style="color: #990000">}],</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Specifies the <code>name</code> member to be a unicode string of length 60, while the <code>kp</code>
 field is a pointer to an array of <code>kernel_param</code> objects. The array size is
 specified in the module&#8217;s <code>num_kp</code> member.</p></div>
@@ -2668,7 +2456,7 @@ was any discrepancy with the baseline.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-19 17:12:45 AEST
+Last updated 2016-11-08 10:45:46 PST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

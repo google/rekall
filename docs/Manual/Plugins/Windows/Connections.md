@@ -6,7 +6,12 @@ abstract: "\n    Print list of open connections [Windows XP Only]\n    ---------
   \ do conscan instead.\n\n    Active TCP connections are found in a hash table. The\
   \ Hash table is given by\n    the _TCBTable symbol. The size of the hash table is\
   \ found in the\n    _MaxHashTableSize variable.\n    "
-args: {tcpip_guid: Force this profile to be used for tcpip.}
+args: {tcpip_guid: Force this profile to be used for tcpip., verbosity: 'An integer
+    reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Connections
 epydoc: rekall.plugins.windows.connections.Connections-class.html
 layout: plugin

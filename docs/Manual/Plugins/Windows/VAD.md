@@ -17,7 +17,12 @@ args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
     ', regex: 'A regular expression to filter VAD filenames. (type: RegEx)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: VAD
 epydoc: rekall.plugins.windows.vadinfo.VAD-class.html
 layout: plugin

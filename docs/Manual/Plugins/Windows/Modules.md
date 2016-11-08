@@ -2,7 +2,12 @@
 abstract: Print list of loaded kernel modules.
 args: {name_regex: 'Filter module names by this regex. (type: RegEx)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Modules
 epydoc: rekall.plugins.windows.modules.Modules-class.html
 layout: plugin

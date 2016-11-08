@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -356,6 +368,12 @@ ript>
           </a>
         </li>
         
+        <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
         <li classes='active'>
           <a href='#malfind' class="category-link">
             malfind
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -653,9 +713,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/LdrModules.html">
+       <a href="/docs/Manual/Plugins/Windows/LoadWindowsProfile.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         ldrmodules
+         load_profile
        </a>
     </li>
   </ul>
@@ -709,7 +769,10 @@ ript>
 </ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -732,7 +795,7 @@ stubs.</p>
 malfind, just supply an output directory with the <em>dump_dir</em> parameter. In this
 case, an unpacked copy of the Zeus binary that was injected into explorer.exe
 would be written to disk.</p>
-<pre class="highlight"><code>zeus2x4.vmem 22:53:43&gt; malfind proc_regex=&quot;explorer&quot;
+<div class="highlight"><pre><span></span>zeus2x4.vmem 22:53:43&gt; malfind proc_regex=&quot;explorer&quot;
 ---------------------&gt; malfind(proc_regex=&quot;explorer&quot;)
 **************************************************f pid 1752
 Process: explorer.exe Pid: 1752 Address: 0x2aa0000
@@ -833,7 +896,8 @@ Flags: CommitCharge: 52, MemCommit: 1, PrivateMemory: 1, Protection: 6
 0x03080017      004000               ADD [EAX+0x0], AL
 0x0308001a      0000                 ADD [EAX], AL
 0x0308001c      0000                 ADD [EAX], AL
-0x0308001e      0000                 ADD [EAX], AL</code></pre>
+0x0308001e      0000                 ADD [EAX], AL
+</pre></div>
 
 <p>
 
@@ -841,9 +905,9 @@ Flags: CommitCharge: 52, MemCommit: 1, PrivateMemory: 1, Protection: 6
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/LdrModules.html">
+       <a href="/docs/Manual/Plugins/Windows/LoadWindowsProfile.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         ldrmodules
+         load_profile
        </a>
     </li>
   </ul>

@@ -5,7 +5,12 @@ abstract: "Walks open files of each proc in order and prints PID, FD and the han
   \  handle on some resource. A type field in the fileproc determines the type\n \
   \   of the resource pointed to from the fileproc (e.g. vnode, socket, pipe...).\n\
   \    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: DarwinLsof
 epydoc: rekall.plugins.darwin.lsof.DarwinLsof-class.html
 layout: plugin

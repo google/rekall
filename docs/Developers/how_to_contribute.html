@@ -243,23 +243,23 @@ ript>
 <li><a href="http://dev.chromium.org/developers/contributing-code">http://dev.chromium.org/developers/contributing-code</a></li>
 </ul>
 <h2>Step 1: Clone the project</h2>
-<div class="highlight"><pre>&gt; git clone https://github.com/google/rekall.git
+<div class="highlight"><pre><span></span>&gt; git clone https://github.com/google/rekall.git
 </pre></div>
 
 
 <h2>Step 2a: Clone the depot_tools repository somewhere.</h2>
-<div class="highlight"><pre>&gt; git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+<div class="highlight"><pre><span></span>&gt; git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
 </pre></div>
 
 
 <h2>Step 2b: Add the depot_tools directory to your path</h2>
 <p>This will add the git cl command.</p>
-<div class="highlight"><pre><span class="x">&gt; export PATH=&quot;`pwd`/depot_tools/:</span><span class="p">$</span><span class="nv">PATH</span><span class="x">&quot;</span>
+<div class="highlight"><pre><span></span><span class="x">&gt; export PATH=&quot;`pwd`/depot_tools/:</span><span class="p">$</span><span class="nv">PATH</span><span class="x">&quot;</span>
 </pre></div>
 
 
 <h2>Step 2c: Configure git cl, you&rsquo;ll only need to do this once.</h2>
-<div class="highlight"><pre>&gt; git cl config
+<div class="highlight"><pre><span></span>&gt; git cl config
 &gt; Rietveld server (host[:port]) [https://codereview.appspot.com]:
 &gt; CC list:rekall-dev@googlegroups.com
 &gt; Private flag (rietveld only):
@@ -271,12 +271,12 @@ ript>
 <h2>Step 3: Create a branch for your new changes</h2>
 <p>Pick a branch name not existing locally nor in the remote repo, we recommend
 that you use your user name as a prefix to make things simpler.</p>
-<div class="highlight"><pre>&gt; git checkout -b uname_example                        # new branch
+<div class="highlight"><pre><span></span>&gt; git checkout -b uname_example                        # new branch
 </pre></div>
 
 
 <h2>Step 4a: Do your changes and commit them locally in git</h2>
-<div class="highlight"><pre>&gt; echo &quot;file contents&quot; &gt; awesome_example.txt
+<div class="highlight"><pre><span></span>&gt; echo &quot;file contents&quot; &gt; awesome_example.txt
 &gt; git add awesome_example.txt
 &gt; git commit -a -m &quot;An awesome commit, for an awesome example.&quot;
 </pre></div>
@@ -285,12 +285,12 @@ that you use your user name as a prefix to make things simpler.</p>
 <h2>Step 4b: Rebasing your tracking branch</h2>
 <p>If in step 4a you get a notification that &ldquo;you may need to rebase your tracking
 branch&rdquo;, try running:</p>
-<div class="highlight"><pre>&gt; git pull origin master
+<div class="highlight"><pre><span></span>&gt; git pull origin master
 </pre></div>
 
 
 <h2>Step 5: Upload CL using &lsquo;git cl&rsquo;</h2>
-<div class="highlight"><pre>&gt; git cl upload origin/master
+<div class="highlight"><pre><span></span>&gt; git cl upload origin/master
 </pre></div>
 
 
@@ -298,7 +298,7 @@ branch&rdquo;, try running:</p>
 rietveld website. Note that double &ldquo;git status -s&rdquo; codes, e.g.
 AM (Added Modified) can cause rietveld to show &ldquo;error: old chunk mismatch&rdquo;.</p>
 <h2>Step 6: Make code review changes and publish new versions of your code</h2>
-<div class="highlight"><pre>&gt; echo &quot;better file contents&quot; &gt; awesome_example.txt
+<div class="highlight"><pre><span></span>&gt; echo &quot;better file contents&quot; &gt; awesome_example.txt
 &gt; git commit -a -m &quot;An awesomer commit&quot;
 &gt; git cl upload origin/master
 </pre></div>
@@ -307,7 +307,7 @@ AM (Added Modified) can cause rietveld to show &ldquo;error: old chunk mismatch&
 <h2>Step 7: Sync up to latest changes</h2>
 <p>If new changes have been made to the repo, you need sync up to the new changes
 before submitting your code:</p>
-<div class="highlight"><pre>&gt; git pull origin master
+<div class="highlight"><pre><span></span>&gt; git pull origin master
 &gt; git cl upload origin/master
 </pre></div>
 
@@ -315,7 +315,7 @@ before submitting your code:</p>
 <h2>Step 8: Submit your changes</h2>
 <p>We use git-cl also to submit. We use &lsquo;git cl land&rsquo;, to squash all commits from
 the branch into a single commit in git.</p>
-<div class="highlight"><pre>&gt; git cl land origin/master
+<div class="highlight"><pre><span></span>&gt; git cl land origin/master
 </pre></div>
 
 
@@ -324,14 +324,14 @@ master.</p>
 <h2>Step 9: Clean up the mess</h2>
 <p>After submitting, you can delete your local branch so that the repo is clean and
 tidy :)</p>
-<div class="highlight"><pre>&gt; git checkout master
+<div class="highlight"><pre><span></span>&gt; git checkout master
 &gt; git branch -D uname_example    # delete local branch
 </pre></div>
 
 
 <p>You can also see which branches are currently under review or have been
 reviewed:</p>
-<div class="highlight"><pre>&gt; git cl status
+<div class="highlight"><pre><span></span>&gt; git cl status
 </pre></div>
 
 
@@ -340,7 +340,7 @@ reviewed:</p>
 commit the code on their behalf. (See
 <a href="http://dev.chromium.org/developers/contributing-code/direct-commit">http://dev.chromium.org/developers/contributing-code/direct-commit</a>).</p>
 <p>The reviewer should run the following:</p>
-<div class="highlight"><pre><span class="x">&gt; git cl patch &lt;code review issue number&gt;</span>
+<div class="highlight"><pre><span></span><span class="x">&gt; git cl patch &lt;code review issue number&gt;</span>
 <span class="x">&gt; git commit --amend -s --author=&quot;</span><span class="p">$</span><span class="nv">AUTHOR_NAME</span><span class="x"> &lt;</span><span class="p">$</span><span class="nv">AUTHOR_EMAIL</span><span class="x">&gt;&quot;</span>
 <span class="x">&gt; git cl land -c</span>
 </pre></div>
@@ -351,7 +351,7 @@ commit the code on their behalf. (See
 squashes all local commits into a single commit.</p>
 <h2>Troubleshooting</h2>
 <p>If &lsquo;git cl land&rsquo; returns the following error:</p>
-<div class="highlight"><pre> &gt; error: The requested URL returned error: 403 Forbidden while accessing
+<div class="highlight"><pre><span></span> &gt; error: The requested URL returned error: 403 Forbidden while accessing
  &gt; https://github.com/google/rekall.git/info/refs?service=git-receive-pack
 </pre></div>
 

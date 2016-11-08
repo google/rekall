@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes='active'>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -663,8 +723,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/GetSIDs.html">
-          tokens
+       <a href="/docs/Manual/Plugins/Windows/WindowsTimes.html">
+          times
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -685,6 +745,18 @@ ript>
 http://computer.forensikblog.de/en/2011/10/timers-and-times.html</p>
 </div>
 
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
 
 
 <p>The windows kernel has a mechanism for drivers to schedule Deferred Procedure
@@ -710,7 +782,7 @@ obfuscates all other timers, including ones possibly used by malware.</p>
 <p>Rekall is able to de-obfuscate these DPC address and resolve them back to their
 correct module. Rekall will also indicate when the timer is due to go off.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>win8.1.raw 22:25:53&gt; timers
+<div class="highlight"><pre><span></span>win8.1.raw 22:25:53&gt; timers
 Table     Offset     DueTime(H) DueTime              Period(ms)   Signaled    Routine     Module
 ----- -------------- ---------- -------------------- ---------- ---------- -------------- --------------------
 2   0xe00001a58708 0x0000000001f0df8a92 2014-01-24 21:21:14+0000       1000        Yes 0xf80000298480 wdf01000 + 0x8480
@@ -727,7 +799,8 @@ Table     Offset     DueTime(H) DueTime              Period(ms)   Signaled    Ro
 38  0xe00002327228 0x00000000024c651b42 2014-01-24 21:23:47+0000     944848          - 0xf8000249cbb4 mslldp + 0x4bb4
 38  0xe000013f7ef8 0x00000000324d602123 2014-01-25 03:07:25+0000   21600000          - 0xf80001491cf0 dxgkrnl + 0x19cf0
 38  0xf802d32ea250 0x0000000001d163bc04 2014-01-24 21:20:21+0000      60000        Yes 0xf802d3116bac nt!IopIrpStackProfilerTimer
-40  0xf80000e981c0 0x0000000002840a55a8 2014-01-24 21:25:21+0000          0          - 0xf80000e94c9c mup + 0x1c9c</code></pre>
+40  0xf80000e981c0 0x0000000002840a55a8 2014-01-24 21:25:21+0000          0          - 0xf80000e94c9c mup + 0x1c9c
+</pre></div>
 
 <p>
 
@@ -745,8 +818,8 @@ Table     Offset     DueTime(H) DueTime              Period(ms)   Signaled    Ro
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/GetSIDs.html">
-          tokens
+       <a href="/docs/Manual/Plugins/Windows/WindowsTimes.html">
+          times
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

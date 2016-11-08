@@ -1,6 +1,11 @@
 ---
 abstract: Dump RSA private and public SSL keys from the physical address space.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CertScan
 epydoc: rekall.plugins.windows.dumpcerts.CertScan-class.html
 layout: plugin

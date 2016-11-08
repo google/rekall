@@ -10,7 +10,12 @@ args: {all: 'Specify to see all the fops, even if they are known. (type: Boolean
 
     ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: CheckTaskFops
 epydoc: rekall.plugins.linux.check_fops.CheckTaskFops-class.html
 layout: plugin

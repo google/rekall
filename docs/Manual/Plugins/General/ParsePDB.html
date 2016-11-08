@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         
         <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes=''>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -328,7 +394,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>concise</p></td><td><p>Specify this to emit less detailed information. (type: Boolean)</p></td></tr><tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>output_filename</p></td><td><p>The name of the file to store this profile.  (type: String)</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the PDB file. (type: String)</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation. Default name is derived from the pdb filename. (type: String)</p></td></tr><tr><td><p>windows_version</p></td><td><p>The windows version (major.minor.revision) corresponding with this PDB. For example, Windows 7 should be given as 6.1 (type: String)</p></td></tr>
+<tr><td><p>concise</p></td><td><p>Specify this to emit less detailed information. (type: Boolean)</p></td></tr><tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>output_filename</p></td><td><p>The name of the file to store this profile.  (type: String)</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the PDB file. (type: String)</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation. Default name is derived from the pdb filename. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>windows_version</p></td><td><p>The windows version (major.minor.revision) corresponding with this PDB. For example, Windows 7 should be given as 6.1 (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -344,7 +413,7 @@ parse it and produce a JSON file for Rekall to use.</p>
 <p>Note that normally this plugin is called by other plugins such as
 <code>build_local_profile</code> or automatically by Rekall. So users do not need to call
 this plugin directly in most cases.</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
+<div class="highlight"><pre><span></span>[1] win7.elf 23:09:12&gt; fetch_pdb pdb_filename=&quot;termdd.pdb&quot;, guid=&quot;2A530717E88549BB92DBB72C224EC2B11&quot;
  Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
  Trying to fetch http://msdl.microsoft.com/download/symbols/termdd.pdb/2A530717E88549BB92DBB72C224EC2B11/termdd.pd_
 Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
@@ -363,7 +432,8 @@ All done, no errors.
   &quot;IcaChargeForPostCompressionUsage&quot;: 46106,
   &quot;IcaConnectionDispatchTable&quot;: 45632,
   &quot;IcaDeviceObject&quot;: 46848,
-  &quot;IcaDisableFlowControl&quot;: 46105,</code></pre>
+  &quot;IcaDisableFlowControl&quot;: 46105,
+</pre></div>
 
 <p>
 

@@ -1386,23 +1386,7 @@ differently from other operating systems when we support windows specific
 pagefiles. In fact there is a subtle bug in previous Rekall versions (and
 Volatility), which use this code to determine if a PTE is valid:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt>    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">entry_present</span></span><span style="color: #990000">(</span>self<span style="color: #990000">,</span> entry<span style="color: #990000">):</span>
-<span style="font-style: italic"><span style="color: #9A1900">        '''</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        Returns whether or not the 'P' (Present) flag is on</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        in the given entry</span></span>
-<span style="font-style: italic"><span style="color: #9A1900">        '''</span></span>
-        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> entry<span style="color: #990000">:</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> entry <span style="color: #990000">&amp;</span> <span style="color: #993399">1</span><span style="color: #990000">:</span>
-                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> True
-            <span style="font-style: italic"><span style="color: #9A1900"># The page is in transition and not a prototype.</span></span>
-            <span style="font-style: italic"><span style="color: #9A1900"># Thus, we will treat it as present.</span></span>
-            <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">(</span>entry <span style="color: #990000">&amp;</span> <span style="color: #990000">(</span><span style="color: #993399">1</span> <span style="color: #990000">&lt;&lt;</span> <span style="color: #993399">11</span><span style="color: #990000">))</span> <span style="font-weight: bold"><span style="color: #0000FF">and</span></span> <span style="font-weight: bold"><span style="color: #0000FF">not</span></span> entry <span style="color: #990000">&amp;</span> <span style="color: #990000">(</span><span style="color: #993399">1</span> <span style="color: #990000">&lt;&lt;</span> <span style="color: #993399">10</span><span style="color: #990000">):</span>
-                <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> True
-        <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> False</tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>This code is a holdover from the old Volatility code base and was introduced
 back when people noticed that many pages on a windows image are in
 <code>Transition</code>. Pages in the <code>Transition</code> state are waiting to be written to the
@@ -4189,66 +4173,7 @@ program which allocates a large memory block (using <code>VirtualAlloc</code>), 
 memory with a pattern and then just Sleeps. Additionally I mapped a file and
 also mapped a large region which is never touched (Demand Zero region):</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">"Windows.h"</span>
-
-<span style="color: #009900">void</span> <span style="font-weight: bold"><span style="color: #000000">create_file_mapping</span></span><span style="color: #990000">()</span> <span style="color: #FF0000">{</span>
-  <span style="color: #008080">HANDLE</span>  h<span style="color: #990000">;</span>
-  <span style="color: #008080">TCHAR</span> <span style="color: #990000">*</span>filename <span style="color: #990000">=</span> L<span style="color: #FF0000">"c:</span><span style="color: #CC33CC">\\</span><span style="color: #FF0000">windows</span><span style="color: #CC33CC">\\</span><span style="color: #FF0000">notepad.exe"</span><span style="color: #990000">;</span>
-  h<span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">CreateFile</span></span><span style="color: #990000">(</span>filename<span style="color: #990000">,</span> GENERIC_READ<span style="color: #990000">,</span>FILE_SHARE_READ<span style="color: #990000">,</span>
-                NULL<span style="color: #990000">,</span>OPEN_EXISTING<span style="color: #990000">,</span>FILE_FLAG_SEQUENTIAL_SCAN<span style="color: #990000">,</span>NULL<span style="color: #990000">);</span>
-
-  <span style="color: #008080">DWORD</span> size <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">GetFileSize</span></span><span style="color: #990000">(</span>h<span style="color: #990000">,</span> NULL<span style="color: #990000">);</span>
-  <span style="color: #008080">HANDLE</span> hFileMapping <span style="color: #990000">=</span> <span style="font-weight: bold"><span style="color: #000000">CreateFileMapping</span></span><span style="color: #990000">(</span>h<span style="color: #990000">,</span> NULL<span style="color: #990000">,</span>PAGE_READONLY<span style="color: #990000">,</span> <span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #993399">0</span><span style="color: #990000">,</span> NULL<span style="color: #990000">);</span>
-  <span style="color: #009900">char</span> <span style="color: #990000">*</span>view <span style="color: #990000">=</span> <span style="color: #990000">(</span><span style="color: #009900">char</span><span style="color: #990000">*)</span> <span style="font-weight: bold"><span style="color: #000000">MapViewOfFileEx</span></span><span style="color: #990000">(</span>hFileMapping<span style="color: #990000">,</span> FILE_MAP_READ<span style="color: #990000">,</span> <span style="color: #993399">0</span><span style="color: #990000">,</span>  <span style="color: #993399">0</span><span style="color: #990000">,</span><span style="color: #993399">0</span><span style="color: #990000">,</span>NULL<span style="color: #990000">);</span>
-  <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Mapped file into %p %s</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">,</span> view<span style="color: #990000">,</span> view<span style="color: #990000">);</span>
-<span style="color: #FF0000">}</span>
-
-<span style="color: #009900">int</span> <span style="font-weight: bold"><span style="color: #000000">_tmain</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> argc<span style="color: #990000">,</span> _TCHAR<span style="color: #990000">*</span> argv<span style="color: #990000">[])</span>
-<span style="color: #FF0000">{</span>
-  <span style="color: #009900">int</span> number_of_pages <span style="color: #990000">=</span> <span style="color: #993399">202400</span><span style="color: #990000">;</span>
-  <span style="color: #009900">char</span> <span style="color: #990000">*</span>pointer <span style="color: #990000">=</span> <span style="color: #990000">(</span><span style="color: #009900">char</span> <span style="color: #990000">*)</span><span style="font-weight: bold"><span style="color: #000000">VirtualAlloc</span></span><span style="color: #990000">(</span>
-      NULL<span style="color: #990000">,</span> number_of_pages <span style="color: #990000">*</span> <span style="color: #993399">0x1000</span><span style="color: #990000">,</span>
-      MEM_COMMIT <span style="color: #990000">|</span> MEM_RESERVE<span style="color: #990000">,</span>
-      PAGE_READWRITE<span style="color: #990000">);</span>
-
-  <span style="color: #009900">char</span> <span style="color: #990000">*</span>pointer2 <span style="color: #990000">=</span> <span style="color: #990000">(</span><span style="color: #009900">char</span> <span style="color: #990000">*)</span><span style="font-weight: bold"><span style="color: #000000">VirtualAlloc</span></span><span style="color: #990000">(</span>
-      NULL<span style="color: #990000">,</span> <span style="color: #993399">2400</span> <span style="color: #990000">*</span> <span style="color: #993399">0x1000</span><span style="color: #990000">,</span>
-      MEM_COMMIT <span style="color: #990000">|</span> MEM_RESERVE<span style="color: #990000">,</span>
-      PAGE_READWRITE<span style="color: #990000">);</span>
-
-  <span style="color: #008080">__int64</span> i<span style="color: #990000">;</span>
-  <span style="color: #009900">int</span> j<span style="color: #990000">;</span>
-
-  <span style="font-style: italic"><span style="color: #9A1900">// Read uninitialized data from the allocated range.</span></span>
-  <span style="color: #009900">char</span> tmp <span style="color: #990000">=</span> <span style="color: #990000">*</span>pointer2<span style="color: #990000">;</span>
-
-  <span style="font-weight: bold"><span style="color: #000000">create_file_mapping</span></span><span style="color: #990000">();</span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> <span style="color: #990000">(!</span>pointer<span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
-    <span style="font-weight: bold"><span style="color: #000000">LogLastError</span></span><span style="color: #990000">();</span>
-    <span style="font-weight: bold"><span style="color: #0000FF">goto</span></span> exit<span style="color: #990000">;</span>
-  <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
-  <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Allocated %d pages at %p (%d mb)</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">,</span> number_of_pages<span style="color: #990000">,</span>
-         pointer<span style="color: #990000">,</span> number_of_pages <span style="color: #990000">*</span> <span style="color: #993399">0x1000</span> <span style="color: #990000">/</span> <span style="color: #993399">1024</span><span style="color: #990000">/</span><span style="color: #993399">1024</span><span style="color: #990000">);</span>
-
-  <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Mapped second region at %p</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">,</span> pointer2<span style="color: #990000">);</span>
-
-  <span style="font-style: italic"><span style="color: #9A1900">// Write pages with pattern.</span></span>
-  <span style="font-weight: bold"><span style="color: #0000FF">for</span></span> <span style="color: #990000">(</span>i<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span> i<span style="color: #990000">&lt;</span>number_of_pages<span style="color: #990000">;</span> i<span style="color: #990000">++)</span> <span style="color: #FF0000">{</span>
-    <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>j<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span> j<span style="color: #990000">&lt;</span><span style="color: #993399">0x1000</span><span style="color: #990000">;</span> j<span style="color: #990000">+=</span><span style="color: #993399">8</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
-      <span style="color: #990000">*((</span>__int64<span style="color: #990000">*)(</span>pointer <span style="color: #990000">+</span> i<span style="color: #990000">*</span><span style="color: #993399">0x1000</span><span style="color: #990000">+</span>j<span style="color: #990000">))</span> <span style="color: #990000">=</span> i<span style="color: #990000">;</span>
-    <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
-  <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
-
-<span style="font-weight: bold"><span style="color: #008080">exit:</span></span>
-  <span style="font-weight: bold"><span style="color: #000000">printf</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Done!</span><span style="color: #CC33CC">\n</span><span style="color: #FF0000">"</span><span style="color: #990000">);</span>
-  <span style="font-weight: bold"><span style="color: #000000">Sleep</span></span><span style="color: #990000">(</span><span style="color: #993399">1000000</span><span style="color: #990000">);</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>I ran the program (<code>swapper.exe</code>) on a small Windows 7 VM with only 1GB of ram
 allocated. I also enabled a few more columns in <code>Task Manager</code> to observe memory
 usage. We can see that the program allocated over 800mb (Commit Size) but only
@@ -11148,7 +11073,7 @@ github if you find any bugs.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-19 10:04:59 AEST
+Last updated 2016-11-08 10:46:11 PST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

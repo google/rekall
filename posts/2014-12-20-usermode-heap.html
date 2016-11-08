@@ -232,41 +232,7 @@ e.g. malloc()).</p></div>
 process. In order to test this I wrote a quick c program which uses malloc() to
 allocate known strings:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #000080">#include</span></span> <span style="color: #FF0000">"Windows.h"</span>
-
-<span style="color: #009900">int</span> <span style="font-weight: bold"><span style="color: #000000">_tmain</span></span><span style="color: #990000">(</span><span style="color: #009900">int</span> argc<span style="color: #990000">,</span> _TCHAR<span style="color: #990000">*</span> argv<span style="color: #990000">[])</span>
-<span style="color: #FF0000">{</span>
-  <span style="color: #009900">int</span> i<span style="color: #990000">;</span>
-  <span style="color: #009900">char</span> pattern<span style="color: #990000">[]</span> <span style="color: #990000">=</span> <span style="color: #990000">(</span>
-     <span style="color: #FF0000">" "</span> <span style="font-style: italic"><span style="color: #9A1900">// First byte for the size of allocation.</span></span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span>
-     <span style="color: #FF0000">"The quick brown fox jumped over the lazy dog!"</span><span style="color: #990000">);</span>
-
-  <span style="font-weight: bold"><span style="color: #0000FF">for</span></span><span style="color: #990000">(</span>i<span style="color: #990000">=</span><span style="color: #993399">0</span><span style="color: #990000">;</span> i<span style="color: #990000">&lt;</span><span style="color: #993399">255</span><span style="color: #990000">;</span> i<span style="color: #990000">++)</span> <span style="color: #FF0000">{</span>
-    <span style="color: #009900">char</span> <span style="color: #990000">*</span>buff <span style="color: #990000">=</span> <span style="color: #990000">(</span><span style="color: #009900">char</span> <span style="color: #990000">*)</span><span style="font-weight: bold"><span style="color: #000000">malloc</span></span><span style="color: #990000">(</span>i<span style="color: #990000">+</span><span style="color: #993399">1</span><span style="color: #990000">);</span>
-    <span style="font-weight: bold"><span style="color: #000000">memcpy</span></span><span style="color: #990000">(</span>buff<span style="color: #990000">,</span> pattern<span style="color: #990000">,</span> i<span style="color: #990000">);</span>
-    buff<span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">]</span> <span style="color: #990000">=</span> i<span style="color: #990000">;</span> <span style="font-style: italic"><span style="color: #9A1900">// Mark the size of allocation in the first byte.</span></span>
-
-    <span style="font-weight: bold"><span style="color: #0000FF">if</span></span><span style="color: #990000">((</span>i <span style="color: #990000">%</span> <span style="color: #993399">3</span><span style="color: #990000">)</span> <span style="color: #990000">==</span> <span style="color: #993399">0</span><span style="color: #990000">)</span> <span style="color: #FF0000">{</span>
-      <span style="font-weight: bold"><span style="color: #000000">free</span></span><span style="color: #990000">(</span>buff<span style="color: #990000">);</span>
-    <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
-  <span style="color: #FF0000">}</span><span style="color: #990000">;</span>
-
-  <span style="font-weight: bold"><span style="color: #000000">Sleep</span></span><span style="color: #990000">(</span><span style="color: #993399">100000</span><span style="color: #990000">);</span>
-  <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> <span style="color: #993399">0</span><span style="color: #990000">;</span>
-<span style="color: #FF0000">}</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>This program simply allocates a string of increasing length and marks the length
 of the string in the first byte. The program also frees every third
 string. Finally the program simply sleeps, allowing us to either examine the
@@ -992,43 +958,7 @@ examples for ones with Type = 5:</p></div>
 the CNAME record.</p></div>
 <div class="paragraph"><p>We can already write its definition like:</p></div>
 <div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.6
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #9A1900"># Most common DNS types.</span></span>
-DNS_TYPES <span style="color: #990000">=</span> <span style="color: #990000">{</span>
-    <span style="color: #993399">1</span><span style="color: #990000">:</span> <span style="color: #FF0000">"A"</span><span style="color: #990000">,</span>
-    <span style="color: #993399">5</span><span style="color: #990000">:</span> <span style="color: #FF0000">"CNAME"</span><span style="color: #990000">,</span>
-    <span style="color: #993399">28</span><span style="color: #990000">:</span> <span style="color: #FF0000">"AAAA"</span><span style="color: #990000">,</span>
-<span style="color: #990000">}</span>
-
-types <span style="color: #990000">=</span> <span style="color: #990000">{</span>
-    <span style="color: #FF0000">"DNS_RECORD"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span>None<span style="color: #990000">,</span> <span style="color: #990000">{</span>
-        <span style="color: #FF0000">"Next"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Pointer"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-            target<span style="color: #990000">=</span><span style="color: #FF0000">"DNS_RECORD"</span>
-            <span style="color: #990000">)]],</span>
-        <span style="color: #FF0000">"Name"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">8</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Pointer"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-            target<span style="color: #990000">=</span><span style="color: #FF0000">"UnicodeString"</span>
-            <span style="color: #990000">)]],</span>
-        <span style="color: #FF0000">"Type"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">16</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">"Enumeration"</span><span style="color: #990000">,</span> <span style="font-weight: bold"><span style="color: #000000">dict</span></span><span style="color: #990000">(</span>
-            choices<span style="color: #990000">=</span>DNS_TYPES<span style="color: #990000">,</span>
-            target<span style="color: #990000">=</span><span style="color: #FF0000">"unsigned short"</span>
-        <span style="color: #990000">)]],</span>
-        <span style="color: #FF0000">"DataLength"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">18</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'unsigned short'</span><span style="color: #990000">]],</span>
-        <span style="color: #FF0000">"Data"</span><span style="color: #990000">:</span> <span style="color: #990000">[</span><span style="color: #993399">0x20</span><span style="color: #990000">,</span> <span style="color: #990000">[</span><span style="color: #FF0000">'char'</span><span style="color: #990000">]],</span>
-    <span style="color: #990000">}],</span>
-<span style="color: #990000">}</span>
-
-<span style="font-weight: bold"><span style="color: #0000FF">class</span></span> <span style="font-weight: bold"><span style="color: #000000">DNS_RECORD</span></span><span style="color: #990000">(</span>obj<span style="color: #990000">.</span>Struct<span style="color: #990000">):</span>
-    @property
-    <span style="font-weight: bold"><span style="color: #0000FF">def</span></span> <span style="font-weight: bold"><span style="color: #000000">Data</span></span><span style="color: #990000">(</span>self<span style="color: #990000">):</span>
-        <span style="font-weight: bold"><span style="color: #0000FF">if</span></span> self<span style="color: #990000">.</span>Type <span style="color: #990000">==</span> <span style="color: #FF0000">"CNAME"</span><span style="color: #990000">:</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">m</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Data"</span><span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">cast</span></span><span style="color: #990000">(</span>
-                <span style="color: #FF0000">"Pointer"</span><span style="color: #990000">,</span> target<span style="color: #990000">=</span><span style="color: #FF0000">"UnicodeString"</span><span style="color: #990000">).</span><span style="font-weight: bold"><span style="color: #000000">deref</span></span><span style="color: #990000">()</span>
-        <span style="font-weight: bold"><span style="color: #0000FF">elif</span></span> self<span style="color: #990000">.</span>Type <span style="color: #990000">==</span> <span style="color: #FF0000">"A"</span><span style="color: #990000">:</span>
-            <span style="font-weight: bold"><span style="color: #0000FF">return</span></span> utils<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">inet_ntop</span></span><span style="color: #990000">(</span>
-                socket<span style="color: #990000">.</span>AF_INET<span style="color: #990000">,</span> self<span style="color: #990000">.</span>obj_vm<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">read</span></span><span style="color: #990000">(</span>self<span style="color: #990000">.</span><span style="font-weight: bold"><span style="color: #000000">m</span></span><span style="color: #990000">(</span><span style="color: #FF0000">"Data"</span><span style="color: #990000">).</span>obj_offset<span style="color: #990000">,</span> <span style="color: #993399">4</span><span style="color: #990000">))</span></tt></pre></div></div>
+<div class="content"></div></div>
 <div class="paragraph"><p>Just like we followed the <code>Next</code> pointer before we can also try to follow this
 list in reverse using the <code>grep</code> plugin to see where each struct is referenced
 from.</p></div>
@@ -1387,7 +1317,7 @@ INFO:root:Loaded profile ntdll/GUID/9D04EB0AA387494FBD81ED062072B99C2 from Direc
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-12-23 18:39:32 AEST
+Last updated 2016-11-08 10:46:13 PST
 </div>
 </div>
 <script src="/js/asciidoc.js"></script>

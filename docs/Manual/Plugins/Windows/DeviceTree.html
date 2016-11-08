@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -691,6 +751,9 @@ ript>
 <tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search in each selected region. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -730,6 +793,9 @@ ript>
 </ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -750,15 +816,16 @@ susceptible to false positives and active subversion. We are working on
 converting this plugin to use the <a href="ObjectTree.html">object_tree</a> plugin to
 directly parse kernel driver structures.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>[snip]
-DRV 0x2bb31060 \Driver\winpmem
----| DEV 0xfa80019ba060 pmem FILE_DEVICE_UNKNOWN
-DRV 0x2bb36600 \Driver\TermDD
----| DEV 0xfa80019ff040 - FILE_DEVICE_8042_PORT
-------| ATT 0xfa80019ff980 - - \Driver\mouclass FILE_DEVICE_MOUSE
----| DEV 0xfa80019e2040 - FILE_DEVICE_8042_PORT
-------| ATT 0xfa80019e2960 - - \Driver\kbdclass FILE_DEVICE_KEYBOARD
-[snip]</code></pre>
+<div class="highlight"><pre><span></span><span class="k">[snip]</span>
+<span class="err">DRV</span> <span class="err">0x2bb31060</span> <span class="err">\Driver\winpmem</span>
+<span class="err">---|</span> <span class="err">DEV</span> <span class="err">0xfa80019ba060</span> <span class="err">pmem</span> <span class="err">FILE_DEVICE_UNKNOWN</span>
+<span class="err">DRV</span> <span class="err">0x2bb36600</span> <span class="err">\Driver\TermDD</span>
+<span class="err">---|</span> <span class="err">DEV</span> <span class="err">0xfa80019ff040</span> <span class="err">-</span> <span class="err">FILE_DEVICE_8042_PORT</span>
+<span class="err">------|</span> <span class="err">ATT</span> <span class="err">0xfa80019ff980</span> <span class="err">-</span> <span class="err">-</span> <span class="err">\Driver\mouclass</span> <span class="err">FILE_DEVICE_MOUSE</span>
+<span class="err">---|</span> <span class="err">DEV</span> <span class="err">0xfa80019e2040</span> <span class="err">-</span> <span class="err">FILE_DEVICE_8042_PORT</span>
+<span class="err">------|</span> <span class="err">ATT</span> <span class="err">0xfa80019e2960</span> <span class="err">-</span> <span class="err">-</span> <span class="err">\Driver\kbdclass</span> <span class="err">FILE_DEVICE_KEYBOARD</span>
+<span class="k">[snip]</span>
+</pre></div>
 
 
 <p>In the above we can see that the winpmem driver has a device called &ldquo;pmem&rdquo;. We

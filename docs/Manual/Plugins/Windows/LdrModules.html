@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -663,8 +723,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/Malfind.html">
-          malfind
+       <a href="/docs/Manual/Plugins/Windows/LoadWindowsProfile.html">
+          load_profile
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -709,7 +769,10 @@ ript>
 </ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -723,7 +786,7 @@ cross-reference this information (known as memory mapped files) with the 3 PEB
 lists, use the ldrmodules command.</p>
 <p>For each memory mapped PE file, the ldrmodules command prints True or False if
 the PE exists in the PEB lists.</p>
-<pre class="highlight"><code>win8.1.raw 22:17:36&gt; ldrmodules proc_regex=&quot;winpmem&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 22:17:36&gt; ldrmodules proc_regex=&quot;winpmem&quot;
 -------------------&gt; ldrmodules(proc_regex=&quot;winpmem&quot;)
 Pid      Process                   Base      InLoad InInit InMem MappedPath
 -------- -------------------- -------------- ------ ------ ----- ----------
@@ -741,7 +804,8 @@ Pid      Process                   Base      InLoad InInit InMem MappedPath
 2628     winpmem_1.5.2.       0x0000749e0000 False False False \Windows\SysWOW64\bcryptprimitives.dll
 2628     winpmem_1.5.2.       0x000074ff0000 False False False \Windows\SysWOW64\advapi32.dll
 2628     winpmem_1.5.2.       0x000076f10000 False False False \Windows\SysWOW64\sechost.dll
-2628     winpmem_1.5.2.       0x000074d80000 False False False \Windows\SysWOW64\msvcrt.dll</code></pre>
+2628     winpmem_1.5.2.       0x000074d80000 False False False \Windows\SysWOW64\msvcrt.dll
+</pre></div>
 
 
 <p>Since the PEB and the DLL lists that it contains all exist in user mode, its
@@ -754,7 +818,7 @@ all entries.</p>
 Link</a>
 and <a href="http://mnin.blogspot.com/2012/06/quickpost-flame-volatility.html">QuickPost: Flame &amp;
 Volatility</a>.</p>
-<pre class="highlight"><code>win8.1.raw 22:17:41&gt; ldrmodules proc_regex=&quot;winpmem&quot;, verbosity=10
+<div class="highlight"><pre><span></span>win8.1.raw 22:17:41&gt; ldrmodules proc_regex=&quot;winpmem&quot;, verbosity=10
 -------------------&gt; ldrmodules(proc_regex=&quot;winpmem&quot;, verbosity=10)
 Pid      Process                   Base      InLoad InInit InMem MappedPath
 -------- -------------------- -------------- ------ ------ ----- ----------
@@ -786,7 +850,8 @@ Pid      Process                   Base      InLoad InInit InMem MappedPath
 2628     winpmem_1.5.2.       0x0000749e0000 False False False \Windows\SysWOW64\bcryptprimitives.dll
 2628     winpmem_1.5.2.       0x000074ff0000 False False False \Windows\SysWOW64\advapi32.dll
 2628     winpmem_1.5.2.       0x000076f10000 False False False \Windows\SysWOW64\sechost.dll
-2628     winpmem_1.5.2.       0x000074d80000 False False False \Windows\SysWOW64\msvcrt.dll</code></pre>
+2628     winpmem_1.5.2.       0x000074d80000 False False False \Windows\SysWOW64\msvcrt.dll
+</pre></div>
 
 
 <h3>Notes</h3>
@@ -812,8 +877,8 @@ Pid      Process                   Base      InLoad InInit InMem MappedPath
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/Malfind.html">
-          malfind
+       <a href="/docs/Manual/Plugins/Windows/LoadWindowsProfile.html">
+          load_profile
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

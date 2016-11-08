@@ -10,7 +10,12 @@ args: {dump_dir: 'Path suitable for dumping files. (type: String)
 
     ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: LinVadDump
 epydoc: rekall.plugins.linux.proc_maps.LinVadDump-class.html
 layout: plugin

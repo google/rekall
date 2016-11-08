@@ -1,6 +1,11 @@
 ---
 abstract: Enumerate pool tag usage statistics.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: PoolTracker
 epydoc: rekall.plugins.windows.pool.PoolTracker-class.html
 layout: plugin

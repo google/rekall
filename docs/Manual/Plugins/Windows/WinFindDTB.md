@@ -7,7 +7,12 @@ abstract: "A plugin to search for the Directory Table Base for windows systems.\
   \    the exception of session space which might be different) so using any\n   \
   \   process's DTB from the same session will work to read kernel data\n      structures.\
   \ If this plugin fails, try psscan to find potential DTBs.\n    "
-args: {process_name: The name of the process to search for.}
+args: {process_name: The name of the process to search for., verbosity: 'An integer
+    reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: WinFindDTB
 epydoc: rekall.plugins.windows.common.WinFindDTB-class.html
 layout: plugin

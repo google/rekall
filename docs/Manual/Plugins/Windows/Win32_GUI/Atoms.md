@@ -9,7 +9,12 @@ abstract: "Print session and window station atom tables.\n\n    From:\n    http:
   \    is unique throughout the system. Any application that has the atom can\n  \
   \  obtain the string it identifies by querying the global atom table.\n\n    (The\
   \ global atom tables are only global within each session).\n    "
-args: {win32k_profile: Force this profile to be used for Win32k.}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', win32k_profile: Force this profile to be used for Win32k.}
 class_name: Atoms
 epydoc: rekall.plugins.windows.gui.atoms.Atoms-class.html
 layout: plugin

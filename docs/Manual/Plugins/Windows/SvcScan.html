@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -684,6 +744,18 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <p>Windows uses services for long running processes. Serivces are managed by the
 &ldquo;services.exe&rdquo; process. The <strong>svcscan</strong> plugin scans the heap memory of the
@@ -709,14 +781,15 @@ unloaded, we might find <strong>_SERVICE_RECORD</strong> records.</p>
 </ol>
 <h3>Sample output</h3>
 <p>The below example shows a kernel driver being loaded as a service.</p>
-<pre class="highlight"><code>Offset: 0x26f7d6a10
-Order: 402
-Process ID: -
-Service Name: WFPLWFS
-Display Name: Microsoft Windows Filtering Platform
-Service Type: SERVICE_KERNEL_DRIVER
-Service State: SERVICE_RUNNING
-Binary Path: \Driver\WFPLWFS</code></pre>
+<div class="highlight"><pre><span></span><span class="n">Offset</span><span class="o">:</span> <span class="mh">0x26f7d6a10</span>
+<span class="n">Order</span><span class="o">:</span> <span class="mi">402</span>
+<span class="n">Process</span> <span class="n">ID</span><span class="o">:</span> <span class="o">-</span>
+<span class="n">Service</span> <span class="n">Name</span><span class="o">:</span> <span class="n">WFPLWFS</span>
+<span class="n">Display</span> <span class="n">Name</span><span class="o">:</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">Filtering</span> <span class="n">Platform</span>
+<span class="n">Service</span> <span class="n">Type</span><span class="o">:</span> <span class="n">SERVICE_KERNEL_DRIVER</span>
+<span class="n">Service</span> <span class="n">State</span><span class="o">:</span> <span class="n">SERVICE_RUNNING</span>
+<span class="n">Binary</span> <span class="n">Path</span><span class="o">:</span> <span class="o">\</span><span class="n">Driver</span><span class="o">\</span><span class="n">WFPLWFS</span>
+</pre></div>
 
 <p>
 

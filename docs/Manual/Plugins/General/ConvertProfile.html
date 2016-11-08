@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
           </a>
         </li>
         
         <li classes='active'>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes=''>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -293,9 +359,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/BuildIndex.html">
+       <a href="/docs/Manual/Plugins/General/BuildProfileLocally.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         build_index
+         build_local_profile
        </a>
     </li>
   </ul>
@@ -303,8 +369,8 @@ ript>
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/DT.html">
-          dt
+       <a href="/docs/Manual/Plugins/General/Describe.html">
+          describe
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>
@@ -334,7 +400,10 @@ produces a Rekall profile from a variety of sources, including:</p>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>converter</p></td><td><p>The name of the converter to use. If not specified autoguess. (type: String)</p></td></tr><tr><td><p>out_file</p></td><td><p>Path for output file. (type: String)</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation to specify. If not specified, we autodetect. (type: String)</p></td></tr><tr><td><p>source</p></td><td><p>Filename of profile to read. (type: String)</p></td></tr>
+<tr><td><p>converter</p></td><td><p>The name of the converter to use. If not specified autoguess. (type: String)</p></td></tr><tr><td><p>out_file</p></td><td><p>Path for output file. (type: String)</p></td></tr><tr><td><p>profile_class</p></td><td><p>The name of the profile implementation to specify. If not specified, we autodetect. (type: String)</p></td></tr><tr><td><p>source</p></td><td><p>Filename of profile to read. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -358,25 +427,26 @@ JSON format used by Rekall. There are two main use cases:</p>
 </ol>
 <p>The below example demonstrates how to build and convert a Linux profile locally
 for live analysis:</p>
-<pre class="highlight"><code class="language-sh">rekall/tools/linux# make profile
-make -C /usr/src/linux-headers-3.13.0-74-generic CONFIG_DEBUG_INFO=y M=`pwd` modules
-make[1]: Entering directory `/usr/src/linux-headers-3.13.0-74-generic'
-  Building modules, stage 2.
-    MODPOST 2 modules
-    make[1]: Leaving directory `/usr/src/linux-headers-3.13.0-74-generic'
+<div class="highlight"><pre><span></span>rekall/tools/linux# make profile
+make -C /usr/src/linux-headers-3.13.0-74-generic <span class="nv">CONFIG_DEBUG_INFO</span><span class="o">=</span>y <span class="nv">M</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span> modules
+make<span class="o">[</span>1<span class="o">]</span>: Entering directory <span class="sb">`</span>/usr/src/linux-headers-3.13.0-74-generic<span class="s1">&#39;</span>
+<span class="s1">  Building modules, stage 2.</span>
+<span class="s1">    MODPOST 2 modules</span>
+<span class="s1">    make[1]: Leaving directory `/usr/src/linux-headers-3.13.0-74-generic&#39;</span>
     cp module.ko module_dwarf.ko
-    zip &quot;3.13.0-74-generic.zip&quot; module_dwarf.ko /boot/System.map-3.13.0-74-generic /boot/config-3.13.0-74-generic
-    updating: module_dwarf.ko (deflated 65%)
-    updating: boot/System.map-3.13.0-74-generic (deflated 79%)
-    updating: boot/config-3.13.0-74-generic (deflated 75%)
+    zip <span class="s2">&quot;3.13.0-74-generic.zip&quot;</span> module_dwarf.ko /boot/System.map-3.13.0-74-generic /boot/config-3.13.0-74-generic
+    updating: module_dwarf.ko <span class="o">(</span>deflated 65%<span class="o">)</span>
+    updating: boot/System.map-3.13.0-74-generic <span class="o">(</span>deflated 79%<span class="o">)</span>
+    updating: boot/config-3.13.0-74-generic <span class="o">(</span>deflated 75%<span class="o">)</span>
 
 rekall/tools/linux# rekal convert_profile 3.13.0-74-generic.zip 3.13.0-74-generic.json
 rekall/tools/linux# rekal --profile 3.13.0-74-generic.json -f /proc/kcore pslist
      task_struct           Name          PID    PPID   UID    GID        DTB              Start Time        Binary
      -------------- -------------------- ------ ------ ------ ------ -------------- ------------------------ ------
-     0x8804285f0000 init                      1      0      0      0 0x000426592000     2016-01-29 12:50:31Z /sbin/init
-     0x8804285f1800 kthreadd                  2      0      0      0 -                  2016-01-29 12:50:31Z -
-     0x8804285f3000 ksoftirqd/0               3      2      0      0 -                  2016-01-29 12:50:31Z -</code></pre>
+     0x8804285f0000 init                      <span class="m">1</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> 0x000426592000     2016-01-29 12:50:31Z /sbin/init
+     0x8804285f1800 kthreadd                  <span class="m">2</span>      <span class="m">0</span>      <span class="m">0</span>      <span class="m">0</span> -                  2016-01-29 12:50:31Z -
+     0x8804285f3000 ksoftirqd/0               <span class="m">3</span>      <span class="m">2</span>      <span class="m">0</span>      <span class="m">0</span> -                  2016-01-29 12:50:31Z -
+</pre></div>
 
 <p>
 
@@ -384,9 +454,9 @@ rekall/tools/linux# rekal --profile 3.13.0-74-generic.json -f /proc/kcore pslist
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/BuildIndex.html">
+       <a href="/docs/Manual/Plugins/General/BuildProfileLocally.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         build_index
+         build_local_profile
        </a>
     </li>
   </ul>
@@ -394,8 +464,8 @@ rekall/tools/linux# rekal --profile 3.13.0-74-generic.json -f /proc/kcore pslist
 
   <ul class="nav navbar-nav navbar-right">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/DT.html">
-          dt
+       <a href="/docs/Manual/Plugins/General/Describe.html">
+          describe
           <span class="glyphicon glyphicon-arrow-right"></span>
        </a>
     </li>

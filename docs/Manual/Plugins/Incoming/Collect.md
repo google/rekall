@@ -6,7 +6,12 @@ abstract: "Collect instances of struct of type 'type_name'.\n\n    This plugin w
   \   "
 args: {type_name: 'The type (struct) to collect. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Collect
 epydoc: rekall.plugins.common.efilter_plugins.search.Collect-class.html
 layout: plugin

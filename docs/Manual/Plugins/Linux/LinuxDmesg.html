@@ -444,9 +444,21 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <h3>Sample output</h3>
-<pre class="highlight"><code>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 16:07:44&gt; dmesg
+<div class="highlight"><pre><span></span>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 16:07:44&gt; dmesg
 ---------------------------------------------------------------------------&gt; dmesg()
 Timestamp Facility Level                                     Message                                     
 --------- -------- ----- --------------------------------------------------------------------------------
@@ -479,7 +491,8 @@ Timestamp Facility Level                                     Message
      0.00 0        LOG_INFO Hypervisor detected: VMware                                                     
      0.00 0        LOG_CRIT e820: update [mem 0x00000000-0x00000fff] usable ==&gt; reserved                    
      0.00 0        LOG_CRIT e820: remove [mem 0x000a0000-0x000fffff] usable                                 
-     0.00 0        LOG_INFO                                                                                 </code></pre>
+     0.00 0        LOG_INFO                                                                                 
+</pre></div>
 
 <p>
 

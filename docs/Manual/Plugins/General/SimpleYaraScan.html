@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/General/SimpleYaraScan.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-2">
+    
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
+ </a>
+
+ <a href='/docs/Manual/Plugins/General/index.html' class="btn btn-default btn-lg btn-block">
+   General
+ </a>
+ <p>
+
+<ul class='nav nav-pills nav-stacked'>
+        <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#build_index' class="category-link">
+            build_index
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#convert_profile' class="category-link">
+            convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dt' class="category-link">
+            dt
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dump' class="category-link">
+            dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#ewfacquire' class="category-link">
+            ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#fetch_pdb' class="category-link">
+            fetch_pdb
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#grep' class="category-link">
+            grep
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#imagecopy' class="category-link">
+            imagecopy
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#l' class="category-link">
+            l
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#p' class="category-link">
+            p
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#parse_pdb' class="category-link">
+            parse_pdb
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sdel' class="category-link">
+            sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes='active'>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#slist' class="category-link">
+            slist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#smod' class="category-link">
+            smod
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#snew' class="category-link">
+            snew
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sswitch' class="category-link">
+            sswitch
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#version_scan' class="category-link">
+            version_scan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#vmscan' class="category-link">
+            vmscan
+          </a>
+        </li>
+        </ul></ul>
+  </div>
+
+  <div class="col-md-10">
+    
+
+<nav class="navbar navbar-default plugins" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/Search.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         search
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/SessionList.html">
+          slist
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+<h1 id="#simple_yarascan" class="anchor" >simple_yarascan</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.yarascanner.SimpleYaraScan-class.html">View Source</a>
+
+
+<div class="abstract">
+<h2>A Simple plugin which only yarascans the physical Address Space.</h2>
+<p>This plugin should not trigger profile autodetection and therefore should be
+usable on any file at all.</p>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>binary_string</p></td><td><p>A binary string (encoded as hex) to search for. e.g. 000102[1-200]0506 (type: String)</p></td></tr><tr><td><p>context</p></td><td><p>Context to print after the hit. (type: IntParser)</p>
+<ul>
+<li>Default: 64</li>
+</ul></td></tr><tr><td><p>hits</p></td><td><p>Quit after finding this many hits. (type: IntParser)</p>
+<ul>
+<li>Default: 10</li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
+</ul></td></tr><tr><td><p>pre_context</p></td><td><p>Context to print before the hit. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr><tr><td><p>start</p></td><td><p>Start searching from this offset. (type: IntParser)</p>
+<ul>
+<li>Default: 0</li>
+</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression. (type: String)</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read. (type: String)</p></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+<p>
+
+<nav class="navbar navbar-default plugins" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/Search.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         search
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/General/SessionList.html">
+          slist
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+  </div>
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
+  </script>
+  </div>
+ </body>
+</html>
+

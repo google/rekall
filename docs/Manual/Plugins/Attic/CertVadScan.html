@@ -188,6 +188,12 @@ ript>
           </a>
         </li>
         
+        <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
         <li classes='active'>
           <a href='#cert_vad_scan' class="category-link">
             cert_vad_scan
@@ -299,6 +305,12 @@ ript>
         <li classes=''>
           <a href='#notebook' class="category-link">
             notebook
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pslist' class="category-link">
+            pslist
           </a>
         </li>
         
@@ -466,7 +478,7 @@ also dumped to files in the specified directory.</p>
 <h3>Sample Output</h3>
 <p>In the example below we scan the address space of the winpmem acquistion tool to
 find certificates used to sign the driver and binary.</p>
-<pre class="highlight"><code>win8.1.raw 22:07:16&gt; cert_vad_scan proc_regex=&quot;winpmem&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 22:07:16&gt; cert_vad_scan proc_regex=&quot;winpmem&quot;
 -------------------&gt; cert_vad_scan(proc_regex=&quot;winpmem&quot;)
 Pid   Command       Address     Type  Length Description
 ----- ---------- -------------- ----- ------ -----------
@@ -479,7 +491,8 @@ Pid   Command       Address     Type  Length Description
 2628  winpmem_1.5.2. 0x00000003d87c X509  442   -
 2628  winpmem_1.5.2. 0x000000bd2260 X509  704   /O=VeriSign Trust Network/OU=VeriSign, Inc./OU=VeriSign Time Stamping Service Root/OU=NO LIABILITY ACCEPTED, (c)97 VeriSign, Inc.
 2628  winpmem_1.5.2. 0x000000bd2720 X509  462   /CN=Root Agency
-2628  winpmem_1.5.2. 0x000000c153b0 X509  1491  /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/OU=MOPR/CN=Microsoft Update</code></pre>
+2628  winpmem_1.5.2. 0x000000c153b0 X509  1491  /C=US/ST=Washington/L=Redmond/O=Microsoft Corporation/OU=MOPR/CN=Microsoft Update
+</pre></div>
 
 <p>
 

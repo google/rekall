@@ -444,17 +444,30 @@ ript>
 </div>
 
 
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
 
 <p>Rekall walks the list at kernel symbol <code>modules</code> to provide the list of modules.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 16:22:54&gt; lsmod
+<div class="highlight"><pre><span></span>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 16:22:54&gt; lsmod
 ---------------------------------------------------------------------------&gt; lsmod()
 
 ******************** Overview ********************
    Virtual       Core Start   Total Size         Name
 -------------- -------------- ---------- --------------------
 0xffffa038d120 0xffffa038b000      12880 ipt_MASQUERADE
-0xffffa0383180 0xffffa0381000      13011 iptable_nat</code></pre>
+0xffffa0383180 0xffffa0381000      13011 iptable_nat
+</pre></div>
 
 <p>
 

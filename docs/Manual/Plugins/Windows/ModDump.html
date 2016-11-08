@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -653,9 +713,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WinMemMap.html">
+       <a href="/docs/Manual/Plugins/Windows/Mimikatz.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         memmap
+         mimikatz
        </a>
     </li>
   </ul>
@@ -712,6 +772,9 @@ ript>
 </ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A Regular expression for selecting the dlls to dump. (type: RegEx)</p>
 <ul>
 <li>Default: .</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -740,9 +803,10 @@ dump.</p>
 <p>In this example we dump the winpmem driver to disk. The winpmem driver loads
 from a temporary file name (You can see it using the <a href="Modules.html">modules</a>
 plugin.</p>
-<pre class="highlight"><code>win8.1.raw 23:27:12&gt; moddump regex=&quot;tmp&quot;, dump_dir=&quot;/tmp&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 23:27:12&gt; moddump regex=&quot;tmp&quot;, dump_dir=&quot;/tmp&quot;
 -------------------&gt; moddump(regex=&quot;tmp&quot;, dump_dir=&quot;/tmp&quot;)
-Dumping pmeA86F.tmp, Base: f800025ca000 output: driver.f800025ca000.sys</code></pre>
+Dumping pmeA86F.tmp, Base: f800025ca000 output: driver.f800025ca000.sys
+</pre></div>
 
 <p>
 
@@ -750,9 +814,9 @@ Dumping pmeA86F.tmp, Base: f800025ca000 output: driver.f800025ca000.sys</code></
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/Windows/WinMemMap.html">
+       <a href="/docs/Manual/Plugins/Windows/Mimikatz.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         memmap
+         mimikatz
        </a>
     </li>
   </ul>

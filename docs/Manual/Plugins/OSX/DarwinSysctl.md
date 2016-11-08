@@ -11,7 +11,12 @@ abstract: "Dumps the sysctl database.\n\n    On OSX the kernel is configured thr
   \ a long long int.\n    - CTLTYPE_NODE means this is a node which handles a sublevel\
   \ of MIBs. It is\n      actually a pointer to a new sysctl_oid_list which handles\
   \ the sublevel.\n\n    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: DarwinSysctl
 epydoc: rekall.plugins.darwin.checks.DarwinSysctl-class.html
 layout: plugin

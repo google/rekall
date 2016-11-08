@@ -1,0 +1,812 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Rekall Memory Forensic Framework</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rekall Memory Forensic Framework">
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/rekall.css" rel="stylesheet">
+    <link href="/css/asciidoc.css" rel="stylesheet">
+    <link href="/css/font-awesome.css" rel="stylesheet">
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></sc\
+ript>
+    <![endif]-->
+  </head>
+
+  <body>
+
+
+  <div class="background">
+   <header class="header">
+    <div class="navbar navbar-fixed-top navbar-inverse">
+     <div class="navbar-inner">
+      <div class="container">
+       <a class="navbar-brand" href="/"
+          style="padding-top: 0px; padding-bottom: 0px;"
+          >
+          <img src="/img/Rekall-small.png" class="small_logo"></img>
+       </a>
+       <ul class="nav navbar-nav navbar-collapse collapse">
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/index.html">
+      Home
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/about.html">
+      About
+     </a>
+    </li>
+    
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuReleases"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Releases
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuReleases">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.2.1.html">Version 1.2.1 Col de la Croix.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.3.1.html">Version 1.3.2 Dammastock.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.4.0.html">Version 1.4.0 Etzel.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Releases/releases-1.5.2.html">Version 1.5.2 Furka..</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDocumentation"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Documentation
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDocumentation">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Manual">Rekall User Manual</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Developers">Developer Documentation.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/GUI">Rekall GUI</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/MemoryAnalysis.html">Memory Analysis Course</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/References">References</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/Tools">The Pmem Memory acquisition suite.</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/docs/index.html"></a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class=" dropdown">
+     <a class="dropdown-toggle"
+      id="dropdownMenuDiscuss"
+      data-toggle="dropdown"
+      aria-expanded="true">
+    Discuss
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenuDiscuss">
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/blog.html">The Rekall Blog</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/github.html">GitHub</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/index.html"></a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/issue.html">Issue Tracker</a></li>
+
+    <li role="presentation"><a role="menuitem" tabindex="-1" href="/Discuss/mailinglist.html">Mailing List</a></li>
+
+  </ul>
+ </li>
+
+        <li class="divider-vertical"></li>
+        
+    <li class="">
+     <a href="/faq.html">
+      FAQ
+     </a>
+    </li>
+    
+       <li>
+        <a href="https://github.com/google/rekall/edit/gh-pages/docs/Manual/Plugins/Windows/WinDNSCache.md?message=Describe%20your%20change..."
+           data-toggle="tooltip"
+           data-placement="bottom"
+           title="Improve this page"
+           class="improve-docs activate_tooltip">
+         <i class="glyphicon glyphicon-edit"></i>
+        </a>
+       </ul>
+
+       <form class="navbar-search col-md-3 docs-search" role="search"
+             action="/search.html">
+       <span class="glyphicon glyphicon-search search-icon"></span>
+       <input type="text" name="q" data-i-search-input="true"
+         class="search-query"
+         placeholder="Site Search">
+       </form>
+      </div>
+     </div>
+    </div>
+   </header>
+
+<div class="container-fluid page-background container">
+<div class="main">
+  <div class="col-md-2">
+    
+<ul class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix rekall-side-nav">
+ <a href="/docs/Manual/Plugins/index.html" class="btn btn-default btn-lg btn-block">
+  <span class="glyphicon glyphicon-arrow-left"></span> Plugins
+ </a>
+
+ <a href='/docs/Manual/Plugins/Windows/index.html' class="btn btn-default btn-lg btn-block">
+   Windows
+ </a>
+ <p>
+
+<ul class='nav nav-pills nav-stacked'>
+        <li>
+          <a href='/docs/Manual/Plugins/Windows/Win32_GUI' class="category-directory-link">
+            Win32_GUI
+          </a>
+        </li>
+        
+        <li>
+          <a href='/docs/Manual/Plugins/Windows/Registry' class="category-directory-link">
+            Registry
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#analyze_struct' class="category-link">
+            analyze_struct
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#callbacks' class="category-link">
+            callbacks
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#check_pehooks' class="category-link">
+            check_pehooks
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#cmdscan' class="category-link">
+            cmdscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#connections' class="category-link">
+            connections
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#connscan' class="category-link">
+            connscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#consoles' class="category-link">
+            consoles
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#devicetree' class="category-link">
+            devicetree
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dis' class="category-link">
+            dis
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dlldump' class="category-link">
+            dlldump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dlllist' class="category-link">
+            dlllist
+          </a>
+        </li>
+        
+        <li classes='active'>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#driverirp' class="category-link">
+            driverirp
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#driverscan' class="category-link">
+            driverscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dtbscan' class="category-link">
+            dtbscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dumpfiles' class="category-link">
+            dumpfiles
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#evtlogs' class="category-link">
+            evtlogs
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#filescan' class="category-link">
+            filescan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#find_dtb' class="category-link">
+            find_dtb
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#fls' class="category-link">
+            fls
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#handles' class="category-link">
+            handles
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hooks_eat' class="category-link">
+            hooks_eat
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hooks_iat' class="category-link">
+            hooks_iat
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#hooks_inline' class="category-link">
+            hooks_inline
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#imageinfo' class="category-link">
+            imageinfo
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#impscan' class="category-link">
+            impscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#kdbgscan' class="category-link">
+            kdbgscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#kpcr' class="category-link">
+            kpcr
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#ldrmodules' class="category-link">
+            ldrmodules
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#malfind' class="category-link">
+            malfind
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#memdump' class="category-link">
+            memdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#memmap' class="category-link">
+            memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#moddump' class="category-link">
+            moddump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#modscan' class="category-link">
+            modscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#modules' class="category-link">
+            modules
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mutantscan' class="category-link">
+            mutantscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#netscan' class="category-link">
+            netscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#netstat' class="category-link">
+            netstat
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#netstat' class="category-link">
+            netstat
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#object_tree' class="category-link">
+            object_tree
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#object_types' class="category-link">
+            object_types
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pagefiles' class="category-link">
+            pagefiles
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pas2vas' class="category-link">
+            pas2vas
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pedump' class="category-link">
+            pedump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#peinfo' class="category-link">
+            peinfo
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pfn' class="category-link">
+            pfn
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#phys_map' class="category-link">
+            phys_map
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pool_tracker' class="category-link">
+            pool_tracker
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pools' class="category-link">
+            pools
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#procdump' class="category-link">
+            procdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#procinfo' class="category-link">
+            procinfo
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pslist' class="category-link">
+            pslist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#psscan' class="category-link">
+            psscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#pstree' class="category-link">
+            pstree
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#psxview' class="category-link">
+            psxview
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#ptov' class="category-link">
+            ptov
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#raw2dmp' class="category-link">
+            raw2dmp
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#services' class="category-link">
+            services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_certscan' class="category-link">
+            simple_certscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sockets' class="category-link">
+            sockets
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#ssdt' class="category-link">
+            ssdt
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#svcscan' class="category-link">
+            svcscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#symlinkscan' class="category-link">
+            symlinkscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#thrdscan' class="category-link">
+            thrdscan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#threads' class="category-link">
+            threads
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#timers' class="category-link">
+            timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#tokens' class="category-link">
+            tokens
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#unloaded_modules' class="category-link">
+            unloaded_modules
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#vacbs' class="category-link">
+            vacbs
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#vad' class="category-link">
+            vad
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#vaddump' class="category-link">
+            vaddump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#vadmap' class="category-link">
+            vadmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#version_modules' class="category-link">
+            version_modules
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#virt_map' class="category-link">
+            virt_map
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#vtop' class="category-link">
+            vtop
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#win32k_autodetect' class="category-link">
+            win32k_autodetect
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan' class="category-link">
+            yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
+        </ul></ul>
+  </div>
+
+  <div class="col-md-10">
+    
+
+<nav class="navbar navbar-default plugins" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinDllList.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         dlllist
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/DriverIrp.html">
+          driverirp
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+<h1 id="#dns_cache" class="anchor" >dns_cache</h1>
+
+<a class="btn btn-default epydoc_link"
+   href="/epydocs/rekall.plugins.windows.dns.WinDNSCache-class.html">View Source</a>
+
+
+<div class="abstract">
+<h2>Dump the windows DNS resolver cache.</h2>
+</div>
+
+
+<h3>Plugin Arguments</h3>
+<div class="plugins_args">
+<table class='table table-condensed'>
+<tbody>
+<tr><td><p>hashtable</p></td><td><p>Optionally provide the hashtable (type: String)</p></td></tr><tr><td><p>no_index</p></td><td><p>Should we not use the index (type: Boolean)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+<p>
+
+<nav class="navbar navbar-default plugins" role="navigation">
+
+  <ul class="nav navbar-nav navbar-left">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinDllList.html">
+         <span class="glyphicon glyphicon-arrow-left"></span>
+         dlllist
+       </a>
+    </li>
+  </ul>
+
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/DriverIrp.html">
+          driverirp
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
+
+</nav>
+
+
+  </div>
+</div>
+</div>
+  <div class="footer">
+    <div class="container">
+      <p class="text-muted">
+        &copy; 2015 Google Inc.
+        Rekall is licensed under the The GPL License.
+        Pmem is licensed under the Apache license.
+        <a href="#" class="pull-right text-muted">Back to top</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+   $(".activate_tooltip").tooltip();
+   $("body").scrollspy({
+     target: ".bs-docs-sidebar",
+     offset: 40
+   });
+  </script>
+  </div>
+ </body>
+</html>
+

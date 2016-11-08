@@ -12,7 +12,12 @@ args: {address_space: 'The address space to use. (type: AddressSpace)
 
     * Default: 0', target: 'Name of a struct definition. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: DT
 epydoc: rekall.plugins.core.DT-class.html
 layout: plugin

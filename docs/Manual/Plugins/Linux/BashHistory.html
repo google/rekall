@@ -463,7 +463,10 @@ ript>
 </ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>The processes we should examine. (type: RegEx)</p>
 <ul>
 <li>Default: ^bash$</li>
-</ul></td></tr><tr><td><p>scan_entire_address_space</p></td><td><p>Scan the entire process address space, not only the heap. (type: Boolean)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>scan_entire_address_space</p></td><td><p>Scan the entire process address space, not only the heap. (type: Boolean)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -480,11 +483,12 @@ you&rsquo;re looking for commands for exitted bash sessions you may be more luck
 by looking at the disk .bash_history file if logging wasn&rsquo;t disabled.</li>
 </ul>
 <h3>Sample output</h3>
-<pre class="highlight"><code>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 12:27:35&gt; bash
+<div class="highlight"><pre><span></span>Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 12:27:35&gt; bash
 -----------------------------------------------------------------------&gt; bash()
    Pid Name                 Timestamp                Command
 ------ -------------------- ------------------------ --------------------
-  1335 bash                 2014-03-04 17:16:31+0000 uname -a</code></pre>
+  1335 bash                 2014-03-04 17:16:31+0000 uname -a
+</pre></div>
 
 <p>
 

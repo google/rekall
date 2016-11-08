@@ -13,7 +13,12 @@ args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
     * Default: ', proc_regex: 'A regex to select a process by name. (type: RegEx)
 
-    ', virtual_address: 'The Virtual Address to examine. (type: SymbolAddress)
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', virtual_address: 'The Virtual Address to examine. (type: SymbolAddress)
 
     '}
 class_name: VtoP

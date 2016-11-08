@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         
         <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes=''>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -293,9 +359,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/EWFAcquire.html">
+       <a href="/docs/Manual/Plugins/General/Explain.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         ewfacquire
+         explain
        </a>
     </li>
   </ul>
@@ -328,7 +394,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>guid</p></td><td><p>The GUID of the pdb file. If provided, the pdb filename must be provided in the &ndash;pdb_filename parameter. (type: String)</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the executable to get the PDB file for. (type: String)</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>guid</p></td><td><p>The GUID of the pdb file. If provided, the pdb filename must be provided in the &ndash;pdb_filename parameter. (type: String)</p></td></tr><tr><td><p>pdb_filename</p></td><td><p>The filename of the executable to get the PDB file for. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -346,7 +415,7 @@ to <code>parse_pdb</code> after fetching it so a profile can be generated for Re
 use.</p>
 <p>In the example below we find the GUID and pdb file name of an executable from
 the image, then use the <code>fetch_pdb</code> plugin to fetch it. Note that PDB files are compressed using CAB on the symbol server so we need <code>cabextract</code> installed locally.</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 23:08:40&gt; peinfo &quot;termdd&quot;
+<div class="highlight"><pre><span></span>[1] win7.elf 23:08:40&gt; peinfo &quot;termdd&quot;
           Attribute                                       Value
 ------------------------------ ------------------------------------------------------------
 Machine                        IMAGE_FILE_MACHINE_AMD64
@@ -367,7 +436,8 @@ MajorImageVersion              6
 Extracting cabinet: /tmp/tmpXkEgyu/termdd.pd_
   extracting termdd.pdb
 
-All done, no errors.</code></pre>
+All done, no errors.
+</pre></div>
 
 <p>
 
@@ -375,9 +445,9 @@ All done, no errors.</code></pre>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/EWFAcquire.html">
+       <a href="/docs/Manual/Plugins/General/Explain.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         ewfacquire
+         explain
        </a>
     </li>
   </ul>

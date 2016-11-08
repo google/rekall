@@ -1,7 +1,12 @@
 ---
 abstract: "Print a list of recently unloaded modules.\n\n    Ref:\n    http://volatility-labs.blogspot.de/2013/05/movp-ii-22-unloaded-windows-kernel_22.html\n\
   \    "
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: UnloadedModules
 epydoc: rekall.plugins.windows.modules.UnloadedModules-class.html
 layout: plugin

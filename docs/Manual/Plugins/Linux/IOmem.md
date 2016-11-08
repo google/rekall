@@ -1,6 +1,11 @@
 ---
 abstract: mimics /proc/iomem.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: IOmem
 epydoc: rekall.plugins.linux.iomem.IOmem-class.html
 layout: plugin

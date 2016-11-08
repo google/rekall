@@ -4,10 +4,15 @@ args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
 
 
-    * Default: ', method: "Method to list processes. (type: ChoiceArray)\n\n\n* Valid\
-    \ Choices:\n    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n    - Sessions\n\
-    \    - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable, Sessions,\
-    \ Handles", pids: 'One or more pids of processes to select. (type: ArrayIntParser)
+    * Default: ', limit: 'The length of data to search in each selected region. (type:
+    IntParser)
+
+
+
+    * Default: 18446744073709551616', method: "Method to list processes. (type: ChoiceArray)\n\
+    \n\n* Valid Choices:\n    - PsActiveProcessHead\n    - CSRSS\n    - PspCidTable\n\
+    \    - Sessions\n    - Handles\n\n\n* Default: PsActiveProcessHead, CSRSS, PspCidTable,\
+    \ Sessions, Handles", pids: 'One or more pids of processes to select. (type: ArrayIntParser)
 
 
 
@@ -49,7 +54,12 @@ args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
     * Default: False', sort_by: "Sort by [offset | atom | refcount] (type: String)\n\
     \n\n* Valid Choices:\n    - atom\n    - refcount\n    - offset\n\n\n* Default:\
-    \ offset", win32k_profile: Force this profile to be used for Win32k.}
+    \ offset", verbosity: 'An integer reflecting the amount of desired output: 0 =
+    quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', win32k_profile: Force this profile to be used for Win32k.}
 class_name: AtomScan
 epydoc: rekall.plugins.windows.gui.atoms.AtomScan-class.html
 layout: plugin

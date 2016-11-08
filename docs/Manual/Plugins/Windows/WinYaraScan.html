@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -660,6 +720,15 @@ ript>
     </li>
   </ul>
 
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinPhysicalYaraScanner.html">
+          yarascan_physical
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
 
 </nav>
 
@@ -688,6 +757,9 @@ ript>
 </ul></td></tr><tr><td><p>hits</p></td><td><p>Quit after finding this many hits. (type: IntParser)</p>
 <ul>
 <li>Default: 10</li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search in each selected region. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -730,7 +802,10 @@ ript>
 </ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
-</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for. (type: String)</p></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression. (type: String)</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read. (type: String)</p></td></tr>
+</ul></td></tr><tr><td><p>string</p></td><td><p>A verbatim string to search for. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr><tr><td><p>yara_expression</p></td><td><p>If provided we scan for this yara expression. (type: String)</p></td></tr><tr><td><p>yara_file</p></td><td><p>The yara signature file to read. (type: String)</p></td></tr>
 </tbody>
 </table>
 </div>
@@ -751,6 +826,15 @@ ript>
     </li>
   </ul>
 
+
+  <ul class="nav navbar-nav navbar-right">
+    <li class="active">
+       <a href="/docs/Manual/Plugins/Windows/WinPhysicalYaraScanner.html">
+          yarascan_physical
+          <span class="glyphicon glyphicon-arrow-right"></span>
+       </a>
+    </li>
+  </ul>
 
 </nav>
 

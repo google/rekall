@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -709,7 +769,10 @@ ript>
 </ul></td></tr><tr><td><p>named_only</p></td><td><p>Output only handles with a name . (type: Boolean)</p></td></tr><tr><td><p>object_types</p></td><td><p>Types of objects to show. (type: ArrayStringParser)</p></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
-</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr>
+</ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -734,7 +797,7 @@ seen by the <a href="ObjectTypes.html">object_types</a> plugin.</p>
 <p>In the following output we see the winpmem acquisition tool&rsquo;s handle table. Note
 that it has an open file to the raw device <em>\Device\pmem</em> and the output file of
 <em>\Device\HarddiskVolume2\temp\win8.1.raw</em>.</p>
-<pre class="highlight"><code>win8.1.raw 18:00:43&gt; handles proc_regex=&quot;winpmem&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 18:00:43&gt; handles proc_regex=&quot;winpmem&quot;
 -------------------&gt; handles(proc_regex=&quot;winpmem&quot;)
   Offset (V)      Pid     Handle         Access     Type             Details
 -------------- ------ -------------- -------------- ---------------- -------
@@ -766,7 +829,8 @@ that it has an open file to the raw device <em>\Device\pmem</em> and the output 
 0xe00000813330   2628           0x84       0x1f0003 Event
 0xe00001254440   2628           0x88       0x1fffff Thread           TID 3420 PID 2628
 0xe0000061ebb0   2628           0x8c       0x1f0001 ALPC Port
-0xe00001d0c340   2628           0x90       0x12019f File             \Device\pmem</code></pre>
+0xe00001d0c340   2628           0x90       0x12019f File             \Device\pmem
+</pre></div>
 
 <p>
 

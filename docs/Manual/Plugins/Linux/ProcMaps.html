@@ -459,14 +459,17 @@ ript>
 <li>
 <p>Default: InitTask</p>
 </li>
-</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr>
+</ul></td></tr><tr><td><p>pids</p></td><td><p>One or more pids of processes to select. (type: ArrayIntParser)</p></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>task</p></td><td><p>Kernel addresses of task structs. (type: ArrayIntParser)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
 
 
 <h3>Sample output</h3>
-<pre class="highlight"><code>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 17:18:41&gt; maps
+<div class="highlight"><pre><span></span>[1] Windows7_VMware(Win7x64+Ubuntu686,Ubuntu64)_VBox(XPSP3x86).ram 17:18:41&gt; maps
 ---------------------------------------------------------------------------&gt; maps()
   Pid        Start           End       Flags      Pgoff      Major  Minor      Inode                                        File Path
 -------- -------------- -------------- ------ -------------- ------ ------ ------------- --------------------------------------------------------------------------------
@@ -497,7 +500,8 @@ ript>
 1074     0x7f8f09491000 0x7f8f09690000 ---    0x00000000b000 -      -      -             -                                                                               
 1074     0x7f8f09690000 0x7f8f09691000 r--    0x00000000a000 -      -      -             -                                                                               
 1074     0x7f8f09691000 0x7f8f09692000 rw-    0x00000000b000 -      -      -             -                                                                               
-[...]</code></pre>
+[...]
+</pre></div>
 
 <p>
 

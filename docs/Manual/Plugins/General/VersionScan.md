@@ -7,7 +7,12 @@ args: {name_regex: 'Filter module names by this regex. (type: RegEx)
     * Default: .', scan_filename: 'Optional file to scan. If not specified we scan
     the physical address space. (type: String)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: VersionScan
 epydoc: rekall.plugins.windows.modules.VersionScan-class.html
 layout: plugin

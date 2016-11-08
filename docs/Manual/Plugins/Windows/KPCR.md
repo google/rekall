@@ -1,6 +1,11 @@
 ---
 abstract: A plugin to print all KPCR blocks.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: KPCR
 epydoc: rekall.plugins.windows.kpcr.KPCR-class.html
 layout: plugin

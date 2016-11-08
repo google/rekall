@@ -19,7 +19,12 @@ args: {all: 'Use the entire range of address space. (type: Boolean)
 
     ', task: 'Kernel addresses of task structs. (type: ArrayIntParser)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: LinMemDump
 epydoc: rekall.plugins.linux.pslist.LinMemDump-class.html
 layout: plugin

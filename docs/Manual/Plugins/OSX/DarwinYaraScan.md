@@ -37,7 +37,13 @@ args: {binary_string: 'A binary string (encoded as hex) to search for. e.g. 0001
 
     * Default: False', string: 'A verbatim string to search for. (type: String)
 
-    ', yara_expression: 'If provided we scan for this yara expression. (type: String)
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', yara_expression: 'If provided we scan for this yara expression.
+    (type: String)
 
     ', yara_file: 'The yara signature file to read. (type: String)
 

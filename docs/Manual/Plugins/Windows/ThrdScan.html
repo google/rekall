@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -691,6 +751,9 @@ ript>
 <tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search in each selected region. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -730,6 +793,9 @@ ript>
 </ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -764,7 +830,7 @@ specified, the scanning occurs in kernel space.</p>
 we can still see exited threads. Rekall resolves the start address of the thread
 (i.e. the function which started running in this thread). This helps to identify
 what the thread is supposed to be doing.</p>
-<pre class="highlight"><code>win8.1.raw 18:52:26&gt; thrdscan
+<div class="highlight"><pre><span></span>win8.1.raw 18:52:26&gt; thrdscan
   Offset(P)       PID    TID Start Address  Create Time              Exit Time                Process          Symbol
 -------------- ------ ------ -------------- ------------------------ ------------------------ ---------------- ------
 0x0000001ab080   2332   3976 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
@@ -793,7 +859,8 @@ what the thread is supposed to be doing.</p>
 0x00000dbdb080   2392   4084 0x7ff6670fd0bc -                        2014-01-24 21:19:27+0000 VBoxTray.exe     \Windows\System32\VBoxTray.exe!+0xd0bc
 0x00000f345080    880   1532 0x7ff866dbaf44 -                        -                        svchost.exe      \Windows\System32\wuaueng.dll!+0x3af44
 0x00000f345880    880   2932 0x7ff87f35b5c0 -                        -                        svchost.exe      \Windows\System32\ntdll.dll!TpPostWork+0x4a0
-0x00000f413080      4   3176 0xf802d3613418 -                        -                        System           nt!MiStoreEvictThread</code></pre>
+0x00000f413080      4   3176 0xf802d3613418 -                        -                        System           nt!MiStoreEvictThread
+</pre></div>
 
 <p>
 

@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -641,6 +695,12 @@ ript>
         <li classes=''>
           <a href='#yarascan' class="category-link">
             yarascan
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
           </a>
         </li>
         </ul></ul>
@@ -712,6 +772,9 @@ ript>
 </ul></td></tr><tr><td><p>proc_regex</p></td><td><p>A regex to select a process by name. (type: RegEx)</p></td></tr><tr><td><p>regex</p></td><td><p>A Regular expression for selecting the dlls to dump. (type: RegEx)</p>
 <ul>
 <li>Default: .</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -739,7 +802,7 @@ to dump.</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<pre class="highlight"><code>win8.1.raw 14:51:37&gt; dlldump proc_regex=&quot;winpmem&quot;, dump_dir=&quot;/tmp/&quot;
+<div class="highlight"><pre><span></span>win8.1.raw 14:51:37&gt; dlldump proc_regex=&quot;winpmem&quot;, dump_dir=&quot;/tmp/&quot;
 -------------------&gt; dlldump(proc_regex=&quot;winpmem&quot;, dump_dir=&quot;/tmp/&quot;)
   _EPROCESS    Name                  Base      Module               Dump File
 -------------- ---------------- -------------- -------------------- ---------
@@ -747,7 +810,8 @@ to dump.</p>
 0xe0000204a900 winpmem_1.5.2.   0x7ff87f320000 ntdll.dll            module.2628.3d04a900.7ff87f320000.ntdll.dll
 0xe0000204a900 winpmem_1.5.2.   0x000076f50000 wow64.dll            module.2628.3d04a900.76f50000.wow64.dll
 0xe0000204a900 winpmem_1.5.2.   0x000076fa0000 wow64win.dll         module.2628.3d04a900.76fa0000.wow64win.dll
-0xe0000204a900 winpmem_1.5.2.   0x000077010000 wow64cpu.dll         module.2628.3d04a900.77010000.wow64cpu.dll</code></pre>
+0xe0000204a900 winpmem_1.5.2.   0x000077010000 wow64cpu.dll         module.2628.3d04a900.77010000.wow64cpu.dll
+</pre></div>
 
 <p>
 

@@ -177,14 +177,50 @@ ript>
 
 <ul class='nav nav-pills nav-stacked'>
         <li classes=''>
+          <a href='#aff4acquire' class="category-link">
+            aff4acquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4dump' class="category-link">
+            aff4dump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4export' class="category-link">
+            aff4export
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#aff4ls' class="category-link">
+            aff4ls
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#build_index' class="category-link">
             build_index
           </a>
         </li>
         
         <li classes=''>
+          <a href='#build_local_profile' class="category-link">
+            build_local_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#convert_profile' class="category-link">
             convert_profile
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#describe' class="category-link">
+            describe
           </a>
         </li>
         
@@ -203,6 +239,12 @@ ript>
         <li classes=''>
           <a href='#ewfacquire' class="category-link">
             ewfacquire
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#explain' class="category-link">
+            explain
           </a>
         </li>
         
@@ -231,6 +273,18 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#live' class="category-link">
+            live
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#manage_repo' class="category-link">
+            manage_repo
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#p' class="category-link">
             p
           </a>
@@ -245,6 +299,18 @@ ript>
         <li classes=''>
           <a href='#sdel' class="category-link">
             sdel
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#search' class="category-link">
+            search
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#simple_yarascan' class="category-link">
+            simple_yarascan
           </a>
         </li>
         
@@ -293,9 +359,9 @@ ript>
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/ConvertProfile.html">
+       <a href="/docs/Manual/Plugins/General/Describe.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         convert_profile
+         describe
        </a>
     </li>
   </ul>
@@ -333,7 +399,10 @@ all its members.</p>
 <tr><td><p>address_space</p></td><td><p>The address space to use. (type: AddressSpace)</p></td></tr><tr><td><p>member_offset</p></td><td><p>If specified we only show the member at this offset. (type: IntParser)</p></td></tr><tr><td><p>offset</p></td><td><p>Name of a struct definition. (type: IntParser)</p>
 <ul>
 <li>Default: 0</li>
-</ul></td></tr><tr><td><p>target</p></td><td><p>Name of a struct definition. (type: String)</p></td></tr>
+</ul></td></tr><tr><td><p>target</p></td><td><p>Name of a struct definition. (type: String)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -354,13 +423,13 @@ convenience or to support multiple versions of the same struct. We can see in
 this case that the fields &ldquo;name&rdquo; and &ldquo;pid&rdquo; are virtual members since their
 offset is -1. These represent the name and the pid of the process in all
 operating systems.</p>
-<pre class="highlight"><code class="language-text">[1] win7.elf 19:34:27&gt; dt session.profile._EPROCESS(0xfa8002a94060)
+<div class="highlight"><pre><span></span>[1] win7.elf 19:34:27&gt; dt session.profile._EPROCESS(0xfa8002a94060)
 ---------------------&gt; dt(session.profile._EPROCESS(0xfa8002a94060))
 [_EPROCESS _EPROCESS] @ 0xfa8002a94060
 Offset             Field              Content
 ------ ------------------------------ -------
             0x-1    RealVadRoot                    [_MMADDRESS_NODE BalancedRoot] @ 0xFA8002A944A8
-. 0xfa8002a9449c    Tag                             [String:Tag]: '\x14\xd0\x02\x00'
+. 0xfa8002a9449c    Tag                             [String:Tag]: &#39;\x14\xd0\x02\x00&#39;
 . 0xfa8002a944a8    u1                             [&lt;unnamed-5580&gt; u1] @ 0xFA8002A944A8
 .. 0xfa8002a944a8    Balance                         [BitField(0-2):Balance]: 0x00000000
 .. 0xfa8002a944a8    Parent                         &lt;_MMADDRESS_NODE Pointer to [0xFA8002A944A8] (Parent)&gt;
@@ -369,7 +438,7 @@ Offset             Field              Content
 . 0xfa8002a944c0    StartingVpn                     [unsigned long long:StartingVpn]: 0x00000000
 . 0xfa8002a944c8    EndingVpn                       [unsigned long long:EndingVpn]: 0x00000000
             0x-1    dtb                            112128000
-            0x-1    name                            [String:ImageFileName]: 'Console.exe\x00'
+            0x-1    name                            [String:ImageFileName]: &#39;Console.exe\x00&#39;
             0x-1    pid                             [unsigned int:UniqueProcessId]: 0x00000A38
   0xfa8002a94060    Pcb                            [_KPROCESS Pcb] @ 0xFA8002A94060
 . 0xfa8002a94060    Header                         [_DISPATCHER_HEADER Header] @ 0xFA8002A94060
@@ -392,7 +461,8 @@ Offset             Field              Content
 .. 0xfa8002a94063    ActiveDR7                       [BitField(0-1):ActiveDR7]: 0x00000000
 .. 0xfa8002a94063    DebugActive                     [unsigned char:DebugActive]: 0x00000000
 .. 0xfa8002a94063    DpcActive                       [unsigned char:DpcActive]: 0x00000000
-.. 0xfa8002a94063    Expired                         [BitField(7-8):Expired]: 0x00000000</code></pre>
+.. 0xfa8002a94063    Expired                         [BitField(7-8):Expired]: 0x00000000
+</pre></div>
 
 <p>
 
@@ -400,9 +470,9 @@ Offset             Field              Content
 
   <ul class="nav navbar-nav navbar-left">
     <li class="active">
-       <a href="/docs/Manual/Plugins/General/ConvertProfile.html">
+       <a href="/docs/Manual/Plugins/General/Describe.html">
          <span class="glyphicon glyphicon-arrow-left"></span>
-         convert_profile
+         describe
        </a>
     </li>
   </ul>

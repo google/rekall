@@ -201,6 +201,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#cc' class="category-link">
+            cc
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#check_pehooks' class="category-link">
             check_pehooks
           </a>
@@ -251,6 +257,12 @@ ript>
         <li classes=''>
           <a href='#dlllist' class="category-link">
             dlllist
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#dns_cache' class="category-link">
+            dns_cache
           </a>
         </li>
         
@@ -357,6 +369,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#load_profile' class="category-link">
+            load_profile
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#malfind' class="category-link">
             malfind
           </a>
@@ -371,6 +389,18 @@ ript>
         <li classes=''>
           <a href='#memmap' class="category-link">
             memmap
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mftdump' class="category-link">
+            mftdump
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#mimikatz' class="category-link">
+            mimikatz
           </a>
         </li>
         
@@ -477,6 +507,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#privileges' class="category-link">
+            privileges
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#procdump' class="category-link">
             procdump
           </a>
@@ -519,6 +555,12 @@ ript>
         </li>
         
         <li classes=''>
+          <a href='#rammap' class="category-link">
+            rammap
+          </a>
+        </li>
+        
+        <li classes=''>
           <a href='#raw2dmp' class="category-link">
             raw2dmp
           </a>
@@ -527,6 +569,12 @@ ript>
         <li classes=''>
           <a href='#services' class="category-link">
             services
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#sigscan' class="category-link">
+            sigscan
           </a>
         </li>
         
@@ -575,6 +623,12 @@ ript>
         <li classes=''>
           <a href='#timers' class="category-link">
             timers
+          </a>
+        </li>
+        
+        <li classes=''>
+          <a href='#times' class="category-link">
+            times
           </a>
         </li>
         
@@ -643,6 +697,12 @@ ript>
             yarascan
           </a>
         </li>
+        
+        <li classes=''>
+          <a href='#yarascan_physical' class="category-link">
+            yarascan_physical
+          </a>
+        </li>
         </ul></ul>
   </div>
 
@@ -691,6 +751,9 @@ ript>
 <tr><td><p>eprocess</p></td><td><p>Kernel addresses of eprocess structs. (type: ArrayIntParser)</p>
 <ul>
 <li>Default: </li>
+</ul></td></tr><tr><td><p>limit</p></td><td><p>The length of data to search in each selected region. (type: IntParser)</p>
+<ul>
+<li>Default: 18446744073709551616</li>
 </ul></td></tr><tr><td><p>method</p></td><td><p>Method to list processes. (type: ChoiceArray)</p>
 <ul>
 <li>
@@ -730,6 +793,9 @@ ript>
 </ul></td></tr><tr><td><p>scan_process_memory</p></td><td><p>Scan all of process memory. Uses process selectors to narrow down selections. (type: Boolean)</p>
 <ul>
 <li>Default: False</li>
+</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
@@ -763,33 +829,34 @@ work for closed files).</p>
 </li>
 </ol>
 <h3>Sample output</h3>
-<pre class="highlight"><code>win8.1.raw 16:55:44&gt; filescan scan_in_kernel=True
--------------------&gt; filescan(scan_in_kernel=True)
-      Offset       #Ptr #Hnd Access     Owner      Owner Pid Owner Name       Name
-- -------------- ------ ---- ------ -------------- --------- ---------------- ----
-  0xe000000421e0     17   0 RW-rwd -------------- ---- ---------------- \$Directory
-  0xe00000057d70     14   0 R--rwd -------------- ---- ---------------- \Windows\System32\AuthBroker.dll
-  0xe000000599d0  32758   1 R--rw- 0xe00000074580    4 System           \Windows\CSC\v2.0.6
-  0xe000000686e0     19   0 RW-rwd -------------- ---- ---------------- \$Directory
-  0xe0000006a1f0     19   0 RW-rwd -------------- ---- ---------------- \$Directory
-  0xe0000006b5a0     16   0 R--r-d -------------- ---- ---------------- \Windows\Fonts\modern.fon
-  0xe0000006d8c0      4   0 R--r-d -------------- ---- ---------------- \Windows\System32\negoexts.dll
-  0xe0000006dc40     16   0 R--r-- -------------- ---- ---------------- \Windows\Fonts\meiryob.ttc
-  0xe0000006e1f0  29617   1 ------ 0xe0000204a900 2628 winpmem_1.5.2.   \Connect
-  0xe0000006edd0     16   0 R--rwd -------------- ---- ---------------- \Windows\System32\msctf.dll
-  0xe00000079270     16   0 R--r-- -------------- ---- ---------------- \Windows\Cursors\aero_up.cur
-  0xe0000007abc0     12   0 R--rwd -------------- ---- ---------------- \Windows\System32\puiobj.dll
-  0xe0000007ba90     18   0 RW-rwd -------------- ---- ---------------- \$Directory
-  0xe0000007e070      3   0 R--r-- -------------- ---- ---------------- \Windows\Fonts\segoeui.ttf
-  0xe0000007e360      4   0 RW-rwd -------------- ---- ---------------- \$ConvertToNonresident
-  0xe0000007e890      7   0 R--r-d -------------- ---- ---------------- \Windows\System32\usbmon.dll
-  0xe0000007f360  32768   1 R--r-d 0xe000000ce080  432 wininit.exe      \Windows\System32\en-GB\user32.dll.mui
-  0xe0000007f980      4   0 R--r-d -------------- ---- ---------------- \Windows\System32\KBDUK.DLL
-  0xe000000b1d90     17   0 RW-rwd -------------- ---- ---------------- \$Directory
-  0xe000000b1f20      5   0 R--r-d -------------- ---- ---------------- \Windows\System32\AppXDeploymentServer.dll
-  0xe000000b4610     12   0 R--rwd -------------- ---- ---------------- \Windows\SysWOW64\winmmbase.dll
-  0xe000000b6820      1   1 RWD--- 0xe00000074580    4 System           \Windows\System32\config\RegBack\SECURITY
-  0xe000000b6a50  32766   1 RW---- 0xe00000074580    4 System           \Windows\System32\config\SECURITY.LOG2</code></pre>
+<div class="highlight"><pre><span></span><span class="x">win8.1.raw 16:55:44&gt; filescan scan_in_kernel=True</span>
+<span class="x">-------------------&gt; filescan(scan_in_kernel=True)</span>
+<span class="x">      Offset       </span><span class="cp">#</span><span class="nf">Ptr</span><span class="x"> </span><span class="cp">#</span><span class="nf">Hnd</span><span class="x"> Access     Owner      Owner Pid Owner Name       Name</span>
+<span class="x">- -------------- ------ ---- ------ -------------- --------- ---------------- ----</span>
+<span class="x">  0xe000000421e0     17   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
+<span class="x">  0xe00000057d70     14   0 R--rwd -------------- ---- ---------------- \Windows\System32\AuthBroker.dll</span>
+<span class="x">  0xe000000599d0  32758   1 R--rw- 0xe00000074580    4 System           \Windows\CSC\v2.0.6</span>
+<span class="x">  0xe000000686e0     19   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
+<span class="x">  0xe0000006a1f0     19   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
+<span class="x">  0xe0000006b5a0     16   0 R--r-d -------------- ---- ---------------- \Windows\Fonts\modern.fon</span>
+<span class="x">  0xe0000006d8c0      4   0 R--r-d -------------- ---- ---------------- \Windows\System32\negoexts.dll</span>
+<span class="x">  0xe0000006dc40     16   0 R--r-- -------------- ---- ---------------- \Windows\Fonts\meiryob.ttc</span>
+<span class="x">  0xe0000006e1f0  29617   1 ------ 0xe0000204a900 2628 winpmem_1.5.2.   \Connect</span>
+<span class="x">  0xe0000006edd0     16   0 R--rwd -------------- ---- ---------------- \Windows\System32\msctf.dll</span>
+<span class="x">  0xe00000079270     16   0 R--r-- -------------- ---- ---------------- \Windows\Cursors\aero_up.cur</span>
+<span class="x">  0xe0000007abc0     12   0 R--rwd -------------- ---- ---------------- \Windows\System32\puiobj.dll</span>
+<span class="x">  0xe0000007ba90     18   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
+<span class="x">  0xe0000007e070      3   0 R--r-- -------------- ---- ---------------- \Windows\Fonts\segoeui.ttf</span>
+<span class="x">  0xe0000007e360      4   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">ConvertToNonresident</span><span class="x"></span>
+<span class="x">  0xe0000007e890      7   0 R--r-d -------------- ---- ---------------- \Windows\System32\usbmon.dll</span>
+<span class="x">  0xe0000007f360  32768   1 R--r-d 0xe000000ce080  432 wininit.exe      \Windows\System32\en-GB\user32.dll.mui</span>
+<span class="x">  0xe0000007f980      4   0 R--r-d -------------- ---- ---------------- \Windows\System32\KBDUK.DLL</span>
+<span class="x">  0xe000000b1d90     17   0 RW-rwd -------------- ---- ---------------- \</span><span class="p">$</span><span class="nv">Directory</span><span class="x"></span>
+<span class="x">  0xe000000b1f20      5   0 R--r-d -------------- ---- ---------------- \Windows\System32\AppXDeploymentServer.dll</span>
+<span class="x">  0xe000000b4610     12   0 R--rwd -------------- ---- ---------------- \Windows\SysWOW64\winmmbase.dll</span>
+<span class="x">  0xe000000b6820      1   1 RWD--- 0xe00000074580    4 System           \Windows\System32\config\RegBack\SECURITY</span>
+<span class="x">  0xe000000b6a50  32766   1 RW---- 0xe00000074580    4 System           \Windows\System32\config\SECURITY.LOG2</span>
+</pre></div>
 
 <p>
 

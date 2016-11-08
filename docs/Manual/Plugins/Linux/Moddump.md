@@ -4,7 +4,12 @@ args: {dump_dir: 'Dump directory. (type: String)
 
     ', regexp: 'Regexp on the module name. (type: RegEx)
 
-    '}
+    ', verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: Moddump
 epydoc: rekall.plugins.linux.lsmod.Moddump-class.html
 layout: plugin

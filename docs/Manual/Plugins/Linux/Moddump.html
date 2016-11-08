@@ -448,7 +448,10 @@ ript>
 <div class="plugins_args">
 <table class='table table-condensed'>
 <tbody>
-<tr><td><p>dump_dir</p></td><td><p>Dump directory. (type: String)</p></td></tr><tr><td><p>regexp</p></td><td><p>Regexp on the module name. (type: RegEx)</p></td></tr>
+<tr><td><p>dump_dir</p></td><td><p>Dump directory. (type: String)</p></td></tr><tr><td><p>regexp</p></td><td><p>Regexp on the module name. (type: RegEx)</p></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
+<ul>
+<li>Default: 1</li>
+</ul></td></tr>
 </tbody>
 </table>
 </div>
@@ -456,8 +459,9 @@ ript>
 
 <p>The list of loaded modules is obtained by running the <code>lsmod</code> plugin.</p>
 <h3>Sample output</h3>
-<pre class="highlight"><code>$ PYTHONPATH=. python rekall/rekal.py -f Linux-3.2.0-4-686-pae.E01 --profile_path ../my-profiles/ https://raw.githubusercontent.com/google/rekall-profiles/master/ - moddump --regex ext4 --dump_dir .
-Wrote 306996 bytes to ext4.0xf836a000.lkm</code></pre>
+<div class="highlight"><pre><span></span>$ <span class="nv">PYTHONPATH</span><span class="o">=</span>. python rekall/rekal.py -f Linux-3.2.0-4-686-pae.E01 --profile_path ../my-profiles/ https://raw.githubusercontent.com/google/rekall-profiles/master/ - moddump --regex ext4 --dump_dir .
+Wrote <span class="m">306996</span> bytes to ext4.0xf836a000.lkm
+</pre></div>
 
 <p>
 

@@ -1,6 +1,11 @@
 ---
 abstract: Outputs and verifies kernel notifier chains.
-args: {}
+args: {verbosity: 'An integer reflecting the amount of desired output: 0 = quiet,
+    10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1'}
 class_name: NotifierChainPlugin
 epydoc: rekall.plugins.linux.notifier_chains.NotifierChainPlugin-class.html
 layout: plugin

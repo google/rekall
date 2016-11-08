@@ -19,7 +19,12 @@ args: {eprocess: 'Kernel addresses of eprocess structs. (type: ArrayIntParser)
 
 
 
-    * Default: .', win32k_profile: Force this profile to be used for Win32k.}
+    * Default: .', verbosity: 'An integer reflecting the amount of desired output:
+    0 = quiet, 10 = noisy. (type: IntParser)
+
+
+
+    * Default: 1', win32k_profile: Force this profile to be used for Win32k.}
 class_name: UserHandles
 epydoc: rekall.plugins.windows.gui.userhandles.UserHandles-class.html
 layout: plugin
