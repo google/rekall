@@ -7,7 +7,7 @@ feedback.
 ## Overview
 
 The Rekall Agent is an endpoint response agent based on the Rekall
-Framework. The main motivations for the Rekall Agest are
+Framework. The main motivations for the Rekall Agent are
 
 - Very simple architecture - everything is a file. We just move files
   around.
