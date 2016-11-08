@@ -95,18 +95,18 @@ Plugin shell options:
 Some of the most frequently used flags are described below:
 
 --verbose::
-The is a shorthand to setting the logging level to DEBUG. Rekall will produce
+This is a shorthand to setting the logging level to DEBUG. Rekall will produce
 debug messages of its operation. You should use this if you want to know more of
 what Rekall is doing and also to attach output for bug reports.
 
 --plugin::
 If provided, Rekall loads this python file at start time. The file may define
-any plugins, everlays etc which might add additional functionality to Rekall.
+any plugins, overlays etc which might add additional functionality to Rekall.
 
 --cache::
 Rekall has a caching mechanism to be able to remember important information
 about images in between executions. When Rekall starts up it looks in the cache
-to see if this particular image has been previously analyzed. The allows Rekall
+to see if this particular image has been previously analyzed. This allows Rekall
 to load previously derived data from cache instead of recalculating it. There
 are 3 cache modes: `file` is the usual persistant cache (by default in
 ~/.rekall-cache). `memory` cache is only present in memory for the life of this
@@ -123,12 +123,12 @@ indicate where profiles should be loaded.
 --filename::
 The '--filename' option is the name of the image to analyse. If you are using
 the raw device as provided by the winpmem driver, this will be '\\.\pmem'
-(windows) for example or '/dev/pmem' (linux). You almost always want to specify
+(windows) for example or '/proc/kcore' (linux). You almost always want to specify
 a filename to operate on. A notable exception is when using the '--live' option
 which will set the appropriate filename automatically.
 
 --live::
-The options enables live memory analysis. Note that you would usually need to be
+The '--live' option enables live memory analysis. Note that you would usually need to be
 running as `root` to do this. When running on Windows, Rekall will insert the
 winpmem driver. On OSX, Rekall will insert the macpmem driver. On Linux, Rekall
 will attempt to use the `/proc/kcore` memory device. When specifying this option
@@ -157,8 +157,8 @@ Rekall output is produced in a number of formats. The default format is 'text'
 which consists of tabulated human readable output. The `wide` format produces
 expanded rows (useful for very wide tables with many columns). Often it is
 useful to further process the output by machine. In that case the 'data' format
-can used to produce machine parsable JSON data. Rekall can also produce an
-Excell compatible spreadsheet (if you have the `openpyxl` package installed).
+can be used to produce machine parsable JSON data. Rekall can also produce an
+Excel compatible spreadsheet (if you have the `openpyxl` package installed).
 
 --timezone::
 Internally Rekall always works with times in UTC (i.e. without a timezone)
@@ -478,7 +478,7 @@ receive an instance of a rekall 'BaseObject'. This has both a type
 (e.g. 'String') and a name (e.g. 'ImageFileName') as well as a human readable
 representation (e.g. svchost.exe).
 
-For example the task object we have has a type of '_EPROCESS' (which is a
+For example in the task object we have a type of '_EPROCESS' (which is a
 struct), and it exists at offset 0x81fa5aa0:
 
 -----------------------------------------------------------------------------
@@ -506,7 +506,7 @@ shortcut for 'print' - either will work).
 ...
 -----------------------------------------------------------------------------
 
-This view shows the layour of the _EPROCESS struct which is overlayed on the
+This view shows the layout of the _EPROCESS struct which is overlayed on the
 offset 0xFA80024589E0. The first column is the relative offset of each member,
 followed by the name of each member and a representation of each member. This
 representation consists of a type (e.g. _KPROCESS), a name (e.g. Pcb) and a
@@ -667,7 +667,7 @@ Cache (<FileCache @ /home/scudette/.rekall_cache/sessions/de814bea95020499e782df
 
 As can be been above, the session state can be divided into the configuration,
 and the cache. In the above case the cache is persistent (It is a FileCache) and
-stores a number of useful objects (e.g. the various output the process listing
+stores a number of useful objects (e.g. the various output, the process listing
 techniques). Note that the cache will only show objects currently loaded
 (i.e. have been used in this run). There may be other objects on disk.
 
