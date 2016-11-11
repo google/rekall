@@ -741,38 +741,7 @@ ript>
 
 <div class="abstract">
 <h2>Convert the physical address space to a crash dump.</h2>
-<p>The Windows debugger (Windbg) works only with memory dumps stored
-in the proprietary &lsquo;crashdump&rsquo; file format. This file format
-contains the following features:</p>
-<p>1) Physical memory ranges are stored in a sparse way - there is a
-   &lsquo;Runs&rsquo; table which specifies the mapping between the physical
-   offset and the file offset of each page. This allows the format
-   to omit unmapped regions (unlike raw format which must pad them
-   with zero to maintain alignment).</p>
-<p>2) The crash dump header contains metadata about the
-   image. Specifically, the header contain a copy of the Kernel
-   Debugger Data Block (AKA the KDBG). This data is used to
-   bootstrap the windows debugger by providing critical initial
-   hints to the debugger.</p>
-<p>Since the KDBG block is created at system boot and never used
-(until the crash dump is written) it is trivial for malware to
-overwrite it - making it really hard for responders since windbg
-will not be able to read the file. In later versions of windows,
-the kdbg is also obfuscated (See the function &ldquo;nt!KdCopyDataBlock&rdquo;
-which decrypts it.).</p>
-<p>Rekall itself does not use the KDBG block any more, although older
-memory forensic tools still do use it. Rekall instead relies on
-accurate debugging symbols to locate critical kernel data
-structures, reducing the level of trust we place on the image
-itself (so Rekall is more resilient to manipulation).</p>
-<p>In order to ensure that the windows debugger is able to read the
-produced crash dump, we recreate the kernel debugger block from
-the symbol information we already have.</p>
-<p>NOTE: The crashdump file format can be deduced by:</p>
-<p>dis &lsquo;nt!IoFillDumpHeader&rsquo;</p>
-<p>This is the reference for this plugin.</p>
 </div>
-
 
 <h3>Plugin Arguments</h3>
 <div class="plugins_args">
@@ -809,7 +778,7 @@ contains the following features:</p>
 <p>Since the <strong>KDBG</strong> block is created at system boot and never used (until the
 crash dump is written) it is trivial for malware to overwrite it - making it
 really hard for responders since windbg will not be able to read the file. In
-later versions of windows, the kdbg is also obfuscated (See the function
+later versions of windows, the KDBG is also obfuscated (See the function
 <code>nt!KdCopyDataBlock</code> which decrypts it.).</p>
 <p>Rekall itself does not use the <strong>KDBG</strong> block any more, although older memory
 forensic tools still do use it. Rekall instead relies on accurate debugging
@@ -829,7 +798,7 @@ already have.</p>
 <p>This plugin is really only useful in order to produce an image compatible
    with the windows debugger for the purpose of further investigation by the
    debugger. If you find that the windows debugger has a useful feature that
-   Rekall does not have, please let up know so we can implement it in Rekall. We
+   Rekall does not have, please let us know so we can implement it in Rekall. We
    intend to replace the use of the windows debugger in digital forensics.</p>
 </li>
 </ol>
