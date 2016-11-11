@@ -237,24 +237,6 @@ ript>
         </li>
         
         <li classes=''>
-          <a href='#idump' class="category-link">
-            idump
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#iexport' class="category-link">
-            iexport
-          </a>
-        </li>
-        
-        <li classes=''>
-          <a href='#ils' class="category-link">
-            ils
-          </a>
-        </li>
-        
-        <li classes=''>
           <a href='#istat' class="category-link">
             istat
           </a>
@@ -652,107 +634,6 @@ available when Rekall in run in live mode with the <code>--live Memory</code> or
 </ul></td></tr><tr><td><p>width</p></td><td><p>Number of bytes per row (type: IntParser)</p>
 <ul>
 <li>Default: 24</li>
-</ul></td></tr>
-</tbody>
-</table>
-</div>
-
-
-
-</div>
-
-<h1 id="idump" class="anchor">idump</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.filesystems.ntfs.IDump-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>Dump a part of an MFT file.</h2>
-</div>
-
-
-<h3>Plugin Arguments</h3>
-<div class="plugins_args">
-<table class='table table-condensed'>
-<tbody>
-<tr><td><p>id</p></td><td><p>Id of attribute to dump. (type: IntParser)</p></td></tr><tr><td><p>mft</p></td><td><p>MFT entry to dump. (type: IntParser)</p>
-<ul>
-<li>Default: 5</li>
-</ul></td></tr><tr><td><p>type</p></td><td><p>Attribute type to dump. (type: IntParser)</p>
-<ul>
-<li>Default: 128</li>
-</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
-<ul>
-<li>Default: 1</li>
-</ul></td></tr>
-</tbody>
-</table>
-</div>
-
-
-
-</div>
-
-<h1 id="iexport" class="anchor">iexport</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.filesystems.ntfs.IExport-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>Extracts files from NTFS.</h2>
-<p>For each specified MFT entry, dump the file to the specified dump
-directory. The filename is taken as the longest filename of this MFT entry.</p>
-</div>
-
-
-<h3>Plugin Arguments</h3>
-<div class="plugins_args">
-<table class='table table-condensed'>
-<tbody>
-<tr><td><p>dump_dir</p></td><td><p>Path suitable for dumping files. (type: String)</p></td></tr><tr><td><p>id</p></td><td><p>Id of attribute to dump. (type: IntParser)</p></td></tr><tr><td><p>mft</p></td><td><p>MFT entry to dump. (type: IntParser)</p>
-<ul>
-<li>Default: 5</li>
-</ul></td></tr><tr><td><p>type</p></td><td><p>Attribute type to dump. (type: IntParser)</p>
-<ul>
-<li>Default: 128</li>
-</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
-<ul>
-<li>Default: 1</li>
-</ul></td></tr>
-</tbody>
-</table>
-</div>
-
-
-
-</div>
-
-<h1 id="ils" class="anchor">ils</h1>
-
-<a class="btn btn-default epydoc_link"
-   href="/epydocs/rekall.plugins.filesystems.ntfs.ILS-class.html">View Source</a>
-
-
-<div class="plugin_description">
-<div class="abstract">
-<h2>List files in an NTFS image.</h2>
-</div>
-
-
-<h3>Plugin Arguments</h3>
-<div class="plugins_args">
-<table class='table table-condensed'>
-<tbody>
-<tr><td><p>mfts</p></td><td><p>MFT entries to list. (type: ArrayIntParser)</p>
-<ul>
-<li>Default: 5</li>
-</ul></td></tr><tr><td><p>verbosity</p></td><td><p>An integer reflecting the amount of desired output: 0 = quiet, 10 = noisy. (type: IntParser)</p>
-<ul>
-<li>Default: 1</li>
 </ul></td></tr>
 </tbody>
 </table>
