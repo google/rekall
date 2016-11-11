@@ -59,7 +59,7 @@ contains the following features:
 Since the **KDBG** block is created at system boot and never used (until the
 crash dump is written) it is trivial for malware to overwrite it - making it
 really hard for responders since windbg will not be able to read the file. In
-later versions of windows, the kdbg is also obfuscated (See the function
+later versions of windows, the KDBG is also obfuscated (See the function
 `nt!KdCopyDataBlock` which decrypts it.).
 
 Rekall itself does not use the **KDBG** block any more, although older memory
@@ -82,5 +82,5 @@ already have.
 2. This plugin is really only useful in order to produce an image compatible
    with the windows debugger for the purpose of further investigation by the
    debugger. If you find that the windows debugger has a useful feature that
-   Rekall does not have, please let up know so we can implement it in Rekall. We
+   Rekall does not have, please let us know so we can implement it in Rekall. We
    intend to replace the use of the windows debugger in digital forensics.
