@@ -46,6 +46,7 @@ APIProfile = None
 
 class APIDummyPhysicalAddressSpace(addrspace.BaseAddressSpace):
     __image = True
+    volatile = True
 
     def __init__(self, base=None, session=None, **kwargs):
         self.as_assert(base is None)

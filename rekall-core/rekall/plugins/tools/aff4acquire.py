@@ -668,7 +668,8 @@ class AFF4Acquire(AbstractAFF4Plugin):
                 # User can request to just acquire regular files but only if
                 # no physical_address_space is also specified.
                 elif self.plugin_args.files:
-                    for x in self.copy_files(resolver, volume, self.files):
+                    for x in self.copy_files(resolver, volume,
+                                             self.plugin_args.files):
                         yield x
 
 
