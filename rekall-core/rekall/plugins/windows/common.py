@@ -247,6 +247,11 @@ class PoolTagCheck(scan.StringCheck):
         self.tag_offset = self.session.profile.get_obj_offset(
             "_POOL_HEADER", "PoolTag")
 
+        if self.tag_offset == None:
+            raise RuntimeError(
+                "Unable to get PoolTag offset in _POOL_HEADER. "
+                "Is the profile correct?")
+
     def skip(self, buffer_as, offset):
         return super(PoolTagCheck, self).skip(
             buffer_as, offset + self.tag_offset)
