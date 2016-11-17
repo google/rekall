@@ -1,4 +1,8 @@
-"""Add a magic handler for select, describe and explain plugins."""
+"""Add a magic handler for select, describe and explain plugins.
+
+This plugin adds support to IPython. It is probably only useful for
+the console.
+"""
 import shlex
 from IPython.core import magic
 from rekall import ipython_support

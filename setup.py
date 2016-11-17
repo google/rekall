@@ -110,7 +110,8 @@ setup(
     # This requires an exact version to ensure that installing the meta package
     # pulls in tested dependencies.
     install_requires=[
-        "rekall-core >= 1.5.0",
+        "rekall-agent >= 1.6.0",
+        "rekall-core >= 1.6.0",
         "ipython >= 5.0.0, < 6.0",
     ],
 

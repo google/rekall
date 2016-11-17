@@ -187,6 +187,7 @@ class SymbolOffsetIndex(Index):
             relative_symbols = self.RelativizeSymbols(symbols.copy())
         except ValueError as e:
             self.session.logging.debug(str(e))
+            return []
 
         for profile, traits in self.traits.iteritems():
             matched_traits = 0

@@ -165,8 +165,8 @@ class LinuxConverter(ProfileConverter):
         sys_map = {}
         # get the system map
         for line in system_map.splitlines():
-            (address, _, symbol) = line.strip().split()
             try:
+                (address, _, symbol) = line.strip().split()
                 sys_map[symbol] = long(address, 16) & 0xFFFFFFFFFFFF
             except ValueError:
                 pass

@@ -173,9 +173,7 @@ class DirectoryBasedWriter(BaseArtifactResultWriter):
             try:
                 self.write_file(result)
             except (IOError, OSError) as e:
-                self.session.logging.warn(
-                    "Unable to copy file %s into output: %s",
-                    result["filename"], e)
+                self.session.logging.warn("Unable to copy file: %s", e)
 
         with self.session.GetRenderer().open(
                 directory=self.dump_dir,
